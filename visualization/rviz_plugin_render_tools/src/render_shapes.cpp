@@ -44,6 +44,8 @@
 #include <OGRE/OgreMaterialManager.h>
 
 #include <rviz/ogre_helpers/shape.h>
+#include <rviz/ogre_helpers/mesh_shape.h>
+
 #include <rviz/display_context.h>
 #include <rviz/robot/robot.h>
 
@@ -67,18 +69,6 @@ RenderShapes::~RenderShapes()
 void RenderShapes::clear()
 {
   scene_shapes_.clear();
-  for (std::size_t i = 0 ; i < movable_objects_.size() ; ++i)
-    context_->getSceneManager()->destroyMovableObject(movable_objects_[i]);
-
-  movable_objects_.clear();
-
-  for (std::size_t i = 0; i < materials_.size(); ++i)
-  {
-    materials_[i]->unload();
-    Ogre::MaterialManager::getSingleton().remove(materials_[i]->getName());
-  }
-  materials_.clear();
-
   octree_voxel_grids_.clear();
 }
 
@@ -91,7 +81,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
                                float alpha)
 {
   rviz::Shape* ogre_shape = NULL;
-
+  
   // we don't know how to render cones directly, but we can convert them to a mesh
   if (s->type == shapes::CONE)
   {
@@ -100,7 +90,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
       renderShape(node, m.get(), p, octree_voxel_rendering, octree_color_mode, color, alpha);
     return;
   }
-
+  
   switch (s->type)
   {
   case shapes::SPHERE:
@@ -133,60 +123,41 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
       const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
       if (mesh->triangle_count > 0)
       {
-        //construct the material
-        std::string mname = "Planning Scene Display Mesh Material " + boost::lexical_cast<std::string>(materials_.size()) + " @" + boost::lexical_cast<std::string>(this);
-        Ogre::MaterialPtr mat = Ogre::MaterialManager::getSingleton().create(mname, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-        mat->setReceiveShadows(true);
-        mat->getTechnique(0)->setLightingEnabled(true);
-        mat->setCullingMode(Ogre::CULL_NONE);
-        mat->getTechnique(0)->setAmbient(color.r_ * 0.2f, color.g_ * 0.2f, color.b_ * 0.2f);
-        mat->getTechnique(0)->setDiffuse(color.r_, color.g_, color.b_, alpha);
-        if (alpha < 0.9998)
-        {
-          mat->getTechnique(0)->setSceneBlending( Ogre::SBT_TRANSPARENT_ALPHA );
-          mat->getTechnique(0)->setDepthWriteEnabled( false );
-        }
-        else
-        {
-          mat->getTechnique(0)->setSceneBlending( Ogre::SBT_REPLACE );
-          mat->getTechnique(0)->setDepthWriteEnabled( true );
-        }
-        materials_.push_back(mat);
-
-        std::string name = "Planning Scene Display Mesh " + boost::lexical_cast<std::string>(movable_objects_.size()) + " @" + boost::lexical_cast<std::string>(this);
-        Ogre::ManualObject *manual_object = context_->getSceneManager()->createManualObject(name);
-        manual_object->estimateVertexCount(mesh->triangle_count * 3);
-        manual_object->begin(materials_.back()->getName(), Ogre::RenderOperation::OT_TRIANGLE_LIST);
-        Eigen::Vector3d normal(0.0, 0.0, 0.0);
-        Eigen::Matrix3d rot = p.rotation();
+        rviz::MeshShape *m = new rviz::MeshShape(context_->getSceneManager(), node);
+        ogre_shape = m;
+        
+        Ogre::Vector3 normal(0.0, 0.0, 0.0);
         for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
         {
           unsigned int i3 = i * 3;
           if (mesh->triangle_normals && !mesh->vertex_normals)
-            normal = rot * Eigen::Vector3d(mesh->triangle_normals[i3], mesh->triangle_normals[i3 + 1], mesh->triangle_normals[i3 + 2]);
-
+          {
+            normal.x = mesh->triangle_normals[i3];
+            normal.y = mesh->triangle_normals[i3 + 1];
+            normal.z = mesh->triangle_normals[i3 + 2];
+          }
+          
           for (int k = 0 ; k < 3 ; ++k)
           {
             unsigned int vi = 3 * mesh->triangles[i3 + k];
-            Eigen::Vector3d v = p * Eigen::Vector3d(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
-            manual_object->position(v.x(), v.y(), v.z());
+            Ogre::Vector3 v(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
             if (mesh->vertex_normals)
             {
-              normal = rot * Eigen::Vector3d(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
-              manual_object->normal(normal.x(), normal.y(), normal.z());
+              Ogre::Vector3 n(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
+              m->addVertex(v, n);
             }
             else
               if (mesh->triangle_normals)
-                manual_object->normal(normal.x(), normal.y(), normal.z());
+                m->addVertex(v, normal);
+              else
+                m->addVertex(v);
           }
         }
-        manual_object->end();
-        node->attachObject(manual_object);
-        movable_objects_.push_back(manual_object);
+        m->endTriangles();
       }
     }
     break;
-
+    
   case shapes::OCTREE:
     {
       boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
@@ -195,23 +166,23 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
                                                               0u,
                                                               context_->getSceneManager(),
                                                               node));
-
-
+      
+      
       octree_voxel_grids_.push_back(octree);
     }
     break;
-
+    
   default:
     break;
   }
-
+  
   if (ogre_shape)
   {
     ogre_shape->setColor(color.r_, color.g_, color.b_, alpha);
     Ogre::Vector3 position(p.translation().x(), p.translation().y(), p.translation().z());
     Eigen::Quaterniond q(p.rotation());
     Ogre::Quaternion orientation(q.w(), q.x(), q.y(), q.z());
-
+    
     if (s->type == shapes::CYLINDER)
     {
       // in geometric shapes, the z axis of the cylinder is it height;
@@ -219,7 +190,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
       static Ogre::Quaternion fix(Ogre::Radian(boost::math::constants::pi<double>()/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
       orientation = orientation * fix;
     }
-
+    
     ogre_shape->setPosition(position);
     ogre_shape->setOrientation(orientation);
     scene_shapes_.push_back(boost::shared_ptr<rviz::Shape>(ogre_shape));
