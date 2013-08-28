@@ -37,19 +37,17 @@
 #ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
 #define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_RENDER_SHAPES_
 
+#include <moveit/rviz_plugin_render_tools/octomap_render.h>
+#include <moveit/macros/class_forward.h>
 #include <geometric_shapes/shapes.h>
 #include <rviz/helpers/color.h>
-#include <OGRE/OgreMaterial.h>
+#include <boost/shared_ptr.hpp>
 #include <Eigen/Geometry>
 #include <string>
-#include <boost/shared_ptr.hpp>
-#include <moveit/rviz_plugin_render_tools/octomap_render.h>
 
 namespace Ogre
 {
-class Entity;
 class SceneNode;
-class ManualObject;
 }
 
 namespace rviz
@@ -85,16 +83,10 @@ private:
   rviz::DisplayContext *context_;
 
   std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector< Ogre::MovableObject* > movable_objects_;
   std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
-
-  std::vector<Ogre::MaterialPtr> materials_;
-
-
 };
 
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
-typedef boost::shared_ptr<const RenderShapes> RenderShapesConstPtr;
+MOVEIT_CLASS_FORWARD(RenderShapes);
 
 }
 
