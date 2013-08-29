@@ -1,7 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2011, Willow Garage, Inc.
+*  Copyright (c) 2013, Ioan A. Sucan
+*  Copyright (c) 2011-2013, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -379,17 +380,22 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
 bool moveit::core::jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
   bool result = _jointStateToRobotState(joint_state, state, NULL);
+  state.update();
   return result;
 }
 
 bool moveit::core::robotStateMsgToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
-  return _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
+  bool result = _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
+  state.update();
+  return result;
 }
 
 bool moveit::core::robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
-  return _robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
+  bool result = _robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
+  state.update();
+  return result;
 }
 
 void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies)

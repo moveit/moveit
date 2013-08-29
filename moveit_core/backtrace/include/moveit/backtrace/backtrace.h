@@ -47,8 +47,8 @@ void get_backtrace(std::ostream &out);
 #include <execinfo.h>
 void get_backtrace(std::ostream &out)
 {
-  void *array[50];
-  size_t size = backtrace(array, 50);
+  void *array[500];
+  size_t size = backtrace(array, 500);
   char **strings = backtrace_symbols((void *const *)array, size);
   out << "Backtrace:" << std::endl;
   for (size_t i = 0; i < size; ++i)
