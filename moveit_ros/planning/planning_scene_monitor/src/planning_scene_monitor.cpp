@@ -932,6 +932,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       last_update_time_ = ros::Time::now();
+      scene_->getCurrentStateNonConst().update(); // compute all transforms 
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
   }

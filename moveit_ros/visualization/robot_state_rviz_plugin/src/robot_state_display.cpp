@@ -406,6 +406,7 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
   if (robot_ && update_state_)
   {
     update_state_ = false;
+    kstate_->update();
     robot_->update(kstate_);
   }
 }

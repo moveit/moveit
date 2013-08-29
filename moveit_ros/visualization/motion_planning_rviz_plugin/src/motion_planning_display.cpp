@@ -542,11 +542,10 @@ void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group,
     return;
   boost::mutex::scoped_lock slock(update_metrics_lock_);
 
-  robot_state::RobotState state = start ? *getQueryStartState() : *getQueryGoalState();
-  state.update();
+  robot_state::RobotStateConstPtr state = start ? getQueryStartState() : getQueryGoalState();
   for (std::size_t i = 0 ; i < eef.size() ; ++i)
     if (eef[i].parent_group == group)
-      computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], state, payload);
+      computeMetricsInternal(computed_metrics_[std::make_pair(start, group)], eef[i], *state, payload);
 }
 
 void MotionPlanningDisplay::computeMetricsInternal(std::map<std::string, double> &metrics, const robot_interaction::RobotInteraction::EndEffector &ee,
@@ -673,9 +672,8 @@ void MotionPlanningDisplay::drawQueryStartState()
   {
     if (isEnabled())
     {
-      robot_state::RobotState *rs = new robot_state::RobotState(*getQueryStartState());
-      rs->update();
-      robot_state::RobotStateConstPtr state(rs);      
+      robot_state::RobotStateConstPtr state = getQueryStartState();
+      
       // update link poses
       query_robot_start_->update(state);
       query_robot_start_->setVisible(true);
@@ -792,9 +790,7 @@ void MotionPlanningDisplay::drawQueryGoalState()
   {
     if (isEnabled())
     {
-      robot_state::RobotState *rs = new robot_state::RobotState(*getQueryGoalState());
-      rs->update();
-      robot_state::RobotStateConstPtr state(rs);
+      robot_state::RobotStateConstPtr state = getQueryGoalState();
       
       // update link poses
       query_robot_goal_->update(state);
