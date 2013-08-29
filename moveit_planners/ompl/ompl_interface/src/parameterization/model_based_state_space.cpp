@@ -291,6 +291,7 @@ void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State *s
 void ompl_interface::ModelBasedStateSpace::copyToRobotState(robot_state::RobotState& rstate, const ompl::base::State *state) const
 {
   rstate.setJointGroupPositions(spec_.joint_model_group_, state->as<StateType>()->values);
+  rstate.update();
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const
