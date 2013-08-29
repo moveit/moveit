@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2012-2013, Willow Garage, Inc.
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -206,13 +207,17 @@ robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState()
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (kstate_)
+  {
+    kstate_->update();
     return kstate_;
+  }
   else
   {
     do
     {
       state_available_condition_.wait(ulock);
     } while (!kstate_);
+    kstate_->update();
     return kstate_;
   }
 }
@@ -979,9 +984,14 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffe
                                    const robot_state::GroupStateValidityCallbackFn &validity_callback,
                                    const kinematics::KinematicsQueryOptions &kinematics_query_options)
 {
-  return state.setFromIK(state.getJointModelGroup(eef.parent_group), pose, eef.parent_link,
-                         kinematics_query_options.lock_redundant_joints ? 1 : attempts,
-                         ik_timeout, validity_callback, kinematics_query_options);
+  if (state.setFromIK(state.getJointModelGroup(eef.parent_group), pose, eef.parent_link,
+                      kinematics_query_options.lock_redundant_joints ? 1 : attempts,
+                      ik_timeout, validity_callback, kinematics_query_options))
+  {
+    state.update();
+    return true;
+  }
+  return false;
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)

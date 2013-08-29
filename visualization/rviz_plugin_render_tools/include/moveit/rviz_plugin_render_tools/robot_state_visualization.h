@@ -53,7 +53,7 @@ class RobotStateVisualization
 public:
 
   RobotStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
-                              const std::string& name, rviz::Property* parent_property);
+                          const std::string& name, rviz::Property* parent_property);
 
   rviz::Robot& getRobot()
   {
