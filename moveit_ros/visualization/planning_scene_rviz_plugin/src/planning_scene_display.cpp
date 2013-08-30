@@ -501,9 +501,7 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   {
     planning_scene_robot_->load(*getRobotModel()->getURDF());
     robot_state::RobotState *rs = new robot_state::RobotState(ps->getCurrentState());
-    rs->printStateInfo(std::cout);
     rs->update();
-    rs->printStateInfo(std::cout);
     planning_scene_robot_->update(robot_state::RobotStateConstPtr(rs));
   }
 

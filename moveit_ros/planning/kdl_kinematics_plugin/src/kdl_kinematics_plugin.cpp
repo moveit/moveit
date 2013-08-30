@@ -165,7 +165,13 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   dimension_ = joint_model_group->getVariableCount();
   ik_chain_info_.joint_names = joint_model_group->getJointModelNames();
-  ik_chain_info_.limits = joint_model_group->getVariableBoundsMsg();
+
+  for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
+  {
+    const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
+    ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
+  }
+
   fk_chain_info_.joint_names = ik_chain_info_.joint_names;
   fk_chain_info_.limits = ik_chain_info_.limits;
 

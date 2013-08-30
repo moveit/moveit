@@ -104,11 +104,11 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
     // if there are additional joint limits specified in some .yaml file, read those in
     ros::NodeHandle nh("~");
 
-    for (unsigned int i = 0; i < model_->getJointModels().size() ; ++i)
+    for (std::size_t i = 0; i < model_->getJointModels().size() ; ++i)
     {
       robot_model::JointModel *jmodel = model_->getJointModels()[i];
       std::vector<moveit_msgs::JointLimits> jlim = jmodel->getVariableBoundsMsg();
-      for(unsigned int j = 0; j < jlim.size(); ++j)
+      for (std::size_t j = 0; j < jlim.size(); ++j)
       {
         std::string prefix = rdf_loader_->getRobotDescription() + "_planning/joint_limits/" + jlim[j].joint_name + "/";
 
@@ -149,6 +149,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
         bool has_acc_limits;
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           jlim[j].has_acceleration_limits = has_acc_limits;
+        std::cout << jlim[j] << std::endl;
       }
       jmodel->setVariableBounds(jlim);
     }
