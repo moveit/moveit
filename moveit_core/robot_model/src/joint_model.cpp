@@ -1,8 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
+*  Copyright (c) 2013, Ioan A. Sucan
 *  Copyright (c) 2008-2013, Willow Garage, Inc.
-*  Copyright (c) 2013-, Ioan A. Sucan
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <moveit/exceptions/exceptions.h>
 #include <moveit/robot_model/joint_model.h>
 #include <moveit/robot_model/link_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <algorithm>
 
 moveit::core::JointModel::JointModel(const std::string& name)

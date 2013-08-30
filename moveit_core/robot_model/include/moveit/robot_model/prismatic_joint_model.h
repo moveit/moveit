@@ -51,6 +51,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   PrismaticJointModel(const std::string& name);
+
   virtual void getVariableDefaultValues(double *values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const;
   virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,

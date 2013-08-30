@@ -1,7 +1,8 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Willow Garage, Inc.
+*  Copyright (c) 2013, Ioan A. Sucan
+*  Copyright (c) 2008-2013, Willow Garage, Inc.
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -41,7 +42,6 @@
 #include <moveit/robot_model/link_model.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <srdfdom/model.h>
-#include <boost/container/flat_set.hpp>
 #include <boost/function.hpp>
 #include <set>
 
@@ -53,14 +53,32 @@ namespace core
 class RobotModel;
 class JointModelGroup;
 
-/// Function type that allocates a kinematics solver for a particular group  
+/** \brief Function type that allocates a kinematics solver for a particular group */
 typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
 
-/// Map from group instances to allocator functions & bijections
+/** \brief Map from group instances to allocator functions & bijections */
 typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
 
-/// Map of names to instances for JointModelGroup
-typedef boost::container::flat_map<std::string, JointModelGroup*> JointModelGroupMap;
+#if BOOST_VERSION < 104800
+
+   /** \brief Map of names to instances for JointModelGroup */
+   typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
+
+   /** \brief Map of names to const instances for JointModelGroup */
+   typedef std::map<std::string, const JointModelGroup*> JointModelGroupMapConst;
+
+#else
+
+   /** \brief Map of names to instances for JointModelGroup */
+   typedef boost::container::flat_map<std::string, JointModelGroup*> JointModelGroupMap;
+
+   /** \brief Map of names to const instances for JointModelGroup */
+   typedef boost::container::flat_map<std::string, const JointModelGroup*> JointModelGroupMapConst;
+
+#endif
+
+typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
+typedef std::vector<const JointModel::Bounds*> JointBoundsVector;
 
 class JointModelGroup
 {
@@ -351,35 +369,35 @@ public:
     getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distances);
   }  
   
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds) const;
   
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
                                      const double *near, const double distance) const;
   
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
                                      const double *near, const std::map<JointModel::JointType, double> &distance_map) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const std::vector<JointModel::Bounds> &active_joint_bounds,
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
                                      const double *near, const std::vector<double> &distances) const;
 
   bool enforceBounds(double *state) const
   {
     return enforceBounds(state, active_joint_models_bounds_);
   }
-  bool enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  bool enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
   bool satisfiesBounds(const double *state, double margin = 0.0) const
   {
     return satisfiesBounds(state, active_joint_models_bounds_, margin);
   }
-  bool satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin = 0.0) const;
+  bool satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
   double getMaximumExtent() const
   {
     return getMaximumExtent(active_joint_models_bounds_);
   }
-  double getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  double getMaximumExtent(const JointBoundsVector &active_joint_bounds) const;
   
   double distance(const double *state1, const double *state2) const;  
   void interpolate(const double *from, const double *to, double t, double *state) const;
@@ -456,20 +474,11 @@ public:
     return attached_end_effector_names_;
   }
   
-  /** \brief Get the joint limits (combined from the contained joints) */
-  const std::vector<moveit_msgs::JointLimits>& getVariableBoundsMsg() const
-  {
-    return variable_bounds_msg_;
-  }
-  
   /** \brief Get the bounds for all the active joints */
-  const std::vector<JointModel::Bounds>& getActiveJointModelsBounds() const
+  const JointBoundsVector& getActiveJointModelsBounds() const
   {
     return active_joint_models_bounds_;
   }
-
-  /** \brief Override joint limits */
-  void setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim);
 
   const std::pair<KinematicsSolver, KinematicsSolverMap>& getGroupKinematics() const
   {
@@ -533,7 +542,6 @@ public:
 
 protected:
 
-  void computeVariableBoundsMsg();
   bool computeIKIndexBijection(const std::vector<std::string> &ik_jnames, std::vector<unsigned int> &joint_bijection) const;
   
   /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, there are no values to be read (\e values is only the group state) */
@@ -573,7 +581,7 @@ protected:
   std::set<std::string>                                      variable_names_set_;
 
   /** \brief A map from joint names to their instances. This includes all joints in the group. */
-  boost::container::flat_map<std::string, const JointModel*> joint_model_map_;
+  JointModelMapConst                                         joint_model_map_;
   
   /** \brief The list of active joint models that are roots in this group */
   std::vector<const JointModel*>                             joint_roots_;
@@ -587,7 +595,7 @@ protected:
   VariableIndexMap                                           joint_variables_index_map_;
 
   /** \brief The bounds for all the active joint models */
-  std::vector<JointModel::Bounds>                            active_joint_models_bounds_;
+  JointBoundsVector                                          active_joint_models_bounds_;
 
   /** \brief The list of index values this group includes, with respect to a full robot state; this includes mimic joints. */
   std::vector<int>                                           variable_index_list_;
@@ -601,7 +609,7 @@ protected:
   std::vector<const LinkModel*>                              link_model_vector_;
 
   /** \brief A map from link names to their instances */
-  boost::container::flat_map<std::string, const LinkModel*>  link_model_map_;
+  LinkModelMapConst                                          link_model_map_;
 
   /** \brief The names of the links in this group */
   std::vector<std::string>                                   link_model_name_vector_;
@@ -641,14 +649,12 @@ protected:
   /** \brief True if the state of this group is contiguous within the full robot state; this also means that
       the index values in variable_index_list_ are consecutive integers */
   bool                                                       is_contiguous_index_list_;
-
-  std::vector<moveit_msgs::JointLimits>                      variable_bounds_msg_;
   
   /** \brief The set of labelled subgroups that are included in this group */
   std::vector<std::string>                                   subgroup_names_;
 
   /** \brief The set of labelled subgroups that are included in this group */
-  boost::container::flat_set<std::string>                    subgroup_names_set_;
+  std::set<std::string>                                      subgroup_names_set_;
   
   /** \brief If an end-effector is attached to this group, the name of that end-effector is stored in this variable */
   std::vector<std::string>                                   attached_end_effector_names_;

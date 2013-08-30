@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2013, Willow Garage, Inc.
+ *  Copyright (c) 2013, Ioan A. Sucan
+ *  Copyright (c) 2008-2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -306,17 +307,17 @@ public:
   {
     return enforceBounds(state, active_joint_models_bounds_);
   }
-  bool enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  bool enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
   bool satisfiesBounds(const double *state, double margin = 0.0) const
   {
     return satisfiesBounds(state, active_joint_models_bounds_, margin);
   }
-  bool satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin = 0.0) const;
+  bool satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
   double getMaximumExtent() const
   {
     return getMaximumExtent(active_joint_models_bounds_);
   }
-  double getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const;
+  double getMaximumExtent(const JointBoundsVector &active_joint_bounds) const;
 
   double distance(const double *state1, const double *state2) const;  
   void interpolate(const double *from, const double *to, double t, double *state) const;
@@ -383,10 +384,13 @@ public:
   }
 
   /** \brief Get the bounds for a specific variable. Throw an exception of variable is not found. */
-  const VariableBounds& getVariableBounds(const std::string& variable) const;
+  const VariableBounds& getVariableBounds(const std::string& variable) const
+  {
+    return getJointOfVariable(variable)->getVariableBounds(variable);
+  }  
 
   /** \brief Get the bounds for all the active joints */
-  const std::vector<JointModel::Bounds>& getActiveJointModelsBounds() const
+  const JointBoundsVector& getActiveJointModelsBounds() const
   {
     return active_joint_models_bounds_;
   }
@@ -411,8 +415,7 @@ public:
 
 protected:
 
-  void computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform, 
-                              LinkModel::AssociatedFixedTransformMap &associated_transforms);
+  void computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform, LinkTransformMap &associated_transforms);
 
   /** \brief Given two joints, find their common root */
   const JointModel* computeCommonRoot(const JointModel *a, const JointModel *b) const;
@@ -516,14 +519,8 @@ protected:
 
   std::vector<int>                              active_joint_model_start_index_;
   
-  /** \brief The bounds for all the variables that make up the joints in this model */
-  VariableBoundsMap                             variable_bounds_map_;
-  
-  /** \brief The bounds for all the variables that make up the joints in this model */
-  std::vector<VariableBounds>                   variable_bounds_;
-
   /** \brief The bounds for all the active joint models */
-  std::vector<JointModel::Bounds>               active_joint_models_bounds_;
+  JointBoundsVector                             active_joint_models_bounds_;
 
   /** \brief The joints that correspond to each variable index */
   std::vector<const JointModel*>                joints_of_variable_;
