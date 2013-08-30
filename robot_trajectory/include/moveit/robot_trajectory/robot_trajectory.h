@@ -45,6 +45,8 @@
 namespace robot_trajectory
 {
 
+/** \brief Maintain a sequence of waypoints and the time durations
+    between these waypoints */
 class RobotTrajectory
 {
 public:
@@ -137,6 +139,7 @@ public:
 
   void addSuffixWayPoint(const robot_state::RobotStatePtr &state, double dt)
   {
+    state->update();
     waypoints_.push_back(state);
     duration_from_previous_.push_back(dt);
   }
@@ -148,6 +151,7 @@ public:
 
   void addPrefixWayPoint(const robot_state::RobotStatePtr &state, double dt)
   {
+    state->update();
     waypoints_.push_front(state);
     duration_from_previous_.push_front(dt);
   }
@@ -159,6 +163,7 @@ public:
 
   void insertWayPoint(std::size_t index, const robot_state::RobotStatePtr &state, double dt)
   {
+    state->update();
     waypoints_.insert(waypoints_.begin() + index, state);
     duration_from_previous_.insert(duration_from_previous_.begin() + index, dt);
   }

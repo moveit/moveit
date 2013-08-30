@@ -254,9 +254,7 @@ bool moveit::core::RobotState::checkTransforms(const TransformTest level) const
   }
   if (dirty)
   {
-    std::stringstream ss;
-    moveit::get_backtrace(ss);
-    logWarn(ss.str().c_str());
+    *(int*)0=0;
   }
   
   return true;

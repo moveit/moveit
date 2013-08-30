@@ -77,9 +77,9 @@ void robot_trajectory::RobotTrajectory::swap(robot_trajectory::RobotTrajectory &
 
 void robot_trajectory::RobotTrajectory::append(const RobotTrajectory &source, double dt)
 {
-  waypoints_.insert(waypoints_.end(), source.waypoints_.begin(),source.waypoints_.end());
+  waypoints_.insert(waypoints_.end(), source.waypoints_.begin(), source.waypoints_.end());
   std::size_t index = duration_from_previous_.size();
-  duration_from_previous_.insert(duration_from_previous_.end(), source.duration_from_previous_.begin(),source.duration_from_previous_.end());
+  duration_from_previous_.insert(duration_from_previous_.end(), source.duration_from_previous_.begin(), source.duration_from_previous_.end());
   if (duration_from_previous_.size() > index)
     duration_from_previous_[index] += dt;
 }
@@ -126,6 +126,8 @@ void robot_trajectory::RobotTrajectory::unwind()
       }
     }
   }
+  for (std::size_t j = 0 ; j < waypoints_.size() ; ++j)
+    waypoints_[j]->update();
 }
 
 void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &state)
@@ -169,6 +171,8 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &st
       }
     }
   }
+  for (std::size_t j = 0 ; j < waypoints_.size() ; ++j)
+    waypoints_[j]->update();
 }
 
 void robot_trajectory::RobotTrajectory::clear()
@@ -311,7 +315,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
 
 void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after, double &blend) const
 {
-  if(duration < 0.0)
+  if (duration < 0.0)
   {
     before = 0;
     after = 0;
@@ -322,7 +326,7 @@ void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart
   // Find indicies
   std::size_t index = 0, num_points = waypoints_.size();
   double running_duration = 0.0;
-  for( ; index < num_points; ++index)
+  for ( ; index < num_points; ++index)
   {
     running_duration += duration_from_previous_[index];
     if (running_duration >= duration)
