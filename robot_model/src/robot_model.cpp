@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -249,8 +250,6 @@ void moveit::core::RobotModel::buildJointInfo()
 
   // construct additional maps for easy access by name
   variable_count_ = 0;
-  variable_bounds_.clear();
-  variable_bounds_map_.clear();
   active_joint_model_start_index_.reserve(joint_model_vector_.size());
   variable_names_.reserve(joint_model_vector_.size());
   joints_of_variable_.reserve(joint_model_vector_.size());
@@ -268,15 +267,13 @@ void moveit::core::RobotModel::buildJointInfo()
         joint_variables_index_map_[name_order[j]] = variable_count_ + j;
         variable_names_.push_back(name_order[j]);
         joints_of_variable_.push_back(joint_model_vector_[i]);
-        variable_bounds_.push_back(joint_model_vector_[i]->getVariableBounds(name_order[j]));
-        variable_bounds_map_[name_order[j]] = variable_bounds_.back();
       }
       if (joint_model_vector_[i]->getMimic() == NULL)
       {
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
         active_joint_model_vector_const_.push_back(joint_model_vector_[i]);
-        active_joint_models_bounds_.push_back(joint_model_vector_[i]->getVariableBounds());
+        active_joint_models_bounds_.push_back(&joint_model_vector_[i]->getVariableBounds());
       }
 
       if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE && static_cast<const RevoluteJointModel*>(joint_model_vector_[i])->isContinuous())
@@ -297,11 +294,11 @@ void moveit::core::RobotModel::buildJointInfo()
   
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
   {
-    LinkModel::AssociatedFixedTransformMap associated_transforms;
+    LinkTransformMap associated_transforms;
     computeFixedTransforms(link_model_vector_[i], Eigen::Affine3d::Identity(), associated_transforms);
     if (associated_transforms.size() > 1)
     {
-      for (LinkModel::AssociatedFixedTransformMap::iterator it = associated_transforms.begin() ; it != associated_transforms.end() ; ++it)
+      for (LinkTransformMap::iterator it = associated_transforms.begin() ; it != associated_transforms.end() ; ++it)
         if (it->first != link_model_vector_[i])
         {
           getLinkModel(it->first->getName())->addAssociatedFixedTransform(link_model_vector_[i], it->second.inverse());
@@ -762,7 +759,6 @@ moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel *pa
 
   // bookkeeping for the link
   link_model_map_[joint->getChildLinkModel()->getName()] = link;
-  link->setLinkTransformIndex(link_model_vector_.size());
   link->setLinkIndex(link_model_vector_.size());
   link_model_vector_.push_back(link);
   link_model_vector_const_.push_back(link);
@@ -1100,14 +1096,6 @@ void moveit::core::RobotModel::getVariableRandomValues(random_numbers::RandomNum
   updateMimicJoints(values);
 }
 
-const moveit::core::VariableBounds& moveit::core::RobotModel::getVariableBounds(const std::string& variable) const
-{
-  VariableBoundsMap::const_iterator it = variable_bounds_map_.find(variable);
-  if (it == variable_bounds_map_.end())
-    throw Exception("Could not find variable '" + variable + "' to get bounds for within model '" + model_name_ + "'");
-  return it->second;
-}
-
 void moveit::core::RobotModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
 {
   std::vector<double> tmp(variable_count_);
@@ -1151,29 +1139,29 @@ int moveit::core::RobotModel::getVariableIndex(const std::string &variable) cons
   return it->second;
 }
 
-double moveit::core::RobotModel::getMaximumExtent(const std::vector<JointModel::Bounds> &active_joint_bounds) const
+double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector &active_joint_bounds) const
 {
   double max_distance = 0.0;
   for (std::size_t j = 0 ; j < active_joint_model_vector_.size() ; ++j)
-    max_distance += active_joint_model_vector_[j]->getMaximumExtent(active_joint_bounds[j]) * active_joint_model_vector_[j]->getDistanceFactor();
+    max_distance += active_joint_model_vector_[j]->getMaximumExtent(*active_joint_bounds[j]) * active_joint_model_vector_[j]->getDistanceFactor();
   return max_distance;
 }
 
-bool moveit::core::RobotModel::satisfiesBounds(const double *state, const std::vector<JointModel::Bounds> &active_joint_bounds, double margin) const
+bool moveit::core::RobotModel::satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    if (!active_joint_model_vector_[i]->satisfiesBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i], margin))
+    if (!active_joint_model_vector_[i]->satisfiesBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i], margin))
       return false;
   return true;
 }
 
-bool moveit::core::RobotModel::enforceBounds(double *state, const std::vector<JointModel::Bounds> &active_joint_bounds) const
+bool moveit::core::RobotModel::enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   bool change = false;
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    if (active_joint_model_vector_[i]->enforceBounds(state + active_joint_model_start_index_[i], active_joint_bounds[i]))
+    if (active_joint_model_vector_[i]->enforceBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i]))
       change = true;
   if (change)
     updateMimicJoints(state);
@@ -1301,8 +1289,7 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
     joint_model_groups_[i]->printGroupInfo(out);  
 }
 
-void moveit::core::RobotModel::computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform,
-                                                      LinkModel::AssociatedFixedTransformMap &associated_transforms)
+void moveit::core::RobotModel::computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform, LinkTransformMap &associated_transforms)
 {
   associated_transforms[link] = transform;
   for (std::size_t i = 0 ; i < link->getChildJointModels().size() ; ++i)

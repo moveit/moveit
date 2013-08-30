@@ -36,7 +36,8 @@
 
 #include <moveit/robot_model/fixed_joint_model.h>
 
-moveit::core::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
+moveit::core::FixedJointModel::FixedJointModel(const std::string& name)
+  : JointModel(name)
 {
   type_ = FIXED;
 }

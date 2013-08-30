@@ -1269,8 +1269,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       const robot_model::LinkModel *lm = getLinkModel(tip);
       if (!lm)
         return false;
-      const robot_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-      for (robot_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+      const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+      for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
         if (Transforms::sameFrame(it->first->getName(), tip_frame))
         {
           tip = tip_frame;
@@ -1467,8 +1467,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
         const robot_model::LinkModel *lm = getLinkModel(tip);
         if (!lm)
           return false;
-        const robot_model::LinkModel::AssociatedFixedTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-        for (robot_model::LinkModel::AssociatedFixedTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+        for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
           if (it->first->getName() == tip_frame)
           {
             tip = tip_frame;
@@ -1748,6 +1748,12 @@ void robot_state::RobotState::computeAABB(std::vector<double> &aabb) const
     aabb.resize(6, 0.0);
 }
 
+void moveit::core::RobotState::printStatePositions(std::ostream &out) const
+{
+  const std::vector<std::string> &nm = robot_model_->getVariableNames();
+  for (std::size_t i = 0 ; i < nm.size() ; ++i)
+    out << nm[i] << "=" << position_[i] << std::endl;
+}
 
 void moveit::core::RobotState::printStateInfo(std::ostream &out) const
 {

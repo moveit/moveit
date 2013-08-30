@@ -40,10 +40,15 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <boost/container/flat_map.hpp>
 #include <moveit_msgs/JointLimits.h>
 #include <random_numbers/random_numbers.h>
 #include <Eigen/Geometry>
+
+#if BOOST_VERSION < 104800
+#  include <map>
+#else
+#  include <boost/container/flat_map.hpp>
+#endif
 
 namespace moveit
 {
@@ -78,15 +83,38 @@ struct VariableBounds
   bool acceleration_bounded_;
 };
 
-/** \brief Data type for holding mappings from variable names to their position in a state vector */
-typedef boost::container::flat_map<std::string, int> VariableIndexMap;
-typedef boost::container::flat_map<std::string, VariableBounds> VariableBoundsMap;
-
 class LinkModel;
 class JointModel;
 
-/// Map of names to instances for JointModel
-typedef boost::container::flat_map<std::string, JointModel*> JointModelMap;
+#if BOOST_VERSION < 104800
+   /** \brief Data type for holding mappings from variable names to their position in a state vector */
+   typedef std::map<std::string, int> VariableIndexMap;
+
+   /** \brief Data type for holding mappings from variable names to their bounds */
+   typedef std::map<std::string, VariableBounds> VariableBoundsMap;
+
+   /** \brief Map of names to instances for JointModel */
+   typedef std::map<std::string, JointModel*> JointModelMap;
+
+   /** \brief Map of names to const instances for JointModel */
+   typedef std::map<std::string, const JointModel*> JointModelMapConst;
+#else
+
+   /** \brief Data type for holding mappings from variable names to their position in a state vector */
+   typedef boost::container::flat_map<std::string, int> VariableIndexMap;
+
+   /** \brief Data type for holding mappings from variable names to their bounds */
+   typedef boost::container::flat_map<std::string, VariableBounds> VariableBoundsMap;
+
+   /** \brief Map of names to instances for JointModel */
+   typedef boost::container::flat_map<std::string, JointModel*> JointModelMap;
+
+   /** \brief Map of names to const instances for JointModel */
+   typedef boost::container::flat_map<std::string, JointModel*> JointModelMapConst;
+
+#endif
+
+
 
 /** \brief A joint from the robot. Models the transform that
     this joint applies in the kinematic chain. A joint
@@ -112,7 +140,6 @@ public:
 
   /** \brief The datatype for the joint bounds */
   typedef std::vector<VariableBounds> Bounds;
-
 
   /** \brief Construct a joint named \e name */
   JointModel(const std::string& name);

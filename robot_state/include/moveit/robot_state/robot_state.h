@@ -1,6 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
+*  Copyright (c) 2013, Ioan A. Sucan
 *  Copyright (c) 2013, Willow Garage, Inc.
 *  All rights reserved.
 *
@@ -993,6 +994,8 @@ public:
                        const std::vector<std::string> &link_names,
                        bool include_attached = false) const;
 
+  void printStatePositions(std::ostream &out) const;
+  
   void printStateInfo(std::ostream &out) const;
   
   void printTransforms(std::ostream &out) const;

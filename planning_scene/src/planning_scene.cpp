@@ -201,9 +201,7 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr &parent
   world_diff_.reset(new collision_detection::WorldDiff(world_));
 
   // Set up the same collision detectors as the parent
-  for (CollisionDetectorConstIterator it = parent_->collision_.begin() ;
-       it != parent_->collision_.end() ;
-       ++it)
+  for (CollisionDetectorConstIterator it = parent_->collision_.begin() ; it != parent_->collision_.end() ; ++it)
   {
     const CollisionDetectorPtr& parent_detector = it->second;
     CollisionDetectorPtr& detector = collision_[it->first];
@@ -672,6 +670,7 @@ robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst(
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
     kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
+  kstate_->update();
   return *kstate_;
 }
 

@@ -41,7 +41,6 @@ moveit::core::LinkModel::LinkModel(const std::string &name)
   : name_(name)
   , parent_joint_model_(NULL)
   , first_collision_body_transform_index_(-1)
-  , link_transform_index_(-1)
   , link_index_(-1)
 {
   joint_origin_transform_.setIdentity();
