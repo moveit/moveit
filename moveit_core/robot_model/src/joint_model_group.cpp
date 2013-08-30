@@ -619,7 +619,7 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream &out) const
     out << "  * Compound kinematics solver:" << std::endl;
     for (KinematicsSolverMap::const_iterator it = group_kinematics_.second.begin() ; it != group_kinematics_.second.end() ; ++it)
     {
-      out << "    " << it->first->getName();
+      out << "    " << it->first->getName() << ":";
       for (std::size_t i = 0 ; i < it->second.bijection_.size() ; ++i)
         out << " " << it->second.bijection_[i];
       out << std::endl;
