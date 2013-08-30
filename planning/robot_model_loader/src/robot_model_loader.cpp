@@ -149,9 +149,8 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
         bool has_acc_limits;
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           jlim[j].has_acceleration_limits = has_acc_limits;
-        std::cout << jlim[j] << std::endl;
       }
-      jmodel->setVariableBounds(jlim);
+      jmodel->setVariableBounds(jlim); 
     }
   }
 
