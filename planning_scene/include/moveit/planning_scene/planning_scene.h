@@ -114,6 +114,106 @@ public:
     name_ = name;
   }
 
+  /** \brief Return a new child PlanningScene that uses this one as parent.
+   *
+   *  The child scene has its own copy of the world. It maintains a list (in
+   *  world_diff_) of changes made to the child world.
+   *
+   *  The kmodel_, kstate_, ftf_, and acm_ are not copied.  They are shared
+   *  with the parent.  So if changes to these are made in the parent they will
+   *  be visible in the child.  But if any of these is modified (i.e. if the
+   *  get*NonConst functions are called) in the child then a copy is made and
+   *  subsequent changes to the corresponding member of the parent will no
+   *  longer be visible in the child.
+   */
+  PlanningScenePtr diff() const;
+
+  /** \brief Return a new child PlanningScene that uses this one as parent and
+   * has the diffs specified by \e msg applied. */
+  PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
+
+  /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
+  const PlanningSceneConstPtr& getParent() const
+  {
+    return parent_;
+  }
+
+  /** \brief Get the kinematic model for which the planning scene is maintained */
+  const robot_model::RobotModelConstPtr& getRobotModel() const
+  {
+    // the kinematic model does not change
+    return kmodel_;
+  }
+
+  /** \brief Get the state at which the robot is assumed to be. */
+  const robot_state::RobotState& getCurrentState() const
+  {
+    // if we have an updated state, return it; otherwise, return the parent one
+    return kstate_ ? *kstate_ : parent_->getCurrentState();
+  }
+  /** \brief Get the state at which the robot is assumed to be. */
+  robot_state::RobotState& getCurrentStateNonConst();
+
+  /** \brief Get a copy of the current state with components overwritten by the state message \e update */
+  robot_state::RobotStatePtr getCurrentStateUpdated(const moveit_msgs::RobotState &update) const;
+
+  /**
+   * \defgroup planning_scene_frames Reasoning about frames
+   */
+  /**@{*/
+
+  /** \brief Get the frame in which planning is performed */
+  const std::string& getPlanningFrame() const
+  {
+    // if we have an updated set of transforms, return it; otherwise, return the parent one
+    return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
+  }
+
+  /** \brief Get the set of fixed transforms from known frames to the planning frame */
+  const robot_state::Transforms& getTransforms() const
+  {
+    // if we have updated transforms, return those
+    return (ftf_ || !parent_) ? *ftf_ : parent_->getTransforms();
+  }
+  
+  /** \brief Get the set of fixed transforms from known frames to the planning frame */
+  robot_state::Transforms& getTransformsNonConst();
+
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
+  const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
+
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not.
+      Because this function is non-const, the current state transforms are also updated, if needed. */
+  const Eigen::Affine3d& getFrameTransform(const std::string &id);
+
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. This function also
+      updates the link transforms of \e state. */
+  const Eigen::Affine3d& getFrameTransform(robot_state::RobotState &state, const std::string &id) const
+  {
+    state.updateLinkTransforms();
+    return getFrameTransform(const_cast<const robot_state::RobotState&>(state), id);
+  }
+  
+  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
+      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
+  const Eigen::Affine3d& getFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
+  
+  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
+  bool knowsFrameTransform(const std::string &id) const;
+
+  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
+  bool knowsFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
+
+  /**@}*/
+  
+  /**
+   * \defgroup planning_scene_geometry Reasoning about the geometry of the planning scene
+   */
+  /**@{*/
+
   /** \brief Add a new collision detector type.
    *
    * A collision detector type is specified with (a shared pointer to) an
@@ -161,87 +261,6 @@ public:
   /** \brief get the types of collision detector that have already been added.
    * These are the types which can be passed to setActiveCollisionDetector(). */
   void getCollisionDetectorNames(std::vector<std::string>& names) const;
-
-  /** \brief Return a new child PlanningScene that uses this one as parent.
-   *
-   *  The child scene has its own copy of the world. It maintains a list (in
-   *  world_diff_) of changes made to the child world.
-   *
-   *  The kmodel_, kstate_, ftf_, and acm_ are not copied.  They are shared
-   *  with the parent.  So if changes to these are made in the parent they will
-   *  be visible in the child.  But if any of these is modified (i.e. if the
-   *  get*NonConst functions are called) in the child then a copy is made and
-   *  subsequent changes to the corresponding member of the parent will no
-   *  longer be visible in the child.
-   */
-  PlanningScenePtr diff() const;
-
-  /** \brief Return a new child PlanningScene that uses this one as parent and
-   * has the diffs specified by \e msg applied. */
-  PlanningScenePtr diff(const moveit_msgs::PlanningScene &msg) const;
-
-  /** \brief Get the parent scene (whith respect to which the diffs are maintained). This may be empty */
-  const PlanningSceneConstPtr& getParent() const
-  {
-    return parent_;
-  }
-
-  /** \brief Get the frame in which planning is performed */
-  const std::string& getPlanningFrame() const
-  {
-    // if we have an updated set of transforms, return it; otherwise, return the parent one
-    return ftf_ ? ftf_->getTargetFrame() : parent_->getPlanningFrame();
-  }
-
-  /** \brief Get the kinematic model for which the planning scene is maintained */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
-  {
-    // the kinematic model does not change
-    return kmodel_;
-  }
-
-  /** \brief Get the state at which the robot is assumed to be. */
-  const robot_state::RobotState& getCurrentState() const
-  {
-    // if we have an updated state, return it; otherwise, return the parent one
-    return kstate_ ? *kstate_ : parent_->getCurrentState();
-  }
-  /** \brief Get the state at which the robot is assumed to be. */
-  robot_state::RobotState& getCurrentStateNonConst();
-
-  /** \brief Get a copy of the current state with components overwritten by the state message \e update */
-  robot_state::RobotStatePtr getCurrentStateUpdated(const moveit_msgs::RobotState &update) const;
-
-  /** \brief Get the allowed collision matrix */
-  const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
-  {
-    return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
-  }
-  /** \brief Get the allowed collision matrix */
-  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrixNonConst();
-
-  /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  const robot_state::Transforms& getTransforms() const
-  {
-    // if we have updated transforms, return those
-    return (ftf_ || !parent_) ? *ftf_ : parent_->getTransforms();
-  }
-  /** \brief Get the set of fixed transforms from known frames to the planning frame */
-  robot_state::Transforms& getTransformsNonConst();
-
-  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
-      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
-  const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
-
-  /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached body id or a collision object.
-      Return identity when no transform is available. Use knowsFrameTransform() to test if this function will be successful or not. */
-  const Eigen::Affine3d& getFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
-
-  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
-  bool knowsFrameTransform(const std::string &id) const;
-
-  /** \brief Check if a transform to the frame \e id is known. This will be known if \e id is a link name, an attached body id or a collision object */
-  bool knowsFrameTransform(const robot_state::RobotState &state, const std::string &id) const;
 
   /** \brief Get the representation of the world */
   const collision_detection::WorldConstPtr& getWorld() const
@@ -296,32 +315,140 @@ public:
    * CollisionRobot.  This has no effect on the unpadded CollisionRobots. */
   void propogateRobotPadding();
 
-  /** \brief Check whether the current state is in collision */
-  void checkCollision(const collision_detection::CollisionRequest& req,
-                      collision_detection::CollisionResult &res) const;
+  /** \brief Get the allowed collision matrix */
+  const collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrix() const
+  {
+    return acm_ ? *acm_ : parent_->getAllowedCollisionMatrix();
+  }
+  /** \brief Get the allowed collision matrix */
+  collision_detection::AllowedCollisionMatrix& getAllowedCollisionMatrixNonConst();
 
-  /** \brief Check whether a specified state (\e kstate) is in collision */
+  /**@}*/
+
+  /**
+   * \defgroup planning_scene_collision_checking Collision checking with respect to this planning scene
+   */
+  /**@{*/
+
+  /** \brief Check if the current state is in collision (with the environment or self collision).
+      If a group name is specified, collision checking is done for that group only.
+      Since the function is non-const, the current state transforms are updated before the collision check. */
+  bool isStateColliding(const std::string &group = "", bool verbose = false);
+
+  /** \brief Check if the current state is in collision (with the environment or self collision).  If a group name is specified,
+      collision checking is done for that group only. It is expected the current state transforms are up to date. */
+  bool isStateColliding(const std::string &group = "", bool verbose = false) const
+  {
+    return isStateColliding(getCurrentState(), group, verbose);
+  }
+  
+  /** \brief Check if a given state is in collision (with the environment or self collision) If a group name is specified,
+      collision checking is done for that group only. The link transforms for \e state are updated before the collision check. */
+  bool isStateColliding(robot_state::RobotState &state, const std::string &group = "", bool verbose = false) const
+  {
+    state.updateCollisionBodyTransforms();
+    return isStateColliding(const_cast<const robot_state::RobotState&>(state), group, verbose);
+  }
+
+  /** \brief Check if a given state is in collision (with the environment or self collision)
+      If a group name is specified, collision checking is done for that group only. It is expected that the link 
+      transforms of \e state are up to date. */
+  bool isStateColliding(const robot_state::RobotState &state, const std::string &group = "", bool verbose = false) const;
+
+  /** \brief Check if a given state is in collision (with the environment or self collision)
+      If a group name is specified, collision checking is done for that group only. */
+  bool isStateColliding(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
+
+  /** \brief Check whether the current state is in collision, and if needed, updates the collision transforms of the current state before the computation. */
+  void checkCollision(const collision_detection::CollisionRequest& req,
+                      collision_detection::CollisionResult &res);
+  
+  /** \brief Check whether the current state is in collision. The current state is expected to be updated. */
+  void checkCollision(const collision_detection::CollisionRequest& req,
+                      collision_detection::CollisionResult &res) const
+  {
+    checkCollision(req, res, getCurrentState());
+  }
+  
+  /** \brief Check whether a specified state (\e kstate) is in collision. This variant of the function takes
+      a non-const \e kstate and calls updateCollisionBodyTransforms() on it. */
+  void checkCollision(const collision_detection::CollisionRequest& req,
+                      collision_detection::CollisionResult &res,
+                      robot_state::RobotState &kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    checkCollision(req, res, const_cast<const robot_state::RobotState&>(kstate));
+  }
+
+  /** \brief Check whether a specified state (\e kstate) is in collision. The collision transforms of \e kstate are expected to be up to date. */
   void checkCollision(const collision_detection::CollisionRequest& req,
                       collision_detection::CollisionResult &res,
                       const robot_state::RobotState &kstate) const;
+  
+  /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
+      allowed collision matrix (\e acm). This variant of the function takes
+      a non-const \e kstate and updates its link transforms if needed. */
+  void checkCollision(const collision_detection::CollisionRequest& req,
+                      collision_detection::CollisionResult &res,
+                      robot_state::RobotState &kstate,
+                      const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    checkCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
-      allowed collision matrix (\e acm) */
+      allowed collision matrix (\e acm). */
   void checkCollision(const collision_detection::CollisionRequest& req,
                       collision_detection::CollisionResult &res,
                       const robot_state::RobotState &kstate,
                       const collision_detection::AllowedCollisionMatrix& acm) const;
 
   /** \brief Check whether the current state is in collision,
+      but use a collision_detection::CollisionRobot instance that has no padding.
+      Since the function is non-const, the current state transforms are also updated if needed. */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                              collision_detection::CollisionResult &res);
+  
+  /** \brief Check whether the current state is in collision,
       but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-                              collision_detection::CollisionResult &res) const;
-
+                              collision_detection::CollisionResult &res) const
+  {
+    checkCollisionUnpadded(req, res, getCurrentState(), getAllowedCollisionMatrix());
+  }
+  
   /** \brief Check whether a specified state (\e kstate) is in collision,
       but use a collision_detection::CollisionRobot instance that has no padding.  */
   void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                               collision_detection::CollisionResult &res,
-                              const robot_state::RobotState &kstate) const;
+                              const robot_state::RobotState &kstate) const
+  {
+    checkCollisionUnpadded(req, res, kstate, getAllowedCollisionMatrix());
+  }
+
+  /** \brief Check whether a specified state (\e kstate) is in collision,
+      but use a collision_detection::CollisionRobot instance that has no padding.
+      Update the link transforms of \e kstate if needed. */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                              collision_detection::CollisionResult &res,
+                              robot_state::RobotState &kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    checkCollisionUnpadded(req, res, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+  }
+  
+  /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
+      allowed collision matrix (\e acm), but use a collision_detection::CollisionRobot instance that has no padding.
+      This variant of the function takes a non-const \e kstate and calls updates the link transforms if needed. */
+  void checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                              collision_detection::CollisionResult &res,
+                              robot_state::RobotState &kstate,
+                              const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    checkCollisionUnpadded(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
       allowed collision matrix (\e acm), but use a collision_detection::CollisionRobot instance that has no padding.  */
@@ -332,64 +459,203 @@ public:
 
   /** \brief Check whether the current state is in self collision */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
-                          collision_detection::CollisionResult &res) const;
+                          collision_detection::CollisionResult &res);
+  
+  /** \brief Check whether the current state is in self collision */
+  void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                          collision_detection::CollisionResult &res) const
+  {
+    checkSelfCollision(req, res, getCurrentState());
+  }
 
   /** \brief Check whether a specified state (\e kstate) is in self collision */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
                           collision_detection::CollisionResult &res,
-                          const robot_state::RobotState &kstate) const;
+                          robot_state::RobotState &kstate) const
+  { 
+    kstate.updateCollisionBodyTransforms();
+    checkSelfCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+  }
+  
+  /** \brief Check whether a specified state (\e kstate) is in self collision */
+  void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                          collision_detection::CollisionResult &res,
+                          const robot_state::RobotState &kstate) const
+  {
+    // do self-collision checking with the unpadded version of the robot
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
+  }
+
+  /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
+      allowed collision matrix (\e acm). The link transforms of \e kstate are updated if needed. */
+  void checkSelfCollision(const collision_detection::CollisionRequest& req,
+                          collision_detection::CollisionResult &res,
+                          robot_state::RobotState &kstate,
+                          const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    checkSelfCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
 
   /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
       allowed collision matrix (\e acm) */
   void checkSelfCollision(const collision_detection::CollisionRequest& req,
                           collision_detection::CollisionResult &res,
                           const robot_state::RobotState &kstate,
-                          const collision_detection::AllowedCollisionMatrix& acm) const;
+                          const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    // do self-collision checking with the unpadded version of the robot
+    getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
+  }
 
   /** \brief Get the names of the links that are involved in collisions for the current state */
-  void getCollidingLinks(std::vector<std::string> &links) const;
+  void getCollidingLinks(std::vector<std::string> &links);
+  
+  /** \brief Get the names of the links that are involved in collisions for the current state */
+  void getCollidingLinks(std::vector<std::string> &links) const
+  {
+    getCollidingLinks(links, getCurrentState(), getAllowedCollisionMatrix());
+  }
+  
+  /** \brief Get the names of the links that are involved in collisions for the state \e kstate.
+      Update the link transforms for \e kstate if needed. */
+  void getCollidingLinks(std::vector<std::string> &links, robot_state::RobotState &kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    getCollidingLinks(links, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+  }
 
   /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
-  void getCollidingLinks(std::vector<std::string> &links,
-                         const robot_state::RobotState &kstate) const;
+  void getCollidingLinks(std::vector<std::string> &links, const robot_state::RobotState &kstate) const
+  {
+    getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
+  }
 
+  /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
+      allowed collision matrix (\e acm) */
+  void getCollidingLinks(std::vector<std::string> &links,
+                         robot_state::RobotState &kstate,
+                         const collision_detection::AllowedCollisionMatrix& acm) const
+  {   
+    kstate.updateCollisionBodyTransforms();
+    getCollidingLinks(links, const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
+  
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
       allowed collision matrix (\e acm) */
   void getCollidingLinks(std::vector<std::string> &links,
                          const robot_state::RobotState &kstate,
                          const collision_detection::AllowedCollisionMatrix& acm) const;
-
+  
+  /** \brief Get the names of the links that are involved in collisions for the current state.
+      Update the link transforms for the current state if needed. */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts);
+  
   /** \brief Get the names of the links that are involved in collisions for the current state */
-  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts) const;
-
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts) const
+  {
+    getCollidingPairs(contacts, getCurrentState(), getAllowedCollisionMatrix());
+  }
+  
   /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
-                         const robot_state::RobotState &kstate) const;
+                         const robot_state::RobotState &kstate) const
+  {
+    getCollidingPairs(contacts, kstate, getAllowedCollisionMatrix());
+  }
 
+  /** \brief Get the names of the links that are involved in collisions for the state \e kstate.
+      Update the link transforms for \e kstate if needed. */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+                         robot_state::RobotState &kstate) const
+  { 
+    kstate.updateCollisionBodyTransforms();
+    getCollidingPairs(contacts, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+  }
+
+  /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
+      allowed collision matrix (\e acm). Update the link transforms for \e kstate if needed. */
+  void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
+                         robot_state::RobotState &kstate,
+                         const collision_detection::AllowedCollisionMatrix& acm) const
+  { 
+    kstate.updateCollisionBodyTransforms();
+    getCollidingPairs(contacts, const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
+  
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
       allowed collision matrix (\e acm) */
   void getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
                          const robot_state::RobotState &kstate,
                          const collision_detection::AllowedCollisionMatrix& acm) const;
 
+  /**@}*/
+
+  /**
+   * \defgroup planning_scene_distance_computation Distance computation in this planning scene
+   */
+  /**@{*/
+  
   /** \brief The distance between the robot model at state \e kstate to the nearest collision */
-  double distanceToCollision(const robot_state::RobotState &kstate) const;
-
+  double distanceToCollision(robot_state::RobotState &kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate));
+  }  
+  
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision */
+  double distanceToCollision(const robot_state::RobotState &kstate) const
+  {
+    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+  }  
+  
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
-  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const;
+  double distanceToCollisionUnpadded(robot_state::RobotState &kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate));
+  }
+  
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
+  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const
+  {
+    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, getAllowedCollisionMatrix());
+  }
+  
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
+  double distanceToCollision(robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
-  double distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
+  double distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
+  }
+  
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
+  double distanceToCollisionUnpadded(robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate), acm);
+  }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
-  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const;
-
+  double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
+  {
+    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
+  }
+  
+  /**@}*/
+  
   /** \brief Save the geometry of the planning scene to a stream, as plain text */
   void saveGeometryToStream(std::ostream &out) const;
-
+  
   /** \brief Load the geometry of the planning scene from a stream */
   void loadGeometryFromStream(std::istream &in);
-
+  
   /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the parent.
       If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg() */
   void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene &scene) const;
@@ -486,15 +752,6 @@ public:
   {
     return motion_feasibility_;
   }
-
-  /** \brief Check if the current state is in collision (with the environment or self collision) */
-  bool isStateColliding(const std::string &group = "", bool verbose = false) const;
-
-  /** \brief Check if a given state is in collision (with the environment or self collision) */
-  bool isStateColliding(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
-
-  /** \brief Check if a given state is in collision (with the environment or self collision) */
-  bool isStateColliding(const robot_state::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is feasible, in accordance to the feasibility predicate specified by setStateFeasibilityPredicate(). Returns true if no feasibility predicate was specified. */
   bool isStateFeasible(const moveit_msgs::RobotState &state, bool verbose = false) const;

@@ -803,6 +803,12 @@ public:
     return dirtyLinkTransforms() || dirty_collision_body_transforms_;
   }
   
+  /** \brief Returns true if anything in this state is dirty */
+  bool dirty() const
+  {
+    return dirtyCollisionBodyTransforms();
+  }
+  
   /** @} */
   
   /** \defgroup distanceFunctions Computing distances

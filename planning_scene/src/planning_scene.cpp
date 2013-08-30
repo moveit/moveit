@@ -501,34 +501,12 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
   }
 }
 
-double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const
+void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res)
 {
-  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate);
-}
-
-double planning_scene::PlanningScene::distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
-{
-  return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
-}
-
-double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate) const
-{
-  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate);
-}
-
-double planning_scene::PlanningScene::distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
-{
-  return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
-}
-
-void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
-{
-  checkCollision(req, res, getCurrentState());
-}
-
-void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res) const
-{
-  checkSelfCollision(req, res, getCurrentState());
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    checkCollision(req, res, getCurrentStateNonConst());
+  else
+    checkCollision(req, res, getCurrentState());
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
@@ -544,11 +522,12 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
   }
 }
 
-void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res,
-                                                       const robot_state::RobotState &kstate) const
-{
-  // do self-collision checking with the unpadded version of the robot
-  getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, getAllowedCollisionMatrix());
+void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res)
+{ 
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    checkSelfCollision(req, res, getCurrentStateNonConst());
+  else
+    checkSelfCollision(req, res, getCurrentState());
 }
 
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
@@ -565,17 +544,14 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
 }
 
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-                                                           collision_detection::CollisionResult &res) const
+                                                           collision_detection::CollisionResult &res)
 {
-  return checkCollisionUnpadded(req, res, getCurrentState(), getAllowedCollisionMatrix());
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    checkCollisionUnpadded(req, res, getCurrentStateNonConst(), getAllowedCollisionMatrix());
+  else
+    checkCollisionUnpadded(req, res, getCurrentState(), getAllowedCollisionMatrix());
 }
 
-void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-                                                           collision_detection::CollisionResult &res,
-                                                           const robot_state::RobotState &kstate) const
-{
-  return checkCollisionUnpadded(req, res, kstate, getAllowedCollisionMatrix());
-}
 
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult &res,
@@ -592,29 +568,17 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
   }
 }
 
-void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
-                                                       collision_detection::CollisionResult &res,
-                                                       const robot_state::RobotState &kstate,
-                                                       const collision_detection::AllowedCollisionMatrix& acm) const
+void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts)
 {
-  // do self-collision checking with the unpadded version of the robot
-  getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
-}
-
-void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts) const
-{
-  getCollidingPairs(contacts, getCurrentState());
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    getCollidingPairs(contacts, getCurrentStateNonConst(), getAllowedCollisionMatrix());
+  else
+    getCollidingPairs(contacts, getCurrentState(), getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
-                              const robot_state::RobotState &kstate) const
-{
-  getCollidingPairs(contacts, kstate, getAllowedCollisionMatrix());
-}
-
-void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap &contacts,
-                              const robot_state::RobotState &kstate,
-                              const collision_detection::AllowedCollisionMatrix& acm) const
+                                                      const robot_state::RobotState &kstate,
+                                                      const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
@@ -625,15 +589,12 @@ void planning_scene::PlanningScene::getCollidingPairs(collision_detection::Colli
   res.contacts.swap(contacts);
 }
 
-void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links) const
+void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links)
 {
-  getCollidingLinks(links, getCurrentState());
-}
-
-void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
-                                                      const robot_state::RobotState &kstate) const
-{
-  getCollidingLinks(links, kstate, getAllowedCollisionMatrix());
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    getCollidingLinks(links, getCurrentStateNonConst(), getAllowedCollisionMatrix());
+  else
+    getCollidingLinks(links, getCurrentState(), getAllowedCollisionMatrix());
 }
 
 void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string> &links,
@@ -1717,6 +1678,14 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const st
   return getFrameTransform(getCurrentState(), id);
 }
 
+const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const std::string &id)
+{
+  if (getCurrentState().dirtyLinkTransforms())
+    return getFrameTransform(getCurrentStateNonConst(), id);
+  else
+    return getFrameTransform(getCurrentState(), id);
+}
+
 const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const robot_state::RobotState &state, const std::string &id) const
 {
   if (!id.empty() && id[0] == '/')
@@ -1859,9 +1828,12 @@ bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotSta
   return isStateColliding(s, group, verbose);
 }
 
-bool planning_scene::PlanningScene::isStateColliding(const std::string &group, bool verbose) const
+bool planning_scene::PlanningScene::isStateColliding(const std::string &group, bool verbose)
 {
-  return isStateColliding(getCurrentState(), group, verbose);
+  if (getCurrentState().dirtyCollisionBodyTransforms())
+    return isStateColliding(getCurrentStateNonConst(), group, verbose);
+  else
+    return isStateColliding(getCurrentState(), group, verbose);
 }
 
 bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotState &state, const std::string &group, bool verbose) const
