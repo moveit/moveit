@@ -38,7 +38,6 @@
 #include <moveit/exceptions/exceptions.h>
 #include <moveit/robot_model/joint_model.h>
 #include <moveit/robot_model/link_model.h>
-#include <moveit/robot_model/robot_model.h>
 #include <algorithm>
 
 moveit::core::JointModel::JointModel(const std::string& name)
@@ -108,8 +107,8 @@ void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::
         variable_bounds_[j].velocity_bounded_ = jlim[i].has_velocity_limits;
         if (jlim[i].has_velocity_limits)
         {
-          variable_bounds_[j].min_position_ = -jlim[i].max_velocity;
-          variable_bounds_[j].max_position_ = jlim[i].max_velocity;
+          variable_bounds_[j].min_velocity_ = -jlim[i].max_velocity;
+          variable_bounds_[j].max_velocity_ = jlim[i].max_velocity;
         }
         variable_bounds_[j].acceleration_bounded_ = jlim[i].has_acceleration_limits;
         if (jlim[i].has_acceleration_limits)
