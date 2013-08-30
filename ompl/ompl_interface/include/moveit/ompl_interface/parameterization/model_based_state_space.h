@@ -69,7 +69,7 @@ struct ModelBasedStateSpaceSpecification
 
   robot_model::RobotModelConstPtr robot_model_;
   const robot_model::JointModelGroup *joint_model_group_;
-  std::vector<robot_model::JointModel::Bounds> joint_bounds_;
+  robot_model::JointBoundsVector joint_bounds_; 
 };
 
 class ModelBasedStateSpace : public ompl::base::StateSpace
@@ -233,7 +233,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const std::vector<robot_model::JointModel::Bounds>& getJointsBounds() const
+  const robot_model::JointBoundsVector& getJointsBounds() const
   {
     return spec_.joint_bounds_;
   }
@@ -250,6 +250,7 @@ public:
 protected:
 
   ModelBasedStateSpaceSpecification spec_;
+  std::vector<robot_model::JointModel::Bounds> joint_bounds_storage_;
   std::vector<const robot_model::JointModel*> joint_model_vector_;
   unsigned int variable_count_;
   size_t state_values_size_;

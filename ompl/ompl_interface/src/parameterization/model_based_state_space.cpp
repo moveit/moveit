@@ -58,6 +58,15 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
   if (spec_.joint_bounds_.empty())
     spec_.joint_bounds_ = spec_.joint_model_group_->getActiveJointModelsBounds();
   
+
+  // new perform a deep copy of the bounds, in case we need to modify them
+  joint_bounds_storage_.resize(spec_.joint_bounds_.size());
+  for (std::size_t i = 0 ; i < joint_bounds_storage_.size() ; ++i)
+  {
+    joint_bounds_storage_[i] = *spec_.joint_bounds_[i];
+    spec_.joint_bounds_[i] = &joint_bounds_storage_[i];
+  }
+  
   // default settings
   setTagSnapToSegment(0.95);
 
@@ -197,20 +206,20 @@ void ompl_interface::ModelBasedStateSpace::setPlanningVolume(double minX, double
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
     if (joint_model_vector_[i]->getType() == robot_model::JointModel::PLANAR)
     {
-      spec_.joint_bounds_[i][0].min_position_ = minX;
-      spec_.joint_bounds_[i][0].max_position_ = maxX;
-      spec_.joint_bounds_[i][1].min_position_ = minY;
-      spec_.joint_bounds_[i][1].max_position_ = maxY;
+      joint_bounds_storage_[i][0].min_position_ = minX;
+      joint_bounds_storage_[i][0].max_position_ = maxX;
+      joint_bounds_storage_[i][1].min_position_ = minY;
+      joint_bounds_storage_[i][1].max_position_ = maxY;
     }
     else
       if (joint_model_vector_[i]->getType() == robot_model::JointModel::FLOATING)
       {
-        spec_.joint_bounds_[i][0].min_position_ = minX;
-        spec_.joint_bounds_[i][0].max_position_ = maxX;
-        spec_.joint_bounds_[i][1].min_position_ = minY;
-        spec_.joint_bounds_[i][1].max_position_ = maxY;
-        spec_.joint_bounds_[i][2].min_position_ = minZ;
-        spec_.joint_bounds_[i][2].max_position_ = maxZ;
+        joint_bounds_storage_[i][0].min_position_ = minX;
+        joint_bounds_storage_[i][0].max_position_ = maxX;
+        joint_bounds_storage_[i][1].min_position_ = minY;
+        joint_bounds_storage_[i][1].max_position_ = maxY;
+        joint_bounds_storage_[i][2].min_position_ = minZ;
+        joint_bounds_storage_[i][2].max_position_ = maxZ;
       }
 }
 
@@ -222,7 +231,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
 
     DefaultStateSampler(const ompl::base::StateSpace *space,
                         const robot_model::JointModelGroup *group,
-                        const std::vector<robot_model::JointModel::Bounds> *joint_bounds) 
+                        const robot_model::JointBoundsVector *joint_bounds)
       : ompl::base::StateSampler(space)
       , joint_model_group_(group)
       , joint_bounds_(joint_bounds)
@@ -250,7 +259,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
 
     random_numbers::RandomNumberGenerator moveit_rng_;
     const robot_model::JointModelGroup *joint_model_group_;
-    const std::vector<robot_model::JointModel::Bounds> *joint_bounds_;
+    const robot_model::JointBoundsVector *joint_bounds_;
   };
 
   return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>
