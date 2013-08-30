@@ -37,6 +37,7 @@
 #include <moveit/benchmarks/benchmark_execution.h>
 #include <moveit/benchmarks/benchmarks_utils.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/conversions.h>
 
 #include <boost/regex.hpp>
