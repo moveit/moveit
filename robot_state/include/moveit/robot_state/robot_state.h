@@ -130,7 +130,7 @@ public:
     
     // the index of the root joint of the system is 0. Since all joint values have potentially
     // changed, we will need to do FK from the root (if FK is ever required)
-    dirty_joint_transforms_ = NULL;
+    dirty_joint_transforms_ = robot_model_->getRootJoint();
   }
   
   void setVariablePositions(const std::vector<double> &position)
@@ -151,8 +151,12 @@ public:
   void setVariablePosition(int index, double value)
   {
     position_[index] = value;
-    updateMimicPosition(index);
-    dirtyJointTransforms(index);
+    const JointModel *jm = robot_model_->getJointOfVariable(index);
+    if (jm)
+    {
+      updateMimicJoint(jm);
+      dirtyJointTransforms(jm);
+    }
   }
   
   const double getVariablePosition(const std::string &variable) const
@@ -1016,23 +1020,10 @@ private:
   void allocAcceleration();
   void allocTransforms();
   
-  void dirtyJointTransforms(int index)
-  {
-    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? robot_model_->getJointOfVariable(index) :
-      robot_model_->getCommonRoot(dirty_joint_transforms_, robot_model_->getJointOfVariable(index));
-  }
-  
   void dirtyJointTransforms(const JointModel *joint)
   {
     dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? joint :
       robot_model_->getCommonRoot(dirty_joint_transforms_, joint);
-  }
-  
-  void updateMimicPosition(int index)
-  {
-    const JointModel *jm = robot_model_->getJointOfVariable(index);
-    if (jm)
-      updateMimicJoint(jm);
   }
   
   void updateMimicJoint(const JointModel *joint)
@@ -1041,6 +1032,17 @@ private:
     double v = position_[joint->getFirstVariableIndex()];
     for (std::size_t i = 0 ; i < mim.size() ; ++i)
       position_[mim[i]->getFirstVariableIndex()] =  mim[i]->getMimicFactor() * v + mim[i]->getMimicOffset();
+  }
+  
+  /** \brief Update a set of joints that are certain to be mimicking other joints */
+  void updateMimicJoint(const std::vector<const JointModel*> &mim)
+  {
+    for (std::size_t i = 0 ; i < mim.size() ; ++i)
+    {
+      const int fvi = mim[i]->getFirstVariableIndex();      
+      position_[fvi] =  mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset();
+      mim[i]->computeTransform(position_ + fvi, variable_joint_transforms_[mim[i]->getJointIndex()]);
+    }
   }
   
   void updateLinkTransformsInternal(const JointModel *start);
