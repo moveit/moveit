@@ -61,7 +61,7 @@ moveit::core::JointModel::~JointModel()
 
 std::string moveit::core::JointModel::getTypeName() const
 {
-  switch(type_)
+  switch (type_)
   {
   case UNKNOWN: return "Unkown";
   case REVOLUTE: return "Revolute";
@@ -153,7 +153,9 @@ void moveit::core::JointModel::addMimicRequest(const JointModel *joint)
 
 void moveit::core::JointModel::addDescendantJointModel(const JointModel *joint)
 {
-  descendant_joint_models_.push_back(joint);    
+  descendant_joint_models_.push_back(joint);
+  if (joint->getType() != FIXED)
+    non_fixed_descendant_joint_models_.push_back(joint);
 }
 
 void moveit::core::JointModel::addDescendantLinkModel(const LinkModel *link)
