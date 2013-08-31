@@ -388,6 +388,12 @@ public:
   {
     return descendant_joint_models_;
   }
+
+  /** \brief Get all the non-fixed joint models that descend from this joint, in the kinematic tree */
+  const std::vector<const JointModel*>& getNonFixedDescendantJointModels() const
+  {
+    return non_fixed_descendant_joint_models_;
+  }
   
   /** \brief Check if this joint is passive */
   bool isPassive() const
@@ -469,9 +475,12 @@ protected:
   /** \brief Pointers to all the links that will be moved if this joint changes value */
   std::vector<const LinkModel*>                        descendant_link_models_;
 
-  /** \brief Pointers to all the links that will be moved if this joint changes value */
+  /** \brief Pointers to all the joints that follow this one in the kinematic tree (including mimic joints) */
   std::vector<const JointModel*>                       descendant_joint_models_;
-  
+
+  /** \brief Pointers to all the joints that follow this one in the kinematic tree, including mimic joints, but excluding fixed joints */
+  std::vector<const JointModel*>                       non_fixed_descendant_joint_models_
+
   /** \brief Specify whether this joint is marked as passive in the SRDF */
   bool                                                 passive_;
 
