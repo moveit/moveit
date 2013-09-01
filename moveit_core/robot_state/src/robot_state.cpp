@@ -42,61 +42,52 @@
 #include <moveit/backtrace/backtrace.h>
 #include <boost/bind.hpp>
 
-moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model, AllocComponents alloc_components)
+moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
   : robot_model_(robot_model)
-  , called_new_for_(ALLOC_POSITION)
+  , has_velocity_(false)
+  , has_acceleration_(false)
   , dirty_link_transforms_(robot_model_->getRootJoint())
   , dirty_collision_body_transforms_(NULL)
   , rng_(NULL)
 {
-  // memory for the dirty joint transforms
-  const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
-  position_ = new double[nr_doubles_for_dirty_joint_transforms + robot_model->getVariableCount() * 
-			 (1 + (alloc_components & (ALLOC_VELOCITY | ALLOC_ACCELERATION) ? 1 : 0) +  // memory for variable positions and optionally, 
-			  (alloc_components & ALLOC_ACCELERATION ? 1 : 0))];                        // for velocities and accelerations
-  dirty_joint_transforms_ = reinterpret_cast<unsigned char*>(position_ + robot_model->getVariableCount());
-  velocity_ = alloc_components & (ALLOC_VELOCITY | ALLOC_ACCELERATION) ? position_ + nr_doubles_for_dirty_joint_transforms + robot_model->getVariableCount() : NULL;
-  acceleration_ = alloc_components & ALLOC_ACCELERATION ? velocity_ + robot_model->getVariableCount() : NULL;
-  
-  transforms_.resize(robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount(), Eigen::Affine3d::Identity());
-  variable_joint_transforms_ = &transforms_[0];
-  global_link_transforms_ = variable_joint_transforms_ + robot_model_->getJointModelCount();
-  global_collision_body_transforms_ = global_link_transforms_ + robot_model_->getLinkModelCount();
+  allocMemory();
   
   // all transforms are dirty initially
+  const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
   memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
-  
-  if (velocity_)
-    memset(velocity_, 0, sizeof(double) * robot_model_->getVariableCount());
-  if (acceleration_)
-    memset(acceleration_, 0, sizeof(double) * robot_model_->getVariableCount());
 }
 
 moveit::core::RobotState::RobotState(const RobotState &other)
-  : position_(NULL)
-  , velocity_(NULL)
-  , acceleration_(NULL)
-  , rng_(NULL)
+  : rng_(NULL)
 {
   robot_model_ = other.robot_model_;
-  
-  transforms_.resize(robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount(), Eigen::Affine3d::Identity());
-  variable_joint_transforms_ = &transforms_[0];
-  global_link_transforms_ = variable_joint_transforms_ + other.robot_model_->getJointModelCount();
-  global_collision_body_transforms_ = global_link_transforms_ + other.robot_model_->getLinkModelCount();
-  
+  allocMemory();
   copyFrom(other);
 }
 
 moveit::core::RobotState::~RobotState()
 {
-  delete[] position_;
-  if (called_new_for_ & ALLOC_VELOCITY)
-    delete[] velocity_;
-  if (called_new_for_ & ALLOC_ACCELERATION)
-    delete[] acceleration_;
+  free(memory_);
   if (rng_)
     delete rng_;
+}
+
+void moveit::core::RobotState::allocMemory(void)
+{
+  // memory for the dirty joint transforms
+  const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
+  const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
+    + sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
+  memory_ = malloc(bytes);
+  
+  // make the memory for transforms align at 16 bytes
+  variable_joint_transforms_ = reinterpret_cast<Eigen::Affine3d*>(((uintptr_t)memory_ + 15) & ~ (uintptr_t)0x0F);
+  global_link_transforms_ = variable_joint_transforms_ + robot_model_->getJointModelCount();
+  global_collision_body_transforms_ = global_link_transforms_ + robot_model_->getLinkModelCount();
+  dirty_joint_transforms_ = reinterpret_cast<unsigned char*>(global_collision_body_transforms_ + robot_model_->getLinkGeometryCount());
+  position_ = reinterpret_cast<double*>(dirty_joint_transforms_) + nr_doubles_for_dirty_joint_transforms;
+  velocity_ = position_ + robot_model_->getVariableCount();
+  acceleration_ = velocity_ + robot_model_->getVariableCount();
 }
 
 moveit::core::RobotState& moveit::core::RobotState::operator=(const RobotState &other)
@@ -106,83 +97,19 @@ moveit::core::RobotState& moveit::core::RobotState::operator=(const RobotState &
   return *this;
 }
 
-void moveit::core::RobotState::allocVelocity()
-{
-  if (!velocity_)
-  {
-    called_new_for_ |= ALLOC_VELOCITY;
-    velocity_ = new double[robot_model_->getVariableCount()];
-    memset(velocity_, 0, sizeof(double) * robot_model_->getVariableCount());
-  }
-}
-
-void moveit::core::RobotState::allocAcceleration()
-{
-  if (!acceleration_)
-  {
-    if (velocity_)
-    {
-      called_new_for_ |= ALLOC_ACCELERATION;
-      acceleration_ = new double[robot_model_->getVariableCount()];
-      memset(acceleration_, 0, sizeof(double) * robot_model_->getVariableCount());
-    }
-    else
-    {
-      called_new_for_ |= ALLOC_VELOCITY;
-      velocity_ = new double[2 * robot_model_->getVariableCount()];
-      memset(velocity_, 0, sizeof(double) * 2 * robot_model_->getVariableCount());
-      acceleration_ = velocity_ + robot_model_->getVariableCount();
-    }
-  }
-}
-
 void moveit::core::RobotState::copyFrom(const RobotState &other)
 {
-  transforms_ = other.transforms_;
+  has_velocity_ = other.has_velocity_;
+  has_acceleration_ = other.has_acceleration_;
+  
   dirty_collision_body_transforms_ = other.dirty_collision_body_transforms_;
   dirty_link_transforms_ = other.dirty_link_transforms_;
-
+  
+  // memory for the dirty joint transforms
   const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
-
-  // if we have previously allocated some memory, 
-  if (position_)
-  {
-    // see if more memory needs to be allocated, minimizing calls to new
-    if (other.acceleration_)
-      allocAcceleration();
-    else
-      if (other.velocity_)
-        allocVelocity();
-    // copy the data. we use 3 calls to memcpy to avoid problems of non-contiguous blocks at source & destination
-    std::size_t c = robot_model_->getVariableCount() * sizeof(double);
-    memcpy(position_, other.position_, c + nr_doubles_for_dirty_joint_transforms * sizeof(double));
-    if (other.velocity_)
-      memcpy(velocity_, other.velocity_, c);
-    if (other.acceleration_)
-      memcpy(acceleration_, other.acceleration_, c);      
-  }
-  else
-  {
-    // we allocate all the memory we need in one block
-    called_new_for_ = ALLOC_POSITION;
-    std::size_t vc = robot_model_->getVariableCount();
-    position_ = new double[(1 + (other.velocity_ ? 1 : 0) + (other.acceleration_ ? 1 : 0)) * vc + nr_doubles_for_dirty_joint_transforms];
-    dirty_joint_transforms_ = reinterpret_cast<unsigned char*>(position_ + vc);
-    std::size_t c = vc * sizeof(double);
-    
-    // copy the data. we use 3 calls to memcpy to avoid problems of non-contiguous blocks at source & destination
-    memcpy(position_, other.position_, c + nr_doubles_for_dirty_joint_transforms * sizeof(double));
-    if (other.velocity_)
-    {
-      velocity_ = position_ + vc;
-      memcpy(velocity_, other.velocity_, c);
-    }
-    if (other.acceleration_)
-    {
-      acceleration_ = velocity_ + vc;
-      memcpy(acceleration_, other.acceleration_, c);
-    }
-  }
+  const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
+    + sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
+  memcpy(memory_, other.memory_, bytes);
   
   // copy attached bodies
   clearAttachedBodies();
@@ -284,10 +211,8 @@ bool moveit::core::RobotState::setToDefaultValues(const JointModelGroup *group, 
 void moveit::core::RobotState::setToDefaultValues()
 {
   robot_model_->getVariableDefaultValues(position_); // mimic values are updated
-  if (velocity_)
-    memset(velocity_, 0, sizeof(double) * robot_model_->getVariableCount());
-  if (acceleration_)
-    memset(acceleration_, 0, sizeof(double) * robot_model_->getVariableCount());
+  // set velocity & acceleration to 0
+  memset(velocity_, 0, sizeof(double) * 2 * robot_model_->getVariableCount());
   memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
   dirty_link_transforms_ = robot_model_->getRootJoint();
 }
@@ -346,7 +271,7 @@ void moveit::core::RobotState::setVariablePositions(const std::vector<std::strin
 
 void moveit::core::RobotState::setVariableVelocities(const std::map<std::string, double> &variable_map)
 {
-  allocVelocity();
+  has_velocity_ = true;
   for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end() ; it != end ; ++it)
     velocity_[robot_model_->getVariableIndex(it->first)] = it->second;
 }
@@ -359,15 +284,15 @@ void moveit::core::RobotState::setVariableVelocities(const std::map<std::string,
 
 void moveit::core::RobotState::setVariableVelocities(const std::vector<std::string>& variable_names, const std::vector<double>& variable_velocity)
 {
+  has_velocity_ = true;
   assert(variable_names.size() == variable_velocity.size());
-  allocVelocity();
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
     velocity_[robot_model_->getVariableIndex(variable_names[i])] = variable_velocity[i];  
 }
 
 void moveit::core::RobotState::setVariableAccelerations(const std::map<std::string, double> &variable_map)
 {
-  allocAcceleration();
+  has_acceleration_ = true;
   for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end() ; it != end ; ++it)
     acceleration_[robot_model_->getVariableIndex(it->first)] = it->second;
 }
@@ -380,8 +305,8 @@ void moveit::core::RobotState::setVariableAccelerations(const std::map<std::stri
 
 void moveit::core::RobotState::setVariableAccelerations(const std::vector<std::string>& variable_names, const std::vector<double>& variable_acceleration)
 {
+  has_acceleration_ = true;
   assert(variable_names.size() == variable_acceleration.size());
-  allocAcceleration();
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
     acceleration_[robot_model_->getVariableIndex(variable_names[i])] = variable_acceleration[i];  
 }
@@ -1729,13 +1654,6 @@ void moveit::core::RobotState::printDirtyInfo(std::ostream &out) const
 void moveit::core::RobotState::printStateInfo(std::ostream &out) const
 {
   out << "Robot State @" << this << std::endl;
-  out << "  * Memory is available for" << (position_ ? " position" : "")
-      << (velocity_ ? " velocity" : "") <<  (acceleration_ ? " acceleration" : "")
-      << (variable_joint_transforms_ ? " transforms" : "") << std::endl;
-  out << "  * Called new[] for" << (position_ ? " position" : "")
-      << (called_new_for_ & ALLOC_VELOCITY ? " velocity" : "")
-      << (called_new_for_ & ALLOC_ACCELERATION ? " acceleration" : "")
-      << (transforms_.size() > 0 ? " transforms" : "") << std::endl;
   
   std::size_t n = robot_model_->getVariableCount();
   if (position_)

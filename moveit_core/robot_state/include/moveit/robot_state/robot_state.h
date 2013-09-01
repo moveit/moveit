@@ -59,17 +59,8 @@ typedef boost::function<bool(RobotState *robot_state, const JointModelGroup *joi
 class RobotState
 {
 public:
-  
-  enum AllocComponents
-    {
-      ALLOC_POSITION = 1,
-      ALLOC_VELOCITY = 2,
-      ALLOC_ACCELERATION = 4,
-      ALLOC_POSITION_AND_VELOCITY = ALLOC_POSITION | ALLOC_VELOCITY,
-      ALLOC_ALL = ALLOC_POSITION | ALLOC_VELOCITY | ALLOC_ACCELERATION
-    };
-  
-  RobotState(const RobotModelConstPtr &robot_model, AllocComponents alloc_components = ALLOC_POSITION);  
+    
+  RobotState(const RobotModelConstPtr &robot_model);  
   ~RobotState();
   
   RobotState(const RobotState &other);
@@ -166,12 +157,12 @@ public:
 
   bool hasVelocities() const
   {
-    return velocity_;
+    return has_velocity_;
   }
 
   double* getVariableVelocities()
   {
-    allocVelocity();
+    has_velocity_ = true;
     return velocity_;
   }
   
@@ -182,7 +173,7 @@ public:
   
   void setVariableVelocities(const double *velocity)
   {
-    allocVelocity();
+    has_velocity_ = true;
     // assume everything is in order in terms of array lengths (for efficiency reasons)
     memcpy(velocity_, velocity, robot_model_->getVariableCount() * sizeof(double));
   }
@@ -204,7 +195,7 @@ public:
   
   void setVariableVelocity(int index, double value)
   {
-    allocVelocity();
+    has_velocity_ = true;
     velocity_[index] = value;
   }
   
@@ -227,12 +218,12 @@ public:
 
   bool hasAccelerations() const
   {
-    return acceleration_;
+    return has_acceleration_;
   }
 
   double* getVariableAccelerations()
   {
-    allocAcceleration();
+    has_acceleration_ = true;
     return acceleration_;
   }
   
@@ -243,7 +234,7 @@ public:
   
   void setVariableAccelerations(const double *acceleration)
   {
-    allocAcceleration();
+    has_acceleration_ = true;
     // assume everything is in order in terms of array lengths (for efficiency reasons)
     memcpy(acceleration_, acceleration, robot_model_->getVariableCount() * sizeof(double));
   }
@@ -265,7 +256,7 @@ public:
   
   void setVariableAcceleration(int index, double value)
   {
-    allocAcceleration();
+    has_acceleration_ = true;
     acceleration_[index] = value;
   }
   
@@ -680,11 +671,6 @@ public:
   /** \defgroup RobotStateGetTransforms Updating and getting transforms
    *  @{
    */
-
-  bool hasTransforms() const
-  {
-    return !transforms_.empty();
-  }
   
   /** \brief Update the transforms for the collision bodies. This call is needed before calling collision checking.
       If updating link transforms or joint transorms is needed, the corresponding updates are also triggered. */
@@ -1000,10 +986,9 @@ public:
   
 private:
 
+  void allocMemory();
+
   void copyFrom(const RobotState &other);
-  
-  void allocVelocity();
-  void allocAcceleration();
   
   void markDirtyJointTransforms(const JointModel *joint)
   {
@@ -1057,16 +1042,17 @@ private:
   bool checkCollisionTransforms() const;
     
   RobotModelConstPtr                     robot_model_;
-  int                                    called_new_for_;
+  void                                  *memory_;
   
   double                                *position_;
   double                                *velocity_;
   double                                *acceleration_;
+  bool                                   has_velocity_;
+  bool                                   has_acceleration_;
   
   const JointModel                      *dirty_link_transforms_;
   const JointModel                      *dirty_collision_body_transforms_;
   
-  EigenSTL::vector_Affine3d              transforms_;
   Eigen::Affine3d                       *variable_joint_transforms_; // this points to an element in transforms_, so it is aligned 
   Eigen::Affine3d                       *global_link_transforms_;  // this points to an element in transforms_, so it is aligned 
   Eigen::Affine3d                       *global_collision_body_transforms_;  // this points to an element in transforms_, so it is aligned 
@@ -1079,7 +1065,6 @@ private:
       The event specifies the body that changed and whether it was just attached or about to be detached. */
   AttachedBodyCallback                   attached_body_update_callback_;
 
-  
   /** \brief For certain operations a state needs a random number generator. However, it may be slightly expensive
       to allocate the random number generator if many state instances are generated. For this reason, the generator
       is allocated on a need basis, by the getRandomNumberGenerator() function. Never use the rng_ member directly, but call
