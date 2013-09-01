@@ -77,7 +77,6 @@ typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn
 
 #endif
 
-typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
 typedef std::vector<const JointModel::Bounds*> JointBoundsVector;
 
 class JointModelGroup
