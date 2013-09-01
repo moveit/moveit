@@ -65,9 +65,8 @@ public:
       ALLOC_POSITION = 1,
       ALLOC_VELOCITY = 2,
       ALLOC_ACCELERATION = 4,
-      ALLOC_TRANSFORMS = 8,
       ALLOC_POSITION_AND_VELOCITY = ALLOC_POSITION | ALLOC_VELOCITY,
-      ALLOC_ALL = ALLOC_POSITION | ALLOC_VELOCITY | ALLOC_ACCELERATION | ALLOC_TRANSFORMS
+      ALLOC_ALL = ALLOC_POSITION | ALLOC_VELOCITY | ALLOC_ACCELERATION
     };
   
   RobotState(const RobotModelConstPtr &robot_model, AllocComponents alloc_components = ALLOC_POSITION);  
@@ -121,17 +120,7 @@ public:
     return position_;
   }
   
-  void setVariablePositions(const double *position)
-  {
-    // assume everything is in order in terms of array lengths (for efficiency reasons)
-    memcpy(position_, position, robot_model_->getVariableCount() * sizeof(double));
-    
-    // the full state includes mimic joint values, so no need to update mimic here
-    
-    // the index of the root joint of the system is 0. Since all joint values have potentially
-    // changed, we will need to do FK from the root (if FK is ever required)
-    dirty_joint_transforms_ = robot_model_->getRootJoint();
-  }
+  void setVariablePositions(const double *position);
   
   void setVariablePositions(const std::vector<double> &position)
   {
@@ -154,8 +143,8 @@ public:
     const JointModel *jm = robot_model_->getJointOfVariable(index);
     if (jm)
     {
+      markDirtyJointTransforms(jm);
       updateMimicJoint(jm);
-      dirtyJointTransforms(jm);
     }
   }
   
@@ -314,8 +303,8 @@ public:
   void setJointPositions(const JointModel *joint, const double *position)
   {  
     memcpy(position_ + joint->getFirstVariableIndex(), position, joint->getVariableCount() * sizeof(double));
+    markDirtyJointTransforms(joint);
     updateMimicJoint(joint);
-    dirtyJointTransforms(joint);
   }
   
   void setJointPositions(const std::string &joint_name, const Eigen::Affine3d& transform)
@@ -326,8 +315,8 @@ public:
   void setJointPositions(const JointModel *joint, const Eigen::Affine3d& transform)
   {
     joint->computeVariableValues(transform, position_ + joint->getFirstVariableIndex());
+    markDirtyJointTransforms(joint);
     updateMimicJoint(joint);
-    dirtyJointTransforms(joint);
   }
   
   const double* getJointPositions(const std::string &joint_name) const
@@ -704,19 +693,9 @@ public:
   /** \brief Update the reference frame transforms for links. This call is needed before using the transforms of links for coordinate transforms. */
   void updateLinkTransforms();
   
-  /** \brief Update the transforms joints apply given the currently set joint values. */
-  void updateJointTransforms();
-
   /** \brief Update all transforms. */
-  void update(bool force = false)
-  {
-    // make sure we do everything from scratch if needed
-    if (force)
-      dirty_joint_transforms_ = robot_model_->getRootJoint();
-    // this actually triggers all needed updates
-    updateCollisionBodyTransforms();
-  }
-
+  void update(bool force = false);
+  
   /** \brief Update the state after setting a particular link to the input global transform pose.*/
   void updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward = false)
   {
@@ -755,8 +734,14 @@ public:
   
   const Eigen::Affine3d& getJointTransform(const JointModel *joint)
   {
-    updateJointTransforms();
-    return variable_joint_transforms_[joint->getJointIndex()];
+    const int idx = joint->getJointIndex();
+    unsigned char &dirty = dirty_joint_transforms_[idx];
+    if (dirty)
+    {
+      joint->computeTransform(position_ + joint->getFirstVariableIndex(), variable_joint_transforms_[idx]);
+      dirty = 0;
+    }
+    return variable_joint_transforms_[idx];
   }
   
   const Eigen::Affine3d& getGlobalLinkTransform(const std::string &link_name) const
@@ -766,7 +751,7 @@ public:
   
   const Eigen::Affine3d& getGlobalLinkTransform(const LinkModel *link) const
   {
-    assert(checkTransforms(TEST_LINK_TRANSFORMS));
+    assert(checkLinkTransforms());
     return global_link_transforms_[link->getLinkIndex()];
   }
   
@@ -777,7 +762,7 @@ public:
   
   const Eigen::Affine3d& getCollisionBodyTransform(const LinkModel *link, std::size_t index) const
   {
-    assert(checkTransforms(TEST_COLLISION_TRANSFORMS));
+    assert(checkCollisionTransforms());
     return global_collision_body_transforms_[link->getFirstCollisionBodyTransformIndex() + index];
   }
   
@@ -788,23 +773,23 @@ public:
   
   const Eigen::Affine3d& getJointTransform(const JointModel *joint) const
   {
-    assert(checkTransforms(TEST_JOINT_TRANSFORMS));
+    assert(checkJointTransforms(joint));
     return variable_joint_transforms_[joint->getJointIndex()];
   }
   
-  bool dirtyJointTransforms() const
+  bool dirtyJointTransform(const JointModel *joint) const
   {
-    return dirty_joint_transforms_;
+    return dirty_joint_transforms_[joint->getJointIndex()];
   }
   
   bool dirtyLinkTransforms() const
   {
-    return dirtyJointTransforms() || dirty_link_transforms_;
+    return dirty_link_transforms_;
   }
   
   bool dirtyCollisionBodyTransforms() const
   {
-    return dirtyLinkTransforms() || dirty_collision_body_transforms_;
+    return dirty_link_transforms_ || dirty_collision_body_transforms_;
   }
   
   /** \brief Returns true if anything in this state is dirty */
@@ -835,11 +820,7 @@ public:
   /** \brief Interpolate from this state towards state \e to, at time \e t in [0,1]. 
       The result is stored in \e state, mimic joints are correctly updated and flags are set 
       so that FK is recomputed when needed. */
-  void interpolate(const RobotState &to, double t, RobotState &state) const
-  {
-    robot_model_->interpolate(getVariablePositions(), to.getVariablePositions(), t, state.getVariablePositions());
-    state.dirtyJointTransforms(robot_model_->getRootJoint());
-  }
+  void interpolate(const RobotState &to, double t, RobotState &state) const;
   
   /** \brief Interpolate from this state towards \e to, at time \e t in [0,1], but only for the joints in the
       specified group. If mimic joints need to be updated, they are updated accordingly. Flags are set so that FK
@@ -853,8 +834,8 @@ public:
   {
     const int idx = joint->getFirstVariableIndex();
     joint->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
+    state.markDirtyJointTransforms(joint);
     state.updateMimicJoint(joint);
-    state.dirtyJointTransforms(joint);
   }
 
   void enforceBounds();
@@ -862,7 +843,10 @@ public:
   void enforceBounds(const JointModel *joint)
   {
     if (joint->enforceBounds(position_ + joint->getFirstVariableIndex()))
+    {
+      markDirtyJointTransforms(joint);
       updateMimicJoint(joint);
+    }
   }
   
   bool satisfiesBounds(double margin = 0.0) const;
@@ -1010,6 +994,8 @@ public:
   
   void printTransforms(std::ostream &out) const;
   
+  void printDirtyInfo(std::ostream &out) const;
+  
   std::string getStateTreeString(const std::string& prefix = "") const;
   
 private:
@@ -1018,12 +1004,19 @@ private:
   
   void allocVelocity();
   void allocAcceleration();
-  void allocTransforms();
   
-  void dirtyJointTransforms(const JointModel *joint)
+  void markDirtyJointTransforms(const JointModel *joint)
   {
-    dirty_joint_transforms_ = dirty_joint_transforms_ == NULL ? joint :
-      robot_model_->getCommonRoot(dirty_joint_transforms_, joint);
+    dirty_joint_transforms_[joint->getJointIndex()] = 1;
+    dirty_link_transforms_ = dirty_link_transforms_ == NULL ? joint : robot_model_->getCommonRoot(dirty_link_transforms_, joint);
+  }
+  
+  void markDirtyJointTransforms(const JointModelGroup *group)
+  {
+    const std::vector<const JointModel*> &jm = group->getActiveJointModels();
+    for (std::size_t i = 0 ; i < jm.size() ; ++i)
+      dirty_joint_transforms_[jm[i]->getJointIndex()] = 1;
+    dirty_link_transforms_ = dirty_link_transforms_ == NULL ? group->getCommonRoot() : robot_model_->getCommonRoot(dirty_link_transforms_, group->getCommonRoot());
   }
   
   void updateMimicJoint(const JointModel *joint)
@@ -1031,7 +1024,10 @@ private:
     const std::vector<const JointModel*> &mim = joint->getMimicRequests();
     double v = position_[joint->getFirstVariableIndex()];
     for (std::size_t i = 0 ; i < mim.size() ; ++i)
+    {
       position_[mim[i]->getFirstVariableIndex()] =  mim[i]->getMimicFactor() * v + mim[i]->getMimicOffset();
+      dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
+    }
   }
   
   /** \brief Update a set of joints that are certain to be mimicking other joints */
@@ -1040,8 +1036,8 @@ private:
     for (std::size_t i = 0 ; i < mim.size() ; ++i)
     {
       const int fvi = mim[i]->getFirstVariableIndex();      
-      position_[fvi] =  mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset();
-      mim[i]->computeTransform(position_ + fvi, variable_joint_transforms_[mim[i]->getJointIndex()]);
+      position_[fvi] =  mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset(); 
+      dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
     }
   }
   
@@ -1051,16 +1047,15 @@ private:
   void getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const;
   void printTransform(const Eigen::Affine3d &transform, std::ostream &out) const;
 
-  enum TransformTest
-  {
-    TEST_JOINT_TRANSFORMS,
-    TEST_LINK_TRANSFORMS,
-    TEST_COLLISION_TRANSFORMS
-  };
+  /** \brief This function is only called in debug mode */
+  bool checkJointTransforms(const JointModel *joint) const;
 
   /** \brief This function is only called in debug mode */
-  bool checkTransforms(const TransformTest level) const;
-  
+  bool checkLinkTransforms() const;
+
+  /** \brief This function is only called in debug mode */
+  bool checkCollisionTransforms() const;
+    
   RobotModelConstPtr                     robot_model_;
   int                                    called_new_for_;
   
@@ -1068,7 +1063,6 @@ private:
   double                                *velocity_;
   double                                *acceleration_;
   
-  const JointModel                      *dirty_joint_transforms_;
   const JointModel                      *dirty_link_transforms_;
   const JointModel                      *dirty_collision_body_transforms_;
   
@@ -1076,6 +1070,7 @@ private:
   Eigen::Affine3d                       *variable_joint_transforms_; // this points to an element in transforms_, so it is aligned 
   Eigen::Affine3d                       *global_link_transforms_;  // this points to an element in transforms_, so it is aligned 
   Eigen::Affine3d                       *global_collision_body_transforms_;  // this points to an element in transforms_, so it is aligned 
+  unsigned char                         *dirty_joint_transforms_;
   
   /** \brief The attached bodies that are part of this state (from all links) */
   std::map<std::string, AttachedBody*>   attached_body_map_;

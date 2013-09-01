@@ -756,7 +756,8 @@ moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel *pa
   // construct the link
   LinkModel *link = constructLinkModel(urdf_link);
   joint->setChildLinkModel(link);
-
+  link->setParentLinkModel(parent);
+  
   // bookkeeping for the link
   link_model_map_[joint->getChildLinkModel()->getName()] = link;
   link->setLinkIndex(link_model_vector_.size());
