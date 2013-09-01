@@ -191,11 +191,10 @@ TEST(LoadingAndFK, SimpleRobot)
     EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);
     delete new_state;
     
-    const moveit::core::VariableIndexMap& ind_map = model->getJointVariablesIndexMap();
     std::vector<double> jv(state.getVariableCount(), 0.0);
-    jv[ind_map.at("base_joint/x")] = 10.0;
-    jv[ind_map.at("base_joint/y")] = 8.0;
-    jv[ind_map.at("base_joint/theta")] = 0.0;
+    jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 10.0;
+    jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 8.0;
+    jv[state.getRobotModel()->getVariableIndex("base_joint/theta")] = 0.0;
 
     state.setVariablePositions(jv);
     EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);

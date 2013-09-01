@@ -203,11 +203,9 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
   ks.setVariablePositions(jv);
   moveit_msgs::RobotState robot_state;
   moveit::core::robotStateToRobotStateMsg(ks, robot_state);
-  std::cout << robot_state;
   
   moveit::core::RobotState ks2(robot_model2);
   moveit::core::robotStateMsgToRobotState(robot_state, ks2);
-  std::cout << ks2;
   
   const double *v1 = ks.getVariablePositions();
   const double *v2 = ks2.getVariablePositions();

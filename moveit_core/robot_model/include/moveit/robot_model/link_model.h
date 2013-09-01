@@ -132,6 +132,17 @@ public:
   {
     parent_joint_model_ = joint;
   }
+
+  /** \brief Get the link model whose child this link is (through some joint). There may not always be a parent link (NULL is returned for the root link) */
+  const LinkModel* getParentLinkModel() const
+  {
+    return parent_link_model_;
+  }
+
+  void setParentLinkModel(const LinkModel *link)
+  {
+    parent_link_model_ = link;
+  }
   
   /** \brief A link may have 0 or more child joints. From those joints there will certainly be other descendant links */
   const std::vector<const JointModel*>& getChildJointModels() const
@@ -212,6 +223,9 @@ private:
   /** \brief JointModel that connects this link to the parent link */
   const JointModel                  *parent_joint_model_;
 
+  /** \brief The parent link model (NULL for the root link) */
+  const LinkModel                   *parent_link_model_;
+  
   /** \brief List of directly descending joints (each connects to a child link) */
   std::vector<const JointModel*>     child_joint_models_;
 

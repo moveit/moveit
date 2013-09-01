@@ -137,7 +137,7 @@ static inline void _robotStateToMultiDOFJointState(const RobotState& state, sens
   for (std::size_t i = 0 ; i < js.size() ; ++i)
   {
     geometry_msgs::Transform p;
-    if (state.dirtyJointTransforms())
+    if (state.dirtyJointTransform(js[i]))
     {
       Eigen::Affine3d t;
       t.setIdentity();
