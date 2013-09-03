@@ -80,7 +80,7 @@ void moveit::core::RobotState::allocMemory(void)
   const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
     + sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
   memory_ = malloc(bytes);
-  
+
   // make the memory for transforms align at 16 bytes
   variable_joint_transforms_ = reinterpret_cast<Eigen::Affine3d*>(((uintptr_t)memory_ + 15) & ~ (uintptr_t)0x0F);
   global_link_transforms_ = variable_joint_transforms_ + robot_model_->getJointModelCount();
@@ -354,10 +354,7 @@ void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup *gr
 } 
 
 void moveit::core::RobotState::update(bool force)
-{  tools::Profiler::ScopedStart _x;
-
-  tools::Profiler::ScopedBlock _("upd");
-
+{
   // make sure we do everything from scratch if needed
   if (force)
   {
@@ -376,17 +373,17 @@ void moveit::core::RobotState::updateCollisionBodyTransforms()
   
   if (dirty_collision_body_transforms_ != NULL)
   {
-    tools::Profiler::ScopedBlock _("fk_cbt");
     const std::vector<const LinkModel*> &links = dirty_collision_body_transforms_->getDescendantLinkModels();
     dirty_collision_body_transforms_ = NULL; 
 
     for (std::size_t i = 0 ; i < links.size() ; ++i)
     {
       const EigenSTL::vector_Affine3d &ot = links[i]->getCollisionOriginTransforms();
+      const std::vector<int> &ot_id = links[i]->areCollisionOriginTransformsIdentity();
       const int index_co = links[i]->getFirstCollisionBodyTransformIndex();
       const int index_l = links[i]->getLinkIndex();
       for (std::size_t j = 0 ; j < ot.size() ; ++j)
-        global_collision_body_transforms_[index_co + j] = global_link_transforms_[index_l] * ot[j];
+        global_collision_body_transforms_[index_co + j].matrix().noalias() = ot_id[j] ? global_link_transforms_[index_l].matrix() : global_link_transforms_[index_l].matrix() * ot[j].matrix();
     }
   }
 }
@@ -409,35 +406,52 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
   const std::vector<const LinkModel*> &links = start->getDescendantLinkModels();
   if (links.size() > 0)
   { 
-    tools::Profiler::ScopedBlock _("fk_lti");
-    {
-      tools::Profiler::ScopedBlock _("fk_a");
-      for (std::size_t i = 0 ; i < links.size() ; ++i)
-        getJointTransform(links[i]->getParentJointModel());
-    }
-    {
-      tools::Profiler::ScopedBlock _("fk_b");
-      for (std::size_t i = 0 ; i < links.size() ; ++i)
-        getJointTransform(links[i]->getParentJointModel());
-    }
-    
     const LinkModel *parent = links[0]->getParentLinkModel();
     if (parent)
-      global_link_transforms_[links[0]->getLinkIndex()] =
-        global_link_transforms_[parent->getLinkIndex()]
-        * links[0]->getJointOriginTransform()
-        * getJointTransform(links[0]->getParentJointModel());
+    {
+      if (links[0]->parentJointIsFixed())
+        global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = 
+          global_link_transforms_[parent->getLinkIndex()].matrix() * links[0]->getJointOriginTransform().matrix();
+      else
+      {
+        if (links[0]->jointOriginTransformIsIdentity())
+          global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() =
+            global_link_transforms_[parent->getLinkIndex()].matrix() * getJointTransform(links[0]->getParentJointModel()).matrix();
+        else
+          global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = 
+            global_link_transforms_[parent->getLinkIndex()].matrix()
+            * links[0]->getJointOriginTransform().matrix()
+            * getJointTransform(links[0]->getParentJointModel()).matrix();
+      }
+    }
     else
-      global_link_transforms_[links[0]->getLinkIndex()] =
-        links[0]->getJointOriginTransform()
-        * getJointTransform(links[0]->getParentJointModel());
+    {
+      if (links[0]->jointOriginTransformIsIdentity())
+        global_link_transforms_[links[0]->getLinkIndex()] = getJointTransform(links[0]->getParentJointModel());
+      else
+        global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = links[0]->getJointOriginTransform().matrix() * getJointTransform(links[0]->getParentJointModel()).matrix();
+    }
     
     // we know the rest of the links have parents
     for (std::size_t i = 1 ; i < links.size() ; ++i)
-      global_link_transforms_[links[i]->getLinkIndex()] =
-        global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()]
-        * links[i]->getJointOriginTransform() 
-        * getJointTransform(links[i]->getParentJointModel());
+    {
+      if (links[i]->parentJointIsFixed())
+        global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() = 
+          global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()].matrix()
+          * links[i]->getJointOriginTransform().matrix();
+      else
+      {
+        if (links[i]->jointOriginTransformIsIdentity())
+          global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() =
+            global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()].matrix()
+            * getJointTransform(links[i]->getParentJointModel()).matrix();
+        else
+          global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() = 
+            global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()] .matrix()
+            * links[i]->getJointOriginTransform().matrix()
+            * getJointTransform(links[i]->getParentJointModel()).matrix();
+      }
+    }
   }
   
   // update attached bodies tf; these are usually very few, so we update them all

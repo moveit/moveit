@@ -44,6 +44,12 @@ moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
   : JointModel(name)
   , axis_(0.0, 0.0, 0.0)
   , continuous_(false)
+  , x2_(0.0)
+  , y2_(0.0)
+  , z2_(0.0)
+  , xy_(0.0)
+  , xz_(0.0)
+  , yz_(0.0)
 {
   type_ = REVOLUTE;
   variable_names_.push_back(name_);
@@ -58,6 +64,17 @@ moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
 unsigned int moveit::core::RevoluteJointModel::getStateSpaceDimension() const
 {
   return 1;
+}
+
+void moveit::core::RevoluteJointModel::setAxis(const Eigen::Vector3d &axis)
+{
+  axis_ = axis.normalized();
+  x2_ = axis_.x() * axis_.x();
+  y2_ = axis_.y() * axis_.y();
+  z2_ = axis_.z() * axis_.z();
+  xy_ = axis_.x() * axis_.y();
+  xz_ = axis_.x() * axis_.z();
+  yz_ = axis_.y() * axis_.z();
 }
 
 void moveit::core::RevoluteJointModel::setContinuous(bool flag)
@@ -185,7 +202,41 @@ bool moveit::core::RevoluteJointModel::enforceBounds(double *values, const Bound
 
 void moveit::core::RevoluteJointModel::computeTransform(const double *joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
+  const double c = cos(joint_values[0]);
+  const double s = sin(joint_values[0]);
+  const double t = 1.0 - c;
+  const double txy = t * xy_;
+  const double txz = t * xz_;
+  const double tyz = t * yz_;
+  
+  const double zs = axis_.z() * s;
+  const double ys = axis_.y() * s;
+  const double xs = axis_.x() * s;
+
+  // column major
+  double *d = transf.data();
+
+  d[0] = t * x2_ + c;
+  d[1] = txy + zs;
+  d[2] = txz - ys;
+  d[3] = 0.0;
+
+  d[4] = txy - zs;
+  d[5] = t * y2_ + c;
+  d[6] = tyz + xs;
+  d[7] = 0.0;
+  
+  d[8] = txz + ys;
+  d[9] = tyz - xs;
+  d[10] = t * z2_ + c;
+  d[11] = 0.0;
+  
+  d[12] = 0.0;
+  d[13] = 0.0;
+  d[14] = 0.0;
+  d[15] = 1.0;
+
+  //  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
 void moveit::core::RevoluteJointModel::computeVariableValues(const Eigen::Affine3d& transf, double *joint_values) const

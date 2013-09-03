@@ -81,17 +81,20 @@ public:
   }
 
   /** \brief Set the axis of rotation */
-  void setAxis(const Eigen::Vector3d &axis)
-  {
-    axis_ = axis;
-  }
-
+  void setAxis(const Eigen::Vector3d &axis);
+  
 protected:
+  
   /** \brief The axis of the joint */
   Eigen::Vector3d axis_;
-
+ 
   /** \brief Flag indicating whether this joint wraps around */
   bool continuous_;
+
+private:
+  
+  double x2_, y2_, z2_, xy_, xz_, yz_;  
+
 };
 
 }

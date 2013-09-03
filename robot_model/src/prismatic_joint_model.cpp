@@ -117,8 +117,29 @@ void moveit::core::PrismaticJointModel::interpolate(const double *from, const do
 
 void moveit::core::PrismaticJointModel::computeTransform(const double *joint_values, Eigen::Affine3d &transf) const
 {
-  transf.setIdentity();
-  transf.translation() = Eigen::Vector3d(axis_ * joint_values[0]);
+  double *d = transf.data();
+  d[0] = 1.0;
+  d[1] = 0.0;
+  d[2] = 0.0;
+  d[3] = 0.0;
+
+  d[4] = 0.0;
+  d[5] = 1.0;
+  d[6] = 0.0;
+  d[7] = 0.0;
+  
+  d[8] = 0.0;
+  d[9] = 0.0;
+  d[10] = 1.0;
+  d[11] = 0.0;
+  
+  d[12] = axis_.x() * joint_values[0];
+  d[13] = axis_.y() * joint_values[0];
+  d[14] = axis_.z() * joint_values[0];
+  d[15] = 1.0;
+
+  //  transf.setIdentity();
+  //  transf.translation() = Eigen::Vector3d(axis_ * joint_values[0]);
 }
 
 void moveit::core::PrismaticJointModel::computeVariableValues(const Eigen::Affine3d& transf, double *joint_values) const

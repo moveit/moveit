@@ -1284,7 +1284,16 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
   out << std::endl;
   out.precision(old_prec);
   out.flags(old_flags);
-
+  out << "Links: " << std::endl;
+  for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
+  {
+    out << " '" << link_model_vector_[i]->getName() << "' with " << link_model_vector_[i]->getShapes().size() << " geoms" << std::endl;
+    if (link_model_vector_[i]->parentJointIsFixed())
+      out << "   * " << "parent joint is fixed" << std::endl;
+    if (link_model_vector_[i]->jointOriginTransformIsIdentity())
+      out << "   * " << "joint origin transform is identity" << std::endl;
+  }
+    
   out << "Available groups: " << std::endl;
   for (std::size_t i = 0 ; i < joint_model_groups_.size() ; ++i)
     joint_model_groups_[i]->printGroupInfo(out);  

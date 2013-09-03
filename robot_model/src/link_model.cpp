@@ -35,12 +35,15 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_model/link_model.h>
+#include <moveit/robot_model/joint_model.h>
 #include <geometric_shapes/shape_operations.h>
 
 moveit::core::LinkModel::LinkModel(const std::string &name) 
   : name_(name)
   , parent_joint_model_(NULL)
   , parent_link_model_(NULL)
+  , is_parent_joint_fixed_(false)
+  , joint_origin_transform_is_identity_(true)
   , first_collision_body_transform_index_(-1)
   , link_index_(-1)
 {
@@ -53,19 +56,30 @@ moveit::core::LinkModel::~LinkModel()
 
 void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d &transform)
 {
-  joint_origin_transform_ = transform;
+  joint_origin_transform_ = transform;  
+  joint_origin_transform_is_identity_ = joint_origin_transform_.rotation().isIdentity() && 
+    joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
+}
+
+void moveit::core::LinkModel::setParentJointModel(const JointModel *joint)
+{
+  parent_joint_model_ = joint;
+  is_parent_joint_fixed_ = joint->getType() == JointModel::FIXED;
 }
 
 void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &origins)
 {
   shapes_ = shapes;
   collision_origin_transform_ = origins;
-
+  collision_origin_transform_is_identity_.resize(collision_origin_transform_.size());
+  
   Eigen::Vector3d a = Eigen::Vector3d(0.0, 0.0, 0.0);
   Eigen::Vector3d b = Eigen::Vector3d(0.0, 0.0, 0.0);
   
   for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
   {
+    collision_origin_transform_is_identity_[i] = (collision_origin_transform_[i].rotation().isIdentity() && 
+                                                  collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ? 1 : 0;
     Eigen::Vector3d ei = shapes::computeShapeExtents(shapes_[i].get());
     Eigen::Vector3d p1 = collision_origin_transform_[i] * (-ei / 2.0);
     Eigen::Vector3d p2 = collision_origin_transform_[i] * (-p1);

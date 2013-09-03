@@ -128,10 +128,7 @@ public:
     return parent_joint_model_;
   }
 
-  void setParentJointModel(const JointModel *joint)
-  {
-    parent_joint_model_ = joint;
-  }
+  void setParentJointModel(const JointModel *joint);
 
   /** \brief Get the link model whose child this link is (through some joint). There may not always be a parent link (NULL is returned for the root link) */
   const LinkModel* getParentLinkModel() const
@@ -163,7 +160,17 @@ public:
   {
     return joint_origin_transform_;
   }
-
+  
+  bool jointOriginTransformIsIdentity() const
+  {
+    return joint_origin_transform_is_identity_;
+  }
+  
+  bool parentJointIsFixed() const
+  {
+    return is_parent_joint_fixed_;
+  }
+  
   void setJointOriginTransform(const Eigen::Affine3d &transform);
   
   /** \brief In addition to the link transform, the geometry
@@ -172,6 +179,12 @@ public:
   const EigenSTL::vector_Affine3d& getCollisionOriginTransforms() const
   {
     return collision_origin_transform_;
+  }
+
+  /** \brief Return flags for each transform specifying whether they are identity or not */
+  const std::vector<int>& areCollisionOriginTransformsIdentity() const
+  {
+    return collision_origin_transform_is_identity_;
   }
 
   /** \brief Get shape associated to the collision geometry for this link */
@@ -229,12 +242,21 @@ private:
   /** \brief List of directly descending joints (each connects to a child link) */
   std::vector<const JointModel*>     child_joint_models_;
 
+  /** \brief True if the parent joint of this link is fixed */
+  bool                               is_parent_joint_fixed_;
+  
+  /** \brief True of the joint origin transform is identity */
+  bool                               joint_origin_transform_is_identity_;
+  
   /** \brief The constant transform applied to the link (local) */
   Eigen::Affine3d                    joint_origin_transform_;
 
   /** \brief The constant transform applied to the collision geometry of the link (local) */
   EigenSTL::vector_Affine3d          collision_origin_transform_;
 
+  /** \brief Flag indicating if the constant transform applied to the collision geometry of the link (local) is identity; use int instead of bool to avoid bit operations */
+  std::vector<int>                   collision_origin_transform_is_identity_;
+  
   /** \brief The set of links that are attached to this one via fixed transforms */
   LinkTransformMap                   associated_fixed_transforms_;
   
