@@ -290,6 +290,7 @@ bool TrajectoryExecutionManager::pushAndExecute(const sensor_msgs::JointState &s
   traj.joint_trajectory.points.resize(1);
   traj.joint_trajectory.points[0].positions = state.position;
   traj.joint_trajectory.points[0].velocities = state.velocity;
+  traj.joint_trajectory.points[0].effort = state.effort;
   traj.joint_trajectory.points[0].time_from_start = ros::Duration(0, 0);
   return pushAndExecute(traj, controllers);
 }
@@ -815,6 +816,12 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
             parts[i].joint_trajectory.points[j].accelerations.resize(bijection.size());
             for (std::size_t k = 0 ; k < bijection.size() ; ++k)
               parts[i].joint_trajectory.points[j].accelerations[k] = trajectory.joint_trajectory.points[j].accelerations[bijection[k]];
+          }
+          if (!trajectory.joint_trajectory.points[j].effort.empty())
+          {
+            parts[i].joint_trajectory.points[j].effort.resize(bijection.size());
+            for (std::size_t k = 0 ; k < bijection.size() ; ++k)
+              parts[i].joint_trajectory.points[j].effort[k] = trajectory.joint_trajectory.points[j].effort[bijection[k]];
           }
         }
       }
