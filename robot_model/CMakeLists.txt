@@ -13,8 +13,7 @@ add_library(${MOVEIT_LIB_NAME}
   )
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_profiler moveit_exceptions moveit_kinematics_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-# This line is needed to ensure that messages are done being built before this is built
-add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
+add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 catkin_add_gtest(test_robot_model test/test.cpp)
 target_link_libraries(test_robot_model ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})

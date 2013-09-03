@@ -40,6 +40,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/backtrace/backtrace.h>
+#include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
 
 moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
@@ -353,7 +354,10 @@ void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup *gr
 } 
 
 void moveit::core::RobotState::update(bool force)
-{
+{  tools::Profiler::ScopedStart _x;
+
+  tools::Profiler::ScopedBlock _("upd");
+
   // make sure we do everything from scratch if needed
   if (force)
   {
@@ -372,8 +376,10 @@ void moveit::core::RobotState::updateCollisionBodyTransforms()
   
   if (dirty_collision_body_transforms_ != NULL)
   {
+    tools::Profiler::ScopedBlock _("fk_cbt");
     const std::vector<const LinkModel*> &links = dirty_collision_body_transforms_->getDescendantLinkModels();
-    dirty_collision_body_transforms_ = NULL;
+    dirty_collision_body_transforms_ = NULL; 
+
     for (std::size_t i = 0 ; i < links.size() ; ++i)
     {
       const EigenSTL::vector_Affine3d &ot = links[i]->getCollisionOriginTransforms();
@@ -402,7 +408,19 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
 {  
   const std::vector<const LinkModel*> &links = start->getDescendantLinkModels();
   if (links.size() > 0)
-  {
+  { 
+    tools::Profiler::ScopedBlock _("fk_lti");
+    {
+      tools::Profiler::ScopedBlock _("fk_a");
+      for (std::size_t i = 0 ; i < links.size() ; ++i)
+        getJointTransform(links[i]->getParentJointModel());
+    }
+    {
+      tools::Profiler::ScopedBlock _("fk_b");
+      for (std::size_t i = 0 ; i < links.size() ; ++i)
+        getJointTransform(links[i]->getParentJointModel());
+    }
+    
     const LinkModel *parent = links[0]->getParentLinkModel();
     if (parent)
       global_link_transforms_[links[0]->getLinkIndex()] =
