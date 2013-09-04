@@ -72,7 +72,7 @@ private:
 };
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel) :
-  kinematic_model_(kmodel), node_handle_("~")
+  robot_model_(kmodel), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -80,7 +80,7 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
 }
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers) :
-  kinematic_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
+  robot_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -742,8 +742,16 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
   actuated_joints_mdof.insert(trajectory.multi_dof_joint_trajectory.joint_names.begin(),
                               trajectory.multi_dof_joint_trajectory.joint_names.end());
   std::set<std::string> actuated_joints_single;
-  actuated_joints_single.insert(trajectory.joint_trajectory.joint_names.begin(),
-                                trajectory.joint_trajectory.joint_names.end());
+  for (std::size_t i = 0 ; i < trajectory.joint_trajectory.joint_names.size() ; ++i)
+  {
+    const robot_model::JointModel *jm = robot_model_->getJointModel(trajectory.joint_trajectory.joint_names[i]);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == JointModel::FIXED)
+        continue;
+      actuated_joints_single.insert(jm->getName());
+    }
+  }
 
   for (std::size_t i = 0 ; i < controllers.size() ; ++i)
   {
@@ -1272,7 +1280,7 @@ moveit_controller_manager::ExecutionStatus TrajectoryExecutionManager::getLastEx
 
 bool TrajectoryExecutionManager::ensureActiveControllersForGroup(const std::string &group)
 {
-  const robot_model::JointModelGroup *joint_model_group = kinematic_model_->getJointModelGroup(group);
+  const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group);
   if (joint_model_group)
     return ensureActiveControllersForJoints(joint_model_group->getJointModelNames());
   else
@@ -1286,7 +1294,17 @@ bool TrajectoryExecutionManager::ensureActiveControllersForJoints(const std::vec
     all_controller_names.push_back(it->first);
   std::vector<std::string> selected_controllers;
   std::set<std::string> jset;
-  jset.insert(joints.begin(), joints.end());
+  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  {
+    const robot_model::JointModel *jm = robot_model_->getJointModel(joints[i]);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == JointModel::FIXED)
+        continue;
+      jset.insert(joints[i]);
+    }
+  }
+  
   if (selectControllers(jset, all_controller_names, selected_controllers))
     return ensureActiveControllers(selected_controllers);
   else
