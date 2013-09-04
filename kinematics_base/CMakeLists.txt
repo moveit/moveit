@@ -4,7 +4,7 @@ set(MOVEIT_LIB_NAME moveit_kinematics_base)
 add_library(${MOVEIT_LIB_NAME} src/kinematics_base.cpp)
 
 # This line is needed to ensure that messages are done being built before this is built
-add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
+add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

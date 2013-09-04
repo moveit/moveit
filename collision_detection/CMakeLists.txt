@@ -11,10 +11,9 @@ add_library(${MOVEIT_LIB_NAME}
   src/allvalid/collision_robot_allvalid.cpp
   src/allvalid/collision_world_allvalid.cpp
 )
-# This line is needed to ensure that messages are done being built before this is built
-add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_state ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 # unit tests
 catkin_add_gtest(test_world test/test_world.cpp)

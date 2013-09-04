@@ -103,7 +103,7 @@ public:
    *
    * \li At least one constraint must reference a joint in the
    * indicated group.  If no additional bounds exist for this group,
-   * then robot_state::JointStateGroup::setToRandomValues can be
+   * then RobotState::setToRandomPositions() can be
    * used to generate a sample independently from the
    * constraint_samplers infrastructure.
    *
@@ -117,12 +117,11 @@ public:
    */
   bool configure(const std::vector<kinematic_constraints::JointConstraint> &jc);
 
-  virtual bool sample(robot_state::JointStateGroup *jsg,
+  virtual bool sample(robot_state::RobotState &state,
                       const robot_state::RobotState &ks,
                       unsigned int max_attempts);
 
-  virtual bool project(robot_state::JointStateGroup *jsg,
-                       const robot_state::RobotState &reference_state,
+  virtual bool project(robot_state::RobotState &state,
                        unsigned int max_attempts);
 
   /**
@@ -418,7 +417,7 @@ public:
   const std::string& getLinkName() const;
 
   /**
-   * \brief Produces an IK sample, putting the result in the JointStateGroup.
+   * \brief Produces an IK sample.
    *
    * This function first calls the \ref samplePose function to produce
    * a position and orientation in the constraint region.  It then
@@ -438,10 +437,11 @@ public:
    *
    * @return True if a valid sample pose was produced and valid IK found for that pose.  Otherwise false.
    */
-  virtual bool sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts);
+  virtual bool sample(robot_state::RobotState &state,
+                      const robot_state::RobotState &reference_state,
+                      unsigned int max_attempts);
 
-  virtual bool project(robot_state::JointStateGroup *jsg,
-                       const robot_state::RobotState &reference_state,
+  virtual bool project(robot_state::RobotState &state,
                        unsigned int max_attempts);
   /**
    * \brief Returns a pose that falls within the constraint regions.
@@ -488,10 +488,10 @@ protected:
    *
    * @return True if IK returns successfully with the timeout, and otherwise false.
    */
-  bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback, double timeout,
-              robot_state::JointStateGroup *jsg, bool use_as_seed);
+  bool callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
+              double timeout, robot_state::RobotState &state, bool use_as_seed);
 
-  bool sampleHelper(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts, bool project);
+  bool sampleHelper(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts, bool project);
 
   random_numbers::RandomNumberGenerator random_number_generator_; /**< \brief Random generator used by the sampler */
   IKSamplingPose                        sampling_pose_; /**< \brief Holder for the pose used for sampling */

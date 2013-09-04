@@ -472,7 +472,7 @@ struct IfSameType<T, T>
 };
 
 template<typename BV, typename T>
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const T *data)
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const T *data, int shape_index)
 {
   FCLShapeCache &cache = GetShapeCache<BV, T>();
 
@@ -490,7 +490,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
       else
         if (cache_it->second.unique())
         {
-          const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, false);
+          const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
           //          logDebug("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
           return cache_it->second;
         }
@@ -518,7 +518,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         othercache.lock_.unlock();
 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
-        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
+        const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
         //        logDebug("Collision data structures for attached body %s retrieved from the cache for world objects.", obj_cache->collision_geometry_data_->getID().c_str());
 
@@ -553,7 +553,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
           othercache.lock_.unlock();
 
           // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
-          const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, true);
+          const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
           //          logDebug("Collision data structures for world object %s retrieved from the cache for attached bodies.",
           //                   obj_cache->collision_geometry_data_->getID().c_str());
@@ -648,7 +648,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
   if (cg_g)
   {
     cg_g->computeLocalAABB();
-    FCLGeometryConstPtr res(new FCLGeometry(cg_g, data));
+    FCLGeometryConstPtr res(new FCLGeometry(cg_g, data, shape_index));
     boost::mutex::scoped_lock slock(cache.lock_);
     cache.map_[wptr] = res;
     cache.bumpUseCount();
@@ -660,52 +660,54 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_model::LinkModel *link)
+                                            const robot_model::LinkModel *link, 
+                                            int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, link);
+  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, link, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_state::AttachedBody *ab)
+                                            const robot_state::AttachedBody *ab,
+                                            int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, ab);
+  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, ab, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
                                             const World::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, obj);
+  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, obj, 0);
 }
 
 template<typename BV, typename T>
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding, const T *data)
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding, const T *data, int shape_index)
 {
   if (fabs(scale - 1.0) <= std::numeric_limits<double>::epsilon() && fabs(padding) <= std::numeric_limits<double>::epsilon())
-    return createCollisionGeometry<BV, T>(shape, data);
+    return createCollisionGeometry<BV, T>(shape, data, shape_index);
   else
   {
     boost::shared_ptr<shapes::Shape> scaled_shape(shape->clone());
     scaled_shape->scaleAndPadd(scale, padding);
-    return createCollisionGeometry<BV, T>(scaled_shape, data);
+    return createCollisionGeometry<BV, T>(scaled_shape, data, shape_index);
   }
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_model::LinkModel *link)
+                                            const robot_model::LinkModel *link, int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, scale, padding, link);
+  return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, scale, padding, link, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_state::AttachedBody *ab)
+                                            const robot_state::AttachedBody *ab, int shape_index)
 {
-  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, scale, padding, ab);
+  return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, scale, padding, ab, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
                                             const World::Object *obj)
 {
-  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, scale, padding, obj);
+  return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, scale, padding, obj, 0);
 }
 
 void cleanCollisionGeometryCache()

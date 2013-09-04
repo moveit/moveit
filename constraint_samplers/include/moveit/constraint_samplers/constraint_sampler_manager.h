@@ -134,8 +134,7 @@ private:
   std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
 };
 
-typedef boost::shared_ptr<ConstraintSamplerManager> ConstraintSamplerManagerPtr; /**< \brief boost::shared_ptr to a ConstraintSamplerManager */
-typedef boost::shared_ptr<const ConstraintSamplerManager> ConstraintSamplerManagerConstPtr; /**< \brief boost::shared_ptr to a const ConstraintSamplerManager */
+MOVEIT_CLASS_FORWARD(ConstraintSamplerManager);
 
 }
 

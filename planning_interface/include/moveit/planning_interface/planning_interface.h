@@ -38,11 +38,15 @@
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_INTERFACE_
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_interface/planning_request.h>
 #include <moveit/planning_interface/planning_response.h>
 #include <string>
 #include <map>
+
+namespace planning_scene
+{
+MOVEIT_CLASS_FORWARD(PlanningScene);
+}
 
 /** \brief This namespace includes the base class for MoveIt planners */
 namespace planning_interface

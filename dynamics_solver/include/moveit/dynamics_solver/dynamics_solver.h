@@ -65,7 +65,7 @@ public:
    * @param group_name The name of the group to compute stuff for
    * @return False if initialization failed
    */
-  DynamicsSolver(const robot_model::RobotModelConstPtr &kinematic_model,
+  DynamicsSolver(const robot_model::RobotModelConstPtr &robot_model,
                  const std::string &group_name,
                  const geometry_msgs::Vector3 &gravity_vector);
 
@@ -131,39 +131,33 @@ public:
    */
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return kinematic_model_;
+    return robot_model_;
   }
 
-  /**
-   * @brief Get the group name
-   * @return group name
-   */
-  const std::string& getGroupName() const
+  const robot_model::JointModelGroup* getGroup() const 
   {
-    return group_name_;
+    return joint_model_group_;
   }
-
+  
 private:
 
   boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_; // KDL chain inverse dynamics
   KDL::Chain kdl_chain_; // KDL chain
 
-  std::string group_name_, base_name_, tip_name_; // group name, base name, tip name
+  robot_model::RobotModelConstPtr robot_model_; 
+  const robot_model::JointModelGroup* joint_model_group_; 
+  
+  robot_state::RobotStatePtr state_; //robot state
+
+  std::string base_name_, tip_name_; // base name, tip name
   unsigned int num_joints_, num_segments_; // number of joints in group, number of segments in group
   std::vector<double> max_torques_; // vector of max torques
-
-  robot_model::RobotModelConstPtr kinematic_model_; // kinematic model
-  const robot_model::JointModelGroup* joint_model_group_; //joint model group
-
-  robot_state::RobotStatePtr kinematic_state_; //kinematic state
-  robot_state::JointStateGroup* joint_state_group_; //joint state for the group
 
   double gravity_; //Norm of the gravity vector passed in initialize()
 
 };
 
-typedef boost::shared_ptr<DynamicsSolver> DynamicsSolverPtr;
-typedef boost::shared_ptr<const DynamicsSolver> DynamicsSolverConstPtr;
+MOVEIT_CLASS_FORWARD(DynamicsSolver); 
 
 }
 #endif

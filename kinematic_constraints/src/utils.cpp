@@ -115,26 +115,23 @@ std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs:
     constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::JointStateGroup *jsg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
                                                                          double tolerance)
 {
-  return constructGoalConstraints(jsg, tolerance, tolerance);
+  return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::JointStateGroup *jsg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
                                                                          double tolerance_below, double tolerance_above)
 {
   moveit_msgs::Constraints goal;
-
-  std::map<std::string, double> vals;
-  jsg->getVariableValues(vals);
-
+  std::vector<double> vals;
+  state.copyJointGroupPositions(jmg, vals);
   goal.joint_constraints.resize(vals.size());
-  unsigned int i = 0;
-  for (std::map<std::string, double>::iterator it = vals.begin() ; it != vals.end(); ++it, ++i)
+  for (std::size_t i = 0 ; i < vals.size() ; ++i)
   {
-    goal.joint_constraints[i].joint_name = it->first;
-    goal.joint_constraints[i].position = it->second;
+    goal.joint_constraints[i].joint_name = jmg->getVariableNames()[i];
+    goal.joint_constraints[i].position = vals[i];
     goal.joint_constraints[i].tolerance_above = tolerance_below;
     goal.joint_constraints[i].tolerance_below = tolerance_above;
     goal.joint_constraints[i].weight = 1.0;

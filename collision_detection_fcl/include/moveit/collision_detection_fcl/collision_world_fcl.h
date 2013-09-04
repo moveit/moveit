@@ -39,6 +39,7 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 #include <fcl/broadphase/broadphase.h>
+#include <boost/scoped_ptr.hpp>
 
 namespace collision_detection
 {

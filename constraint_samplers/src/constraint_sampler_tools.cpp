@@ -66,7 +66,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
     total += n;
     for (unsigned int i = 0 ; i < n ; ++i)
     {
-      if (sampler->sample(ks.getJointStateGroup(sampler->getGroupName()), ks, 1))
+      if (sampler->sample(ks, 1))
         valid++;
     }
   }
@@ -82,7 +82,9 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
     logError("No sampler specified for visualizing distribution of samples");
     return;
   }
-
+  const robot_state::LinkModel *lm = reference_state.getLinkModel(link_name);
+  if (!lm)
+    return;
   robot_state::RobotState ks(reference_state);
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -91,29 +93,23 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
   color.a = 1.0f;
   for (unsigned int i = 0 ; i < sample_count ; ++i)
   {
-    if (!sampler->sample(ks.getJointStateGroup(sampler->getGroupName()), ks))
+    if (!sampler->sample(ks))
       continue;
-    const robot_state::LinkState *ls = ks.getLinkState(link_name);
-    if (ls)
-    {
-      const Eigen::Vector3d &pos = ls->getGlobalLinkTransform().translation();
-      visualization_msgs::Marker mk;
-      mk.header.stamp = ros::Time::now();
-      mk.header.frame_id = sampler->getJointModelGroup()->getParentModel()->getModelFrame();
-      mk.ns = "constraint_samples";
-      mk.id = i;
-      mk.type = visualization_msgs::Marker::SPHERE;
-      mk.action = visualization_msgs::Marker::ADD;
-      mk.pose.position.x = pos.x();
-      mk.pose.position.y = pos.y();
-      mk.pose.position.z = pos.z();
-      mk.pose.orientation.w = 1.0;
-      mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
-      mk.color = color;
-      mk.lifetime = ros::Duration(30.0);
-      markers.markers.push_back(mk);
-    }
-    else
-      break;
+    const Eigen::Vector3d &pos = ks.getGlobalLinkTransform(lm).translation();
+    visualization_msgs::Marker mk;
+    mk.header.stamp = ros::Time::now();
+    mk.header.frame_id = sampler->getJointModelGroup()->getParentModel().getModelFrame();
+    mk.ns = "constraint_samples";
+    mk.id = i;
+    mk.type = visualization_msgs::Marker::SPHERE;
+    mk.action = visualization_msgs::Marker::ADD;
+    mk.pose.position.x = pos.x();
+    mk.pose.position.y = pos.y();
+    mk.pose.position.z = pos.z();
+    mk.pose.orientation.w = 1.0;
+    mk.scale.x = mk.scale.y = mk.scale.z = 0.035;
+    mk.color = color;
+    mk.lifetime = ros::Duration(30.0);
+    markers.markers.push_back(mk);
   }
 }

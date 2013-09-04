@@ -66,7 +66,6 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
 
   // find and keep the constraints that operate on the group we sample
   // also keep bounds for joints as convenient
-  const std::map<std::string, unsigned int> &vim = jmg_->getJointVariablesIndexMap();
   std::map<std::string, JointInfo> bound_data;
   bool some_valid_constraint = false;
   for (std::size_t i = 0 ; i < jc.size() ; ++i)
@@ -80,25 +79,23 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
 
     some_valid_constraint = true;
 
-    std::pair<double, double> joint_bounds;
-    jm->getVariableBounds(jc[i].getJointVariableName(), joint_bounds);
-
+    const robot_model::VariableBounds& joint_bounds = jm->getVariableBounds(jc[i].getJointVariableName());
     JointInfo ji;
-    ji.index_ = vim.find(jc[i].getJointVariableName())->second;
     std::map<std::string, JointInfo>::iterator it = bound_data.find(jc[i].getJointVariableName());
     if (it != bound_data.end())
       ji = it->second;
-
-    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.first, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
-                                     std::min(joint_bounds.second, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
-
+    else
+      ji.index_ = jmg_->getVariableGroupIndex(jc[i].getJointVariableName());
+    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.min_position_, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
+                                     std::min(joint_bounds.max_position_, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
+    
 
     logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
 
     if (ji.min_bound_ > ji.max_bound_ + std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs; jc[i].print(cs);
-      logError("The constraints for joint '%s' are such that there are no possible values for the joint - min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
+      logError("The constraints for joint '%s' are such that there are no possible values for the joint: min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
       clear();
       return false;
     }
@@ -117,7 +114,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const robot_model::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    if (bound_data.find(joints[i]->getName()) == bound_data.end())
+    if (bound_data.find(joints[i]->getName()) == bound_data.end() && joints[i]->getVariableCount() > 0 && 
+        joints[i]->getMimic() == NULL)
     {
       // check if all the vars of the joint are found in bound_data instead
       const std::vector<std::string> &vars = joints[i]->getVariableNames();
@@ -134,15 +132,15 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
           continue;
       }
       unbounded_.push_back(joints[i]);
-      uindex_.push_back(vim.find(joints[i]->getName())->second);
+      uindex_.push_back(joints[i]->getFirstVariableIndex());
     }
   values_.resize(jmg_->getVariableCount());
   is_valid_ = true;
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::sample(robot_state::JointStateGroup *jsg,
-                                                         const robot_state::RobotState & /* ks */,
+bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState &state,
+                                                         const robot_state::RobotState & /* reference_state */,
                                                          unsigned int /* max_attempts */)
 {
   if (!is_valid_)
@@ -151,37 +149,30 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::JointState
     return false;
   }
 
-  if (jsg->getName() != getGroupName())
-  {
-    logWarn("JointConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
-            jsg->getName().c_str(), getGroupName().c_str());
-    return false;
-  }
-
   // sample the unbounded joints first (in case some joint variables are bounded)
+  std::vector<double> v;
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
-    std::vector<double> v;
-    unbounded_[i]->getVariableRandomValues(random_number_generator_, v);
+    v.resize(unbounded_[i]->getVariableCount());
+    unbounded_[i]->getVariableRandomValues(random_number_generator_, &v[0]);
     for (std::size_t j = 0 ; j < v.size() ; ++j)
       values_[uindex_[i] + j] = v[j];
   }
-
+  
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
     values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
 
-  jsg->setVariableValues(values_);
+  state.setJointGroupPositions(jmg_, values_);
 
   // we are always successful
   return true;
 }
 
-bool constraint_samplers::JointConstraintSampler::project(robot_state::JointStateGroup *jsg,
-                                                          const robot_state::RobotState &reference_state,
+bool constraint_samplers::JointConstraintSampler::project(robot_state::RobotState &state,
                                                           unsigned int max_attempts)
 {
-  return sample(jsg, reference_state, max_attempts);
+  return sample(state, state, max_attempts);
 }
 
 void constraint_samplers::JointConstraintSampler::clear()
@@ -329,16 +320,16 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
 
   // check if we need to transform the request into the coordinate frame expected by IK
   ik_frame_ = kb_->getBaseFrame();
+  transform_ik_ = !robot_state::Transforms::sameFrame(ik_frame_, jmg_->getParentModel().getModelFrame());
   if (!ik_frame_.empty() && ik_frame_[0] == '/')
     ik_frame_.erase(ik_frame_.begin());
-  transform_ik_ = !robot_state::Transforms::sameFrame(ik_frame_, jmg_->getParentModel()->getModelFrame());
   if (transform_ik_)
-    if (!jmg_->getParentModel()->hasLinkModel(ik_frame_))
+    if (!jmg_->getParentModel().hasLinkModel(ik_frame_))
     {
       logError("The IK solver expects requests in frame '%s' but this frame is not known to the sampler. Ignoring transformation (IK may fail)", ik_frame_.c_str());
       transform_ik_ = false;
     }
-
+  
   // check if IK is performed for the desired link
   bool wrong_link = false;
   if (sampling_pose_.position_constraint_)
@@ -395,17 +386,8 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   {
     // do FK for rand state
     robot_state::RobotState tempState(ks);
-    robot_state::JointStateGroup *tmp = tempState.getJointStateGroup(jmg_->getName());
-    if (tmp)
-    {
-      tmp->setToRandomValues();
-      pos = tempState.getLinkState(sampling_pose_.orientation_constraint_->getLinkModel()->getName())->getGlobalLinkTransform().translation();
-    }
-    else
-    {
-      logError("Passed a JointStateGroup for a mismatching JointModelGroup");
-      return false;
-    }
+    tempState.setToRandomPositions(jmg_);
+    pos = tempState.getGlobalLinkTransform(sampling_pose_.orientation_constraint_->getLinkModel()).translation();
   }
 
   if (sampling_pose_.orientation_constraint_)
@@ -460,14 +442,14 @@ namespace constraint_samplers
 {
 namespace
 {
-void samplingIkCallbackFnAdapter(robot_state::JointStateGroup *jsg, const robot_state::StateValidityCallbackFn &constraint,
+void samplingIkCallbackFnAdapter(robot_state::RobotState *state, const robot_model::JointModelGroup *jmg, const robot_state::GroupStateValidityCallbackFn &constraint,
                                  const geometry_msgs::Pose &, const std::vector<double> &ik_sol, moveit_msgs::MoveItErrorCodes &error_code)
 {
-  const std::vector<unsigned int> &bij = jsg->getJointModelGroup()->getKinematicsSolverJointBijection();
+  const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
   std::vector<double> solution(bij.size());
   for (std::size_t i = 0 ; i < bij.size() ; ++i)
     solution[i] = ik_sol[bij[i]];
-  if (constraint(jsg, solution))
+  if (constraint(state, jmg, &solution[0]))
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
@@ -475,33 +457,26 @@ void samplingIkCallbackFnAdapter(robot_state::JointStateGroup *jsg, const robot_
 }
 }
 
-bool constraint_samplers::IKConstraintSampler::sample(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts)
+bool constraint_samplers::IKConstraintSampler::sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts)
 {
-  return sampleHelper(jsg, ks, max_attempts, false);
+  return sampleHelper(state, reference_state, max_attempts, false);
 }
 
-bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::JointStateGroup *jsg, const robot_state::RobotState &ks, unsigned int max_attempts, bool project)
+bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts, bool project)
 {
   if (!is_valid_)
     return false;
 
-  if (jsg->getName() != getGroupName())
-  {
-    logWarn("IKConstraintSampler sample function called with name %s which is not the group %s for which it was configured",
-            jsg->getName().c_str(), getGroupName().c_str());
-    return false;
-  }
-
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
-  if (state_validity_callback_)
-    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, jsg, state_validity_callback_, _1, _2, _3);
+  if (group_state_validity_callback_)
+    adapted_ik_validity_callback = boost::bind(&samplingIkCallbackFnAdapter, &state, jmg_, group_state_validity_callback_, _1, _2, _3);
 
   for (unsigned int a = 0 ; a < max_attempts ; ++a)
   {
     // sample a point in the constraint region
     Eigen::Vector3d point;
     Eigen::Quaterniond quat;
-    if (!samplePose(point, quat, ks, max_attempts))
+    if (!samplePose(point, quat, reference_state, max_attempts))
     {
       if (verbose_)
         logInform("IK constraint sampler was unable to produce a pose to run IK for");
@@ -517,35 +492,34 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::JointSt
     ik_query.orientation.z = quat.z();
     ik_query.orientation.w = quat.w();
 
-    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, jsg, project && a == 0))
+    if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, project && a == 0))
       return true;
   }
   return false;
 }
 
-bool constraint_samplers::IKConstraintSampler::project(robot_state::JointStateGroup *jsg,
-                                                       const robot_state::RobotState &reference_state,
+bool constraint_samplers::IKConstraintSampler::project(robot_state::RobotState &state,
                                                        unsigned int max_attempts)
 {
-  return sampleHelper(jsg, reference_state, max_attempts, true);
+  return sampleHelper(state, state, max_attempts, true);
 }
 
 bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
-                                                      double timeout, robot_state::JointStateGroup *jsg, bool use_as_seed)
+                                                      double timeout, robot_state::RobotState &state, bool use_as_seed)
 {
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);
   std::vector<double> vals;
-
+  
   if (use_as_seed)
-    jsg->getVariableValues(vals);
+    state.copyJointGroupPositions(jmg_, vals);
   else
     // sample a seed value
     jmg_->getVariableRandomValues(random_number_generator_, vals);
 
   assert(vals.size() == ik_joint_bijection.size());
   for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
-    seed[ik_joint_bijection[i]] = vals[i];
+    seed[i] = vals[ik_joint_bijection[i]];
 
   std::vector<double> ik_sol;
   moveit_msgs::MoveItErrorCodes error;
@@ -557,11 +531,11 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     assert(ik_sol.size() == ik_joint_bijection.size());
     std::vector<double> solution(ik_joint_bijection.size());
     for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
-      solution[i] = ik_sol[ik_joint_bijection[i]];
-    jsg->setVariableValues(solution);
+      solution[ik_joint_bijection[i]] = ik_sol[i];
+    state.setJointGroupPositions(jmg_, solution);
 
-    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(*jsg->getRobotState(), verbose_).satisfied);
-    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(*jsg->getRobotState(), verbose_).satisfied);
+    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(state, verbose_).satisfied);
+    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
 
     return true;
   }
