@@ -105,12 +105,24 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
   
   dirty_collision_body_transforms_ = other.dirty_collision_body_transforms_;
   dirty_link_transforms_ = other.dirty_link_transforms_;
-  
-  // memory for the dirty joint transforms
-  const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
-  const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
-    + sizeof(double) * (robot_model_->getVariableCount() * 3 + nr_doubles_for_dirty_joint_transforms) + 15;
-  memcpy(memory_, other.memory_, bytes);
+
+  if (dirty_link_transforms_ == robot_model_->getRootJoint())
+  {
+    // everything is dirty; no point in copying transforms; copy positions, potentially velocity & acceleration
+    memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) * (1 + (has_velocity_ ? 1 : 0) + (has_acceleration_ ? 1 : 0)));
+    
+    // mark all transforms as dirty
+    const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
+    memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
+  }
+  else
+  {
+    // copy all the memory; maybe avoid copying velocity and acceleration if possible
+    const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
+    const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
+      + sizeof(double) * (robot_model_->getVariableCount() * (1 + (has_velocity_ ? 1 : 0) + (has_acceleration_ ? 1 : 0)) + nr_doubles_for_dirty_joint_transforms) + 15;
+    memcpy(memory_, other.memory_, bytes);
+  }
   
   // copy attached bodies
   clearAttachedBodies();
