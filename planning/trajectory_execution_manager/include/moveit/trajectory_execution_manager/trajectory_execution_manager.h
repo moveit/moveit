@@ -243,7 +243,7 @@ private:
 
   void receiveEvent(const std_msgs::StringConstPtr &event);
 
-  robot_model::RobotModelConstPtr kinematic_model_;
+  robot_model::RobotModelConstPtr robot_model_;
   ros::NodeHandle node_handle_;
   ros::NodeHandle root_node_handle_;
   ros::Subscriber event_topic_subscriber_;
