@@ -204,7 +204,7 @@ public:
    * @param [in] model The kinematic model used for constraint evaluation
    */
   JointConstraint(const robot_model::RobotModelConstPtr &model) :
-    KinematicConstraint(model), joint_model_(NULL)
+    KinematicConstraint(model), joint_model_(NULL), joint_variable_index_(-1)
   {
     type_ = JOINT_CONSTRAINT;
   }
@@ -279,6 +279,11 @@ public:
     return joint_variable_name_;
   }
 
+  int getJointVariableIndex() const
+  {
+    return joint_variable_index_;
+  }
+  
   /**
    * \brief Gets the desired position component of the constraint
    *
@@ -318,6 +323,7 @@ protected:
   bool                                               joint_is_continuous_; /**< \brief Whether or not the joint is continuous */
   std::string                                        local_variable_name_; /**< \brief The local variable name for a multi DOF joint, if any */
   std::string                                        joint_variable_name_; /**< \brief The joint variable name */
+  int                                                joint_variable_index_;  /**< \brief The index of the joint variable name in the full robot state */
   double                                             joint_position_, joint_tolerance_above_, joint_tolerance_below_; /**< \brief Position and tolerance values*/
 };
 

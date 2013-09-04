@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2010, Willow Garage, Inc.
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,38 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+#ifndef MOVEIT_BACKTRACE_
+#define MOVEIT_BACKTARCE_
 
-#include <moveit/robot_state/state_transforms.h>
-#include <moveit/robot_state/robot_state.h>
+#include <iostream>
 
-robot_state::StateTransforms::StateTransforms(const std::string &target_frame, const RobotStateConstPtr &state) :
-  Transforms(target_frame),
-  state_(state)
+namespace moveit
 {
-  if (state_ && !sameFrame(state_->getRobotModel()->getModelFrame(), target_frame_))
-    logError("Target frame is assumed to be '%s' but the model of the robot state places the robot in frame '%s'",
-             target_frame_.c_str(), state_->getRobotModel()->getModelFrame().c_str());
+
+/** \brief Get the current backtrace. This may not work on all compilers */
+void get_backtrace(std::ostream &out);
+
+#ifdef __GLIBC__
+#include <execinfo.h>
+void get_backtrace(std::ostream &out)
+{
+  void *array[500];
+  size_t size = backtrace(array, 500);
+  char **strings = backtrace_symbols((void *const *)array, size);
+  out << "Backtrace:" << std::endl;
+  for (size_t i = 0; i < size; ++i)
+  {
+    out << "  " << strings[i] << std::endl;
+  }
+  free(strings);
+}
+#else
+void get_backtrace(std::ostream &out)
+{
+  out << "Unable to get backtrace with the used compiler." << std::endl;
+}
+#endif
+
 }
 
-bool robot_state::StateTransforms::canTransform(const std::string &from_frame) const
-{
-  if (state_ && state_->knowsFrameTransform(from_frame))
-    return true;
-  return Transforms::canTransform(from_frame);
-}
-
-const Eigen::Affine3d& robot_state::StateTransforms::getTransform(const std::string &from_frame) const
-{
-  if (state_ && state_->knowsFrameTransform(from_frame))
-    return state_->getFrameTransform(from_frame);
-  return Transforms::getTransform(from_frame);
-}
+#endif

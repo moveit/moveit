@@ -73,13 +73,14 @@ std::size_t countIndividualConstraints(const moveit_msgs::Constraints &constr);
  * constraint for a joint group.  The full constraint will contain a
  * vector of type \ref JointConstraint, one for each DOF in the group.
  *
- * @param [in] jsg The group for which to generate goal joint constraints
+ * @param [in] state The state from which to generate goal joint constraints
+ * @param [in] jmg The group for which to generate goal joint constraints
  * @param [in] tolerance_below The below tolerance to apply to all constraints
  * @param [in] tolerance_above The above tolerance to apply to all constraints
  *
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
                                                   double tolerance_below, double tolerance_above);
 
 /**
@@ -87,12 +88,13 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateG
  * constraint for a joint group.  The full constraint will contain a
  * vector of type \ref JointConstraint, one for each DOF in the group.
  *
- * @param [in] jsg The group for which to generate joint constraints
+ * @param [in] state The state from which to generate goal joint constraints
+ * @param [in] jmg The group for which to generate joint constraints
  * @param [in] tolerance A tolerance to apply both above and below for all constraints
  *
  * @return A full constraint message containing all the joint constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateGroup *jsg,
+moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
                                                   double tolerance = std::numeric_limits<double>::epsilon());
 
 
@@ -110,7 +112,8 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::JointStateG
  *
  * @return A full constraint message containing both constraints
  */
-moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose, double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
+moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
+                                                  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
 
 /**
  * \brief Generates a constraint message intended to be used as a goal

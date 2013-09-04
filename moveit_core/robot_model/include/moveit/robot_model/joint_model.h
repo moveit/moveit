@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of Willow Garage, Inc. nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -34,22 +34,87 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_ROBOT_MODEL_JOINT_MODEL_
-#define MOVEIT_ROBOT_MODEL_JOINT_MODEL_
+#ifndef MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_
+#define MOVEIT_CORE_ROBOT_MODEL_JOINT_MODEL_
 
-#include <map>
 #include <string>
 #include <vector>
-#include <utility>
+#include <iostream>
 #include <moveit_msgs/JointLimits.h>
 #include <random_numbers/random_numbers.h>
-#include <console_bridge/console.h>
 #include <Eigen/Geometry>
 
-namespace robot_model
+#if BOOST_VERSION < 104800
+#  include <map>
+#else
+#  include <boost/container/flat_map.hpp>
+#endif
+
+namespace moveit
+{
+namespace core
 {
 
+struct VariableBounds
+{
+  VariableBounds() :
+    min_position_(0.0),
+    max_position_(0.0),
+    position_bounded_(false),
+    min_velocity_(0.0),
+    max_velocity_(0.0),
+    velocity_bounded_(false),
+    min_acceleration_(0.0),
+    max_acceleration_(0.0),
+    acceleration_bounded_(false)   
+  {
+  }
+  
+  double min_position_;
+  double max_position_;
+  bool position_bounded_;
+  
+  double min_velocity_;
+  double max_velocity_;
+  bool velocity_bounded_;
+  
+  double min_acceleration_;
+  double max_acceleration_;
+  bool acceleration_bounded_;
+};
+
 class LinkModel;
+class JointModel;
+
+#if BOOST_VERSION < 104800
+   /** \brief Data type for holding mappings from variable names to their position in a state vector */
+   typedef std::map<std::string, int> VariableIndexMap;
+
+   /** \brief Data type for holding mappings from variable names to their bounds */
+   typedef std::map<std::string, VariableBounds> VariableBoundsMap;
+
+   /** \brief Map of names to instances for JointModel */
+   typedef std::map<std::string, JointModel*> JointModelMap;
+
+   /** \brief Map of names to const instances for JointModel */
+   typedef std::map<std::string, const JointModel*> JointModelMapConst;
+#else
+
+   /** \brief Data type for holding mappings from variable names to their position in a state vector */
+   typedef boost::container::flat_map<std::string, int> VariableIndexMap;
+
+   /** \brief Data type for holding mappings from variable names to their bounds */
+   typedef boost::container::flat_map<std::string, VariableBounds> VariableBoundsMap;
+
+   /** \brief Map of names to instances for JointModel */
+   typedef boost::container::flat_map<std::string, JointModel*> JointModelMap;
+
+   /** \brief Map of names to const instances for JointModel */
+   typedef boost::container::flat_map<std::string, JointModel*> JointModelMapConst;
+
+#endif
+
+
 
 /** \brief A joint from the robot. Models the transform that
     this joint applies in the kinematic chain. A joint
@@ -65,7 +130,6 @@ class LinkModel;
     variables directly. */
 class JointModel
 {
-  friend class RobotModel;
 public:
 
   /** \brief The different types of joints we support */
@@ -75,8 +139,7 @@ public:
     };
 
   /** \brief The datatype for the joint bounds */
-  typedef std::vector<std::pair<double, double> > Bounds;
-
+  typedef std::vector<VariableBounds> Bounds;
 
   /** \brief Construct a joint named \e name */
   JointModel(const std::string& name);
@@ -96,25 +159,7 @@ public:
   }
 
   /** \brief Get the type of joint as a string */
-  std::string getTypeName() const
-  {
-    switch(type_)
-    {
-    case UNKNOWN: return "Unkown";
-    case REVOLUTE: return "Revolute";
-    case PRISMATIC: return "Prismatic";
-    case PLANAR: return "Planar";
-    case FLOATING: return "Floating";
-    case FIXED: return "Fixed";
-    default: return "[Unkown]";
-    }
-  }
-
-  /** \brief The index of this joint when traversing the kinematic tree in depth first fashion */
-  int getTreeIndex() const
-  {
-    return tree_index_;
-  }
+  std::string getTypeName() const;
 
   /** \brief Get the link that this joint connects to. The
       robot is assumed to start with a joint, so the root
@@ -130,6 +175,16 @@ public:
     return child_link_model_;
   }
 
+  void setParentLinkModel(const LinkModel *link)
+  {
+    parent_link_model_ = link;
+  }
+
+  void setChildLinkModel(const LinkModel *link)
+  {
+    child_link_model_ = link;
+  }
+    
   /** @name Reason about the variables that make up this joint
       @{ */
 
@@ -141,25 +196,6 @@ public:
     return variable_names_;
   }
 
-  /** \brief Check if a particular variable is known to this joint */
-  bool hasVariable(const std::string &variable) const
-  {
-    return variable_index_.find(variable) != variable_index_.end();
-  }
-
-  /** \brief Get the number of variables that describe this joint */
-  unsigned int getVariableCount() const
-  {
-    return variable_names_.size();
-  }
-
-  /** \brief The set of variables that make up the state value of a joint are stored in some order. This map
-      gives the position of each variable in that order, for each variable name */
-  const std::map<std::string, unsigned int>& getVariableIndexMap() const
-  {
-    return variable_index_;
-  }
-
   /** \brief Get the local names of the variable that make up the joint (suffixes that are attached to joint names to construct the variable names).
       For single DOF joints, this will be empty. */
   const std::vector<std::string>& getLocalVariableNames() const
@@ -167,91 +203,109 @@ public:
     return local_variable_names_;
   }
 
+  /** \brief Check if a particular variable is known to this joint */
+  bool hasVariable(const std::string &variable) const
+  {
+    return variable_index_map_.find(variable) != variable_index_map_.end();
+  }
+
+  /** \brief Get the number of variables that describe this joint */
+  std::size_t getVariableCount() const
+  {
+    return variable_names_.size();
+  }
+
+  /** \brief Get the index of this joint's first variable within the full robot state */
+  int getFirstVariableIndex() const
+  {
+    return first_variable_index_;
+  }
+  
+  /** \brief Set the index of this joint's first variable within the full robot state */
+  void setFirstVariableIndex(int index)
+  {
+    first_variable_index_ = index;
+  }
+  
+  /** \brief Get the index of this joint within the robot model */
+  int getJointIndex() const
+  {
+    return joint_index_;
+  }
+  
+  /** \brief Set the index of this joint within the robot model */
+  void setJointIndex(int index)
+  {
+    joint_index_ = index;
+  }
+
+  /** \brief Get the index of the variable within this joint */
+  int getLocalVariableIndex(const std::string &variable) const;
+  
   /** @} */
 
   /** @name Functionality specific to computing state values
       @{ */
 
-  /** \brief Provide defaults value for the joint variables, given the default joint variable bounds (maintained internally).
-      Most joints will use the default implementation provided in this base class, but the quaternion
-      for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
-  void getVariableDefaultValues(std::map<std::string, double> &values) const
-  {
-    getVariableDefaultValues(values, variable_bounds_);
-  }
-
-  /** \brief Provide a default value for the joint variables given the joint bounds.
-      Most joints will use the default implementation provided in this base class, but the quaternion
-      for example needs a different implementation. The map is NOT cleared; elements are only added (or overwritten). */
-  void getVariableDefaultValues(std::map<std::string, double> &values, const Bounds &other_bounds) const;
-
   /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
       Most joints will use the default implementation provided in this base class, but the quaternion
-      for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
-  void getVariableDefaultValues(std::vector<double> &values) const
+      for example needs a different implementation. Enough memory is assumed to be allocated. */
+  void getVariableDefaultValues(double *values) const
   {
     getVariableDefaultValues(values, variable_bounds_);
   }
 
   /** \brief Provide a default value for the joint given the joint variable bounds.
       Most joints will use the default implementation provided in this base class, but the quaternion
-      for example needs a different implementation. The vector is NOT cleared; elements are only added with push_back */
-  virtual void getVariableDefaultValues(std::vector<double> &values, const Bounds &other_bounds) const = 0;
+      for example needs a different implementation. Enough memory is assumed to be allocated. */
+  virtual void getVariableDefaultValues(double *values, const Bounds &other_bounds) const = 0;
 
-  /** \brief Provide random values for the joint variables (within default bounds). The map is NOT cleared; elements are only added (or overwritten). */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
+  /** \brief Provide random values for the joint variables (within default bounds). Enough memory is assumed to be allocated. */
+  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
   {
     getVariableRandomValues(rng, values, variable_bounds_);
   }
 
-  /** \brief Provide random values for the joint variables (within specified bounds). The map is NOT cleared; elements are only added (or overwritten). */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values, const Bounds &other_bounds) const;
-
-  /** \brief Provide random values for the joint variables (within default bounds). The vector is NOT cleared; elements are only added with push_back */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
-  {
-    getVariableRandomValues(rng, values, variable_bounds_);
-  }
-
-  /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
-  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds) const = 0;
-
-  /** \brief Provide random values for the joint variables (within default bounds). The vector is NOT cleared; elements are only added with push_back */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                     const std::vector<double> &near, const double distance) const
+  /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be allocated. */
+  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const = 0;
+  
+  /** \brief Provide random values for the joint variables (within default bounds). Enough memory is assumed to be allocated. */
+  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                     const double *near, const double distance) const
   {
     getVariableRandomValuesNearBy(rng, values, variable_bounds_, near, distance);
   }
 
-  /** \brief Provide random values for the joint variables (within specified bounds). The vector is NOT cleared; elements are only added with push_back */
-  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, const Bounds &other_bounds,
-                                             const std::vector<double> &near, const double distance) const = 0;
-
+  /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be allocated. */
+  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
+                                             const double *near, const double distance) const = 0;
+  
   /** @} */
 
   /** @name Functionality specific to verifying bounds
       @{ */
 
   /** \brief Check if the set of values for the variables of this joint are within bounds. */
-  bool satisfiesBounds(const std::vector<double> &values, double margin = 0.0) const
+  bool satisfiesBounds(const double *values, double margin = 0.0) const
   {
     return satisfiesBounds(values, variable_bounds_, margin);
   }
 
   /** \brief Check if the set of values for the variables of this joint are within bounds, up to some margin. */
-  virtual bool satisfiesBounds(const std::vector<double> &values, const Bounds &other_bounds, double margin) const = 0;
+  virtual bool satisfiesBounds(const double *values, const Bounds &other_bounds, double margin) const = 0;
 
-  /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
-  void enforceBounds(std::vector<double> &values) const
+  /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi.
+      Returns true if changes were made. */
+  bool enforceBounds(double *values) const
   {
-    enforceBounds(values, variable_bounds_);
+    return enforceBounds(values, variable_bounds_);
   }
 
   /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
-  virtual void enforceBounds(std::vector<double> &values, const Bounds &other_bounds) const = 0;
+  virtual bool enforceBounds(double *values, const Bounds &other_bounds) const = 0;
 
-  /** \brief Get the lower and upper bounds for a variable. Return false if the variable was not found */
-  bool getVariableBounds(const std::string& variable, std::pair<double, double>& bounds) const;
+  /** \brief Get the bounds for a variable. Throw an exception if the variable was not found */
+  const VariableBounds& getVariableBounds(const std::string& variable) const;
 
   /** \brief Get the variable bounds for this joint, in the same order as the names returned by getVariableNames() */
   const Bounds& getVariableBounds() const
@@ -259,30 +313,22 @@ public:
     return variable_bounds_;
   }
 
-  /** \brief Set the lower and upper bounds for a variable. Return false if the variable was not found */
-  bool setVariableBounds(const std::string& variable, const std::pair<double, double>& bounds);
+  /** \brief Set the lower and upper bounds for a variable. Throw an exception if the variable was not found. */
+  void setVariableBounds(const std::string& variable, const VariableBounds& bounds);
 
-  /** \brief Get variable limits as a message type */
-  const std::vector<moveit_msgs::JointLimits>& getVariableDefaultLimits() const
+  /** \brief Override joint limits loaded from URDF. Unknown variables are ignored. */
+  void setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim);
+
+  /** \brief Get the joint limits known to this model, as a message. */
+  const std::vector<moveit_msgs::JointLimits>& getVariableBoundsMsg() const
   {
-    return default_limits_;
+    return variable_bounds_msg_;
   }
-
-  /** \brief Override joint limits */
-  void setVariableLimits(const std::vector<moveit_msgs::JointLimits>& jlim);
-
-  /** \brief Get the joint limits specified by the user with setLimits() or the default joint limits using getVariableLimits(), if no joint limits were specified. */
-  const std::vector<moveit_msgs::JointLimits>& getVariableLimits() const
-  {
-    return user_specified_limits_.empty() ? getVariableDefaultLimits() : user_specified_limits_;
-  }
-
-  virtual void computeDefaultVariableLimits();
-
+  
   /** @} */
 
   /** \brief Compute the distance between two joint states of the same model (represented by the variable values) */
-  virtual double distance(const std::vector<double> &values1, const std::vector<double> &values2) const = 0;
+  virtual double distance(const double *value1, const double *value2) const = 0;
 
   /** \brief Get the factor that should be applied to the value returned by distance() when that value is used in compound distances */
   double getDistanceFactor() const
@@ -317,28 +363,53 @@ public:
     return mimic_factor_;
   }
 
+  /** \brief Mark this joint as mimicking \e mimic using \e factor and \e offset */
+  void setMimic(const JointModel *mimic, double factor, double offset);
+  
   /** \brief The joint models whose values would be modified if the value of this joint changed */
   const std::vector<const JointModel*>& getMimicRequests() const
   {
     return mimic_requests_;
   }
 
+  /** \brief Notify this joint that there is another joint that mimics it */
+  void addMimicRequest(const JointModel *joint);
+  void addDescendantJointModel(const JointModel *joint);
+  void addDescendantLinkModel(const LinkModel *link);
+
+  /** \brief Get all the link models that descend from this joint, in the kinematic tree */
+  const std::vector<const LinkModel*>& getDescendantLinkModels() const
+  {
+    return descendant_link_models_;
+  }
+
+  /** \brief Get all the joint models that descend from this joint, in the kinematic tree */
+  const std::vector<const JointModel*>& getDescendantJointModels() const
+  {
+    return descendant_joint_models_;
+  }
+
+  /** \brief Get all the non-fixed joint models that descend from this joint, in the kinematic tree */
+  const std::vector<const JointModel*>& getNonFixedDescendantJointModels() const
+  {
+    return non_fixed_descendant_joint_models_;
+  }
+  
   /** \brief Check if this joint is passive */
   bool isPassive() const
   {
     return passive_;
   }
-
-  /** \brief Get the maximum velocity of this joint. If the result is zero, the value is assumed not to be specified. */
-  double getMaximumVelocity() const
+  
+  void setPassive(bool flag)
   {
-    return max_velocity_;
+    passive_ = flag;
   }
-
+  
   /** \brief Computes the state that lies at time @e t in [0, 1] on the segment that connects @e from state to @e to state.
       The memory location of @e state is not required to be different from the memory of either
       @e from or @e to. */
-  virtual void interpolate(const std::vector<double> &from, const std::vector<double> &to, const double t, std::vector<double> &state) const = 0;
+  virtual void interpolate(const double *from, const double *to, const double t, double *state) const = 0;
 
   /** \brief Get the extent of the state space (the maximum value distance() can ever report) */
   virtual double getMaximumExtent(const Bounds &other_bounds) const = 0;
@@ -352,75 +423,82 @@ public:
       @{ */
 
   /** \brief Given the joint values for a joint, compute the corresponding transform */
-  virtual void computeTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
+  virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const = 0;
 
   /** \brief Given the transform generated by joint, compute the corresponding joint values */
-  virtual void computeJointStateValues(const Eigen::Affine3d& transform, std::vector<double> &joint_values) const = 0;
-
-  /** \brief Update a transform so that it corresponds to
-      the new joint values assuming that \e transf was
-      previously set to identity and that only calls to updateTransform() were issued afterwards */
-  virtual void updateTransform(const std::vector<double>& joint_values, Eigen::Affine3d &transf) const = 0;
-
+  virtual void computeVariableValues(const Eigen::Affine3d& transform, double *joint_values) const = 0;
+  
   /** @} */
-
+  
 protected:
 
+  void computeVariableBoundsMsg();
+  
   /** \brief Name of the joint */
-  std::string                                       name_;
+  std::string                                          name_;
 
   /** \brief The type of joint */
-  JointType                                         type_;
+  JointType                                            type_;
 
   /** \brief The local names to use for the variables that make up this joint */
-  std::vector<std::string>                          local_variable_names_;
+  std::vector<std::string>                             local_variable_names_;
 
   /** \brief The full names to use for the variables that make up this joint */
-  std::vector<std::string>                          variable_names_;
+  std::vector<std::string>                             variable_names_;
 
   /** \brief The bounds for each variable (low, high) in the same order as variable_names_ */
-  Bounds                                            variable_bounds_;
+  Bounds                                               variable_bounds_;
 
-  /** \brief The maximum velocity of this joint. If zero, the value is considered not to be specified. */
-  double                                            max_velocity_;
-
-  /** \brief Map from variable names to the corresponding index in variable_names_ */
-  std::map<std::string, unsigned int>               variable_index_;
+  std::vector<moveit_msgs::JointLimits>                variable_bounds_msg_;
+  
+  /** \brief Map from variable names to the corresponding index in variable_names_ (indexing makes sense within the JointModel only) */
+  VariableIndexMap                                     variable_index_map_;
 
   /** \brief The link before this joint */
-  LinkModel                                        *parent_link_model_;
+  const LinkModel                                     *parent_link_model_;
 
   /** \brief The link after this joint */
-  LinkModel                                        *child_link_model_;
+  const LinkModel                                     *child_link_model_;
 
   /** \brief The joint this one mimics (NULL for joints that do not mimic) */
-  JointModel                                       *mimic_;
+  const JointModel                                    *mimic_;
 
   /** \brief The offset to the mimic joint */
-  double                                            mimic_factor_;
+  double                                               mimic_factor_;
 
   /** \brief The multiplier to the mimic joint */
-  double                                            mimic_offset_;
+  double                                               mimic_offset_;
 
   /** \brief The set of joints that should get a value copied to them when this joint changes */
-  std::vector<const JointModel*>                    mimic_requests_;
+  std::vector<const JointModel*>                       mimic_requests_;
+  
+  /** \brief Pointers to all the links that will be moved if this joint changes value */
+  std::vector<const LinkModel*>                        descendant_link_models_;
 
+  /** \brief Pointers to all the joints that follow this one in the kinematic tree (including mimic joints) */
+  std::vector<const JointModel*>                       descendant_joint_models_;
+
+  /** \brief Pointers to all the joints that follow this one in the kinematic tree, including mimic joints, but excluding fixed joints */
+  std::vector<const JointModel*>                       non_fixed_descendant_joint_models_;
+  
   /** \brief Specify whether this joint is marked as passive in the SRDF */
-  bool                                              passive_;
+  bool                                                 passive_;
 
   /** \brief The factor applied to the distance between two joint states */
-  double                                            distance_factor_;
+  double                                               distance_factor_;
 
-  /** \brief Default limits for this joint */
-  std::vector<moveit_msgs::JointLimits>             default_limits_;
+  /** \brief The index of this joint's first variable, in the complete robot state */
+  int                                                  first_variable_index_;
 
-  /** \brief User specified limits for this joint */
-  std::vector<moveit_msgs::JointLimits>             user_specified_limits_;
-
-  /** \brief The index assigned to this joint when traversing the kinematic tree in depth first fashion */
-  int                                               tree_index_;
+  /** \brief Index for this joint in the array of joints of the complete model */
+  int                                                  joint_index_;
+  
 };
 
+/** \brief Operator overload for printing variable bounds to a stream */
+std::ostream& operator<<(std::ostream &out, const VariableBounds &b);
+
+}
 }
 
 #endif
