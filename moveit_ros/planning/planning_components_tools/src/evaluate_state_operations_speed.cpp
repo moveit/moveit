@@ -67,16 +67,19 @@ int main(int argc, char **argv)
       {
         moveit::tools::Profiler::Begin("FK Default");
         state.setToDefaultValues();
+        state.update();
         moveit::tools::Profiler::End("FK Default");
       }
-
+      
       printf("Evaluating FK Random ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
         moveit::tools::Profiler::Begin("FK Random");
         state.setToRandomPositions();
+        state.update();
         moveit::tools::Profiler::End("FK Random");
       }
+
       std::vector<robot_state::RobotState*> copies(N, (robot_state::RobotState*)NULL);
       printf("Evaluating Copy State ...\n");
       for (int i = 0 ; i < N ; ++i)
@@ -106,6 +109,7 @@ int main(int argc, char **argv)
         {
           moveit::tools::Profiler::Begin(pname);
           state.setToRandomPositions(jmg);
+          state.update();
           moveit::tools::Profiler::End(pname);
         }
       }
