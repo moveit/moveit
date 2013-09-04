@@ -186,7 +186,7 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
   trajectory = moveit_msgs::RobotTrajectory();
   if (waypoints_.empty())
     return;
-  const std::vector<const robot_model::JointModel*> &jnt = group_ ? group_->getJointModels() : robot_model_->getJointModels();
+  const std::vector<const robot_model::JointModel*> &jnt = group_ ? group_->getActiveJointModels() : robot_model_->getActiveJointModels();
 
   std::vector<const robot_model::JointModel*> onedof;
   std::vector<const robot_model::JointModel*> mdof;
