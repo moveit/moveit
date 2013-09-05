@@ -119,6 +119,12 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("There is no end effector to get the pose of")
 
+    def set_start_state_to_current_state(self):
+        self._g.set_start_state_to_current_state()
+
+    def set_start_state(self, msg):
+        self._g.set_start_state(conversions.msg_to_string(msg))
+
     def set_joint_value_target(self, name, value = None):
         """ Specify a target joint configuration for the group."""
         if value == None:
