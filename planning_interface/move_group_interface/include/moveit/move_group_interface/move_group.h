@@ -163,6 +163,9 @@ public:
   void setWorkspace(double minx, double miny, double minz, double maxx, double maxy, double maxz);
 
   /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
+  void setStartState(const moveit_msgs::RobotState &start_state);
+
+  /** \brief If a different start state should be considered instead of the current state of the robot, this function sets that state */
   void setStartState(const robot_state::RobotState &start_state);
 
   /** \brief Set the starting state for planning to be that reported by the robot's joint state publication */

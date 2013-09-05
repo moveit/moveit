@@ -35,8 +35,11 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/common_planning_interface_objects/common_objects.h>
+#include <moveit/robot_state/conversions.h>
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
+#include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit_msgs/RobotState.h>
 
 #include <boost/python.hpp>
 #include <Python.h>
@@ -155,7 +158,7 @@ public:
     return l;
   }
   
-  bool ensureCurrentState()
+  bool ensureCurrentState(double wait = 1.0)
   {
     if (!current_state_monitor_)
     {
@@ -167,28 +170,29 @@ public:
     if (!current_state_monitor_->isActive())
     {
       current_state_monitor_->startStateMonitor();
-      if (!current_state_monitor_->waitForCurrentState(1.0))
+      if (!current_state_monitor_->waitForCurrentState(wait))
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     }
     return true;
+  }
+
+  std::string getCurrentState()
+  {
+    if (!ensureCurrentState())
+      return "";
+    robot_state::RobotStatePtr s = current_state_monitor_->getCurrentState();
+    moveit_msgs::RobotState msg;
+    robot_state::robotStateToRobotStateMsg(*s, msg);
+    return py_bindings_tools::serializeMsg(msg);
   }
   
   bp::dict getCurrentVariableValues()
   {
     bp::dict d;
-    if (!current_state_monitor_)
-    {
-      ROS_ERROR("Unable to get current robot state");
-      return d;
-    }
     
-    // if needed, start the monitor and wait up to 1 second for a full robot state
-    if (!current_state_monitor_->isActive())
-      current_state_monitor_->startStateMonitor();
-
-    if (!current_state_monitor_->waitForCurrentState(1.0))
-      ROS_WARN("Joint values for monitored state are requested but the full state is not known");
-
+    if (!ensureCurrentState())
+      return d;
+    
     const std::map<std::string, double> &vars = current_state_monitor_->getCurrentStateValues();
     for (std::map<std::string, double>::const_iterator it = vars.begin() ; it != vars.end() ; ++it)
       d[it->first] = it->second;
@@ -226,6 +230,7 @@ static void wrap_robot_interface()
   RobotClass.def("get_joint_limits", &RobotInterfacePython::getJointLimits);
   RobotClass.def("get_link_pose", &RobotInterfacePython::getLinkPose);
   RobotClass.def("get_planning_frame", &RobotInterfacePython::getPlanningFrame);
+  RobotClass.def("get_current_state",  &RobotInterfacePython::getCurrentState);
   RobotClass.def("get_current_variable_values", &RobotInterfacePython::getCurrentVariableValues);
   RobotClass.def("get_current_joint_values",  &RobotInterfacePython::getCurrentJointValues);
   RobotClass.def("get_robot_root_link", &RobotInterfacePython::getRobotRootLink);
