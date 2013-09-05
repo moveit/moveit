@@ -34,6 +34,7 @@
 
 from moveit_commander import MoveGroupCommander, MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
+from moveit_msgs.msg import RobotState
 import conversions
 
 class RobotCommander(object):
@@ -128,6 +129,12 @@ class RobotCommander(object):
     def get_group_names(self):
         """Get the names of the groups defined for the robot"""
         return self._r.get_group_names()
+
+    def get_current_state(self):
+        """ Get a RobotState message describing the current state of the robot"""
+        s = RobotState()
+        s.deserialize(self._r.get_current_state())
+        return s
 
     def get_current_variable_values(self):
         """Get a dictionary mapping variable names to values. Note that a joint may consist of one or more variables """
