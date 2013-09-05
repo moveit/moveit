@@ -1051,7 +1051,7 @@ bool moveit::planning_interface::MoveGroup::setJointValueTarget(const std::vecto
   if (joint_values.size() != impl_->getJointModelGroup()->getVariableCount())
     return false;
   impl_->setTargetType(JOINT);
-  impl_->getJointStateTarget().setVariablePositions(joint_values);
+  impl_->getJointStateTarget().setJointGroupPositions(impl_->getJointModelGroup(), joint_values);
   return impl_->getJointStateTarget().satisfiesBounds(impl_->getJointModelGroup(), impl_->getGoalJointTolerance());
 }
 
