@@ -145,7 +145,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
     }
     catch(std::runtime_error &ex)
     {
-      ROS_ERROR("Object recognition action: %s", ex.what());      
+      //      ROS_ERROR("Object recognition action: %s", ex.what());      
       object_recognition_client_.reset();      
     }          
   }  
