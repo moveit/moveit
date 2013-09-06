@@ -133,7 +133,17 @@ public:
             controllers_[name] = new_handle;
           }
         }
-
+        else
+        {
+          ROS_ERROR("Unknown controller type: '%s'", type.c_str());
+          continue;
+        }
+        if (!controllers_[name])
+        {
+          controllers_.erase(name);
+          continue;
+        }
+        
         /* add list of joints, used by controller manager and moveit */
         for (int j = 0 ; j < controller_list[i]["joints"].size() ; ++j)
           controllers_[name]->addJoint(std::string(controller_list[i]["joints"][j]));
