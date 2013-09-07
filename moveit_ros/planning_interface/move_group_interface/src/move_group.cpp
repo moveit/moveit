@@ -370,19 +370,19 @@ public:
   /** \brief Place an object at one of the specified possible locations */
   bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
   {
-    std::vector<manipulation_msgs::PlaceLocation> locations;
+    std::vector<moveit_msgs::PlaceLocation> locations;
     for (std::size_t i = 0; i < poses.size(); ++i)
     {
-      manipulation_msgs::PlaceLocation location;
-      location.approach.direction.vector.z = -1.0;
-      location.retreat.direction.vector.x = -1.0;
-      location.approach.direction.header.frame_id = getRobotModel()->getModelFrame();
-      location.retreat.direction.header.frame_id = end_effector_link_;
+      moveit_msgs::PlaceLocation location;
+      location.pre_place_approach.direction.vector.z = -1.0;
+      location.post_place_retreat.direction.vector.x = -1.0;
+      location.pre_place_approach.direction.header.frame_id = getRobotModel()->getModelFrame();
+      location.post_place_retreat.direction.header.frame_id = end_effector_link_;
 
-      location.approach.min_distance = 0.1;
-      location.approach.desired_distance = 0.2;
-      location.retreat.min_distance = 0.0;
-      location.retreat.desired_distance = 0.2;
+      location.pre_place_approach.min_distance = 0.1;
+      location.pre_place_approach.desired_distance = 0.2;
+      location.post_place_retreat.min_distance = 0.0;
+      location.post_place_retreat.desired_distance = 0.2;
       // location.post_place_posture is filled by the pick&place lib with the getDetachPosture from the AttachedBody
 
       location.place_pose = poses[i];
@@ -392,7 +392,7 @@ public:
     return place(object, locations);
   }
 
-  bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
+  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
   {
     if (!place_action_client_)
     {
@@ -425,7 +425,7 @@ public:
     }
   }
 
-  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
+  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
     {
@@ -960,25 +960,25 @@ bool moveit::planning_interface::MoveGroup::plan(Plan &plan)
 
 bool moveit::planning_interface::MoveGroup::pick(const std::string &object)
 {
-  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>());
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>());
 }
 
-bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const manipulation_msgs::Grasp &grasp)
+bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const moveit_msgs::Grasp &grasp)
 {
-  return impl_->pick(object, std::vector<manipulation_msgs::Grasp>(1, grasp));
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp));
 }
 
-bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps)
+bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
 {
   return impl_->pick(object, grasps);
 }
 
 bool moveit::planning_interface::MoveGroup::place(const std::string &object)
 {
-  return impl_->place(object, std::vector<manipulation_msgs::PlaceLocation>());
+  return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>());
 }
 
-bool moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations)
+bool moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
 {
   return impl_->place(object, locations);
 }

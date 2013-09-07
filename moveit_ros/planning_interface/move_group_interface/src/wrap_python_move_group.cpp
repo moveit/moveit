@@ -313,7 +313,7 @@ public:
   
   bool pickGrasp(const std::string &object, const std::string &grasp_str)
   {
-    manipulation_msgs::Grasp grasp;    
+    moveit_msgs::Grasp grasp;    
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
     return pick(object, grasp);
   } 
@@ -321,7 +321,7 @@ public:
   bool pickGrasps(const std::string &object, const bp::list &grasp_list)
   {
     int l = bp::len(grasp_list);
-    std::vector<manipulation_msgs::Grasp> grasps(l);
+    std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l ; ++i)
       py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
     return pick(object, grasps);

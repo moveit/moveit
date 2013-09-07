@@ -59,21 +59,33 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
                           robot_state::RobotState *state,
                           const robot_model::JointModelGroup *group,
                           const double *joint_group_variable_values) 
-{
-  state->setJointGroupPositions(group, joint_group_variable_values);
-  // apply approach posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  state->setVariableValues(manipulation_plan->approach_posture_);
-  state->update();
-  
+{ 
   collision_detection::CollisionRequest req;
-  collision_detection::CollisionResult res;
   req.verbose = verbose;
   req.group_name = manipulation_plan->shared_data_->planning_group_->getName();
-  planning_scene->checkCollision(req, res, *state, *collision_matrix);
-  if (res.collision == false)
-    return planning_scene->isStateFeasible(*state);
-  else
-    return false;
+  
+  state->setJointGroupPositions(group, joint_group_variable_values);
+  
+  if (manipulation_plan->approach_posture_.points.empty())
+  {  
+    state->update();
+    collision_detection::CollisionResult res;
+    planning_scene->checkCollision(req, res, *state, *collision_matrix);
+    if (res.collision)
+      return false;
+  }
+  else 
+    // apply approach posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
+    for (std::size_t i = 0 ; i < manipulation_plan->approach_posture_.points.size() ; ++i)
+    {
+      state->setVariablePositions(manipulation_plan->approach_posture_.joint_names, manipulation_plan->approach_posture_.points[i].positions);
+      state->update();
+      collision_detection::CollisionResult res;
+      planning_scene->checkCollision(req, res, *state, *collision_matrix);
+      if (res.collision)
+        return false;
+    }
+  return planning_scene->isStateFeasible(*state);
 }
 }
 

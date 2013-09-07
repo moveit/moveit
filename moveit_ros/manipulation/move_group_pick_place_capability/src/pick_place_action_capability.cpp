@@ -122,6 +122,8 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
       action_res.trajectory_descriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
         action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
+      if (goal->possible_grasps.size() < result->id_)
+        action_res.grasp = goal->possible_grasps[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
   }
@@ -161,7 +163,9 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
       convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
       action_res.trajectory_descriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
-        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
+        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;  
+      if (goal->place_locations.size() < result->id_)
+        action_res.place_location = goal->place_locations[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
   }
@@ -171,7 +175,8 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
   }
 }
 
-bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan)
+bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult *action_res,
+                                                                     plan_execution::ExecutableMotionPlan &plan)
 {
   setPickupState(PLANNING);
 
@@ -201,7 +206,9 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
     else
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
-      plan.plan_components_ = result->trajectories_;
+      plan.plan_components_ = result->trajectories_; 
+      if (goal.possible_grasps.size() < result->id_)
+        action_res->grasp = goal.possible_grasps[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
   }
@@ -213,7 +220,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   return plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
 
-bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, plan_execution::ExecutableMotionPlan &plan)
+bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, moveit_msgs::PlaceResult *action_res,
+                                                                    plan_execution::ExecutableMotionPlan &plan)
 {
   setPlaceState(PLANNING);
 
@@ -244,6 +252,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
       plan.plan_components_ = result->trajectories_;
+      if (goal.place_locations.size() < result->id_)
+        action_res->place_location = goal.place_locations[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
   }
@@ -264,7 +274,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   opt.replan_delay_ = goal->planning_options.replan_delay;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPickupExecutionCallback, this);
 
-  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Pickup, this, boost::cref(*goal), _1);
+  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Pickup, this, boost::cref(*goal), &action_res, _1);
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
     opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(), _1, opt.plan_callback_,
@@ -278,30 +288,8 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
   action_res.trajectory_descriptions.resize(plan.plan_components_.size());
   for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
-  {
-    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
-  }
-  addGraspToPickupResult(plan, action_res);
+    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_; 
   action_res.error_code = plan.error_code_;
-}
-
-void move_group::MoveGroupPickPlaceAction::addGraspToPickupResult(const plan_execution::ExecutableMotionPlan &plan,
-                                                                  moveit_msgs::PickupResult &action_res) const
-{
-  // \todo This functions looks like it should not exist; at least, not here
-  for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
-  {
-    if (plan.plan_components_[i].description_ == "pre_grasp") // should not use description names here
-    {
-      action_res.grasp.pre_grasp_posture.name = plan.plan_components_[i].trajectory_->getGroup()->getJointModelNames();
-      plan.plan_components_[i].trajectory_->getLastWayPoint().copyJointGroupPositions(plan.plan_components_[i].trajectory_->getGroup(), action_res.grasp.pre_grasp_posture.position);
-    }
-    if(plan.plan_components_[i].description_ == "grasp")
-    {
-      action_res.grasp.grasp_posture.name = plan.plan_components_[i].trajectory_->getGroup()->getJointModelNames();
-      plan.plan_components_[i].trajectory_->getLastWayPoint().copyJointGroupPositions(plan.plan_components_[i].trajectory_->getGroup(), action_res.grasp.grasp_posture.position);
-    }
-  }
 }
 
 void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res)
@@ -312,7 +300,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanAndExecute(c
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
   opt.replan_delay_ = goal->planning_options.replan_delay;
   opt.before_execution_callback_ = boost::bind(&MoveGroupPickPlaceAction::startPlaceExecutionCallback, this);
-  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Place, this, boost::cref(*goal), _1);
+  opt.plan_callback_ = boost::bind(&MoveGroupPickPlaceAction::planUsingPickPlace_Place, this, boost::cref(*goal), &action_res, _1);
   if (goal->planning_options.look_around && context_->plan_with_sensing_)
   {
     opt.plan_callback_ = boost::bind(&plan_execution::PlanWithSensing::computePlan, context_->plan_with_sensing_.get(), _1, opt.plan_callback_,
@@ -429,36 +417,89 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
 void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
 {
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-  manipulation_msgs::GraspPlanning::Request request;
-  manipulation_msgs::GraspPlanning::Response response;
 
   if (grasp_planning_service_ && lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
   {
+    manipulation_msgs::GraspPlanning::Request request;
+    manipulation_msgs::GraspPlanning::Response response;
+    bool valid = true;
+    
     collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
     if (object && !object->shape_poses_.empty())
     {
       request.arm_name = goal.group_name;
       request.target.reference_frame_id = lscene->getPlanningFrame();
-
+      
       household_objects_database_msgs::DatabaseModelPose dbp;
       dbp.pose.header.frame_id = lscene->getPlanningFrame();
       dbp.pose.header.stamp = ros::Time::now();
       tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
-
       dbp.type = lscene->getObjectType(goal.target_name);
-      std::stringstream dbp_type(dbp.type.key);
-      dbp_type >> dbp.model_id;
-      ROS_DEBUG("Asking database for grasps for %s with model id: %d", dbp.type.key.c_str(), dbp.model_id);
-      request.target.potential_models.push_back(dbp);
+      try
+      {
+        dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
+        ROS_DEBUG("Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+        request.target.potential_models.push_back(dbp);
+      }
+      catch (boost::bad_lexical_cast &)
+      {
+        valid = false;
+        ROS_ERROR("Expected an integer object id, not '%s'", dbp.type.key.c_str());
+      }
     }
     else
     {
-      ROS_ERROR("Object has no geometry");
+      valid = false;
+      ROS_ERROR("Object has no geometry"); 
     }
+    
+    if (valid)
+    {
+      ROS_DEBUG("Calling grasp planner...");
+      if (grasp_planning_service_.call(request, response))
+      {
+        goal.possible_grasps.resize(response.grasps.size());
+        for (std::size_t i = 0 ; i < response.grasps.size() ; ++i)
+        {
+          // construct a moveit grasp from a grasp planner grasp
+          goal.possible_grasps[i].id = response.grasps[i].id;
 
-    ROS_DEBUG("Calling grasp planner...");
-    if (grasp_planning_service_.call(request, response))
-      goal.possible_grasps = response.grasps;
+          goal.possible_grasps[i].pre_grasp_posture.header = response.grasps[i].pre_grasp_posture.header;
+          goal.possible_grasps[i].pre_grasp_posture.joint_names = response.grasps[i].pre_grasp_posture.name;
+          goal.possible_grasps[i].pre_grasp_posture.points.resize(1);
+          goal.possible_grasps[i].pre_grasp_posture.points[0].positions = response.grasps[i].pre_grasp_posture.position;
+          goal.possible_grasps[i].pre_grasp_posture.points[0].velocities = response.grasps[i].pre_grasp_posture.velocity;
+          goal.possible_grasps[i].pre_grasp_posture.points[0].effort = response.grasps[i].pre_grasp_posture.effort;          
+
+          goal.possible_grasps[i].grasp_posture.header = response.grasps[i].grasp_posture.header;
+          goal.possible_grasps[i].grasp_posture.joint_names = response.grasps[i].grasp_posture.name;
+          goal.possible_grasps[i].grasp_posture.points.resize(1);
+          goal.possible_grasps[i].grasp_posture.points[0].positions = response.grasps[i].grasp_posture.position;
+          goal.possible_grasps[i].grasp_posture.points[0].velocities = response.grasps[i].grasp_posture.velocity;
+          goal.possible_grasps[i].grasp_posture.points[0].effort = response.grasps[i].grasp_posture.effort;          
+
+          goal.possible_grasps[i].grasp_pose = response.grasps[i].grasp_pose;
+          goal.possible_grasps[i].grasp_quality = response.grasps[i].grasp_quality;
+
+          goal.possible_grasps[i].pre_grasp_approach.direction = response.grasps[i].approach.direction;
+          goal.possible_grasps[i].pre_grasp_approach.desired_distance = response.grasps[i].approach.desired_distance;
+          goal.possible_grasps[i].pre_grasp_approach.min_distance = response.grasps[i].approach.min_distance;
+
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.x = 0.0;
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.y = 0.0;
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.z = 1.0;
+          goal.possible_grasps[i].post_grasp_retreat.desired_distance = 0.2;
+          goal.possible_grasps[i].post_grasp_retreat.min_distance = 0.0;
+
+          goal.possible_grasps[i].post_place_retreat.direction = response.grasps[i].retreat.direction;
+          goal.possible_grasps[i].post_place_retreat.desired_distance = response.grasps[i].retreat.desired_distance;
+          goal.possible_grasps[i].post_place_retreat.min_distance = response.grasps[i].retreat.min_distance;
+
+          goal.possible_grasps[i].max_contact_force = response.grasps[i].max_contact_force;
+          goal.possible_grasps[i].allowed_touch_objects = response.grasps[i].allowed_touch_objects;
+        }
+      }
+    }
   }
 
   if (goal.possible_grasps.empty())
@@ -468,7 +509,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
 
     // add a number of default grasp points
     // \todo add more!
-    manipulation_msgs::Grasp g;
+    moveit_msgs::Grasp g;
     g.grasp_pose.header.frame_id = goal.target_name;
     g.grasp_pose.pose.position.x = -0.2;
     g.grasp_pose.pose.position.y = 0.0;
@@ -478,23 +519,25 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     g.grasp_pose.pose.orientation.z = 0.0;
     g.grasp_pose.pose.orientation.w = 1.0;
 
-    g.approach.direction.header.frame_id = lscene->getPlanningFrame();
-    g.approach.direction.vector.x = 1.0;
-    g.approach.min_distance = 0.1;
-    g.approach.desired_distance = 0.2;
+    g.pre_grasp_approach.direction.header.frame_id = lscene->getPlanningFrame();
+    g.pre_grasp_approach.direction.vector.x = 1.0;
+    g.pre_grasp_approach.min_distance = 0.1;
+    g.pre_grasp_approach.desired_distance = 0.2;
 
-    g.retreat.direction.header.frame_id = lscene->getPlanningFrame();
-    g.retreat.direction.vector.z = 1.0;
-    g.retreat.min_distance = 0.1;
-    g.retreat.desired_distance = 0.2;
+    g.post_grasp_retreat.direction.header.frame_id = lscene->getPlanningFrame();
+    g.post_grasp_retreat.direction.vector.z = 1.0;
+    g.post_grasp_retreat.min_distance = 0.1;
+    g.post_grasp_retreat.desired_distance = 0.2;
 
     if (lscene->getRobotModel()->hasEndEffector(goal.end_effector))
     {
-      g.pre_grasp_posture.name = lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
-      g.pre_grasp_posture.position.resize(g.pre_grasp_posture.name.size(), std::numeric_limits<double>::max());
+      g.pre_grasp_posture.joint_names = lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
+      g.pre_grasp_posture.points.resize(1);
+      g.pre_grasp_posture.points[0].positions.resize(g.pre_grasp_posture.joint_names.size(), std::numeric_limits<double>::max());
 
-      g.grasp_posture.name = g.pre_grasp_posture.name;
-      g.grasp_posture.position.resize(g.grasp_posture.name.size(), -std::numeric_limits<double>::max());
+      g.grasp_posture.joint_names = g.pre_grasp_posture.joint_names;
+      g.grasp_posture.points.resize(1);
+      g.grasp_posture.points[0].positions.resize(g.grasp_posture.joint_names.size(), -std::numeric_limits<double>::max());
     }
     goal.possible_grasps.push_back(g);
   }
