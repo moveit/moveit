@@ -47,6 +47,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
   : robot_model_(robot_model)
   , has_velocity_(false)
   , has_acceleration_(false)
+  , has_effort_(false)
   , dirty_link_transforms_(robot_model_->getRootJoint())
   , dirty_collision_body_transforms_(NULL)
   , rng_(NULL)
@@ -88,7 +89,8 @@ void moveit::core::RobotState::allocMemory(void)
   dirty_joint_transforms_ = reinterpret_cast<unsigned char*>(global_collision_body_transforms_ + robot_model_->getLinkGeometryCount());
   position_ = reinterpret_cast<double*>(dirty_joint_transforms_) + nr_doubles_for_dirty_joint_transforms;
   velocity_ = position_ + robot_model_->getVariableCount();
-  acceleration_ = velocity_ + robot_model_->getVariableCount();
+  // acceleration and effort share the memory (not both can be specified)
+  effort_ = acceleration_ = velocity_ + robot_model_->getVariableCount();
 }
 
 moveit::core::RobotState& moveit::core::RobotState::operator=(const RobotState &other)
@@ -102,6 +104,7 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
 {
   has_velocity_ = other.has_velocity_;
   has_acceleration_ = other.has_acceleration_;
+  has_effort_ = other.has_effort_;
   
   dirty_collision_body_transforms_ = other.dirty_collision_body_transforms_;
   dirty_link_transforms_ = other.dirty_link_transforms_;
@@ -109,7 +112,8 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
   if (dirty_link_transforms_ == robot_model_->getRootJoint())
   {
     // everything is dirty; no point in copying transforms; copy positions, potentially velocity & acceleration
-    memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) * (1 + (has_velocity_ ? 1 : 0) + (has_acceleration_ ? 1 : 0)));
+    memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) *
+           (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) + ((has_acceleration_ || has_effort_) ? 1 : 0)));
     
     // mark all transforms as dirty
     const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
@@ -120,7 +124,8 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
     // copy all the memory; maybe avoid copying velocity and acceleration if possible
     const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
     const size_t bytes = sizeof(Eigen::Affine3d) * (robot_model_->getJointModelCount() + robot_model_->getLinkModelCount() + robot_model_->getLinkGeometryCount())
-      + sizeof(double) * (robot_model_->getVariableCount() * (1 + (has_velocity_ ? 1 : 0) + (has_acceleration_ ? 1 : 0)) + nr_doubles_for_dirty_joint_transforms) + 15;
+      + sizeof(double) * (robot_model_->getVariableCount() * (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) +
+                                                              ((has_acceleration_ || has_effort_ ) ? 1 : 0)) + nr_doubles_for_dirty_joint_transforms) + 15;
     memcpy(memory_, other.memory_, bytes);
   }
   
@@ -159,6 +164,35 @@ bool moveit::core::RobotState::checkCollisionTransforms() const
     return false;
   }
   return true;
+}
+
+void moveit::core::RobotState::markVelocity()
+{
+  if (!has_velocity_)
+  {
+    has_velocity_ = true;
+    memset(velocity_, 0, sizeof(double) * robot_model_->getVariableCount());
+  }
+}
+
+void moveit::core::RobotState::markAcceleration()
+{
+  if (!has_acceleration_)
+  {
+    has_acceleration_ = true;
+    has_effort_ = false;
+    memset(acceleration_, 0, sizeof(double) * robot_model_->getVariableCount());
+  }
+}
+
+void moveit::core::RobotState::markEffort()
+{
+  if (!has_effort_)
+  {
+    has_acceleration_ = false;
+    has_effort_ = true;
+    memset(effort_, 0, sizeof(double) * robot_model_->getVariableCount());
+  }
 }
 
 void moveit::core::RobotState::setToRandomPositions()
@@ -284,7 +318,7 @@ void moveit::core::RobotState::setVariablePositions(const std::vector<std::strin
 
 void moveit::core::RobotState::setVariableVelocities(const std::map<std::string, double> &variable_map)
 {
-  has_velocity_ = true;
+  markVelocity();
   for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end() ; it != end ; ++it)
     velocity_[robot_model_->getVariableIndex(it->first)] = it->second;
 }
@@ -297,7 +331,7 @@ void moveit::core::RobotState::setVariableVelocities(const std::map<std::string,
 
 void moveit::core::RobotState::setVariableVelocities(const std::vector<std::string>& variable_names, const std::vector<double>& variable_velocity)
 {
-  has_velocity_ = true;
+  markVelocity();  
   assert(variable_names.size() == variable_velocity.size());
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
     velocity_[robot_model_->getVariableIndex(variable_names[i])] = variable_velocity[i];  
@@ -305,7 +339,7 @@ void moveit::core::RobotState::setVariableVelocities(const std::vector<std::stri
 
 void moveit::core::RobotState::setVariableAccelerations(const std::map<std::string, double> &variable_map)
 {
-  has_acceleration_ = true;
+  markAcceleration();
   for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end() ; it != end ; ++it)
     acceleration_[robot_model_->getVariableIndex(it->first)] = it->second;
 }
@@ -318,10 +352,31 @@ void moveit::core::RobotState::setVariableAccelerations(const std::map<std::stri
 
 void moveit::core::RobotState::setVariableAccelerations(const std::vector<std::string>& variable_names, const std::vector<double>& variable_acceleration)
 {
-  has_acceleration_ = true;
+  markAcceleration();
   assert(variable_names.size() == variable_acceleration.size());
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
     acceleration_[robot_model_->getVariableIndex(variable_names[i])] = variable_acceleration[i];  
+}
+
+void moveit::core::RobotState::setVariableEffort(const std::map<std::string, double> &variable_map)
+{
+  markEffort();
+  for (std::map<std::string, double>::const_iterator it = variable_map.begin(), end = variable_map.end() ; it != end ; ++it)
+    acceleration_[robot_model_->getVariableIndex(it->first)] = it->second;
+}
+
+void moveit::core::RobotState::setVariableEffort(const std::map<std::string, double> &variable_map, std::vector<std::string>& missing_variables)
+{
+  setVariableEffort(variable_map);
+  getMissingKeys(variable_map, missing_variables);
+}
+
+void moveit::core::RobotState::setVariableEffort(const std::vector<std::string>& variable_names, const std::vector<double>& variable_effort)
+{
+  markEffort();
+  assert(variable_names.size() == variable_effort.size());
+  for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
+    effort_[robot_model_->getVariableIndex(variable_names[i])] = variable_effort[i];  
 }
 
 void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup *group, const double *gstate)
@@ -665,7 +720,7 @@ void moveit::core::RobotState::attachBody(const std::string &id,
                                           const EigenSTL::vector_Affine3d &attach_trans,
                                           const std::set<std::string> &touch_links,
                                           const std::string &link,
-                                          const sensor_msgs::JointState &detach_posture)
+                                          const trajectory_msgs::JointTrajectory &detach_posture)
 {
   const LinkModel *l = robot_model_->getLinkModel(link);
   AttachedBody *ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
