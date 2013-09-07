@@ -55,7 +55,6 @@ void MotionPlanningFrame::detectObjectsButtonClicked()
     if(ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
-      ROS_INFO("Setup semantic world");      
     }  
     if(semantic_world_)
     {
