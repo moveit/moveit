@@ -232,11 +232,19 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
         // read the list of plugin names for possible kinematics solvers
         for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
-          ROS_DEBUG(" - Looking for param %s ", (known_groups[i].name_ + "/kinematics_solver").c_str());
+          std::string base_param_name = known_groups[i].name_;
+          ROS_DEBUG("Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
           std::string ksolver_param_name;
-          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver", ksolver_param_name))
+          bool found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
+          if (!found)
           {
-            ROS_DEBUG("Found param %s ", ksolver_param_name.c_str());
+            base_param_name = robot_description_ + "_kinematics";
+            ROS_DEBUG("Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
+            found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
+          }
+          if (found)
+          {
+            ROS_DEBUG("Found param %s", ksolver_param_name.c_str());
             std::string ksolver;
             if (nh.getParam(ksolver_param_name, ksolver))
             {
@@ -257,7 +265,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
           }
 
           std::string ksolver_timeout_param_name;
-          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_timeout", ksolver_timeout_param_name))
+          if (nh.searchParam(base_param_name + "/kinematics_solver_timeout", ksolver_timeout_param_name))
           {
             double ksolver_timeout;
             if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
@@ -271,7 +279,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
           }
 
           std::string ksolver_attempts_param_name;
-          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_attempts", ksolver_attempts_param_name))
+          if (nh.searchParam(base_param_name + "/kinematics_solver_attempts", ksolver_attempts_param_name))
           {
             int ksolver_attempts;
             if (nh.getParam(ksolver_attempts_param_name, ksolver_attempts))
@@ -279,7 +287,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
           }
 
           std::string ksolver_res_param_name;
-          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_search_resolution", ksolver_res_param_name))
+          if (nh.searchParam(base_param_name + "/kinematics_solver_search_resolution", ksolver_res_param_name))
           {
             std::string ksolver_res;
             if (nh.getParam(ksolver_res_param_name, ksolver_res))
@@ -306,7 +314,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
           }
 
           std::string ksolver_ik_link_param_name;
-          if (nh.searchParam(known_groups[i].name_ + "/kinematics_solver_ik_link", ksolver_ik_link_param_name))
+          if (nh.searchParam(base_param_name + "/kinematics_solver_ik_link", ksolver_ik_link_param_name))
           {
             std::string ksolver_ik_link;
             if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link))
