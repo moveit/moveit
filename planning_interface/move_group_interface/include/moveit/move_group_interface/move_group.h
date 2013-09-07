@@ -42,8 +42,8 @@
 #include <moveit_msgs/RobotState.h>
 #include <moveit_msgs/PlannerInterfaceDescription.h>
 #include <moveit_msgs/Constraints.h>
-#include <manipulation_msgs/Grasp.h>
-#include <manipulation_msgs/PlaceLocation.h>
+#include <moveit_msgs/Grasp.h>
+#include <moveit_msgs/PlaceLocation.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -344,16 +344,16 @@ public:
   bool pick(const std::string &object);
 
   /** \brief Pick up an object given a grasp pose */
-  bool pick(const std::string &object, const manipulation_msgs::Grasp &grasp);
+  bool pick(const std::string &object, const moveit_msgs::Grasp &grasp);
 
   /** \brief Pick up an object given possible grasp poses */
-  bool pick(const std::string &object, const std::vector<manipulation_msgs::Grasp> &grasps);
+  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   bool place(const std::string &object);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<manipulation_msgs::PlaceLocation> &locations);
+  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations);
 
   /** \brief Place an object at one of the specified possible locations */
   bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);

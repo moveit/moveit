@@ -39,7 +39,7 @@
 
 void demoPick(moveit::planning_interface::MoveGroup &group)
 {
-  std::vector<manipulation_msgs::Grasp> grasps;
+  std::vector<moveit_msgs::Grasp> grasps;
   for (std::size_t i = 0 ; i < 20 ; ++i)
   {
     geometry_msgs::PoseStamped p = group.getRandomPose();
@@ -47,22 +47,24 @@ void demoPick(moveit::planning_interface::MoveGroup &group)
     p.pose.orientation.y = 0;
     p.pose.orientation.z = 0;
     p.pose.orientation.w = 1;
-    manipulation_msgs::Grasp g;
+    moveit_msgs::Grasp g;
     g.grasp_pose = p;
-    g.approach.direction.vector.x = 1.0;
-    g.retreat.direction.vector.z = 1.0;
-    g.retreat.direction.header = p.header;
-    g.approach.min_distance = 0.2;
-    g.approach.desired_distance = 0.4;
-    g.retreat.min_distance = 0.1;
-    g.retreat.desired_distance = 0.27;
-    g.pre_grasp_posture.name.resize(1, "r_gripper_joint");
-    g.pre_grasp_posture.position.resize(1);
-    g.pre_grasp_posture.position[0] = 1;
+    g.pre_grasp_approach.direction.vector.x = 1.0;
+    g.post_grasp_retreat.direction.vector.z = 1.0;
+    g.post_grasp_retreat.direction.header = p.header;
+    g.pre_grasp_approach.min_distance = 0.2;
+    g.pre_grasp_approach.desired_distance = 0.4;
+    g.post_grasp_retreat.min_distance = 0.1;
+    g.post_grasp_retreat.desired_distance = 0.27;
+    g.pre_grasp_posture.joint_names.resize(1, "r_gripper_joint");
+    g.pre_grasp_posture.points.resize(1);
+    g.pre_grasp_posture.points[0].positions.resize(1);
+    g.pre_grasp_posture.points[0].positions[0] = 1;
 
-    g.grasp_posture.name.resize(1, "r_gripper_joint");
-    g.grasp_posture.position.resize(1);
-    g.grasp_posture.position[0] = 0;
+    g.grasp_posture.joint_names.resize(1, "r_gripper_joint");
+    g.grasp_posture.points.resize(1);
+    g.grasp_posture.points[0].positions.resize(1);
+    g.grasp_posture.points[0].positions[0] = 0;
 
     grasps.push_back(g);
   }
@@ -71,7 +73,7 @@ void demoPick(moveit::planning_interface::MoveGroup &group)
 
 void demoPlace(moveit::planning_interface::MoveGroup &group)
 {
-  std::vector<manipulation_msgs::PlaceLocation> loc;
+  std::vector<moveit_msgs::PlaceLocation> loc;
   for (std::size_t i = 0 ; i < 20 ; ++i)
   {
     geometry_msgs::PoseStamped p = group.getRandomPose();
@@ -79,19 +81,20 @@ void demoPlace(moveit::planning_interface::MoveGroup &group)
     p.pose.orientation.y = 0;
     p.pose.orientation.z = 0;
     p.pose.orientation.w = 1;
-    manipulation_msgs::PlaceLocation g;
+    moveit_msgs::PlaceLocation g;
     g.place_pose = p;
-    g.approach.direction.vector.x = 1.0;
-    g.retreat.direction.vector.z = 1.0;
-    g.retreat.direction.header = p.header;
-    g.approach.min_distance = 0.2;
-    g.approach.desired_distance = 0.4;
-    g.retreat.min_distance = 0.1;
-    g.retreat.desired_distance = 0.27;
+    g.pre_place_approach.direction.vector.x = 1.0;
+    g.post_place_retreat.direction.vector.z = 1.0;
+    g.post_place_retreat.direction.header = p.header;
+    g.pre_place_approach.min_distance = 0.2;
+    g.pre_place_approach.desired_distance = 0.4;
+    g.post_place_retreat.min_distance = 0.1;
+    g.post_place_retreat.desired_distance = 0.27;
 
-    g.post_place_posture.name.resize(1, "r_gripper_joint");
-    g.post_place_posture.position.resize(1);
-    g.post_place_posture.position[0] = 0;
+    g.post_place_posture.joint_names.resize(1, "r_gripper_joint");
+    g.post_place_posture.points.resize(1);
+    g.post_place_posture.points[0].positions.resize(1);
+    g.post_place_posture.points[0].positions[0] = 0;
 
     loc.push_back(g);
   }

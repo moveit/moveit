@@ -189,15 +189,15 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   for (std::size_t i = 0 ; i < goal.place_locations.size() ; ++i)
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
-    const manipulation_msgs::PlaceLocation &pl = goal.place_locations[i];
+    const moveit_msgs::PlaceLocation &pl = goal.place_locations[i];
     // The goals are specified for the attached body
     // but we want to transform them into goals for the end-effector instead
     transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_);
-    p->approach_ = pl.approach;
-    p->retreat_ = pl.retreat;
+    p->approach_ = pl.pre_place_approach;
+    p->retreat_ = pl.post_place_retreat;
     p->retreat_posture_ = pl.post_place_posture;
     p->id_ = i;
-    if (p->retreat_posture_.name.empty())
+    if (p->retreat_posture_.joint_names.empty())
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);
   }
