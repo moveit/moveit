@@ -17,7 +17,6 @@
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
 
-  <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/kinematics.yaml"/>
   <rosparam command="load" file="$(find [GENERATED_PACKAGE_NAME])/config/ompl_planning.yaml"/>
 
 </launch>
