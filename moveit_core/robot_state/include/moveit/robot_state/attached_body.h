@@ -40,7 +40,7 @@
 #include <moveit/robot_model/link_model.h>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <boost/function.hpp>
-#include <sensor_msgs/JointState.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <set>
 
 namespace moveit
@@ -64,7 +64,7 @@ public:
                const std::vector<shapes::ShapeConstPtr> &shapes,
                const EigenSTL::vector_Affine3d &attach_trans,
                const std::set<std::string> &touch_links,
-               const sensor_msgs::JointState &attach_posture);
+               const trajectory_msgs::JointTrajectory &attach_posture);
   
   ~AttachedBody();
   
@@ -102,7 +102,7 @@ public:
 
   /** \brief Return the posture that is necessary for the object to be released, (if any). This is useful for example when storing
       the configuration of a gripper holding an object */
-  const sensor_msgs::JointState& getDetachPosture() const
+  const trajectory_msgs::JointTrajectory& getDetachPosture() const
   {
     return detach_posture_;
   }
@@ -150,8 +150,8 @@ private:
 
   /** \brief Posture of links for releasing the object (if any). This is useful for example when storing
       the configuration of a gripper holding an object */
-  sensor_msgs::JointState            detach_posture_;
-
+  trajectory_msgs::JointTrajectory   detach_posture_;
+  
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };

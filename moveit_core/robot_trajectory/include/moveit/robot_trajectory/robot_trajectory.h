@@ -178,11 +178,24 @@ public:
 
   void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory &trajectory) const;
 
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each point in the trajectory 
+      to be constructed internally is obtained by copying the reference state and overwriting the content from a trajectory point in \e trajectory. */
+  void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
+                             const trajectory_msgs::JointTrajectory &trajectory);
+  
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each point in the trajectory 
+      to be constructed internally is obtained by copying the reference state and overwriting the content from a trajectory point in \e trajectory. */
   void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
                              const moveit_msgs::RobotTrajectory &trajectory);
+  
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Before use, the reference state is updated
+      using \e state. Each point in the trajectory  to be constructed internally is obtained by copying the reference state and overwriting the content 
+      from a trajectory point in \e trajectory. */
   void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
                              const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory);
-
 
   void reverse();
 
