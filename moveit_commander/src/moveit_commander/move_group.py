@@ -33,8 +33,7 @@
 # Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
-from moveit_msgs.msg import RobotTrajectory
-from manipulation_msgs.msg import Grasp
+from moveit_msgs.msg import RobotTrajectory, Grasp
 from sensor_msgs.msg import JointState
 import rospy
 import tf
