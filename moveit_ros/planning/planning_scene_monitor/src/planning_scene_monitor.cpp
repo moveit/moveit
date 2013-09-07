@@ -727,7 +727,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::
   if (!scene_topic.empty())
   {
     planning_scene_subscriber_ = root_nh_.subscribe(scene_topic, 100, &PlanningSceneMonitor::newPlanningSceneCallback, this);
-    ROS_INFO("Listening to '%s'", scene_topic.c_str());
+    ROS_INFO("Listening to '%s'", root_nh_.resolveName(scene_topic).c_str());
   }
 }
 
@@ -800,19 +800,19 @@ void planning_scene_monitor::PlanningSceneMonitor::startWorldGeometryMonitor(con
       collision_object_filter_ .reset(new tf::MessageFilter<moveit_msgs::CollisionObject>(*collision_object_subscriber_, *tf_, scene_->getPlanningFrame(), 1024));
       collision_object_filter_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
       collision_object_filter_->registerFailureCallback(boost::bind(&PlanningSceneMonitor::collisionObjectFailTFCallback, this, _1, _2));
-      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", collision_objects_topic.c_str(), collision_object_filter_->getTargetFramesString().c_str());
+      ROS_INFO("Listening to '%s' using message notifier with target frame '%s'", root_nh_.resolveName(collision_objects_topic).c_str(), collision_object_filter_->getTargetFramesString().c_str());
     }
     else
     {
       collision_object_subscriber_->registerCallback(boost::bind(&PlanningSceneMonitor::collisionObjectCallback, this, _1));
-      ROS_INFO("Listening to '%s'", collision_objects_topic.c_str());
+      ROS_INFO("Listening to '%s'", root_nh_.resolveName(collision_objects_topic).c_str());
     }
   }
 
   if (!planning_scene_world_topic.empty())
   {
     planning_scene_world_subscriber_ = root_nh_.subscribe(planning_scene_world_topic, 1, &PlanningSceneMonitor::newPlanningSceneWorldCallback, this);
-    ROS_INFO("Listening to '%s' for planning scene world geometry", planning_scene_world_topic.c_str());
+    ROS_INFO("Listening to '%s' for planning scene world geometry", root_nh_.resolveName(planning_scene_world_topic).c_str());
   }
   if (!octomap_monitor_)
   {
@@ -860,7 +860,7 @@ void planning_scene_monitor::PlanningSceneMonitor::startStateMonitor(const std::
     {
       // using regular message filter as there's no header
       attached_collision_object_subscriber_ = root_nh_.subscribe(attached_objects_topic, 1024, &PlanningSceneMonitor::attachObjectCallback, this);
-      ROS_INFO("Listening to '%s' for attached collision objects", attached_objects_topic.c_str());
+      ROS_INFO("Listening to '%s' for attached collision objects", root_nh_.resolveName(attached_objects_topic).c_str());
     }
   }
   else
