@@ -504,6 +504,13 @@ bool constraint_samplers::IKConstraintSampler::project(robot_state::RobotState &
   return sampleHelper(state, state, max_attempts, true);
 }
 
+bool constraint_samplers::IKConstraintSampler::validate(robot_state::RobotState &state) const
+{
+  state.update();
+  return (!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(state, verbose_).satisfied)
+    && (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
+}
+
 bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
                                                       double timeout, robot_state::RobotState &state, bool use_as_seed)
 {
@@ -534,8 +541,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
 
-    assert(!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(state, verbose_).satisfied);
-    assert(!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
+    assert(validate(state));
 
     return true;
   }
