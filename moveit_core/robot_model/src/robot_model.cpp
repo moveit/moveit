@@ -1053,6 +1053,17 @@ const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const st
   return NULL;
 }
 
+const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(int index) const
+{
+  if (index < 0 || index >= joint_model_vector_.size())
+  {
+    logError("Joint index '%i' out of bounds of joints in model '%s'", index, model_name_.c_str());
+    return NULL;
+  } 
+  assert(joint_model_vector_[index]->getJointIndex() == index);
+  return joint_model_vector_[index];
+}
+
 moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string &name)
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
@@ -1069,6 +1080,17 @@ const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std:
     return it->second;
   logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return NULL;  
+}
+
+const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
+{
+  if (index < 0 || index >= link_model_vector_.size())
+  {
+    logError("Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
+    return NULL;
+  } 
+  assert(link_model_vector_[index]->getLinkIndex() == index);
+  return link_model_vector_[index];
 }
 
 moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string &name)
