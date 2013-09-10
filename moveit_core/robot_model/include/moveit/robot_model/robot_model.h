@@ -130,10 +130,13 @@ public:
   /** \brief Check if a joint exists. Return true if it does. */
   bool hasJointModel(const std::string &name) const;
 
-  /** \brief Get a joint by its name. Throw an exception when the joint is missing. */
+  /** \brief Get a joint by its name. Output error and return NULL when the joint is missing. */
   const JointModel* getJointModel(const std::string &joint) const;
 
-  /** \brief Get a joint by its name. Throw an exception when the joint is missing. */
+  /** \brief Get a joint by its index. Output error and return NULL when the link is missing. */
+  const JointModel* getJointModel(int index) const;
+
+  /** \brief Get a joint by its name. Output error and return NULL when the joint is missing. */
   JointModel* getJointModel(const std::string &joint);
   
   /** \brief Get the array of joints, in the order they appear
@@ -228,10 +231,13 @@ public:
   /** \brief Check if a link exists. Return true if it does. */
   bool hasLinkModel(const std::string &name) const;
 
-  /** \brief Get a link by its name. Throw an exception when the link is missing. */
+  /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
   const LinkModel* getLinkModel(const std::string &link) const;
 
-  /** \brief Get a link by its name. Throw an exception when the link is missing. */
+  /** \brief Get a link by its index. Output error and return NULL when the link is missing. */
+  const LinkModel* getLinkModel(int index) const;
+
+  /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
   LinkModel* getLinkModel(const std::string &link);
 
   /** \brief Get the array of links  */

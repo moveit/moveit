@@ -1028,6 +1028,24 @@ public:
                        const std::string& ns,
                        const ros::Duration& dur,
                        bool include_attached = false) const;
+
+  /** @brief Get a MarkerArray that fully describes the robot markers for a given robot. Update the state first.
+   *  @param arr The returned marker array
+   *  @param link_names The list of link names for which the markers should be created.
+   *  @param color The color for the marker
+   *  @param ns The namespace for the markers
+   *  @param dur The ros::Duration for which the markers should stay visible
+   */
+  void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                       const std::vector<std::string> &link_names,
+                       const std_msgs::ColorRGBA& color,
+                       const std::string& ns,
+                       const ros::Duration& dur,
+                       bool include_attached = false)
+  {
+    updateCollisionBodyTransforms();
+    const_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, color, ns, dur, include_attached);
+  }
   
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
    *  @param arr The returned marker array
@@ -1037,6 +1055,18 @@ public:
                        const std::vector<std::string> &link_names,
                        bool include_attached = false) const;
 
+  /** @brief Get a MarkerArray that fully describes the robot markers for a given robot. Update the state first.
+   *  @param arr The returned marker array
+   *  @param link_names The list of link names for which the markers should be created.
+   */
+  void getRobotMarkers(visualization_msgs::MarkerArray& arr,
+                       const std::vector<std::string> &link_names,
+                       bool include_attached = false)
+  {  
+    updateCollisionBodyTransforms();
+    const_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, include_attached);
+  }
+  
   void printStatePositions(std::ostream &out) const;
   
   void printStateInfo(std::ostream &out) const;
