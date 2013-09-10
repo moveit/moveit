@@ -297,7 +297,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 {
   if (joint_state->name.size() != joint_state->position.size())
   {
-    ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state");
+    ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state (number of joint names does not match number of positions)");
     return;
   }
 
@@ -308,22 +308,29 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     current_state_time_ = joint_state->header.stamp;
     for (std::size_t i = 0 ; i < n ; ++i)
     {
-      robot_state_.setVariablePosition(joint_state->name[i], joint_state->position[i]);
+      const robot_model::JointModel* jm = robot_model_->getJointModel(joint_state->name[i]);
+      if (!jm)
+        continue;
+      // ignore fixed joints, multi-dof joints (they should not even be in the message)
+      if (jm->getVariableCount() != 1)
+        continue;
+      
+      robot_state_.setJointPositions(jm, &(joint_state->position[i]));
       joint_time_[joint_state->name[i]] = joint_state->header.stamp;
       
       // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
-      const robot_model::JointModel* jm = robot_model_->getJointModel(joint_state->name[i]);
-      if (jm && jm->getType() == robot_model::JointModel::REVOLUTE)
+      if (jm->getType() == robot_model::JointModel::REVOLUTE)
         if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
           continue;
       
-      const robot_model::VariableBounds &b = robot_model_->getVariableBounds(joint_state->name[i]);
+      const robot_model::VariableBounds &b = jm->getVariableBounds()[0]; // only one variable in the joint, so we get its bounds
+      
       // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
       if (joint_state->position[i] < b.min_position_ && joint_state->position[i] >= b.min_position_ - error_)
-        robot_state_.setVariablePosition(joint_state->name[i], b.min_position_);
+        robot_state_.setJointPositions(jm, &b.min_position_);
       else
         if (joint_state->position[i] > b.max_position_ && joint_state->position[i] <= b.max_position_ + error_)
-          robot_state_.setVariablePosition(joint_state->name[i], b.max_position_);
+          robot_state_.setJointPositions(jm, &b.max_position_);
     }
     
     // read root transform, if needed
