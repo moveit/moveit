@@ -872,7 +872,8 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
           continue;
         // if the object is invisible (0 volume) we skip it
         if (fabs(mark.scale.x * mark.scale.y * mark.scale.z) < std::numeric_limits<float>::epsilon())
-          continue;
+          continue;  
+        tf::poseEigenToMsg(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j], mark.pose);
       }
       else
       {
@@ -883,9 +884,10 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
         
         mark.scale.x = mesh_scale[0];
         mark.scale.y = mesh_scale[1];
-        mark.scale.z = mesh_scale[2];
+        mark.scale.z = mesh_scale[2]; 
+        tf::poseEigenToMsg(global_link_transforms_[lm->getLinkIndex()], mark.pose);
       }
-      tf::poseEigenToMsg(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j], mark.pose);
+
       arr.markers.push_back(mark);
     }
   }
