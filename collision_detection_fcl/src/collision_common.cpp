@@ -51,6 +51,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   const CollisionGeometryData *cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
   const CollisionGeometryData *cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
 
+  // do not collision check geoms part of the same object / link / attached body
+  if (cd1->sameObject(*cd2))
+    return false;
+  
   // If active components are specified
   if (cdata->active_components_only_)
   {
