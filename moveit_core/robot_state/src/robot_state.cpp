@@ -885,7 +885,7 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
         mark.scale.x = mesh_scale[0];
         mark.scale.y = mesh_scale[1];
         mark.scale.z = mesh_scale[2]; 
-        tf::poseEigenToMsg(global_link_transforms_[lm->getLinkIndex()], mark.pose);
+        tf::poseEigenToMsg(global_link_transforms_[lm->getLinkIndex()] * lm->getVisualMeshOrigin(), mark.pose);
       }
 
       arr.markers.push_back(mark);

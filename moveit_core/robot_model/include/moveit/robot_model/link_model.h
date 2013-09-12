@@ -226,7 +226,13 @@ public:
     return visual_mesh_scale_;
   }
 
-  void setVisualMesh(const std::string &visual_mesh, const Eigen::Vector3d &scale);
+  /** \brief Get the transform for the visual mesh origin */
+  const Eigen::Affine3d& getVisualMeshOrigin() const
+  {
+    return visual_mesh_origin_;
+  }
+  
+  void setVisualMesh(const std::string &visual_mesh, const Eigen::Affine3d &origin, const Eigen::Vector3d &scale);
   
 private:
 
@@ -269,6 +275,9 @@ private:
   /** \brief Filename associated with the visual geometry mesh of this link. If empty, no mesh was used. */
   std::string                        visual_mesh_filename_;
 
+  /** \brief The additional origin transform for the mesh */
+  Eigen::Affine3d                    visual_mesh_origin_;
+  
   /** \brief Scale factor associated with the visual geometry mesh of this link. */
   Eigen::Vector3d                    visual_mesh_scale_;
 

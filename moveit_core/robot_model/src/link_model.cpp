@@ -101,8 +101,9 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
   shape_extents_ = b - a;
 }
 
-void moveit::core::LinkModel::setVisualMesh(const std::string &visual_mesh, const Eigen::Vector3d &scale)
+void moveit::core::LinkModel::setVisualMesh(const std::string &visual_mesh, const Eigen::Affine3d &origin, const Eigen::Vector3d &scale)
 {
   visual_mesh_filename_ = visual_mesh;
+  visual_mesh_origin_ = origin;
   visual_mesh_scale_ = scale;
 }
