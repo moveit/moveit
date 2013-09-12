@@ -14,7 +14,7 @@ find_package(Boost REQUIRED COMPONENTS
   system
   thread
 )
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
