@@ -98,6 +98,12 @@ struct CollisionGeometryData
     return "Object";
   }
 
+  /** \brief Check if two CollisionGeometryData objects point to the same source object */
+  bool sameObject(const CollisionGeometryData &other) const
+  {
+    return type == other.type && ptr.raw == other.ptr.raw;
+  }
+  
   BodyType type;
   int shape_index;
   union
