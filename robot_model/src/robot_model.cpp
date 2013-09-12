@@ -975,7 +975,8 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
     {
       const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
       if (!mesh->filename.empty())
-        result->setVisualMesh(mesh->filename, Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
+        result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->visual->origin),
+                              Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
     }
   }
   else
@@ -983,9 +984,10 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
     {
       if (urdf_link->collision->geometry->type == urdf::Geometry::MESH)
       {
-        const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get());
+        const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get()); 
         if (!mesh->filename.empty())
-          result->setVisualMesh(mesh->filename, Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
+          result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->collision->origin),
+                                Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
       }
     }
   
