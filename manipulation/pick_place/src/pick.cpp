@@ -51,7 +51,7 @@ namespace
 {
 struct OrderGraspQuality
 {
-  OrderGraspQuality(const std::vector<manipulation_msgs::Grasp> &grasps) : grasps_(grasps)
+  OrderGraspQuality(const std::vector<moveit_msgs::Grasp> &grasps) : grasps_(grasps)
   {
   }
 
@@ -60,7 +60,7 @@ struct OrderGraspQuality
     return grasps_[a].grasp_quality > grasps_[b].grasp_quality;
   }
 
-  const std::vector<manipulation_msgs::Grasp> &grasps_;
+  const std::vector<moveit_msgs::Grasp> &grasps_;
 };
 }
 
@@ -165,11 +165,11 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
   for (std::size_t i = 0 ; i < goal.possible_grasps.size() ; ++i)
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
-    const manipulation_msgs::Grasp &g = goal.possible_grasps[grasp_order[i]];
-    p->approach_ = g.approach;
-    p->retreat_ = g.retreat;
+    const moveit_msgs::Grasp &g = goal.possible_grasps[grasp_order[i]];
+    p->approach_ = g.pre_grasp_approach;
+    p->retreat_ = g.post_grasp_retreat;
     p->goal_pose_ = g.grasp_pose;
-    p->id_ = i;
+    p->id_ = grasp_order[i];
     // if no frame of reference was specified, assume the transform to be in the reference frame of the object
     if (p->goal_pose_.header.frame_id.empty())
       p->goal_pose_.header.frame_id = goal.target_name;

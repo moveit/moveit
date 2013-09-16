@@ -75,18 +75,16 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
         res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS &&
         res.trajectory_ && !res.trajectory_->empty())
     {
-      if (!plan->approach_posture_.name.empty())
+      if (!plan->approach_posture_.joint_names.empty())
       {
         robot_state::RobotStatePtr state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
-        state->setVariableValues(plan->approach_posture_);
         robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
-        traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+        traj->setRobotTrajectoryMsg(*state, plan->approach_posture_);
+        traj->addPrefixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
         plan_execution::ExecutableTrajectory et(traj, "pre_grasp");
-	et.trajectory_monitoring_ = false;
         plan->trajectories_.insert(plan->trajectories_.begin(), et);
       }
       plan_execution::ExecutableTrajectory et(res.trajectory_, name_);
-      et.trajectory_monitoring_ = false;
       plan->trajectories_.insert(plan->trajectories_.begin(), et);
       plan->error_code_ = res.error_code_;
 

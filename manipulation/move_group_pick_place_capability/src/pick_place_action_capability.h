@@ -64,8 +64,8 @@ private:
   void executePlaceCallback_PlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res);
   void executePlaceCallback_PlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res);
 
-  bool planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, plan_execution::ExecutableMotionPlan &plan);
-  bool planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, plan_execution::ExecutableMotionPlan &plan);
+  bool planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult *action_res, plan_execution::ExecutableMotionPlan &plan);
+  bool planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, moveit_msgs::PlaceResult *action_res, plan_execution::ExecutableMotionPlan &plan);
 
   void preemptPickupCallback();
   void preemptPlaceCallback();
@@ -80,8 +80,6 @@ private:
   void setPlaceState(MoveGroupState state);
 
   void fillGrasps(moveit_msgs::PickupGoal& goal);
-  void addGraspToPickupResult(const plan_execution::ExecutableMotionPlan &plan,
-                  moveit_msgs::PickupResult &action_res) const;
 
   pick_place::PickPlacePtr pick_place_;
 
