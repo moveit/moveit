@@ -162,7 +162,7 @@ public:
 
   double* getVariableVelocities()
   {
-    has_velocity_ = true;
+    markVelocity();
     return velocity_;
   }
   
@@ -195,18 +195,18 @@ public:
   
   void setVariableVelocity(int index, double value)
   {
-    has_velocity_ = true;
+    markVelocity();
     velocity_[index] = value;
   }
   
   const double getVariableVelocity(const std::string &variable) const
   {
-    return velocity_ ? velocity_[robot_model_->getVariableIndex(variable)] : 0.0;
+    return velocity_[robot_model_->getVariableIndex(variable)];
   }
   
   const double getVariableVelocity(int index) const
   {
-    return velocity_ ? velocity_[index] : 0.0;
+    return velocity_[index];
   }
   
   /** @} */
@@ -223,7 +223,7 @@ public:
 
   double* getVariableAccelerations()
   {
-    has_acceleration_ = true;
+    markAcceleration();
     return acceleration_;
   }
   
@@ -235,6 +235,8 @@ public:
   void setVariableAccelerations(const double *acceleration)
   {
     has_acceleration_ = true;
+    has_effort_ = false;
+    
     // assume everything is in order in terms of array lengths (for efficiency reasons)
     memcpy(acceleration_, acceleration, robot_model_->getVariableCount() * sizeof(double));
   }
@@ -256,23 +258,84 @@ public:
   
   void setVariableAcceleration(int index, double value)
   {
-    has_acceleration_ = true;
+    markAcceleration();
     acceleration_[index] = value;
   }
   
   const double getVariableAcceleration(const std::string &variable) const
   {
-    return acceleration_ ? acceleration_[robot_model_->getVariableIndex(variable)] : 0.0;
+    return acceleration_[robot_model_->getVariableIndex(variable)];
   }
   
   const double getVariableAcceleration(int index) const
   {
-    return acceleration_ ? acceleration_[index] : 0.0;
+    return acceleration_[index];
   }
   
   /** @} */
 
   
+  /** \defgroup setVariableAcceleration_Fn Getting and setting variable effort
+   *  @{
+   */
+
+  bool hasEffort() const
+  {
+    return has_effort_;
+  }
+
+  double* getVariableEffort()
+  {
+    markEffort();
+    return effort_;
+  }
+  
+  const double* getVariableEffort() const
+  {
+    return effort_;
+  }
+  
+  void setVariableEffort(const double *effort)
+  {
+    has_effort_ = true;
+    has_acceleration_ = false;
+    // assume everything is in order in terms of array lengths (for efficiency reasons)
+    memcpy(effort_, effort, robot_model_->getVariableCount() * sizeof(double));
+  }
+  
+  void setVariableEffort(const std::vector<double> &effort)
+  {
+    assert(robot_model_->getVariableCount() <= effort.size()); // checked only in debug mode
+    setVariableEffort(&effort[0]);
+  }
+  
+  void setVariableEffort(const std::map<std::string, double> &variable_map);
+  void setVariableEffort(const std::map<std::string, double> &variable_map, std::vector<std::string>& missing_variables);
+  void setVariableEffort(const std::vector<std::string>& variable_names, const std::vector<double>& variable_acceleration);
+  
+  void setVariableEffort(const std::string &variable, double value)
+  {
+    setVariableEffort(robot_model_->getVariableIndex(variable), value);
+  }
+  
+  void setVariableEffort(int index, double value)
+  {
+    markEffort();
+    effort_[index] = value;
+  }
+  
+  const double getVariableEffort(const std::string &variable) const
+  {
+    return effort_[robot_model_->getVariableIndex(variable)];
+  }
+  
+  const double getVariableEffort(int index) const
+  {
+    return effort_[index];
+  }
+  
+  /** @} */
+
   /** \defgroup setJointPosition_Fn Getting and setting joint positions
    *  @{
    */
@@ -877,7 +940,7 @@ public:
                   const EigenSTL::vector_Affine3d &attach_trans,
                   const std::set<std::string> &touch_links,
                   const std::string &link_name,
-                  const sensor_msgs::JointState &detach_posture = sensor_msgs::JointState());
+                  const trajectory_msgs::JointTrajectory &detach_posture = trajectory_msgs::JointTrajectory());
 
   /**
      @brief Attach a body to a link
@@ -892,7 +955,7 @@ public:
                   const EigenSTL::vector_Affine3d &attach_trans,
                   const std::vector<std::string> &touch_links,
                   const std::string &link_name,
-                  const sensor_msgs::JointState &detach_posture = sensor_msgs::JointState())
+                  const trajectory_msgs::JointTrajectory &detach_posture = trajectory_msgs::JointTrajectory())
   {
     std::set<std::string> touch_links_set(touch_links.begin(), touch_links.end());
     attachBody(id, shapes, attach_trans, touch_links_set, link_name, detach_posture);
@@ -1034,6 +1097,10 @@ private:
     dirty_link_transforms_ = dirty_link_transforms_ == NULL ? group->getCommonRoot() : robot_model_->getCommonRoot(dirty_link_transforms_, group->getCommonRoot());
   }
   
+  void markVelocity();
+  void markAcceleration();
+  void markEffort();
+ 
   void updateMimicJoint(const JointModel *joint)
   {
     const std::vector<const JointModel*> &mim = joint->getMimicRequests();
@@ -1076,9 +1143,11 @@ private:
   
   double                                *position_;
   double                                *velocity_;
-  double                                *acceleration_;
+  double                                *acceleration_; 
+  double                                *effort_;
   bool                                   has_velocity_;
   bool                                   has_acceleration_;
+  bool                                   has_effort_;
   
   const JointModel                      *dirty_link_transforms_;
   const JointModel                      *dirty_collision_body_transforms_;
