@@ -41,7 +41,7 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
                                          const std::vector<shapes::ShapeConstPtr> &shapes,
                                          const EigenSTL::vector_Affine3d &attach_trans,
                                          const std::set<std::string> &touch_links,
-                                         const sensor_msgs::JointState &detach_posture)
+                                         const trajectory_msgs::JointTrajectory &detach_posture)
   : parent_link_model_(parent_link_model)
   , id_(id)
   , shapes_(shapes)

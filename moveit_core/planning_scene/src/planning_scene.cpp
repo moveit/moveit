@@ -1457,7 +1457,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         const robot_state::AttachedBody *ab = kstate_->getAttachedBody(object.object.id);
         shapes.insert(shapes.end(), ab->getShapes().begin(), ab->getShapes().end());
         poses.insert(poses.end(), ab->getFixedTransforms().begin(), ab->getFixedTransforms().end());
-        sensor_msgs::JointState detach_posture = object.detach_posture.name.empty() ? ab->getDetachPosture() : object.detach_posture;
+        trajectory_msgs::JointTrajectory detach_posture = object.detach_posture.joint_names.empty() ? ab->getDetachPosture() : object.detach_posture;
         std::set<std::string> ab_touch_links = ab->getTouchLinks();
         kstate_->clearAttachedBody(object.object.id);
         if (object.touch_links.empty())

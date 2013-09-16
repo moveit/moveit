@@ -229,14 +229,17 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
     {
       trajectory.joint_trajectory.points[i].positions.resize(onedof.size());
       trajectory.joint_trajectory.points[i].velocities.reserve(onedof.size());
+
       for (std::size_t j = 0 ; j < onedof.size() ; ++j)
       {
         trajectory.joint_trajectory.points[i].positions[j] = waypoints_[i]->getVariablePosition(onedof[j]->getFirstVariableIndex());
-        // if we have velocities/accelerations, copy those too
+        // if we have velocities/accelerations/effort, copy those too
         if (waypoints_[i]->hasVelocities())
           trajectory.joint_trajectory.points[i].velocities.push_back(waypoints_[i]->getVariableVelocity(onedof[j]->getFirstVariableIndex()));
         if (waypoints_[i]->hasAccelerations())
           trajectory.joint_trajectory.points[i].accelerations.push_back(waypoints_[i]->getVariableAcceleration(onedof[j]->getFirstVariableIndex()));
+        if (waypoints_[i]->hasEffort())
+          trajectory.joint_trajectory.points[i].effort.push_back(waypoints_[i]->getVariableEffort(onedof[j]->getFirstVariableIndex()));
       }
       // clear velocities if we have an incomplete specification
       if (trajectory.joint_trajectory.points[i].velocities.size() != onedof.size())
@@ -244,6 +247,9 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
       // clear accelerations if we have an incomplete specification
       if (trajectory.joint_trajectory.points[i].accelerations.size() != onedof.size())
         trajectory.joint_trajectory.points[i].accelerations.clear();
+      // clear effort if we have an incomplete specification
+      if (trajectory.joint_trajectory.points[i].effort.size() != onedof.size())
+        trajectory.joint_trajectory.points[i].effort.clear();
 
       if (duration_from_previous_.size() > i)
         trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(total_time);
@@ -265,41 +271,69 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
+                                                              const trajectory_msgs::JointTrajectory &trajectory)
+{
+  // make a copy just in case the next clear() removes the memory for the reference passed in
+  robot_state::RobotState copy = reference_state;
+  clear();
+  std::size_t state_count = trajectory.points.size();
+  ros::Time last_time_stamp = trajectory.header.stamp;
+  ros::Time this_time_stamp = last_time_stamp;
+  
+  for (std::size_t i = 0 ; i < state_count ; ++i)
+  {
+    this_time_stamp = trajectory.header.stamp + trajectory.points[i].time_from_start;
+    robot_state::RobotStatePtr st(new robot_state::RobotState(copy));
+    st->setVariablePositions(trajectory.joint_names, trajectory.points[i].positions);
+    if (!trajectory.points[i].velocities.empty())
+      st->setVariableVelocities(trajectory.joint_names, trajectory.points[i].velocities);
+    if (!trajectory.points[i].accelerations.empty())
+      st->setVariableAccelerations(trajectory.joint_names, trajectory.points[i].accelerations);
+    if (!trajectory.points[i].effort.empty())
+      st->setVariableEffort(trajectory.joint_names, trajectory.points[i].effort);
+    addSuffixWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
+    last_time_stamp = this_time_stamp;
+  }
+}
+
+void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
                                                               const moveit_msgs::RobotTrajectory &trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
   clear();
-
+  
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
   ros::Time last_time_stamp = trajectory.joint_trajectory.points.empty() ?
     trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
-
+  
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
-    moveit_msgs::RobotState rs;
+    robot_state::RobotStatePtr st(new robot_state::RobotState(copy));
     if (trajectory.joint_trajectory.points.size() > i)
     {
-      rs.joint_state.header = trajectory.joint_trajectory.header;
-      rs.joint_state.header.stamp = rs.joint_state.header.stamp + trajectory.joint_trajectory.points[i].time_from_start;
-      rs.joint_state.name = trajectory.joint_trajectory.joint_names;
-      rs.joint_state.position = trajectory.joint_trajectory.points[i].positions;
-      rs.joint_state.velocity = trajectory.joint_trajectory.points[i].velocities;
-      this_time_stamp = rs.joint_state.header.stamp;
+      st->setVariablePositions(trajectory.joint_trajectory.joint_names, trajectory.joint_trajectory.points[i].positions);
+      if (!trajectory.joint_trajectory.points[i].velocities.empty())
+        st->setVariableVelocities(trajectory.joint_trajectory.joint_names, trajectory.joint_trajectory.points[i].velocities);
+      if (!trajectory.joint_trajectory.points[i].accelerations.empty())
+        st->setVariableAccelerations(trajectory.joint_trajectory.joint_names, trajectory.joint_trajectory.points[i].accelerations);
+      if (!trajectory.joint_trajectory.points[i].effort.empty())
+        st->setVariableEffort(trajectory.joint_trajectory.joint_names, trajectory.joint_trajectory.points[i].effort);
+      this_time_stamp = trajectory.joint_trajectory.header.stamp + trajectory.joint_trajectory.points[i].time_from_start;
     }
     if (trajectory.multi_dof_joint_trajectory.points.size() > i)
     {
-      rs.multi_dof_joint_state.joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
-      rs.multi_dof_joint_state.header = trajectory.multi_dof_joint_trajectory.header;
-      rs.multi_dof_joint_state.header.stamp = trajectory.multi_dof_joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
-      rs.multi_dof_joint_state.transforms = trajectory.multi_dof_joint_trajectory.points[i].transforms;
-      this_time_stamp = rs.multi_dof_joint_state.header.stamp;
+      for (std::size_t j = 0 ; j < trajectory.multi_dof_joint_trajectory.joint_names.size() ; ++j)
+      {
+        Eigen::Affine3d t;
+        tf::transformMsgToEigen(trajectory.multi_dof_joint_trajectory.points[i].transforms[j], t);
+        st->setJointPositions(trajectory.multi_dof_joint_trajectory.joint_names[j], t);
+      }
+      this_time_stamp = trajectory.multi_dof_joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
     }
-
-    robot_state::RobotStatePtr st(new robot_state::RobotState(copy));
-    robot_state::robotStateMsgToRobotState(rs, *st);
+    
     addSuffixWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
     last_time_stamp = this_time_stamp;
   }
