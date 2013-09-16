@@ -101,25 +101,37 @@ namespace
 bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
                           const collision_detection::AllowedCollisionMatrix *collision_matrix,
                           bool verbose,
-                          const sensor_msgs::JointState *grasp_posture,
+                          const trajectory_msgs::JointTrajectory *grasp_posture,
                           robot_state::RobotState *state,
                           const robot_state::JointModelGroup *group,
                           const double *joint_group_variable_values)
 {
   state->setJointGroupPositions(group, joint_group_variable_values);
-  // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-  state->setVariableValues(*grasp_posture);
-  state->update();
   
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
-  collision_detection::CollisionResult res;
   req.group_name = group->getName();
-  planning_scene->checkCollision(req, res, *state, *collision_matrix);
-  if (res.collision == false)
-    return planning_scene->isStateFeasible(*state);
+  
+  if (grasp_posture->joint_names.size() > 0)
+  {
+    // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
+    for (std::size_t i = 0 ; i < grasp_posture->joint_names.size() ; ++i)
+    {
+      state->setVariablePositions(grasp_posture->joint_names, grasp_posture->points[i].positions);
+      collision_detection::CollisionResult res;
+      planning_scene->checkCollision(req, res, *state, *collision_matrix);
+      if (res.collision)
+        return false;
+    }
+  }
   else
-    return false;
+  {
+    collision_detection::CollisionResult res;
+    planning_scene->checkCollision(req, res, *state, *collision_matrix);
+    if (res.collision)
+      return false;
+  }
+  return planning_scene->isStateFeasible(*state);
 }
 
 bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state::RobotState &reference_state, double min_distance, unsigned int attempts)
@@ -148,13 +160,15 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
   return false;
 }
 
-bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data, const sensor_msgs::JointState &detach_posture, const plan_execution::ExecutableMotionPlan *motion_plan)
+bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data, const trajectory_msgs::JointTrajectory &detach_posture, const plan_execution::ExecutableMotionPlan *motion_plan)
 {
   ROS_DEBUG("Applying attached object diff to maintained planning scene");
   bool ok = false;
   {
     planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
     moveit_msgs::AttachedCollisionObject msg = shared_plan_data->diff_attached_object_;
+    // remember the configuration of the gripper before the grasp;
+    // this configuration will be set again when releasing the object
     msg.detach_posture = detach_posture;
     ok = ps->processAttachedCollisionObjectMsg(msg);
   }
@@ -165,14 +179,13 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_d
 
 void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix, const std::string &name)
 {
-  if (!plan->retreat_posture_.name.empty())
+  if (!plan->retreat_posture_.joint_names.empty())
   {
     robot_state::RobotStatePtr state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
-    state->setVariableValues(plan->retreat_posture_);
     robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
-    traj->addSuffixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+    traj->setRobotTrajectoryMsg(*state, plan->retreat_posture_);
+    traj->addPrefixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
     plan_execution::ExecutableTrajectory et(traj, name);
-    et.trajectory_monitoring_ = false; // \todo THIS IS BAD. NEEDS TO BE RE-ENABLED; THIS FLAG IS INCORRECTLY SET THROUGHOUT THE PICK&PLACE CODE
     et.effect_on_success_ = boost::bind(&executeAttachObject, plan->shared_data_, plan->approach_posture_, _1);
     et.allowed_collision_matrix_ = collision_matrix;
     plan->trajectories_.push_back(et);
@@ -281,13 +294,11 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             time_param_.computeTimeStamps(*retreat_traj);
 
             plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
-	    et_approach.trajectory_monitoring_ = false;
             et_approach.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_approach);
 
             addGripperTrajectory(plan, collision_matrix_, "grasp");
             plan_execution::ExecutableTrajectory et_retreat(retreat_traj, "retreat");
-	    et_retreat.trajectory_monitoring_ = false;
             et_retreat.allowed_collision_matrix_ = collision_matrix_;
             plan->trajectories_.push_back(et_retreat);
 
@@ -307,7 +318,6 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 
           plan_execution::ExecutableTrajectory et_approach(approach_traj, "approach");
           et_approach.allowed_collision_matrix_ = collision_matrix_;
-	  et_approach.trajectory_monitoring_ = false;
           plan->trajectories_.push_back(et_approach);
 
           addGripperTrajectory(plan, collision_matrix_, "grasp");
