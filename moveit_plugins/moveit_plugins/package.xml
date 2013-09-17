@@ -3,7 +3,8 @@
   <version>0.5.2</version>
   <description>Metapackage for moveit plugins.</description>
   <author email="fergs@unboundedrobotics.com">Michael Ferguson</author>
-  <maintainer email="fergs@unboundedrobotics.com">Michael Ferguson</maintainer>
+  <author email="isucan@gmail.com">Ioan Sucan</author>
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
 
   <license>BSD</license>
 
@@ -12,6 +13,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>moveit_simple_controller_manager</run_depend>
+  <run_depend>moveit_fake_controller_manager</run_depend>
 
   <export>
     <metapackage/>
