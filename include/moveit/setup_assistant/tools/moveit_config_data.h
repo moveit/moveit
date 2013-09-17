@@ -178,7 +178,8 @@ public:
   bool outputOMPLPlanningYAML( const std::string& file_path );
   bool outputKinematicsYAML( const std::string& file_path );
   bool outputJointLimitsYAML( const std::string& file_path );
-
+  bool outputFakeControllersYAML( const std::string& file_path );
+  
   /**
    * \brief Decide the best two joints to be used for the projection evaluator
    * \param planning_group name of group to use

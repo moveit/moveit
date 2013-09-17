@@ -10,7 +10,8 @@
   <arg unless="$(arg info)" name="command_args" value="" />
   <arg     if="$(arg info)" name="command_args" value="--debug" />
 
-  <arg name="allow_trajectory_execution" default="true"/>
+  <arg name="allow_trajectory_execution" default="true"/> 
+  <arg name="fake_execution" default="false"/>
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="jiggle_fraction" default="0.05" />
   <arg name="publish_monitored_planning_scene" default="true"/>
@@ -20,8 +21,9 @@
   </include>
 
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
-    <arg name="moveit_controller_manager" value="[ROBOT_NAME]" /> 
     <arg name="moveit_manage_controllers" value="true" />
+    <arg name="moveit_controller_manager" value="[ROBOT_NAME]" unless="$(arg fake_execution)"/>
+    <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
   </include>
 
   <include ns="move_group" file="$(find [GENERATED_PACKAGE_NAME])/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
