@@ -24,7 +24,8 @@
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/move_group.launch">
-    <arg name="allow_trajectory_execution" value="false"/>  
+    <arg name="allow_trajectory_execution" value="true"/>  
+    <arg name="fake_execution" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
 

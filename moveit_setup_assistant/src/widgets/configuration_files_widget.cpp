@@ -257,6 +257,13 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_    = boost::bind(&MoveItConfigData::outputJointLimitsYAML, config_data_, _1);
   gen_files_.push_back(file);
 
+  // fake_controllers.yaml --------------------------------------------------------------------------------------
+  file.file_name_   = "fake_controllers.yaml";
+  file.rel_path_    = config_data_->appendPaths( config_path, file.file_name_ );
+  file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly useful for testing.";
+  file.gen_func_    = boost::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, _1);
+  gen_files_.push_back(file);
+
   // -------------------------------------------------------------------------------------------------------------------
   // LAUNCH FILES ------------------------------------------------------------------------------------------------------
   // -------------------------------------------------------------------------------------------------------------------
@@ -371,6 +378,13 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
   file.description_ = "Loads settings for the ROS parameter server required for executing trajectories using the trajectory_execution_manager::TrajectoryExecutionManager.";
+  file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);  // trajectory_execution.launch ------------------------------------------------------------------
+
+  file.file_name_   = "fake_moveit_controller_manager.launch.xml";
+  file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
+  template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
+  file.description_ = "Loads a fake controller plugin.";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
