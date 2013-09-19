@@ -187,7 +187,6 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
     if (joint_time_.find(dof[i]) == joint_time_.end())
       if (!isPassiveDOF(dof[i]))
       {
-        ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
         missing_states.push_back(dof[i]);
         result = false;
       }
