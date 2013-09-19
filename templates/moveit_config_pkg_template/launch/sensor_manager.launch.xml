@@ -3,7 +3,7 @@
   <!-- This file makes it easy to include the settings for sensor managers -->  
 
   <!-- Params for the octomap monitor -->
-  <param name="octomap_frame" type="string" value="odom_combined" />
+  <!--  <param name="octomap_frame" type="string" value="some frame in which the robot moves" /> -->
   <param name="octomap_resolution" type="double" value="0.025" />
   <param name="max_range" type="double" value="5.0" />
 
