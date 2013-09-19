@@ -87,7 +87,8 @@ std::map<std::string, double> planning_scene_monitor::CurrentStateMonitor::getCu
 void planning_scene_monitor::CurrentStateMonitor::setToCurrentState(robot_state::RobotState &upd) const
 {
   boost::mutex::scoped_lock slock(state_update_lock_);
-  upd = robot_state_;
+  const double *pos = robot_state_.getVariablePositions();
+  upd.setVariablePositions(pos);
 }
 
 void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback &fn)
