@@ -36,6 +36,7 @@
 
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
+#include <sensor_msgs/JointState.h>
 #include <pluginlib/class_list_macros.h>
 #include <map>
 
@@ -45,8 +46,9 @@ namespace moveit_fake_controller_manager
 class FakeControllerHandle : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  FakeControllerHandle(const std::string &name, const std::vector<std::string> &joints) :
+  FakeControllerHandle(const std::string &name, ros::NodeHandle &nh, const std::vector<std::string> &joints) :
     moveit_controller_manager::MoveItControllerHandle(name),
+    nh_(nh),
     joints_(joints)
   {
     std::stringstream ss;
@@ -55,16 +57,28 @@ public:
       ss << joints[i] << " ";
     ss << "]";
     ROS_INFO("%s", ss.str().c_str());
+    pub_ = nh_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
   }
   
   void getJoints(std::vector<std::string> &joints) const
   {
     joints = joints_;
   }
-
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &)
+  
+  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t)
   {
     ROS_INFO("Fake execution of trajectory");
+    if (!t.joint_trajectory.points.empty())
+    {
+      sensor_msgs::JointState js;
+      js.header = t.joint_trajectory.header;
+      js.name = t.joint_trajectory.joint_names;
+      js.position = t.joint_trajectory.points.back().positions;
+      js.velocity = t.joint_trajectory.points.back().velocities;
+      js.effort = t.joint_trajectory.points.back().effort;
+      pub_.publish(js);
+    }
+    
     return true;
   }
   
@@ -76,6 +90,7 @@ public:
   
   virtual bool waitForExecution(const ros::Duration &)
   {
+    sleep(1);
     return true;
   }
   
@@ -85,7 +100,9 @@ public:
   }
   
 private:
+  ros::NodeHandle nh_;
   std::vector<std::string> joints_;
+  ros::Publisher pub_;
 };
 
 
@@ -131,7 +148,7 @@ public:
         for (int j = 0 ; j < controller_list[i]["joints"].size() ; ++j)
           joints.push_back(std::string(controller_list[i]["joints"][j]));
 
-        controllers_[name].reset(new FakeControllerHandle(name, joints));
+        controllers_[name].reset(new FakeControllerHandle(name, node_handle_, joints));
       }
       catch (...)
       {
