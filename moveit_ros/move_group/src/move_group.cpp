@@ -112,7 +112,8 @@ private:
       {
         std::string plugin = *beg;
         try
-        {
+        {  
+          printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin.c_str());
           MoveGroupCapability *cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
           cap->setContext(context_);
           cap->initialize();
@@ -126,6 +127,7 @@ private:
       }
     }
     std::stringstream ss;
+    ss << std::endl;  
     ss << std::endl;
     ss << "********************************************************" << std::endl;
     ss << "* MoveGroup using: " << std::endl;
@@ -170,9 +172,11 @@ int main(int argc, char **argv)
 
     move_group::MoveGroupExe mge(planning_scene_monitor, debug);
 
+    printf(MOVEIT_CONSOLE_COLOR_CYAN "Starting context monitors...\n" MOVEIT_CONSOLE_COLOR_RESET);
     planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startWorldGeometryMonitor();
     planning_scene_monitor->startStateMonitor();
+    printf(MOVEIT_CONSOLE_COLOR_CYAN "Context monitors started.\n" MOVEIT_CONSOLE_COLOR_RESET);
 
     planning_scene_monitor->publishDebugInformation(debug);
 
