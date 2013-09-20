@@ -290,7 +290,8 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
             std::stringstream ss;
             for (std::size_t i = 0 ; i < index.size() ; ++i)
               ss << index[i] << " ";
-            ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ " << ss.str() << "] out of " << state_count);
+            ROS_ERROR_STREAM("Computed path is not valid. Invalid states at index locations: [ " << ss.str() << "] out of " << state_count
+                             << ". Explanations follow in command line. Contacts are published on " << nh_.resolveName(MOTION_CONTACTS_TOPIC));
 
             // call validity checks in verbose mode for the problematic states
             visualization_msgs::MarkerArray arr;
@@ -315,6 +316,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                 arr.markers.insert(arr.markers.end(), arr_i.markers.begin(), arr_i.markers.end());
               }
             }
+            ROS_ERROR_STREAM("Completed listing of explanations for invalid states.");
             if (!arr.markers.empty())
               contacts_publisher_.publish(arr);
           }
