@@ -1326,7 +1326,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
     kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
-
+  kstate_->update();
+  
   if (object.object.operation == moveit_msgs::CollisionObject::ADD || object.object.operation == moveit_msgs::CollisionObject::APPEND)
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())

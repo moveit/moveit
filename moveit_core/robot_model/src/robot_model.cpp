@@ -92,14 +92,14 @@ void moveit::core::RobotModel::buildModel(const urdf::ModelInterface &urdf_model
     const urdf::Link *root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
     
-    logInform("... building kinematic chain"); 
+    logDebug("... building kinematic chain"); 
     root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
     if (root_joint_)
       root_link_ = root_joint_->getChildLinkModel();
-    logInform("... building mimic joints"); 
+    logDebug("... building mimic joints"); 
     buildMimic(urdf_model);
 
-    logInform("... computing joint indexing"); 
+    logDebug("... computing joint indexing"); 
     buildJointInfo();
 
     if (link_models_with_collision_geometry_vector_.empty())
@@ -107,13 +107,11 @@ void moveit::core::RobotModel::buildModel(const urdf::ModelInterface &urdf_model
 
     // build groups
 
-    logInform("... constructing joint groups"); 
+    logDebug("... constructing joint groups"); 
     buildGroups(srdf_model);
 
-    logInform("... constructing joint group states"); 
+    logDebug("... constructing joint group states"); 
     buildGroupStates(srdf_model);
-
-    logInform("Done!");
 
     std::stringstream ss;
     printModelInfo(ss);
