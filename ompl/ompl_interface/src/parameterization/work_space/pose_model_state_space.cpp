@@ -83,6 +83,7 @@ double ompl_interface::PoseModelStateSpace::getMaximumExtent() const
 ompl::base::State* ompl_interface::PoseModelStateSpace::allocState() const
 {
   StateType *state = new StateType();
+  state->values = new double[variable_count_]; // need to allocate this here since ModelBasedStateSpace::allocState() is not called
   state->poses = new ompl::base::SE3StateSpace::StateType*[poses_.size()];
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     state->poses[i] = poses_[i].state_space_->allocState()->as<ompl::base::SE3StateSpace::StateType>();

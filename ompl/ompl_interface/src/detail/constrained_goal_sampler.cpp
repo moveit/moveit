@@ -92,6 +92,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     {
       if (constraint_sampler_->project(work_state_, planning_context_->getMaximumStateSamplingAttempts()))
       {
+        work_state_.update();
         if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
         {
           planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, work_state_);
