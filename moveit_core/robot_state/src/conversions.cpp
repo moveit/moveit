@@ -313,7 +313,7 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
         else
         {
           if (state.clearAttachedBody(aco.object.id))
-            logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
+            logDebug("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
                       aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
           logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
