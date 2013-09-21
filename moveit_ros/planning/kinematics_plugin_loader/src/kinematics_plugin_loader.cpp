@@ -238,7 +238,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
           bool found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           if (!found)
           {
-            base_param_name = robot_description_ + "_kinematics";
+            base_param_name = robot_description_ + "_kinematics/" + known_groups[i].name_;
             ROS_DEBUG("Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
             found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           }
