@@ -1011,8 +1011,13 @@ public:
     return *rng_;
   }
 
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e id */
   const Eigen::Affine3d& getFrameTransform(const std::string &id);
+
+  /** \brief Get the transformation matrix from the model frame to the frame identified by \e id */
   const Eigen::Affine3d& getFrameTransform(const std::string &id) const;
+
+  /** \brief Check if a transformation matrix from the model frame to frame \e id is known */
   bool knowsFrameTransform(const std::string &id) const;
   
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.

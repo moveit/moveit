@@ -1140,7 +1140,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const geome
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
   if (!solver)
   {
-    logError("No kinematics solver instantiated for this group");
+    logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
     return false;
   }
   return setFromIK(jmg, pose, solver->getTipFrame(), attempts, timeout, constraint, options);
@@ -1165,7 +1165,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
   if (!solver)
   {
-    logError("No kinematics solver instantiated for this group");
+    logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
     return false;
   }
   static std::vector<double> consistency_limits;
@@ -1210,7 +1210,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
   if (!solver)
   {
-    logError("No kinematics solver instantiated for this group");
+    logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
     return false;
   }
 
