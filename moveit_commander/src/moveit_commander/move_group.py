@@ -92,7 +92,7 @@ class MoveGroupCommander(object):
         return self._g.get_planning_frame()
 
     def get_current_joint_values(self):
-        """ Get the current configuration of the group (as published on JointState) """
+        """ Get the current configuration of the group as a dictionary (these are values published on /joint_states) """
         return self._g.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link = ""):
@@ -124,15 +124,67 @@ class MoveGroupCommander(object):
     def set_start_state(self, msg):
         self._g.set_start_state(conversions.msg_to_string(msg))
 
-    def set_joint_value_target(self, name, value = None):
-        """ Specify a target joint configuration for the group."""
-        if value == None:
-            value = name
-            if not self._g.set_joint_value_target(value):
+    def set_joint_value_target(self, arg1, arg2 = None, arg3 = None):
+        """
+        Specify a target joint configuration for the group.
+        - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments shold be provided.
+        The dict should specify pairs of joint variable names and their target values, the list should specify all the variable values
+        for the group. The JointState message specifies the positions of some single-dof joints. 
+        - if the type of arg1 is string, then arg2 is expected to be defined and be either a real value or a list of real values. This is
+        interpreted as setting a particular joint to a particular value.
+        - if the type of arg1 is Pose or PoseStamped, both arg2 and arg3 could be defined. If arg2 or arg3 are defined, their types must
+        be either string or bool. The string type argument is interpreted as the end-effector the pose is specified for (default is to use
+        the default end-effector), and the bool is used to decide whether the pose specified is approximate (default is false). This situation
+        allows setting the joint target of the group by calling IK. This does not send a pose to the planner and the planner will do no IK.
+        Instead, one IK solution will be computed first, and that will be sent to the planner. 
+        """
+        if (type(arg1) is dict) or (type(arg1) is list):
+            if (arg2 != None or arg3 != None):
+                raise MoveItCommanderException("Too many arguments specified")
+            if not self._g.set_joint_value_target(arg1):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
-        else:
-            if not self._g.set_joint_value_target(name, value):
+            return
+        if type(arg1) is JointState:
+            if (arg2 != None or arg3 != None):
+                raise MoveItCommanderException("Too many arguments specified")
+            if not self._g.set_joint_value_target_from_joint_state_message(conversions.msg_to_string(arg1)):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
+        if (type(arg1) is str):
+            if (arg2 == None):
+                raise MoveItCommanderException("Joint value expected when joint name specified")
+            if (arg3 != None):
+                raise MoveItCommanderException("Too many arguments specified")
+            if not self._g.set_joint_value_target(arg1, arg2):
+                raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
+        if (type(arg1) is PoseStamped) or (type(arg1) is Pose):
+            approx = False
+            eef = ""
+            if (arg2 != None):
+                if type(arg2) is str:
+                    eef = arg2
+                else:
+                    if type(arg2) is bool:
+                        approx = arg2
+                    else:
+                        raise MoveItCommanderException("Unexpected type")
+            if (arg3 != None):
+                if type(arg3) is str:
+                    eef = arg3
+                else:
+                    if type(arg3) is bool:
+                        approx = arg3
+                    else:
+                        raise MoveItCommanderException("Unexpected type")
+            r = False
+            if type(arg1) is PoseStamped:
+                r = self._g.set_joint_value_target_from_pose_stamped(conversions.msg_to_string(arg1), eef, approx)
+            else:
+                r = self._g.set_joint_value_target_from_pose(conversions.msg_to_string(arg1), eef, approx)
+            if not r:
+                if approx:
+                    raise MoveItCommanderException("Error setting joint target. Does your IK solver support approximate IK?")
+                else:
+                    raise MoveItCommanderException("Error setting joint target. Is IK running?")
 
     def set_rpy_target(self, rpy, end_effector_link = ""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""
@@ -331,7 +383,7 @@ class MoveGroupCommander(object):
             joints = None
 
         elif type(joints) is JointState:
-            self.set_joint_value_target(joints.position)
+            self.set_joint_value_target(joints)
 
         elif type(joints) is Pose:
             self.set_pose_target(joints)
@@ -349,7 +401,7 @@ class MoveGroupCommander(object):
     def plan(self, joints = None):
         """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
         if type(joints) is JointState:
-            self.set_joint_value_target(joints.position)
+            self.set_joint_value_target(joints)
 
         elif type(joints) is Pose:
             self.set_pose_target(joints)

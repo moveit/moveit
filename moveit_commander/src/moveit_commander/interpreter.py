@@ -34,7 +34,8 @@
 
 import rospy
 from moveit_commander import RobotCommander, MoveGroupCommander, PlanningSceneInterface, MoveItCommanderException
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped
+import tf
 import re
 import time
 import os.path
@@ -465,7 +466,36 @@ class MoveGroupCommandInterpreter(object):
                     return (MoveGroupInfoLevel.WARN, str(e))
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse X-Y-Z rotation  values '" + " ".join(clist[1:]) + "'")
-
+        if len(clist) >= 7:
+            if clist[0] == "go":
+                self._last_plan = None
+                approx = False
+                if (len(clist) > 7):
+                    if (clist[7] == "approx" or clist[7] == "approximate"):
+                        approx = True
+                try:
+                    p = Pose()
+                    p.position.x = float(clist[1])
+                    p.position.y = float(clist[2])
+                    p.position.z = float(clist[3])
+                    q = tf.transformations.quaternion_from_euler(float(clist[4]), float(clist[5]), float(clist[6]))
+                    p.orientation.x = q[0]
+                    p.orientation.y = q[1]
+                    p.orientation.z = q[2]
+                    p.orientation.w = q[3]
+                    if approx:
+                        g.set_joint_value_target(p, True)
+                    else:
+                        g.set_pose_target(p)
+                    if g.go():
+                        return (MoveGroupInfoLevel.SUCCESS, "Moved to pose target\n%s\n" % (str(p)))
+                    else:
+                        return (MoveGroupInfoLevel.FAIL, "Failed while moving to pose \n%s\n" % (str(p)))
+                except MoveItCommanderException as e:
+                    return (MoveGroupInfoLevel.WARN, "Going to pose target: %s" % (str(e)))
+                except:
+                    return (MoveGroupInfoLevel.WARN, "Unable to parse pose '" + " ".join(clist[1:]) + "'")
+ 
         return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
     def command_show(self, g):
