@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
- *
+ * 
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -233,7 +234,66 @@ public:
   {
     considered_start_state_.reset();
   }
+  
+  robot_state::RobotStatePtr getStartState()
+  {
+    if (considered_start_state_)
+      return considered_start_state_;
+    else
+    {
+      robot_state::RobotStatePtr s;
+      getCurrentState(s);
+      return s;
+    }
+  }
+  
+  bool setJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link, const std::string &frame, bool approx)
+  {
+    const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
+    // this only works if we have an end-effector
+    if (!eef.empty())
+    {
+      // first we set the goal to be the same as the start state
+      moveit::core::RobotStatePtr c = getStartState();
+      if (c)
+      {
+        setTargetType(JOINT);
+        c->enforceBounds();
+        getJointStateTarget() = *c;
+        if (!getJointStateTarget().satisfiesBounds(getGoalJointTolerance()))
+          return false;
+      }
+      else
+        return false;
 
+      // we may need to do approximate IK
+      kinematics::KinematicsQueryOptions o;
+      o.return_approximate_solution = approx;
+
+      // if no frame transforms are needed, call IK directly
+      if (frame.empty() || moveit::core::Transforms::sameFrame(frame, getRobotModel()->getModelFrame()))
+        return getJointStateTarget().setFromIK(getJointModelGroup(), eef_pose, eef, 0, 0.0, moveit::core::GroupStateValidityCallbackFn(), o);
+      else
+      {
+        if (c->knowsFrameTransform(frame))
+        {
+          // transform the pose first if possible, then do IK
+          const Eigen::Affine3d &t = getJointStateTarget().getFrameTransform(frame);
+          Eigen::Affine3d p;
+          tf::poseMsgToEigen(eef_pose, p);
+          return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0, 0.0, moveit::core::GroupStateValidityCallbackFn(), o);
+        }
+        else
+        {
+          logError("Unable to transform from frame '%s' to frame '%s'", frame.c_str(), getRobotModel()->getModelFrame().c_str());
+          return false;
+        }
+      }
+    }
+    else
+      return false;
+  }
+    
   void setEndEffectorLink(const std::string &end_effector)
   {
     end_effector_link_ = end_effector;
@@ -348,7 +408,7 @@ public:
     return active_target_;
   }
 
-  bool getCurrentState(robot_state::RobotStatePtr &current_state)
+  bool getCurrentState(robot_state::RobotStatePtr &current_state, double wait_seconds = 1.0)
   {
     if (!current_state_monitor_)
     {
@@ -360,7 +420,7 @@ public:
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
 
-    if (!current_state_monitor_->waitForCurrentState(opt_.group_name_, 1.0))
+    if (!current_state_monitor_->waitForCurrentState(opt_.group_name_, wait_seconds))
       ROS_WARN("Joint values for monitored state are requested but the full state is not known");
 
     current_state = current_state_monitor_->getCurrentState();
@@ -1092,6 +1152,40 @@ bool moveit::planning_interface::MoveGroup::setJointValueTarget(const sensor_msg
   impl_->setTargetType(JOINT);
   impl_->getJointStateTarget().setVariableValues(state);
   return impl_->getJointStateTarget().satisfiesBounds(impl_->getGoalJointTolerance());
+}
+
+bool moveit::planning_interface::MoveGroup::setJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link)
+{
+  return impl_->setJointValueTarget(eef_pose, end_effector_link, "", false);
+}
+
+bool moveit::planning_interface::MoveGroup::setJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link)
+{
+  return impl_->setJointValueTarget(eef_pose.pose, end_effector_link, eef_pose.header.frame_id, false);
+}
+
+bool moveit::planning_interface::MoveGroup::setJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link)
+{ 
+  geometry_msgs::Pose msg;
+  tf::poseEigenToMsg(eef_pose, msg);
+  return setJointValueTarget(msg, end_effector_link);
+}
+
+bool moveit::planning_interface::MoveGroup::setApproximateJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link)
+{
+  return impl_->setJointValueTarget(eef_pose, end_effector_link, "", true);
+}
+
+bool moveit::planning_interface::MoveGroup::setApproximateJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link)
+{
+  return impl_->setJointValueTarget(eef_pose.pose, end_effector_link, eef_pose.header.frame_id, true);
+}
+
+bool moveit::planning_interface::MoveGroup::setApproximateJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link)
+{ 
+  geometry_msgs::Pose msg;
+  tf::poseEigenToMsg(eef_pose, msg);
+  return setApproximateJointValueTarget(msg, end_effector_link);
 }
 
 const robot_state::RobotState& moveit::planning_interface::MoveGroup::getJointValueTarget() const
