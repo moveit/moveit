@@ -89,7 +89,7 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
   else
   {
     robot_model_loader::RobotModelLoader::Options opt(robot_description);
-    opt.load_kinematics_solvers_ = false;
+    opt.load_kinematics_solvers_ = true;
     robot_model_loader::RobotModelLoaderPtr loader(new robot_model_loader::RobotModelLoader(opt));
     s.model_loaders_[robot_description] = loader;
     return loader->getModel();

@@ -198,6 +198,30 @@ public:
   /** \brief Set the joint state goal for a particular joint */
   bool setJointValueTarget(const sensor_msgs::JointState &state);
 
+  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link = "");
+
+  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link = "");
+
+  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link = "");
+
+  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setApproximateJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link = "");
+
+  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setApproximateJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link = "");
+
+  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
+      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  bool setApproximateJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link = "");
+
   /** \brief Set the joint state goal to a random joint configuration */
   void setRandomTarget();
 

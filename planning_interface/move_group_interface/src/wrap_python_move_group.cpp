@@ -85,7 +85,28 @@ public:
       v[bp::extract<std::string>(k[i])] = bp::extract<double>(values[k[i]]);
     return setJointValueTarget(v);
   }
+  
+  bool setJointValueTargetFromPosePython(const std::string &pose_str, const std::string &eef, bool approx)
+  {
+    geometry_msgs::Pose pose_msg;    
+    py_bindings_tools::deserializeMsg(pose_str, pose_msg);
+    return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
+  }
 
+  bool setJointValueTargetFromPoseStampedPython(const std::string &pose_str, const std::string &eef, bool approx)
+  {
+    geometry_msgs::PoseStamped pose_msg;    
+    py_bindings_tools::deserializeMsg(pose_str, pose_msg);
+    return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
+  }
+
+  bool setJointValueTargetFromJointStatePython(const std::string &js_str)
+  {
+    sensor_msgs::JointState js_msg;
+    py_bindings_tools::deserializeMsg(js_str, js_msg);
+    return setJointValueTarget(js_msg);
+  }
+  
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
   {
     rememberJointValues(string, py_bindings_tools::doubleFromList(values));
@@ -376,12 +397,14 @@ static void wrap_move_group_interface()
 
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
+
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
   bool (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_4);
 
-  bool (MoveGroupWrapper::*setJointValueTarget_5)(const sensor_msgs::JointState &) = &MoveGroupWrapper::setJointValueTarget;
-  MoveGroupClass.def("set_joint_value_target", setJointValueTarget_5);
+  MoveGroupClass.def("set_joint_value_target_from_pose", &MoveGroupWrapper::setJointValueTargetFromPosePython);
+  MoveGroupClass.def("set_joint_value_target_from_pose_stamped", &MoveGroupWrapper::setJointValueTargetFromPoseStampedPython);
+  MoveGroupClass.def("set_joint_value_target_from_joint_state_message", &MoveGroupWrapper::setJointValueTargetFromJointStatePython);
 
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget);
   MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget);
