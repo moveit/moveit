@@ -57,7 +57,56 @@ namespace ikfast_kinematics_plugin
 {
 
 #define IKFAST_NO_MAIN // Don't include main() from IKFast
-#define IKTYPE_TRANSFORM_6D
+
+/// \brief The types of inverse kinematics parameterizations supported.
+///
+/// The minimum degree of freedoms required is set in the upper 4 bits of each type.
+/// The number of values used to represent the parameterization ( >= dof ) is the next 4 bits.
+/// The lower bits contain a unique id of the type.
+enum IkParameterizationType {
+    IKP_None=0,
+    IKP_Transform6D=0x67000001,     ///< end effector reaches desired 6D transformation
+    IKP_Rotation3D=0x34000002,     ///< end effector reaches desired 3D rotation
+    IKP_Translation3D=0x33000003,     ///< end effector origin reaches desired 3D translation
+    IKP_Direction3D=0x23000004,     ///< direction on end effector coordinate system reaches desired direction
+    IKP_Ray4D=0x46000005,     ///< ray on end effector coordinate system reaches desired global ray
+    IKP_Lookat3D=0x23000006,     ///< direction on end effector coordinate system points to desired 3D position
+    IKP_TranslationDirection5D=0x56000007,     ///< end effector origin and direction reaches desired 3D translation and direction. Can be thought of as Ray IK where the origin of the ray must coincide.
+    IKP_TranslationXY2D=0x22000008,     ///< 2D translation along XY plane
+    IKP_TranslationXYOrientation3D=0x33000009,     ///< 2D translation along XY plane and 1D rotation around Z axis. The offset of the rotation is measured starting at +X, so at +X is it 0, at +Y it is pi/2.
+    IKP_TranslationLocalGlobal6D=0x3600000a,     ///< local point on end effector origin reaches desired 3D global point
+
+    IKP_TranslationXAxisAngle4D=0x4400000b, ///< end effector origin reaches desired 3D translation, manipulator direction makes a specific angle with x-axis  like a cone, angle is from 0-pi. Axes defined in the manipulator base link's coordinate system)
+    IKP_TranslationYAxisAngle4D=0x4400000c, ///< end effector origin reaches desired 3D translation, manipulator direction makes a specific angle with y-axis  like a cone, angle is from 0-pi. Axes defined in the manipulator base link's coordinate system)
+    IKP_TranslationZAxisAngle4D=0x4400000d, ///< end effector origin reaches desired 3D translation, manipulator direction makes a specific angle with z-axis like a cone, angle is from 0-pi. Axes are defined in the manipulator base link's coordinate system.
+
+    IKP_TranslationXAxisAngleZNorm4D=0x4400000e, ///< end effector origin reaches desired 3D translation, manipulator direction needs to be orthogonal to z-axis and be rotated at a certain angle starting from the x-axis (defined in the manipulator base link's coordinate system)
+    IKP_TranslationYAxisAngleXNorm4D=0x4400000f, ///< end effector origin reaches desired 3D translation, manipulator direction needs to be orthogonal to x-axis and be rotated at a certain angle starting from the y-axis (defined in the manipulator base link's coordinate system)
+    IKP_TranslationZAxisAngleYNorm4D=0x44000010, ///< end effector origin reaches desired 3D translation, manipulator direction needs to be orthogonal to y-axis and be rotated at a certain angle starting from the z-axis (defined in the manipulator base link's coordinate system)
+
+    IKP_NumberOfParameterizations=16,     ///< number of parameterizations (does not count IKP_None)
+
+    IKP_VelocityDataBit = 0x00008000, ///< bit is set if the data represents the time-derivate velocity of an IkParameterization
+    IKP_Transform6DVelocity = IKP_Transform6D|IKP_VelocityDataBit,
+    IKP_Rotation3DVelocity = IKP_Rotation3D|IKP_VelocityDataBit,
+    IKP_Translation3DVelocity = IKP_Translation3D|IKP_VelocityDataBit,
+    IKP_Direction3DVelocity = IKP_Direction3D|IKP_VelocityDataBit,
+    IKP_Ray4DVelocity = IKP_Ray4D|IKP_VelocityDataBit,
+    IKP_Lookat3DVelocity = IKP_Lookat3D|IKP_VelocityDataBit,
+    IKP_TranslationDirection5DVelocity = IKP_TranslationDirection5D|IKP_VelocityDataBit,
+    IKP_TranslationXY2DVelocity = IKP_TranslationXY2D|IKP_VelocityDataBit,
+    IKP_TranslationXYOrientation3DVelocity = IKP_TranslationXYOrientation3D|IKP_VelocityDataBit,
+    IKP_TranslationLocalGlobal6DVelocity = IKP_TranslationLocalGlobal6D|IKP_VelocityDataBit,
+    IKP_TranslationXAxisAngle4DVelocity = IKP_TranslationXAxisAngle4D|IKP_VelocityDataBit,
+    IKP_TranslationYAxisAngle4DVelocity = IKP_TranslationYAxisAngle4D|IKP_VelocityDataBit,
+    IKP_TranslationZAxisAngle4DVelocity = IKP_TranslationZAxisAngle4D|IKP_VelocityDataBit,
+    IKP_TranslationXAxisAngleZNorm4DVelocity = IKP_TranslationXAxisAngleZNorm4D|IKP_VelocityDataBit,
+    IKP_TranslationYAxisAngleXNorm4DVelocity = IKP_TranslationYAxisAngleXNorm4D|IKP_VelocityDataBit,
+    IKP_TranslationZAxisAngleYNorm4DVelocity = IKP_TranslationZAxisAngleYNorm4D|IKP_VelocityDataBit,
+
+    IKP_UniqueIdMask = 0x0000ffff, ///< the mask for the unique ids
+    IKP_CustomDataBit = 0x00010000, ///< bit is set if the ikparameterization contains custom data, this is only used when serializing the ik parameterizations
+};
 
 // Code generated by IKFast56/61
 #include "_ROBOT_NAME___GROUP_NAME__ikfast_solver.cpp"
@@ -332,53 +381,67 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
   trans[1] = pose_frame.p[1];
   trans[2] = pose_frame.p[2];
 
-#if defined(IKTYPE_TRANSFORM_6D)
-  // For **Transform6D**, eerot is 9 values for the 3x3 rotation matrix.
+  KDL::Rotation mult;
+  KDL::Vector direction;
 
-  //KDL::Rotation rot = KDL::Rotation::RotY(M_PI/2);
-  KDL::Rotation orig = pose_frame.M;
-  KDL::Rotation mult = orig;//*rot;
+  switch (GetIkType())
+  {
+    case IKP_Transform6D:
+      // For **Transform6D**, eerot is 9 values for the 3x3 rotation matrix.
 
-  double vals[9];
-  vals[0] = mult(0,0);
-  vals[1] = mult(0,1);
-  vals[2] = mult(0,2);
-  vals[3] = mult(1,0);
-  vals[4] = mult(1,1);
-  vals[5] = mult(1,2);
-  vals[6] = mult(2,0);
-  vals[7] = mult(2,1);
-  vals[8] = mult(2,2);
+      mult = pose_frame.M;
 
-  // IKFast56/61
-  ComputeIk(trans, vals, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
-  return solutions.GetNumSolutions();
+      double vals[9];
+      vals[0] = mult(0,0);
+      vals[1] = mult(0,1);
+      vals[2] = mult(0,2);
+      vals[3] = mult(1,0);
+      vals[4] = mult(1,1);
+      vals[5] = mult(1,2);
+      vals[6] = mult(2,0);
+      vals[7] = mult(2,1);
+      vals[8] = mult(2,2);
 
-#elif defined(IKTYPE_DIRECTION_3D) || defined(IKTYPE_RAY_4D) || defined(IKTYPE_TRANSLATION_DIRECTION_5D)
-  // For **Direction3D**, **Ray4D**, and **TranslationDirection5D**, the first 3 values represent the target direction.
-  KDL::Vector direction = pose_frame.M * KDL::Vector(0, 0, 1);
+      // IKFast56/61
+      ComputeIk(trans, vals, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
 
-  ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
-  return solutions.GetNumSolutions();
+    case IKP_Direction3D:
+    case IKP_Ray4D:
+    case IKP_TranslationDirection5D:
+      // For **Direction3D**, **Ray4D**, and **TranslationDirection5D**, the first 3 values represent the target direction.
 
-#elif defined(IKTYPE_TRANSLATION_X_AXIS_ANGLE_4D) || defined(IKTYPE_TRANSLATION_Y_AXIS_ANGLE_4D) || defined(IKTYPE_TRANSLATION_Z_AXIS_ANGLE_4D)
-  // For **TranslationXAxisAngle4D**, **TranslationYAxisAngle4D**, and **TranslationZAxisAngle4D** the first value represents the angle.
-  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
-  return 0;
+      direction = pose_frame.M * KDL::Vector(0, 0, 1);
+      ComputeIk(trans, direction.data, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
 
-#elif defined(IKTYPE_TRANSLATION_LOCAL_GLOBAL_6D)
-  // For **TranslationLocalGlobal6D**, the diagonal elements ([0],[4],[8]) are the local translation inside the end effector coordinate system.
-  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
-  return 0;
+    case IKP_TranslationXAxisAngle4D:
+    case IKP_TranslationYAxisAngle4D:
+    case IKP_TranslationZAxisAngle4D:
+      // For **TranslationXAxisAngle4D**, **TranslationYAxisAngle4D**, and **TranslationZAxisAngle4D**, the first value represents the angle.
+      ROS_ERROR_NAMED("ikfast", "IK for this IkParameterizationType not implemented yet.");
+      return 0;
 
-#elif defined(IKTYPE_ROTATION_3D) || defined(IKTYPE_TRANSLATION_3D) || defined(IKTYPE_LOOKAT_3D) || defined(IKTYPE_TRANSLATION_X_Y_2D) || defined(IKTYPE_TRANSLATION_X_AXIS_ANGLE_Z_NORM_4D) || defined(IKTYPE_TRANSLATION_Y_AXIS_ANGLE_Z_NORM_4D) || defined(IKTYPE_TRANSLATION_Z_AXIS_ANGLE_Z_NORM_4D)
-  ROS_ERROR_NAMED("ikfast", "IK for this IKTYPE not implemented yet.");
-  return 0;
+    case IKP_TranslationLocalGlobal6D:
+      // For **TranslationLocalGlobal6D**, the diagonal elements ([0],[4],[8]) are the local translation inside the end effector coordinate system.
+      ROS_ERROR_NAMED("ikfast", "IK for this IkParameterizationType not implemented yet.");
+      return 0;
 
-#else
-  ROS_ERROR_NAMED("ikfast", "You need to #define a IKTYPE_!");
-  return 0;
-#endif
+    case IKP_Rotation3D:
+    case IKP_Translation3D:
+    case IKP_Lookat3D:
+    case IKP_TranslationXY2D:
+    case IKP_TranslationXYOrientation3D:
+    case IKP_TranslationXAxisAngleZNorm4D:
+    case IKP_TranslationYAxisAngleXNorm4D:
+    case IKP_TranslationZAxisAngleYNorm4D:
+      ROS_ERROR_NAMED("ikfast", "IK for this IkParameterizationType not implemented yet.");
+      return 0;
+
+    default:
+      ROS_ERROR_NAMED("ikfast", "Unknown IkParameterizationType! Was the solver generated with an incompatible version of Openrave?");
+      return 0;
+  }
 }
 
 void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal> &solutions, int i, std::vector<double>& solution) const
