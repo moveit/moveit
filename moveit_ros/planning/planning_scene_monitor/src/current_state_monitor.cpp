@@ -300,7 +300,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     ROS_ERROR_THROTTLE(1, "State monitor received invalid joint state (number of joint names does not match number of positions)");
     return;
   }
-
+  bool update = false;
+  
   {    
     boost::mutex::scoped_lock _(state_update_lock_);
     // read the received values, and update their time stamps
@@ -314,23 +315,28 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       // ignore fixed joints, multi-dof joints (they should not even be in the message)
       if (jm->getVariableCount() != 1)
         continue;
-      
-      robot_state_.setJointPositions(jm, &(joint_state->position[i]));
+
       joint_time_[joint_state->name[i]] = joint_state->header.stamp;
-      
-      // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
-      if (jm->getType() == robot_model::JointModel::REVOLUTE)
-        if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
-          continue;
-      
-      const robot_model::VariableBounds &b = jm->getVariableBounds()[0]; // only one variable in the joint, so we get its bounds
-      
-      // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
-      if (joint_state->position[i] < b.min_position_ && joint_state->position[i] >= b.min_position_ - error_)
-        robot_state_.setJointPositions(jm, &b.min_position_);
-      else
-        if (joint_state->position[i] > b.max_position_ && joint_state->position[i] <= b.max_position_ + error_)
-          robot_state_.setJointPositions(jm, &b.max_position_);
+
+      if (robot_state_.getJointPositions(jm)[0] != joint_state->position[i])
+      {
+        update = true;
+        robot_state_.setJointPositions(jm, &(joint_state->position[i]));
+        
+        // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
+        if (jm->getType() == robot_model::JointModel::REVOLUTE)
+          if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
+            continue;
+        
+        const robot_model::VariableBounds &b = jm->getVariableBounds()[0]; // only one variable in the joint, so we get its bounds
+        
+        // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
+        if (joint_state->position[i] < b.min_position_ && joint_state->position[i] >= b.min_position_ - error_)
+          robot_state_.setJointPositions(jm, &b.min_position_);
+        else
+          if (joint_state->position[i] > b.max_position_ && joint_state->position[i] <= b.max_position_ + error_)
+            robot_state_.setJointPositions(jm, &b.max_position_);
+      }
     }
     
     // read root transform, if needed
@@ -358,8 +364,10 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       }
       else
         ROS_DEBUG_THROTTLE(1, "Unable to lookup transform from %s to %s: no common time.", parent_frame.c_str(), child_frame.c_str());
-      if (ok)
+      if (ok && last_tf_update_ != tm)
       {
+        update = true;
+        last_tf_update_ = tm;
         const std::vector<std::string> &vars = robot_model_->getRootJoint()->getVariableNames();
         for (std::size_t j = 0; j < vars.size() ; ++j)
           joint_time_[vars[j]] = tm;
@@ -371,6 +379,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   }
   
   // callbacks, if needed
-  for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
-    update_callbacks_[i](joint_state);
+  if (update)
+    for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
+      update_callbacks_[i](joint_state);
 }

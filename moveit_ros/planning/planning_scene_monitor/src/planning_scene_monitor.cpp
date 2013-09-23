@@ -305,12 +305,12 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
         if (new_scene_update_ == UPDATE_SCENE)
         {
           rate.reset();
-      boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
-      scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
+          boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
+          scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
           scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
           scene_->pushDiffs(parent_scene_);
           scene_->clearDiffs();
-      scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
+          scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
           scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
           if (octomap_monitor_)
           {
@@ -325,12 +325,12 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
           {
             rate.reset();
             scene_->getPlanningSceneDiffMsg(msg);
-        boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
-        scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
+            boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
+            scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
             scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
             scene_->pushDiffs(parent_scene_);
             scene_->clearDiffs();
-        scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
+            scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
             scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
             if (octomap_monitor_)
             {
@@ -454,7 +454,11 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_TRANSFORMS);
 
         if (!planning_scene::PlanningScene::isEmpty(scene->robot_state))
+        {
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
+          if (!scene->robot_state.attached_collision_objects.empty())
+            upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
+        }
       }
     }
     triggerSceneUpdateEvent(upd);
