@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-09-23)
+------------------
 * fix the event triggered on updating attached objects
 * make scene monitor trigger updates only when needed
 * fix loading of default params

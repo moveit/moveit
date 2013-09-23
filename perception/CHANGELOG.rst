@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-09-23)
+------------------
 * remove dep on pcl (pcl_conversions is sufficient)
 
 0.5.4 (2013-08-14)
