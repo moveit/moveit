@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix crash when the destructor is called before onInitialize
+* remove call for getting the combined joint limits of a group
+* bugfixes
+* porting to new RobotState API
+* use new helper class from rviz for rendering meshes
+
 0.5.4 (2013-08-14)
 ------------------
 

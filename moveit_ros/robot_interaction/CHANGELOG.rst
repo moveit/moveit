@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* porting to new RobotState API
+
 0.5.4 (2013-08-14)
 ------------------
 

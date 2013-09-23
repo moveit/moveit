@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* porting to new RobotState API
+
 0.5.4 (2013-08-14)
 ------------------
 
