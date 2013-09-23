@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix the event triggered on updating attached objects
+* make scene monitor trigger updates only when needed
+* fix loading of default params
+* port to new RobotState API, new messages
+* make sure we do not overwrite attached bodies, when updating the current state
+* fix `#308 <https://github.com/ros-planning/moveit_ros/issues/308>`_
+* fix `#304 <https://github.com/ros-planning/moveit_ros/issues/304>`_
+* fix issue with sending trajectories for passive/mimic/fixed joints
+* pass effort along
+
 0.5.4 (2013-08-14)
 ------------------
 

@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* porting to new robot API
+
 0.5.4 (2013-08-14)
 ------------------
 
