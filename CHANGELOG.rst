@@ -2,6 +2,22 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.2 (2013-09-23)
+------------------
+* Rewrite RobotState and significantly update RobotModel; lots of optimizations
+* add support for diffs in RobotState
+* fix `#87 <https://github.com/ros-planning/moveit_core/issues/87>`_
+* add non-const variants for getRobotMarkers
+* use trajectory_msgs::JointTrajectory for object attach information instead of sensor_msgs::JointState
+* add effort to robot state
+* do not include mimic joints or fixed joints in the set of joints in a robot trajectory
+* voxel_grid: finish adding Eigen accessors
+* voxel_grid: add Eigen accessors
+* eliminate determineCollisionPoints() and distance_field_common.h
+* propagation_distance_field: make getNearestCell() work with max_dist cells
+* distance_field: fix bug in adding shapes
+* propagation_distance_field: add getNearestCell()
+
 0.5.1 (2013-08-13)
 ------------------
 * remove CollisionMap message, allow no link name in for AttachedCollisionObject REMOVE operations
