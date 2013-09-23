@@ -175,6 +175,9 @@ public:
     // if we have updated transforms, return those
     return (ftf_ || !parent_) ? *ftf_ : parent_->getTransforms();
   }
+
+  /** \brief Get the set of fixed transforms from known frames to the planning frame. This variant is non-const and also updates the current state */
+  const robot_state::Transforms& getTransforms();
   
   /** \brief Get the set of fixed transforms from known frames to the planning frame */
   robot_state::Transforms& getTransformsNonConst();

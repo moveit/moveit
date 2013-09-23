@@ -106,7 +106,12 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene &ms
 
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::RobotState &msg)
 {
-  return msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() && msg.attached_collision_objects.empty();
+  /* a state is empty if it includes no information and it is a diff; if the state is not a diff, then the implicit information is
+     that the set of attached bodies is empty, so they must be cleared from the state to be updated */
+  return msg.is_diff == true && msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() &&
+    msg.attached_collision_objects.empty() && msg.joint_state.position.empty() && msg.joint_state.velocity.empty() &&
+    msg.joint_state.effort.empty() && msg.multi_dof_joint_state.transforms.empty() && msg.multi_dof_joint_state.twist.empty() &&
+    msg.multi_dof_joint_state.wrench.empty();
 }
 
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld &msg)
@@ -665,8 +670,15 @@ collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getA
   return *acm_;
 }
 
+const robot_state::Transforms& planning_scene::PlanningScene::getTransforms()
+{
+  getCurrentStateNonConst().update();
+  return const_cast<const PlanningScene*>(this)->getTransforms();
+}
+
 robot_state::Transforms& planning_scene::PlanningScene::getTransformsNonConst()
 {
+  getCurrentStateNonConst().update();
   if (!ftf_)
   {
     ftf_.reset(new SceneTransforms(this));
@@ -807,10 +819,12 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_ms
     {
       geometry_msgs::Pose p;
       tf::poseEigenToMsg(obj->shape_poses_[j], p);
+      
       sv.setPoseMessage(&p);
       boost::apply_visitor(sv, sm);
     }
   }
+  
   if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
   {
     if (hasObjectType(co.id))
@@ -1568,6 +1582,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       world_->removeObject(object.id);
 
     const Eigen::Affine3d &t = getTransforms().getTransform(object.header.frame_id);
+    
     for (std::size_t i = 0 ; i < object.primitives.size() ; ++i)
     {
       shapes::Shape *s = shapes::constructShapeFromMsg(object.primitives[i]);

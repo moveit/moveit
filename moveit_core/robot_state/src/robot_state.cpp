@@ -825,7 +825,9 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string &id) const
 {
   if (!id.empty() && id[0] == '/')
-    return getFrameTransform(id.substr(1));
+    return getFrameTransform(id.substr(1)); 
+  assert(checkLinkTransforms());
+  
   static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
   if (id.size() + 1 == robot_model_->getModelFrame().size() && '/' + id == robot_model_->getModelFrame())
     return identity_transform;
