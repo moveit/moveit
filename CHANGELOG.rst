@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.2 (2013-09-23)
+------------------
+* add support for setting joint targets from approximate IK
+* no longer depend on manipulation_msgs
+* expand functionality of MoveGroupInterface
+
 0.5.1 (2013-08-13)
 ------------------
 * make pick() more general
