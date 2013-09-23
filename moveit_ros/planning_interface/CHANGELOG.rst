@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-09-23)
+------------------
 * add support for setting joint targets from approximate IK
 * specifies python version 2.7 for linking (fixes `#302 <https://github.com/ros-planning/moveit_ros/issues/302>`_)
 * use new messages for pick & place

@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-09-23)
+------------------
 * use new messages for pick & place
 * porting to new RobotState API
 

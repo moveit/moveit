@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-09-23)
+------------------
 * Fix crash when the destructor is called before onInitialize
 * remove call for getting the combined joint limits of a group
 * bugfixes
