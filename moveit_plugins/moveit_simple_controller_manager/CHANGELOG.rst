@@ -2,8 +2,9 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2013-09-23)
+------------------
+* make things a bit more robust
 * make headers and author definitions aligned the same way; white space fixes
 * fix `#1 <https://github.com/ros-planning/moveit_plugins/issues/1>`_
 
