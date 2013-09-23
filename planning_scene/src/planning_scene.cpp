@@ -1023,23 +1023,16 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
       kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
       kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
     }
-    else
-      // attached bodies are sent fully, so we need to clear old ones, if any
-      kstate_->clearAttachedBodies();
     robot_state::robotStateMsgToRobotState(getTransforms(), state, *kstate_);
   }
   else
-  {
-    // attached bodies are sent fully, so we need to clear old ones, if any
-    kstate_->clearAttachedBodies();
     robot_state::robotStateMsgToRobotState(*ftf_, state, *kstate_);
-  }
-
+  
   // we add object types to the planning scene, if any are specified
   for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
   {
     const moveit_msgs::CollisionObject &o = state.attached_collision_objects[i].object;
-    if (!o.id.empty() && (!o.type.db.empty() || !o.type.key.empty()))
+    if (!o.id.empty() && o.operation == moveit_msgs::CollisionObject::ADD && (!o.type.db.empty() || !o.type.key.empty()))
       setObjectType(o.id, o.type);
   }
 }

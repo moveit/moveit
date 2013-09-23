@@ -338,8 +338,10 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
   bool result1 = _jointStateToRobotState(robot_state.joint_state, state, &missing);
   bool result2 = _multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
   
-  if (copy_attached_bodies && !robot_state.attached_collision_objects.empty())
+  if (copy_attached_bodies)
   {
+    if (!robot_state.is_diff)
+      state.clearAttachedBodies();
     for (std::size_t i = 0 ; i < robot_state.attached_collision_objects.size() ; ++i)
       _msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
   }
