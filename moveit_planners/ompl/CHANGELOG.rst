@@ -2,6 +2,10 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.2 (2013-09-23)
+------------------
+* porting to new robot state
+
 0.5.1 (2013-08-13)
 ------------------
 * make headers and author definitions aligned the same way; white space fixes
