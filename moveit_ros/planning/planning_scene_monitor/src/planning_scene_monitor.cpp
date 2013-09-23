@@ -456,7 +456,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
         if (!planning_scene::PlanningScene::isEmpty(scene->robot_state))
         {
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
-          if (!scene->robot_state.attached_collision_objects.empty())
+          if (!scene->robot_state.attached_collision_objects.empty() || scene->robot_state.is_diff == false)
             upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
         }
       }
