@@ -2,6 +2,9 @@
 Changelog for package moveit_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-09-24)
+------------------
+
 0.5.3 (2013-09-23)
 ------------------
 * add fake controller plugin
