@@ -468,6 +468,12 @@ public:
     constructGoal(goal, object);
     goal.place_locations = locations;
     goal.planning_options.plan_only = false;
+    goal.planning_options.look_around = can_look_;
+    goal.planning_options.replan = can_replan_;
+    goal.planning_options.replan_delay = replan_delay_;
+    goal.planning_options.planning_scene_diff.is_diff = true;
+    goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
+
     place_action_client_->sendGoal(goal);
     ROS_DEBUG("Sent place goal with %d locations", (int) goal.place_locations.size());
     if (!place_action_client_->waitForResult())
@@ -501,6 +507,12 @@ public:
     constructGoal(goal, object);
     goal.possible_grasps = grasps;
     goal.planning_options.plan_only = false;
+    goal.planning_options.look_around = can_look_;
+    goal.planning_options.replan = can_replan_;
+    goal.planning_options.replan_delay = replan_delay_;
+    goal.planning_options.planning_scene_diff.is_diff = true;
+    goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
+
     pick_action_client_->sendGoal(goal);
     if (!pick_action_client_->waitForResult())
     {
@@ -529,6 +541,9 @@ public:
     goal.planning_options.plan_only = true;
     goal.planning_options.look_around = false;
     goal.planning_options.replan = false;
+    goal.planning_options.planning_scene_diff.is_diff = true;
+    goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
+
     move_action_client_->sendGoal(goal);
     if (!move_action_client_->waitForResult())
     {
@@ -560,6 +575,8 @@ public:
     goal.planning_options.look_around = can_look_;
     goal.planning_options.replan = can_replan_;
     goal.planning_options.replan_delay = replan_delay_;
+    goal.planning_options.planning_scene_diff.is_diff = true;
+    goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
     move_action_client_->sendGoal(goal);
     if (!wait)
