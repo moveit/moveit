@@ -40,15 +40,10 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <map>
 #include <Eigen/Geometry>
 #include <geometric_shapes/shapes.h>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
-
-#if BOOST_VERSION < 104800
-#  include <map>
-#else
-#  include <boost/container/flat_map.hpp>
-#endif
 
 namespace moveit
 {
@@ -59,31 +54,17 @@ namespace core
 class JointModel;
 class LinkModel;
 
-#if BOOST_VERSION < 104800
 
-  /** \brief Map of names to instances for LinkModel */
-  typedef std::map<std::string, LinkModel*> LinkModelMap;
+/** \brief Map of names to instances for LinkModel */
+typedef std::map<std::string, LinkModel*> LinkModelMap;
 
-  /** \brief Map of names to const instances for LinkModel */
-  typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
+/** \brief Map of names to const instances for LinkModel */
+typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
 
-  /** \brief Map from link model instances to Eigen transforms */
-  typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
-                   Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > LinkTransformMap;
+/** \brief Map from link model instances to Eigen transforms */
+typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
+                 Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > LinkTransformMap;
 
-#else
-
-  /** \brief Map of names to instances for LinkModel */
-  typedef boost::container::flat_map<std::string, LinkModel*> LinkModelMap;
-
-  /** \brief Map of names to const instances for LinkModel */
-  typedef boost::container::flat_map<std::string, const LinkModel*> LinkModelMapConst;
-
-  /** \brief Map from link model instances to Eigen transforms */
-  typedef boost::container::flat_map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
-                                     Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > > LinkTransformMap;
-
-#endif
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
 class LinkModel

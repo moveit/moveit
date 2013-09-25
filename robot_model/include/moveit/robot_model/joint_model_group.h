@@ -59,23 +59,13 @@ typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> S
 /** \brief Map from group instances to allocator functions & bijections */
 typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
 
-#if BOOST_VERSION < 104800
 
-   /** \brief Map of names to instances for JointModelGroup */
-   typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
+/** \brief Map of names to instances for JointModelGroup */
+typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
 
-   /** \brief Map of names to const instances for JointModelGroup */
-   typedef std::map<std::string, const JointModelGroup*> JointModelGroupMapConst;
+/** \brief Map of names to const instances for JointModelGroup */
+typedef std::map<std::string, const JointModelGroup*> JointModelGroupMapConst;
 
-#else
-
-   /** \brief Map of names to instances for JointModelGroup */
-   typedef boost::container::flat_map<std::string, JointModelGroup*> JointModelGroupMap;
-
-   /** \brief Map of names to const instances for JointModelGroup */
-   typedef boost::container::flat_map<std::string, const JointModelGroup*> JointModelGroupMapConst;
-
-#endif
 
 typedef std::vector<const JointModel::Bounds*> JointBoundsVector;
 
