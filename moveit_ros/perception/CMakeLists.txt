@@ -7,9 +7,6 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
-include(${PROJECT_SOURCE_DIR}/cmake/moveit_find_sse.cmake)
-moveit_check_for_sse()
-
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread signals)
 find_package(PCL REQUIRED QUIET COMPONENTS common)
