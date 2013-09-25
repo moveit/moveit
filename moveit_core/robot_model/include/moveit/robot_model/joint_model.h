@@ -39,16 +39,11 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <moveit_msgs/JointLimits.h>
 #include <random_numbers/random_numbers.h>
 #include <Eigen/Geometry>
-
-#if BOOST_VERSION < 104800
-#  include <map>
-#else
-#  include <boost/container/flat_map.hpp>
-#endif
 
 namespace moveit
 {
@@ -86,33 +81,17 @@ struct VariableBounds
 class LinkModel;
 class JointModel;
 
-#if BOOST_VERSION < 104800
-   /** \brief Data type for holding mappings from variable names to their position in a state vector */
-   typedef std::map<std::string, int> VariableIndexMap;
+/** \brief Data type for holding mappings from variable names to their position in a state vector */
+typedef std::map<std::string, int> VariableIndexMap;
 
-   /** \brief Data type for holding mappings from variable names to their bounds */
-   typedef std::map<std::string, VariableBounds> VariableBoundsMap;
+/** \brief Data type for holding mappings from variable names to their bounds */
+typedef std::map<std::string, VariableBounds> VariableBoundsMap;
 
-   /** \brief Map of names to instances for JointModel */
-   typedef std::map<std::string, JointModel*> JointModelMap;
+/** \brief Map of names to instances for JointModel */
+typedef std::map<std::string, JointModel*> JointModelMap;
 
-   /** \brief Map of names to const instances for JointModel */
-   typedef std::map<std::string, const JointModel*> JointModelMapConst;
-#else
-
-   /** \brief Data type for holding mappings from variable names to their position in a state vector */
-   typedef boost::container::flat_map<std::string, int> VariableIndexMap;
-
-   /** \brief Data type for holding mappings from variable names to their bounds */
-   typedef boost::container::flat_map<std::string, VariableBounds> VariableBoundsMap;
-
-   /** \brief Map of names to instances for JointModel */
-   typedef boost::container::flat_map<std::string, JointModel*> JointModelMap;
-
-   /** \brief Map of names to const instances for JointModel */
-   typedef boost::container::flat_map<std::string, JointModel*> JointModelMapConst;
-
-#endif
+/** \brief Map of names to const instances for JointModel */
+typedef std::map<std::string, const JointModel*> JointModelMapConst;
 
 
 
