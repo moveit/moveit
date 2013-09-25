@@ -11,14 +11,14 @@ macro(MOVEIT_CHECK_FOR_SSE)
     #endif(CMAKE_COMPILER_IS_CLANG)
 
     # Test GCC/G++
-    if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-        execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-dumpversion"
-                        OUTPUT_VARIABLE GCC_VERSION_STRING)
-        if(GCC_VERSION_STRING VERSION_GREATER 4.2 AND NOT APPLE AND NOT CMAKE_CROSSCOMPILING)
-            SET(SSE_FLAGS "${SSE_FLAGS} -march=native")
-            message(STATUS "Using CPU native flags for SSE optimization: ${SSE_FLAGS}")
-        endif()
-    endif()
+    #if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+    #    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-dumpversion"
+    #                    OUTPUT_VARIABLE GCC_VERSION_STRING)
+    #    if(GCC_VERSION_STRING VERSION_GREATER 4.2 AND NOT APPLE AND NOT CMAKE_CROSSCOMPILING)
+    #        SET(SSE_FLAGS "${SSE_FLAGS} -march=native")
+    #        message(STATUS "Using CPU native flags for SSE optimization: ${SSE_FLAGS}")
+    #    endif()
+    #endif()
 
     # Unfortunately we need to check for SSE to enable "-mfpmath=sse" alongside 
     # "-march=native". The reason for this is that by default, 32bit architectures
