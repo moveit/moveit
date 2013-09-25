@@ -2,6 +2,10 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.3 (2013-09-25)
+------------------
+* remove use of flat_map
+
 0.5.2 (2013-09-23)
 ------------------
 * Rewrite RobotState and significantly update RobotModel; lots of optimizations
