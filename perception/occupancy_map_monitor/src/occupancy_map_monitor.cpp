@@ -217,7 +217,8 @@ ShapeHandle OccupancyMapMonitor::excludeShape(const shapes::ShapeConstPtr &shape
     ShapeHandle mh = map_updaters_[i]->excludeShape(shape);
     if (mh)
     {
-      h = ++mesh_handle_count_;
+      if (h == 0)
+        h = ++mesh_handle_count_;
       mesh_handles_[i][h] = mh;
     }
   }
