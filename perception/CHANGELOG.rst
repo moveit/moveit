@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.6 (2013-09-26)
+------------------
+* fix `#320 <https://github.com/ros-planning/moveit_ros/issues/320>`_
+* fix `#318 <https://github.com/ros-planning/moveit_ros/issues/318>`_
+
 0.5.5 (2013-09-23)
 ------------------
 * remove dep on pcl (pcl_conversions is sufficient)

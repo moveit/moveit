@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.6 (2013-09-26)
+------------------
+* dep on manipulation_msgs needs to be added here
+
 0.5.5 (2013-09-23)
 ------------------
 * use new messages for pick & place

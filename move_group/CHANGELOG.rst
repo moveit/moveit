@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.6 (2013-09-26)
+------------------
+
 0.5.5 (2013-09-23)
 ------------------
 * porting to new RobotState API
