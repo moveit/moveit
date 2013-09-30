@@ -112,10 +112,22 @@ public:
           new_handle.reset(new GripperControllerHandle(name, action_ns));
           if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
-            if (controller_list[i].hasMember("command_joint"))
-                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["command_joint"]);
+            if (controller_list[i].hasMember("parallel"))
+            {
+              if (controller_list[i]["joints"].size() != 2)
+              {
+                ROS_ERROR_STREAM("MoveItSimpleControllerManager: Parallel Gripper requires exactly two joints");
+                continue;
+              }
+              static_cast<GripperControllerHandle*>(new_handle.get())->setParallelJawGripper(controller_list[i]["joints"][0], controller_list[i]["joints"][1]);
+            }
             else
+            {
+              if (controller_list[i].hasMember("command_joint"))
+                static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["command_joint"]);
+              else
                 static_cast<GripperControllerHandle*>(new_handle.get())->setCommandJoint(controller_list[i]["joints"][0]);
+            }
 
             if (controller_list[i].hasMember("allow_failure"))
                 static_cast<GripperControllerHandle*>(new_handle.get())->allowFailure(true);
