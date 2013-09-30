@@ -115,7 +115,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   if (grasp_posture->joint_names.size() > 0)
   {
     // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)
-    for (std::size_t i = 0 ; i < grasp_posture->joint_names.size() ; ++i)
+    for (std::size_t i = 0 ; i < grasp_posture->points.size() ; ++i)
     {
       state->setVariablePositions(grasp_posture->joint_names, grasp_posture->points[i].positions);
       collision_detection::CollisionResult res;
