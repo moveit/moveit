@@ -78,7 +78,10 @@ public:
       return false;
     }
     if (trajectory.joint_trajectory.points.size() > 1)
+    {
       ROS_WARN_NAMED("GripperController", "GripperController expects a joint trajectory with one point only, but %u provided)", (unsigned int)trajectory.joint_trajectory.points.size());
+      ROS_DEBUG_STREAM_NAMED("GripperController","Trajectory: " << trajectory.joint_trajectory);
+    }
 
     if (trajectory.joint_trajectory.joint_names.empty())
     {
@@ -90,8 +93,8 @@ public:
     for (std::size_t i = 0 ; i < trajectory.joint_trajectory.joint_names.size() ; ++i)
       if (command_joints_.find(trajectory.joint_trajectory.joint_names[i]) != command_joints_.end())
       {
-    gripper_joint_index = i;
-    break;
+        gripper_joint_index = i;
+        break;
       }
     if (gripper_joint_index < 0)
     {
@@ -109,9 +112,10 @@ public:
     /* TODO: currently sending velocity as effort, make this better. */
     control_msgs::GripperCommandGoal goal;
     if (trajectory.joint_trajectory.points[0].velocities.size() > gripper_joint_index)
-      goal.command.max_effort = trajectory.joint_trajectory.points[0].velocities[gripper_joint_index];
+      goal.command.max_effort = trajectory.joint_trajectory.points[1].velocities[gripper_joint_index];
 
-    goal.command.position = trajectory.joint_trajectory.points[0].positions[gripper_joint_index];
+    goal.command.position = trajectory.joint_trajectory.points[1].positions[gripper_joint_index];
+
     controller_action_client_->sendGoal(goal,
                     boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
                     boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
