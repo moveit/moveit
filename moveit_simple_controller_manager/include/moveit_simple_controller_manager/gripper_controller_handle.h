@@ -141,7 +141,7 @@ public:
       goal.command.position += trajectory.joint_trajectory.points[tpoint].positions[idx];
 
       if (trajectory.joint_trajectory.points[tpoint].effort.size() > idx)
-        goal.command.max_effort += trajectory.joint_trajectory.points[tpoint].effort[idx];
+        goal.command.max_effort = trajectory.joint_trajectory.points[tpoint].effort[idx];
     }
 
     controller_action_client_->sendGoal(goal,
