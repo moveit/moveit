@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2013-10-01)
+------------------
+
 0.5.6 (2013-09-26)
 ------------------
 * fix `#320 <https://github.com/ros-planning/moveit_ros/issues/320>`_
