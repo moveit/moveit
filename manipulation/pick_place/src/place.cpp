@@ -99,7 +99,9 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   }
 
   if (!jmg || !eef)
-  {
+  { 
+    if (!eef)
+      ROS_ERROR("No end-effector specified for place action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
   }
@@ -111,11 +113,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     // in the first try, look for objects attached to the eef, if the eef is known;
     // otherwise, look for attached bodies in the planning group itself
     std::vector<const robot_state::AttachedBody*> attached_bodies;
-    planning_scene->getCurrentState().getAttachedBodies(attached_bodies, loop_count == 0 ? (eef ? eef : jmg) : jmg);
+    planning_scene->getCurrentState().getAttachedBodies(attached_bodies, loop_count == 0 ? eef : jmg);
     
-    // if we had no eef, there is no more looping to do, so we bump the loop count
-    if (loop_count == 0 && !eef)
-      loop_count++;
     loop_count++;
     if (attached_bodies.size() > 1)
     {
@@ -130,7 +129,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   const robot_state::AttachedBody *attached_body = planning_scene->getCurrentState().getAttachedBody(attached_object_name);
   if (!attached_body)
   {
-    ROS_ERROR("There is no object to detach");
+    ROS_ERROR("There is no object to detach for place action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME;
     return false;
   }
@@ -142,8 +141,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   ManipulationPlanSharedDataConstPtr const_plan_data = plan_data;
   plan_data->planning_group_ = jmg;
   plan_data->end_effector_group_ = eef;
-  if (eef)
-    plan_data->ik_link_ = planning_scene->getRobotModel()->getLinkModel(eef->getEndEffectorParentGroup().second);
+  plan_data->ik_link_ = planning_scene->getRobotModel()->getLinkModel(eef->getEndEffectorParentGroup().second);
   
   plan_data->timeout_ = endtime;
   plan_data->path_constraints_ = goal.path_constraints;
@@ -172,7 +170,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     approach_place_acm->setEntry(goal.support_surface_name, attached_object_name, true);
 
     // optionally, it may be allowed to touch the support surface with the gripper
-    if (goal.allow_gripper_support_collision && eef)
+    if (goal.allow_gripper_support_collision)
       approach_place_acm->setEntry(goal.support_surface_name, eef->getLinkModelNames(), true);
   }
 
