@@ -98,7 +98,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     }
   }
 
-  if (!jmg)
+  if (!jmg || !eef)
   {
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
