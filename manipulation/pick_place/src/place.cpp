@@ -76,36 +76,122 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   const robot_model::JointModelGroup *jmg = NULL;
   const robot_model::JointModelGroup *eef = NULL;
 
+  // if the group specified is actually an end-effector, we use it as such
   if (planning_scene->getRobotModel()->hasEndEffector(goal.group_name))
   {
     eef = planning_scene->getRobotModel()->getEndEffector(goal.group_name);
     if (eef)
-    {
+    { // if we correctly found the eef, then we try to find out what the planning group is
       const std::string &eef_parent = eef->getEndEffectorParentGroup().first;
-      jmg = planning_scene->getRobotModel()->getJointModelGroup(eef_parent);
+      if (eef_parent.empty())
+      {
+        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+        return false;
+      }
+      else
+        jmg = planning_scene->getRobotModel()->getJointModelGroup(eef_parent);
     }
   }
   else
   {
-    jmg = planning_scene->getRobotModel()->getJointModelGroup(goal.group_name);
+    // if a group name was specified, try to use it
+    jmg = goal.group_name.empty() ? NULL : planning_scene->getRobotModel()->getJointModelGroup(goal.group_name);
     if (jmg)
     {
-      const std::vector<std::string> &eef_names = jmg->getAttachedEndEffectorNames();
-      if (eef_names.size() == 1)
+      // we also try to find the corresponding eef
+      const std::vector<std::string> &eef_names = jmg->getAttachedEndEffectorNames();  
+      if (eef_names.empty())
       {
-        eef = planning_scene->getRobotModel()->getEndEffector(eef_names[0]);
+        ROS_ERROR_STREAM("There are no end-effectors specified for group '" << goal.group_name << "'");
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+        return false;
       }
+      else
+        // check to see if there is an end effector that has attached objects associaded, so we can complete the place
+        for (std::size_t i = 0 ; i < eef_names.size() ; ++i) 
+        {
+          std::vector<const robot_state::AttachedBody*> attached_bodies;
+          planning_scene->getCurrentState().getAttachedBodies(attached_bodies, planning_scene->getRobotModel()->getJointModelGroup(eef_names[i]));
+          // if this end effector has attached objects, we go on
+          if (!attached_bodies.empty())
+          {
+            // if the user specified the name of tha attached object to place, we check that indeed
+            // the group contains this attachd body
+            if (!attached_object_name.empty())
+            {
+              bool found = false;
+              for (std::size_t j = 0 ; j < attached_bodies.size() ; ++j)
+                if (attached_bodies[j]->getName() == attached_object_name)
+                {
+                  found = true;
+                  break;
+                }
+              // if the attached body this group has is not the same as the one specified,
+              // we cannot use this eef
+              if (!found)
+                continue;
+            }
+            
+            // if we previoulsy have set the eef it means we have more options we could use, so things are ambiguous
+            if (eef)
+            {
+              ROS_ERROR_STREAM("There are multiple end-effectors for group '" << goal.group_name <<
+                               "' that are currently holding objects. It is ambiguous which end-effector to use. Please specify it explicitly.");
+              error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+              return false;
+            }
+            // set the end effector (this was initialized to NULL above)
+            eef = planning_scene->getRobotModel()->getEndEffector(eef_names[i]);
+          }
+        }
     }
   }
-
+  
+  // if we know the attached object, but not the eef, we can try to identify that
+  if (!attached_object_name.empty() && !eef)
+  {
+    const robot_state::AttachedBody *attached_body = planning_scene->getCurrentState().getAttachedBody(attached_object_name);
+    if (attached_body)
+    {
+      // get the robot model link this attached body is associated to
+      const robot_model::LinkModel *link = attached_body->getAttachedLink();
+      // check to see if there is a unique end effector containing the link
+      const std::vector<const robot_model::JointModelGroup*> &eefs = planning_scene->getRobotModel()->getEndEffectors();
+      for (std::size_t i = 0 ; i < eefs.size() ; ++i)
+        if (eefs[i]->hasLinkModel(link->getName()))
+        {
+          if (eef)
+          {
+            ROS_ERROR_STREAM("There are multiple end-effectors that include the link '" << link->getName() <<
+                             "' which is where the body '" << attached_object_name << "' is attached. It is unclear which end-effector to use.");
+            error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+            return false;
+          }
+          eef = eefs[i];
+        }
+    }
+    // if the group is also unknown, but we just found out the eef
+    if (!jmg && eef)
+    {
+      const std::string &eef_parent = eef->getEndEffectorParentGroup().first;
+      if (eef_parent.empty())
+      {
+        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+        return false;
+      }
+      else
+        jmg = planning_scene->getRobotModel()->getJointModelGroup(eef_parent);
+    }
+  }
+  
   if (!jmg || !eef)
   { 
-    if (!eef)
-      ROS_ERROR("No end-effector specified for place action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
   }
-
+  
   // try to infer attached body name if possible
   int loop_count = 0;
   while (attached_object_name.empty() && loop_count < 2)

@@ -97,7 +97,14 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
         return false;
       }
       planning_group = jmg->getEndEffectorParentGroup().first;
-      ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
+      if (planning_group.empty())
+      {   
+        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
+        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+        return false;
+      }
+      else
+        ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }
   const robot_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
