@@ -555,8 +555,21 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
         it->second->setEndEffectorName(eefs[k].name_);
         end_effectors_map_[eefs[k].name_] = it->second;
         end_effectors_.push_back(it->second);
+        
+        // check to see if there are groups that contain the parent link of this end effector.
+        // record this information if found; 
+        std::vector<JointModelGroup*> possible_parent_groups;
+        for (JointModelGroupMap::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
+          if (jt->first != it->first)
+          {
+            if (jt->second->hasLinkModel(eefs[k].parent_link_))
+            {
+              jt->second->attachEndEffector(eefs[k].name_);
+              possible_parent_groups.push_back(jt->second);
+            }
+          }
+        
         JointModelGroup *eef_parent_group = NULL;
-
         // if a parent group is specified in SRDF, try to use it
         if (!eefs[k].parent_group_.empty())
         {
@@ -578,18 +591,9 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
             logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
                      eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
         }
-        
+
+        // if no parent group was specified, use a default one
         if (eef_parent_group == NULL)
-        {
-          // check to see if there are groups that contain the parent link of this end effector.
-          // record this information if found
-          std::vector<JointModelGroup*> possible_parent_groups;
-          for (JointModelGroupMap::const_iterator jt = joint_model_group_map_.begin() ; jt != joint_model_group_map_.end(); ++jt)
-            if (jt->first != it->first)
-            {
-              if (jt->second->hasLinkModel(eefs[k].parent_link_))
-                possible_parent_groups.push_back(jt->second);
-            }
           if (!possible_parent_groups.empty())
           {
             // if there are multiple options for the group that contains this end-effector,
@@ -600,18 +604,16 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
                 best = g;
             eef_parent_group = possible_parent_groups[best];
           }
-        }
+        
         if (eef_parent_group)
         {
-          //attached_end_effector_names_.push_back(
-          eef_parent_group->attachEndEffector(eefs[k].name_);
           it->second->setEndEffectorParent(eef_parent_group->getName(), eefs[k].parent_link_);
         }
         else
         {
           logWarn("Could not identify parent group for end-effector '%s'", eefs[k].name_.c_str());
           it->second->setEndEffectorParent("", eefs[k].parent_link_);
-        }        
+        }
         break;
       }
   }
