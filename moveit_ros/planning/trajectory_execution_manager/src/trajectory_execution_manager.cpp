@@ -44,7 +44,7 @@ namespace trajectory_execution_manager
 const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajectory_execution_event";
 
 static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
-static const ros::Duration DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN(0.5); // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
+static const double DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN = 0.5; // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
 
 using namespace moveit_ros_planning;
@@ -76,6 +76,13 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
+
+  if (!node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+    allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
+
+  if (!node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+    allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+
   initialize();
 }
 
@@ -101,7 +108,6 @@ void TrajectoryExecutionManager::initialize()
   current_context_ = -1;
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
   run_continuous_execution_thread_ = true;
-  allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
 
@@ -1174,7 +1180,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     }
     // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
 
-    expected_trajectory_duration = expected_trajectory_duration * allowed_execution_duration_scaling_ + DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+    expected_trajectory_duration = expected_trajectory_duration * allowed_execution_duration_scaling_ + ros::Duration(allowed_goal_duration_margin_);
 
     if (longest_part >= 0)
     {
