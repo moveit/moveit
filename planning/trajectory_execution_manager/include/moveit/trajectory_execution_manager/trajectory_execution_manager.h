@@ -287,6 +287,7 @@ private:
 
   bool execution_duration_monitoring_;
   double allowed_execution_duration_scaling_;
+  double allowed_goal_duration_margin_;
   double execution_velocity_scaling_;
 };
 
