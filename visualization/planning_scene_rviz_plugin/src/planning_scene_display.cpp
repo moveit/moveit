@@ -132,10 +132,15 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   {
     robot_category_  = new rviz::Property( "Scene Robot",   QVariant(), "", this );
 
-    scene_robot_enabled_property_ =
-      new rviz::BoolProperty( "Show Scene Robot", true, "Indicates whether the robot state specified by the planning scene should be displayed",
+    scene_robot_visual_enabled_property_ =
+      new rviz::BoolProperty( "Show Robot Visual", true, "Indicates whether the robot state specified by the planning scene should be displayed as defined for visualisation purposes.",
                               robot_category_,
-                              SLOT( changedSceneRobotEnabled() ), this );
+                              SLOT( changedSceneRobotVisualEnabled() ), this );
+
+    scene_robot_collision_enabled_property_ =
+      new rviz::BoolProperty("Show Robot Collision", false, "Indicates whether the robot state specified by the planning scene should be displayed as defined for collision detection purposes.",
+                             robot_category_,
+                             SLOT(changedSceneRobotCollisionEnabled()), this);
 
     robot_alpha_property_ =
       new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
@@ -151,7 +156,8 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   else
   {
     robot_category_ = NULL;
-    scene_robot_enabled_property_ = NULL;
+    scene_robot_visual_enabled_property_ = NULL;
+    scene_robot_collision_enabled_property_ = NULL;
     robot_alpha_property_ = NULL;
     attached_body_color_property_ = NULL;
   }
@@ -191,7 +197,9 @@ void PlanningSceneDisplay::onInitialize()
   if (robot_category_)
   {
     planning_scene_robot_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Scene", robot_category_));
-    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+    planning_scene_robot_->setVisible(true);
+    planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
+    planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
   }
 }
 
@@ -205,7 +213,11 @@ void PlanningSceneDisplay::reset()
   Display::reset();
 
   if (planning_scene_robot_)
-    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  {
+    planning_scene_robot_->setVisible(true);
+    planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
+    planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+  }
 }
 
 void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job, const std::string &name)
@@ -361,10 +373,22 @@ void PlanningSceneDisplay::changedOctreeColorMode()
 {
 }
 
-void PlanningSceneDisplay::changedSceneRobotEnabled()
+void PlanningSceneDisplay::changedSceneRobotVisualEnabled()
 {
   if (isEnabled() && planning_scene_robot_)
-    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  {
+    planning_scene_robot_->setVisible(true);
+    planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
+  }
+}
+
+void PlanningSceneDisplay::changedSceneRobotCollisionEnabled()
+{
+  if (isEnabled() && planning_scene_robot_)
+  {
+    planning_scene_robot_->setVisible(true);
+    planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+  }
 }
 
 void PlanningSceneDisplay::changedSceneEnabled()
@@ -533,7 +557,11 @@ void PlanningSceneDisplay::onEnable()
   addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
 
   if (planning_scene_robot_)
-    planning_scene_robot_->setVisible(scene_robot_enabled_property_->getBool());
+  {
+    planning_scene_robot_->setVisible(true);
+    planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
+    planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+  }
   if (planning_scene_render_)
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
