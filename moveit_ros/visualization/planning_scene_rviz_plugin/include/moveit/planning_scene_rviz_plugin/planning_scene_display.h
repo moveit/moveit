@@ -111,7 +111,8 @@ private Q_SLOTS:
   void changedRobotDescription();
   void changedSceneName();
   void changedSceneEnabled();
-  void changedSceneRobotEnabled();
+  void changedSceneRobotVisualEnabled();
+  void changedSceneRobotCollisionEnabled();
   void changedRobotSceneAlpha();
   void changedSceneAlpha();
   void changedSceneColor();
@@ -186,7 +187,8 @@ protected:
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* scene_name_property_;
   rviz::BoolProperty* scene_enabled_property_;
-  rviz::BoolProperty* scene_robot_enabled_property_;
+  rviz::BoolProperty* scene_robot_visual_enabled_property_;
+  rviz::BoolProperty* scene_robot_collision_enabled_property_;
   rviz::RosTopicProperty* planning_scene_topic_property_;
   rviz::FloatProperty* robot_alpha_property_;
   rviz::FloatProperty* scene_alpha_property_;
