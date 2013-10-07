@@ -68,8 +68,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     point_cloud_topic_ = static_cast<const std::string&>(params["point_cloud_topic"]);
 
     readXmlParam(params, "max_range", &max_range_);
-    readXmlParam(params, "shape_padding", &padding_);
-    readXmlParam(params, "shape_scale", &scale_);
+    readXmlParam(params, "padding_offset", &padding_);
+    readXmlParam(params, "padding_scale", &scale_);
     readXmlParam(params, "point_subsample", &point_subsample_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
