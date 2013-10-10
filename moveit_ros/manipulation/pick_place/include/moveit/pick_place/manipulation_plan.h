@@ -110,8 +110,10 @@ struct ManipulationPlan
   // the retreat motion away from the goal
   moveit_msgs::GripperTranslation retreat_;
 
+  // the kinematic configuration of the end effector when approaching the goal (an open gripper)
   trajectory_msgs::JointTrajectory approach_posture_;
 
+  // the kinematic configuration of the end effector when retreating from the goal (a closed gripper)
   trajectory_msgs::JointTrajectory retreat_posture_;
 
   // -------------- computed data --------------------------
@@ -119,7 +121,10 @@ struct ManipulationPlan
   Eigen::Affine3d transformed_goal_pose_;
 
   moveit_msgs::Constraints goal_constraints_;
+
+  // Allows for the sampling of a kineamtic state for a particular group of a robot
   constraint_samplers::ConstraintSamplerPtr goal_sampler_;
+
   std::vector<robot_state::RobotStatePtr> possible_goal_states_;
 
   robot_state::RobotStatePtr approach_state_;
