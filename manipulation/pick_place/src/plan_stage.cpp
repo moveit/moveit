@@ -56,6 +56,7 @@ void PlanStage::signalStop()
   planning_pipeline_->terminate();
 }
 
+// Plan the arm movement to the approach location
 bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 {
   planning_interface::MotionPlanRequest req;
@@ -68,24 +69,34 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_, plan->shared_data_->planning_group_));
   unsigned int attempts = 0;
-  do
+  do // give the planner two chances
   {
     attempts++;
     if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
         res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS &&
         res.trajectory_ && !res.trajectory_->empty())
     {
+      // We have a valid motion plan, now apply pre-approach end effector posture (open gripper) if applicable
       if (!plan->approach_posture_.joint_names.empty())
       {
-        robot_state::RobotStatePtr state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
-        robot_trajectory::RobotTrajectoryPtr traj(new robot_trajectory::RobotTrajectory(state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
-        traj->setRobotTrajectoryMsg(*state, plan->approach_posture_);
-        traj->addPrefixWayPoint(state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
-        plan_execution::ExecutableTrajectory et(traj, "pre_grasp");
+        robot_state::RobotStatePtr pre_approach_state(new robot_state::RobotState(res.trajectory_->getLastWayPoint()));
+        robot_trajectory::RobotTrajectoryPtr pre_approach_traj(new robot_trajectory::RobotTrajectory(
+            pre_approach_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
+        pre_approach_traj->setRobotTrajectoryMsg(*pre_approach_state, plan->approach_posture_);
+
+        // Apply the open gripper state to the waypoint
+        pre_approach_traj->addPrefixWayPoint(pre_approach_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+
+        // Add the open gripper trajectory to the plan
+        plan_execution::ExecutableTrajectory et(pre_approach_traj, "pre_grasp");
         plan->trajectories_.insert(plan->trajectories_.begin(), et);
+
       }
+
+      // Add the pre-approach trajectory to the plan
       plan_execution::ExecutableTrajectory et(res.trajectory_, name_);
       plan->trajectories_.insert(plan->trajectories_.begin(), et);
+
       plan->error_code_ = res.error_code_;
 
       return true;
