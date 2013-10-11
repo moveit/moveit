@@ -69,7 +69,7 @@ int main(int argc, char **argv)
       ROS_WARN("Unable to load '%s'.", argv[1]);
   }
   else
-    ROS_WARN("An filename was expected as argument. That file should be a text representation of the geometry in a planning scene.");
+    ROS_WARN("A filename was expected as argument. That file should be a text representation of the geometry in a planning scene.");
   
   ros::shutdown();
   return 0;
