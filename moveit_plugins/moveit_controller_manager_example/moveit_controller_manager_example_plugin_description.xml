@@ -1,0 +1,11 @@
+<library path="libmoveit_controller_manager_example">
+
+  <class name="moveit_controller_manager_example/MoveItExampleControllerManager"
+         type="moveit_controller_manager_example::MoveItExampleControllerManager"
+         base_class_type="moveit_controller_manager::MoveItControllerManager">
+    <description>
+      An example controller for MoveIt. This is not functional code, but can serve as a starting point for simple controllers.
+    </description>
+  </class>
+
+</library>
