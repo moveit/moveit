@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  Copyright (c) 2013, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -92,7 +93,6 @@ typedef std::map<std::string, JointModel*> JointModelMap;
 
 /** \brief Map of names to const instances for JointModel */
 typedef std::map<std::string, const JointModel*> JointModelMapConst;
-
 
 
 /** \brief A joint from the robot. Models the transform that
@@ -229,35 +229,35 @@ public:
   /** \brief Provide a default value for the joint given the default joint variable bounds (maintained internally).
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. Enough memory is assumed to be allocated. */
-  void getVariableDefaultValues(double *values) const
+  void getVariableDefaultPositions(double *values) const
   {
-    getVariableDefaultValues(values, variable_bounds_);
+    getVariableDefaultPositions(values, variable_bounds_);
   }
 
   /** \brief Provide a default value for the joint given the joint variable bounds.
       Most joints will use the default implementation provided in this base class, but the quaternion
       for example needs a different implementation. Enough memory is assumed to be allocated. */
-  virtual void getVariableDefaultValues(double *values, const Bounds &other_bounds) const = 0;
+  virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const = 0;
 
   /** \brief Provide random values for the joint variables (within default bounds). Enough memory is assumed to be allocated. */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values) const
   {
-    getVariableRandomValues(rng, values, variable_bounds_);
+    getVariableRandomPositions(rng, values, variable_bounds_);
   }
 
   /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be allocated. */
-  virtual void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const = 0;
+  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const = 0;
   
   /** \brief Provide random values for the joint variables (within default bounds). Enough memory is assumed to be allocated. */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                     const double *near, const double distance) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                        const double *near, const double distance) const
   {
-    getVariableRandomValuesNearBy(rng, values, variable_bounds_, near, distance);
+    getVariableRandomPositionsNearBy(rng, values, variable_bounds_, near, distance);
   }
 
   /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be allocated. */
-  virtual void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
-                                             const double *near, const double distance) const = 0;
+  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
+                                                const double *near, const double distance) const = 0;
   
   /** @} */
 
@@ -265,24 +265,43 @@ public:
       @{ */
 
   /** \brief Check if the set of values for the variables of this joint are within bounds. */
-  bool satisfiesBounds(const double *values, double margin = 0.0) const
+  bool satisfiesPositionBounds(const double *values, double margin = 0.0) const
   {
-    return satisfiesBounds(values, variable_bounds_, margin);
+    return satisfiesPositionBounds(values, variable_bounds_, margin);
   }
 
-  /** \brief Check if the set of values for the variables of this joint are within bounds, up to some margin. */
-  virtual bool satisfiesBounds(const double *values, const Bounds &other_bounds, double margin) const = 0;
+  /** \brief Check if the set of position values for the variables of this joint are within bounds, up to some margin. */
+  virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const = 0;
 
   /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi.
       Returns true if changes were made. */
-  bool enforceBounds(double *values) const
+  bool enforcePositionBounds(double *values) const
   {
-    return enforceBounds(values, variable_bounds_);
+    return enforcePositionBounds(values, variable_bounds_);
   }
 
-  /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi. */
-  virtual bool enforceBounds(double *values, const Bounds &other_bounds) const = 0;
+  /** \brief Force the specified values to be inside bounds and normalized. Quaternions are normalized, continuous joints are made between -Pi and Pi.
+      Return true if changes were made. */
+  virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const = 0;
 
+  /** \brief Check if the set of velocities for the variables of this joint are within bounds. */
+  bool satisfiesVelocityBounds(const double *values, double margin = 0.0) const
+  {
+    return satisfiesVelocityBounds(values, variable_bounds_, margin);
+  }
+
+  /** \brief Check if the set of velocities for the variables of this joint are within bounds, up to some margin. */
+  virtual bool satisfiesVelocityBounds(const double *values, const Bounds &other_bounds, double margin) const;
+
+  /** \brief Force the specified velocities to be within bounds. Return true if changes were made. */
+  bool enforceVelocityBounds(double *values) const
+  {
+    return enforceVelocityBounds(values, variable_bounds_);
+  }
+  
+  /** \brief Force the specified velocities to be inside bounds. Return true if changes were made. */
+  virtual bool enforceVelocityBounds(double *values, const Bounds &other_bounds) const;
+  
   /** \brief Get the bounds for a variable. Throw an exception if the variable was not found */
   const VariableBounds& getVariableBounds(const std::string& variable) const;
 
@@ -405,7 +424,7 @@ public:
   virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const = 0;
 
   /** \brief Given the transform generated by joint, compute the corresponding joint values */
-  virtual void computeVariableValues(const Eigen::Affine3d& transform, double *joint_values) const = 0;
+  virtual void computeVariablePositions(const Eigen::Affine3d& transform, double *joint_values) const = 0;
   
   /** @} */
   

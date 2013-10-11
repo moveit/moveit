@@ -81,6 +81,35 @@ int moveit::core::JointModel::getLocalVariableIndex(const std::string &variable)
   return it->second;
 }
 
+bool moveit::core::JointModel::enforceVelocityBounds(double *values, const Bounds &other_bounds) const
+{
+  bool change = false;
+  for (std::size_t i = 0 ; i < other_bounds.size() ; ++i)
+    if (other_bounds[i].max_velocity_ < values[i])
+    {
+      values[i] = other_bounds[i].max_velocity_;
+      change = true;
+    }
+    else
+      if (other_bounds[i].min_velocity_ > values[i])
+      {
+        values[i] = other_bounds[i].min_velocity_;
+        change = true;
+      }
+  return change;
+}
+
+bool moveit::core::JointModel::satisfiesVelocityBounds(const double *values, const Bounds &other_bounds, double margin) const
+{
+  for (std::size_t i = 0 ; i < other_bounds.size() ; ++i)
+    if (other_bounds[i].max_velocity_ + margin < values[i])
+      return false;
+    else
+      if (other_bounds[i].min_velocity_ - margin > values[i])
+        return false;
+  return true;
+}
+
 const moveit::core::VariableBounds& moveit::core::JointModel::getVariableBounds(const std::string& variable) const
 {
   return variable_bounds_[getLocalVariableIndex(variable)];

@@ -47,25 +47,25 @@ unsigned int moveit::core::FixedJointModel::getStateSpaceDimension() const
   return 0;
 }
 
-void moveit::core::FixedJointModel::getVariableDefaultValues(double *values, const Bounds &bounds) const
+void moveit::core::FixedJointModel::getVariableDefaultPositions(double *values, const Bounds &bounds) const
 {
 }
 
-void moveit::core::FixedJointModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
+void moveit::core::FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
 {
 }
 
-void moveit::core::FixedJointModel::getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
-                                                                  const double *near, const double distance) const
+void moveit::core::FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
+                                                                     const double *near, const double distance) const
 {
 }
 
-bool moveit::core::FixedJointModel::enforceBounds(double *values, const Bounds &bounds) const
+bool moveit::core::FixedJointModel::enforcePositionBounds(double *values, const Bounds &bounds) const
 {
   return false;
 }
 
-bool moveit::core::FixedJointModel::satisfiesBounds(const double *values, const Bounds &bounds, double margin) const
+bool moveit::core::FixedJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds, double margin) const
 {
   return true;
 }
@@ -89,6 +89,6 @@ void moveit::core::FixedJointModel::computeTransform(const double */* joint_valu
   transf.setIdentity();
 }
 
-void moveit::core::FixedJointModel::computeVariableValues(const Eigen::Affine3d& /* transform */, double * /* joint_values */) const
+void moveit::core::FixedJointModel::computeVariablePositions(const Eigen::Affine3d& /* transform */, double * /* joint_values */) const
 {
 }

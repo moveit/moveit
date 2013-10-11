@@ -1114,33 +1114,33 @@ void moveit::core::RobotModel::updateMimicJoints(double *values) const
   }
 }
 
-void moveit::core::RobotModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values) const
 {
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    active_joint_model_vector_[i]->getVariableRandomValues(rng, values + active_joint_model_start_index_[i]);
+    active_joint_model_vector_[i]->getVariableRandomPositions(rng, values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const
 {
   std::vector<double> tmp(variable_count_);
-  getVariableRandomValues(rng, &tmp[0]);
+  getVariableRandomPositions(rng, &tmp[0]);
   values.clear();
   for (std::size_t i = 0 ; i < variable_names_.size() ; ++i)
     values[variable_names_[i]] = tmp[i];
 }
 
-void moveit::core::RobotModel::getVariableDefaultValues(double *values) const
+void moveit::core::RobotModel::getVariableDefaultPositions(double *values) const
 {
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    active_joint_model_vector_[i]->getVariableDefaultValues(values + active_joint_model_start_index_[i]);
+    active_joint_model_vector_[i]->getVariableDefaultPositions(values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableDefaultValues(std::map<std::string, double> &values) const
+void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string, double> &values) const
 {
   std::vector<double> tmp(variable_count_);
-  getVariableDefaultValues(&tmp[0]);
+  getVariableDefaultPositions(&tmp[0]);
   values.clear();
   for (std::size_t i = 0 ; i < variable_names_.size() ; ++i)
     values[variable_names_[i]] = tmp[i];
@@ -1172,21 +1172,21 @@ double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector &activ
   return max_distance;
 }
 
-bool moveit::core::RobotModel::satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin) const
+bool moveit::core::RobotModel::satisfiesPositionBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    if (!active_joint_model_vector_[i]->satisfiesBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i], margin))
+    if (!active_joint_model_vector_[i]->satisfiesPositionBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i], margin))
       return false;
   return true;
 }
 
-bool moveit::core::RobotModel::enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const
+bool moveit::core::RobotModel::enforcePositionBounds(double *state, const JointBoundsVector &active_joint_bounds) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   bool change = false;
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    if (active_joint_model_vector_[i]->enforceBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i]))
+    if (active_joint_model_vector_[i]->enforcePositionBounds(state + active_joint_model_start_index_[i], *active_joint_bounds[i]))
       change = true;
   if (change)
     updateMimicJoints(state);
