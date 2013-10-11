@@ -17,6 +17,9 @@ target_link_libraries(moveit_kinematics_speed_and_validity_evaluator moveit_robo
 add_executable(moveit_evaluate_state_operations_speed src/evaluate_state_operations_speed.cpp)
 target_link_libraries(moveit_evaluate_state_operations_speed  moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(moveit_publish_scene_from_text src/publish_scene_from_text.cpp)
+target_link_libraries(moveit_publish_scene_from_text moveit_planning_scene_monitor moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 install(TARGETS
   moveit_print_planning_model_info 
   moveit_display_random_state
@@ -24,5 +27,6 @@ install(TARGETS
   moveit_evaluate_collision_checking_speed
   moveit_evaluate_state_operations_speed
   moveit_kinematics_speed_and_validity_evaluator
+  moveit_publish_scene_from_text
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
