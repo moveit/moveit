@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adds compliance for mesa versions <9.2
+
 0.5.7 (2013-10-01)
 ------------------
 

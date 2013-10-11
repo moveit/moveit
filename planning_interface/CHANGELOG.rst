@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add function to start state monitor in move_group_interface::MoveGroup
+
 0.5.7 (2013-10-01)
 ------------------
 
