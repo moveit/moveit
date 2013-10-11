@@ -396,7 +396,7 @@ public:
   
   /** @} */
 
-  /** \defgroup setJointPosition_Fn Getting and setting joint positions
+  /** \defgroup setJointPosition_Fn Getting and setting joint positions, velocities, accelerations and effort
    *  @{
    */
   void setJointPositions(const std::string &joint_name, const double *position)
@@ -428,7 +428,7 @@ public:
   
   void setJointPositions(const JointModel *joint, const Eigen::Affine3d& transform)
   {
-    joint->computeVariableValues(transform, position_ + joint->getFirstVariableIndex());
+    joint->computeVariablePositions(transform, position_ + joint->getFirstVariableIndex());
     markDirtyJointTransforms(joint);
     updateMimicJoint(joint);
   }
@@ -442,6 +442,37 @@ public:
   {
     return position_ + joint->getFirstVariableIndex();
   }
+  
+  const double* getJointVelocities(const std::string &joint_name) const
+  {
+    return getJointVelocities(robot_model_->getJointModel(joint_name));
+  }
+  
+  const double* getJointVelocities(const JointModel *joint) const
+  {
+    return velocity_ + joint->getFirstVariableIndex();
+  }
+
+  const double* getJointAccelerations(const std::string &joint_name) const
+  {
+    return getJointAccelerations(robot_model_->getJointModel(joint_name));
+  }
+  
+  const double* getJointAccelerations(const JointModel *joint) const
+  {
+    return acceleration_ + joint->getFirstVariableIndex();
+  }
+
+  const double* getJointEffort(const std::string &joint_name) const
+  {
+    return getJointEffort(robot_model_->getJointModel(joint_name));
+  }
+  
+  const double* getJointEffort(const JointModel *joint) const
+  {
+    return effort_ + joint->getFirstVariableIndex();
+  }
+
   /** @} */
   
   
@@ -951,31 +982,49 @@ public:
   void enforceBounds(const JointModelGroup *joint_group);
   void enforceBounds(const JointModel *joint)
   {
-    if (joint->enforceBounds(position_ + joint->getFirstVariableIndex()))
+    enforcePositionBounds(joint);
+    if (has_velocity_)
+      enforceVelocityBounds(joint);
+  }
+  void enforcePositionBounds(const JointModel *joint)
+  {
+    if (joint->enforcePositionBounds(position_ + joint->getFirstVariableIndex()))
     {
       markDirtyJointTransforms(joint);
       updateMimicJoint(joint);
     }
+  }
+  void enforceVelocityBounds(const JointModel *joint)
+  {
+    joint->enforceVelocityBounds(velocity_ + joint->getFirstVariableIndex());
   }
   
   bool satisfiesBounds(double margin = 0.0) const;
   bool satisfiesBounds(const JointModelGroup *joint_group, double margin = 0.0) const;
   bool satisfiesBounds(const JointModel *joint, double margin = 0.0) const
   {
-    return joint->satisfiesBounds(getJointPositions(joint), margin);
+    return satisfiesPositionBounds(joint, margin) && (!has_velocity_ || satisfiesVelocityBounds(joint, margin));
+  }
+  bool satisfiesPositionBounds(const JointModel *joint, double margin = 0.0) const
+  {
+    return joint->satisfiesPositionBounds(getJointPositions(joint), margin);
+  }
+  bool satisfiesVelocityBounds(const JointModel *joint, double margin = 0.0) const
+  {
+    return joint->satisfiesVelocityBounds(getJointVelocities(joint), margin);
   }
   
   /** \brief Get the minimm distance from this state to the bounds.
       The minimum distance and the joint for which this minimum is achieved are returned. */
-  std::pair<double, const JointModel*> getMinDistanceToBounds() const;
+  std::pair<double, const JointModel*> getMinDistanceToPositionBounds() const;
   
   /** \brief Get the minimm distance from a group in this state to the bounds.
       The minimum distance and the joint for which this minimum is achieved are returned. */
-  std::pair<double, const JointModel*> getMinDistanceToBounds(const JointModelGroup *group) const;
+  std::pair<double, const JointModel*> getMinDistanceToPositionBounds(const JointModelGroup *group) const;
 
   /** \brief Get the minimm distance from a set of joints in the state to the bounds. 
       The minimum distance and the joint for which this minimum is achieved are returned. */
-  std::pair<double, const JointModel*> getMinDistanceToBounds(const std::vector<const JointModel*> &joints) const;
+  std::pair<double, const JointModel*> getMinDistanceToPositionBounds(const std::vector<const JointModel*> &joints) const;
   
   /** @} */
   

@@ -300,88 +300,90 @@ public:
   void addDefaultState(const std::string &name, const std::map<std::string, double> &default_state);
   
   /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
-  bool getVariableDefaultValues(const std::string &name, std::map<std::string, double> &values) const;
+  bool getVariableDefaultPositions(const std::string &name, std::map<std::string, double> &values) const;
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultValues(std::map<std::string, double> &values) const;
+  void getVariableDefaultPositions(std::map<std::string, double> &values) const;
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultValues(std::vector<double> &values) const
+  void getVariableDefaultPositions(std::vector<double> &values) const
   {
     values.resize(variable_count_);
-    getVariableDefaultValues(&values[0]);
+    getVariableDefaultPositions(&values[0]);
   }
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultValues(double *values) const;
+  void getVariableDefaultPositions(double *values) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values) const
   {
-    getVariableRandomValues(rng, values, active_joint_models_bounds_);
+    getVariableRandomPositions(rng, values, active_joint_models_bounds_);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
   {
     values.resize(variable_count_);
-    getVariableRandomValues(rng, &values[0], active_joint_models_bounds_);
+    getVariableRandomPositions(rng, &values[0], active_joint_models_bounds_);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                     const double *near, const double distance) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                        const double *near, const double distance) const
   {
-    getVariableRandomValuesNearBy(rng, values, active_joint_models_bounds_, near, distance);
+    getVariableRandomPositionsNearBy(rng, values, active_joint_models_bounds_, near, distance);
   }
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                     const std::vector<double> &near, double distance) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
+                                        const std::vector<double> &near, double distance) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance);
+    getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance);
   }  
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                     const std::vector<double> &near, const std::map<JointModel::JointType, double> &distance_map) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
+                                        const std::vector<double> &near, const std::map<JointModel::JointType, double> &distance_map) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance_map);
+    getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance_map);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, 
-                                     const std::vector<double> &near, const std::vector<double> &distances) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values, 
+                                        const std::vector<double> &near, const std::vector<double> &distances) const
   {
     values.resize(variable_count_);
-    getVariableRandomValuesNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distances);
+    getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distances);
   }  
   
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds) const;
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds) const;
   
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
-                                     const double *near, const double distance) const;
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
+                                        const double *near, const double distance) const;
   
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
-                                     const double *near, const std::map<JointModel::JointType, double> &distance_map) const;
-
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
+                                        const double *near, const std::map<JointModel::JointType, double> &distance_map) const;
+  
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomValuesNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
-                                     const double *near, const std::vector<double> &distances) const;
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const JointBoundsVector &active_joint_bounds,
+                                        const double *near, const std::vector<double> &distances) const;
+  
+  bool enforcePositionBounds(double *state) const
+  {
+    return enforcePositionBounds(state, active_joint_models_bounds_);
+  }
 
-  bool enforceBounds(double *state) const
+  bool enforcePositionBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
+  bool satisfiesPositionBounds(const double *state, double margin = 0.0) const
   {
-    return enforceBounds(state, active_joint_models_bounds_);
+    return satisfiesPositionBounds(state, active_joint_models_bounds_, margin);
   }
-  bool enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
-  bool satisfiesBounds(const double *state, double margin = 0.0) const
-  {
-    return satisfiesBounds(state, active_joint_models_bounds_, margin);
-  }
-  bool satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
+  bool satisfiesPositionBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
+
   double getMaximumExtent() const
   {
     return getMaximumExtent(active_joint_models_bounds_);

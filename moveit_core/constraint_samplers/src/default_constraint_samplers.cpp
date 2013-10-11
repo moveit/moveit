@@ -154,7 +154,7 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState
   for (std::size_t i = 0 ; i < unbounded_.size() ; ++i)
   {
     v.resize(unbounded_[i]->getVariableCount());
-    unbounded_[i]->getVariableRandomValues(random_number_generator_, &v[0]);
+    unbounded_[i]->getVariableRandomPositions(random_number_generator_, &v[0]);
     for (std::size_t j = 0 ; j < v.size() ; ++j)
       values_[uindex_[i] + j] = v[j];
   }
@@ -522,7 +522,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     state.copyJointGroupPositions(jmg_, vals);
   else
     // sample a seed value
-    jmg_->getVariableRandomValues(random_number_generator_, vals);
+    jmg_->getVariableRandomPositions(random_number_generator_, vals);
 
   assert(vals.size() == ik_joint_bijection.size());
   for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
