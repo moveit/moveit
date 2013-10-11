@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.8 (2013-10-11)
+------------------
 * fix `#331 <https://github.com/ros-planning/moveit_ros/issues/331>`_
 * try to identify the eef and group based on the attached object name
 
