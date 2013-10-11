@@ -408,6 +408,22 @@ public:
     return active_target_;
   }
 
+  bool startStateMonitor(double wait)
+  {
+    if (!current_state_monitor_)
+    {
+      ROS_ERROR("Unable to monitor current robot state");
+      return false;
+    }
+
+    // if needed, start the monitor and wait up to 1 second for a full robot state
+    if (!current_state_monitor_->isActive())
+      current_state_monitor_->startStateMonitor();
+
+    current_state_monitor_->waitForCurrentState(opt_.group_name_, wait);
+    return true;
+  }
+  
   bool getCurrentState(robot_state::RobotStatePtr &current_state, double wait_seconds = 1.0)
   {
     if (!current_state_monitor_)
@@ -1463,6 +1479,11 @@ void moveit::planning_interface::MoveGroup::setGoalOrientationTolerance(double t
 void moveit::planning_interface::MoveGroup::rememberJointValues(const std::string &name)
 {
   rememberJointValues(name, getCurrentJointValues());
+}
+
+bool moveit::planning_interface::MoveGroup::startStateMonitor(double wait)
+{
+  return impl_->startStateMonitor(wait);
 }
 
 std::vector<double> moveit::planning_interface::MoveGroup::getCurrentJointValues()

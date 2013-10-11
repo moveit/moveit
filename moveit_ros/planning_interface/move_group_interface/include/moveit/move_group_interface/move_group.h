@@ -417,6 +417,13 @@ public:
    */
   /**@{*/
 
+  /** \brief When reasoning about the current state of a robot, a
+      CurrentStateMonitor instance is automatically constructed.  This
+      function allows triggering the construction of that object from
+      the beginning, so that future calls to functions such as
+      getCurrentState() will not take so long and are less likely to fail. */
+  bool startStateMonitor(double wait = 1.0);
+  
   /** \brief Get the current joint values for the joints planned for by this instance (see getJoints()) */
   std::vector<double> getCurrentJointValues();
 
