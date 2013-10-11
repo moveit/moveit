@@ -382,7 +382,7 @@ void RobotPosesWidget::showDefaultPose()
       double init_value;
 
       // get the first joint value in its vector
-      (*joint_it)->getVariableDefaultValues( &init_value );
+      (*joint_it)->getVariableDefaultPositions( &init_value );
 
       // Change joint's value in joint_state_map to the default
       joint_state_map_[ (*joint_it)->getName() ] = init_value;
@@ -550,7 +550,7 @@ void RobotPosesWidget::loadJointSliders( const QString &selected )
         // the joint state map does not yet have an entry for this joint
 
         // get the first joint value in its vector
-        (*joint_it)->getVariableDefaultValues( &init_value );
+        (*joint_it)->getVariableDefaultPositions( &init_value );
 
       }
       else // there is already a value in the map
