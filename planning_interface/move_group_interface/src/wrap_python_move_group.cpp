@@ -414,6 +414,7 @@ static void wrap_move_group_interface()
 
   MoveGroupClass.def("remember_joint_values",  &MoveGroupWrapper::rememberJointValuesFromPythonList);
 
+  MoveGroupClass.def("start_state_monitor",  &MoveGroupWrapper::startStateMonitor);
   MoveGroupClass.def("get_current_joint_values",  &MoveGroupWrapper::getCurrentJointValuesList);
   MoveGroupClass.def("get_random_joint_values",  &MoveGroupWrapper::getRandomJointValuesList);
   MoveGroupClass.def("get_remembered_joint_values",  &MoveGroupWrapper::getRememberedJointValuesPython);
