@@ -2,6 +2,10 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-10-11)
+------------------
+* Added optional params so user knows they exist - values remain same
+
 0.5.3 (2013-09-23)
 ------------------
 * enable publishing more information for demo.launch
