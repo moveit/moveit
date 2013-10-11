@@ -165,12 +165,12 @@ bool ompl_interface::ModelBasedStateSpace::equalStates(const ompl::base::State *
 
 void ompl_interface::ModelBasedStateSpace::enforceBounds(ompl::base::State *state) const
 {
-  spec_.joint_model_group_->enforceBounds(state->as<StateType>()->values, spec_.joint_bounds_);
+  spec_.joint_model_group_->enforcePositionBounds(state->as<StateType>()->values, spec_.joint_bounds_);
 }
 
 bool ompl_interface::ModelBasedStateSpace::satisfiesBounds(const ompl::base::State *state) const
 {
-  return spec_.joint_model_group_->satisfiesBounds(state->as<StateType>()->values, spec_.joint_bounds_, std::numeric_limits<double>::epsilon());
+  return spec_.joint_model_group_->satisfiesPositionBounds(state->as<StateType>()->values, spec_.joint_bounds_, std::numeric_limits<double>::epsilon());
 }
 
 void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const
@@ -240,13 +240,13 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
     
     virtual void sampleUniform(ompl::base::State *state)
     {
-      joint_model_group_->getVariableRandomValues(moveit_rng_, state->as<StateType>()->values, *joint_bounds_);
+      joint_model_group_->getVariableRandomPositions(moveit_rng_, state->as<StateType>()->values, *joint_bounds_);
       state->as<StateType>()->clearKnownInformation();
     }
     
     virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
     {
-      joint_model_group_->getVariableRandomValuesNearBy(moveit_rng_, state->as<StateType>()->values, *joint_bounds_, near->as<StateType>()->values, distance);
+      joint_model_group_->getVariableRandomPositionsNearBy(moveit_rng_, state->as<StateType>()->values, *joint_bounds_, near->as<StateType>()->values, distance);
       state->as<StateType>()->clearKnownInformation();
     }
     
