@@ -86,7 +86,7 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   std::vector<double> near(dimension_, 0.0);
   for (std::size_t i = 0 ; i < dimension_; ++i)
     near[i] = seed_state(i);
-  joint_model_group_->getVariableRandomValuesNearBy(state_->getRandomNumberGenerator(), values, near, consistency_limits);
+  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near, consistency_limits);
   
   for (std::size_t i = 0; i < dimension_; ++i)
   {

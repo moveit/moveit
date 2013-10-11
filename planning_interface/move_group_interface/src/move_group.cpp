@@ -1498,7 +1498,7 @@ std::vector<double> moveit::planning_interface::MoveGroup::getCurrentJointValues
 std::vector<double> moveit::planning_interface::MoveGroup::getRandomJointValues()
 {
   std::vector<double> r;
-  impl_->getJointModelGroup()->getVariableRandomValues(impl_->getJointStateTarget().getRandomNumberGenerator(), r);
+  impl_->getJointModelGroup()->getVariableRandomPositions(impl_->getJointStateTarget().getRandomNumberGenerator(), r);
   return r;
 }
 
