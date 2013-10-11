@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added option to rviz plugin to show scene robot collision geometry
+
 0.5.7 (2013-10-01)
 ------------------
 

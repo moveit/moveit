@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add executable for publishing scene geometry from text
+* Made the goal duration margin and scaling optional rosparameters
+* bugfixes
+
 0.5.7 (2013-10-01)
 ------------------
 
