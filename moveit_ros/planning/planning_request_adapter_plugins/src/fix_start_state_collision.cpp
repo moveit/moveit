@@ -132,7 +132,7 @@ public:
         {
           std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
           const double *original_values = prefix_state->getJointPositions(jmodels[i]);
-          jmodels[i]->getVariableRandomValuesNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
+          jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
           start_state.setJointPositions(jmodels[i], sampled_variable_values);
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
