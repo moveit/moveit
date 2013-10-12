@@ -90,8 +90,13 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
 
 int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints)
 {
-  //Note that q_init and q_out will be of size chain.getNrOfJoints() - num_mimic_joints
-  qToqMimic(q_init,q_temp);
+  //  Note that q_init and q_out will be of size chain.getNrOfJoints()
+  //  qToqMimic(q_init,q_temp);
+
+  q_temp = q_init;
+  ROS_DEBUG_STREAM_NAMED("kdl","Input:");
+  for(std::size_t i=0; i < q_out.rows(); ++i)
+    ROS_DEBUG_NAMED("kdl","%d: %f",(int) i,q_out(i));
 
   unsigned int i;
   for(i=0;i<maxiter;++i)
@@ -122,6 +127,10 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
     for(std::size_t i=0; i < delta_q.rows(); ++i)
       ROS_DEBUG_NAMED("kdl","%d: %f",(int) i, delta_q(i));
 
+    ROS_DEBUG_STREAM_NAMED("kdl","q_temp");
+    for(std::size_t i=0; i < q_temp.rows(); ++i)
+      ROS_DEBUG_NAMED("kdl","%d: %f",(int) i, q_temp(i));
+
     for(std::size_t j=0; j<q_min_mimic.rows(); ++j)
     {
       if(mimic_joints[j].active)
@@ -135,13 +144,15 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
           q_temp(j) = q_max_mimic(j);
     }
 
+    //    q_out = q_temp;
     //Make sure limits are applied on the mimic joints to
-    qMimicToq(q_temp,q_out);
-    qToqMimic(q_out,q_temp);
+    //    qMimicToq(q_temp,q_out);
+    //    qToqMimic(q_out,q_temp);
 
   }
 
-  qMimicToq(q_temp, q_out);
+  //  qMimicToq(q_temp, q_out);
+  q_out = q_temp;
   ROS_DEBUG_STREAM_NAMED("kdl","Full Solution:");
   for(std::size_t i=0; i < q_temp.rows(); ++i)
     ROS_DEBUG_NAMED("kdl","%d: %f",(int) i,q_temp(i));

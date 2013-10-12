@@ -248,6 +248,21 @@ public:
       kinematics_query_options_ = opt;
     }
 
+    void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
+					   kinematics::KinematicsQueryOptions &options)
+    {
+      kinematics_query_options_map_[group_name] = options;
+    }
+
+    const bool getKinematicsQueryOptionsForGroup(const std::string& group_name, 
+						 kinematics::KinematicsQueryOptions &opt)
+    {
+      if(kinematics_query_options_map_.find(group_name) == kinematics_query_options_map_.end())
+	return false;
+      opt = kinematics_query_options_map_[group_name];
+      return true;
+    }
+
     void setMeshesVisible(bool visible)
     {
       display_meshes_ = visible;
@@ -421,6 +436,7 @@ public:
 
   private:
 
+    std::map<std::string, kinematics::KinematicsQueryOptions> kinematics_query_options_map_;
     mutable boost::mutex state_lock_;
     mutable boost::condition_variable state_available_condition_;
     boost::mutex pose_map_lock_;

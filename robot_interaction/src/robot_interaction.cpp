@@ -310,7 +310,12 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     return;
 
   robot_state::RobotStatePtr state = getUniqueStateAccess();
-  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_, kinematics_query_options_);
+
+  kinematics::KinematicsQueryOptions options;
+  if(!getKinematicsQueryOptionsForGroup(eef.parent_group, options))
+    options = kinematics_query_options_;
+
+  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_, options);
   setStateToAccess(state);
 
   bool error_state_changed = false;
