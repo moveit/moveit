@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
+ *  Copyright (c) 2013, Ioan A. Sucan
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -79,8 +80,13 @@ public:
       req2.goal_constraints[0] = req.path_constraints;
       req2.path_constraints = moveit_msgs::Constraints();
       planning_interface::MotionPlanResponse res2;
+      // we call the planner for this additional request, but we do not want to include potential 
+      // index information from that call
+      std::vector<std::size_t> added_path_index_temp;
+      added_path_index_temp.swap(added_path_index);
       bool solved1 = planner(planning_scene, req2, res2);
-
+      added_path_index_temp.swap(added_path_index);
+      
       if (solved1)
       {
         planning_interface::MotionPlanRequest req3 = req;
@@ -93,6 +99,13 @@ public:
 
         if (solved2)
         {
+          // since we add a prefix, we need to correct any existing index positions
+          for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
+            added_path_index[i] += res.trajectory_->getWayPointCount();
+          
+          // we mark the fact we insert a prefix path (we specify the index position we just added)
+          for (std::size_t i = 0 ; i < res.trajectory_->getWayPointCount() ; ++i)
+            added_path_index.push_back(i);          
           // we need to append the solution paths.
           res.trajectory_->append(*res2.trajectory_, 0.0);
           return true;
