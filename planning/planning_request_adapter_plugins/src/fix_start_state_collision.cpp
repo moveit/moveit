@@ -132,7 +132,7 @@ public:
         {
           std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
           const double *original_values = prefix_state->getJointPositions(jmodels[i]);
-          jmodels[i]->getVariableRandomValuesNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
+          jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
           start_state.setJointPositions(jmodels[i], sampled_variable_values);
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
@@ -154,6 +154,9 @@ public:
           // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
           res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
           res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
+          // we add a prefix point, so we need to bump any previously added index positions
+          for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
+            added_path_index[i]++;
           added_path_index.push_back(0);
         }
         return solved;
