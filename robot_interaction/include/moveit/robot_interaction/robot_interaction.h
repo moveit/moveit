@@ -257,9 +257,10 @@ public:
     const bool getKinematicsQueryOptionsForGroup(const std::string& group_name, 
 						 kinematics::KinematicsQueryOptions &opt)
     {
-      if(kinematics_query_options_map_.find(group_name) == kinematics_query_options_map_.end())
+      std::map<std::string, kinematics::KinematicsQueryOptions>::const_iterator it = kinematics_query_options_map_.find(group_name);
+      if (it == kinematics_query_options_map_.end())
 	return false;
-      opt = kinematics_query_options_map_[group_name];
+      opt = it->second;
       return true;
     }
 

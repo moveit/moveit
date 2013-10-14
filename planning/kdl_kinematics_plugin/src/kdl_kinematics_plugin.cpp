@@ -163,7 +163,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     return false;
   }
 
-  dimension_ = joint_model_group->getJointModels().size();
+  dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
   ik_chain_info_.joint_names = joint_model_group->getJointModelNames();
 
   for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
