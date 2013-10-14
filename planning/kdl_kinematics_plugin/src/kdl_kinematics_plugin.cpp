@@ -163,7 +163,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     return false;
   }
 
-  dimension_ = joint_model_group->getVariableCount();
+  dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
   ik_chain_info_.joint_names = joint_model_group->getJointModelNames();
 
   for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
@@ -302,6 +302,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
     }
   */
   std::vector<unsigned int> redundant_joints_map_index;
+  unsigned int counter = 0;
   for(std::size_t i=0; i < dimension_; ++i)
   {
     bool is_redundant_joint = false;
@@ -310,18 +311,24 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
       if(i == redundant_joints[j])
       {
         is_redundant_joint = true;
+	counter++;
         break;
       }
     }
     if(!is_redundant_joint)
     {
-      redundant_joints_map_index.push_back(i);
+      // check for mimic
+      if(mimic_joints_[i].active) 
+      {
+	redundant_joints_map_index.push_back(counter);
+	counter++;
+      }
     }
   }
   for(std::size_t i=0; i < redundant_joints_map_index.size(); ++i)
     ROS_DEBUG_NAMED("kdl","Redundant joint map index: %d %d", (int) i, (int) redundant_joints_map_index[i]);
 
-  redundant_joints_map_index_ = redundant_joints_map_index_;
+  redundant_joints_map_index_ = redundant_joints_map_index;
   redundant_joint_indices_ = redundant_joints;
   return true;
 }
