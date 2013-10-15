@@ -101,13 +101,15 @@ public:
         {
           // since we add a prefix, we need to correct any existing index positions
           for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
-            added_path_index[i] += res.trajectory_->getWayPointCount();
+            added_path_index[i] += res2.trajectory_->getWayPointCount();
           
           // we mark the fact we insert a prefix path (we specify the index position we just added)
-          for (std::size_t i = 0 ; i < res.trajectory_->getWayPointCount() ; ++i)
-            added_path_index.push_back(i);          
+          for (std::size_t i = 0 ; i < res2.trajectory_->getWayPointCount() ; ++i)
+            added_path_index.push_back(i);
+          
           // we need to append the solution paths.
-          res.trajectory_->append(*res2.trajectory_, 0.0);
+          res2.trajectory_->append(*res.trajectory_, 0.0);
+          res2.trajectory_->swap(*res.trajectory_);
           return true;
         }
         else
