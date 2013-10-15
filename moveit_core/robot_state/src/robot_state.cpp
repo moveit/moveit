@@ -198,7 +198,7 @@ void moveit::core::RobotState::markEffort()
 void moveit::core::RobotState::setToRandomPositions()
 {
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
-  robot_model_->getVariableRandomValues(rng, position_);
+  robot_model_->getVariableRandomPositions(rng, position_);
   memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
   dirty_link_transforms_ = robot_model_->getRootJoint();
   // mimic values are correctly set in RobotModel
@@ -211,7 +211,7 @@ void moveit::core::RobotState::setToRandomPositions(const JointModelGroup *group
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
   const std::vector<const JointModel*> &joints = group->getActiveJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    joints[i]->getVariableRandomValues(rng, position_ + joints[i]->getFirstVariableIndex());
+    joints[i]->getVariableRandomPositions(rng, position_ + joints[i]->getFirstVariableIndex());
   updateMimicJoint(group->getMimicJointModels());
   markDirtyJointTransforms(group);
 }
@@ -226,7 +226,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup 
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
   {
     const int idx = joints[i]->getFirstVariableIndex();
-    joints[i]->getVariableRandomValuesNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distances[i]);
+    joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distances[i]);
   }
   updateMimicJoint(group->getMimicJointModels());
   markDirtyJointTransforms(group);
@@ -241,7 +241,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup 
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
   {
     const int idx = joints[i]->getFirstVariableIndex();
-    joints[i]->getVariableRandomValuesNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distance);
+    joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(), near.position_ + idx, distance);
   }
   updateMimicJoint(group->getMimicJointModels());
   markDirtyJointTransforms(group);
@@ -250,14 +250,14 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup 
 bool moveit::core::RobotState::setToDefaultValues(const JointModelGroup *group, const std::string &name)
 {
   std::map<std::string, double> m;
-  bool r = group->getVariableDefaultValues(name, m); // mimic values are updated
+  bool r = group->getVariableDefaultPositions(name, m); // mimic values are updated
   setVariablePositions(m);
   return r;
 }
 
 void moveit::core::RobotState::setToDefaultValues()
 {
-  robot_model_->getVariableDefaultValues(position_); // mimic values are updated
+  robot_model_->getVariableDefaultPositions(position_); // mimic values are updated
   // set velocity & acceleration to 0
   memset(velocity_, 0, sizeof(double) * 2 * robot_model_->getVariableCount());
   memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
@@ -607,17 +607,17 @@ void moveit::core::RobotState::enforceBounds(const JointModelGroup *joint_group)
     enforceBounds(jm[i]);
 }
 
-std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds() const
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToPositionBounds() const
 {
-  return getMinDistanceToBounds(robot_model_->getActiveJointModels());
+  return getMinDistanceToPositionBounds(robot_model_->getActiveJointModels());
 }
 
-std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds(const JointModelGroup *group) const
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToPositionBounds(const JointModelGroup *group) const
 {
-  return getMinDistanceToBounds(group->getActiveJointModels());
+  return getMinDistanceToPositionBounds(group->getActiveJointModels());
 }
 
-std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToBounds(const std::vector<const JointModel*> &joints) const
+std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::getMinDistanceToPositionBounds(const std::vector<const JointModel*> &joints) const
 {
   double distance = std::numeric_limits<double>::max();
   const JointModel* index = NULL;
@@ -1316,7 +1316,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       // sample a random seed
       random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
       std::vector<double> random_values;
-      jmg->getVariableRandomValues(rng, random_values);
+      jmg->getVariableRandomPositions(rng, random_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[i] = random_values[bij[i]];
       
@@ -1519,7 +1519,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
         // sample a random seed
         random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
         std::vector<double> random_values;
-        sub_groups[sg]->getVariableRandomValues(rng, random_values);
+        sub_groups[sg]->getVariableRandomPositions(rng, random_values);
         for (std::size_t i = 0 ; i < bij.size() ; ++i)
           seed[i] = random_values[bij[i]];
       }
