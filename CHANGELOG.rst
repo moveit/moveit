@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.4 (2013-10-11)
+------------------
+* Add functionality for enforcing velocity limits; update API to better naming to cleanly support the new additions
+* Adding Travis Continuous Integration to MoveIt
+* remember if a group could be a parent of an eef, even if it is not the default one
+
 0.5.3 (2013-09-25)
 ------------------
 * remove use of flat_map

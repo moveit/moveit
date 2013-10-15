@@ -284,41 +284,41 @@ public:
 
 
   /** \brief Compute the random values for a RobotState */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, double *values) const;
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values) const;
 
   /** \brief Compute the default values for a RobotState */
-  void getVariableDefaultValues(double *values) const;
+  void getVariableDefaultPositions(double *values) const;
 
   /** \brief Compute the random values for a RobotState */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
   {
     values.resize(variable_count_);
-    getVariableRandomValues(rng, &values[0]);
+    getVariableRandomPositions(rng, &values[0]);
   }
   
   /** \brief Compute the default values for a RobotState */
-  void getVariableDefaultValues(std::vector<double> &values) const
+  void getVariableDefaultPositions(std::vector<double> &values) const
   {
     values.resize(variable_count_);
-    getVariableDefaultValues(&values[0]);
+    getVariableDefaultPositions(&values[0]);
   }
   
   /** \brief Compute the random values for a RobotState */
-  void getVariableRandomValues(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, std::map<std::string, double> &values) const;
 
   /** \brief Compute the default values for a RobotState */
-  void getVariableDefaultValues(std::map<std::string, double> &values) const;
+  void getVariableDefaultPositions(std::map<std::string, double> &values) const;
 
-  bool enforceBounds(double *state) const
+  bool enforcePositionBounds(double *state) const
   {
-    return enforceBounds(state, active_joint_models_bounds_);
+    return enforcePositionBounds(state, active_joint_models_bounds_);
   }
-  bool enforceBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
-  bool satisfiesBounds(const double *state, double margin = 0.0) const
+  bool enforcePositionBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
+  bool satisfiesPositionBounds(const double *state, double margin = 0.0) const
   {
-    return satisfiesBounds(state, active_joint_models_bounds_, margin);
+    return satisfiesPositionBounds(state, active_joint_models_bounds_, margin);
   }
-  bool satisfiesBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
+  bool satisfiesPositionBounds(const double *state, const JointBoundsVector &active_joint_bounds, double margin = 0.0) const;
   double getMaximumExtent() const
   {
     return getMaximumExtent(active_joint_models_bounds_);

@@ -142,7 +142,7 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &st
   {
     double reference_value0 = state.getJointPositions(cont_joints[i])[0];
     double reference_value = reference_value0;
-    cont_joints[i]->enforceBounds(&reference_value);
+    cont_joints[i]->enforcePositionBounds(&reference_value);
 
     // unwrap continuous joints
     double running_offset = reference_value0 - reference_value;
