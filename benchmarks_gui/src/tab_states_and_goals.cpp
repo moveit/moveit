@@ -170,6 +170,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
       else
       {
         //Create the new goal pose at the current eef pose, and attach an interactive marker to it
+        scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().update();
         Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(robot_interaction_->getActiveEndEffectors()[0].parent_link);
         createGoalAtPose(name, tip_pose);
       }
@@ -558,8 +559,6 @@ void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem * item)
 /* Receives feedback from the interactive marker attached to a goal pose */
 void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
 {
-  static Eigen::Affine3d initial_pose_eigen;
-
   if (feedback.event_type == feedback.BUTTON_CLICK)
   {
     //Unselect all but the clicked one. Needs to be in order, first unselect, then select.
@@ -580,24 +579,43 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN)
   {
-    //Store current poses
-    goals_dragging_initial_pose_.clear();
+    // First check to see if this mouse_down is happening on an
+    // already-selected goal pose.  A mouse_down event is sent even if
+    // the gesture turns out to be nothing but a click.
+    bool this_goal_already_selected = false;
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
-      if (it->second->isSelected() && it->second->isVisible())
+      if (it->second->isSelected() &&
+          it->second->isVisible() &&
+          it->second->imarker->getName() == feedback.marker_name)
       {
-        Eigen::Affine3d pose(Eigen::Quaterniond(it->second->imarker->getOrientation().w, it->second->imarker->getOrientation().x,
-                                                it->second->imarker->getOrientation().y, it->second->imarker->getOrientation().z));
-        pose(0,3) = it->second->imarker->getPosition().x;
-        pose(1,3) = it->second->imarker->getPosition().y;
-        pose(2,3) = it->second->imarker->getPosition().z;
-        goals_dragging_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
-
-        if (it->second->imarker->getName() == feedback.marker_name)
-          initial_pose_eigen = pose;
+        this_goal_already_selected = true;
       }
     }
-    goal_pose_dragging_=true;
+
+    // If this is a mouse-down on an already-selected goal pose, we
+    // want to initialize dragging all selected goal poses at the same
+    // time.
+    if(this_goal_already_selected) {
+      //Store current poses
+      goals_dragging_initial_pose_.clear();
+      for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+      {
+        if (it->second->isSelected() && it->second->isVisible())
+        {
+          Eigen::Affine3d pose(Eigen::Quaterniond(it->second->imarker->getOrientation().w, it->second->imarker->getOrientation().x,
+                                                  it->second->imarker->getOrientation().y, it->second->imarker->getOrientation().z));
+          pose(0,3) = it->second->imarker->getPosition().x;
+          pose(1,3) = it->second->imarker->getPosition().y;
+          pose(2,3) = it->second->imarker->getPosition().z;
+          goals_dragging_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
+
+          if (it->second->imarker->getName() == feedback.marker_name)
+            drag_initial_pose_ = pose;
+        }
+      }
+      goal_pose_dragging_=true;
+    }
   }
   else if (feedback.event_type == feedback.POSE_UPDATE && goal_pose_dragging_)
   {
@@ -605,7 +623,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     Eigen::Affine3d current_pose_eigen;
     tf::poseMsgToEigen(feedback.pose, current_pose_eigen);
 
-    Eigen::Affine3d current_wrt_initial = initial_pose_eigen.inverse() * current_pose_eigen;
+    Eigen::Affine3d current_wrt_initial = drag_initial_pose_.inverse() * current_pose_eigen;
 
     //Display the pose in the ui
     Eigen::Vector3d v = current_pose_eigen.linear().eulerAngles(0,1,2);
@@ -625,7 +643,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
       {
         visualization_msgs::InteractiveMarkerPose impose;
 
-        Eigen::Affine3d newpose = initial_pose_eigen * current_wrt_initial * initial_pose_eigen.inverse() * goals_dragging_initial_pose_[it->second->imarker->getName()];
+        Eigen::Affine3d newpose = drag_initial_pose_ * current_wrt_initial * drag_initial_pose_.inverse() * goals_dragging_initial_pose_[it->second->imarker->getName()];
         tf::poseEigenToMsg(newpose, impose.pose);
 
         it->second->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
