@@ -418,6 +418,15 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
       last_update_time_ = ros::Time::now();
       old_scene_name = scene_->getName();
       scene_->usePlanningSceneMsg(*scene);
+      if (octomap_monitor_)
+      {
+        if (!scene->is_diff && scene->world.octomap.octomap.data.empty())
+        {
+          octomap_monitor_->getOcTreePtr()->lockWrite();
+          octomap_monitor_->getOcTreePtr()->clear();
+          octomap_monitor_->getOcTreePtr()->unlockWrite();
+        }
+      }
       robot_model_ = scene_->getRobotModel();
 
       // if we just reset the scene completely but we were maintaining diffs, we need to fix that
@@ -475,6 +484,15 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback
       last_update_time_ = ros::Time::now();
       scene_->getWorldNonConst()->clearObjects();
       scene_->processPlanningSceneWorldMsg(*world);
+      if (octomap_monitor_)
+      {
+        if (world->octomap.octomap.data.empty())
+        {
+          octomap_monitor_->getOcTreePtr()->lockWrite();
+          octomap_monitor_->getOcTreePtr()->clear();
+          octomap_monitor_->getOcTreePtr()->unlockWrite();
+        }
+      }
     }
     triggerSceneUpdateEvent(UPDATE_SCENE);
   }
