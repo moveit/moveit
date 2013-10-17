@@ -334,12 +334,38 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
   bool wrong_link = false;
   if (sampling_pose_.position_constraint_)
   {
-    if (!robot_state::Transforms::sameFrame(kb_->getTipFrame(), sampling_pose_.position_constraint_->getLinkModel()->getName()))
+    const moveit::core::LinkModel *lm = sampling_pose_.position_constraint_->getLinkModel();
+    if (!moveit::core::Transforms::sameFrame(kb_->getTipFrame(), lm->getName()))
+    {
       wrong_link = true;
+      const moveit::core::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+      for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+        {
+          sampling_pose_.position_constraint_->swapLinkModel(jmg_->getParentModel().getLinkModel(it->first->getName()), it->second);
+          wrong_link = false;
+          break;
+        }
+    }
   }
-  else
-    if (!robot_state::Transforms::sameFrame(kb_->getTipFrame(), sampling_pose_.orientation_constraint_->getLinkModel()->getName()))
+  
+  if (!wrong_link && sampling_pose_.orientation_constraint_)
+  {
+    const moveit::core::LinkModel *lm = sampling_pose_.orientation_constraint_->getLinkModel();
+    if (!robot_state::Transforms::sameFrame(kb_->getTipFrame(), lm->getName()))
+    {
       wrong_link = true;
+      const moveit::core::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+      for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+        {
+          sampling_pose_.orientation_constraint_->swapLinkModel(jmg_->getParentModel().getLinkModel(it->first->getName()), it->second.rotation());
+          wrong_link = false;
+          break;
+        }      
+    }
+  }
+  
   if (wrong_link)
   {
     logError("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.",
