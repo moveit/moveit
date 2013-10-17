@@ -303,7 +303,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       if (!transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_))
       {    
         p->goal_pose_ = pl.place_pose;
-        logError("Unable to transform the desired pose of the object to the pose of the end-effector");
+        ROS_ERROR("Unable to transform the desired pose of the object to the pose of the end-effector");
       }
     
     p->approach_ = pl.pre_place_approach;
