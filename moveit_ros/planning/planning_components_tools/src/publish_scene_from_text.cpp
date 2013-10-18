@@ -39,6 +39,18 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "publish_planning_scene", ros::init_options::AnonymousName);  
+
+  // decide whether to publish the full scene
+  bool full_scene = false;
+  
+  // the index of the argument with the filename
+  int filename_index = 1;
+  if (argc > 2)
+    if (strncmp(argv[1], "--scene", 7) == 0)
+    {
+      full_scene = true;
+      filename_index = 2;
+    }
   
   if (argc > 1)
   {
@@ -46,7 +58,11 @@ int main(int argc, char **argv)
     spinner.start();
     
     ros::NodeHandle nh;
-    ros::Publisher pub_scene = nh.advertise<moveit_msgs::PlanningSceneWorld>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC, 1);
+    ros::Publisher pub_scene;
+    if (full_scene)
+      pub_scene = nh.advertise<moveit_msgs::PlanningScene>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC, 1);
+    else
+      pub_scene = nh.advertise<moveit_msgs::PlanningSceneWorld>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC, 1);
     
     robot_model_loader::RobotModelLoader::Options opt;
     opt.robot_description_ = "robot_description";
@@ -54,19 +70,29 @@ int main(int argc, char **argv)
     robot_model_loader::RobotModelLoaderPtr rml(new robot_model_loader::RobotModelLoader(opt));
     planning_scene::PlanningScene ps(rml->getModel());
     
-    std::ifstream f(argv[1]);
+    std::ifstream f(argv[filename_index]);
     if (f.good() && !f.eof())
     {
-      ROS_INFO("Publishing geometry from '%s' ...", argv[1]);
+      ROS_INFO("Publishing geometry from '%s' ...", argv[filename_index]);
       ps.loadGeometryFromStream(f);
       moveit_msgs::PlanningScene ps_msg;
       ps.getPlanningSceneMsg(ps_msg);
-      sleep(1);
-      pub_scene.publish(ps_msg.world);
+      ps_msg.is_diff = true;
+      
+      ros::WallDuration dt(0.5);
+      unsigned int attempts = 0;
+      while (pub_scene.getNumSubscribers() < 1 && ++attempts < 100)
+        dt.sleep();
+      
+      if (full_scene)
+        pub_scene.publish(ps_msg);
+      else
+        pub_scene.publish(ps_msg.world);
+
       sleep(1);
     }
     else
-      ROS_WARN("Unable to load '%s'.", argv[1]);
+      ROS_WARN("Unable to load '%s'.", argv[filename_index]);
   }
   else
     ROS_WARN("A filename was expected as argument. That file should be a text representation of the geometry in a planning scene.");
