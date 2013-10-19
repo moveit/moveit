@@ -35,7 +35,15 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
 {
   mimic_joints.resize(chain.getNrOfJoints());
   for(std::size_t i=0; i < mimic_joints.size(); ++i)
+  { 
     mimic_joints[i].reset(i);
+  }
+  ROS_DEBUG("Limits");
+  for(std::size_t i=0; i < q_min.rows(); ++i)
+  { 
+    ROS_DEBUG("%d: Min: %f, Max: %f", i, q_min(i), q_max(i));
+  }
+  ROS_DEBUG(" ");
 }
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
@@ -57,8 +65,8 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   mimic_joints = _mimic_joints;
 
   //Note that q_min and q_max will be of size chain.getNrOfJoints() - num_mimic_joints
-  qToqMimic(q_min,q_min_mimic);
-  qToqMimic(q_max,q_max_mimic);
+  //  qToqMimic(q_min,q_min_mimic);
+  //  qToqMimic(q_max,q_max_mimic);
 
   ROS_DEBUG_NAMED("kdl","Set mimic joints");
   return true;
@@ -131,17 +139,17 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
     for(std::size_t i=0; i < q_temp.rows(); ++i)
       ROS_DEBUG_NAMED("kdl","%d: %f",(int) i, q_temp(i));
 
-    for(std::size_t j=0; j<q_min_mimic.rows(); ++j)
+    for(std::size_t j=0; j<q_min.rows(); ++j)
     {
-      if(mimic_joints[j].active)
-        if(q_temp(j) < q_min_mimic(j))
-          q_temp(j) = q_min_mimic(j);
+      //      if(mimic_joints[j].active)
+        if(q_temp(j) < q_min(j))
+          q_temp(j) = q_min(j);
     }
-    for(std::size_t j=0; j<q_max_mimic.rows(); ++j)
+    for(std::size_t j=0; j<q_max.rows(); ++j)
     {
-      if(mimic_joints[j].active)
-        if(q_temp(j) > q_max_mimic(j))
-          q_temp(j) = q_max_mimic(j);
+      //      if(mimic_joints[j].active)
+        if(q_temp(j) > q_max(j))
+          q_temp(j) = q_max(j);
     }
 
     //    q_out = q_temp;
