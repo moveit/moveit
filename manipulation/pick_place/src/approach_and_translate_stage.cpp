@@ -168,7 +168,7 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
 bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data,
   const trajectory_msgs::JointTrajectory &detach_posture, const plan_execution::ExecutableMotionPlan *motion_plan)
 {
-  ROS_DEBUG("Applying attached object diff to maintained planning scene (attaching object to end effector)");
+  ROS_DEBUG("Applying attached object diff to maintained planning scene (attaching/detaching object to end effector)");
   bool ok = false;
   {
     planning_scene_monitor::LockedPlanningSceneRW ps(motion_plan->planning_scene_monitor_);
@@ -186,7 +186,7 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_d
 // Add the close end effector trajectory to the overall plan (after the approach trajectory, before the retreat)
 void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix, const std::string &name)
 {
-  // Check if a closed end effector configuration was specified
+  // Check if a "closed" end effector configuration was specified
   if (!plan->retreat_posture_.joint_names.empty())
   {
     robot_state::RobotStatePtr ee_closed_state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
