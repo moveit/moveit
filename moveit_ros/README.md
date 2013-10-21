@@ -7,3 +7,7 @@ This repository includes components of MoveIt that use ROS. This is where much o
 - benchmarking
 - manipulation
 - visualization
+
+## Build Status
+
+[![Build Status](https://travis-ci.org/ros-planning/moveit_ros.png?branch=hydro-devel)](https://travis-ci.org/ros-planning/moveit_ros)
