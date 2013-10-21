@@ -217,6 +217,8 @@ private:
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
 
+  bool isStateColliding(robot_state::RobotState& robot_state, const std::string& group_name);
+
   void checkIfGoalInCollision(const std::string & goal_name);
   void checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable = false);
   void computeLoadBenchmarkResults(const std::string &file);

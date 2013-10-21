@@ -701,6 +701,41 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   setStatusFromBackground(STATUS_INFO, "");
 }
 
+bool MainWindow::isStateColliding(robot_state::RobotState& robot_state, const std::string& group_name)
+{
+  // Want to do what you'd think this function would do:
+  // scene_display_->getPlanningSceneRO()->isStateColliding(robot_state, group_name);
+
+  collision_detection::AllowedCollisionMatrix acm( scene_display_->getPlanningSceneRO()->getAllowedCollisionMatrix() );
+  // get link names in group_name
+  const std::vector<std::string>& group_link_names =
+    scene_display_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry();
+
+  // Create a set of links which is all links minus links in the group.
+  const std::vector<std::string>& all_links = scene_display_->getRobotModel()->getLinkModelNames();
+  std::set<std::string> link_set(all_links.begin(), all_links.end());
+  for(size_t i = 0; i < group_link_names.size(); i++ )
+  {
+    link_set.erase(group_link_names[i]);
+  }
+
+  // for each link name in the set,
+  for(std::set<std::string>::const_iterator it = link_set.begin(); it != link_set.end(); it++ )
+  {
+    // allow collisions with link.
+    acm.setEntry(*it, true);
+  }
+
+  // call checkCollision();
+  collision_detection::CollisionRequest req;
+  req.verbose = false;
+  collision_detection::CollisionResult  res;
+  scene_display_->getPlanningSceneRO()->checkCollision(req, res, robot_state, acm);
+
+  // return result boolean.
+  return res.collision;
+}
+
 void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 {
   if ( goal_poses_.find(goal_name) == goal_poses_.end())
@@ -718,7 +753,7 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 
   robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
-  bool in_collision = scene_display_->getPlanningSceneRO()->isStateColliding(ks, eef.eef_group);
+  bool in_collision = isStateColliding(ks, eef.eef_group);
 
   if ( in_collision )
   {
