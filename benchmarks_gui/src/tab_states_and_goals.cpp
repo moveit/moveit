@@ -778,6 +778,7 @@ void MainWindow::copySelectedGoalPoses(void)
     std::stringstream ss;
     ss << scene_name.c_str() << "_pose_" << std::setfill('0') << std::setw(4) << goal_poses_.size();
 
+    scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().update();
     Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(robot_interaction_->getActiveEndEffectors()[0].parent_link);
     geometry_msgs::Pose marker_pose;
     marker_pose.position.x = goal_poses_[name]->imarker->getPosition().x;
