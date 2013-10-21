@@ -82,6 +82,7 @@ void MainWindow::createTrajectoryButtonClicked(void)
       else
       {
         //Create the new trajectory starting point at the current eef pose, and attach an interactive marker to it
+        scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().update();
         Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(robot_interaction_->getActiveEndEffectors()[0].parent_link);
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
@@ -337,6 +338,7 @@ void MainWindow::trajectoryExecuteButtonClicked()
     if (waypoint_poses.size() > 0)
     {
       robot_state::RobotState &rstate = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst();
+      rstate.update();
       const robot_model::JointModelGroup *jmg = rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
 
       std::vector<robot_state::RobotStatePtr> traj;
