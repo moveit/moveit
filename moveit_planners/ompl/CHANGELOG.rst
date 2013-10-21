@@ -2,6 +2,10 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.3 (2013-10-11)
+------------------
+* update to new API
+
 0.5.2 (2013-09-23)
 ------------------
 * porting to new robot state
