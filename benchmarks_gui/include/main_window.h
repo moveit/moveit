@@ -166,6 +166,7 @@ private:
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
   void selectItemJob(QListWidgetItem *item, bool flag);
+  void saveGoalsToDB();
 
   //robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
