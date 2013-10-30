@@ -87,7 +87,7 @@
       <item>
        <widget class="QPushButton" name="db_connect_button">
         <property name="text">
-         <string>Disconnected</string>
+         <string>Connect</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
