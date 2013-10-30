@@ -128,7 +128,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     visualization_manager_->getSelectionManager()->enableInteraction(true);
 
     //Setup ui: colors and icons
-    ui_.db_connect_button->setStyleSheet("QPushButton { color : red }");
+    ui_.db_connect_button->setStyleSheet("QPushButton { color : green }");
 
     ui_.goal_poses_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
     ui_.goal_poses_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
@@ -605,7 +605,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
       ui_.db_combo->addItems(name_list);
 
       //Connect
-      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : yellow }"));
+      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : green }"));
       try
       {
         planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(database_host_,
@@ -621,12 +621,12 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
         //Get all the scenes
         populatePlanningSceneList();
 
-        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connected", "QPushButton { color : green }"));
+        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
       }
       catch(std::runtime_error &ex)
       {
         ROS_ERROR("%s", ex.what());
-        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
         JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", ex.what()));
         return;
       }
