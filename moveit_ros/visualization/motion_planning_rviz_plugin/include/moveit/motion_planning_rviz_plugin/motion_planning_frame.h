@@ -263,7 +263,7 @@ private:
   //General
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
-
+  void loadStoredStates(const std::string& pattern);
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);

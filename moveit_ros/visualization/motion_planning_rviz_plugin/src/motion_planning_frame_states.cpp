@@ -62,54 +62,60 @@ void MotionPlanningFrame::loadStateButtonClicked()
   if (robot_state_storage_)
   {
     bool ok;
+
     QString text = QInputDialog::getText(this, tr("Robot states to load"), tr("Pattern:"), QLineEdit::Normal, ".*", &ok);
     if (ok && ! text.isEmpty())
     {
-      //First clear the current list
-      clearStatesButtonClicked();
-
-      std::vector<std::string> names;
-      try
-      {
-        robot_state_storage_->getKnownRobotStates(text.toStdString(), names);
-      }
-      catch (std::runtime_error &ex)
-      {
-        QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
-        return;
-      }
-
-      for ( std::size_t i = 0 ; i < names.size() ; ++i )
-      {
-        moveit_warehouse::RobotStateWithMetadata rs;
-        bool got_state = false;
-        try
-        {
-          got_state = robot_state_storage_->getRobotState(rs, names[i]);
-        }
-        catch(std::runtime_error &ex)
-        {
-          ROS_ERROR("%s", ex.what());
-        }
-        if (!got_state)
-          continue;
-
-        //Overwrite if exists.
-        if (robot_states_.find(names[i]) != robot_states_.end())
-        {
-          robot_states_.erase(names[i]);
-        }
-
-        //Store the current start state
-        robot_states_.insert(RobotStatePair(names[i], *rs));
-      }
-      populateRobotStatesList();
+      loadStoredStates(text.toStdString());
     }
   }
   else
   {
     QMessageBox::warning(this, "Warning", "Not connected to a database.");
   }
+}
+
+void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
+{
+  std::vector<std::string> names;
+  try
+  {
+    robot_state_storage_->getKnownRobotStates(pattern, names);
+  }
+  catch (std::runtime_error &ex)
+  {
+    QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
+    return;
+  }
+
+  // Clear the current list
+  clearStatesButtonClicked();
+
+  for ( std::size_t i = 0 ; i < names.size() ; ++i )
+  {
+    moveit_warehouse::RobotStateWithMetadata rs;
+    bool got_state = false;
+    try
+    {
+      got_state = robot_state_storage_->getRobotState(rs, names[i]);
+    }
+    catch(std::runtime_error &ex)
+    {
+      ROS_ERROR("%s", ex.what());
+    }
+    if (!got_state)
+      continue;
+
+    //Overwrite if exists.
+    if (robot_states_.find(names[i]) != robot_states_.end())
+    {
+      robot_states_.erase(names[i]);
+    }
+
+    //Store the current start state
+    robot_states_.insert(RobotStatePair(names[i], *rs));
+  }
+  populateRobotStatesList();
 }
 
 void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotState &state)
