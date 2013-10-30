@@ -900,7 +900,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   // number of runs to execute every *algorithm* per *plugin*
   std::vector<std::size_t> runs_per_planner_interface;  // average_count_per_planner_interface
 
-  planning_interface::MotionPlanRequest mp_req = req.motion_plan_request;
+  planning_interface::MotionPlanRequest motion_plan_req = req.motion_plan_request;
 
   // loop through each planning interface
   for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces_.begin() ;
@@ -923,7 +923,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     }
 
     // Determine whether this plugin instance is able to represent this planning request
-    if (it->second->canServiceRequest(mp_req))
+    if (it->second->canServiceRequest(motion_plan_req))
     {
       // copy the pointer of the planner_interface
       planner_interfaces_to_benchmark.push_back(it->second.get());
@@ -953,7 +953,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           {
             // Check if the requested planner is actually in the plugin
             if (known[q] == req.plugins[found].planners[k] ||
-                mp_req.group_name + "[" + req.plugins[found].planners[k] + "]" == known[q])
+                motion_plan_req.group_name + "[" + req.plugins[found].planners[k] + "]" == known[q])
             {
               planner_found = true;
               break;
@@ -989,18 +989,17 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   }
 
   // output information about planners to be tested
-  ROS_INFO("Benchmarking planning interfaces:");
   std::stringstream sst;
   for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
   {
     if (planner_ids_to_benchmark_per_planner_interface[i].empty())
       continue;
-    sst << "  * " << planner_interfaces_to_benchmark[i]->getDescription() << " will execute " << runs_per_planner_interface[i] << " times" << std::endl;
+    sst << "  * " << planner_interfaces_to_benchmark[i]->getDescription() << " - Will execute interface " << runs_per_planner_interface[i] << " times:" << std::endl;
     for (std::size_t k = 0 ; k < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++k)
       sst << "    - " << planner_ids_to_benchmark_per_planner_interface[i][k] << std::endl;
     sst << std::endl;
   }
-  ROS_INFO("\n%s", sst.str().c_str());
+  ROS_INFO("Benchmarking Planning Interfaces:\n%s", sst.str().c_str());
 
   // configure planning context
   if (req.scene.robot_model_name != planning_scene_->getRobotModel()->getName())
@@ -1036,7 +1035,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   ros::WallTime startTime = ros::WallTime::now();
   boost::progress_display progress(total_n_runs, std::cout);
   std::vector<AlgorithmRunsData> data; // holds all of the results
-  std::vector<bool> first(planner_interfaces_to_benchmark.size(), true);
+  std::vector<bool> first_solution_flag(planner_interfaces_to_benchmark.size(), true);
 
   // loop through the planning plugins
   for (std::size_t i = 0 ; i < planner_interfaces_to_benchmark.size() ; ++i)
@@ -1044,7 +1043,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     // loop through the algorithms in each plugin
     for (std::size_t j = 0 ; j < planner_ids_to_benchmark_per_planner_interface[i].size() ; ++j)
     {
-      mp_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
+      motion_plan_req.planner_id = planner_ids_to_benchmark_per_planner_interface[i][j];
       AlgorithmRunsData runs(runs_per_planner_interface[i]*n_parameter_sets);
 
       // param tracking
@@ -1063,11 +1062,11 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
         // apply the current parameter, if we are using those
         if( n_parameter_sets > 1 )
         {
-          modifyPlannerConfiguration(*planner_interfaces_to_benchmark[i], mp_req.planner_id, param_combinations_id_, parameter_data);
+          modifyPlannerConfiguration(*planner_interfaces_to_benchmark[i], motion_plan_req.planner_id, param_combinations_id_, parameter_data);
           ++param_combinations_id_;
         }
 
-        planning_interface::PlanningContextPtr pcontext = planner_interfaces_to_benchmark[i]->getPlanningContext(planning_scene_, mp_req);
+        planning_interface::PlanningContextPtr pcontext = planner_interfaces_to_benchmark[i]->getPlanningContext(planning_scene_, motion_plan_req);
 
         // loop through the desired number of runs
         for (unsigned int run_count = 0 ; run_count < runs_per_planner_interface[i] ; ++run_count)
@@ -1077,14 +1076,11 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
           ++progress; // this outputs asterisks
 
-
           // run a single benchmark
-          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), mp_req.planner_id.c_str());
+          ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), motion_plan_req.planner_id.c_str());
           pcontext->clear();
-
           planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
-
           bool solved = pcontext->solve(mp_res);
           double total_time = (ros::WallTime::now() - start).toSec();
 
@@ -1097,9 +1093,9 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
           ROS_DEBUG("Spent %lf seconds collecting metrics", metrics_time);
 
           // record the first solution in the response
-          if (solved && first[i])
+          if (solved && first_solution_flag[i])
           {
-            first[i] = false;
+            first_solution_flag[i] = false;
           }
         }
       }
