@@ -7,7 +7,7 @@
   </description>
 
   <author email="davetcoleman@gmail.com">Dave Coleman</author>
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
   <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
   <license>BSD</license>
 
@@ -26,5 +26,6 @@
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>yaml-cpp</run_depend>
+  <run_depend>xacro</run_depend>
 
 </package>
