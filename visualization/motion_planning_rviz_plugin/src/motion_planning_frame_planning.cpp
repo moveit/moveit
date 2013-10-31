@@ -94,12 +94,27 @@ void MotionPlanningFrame::computePlanButtonClicked()
 {
   if (!move_group_)
     return;
+
+  // Clear status
+  ui_->result_label->setText("Planning...");
+
   configureForPlanning();
   current_plan_.reset(new moveit::planning_interface::MoveGroup::Plan());
   if (move_group_->plan(*current_plan_))
+  {
     ui_->execute_button->setEnabled(true);
+
+    // Success
+    ui_->result_label->setText(QString("Time: ").append(
+        QString::number(current_plan_->planning_time_,'f',3)));
+  }
   else
+  {
     current_plan_.reset();
+
+    // Failure
+    ui_->result_label->setText("Failed");
+  }
 }
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
