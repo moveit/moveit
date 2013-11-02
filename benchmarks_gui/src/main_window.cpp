@@ -39,6 +39,7 @@
 
 #include <QShortcut>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include <assert.h>
 #include <string>
@@ -58,6 +59,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     QMainWindow(parent),
     goal_pose_dragging_(false)
 {
+  QMessageBox::warning(this, "Development", "This GUI is under development and has many issues. Use at your own risk.");
+
   setWindowTitle("Benchmark Tool");
 
   goal_offset_.setIdentity();

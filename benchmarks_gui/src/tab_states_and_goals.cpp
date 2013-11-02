@@ -62,7 +62,6 @@
 namespace benchmark_tool
 {
 
-
 void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose)
 {
   goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(name, pose));
@@ -78,48 +77,63 @@ void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d
   // Connect signals
   goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
 
-  //If connected to a database, store the constraint
+  //If connected to a database, save all the goals back to the database
   if (constraints_storage_)
   {
-    moveit_msgs::Constraints c;
-    c.name = name;
+    saveGoalsToDB();
+  }
+}
 
-    shape_msgs::SolidPrimitive sp;
-    sp.type = sp.BOX;
-    sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
+void MainWindow::saveGoalsToDB()
+{
+  if (constraints_storage_)
+  {
+    //Convert all goal pose markers into constraints and store them
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
+    {
+      moveit_msgs::Constraints constraints;
+      constraints.name = it->first;
 
-    moveit_msgs::PositionConstraint pc;
-    pc.constraint_region.primitives.push_back(sp);
-    geometry_msgs::Pose posemsg;
-    posemsg.position.x = goal_pose->imarker->getPosition().x;
-    posemsg.position.y = goal_pose->imarker->getPosition().y;
-    posemsg.position.z = goal_pose->imarker->getPosition().z;
-    posemsg.orientation.x = 0.0;
-    posemsg.orientation.y = 0.0;
-    posemsg.orientation.z = 0.0;
-    posemsg.orientation.w = 1.0;
-    pc.constraint_region.primitive_poses.push_back(posemsg);
-    pc.weight = 1.0;
-    c.position_constraints.push_back(pc);
+      shape_msgs::SolidPrimitive sp;
+      sp.type = sp.BOX;
+      sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
 
-    moveit_msgs::OrientationConstraint oc;
-    oc.orientation.x = goal_pose->imarker->getOrientation().x;
-    oc.orientation.y = goal_pose->imarker->getOrientation().y;
-    oc.orientation.z = goal_pose->imarker->getOrientation().z;
-    oc.orientation.w = goal_pose->imarker->getOrientation().w;
-    oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
+      moveit_msgs::PositionConstraint pc;
+      pc.header.frame_id = scene_display_->getRobotModel()->getModelFrame();
+      pc.link_name = robot_interaction_->getActiveEndEffectors()[0].parent_link; // TODO this is hacky i think
+      pc.constraint_region.primitives.push_back(sp);
+      geometry_msgs::Pose posemsg;
+      it->second->getPosition(posemsg.position);
+      posemsg.orientation.x = 0.0;
+      posemsg.orientation.y = 0.0;
+      posemsg.orientation.z = 0.0;
+      posemsg.orientation.w = 1.0;
+      pc.constraint_region.primitive_poses.push_back(posemsg);
+      pc.weight = 1.0;
+      constraints.position_constraints.push_back(pc);
+
+      moveit_msgs::OrientationConstraint oc;
+      oc.header.frame_id = scene_display_->getRobotModel()->getModelFrame();
+      oc.link_name = robot_interaction_->getActiveEndEffectors()[0].parent_link; // TODO this is hacky i think
+      it->second->getOrientation(oc.orientation);
+      oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
         oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
-    oc.weight = 1.0;
-    c.orientation_constraints.push_back(oc);
+      oc.weight = 1.0;
+      constraints.orientation_constraints.push_back(oc);
 
-    try
-    {
-      constraints_storage_->addConstraints(c);
+      try
+      {
+        constraints_storage_->addConstraints(constraints);
+      }
+      catch (std::runtime_error &ex)
+      {
+        ROS_ERROR("Cannot save constraint: %s", ex.what());
+      }
     }
-    catch (std::runtime_error &ex)
-    {
-      ROS_ERROR("Cannot save constraint on database: %s", ex.what());
-    }
+  }
+  else
+  {
+    QMessageBox::warning(this, "Warning", "Not connected to a database.");
   }
 }
 
@@ -309,51 +323,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
 
 void MainWindow::saveGoalsOnDBButtonClicked(void)
 {
-  if (constraints_storage_)
-  {
-    //Convert all goal pose markers into constraints and store them
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
-    {
-      moveit_msgs::Constraints c;
-      c.name = it->first;
-
-      shape_msgs::SolidPrimitive sp;
-      sp.type = sp.BOX;
-      sp.dimensions.resize(3, std::numeric_limits<float>::epsilon() * 10.0);
-
-      moveit_msgs::PositionConstraint pc;
-      pc.constraint_region.primitives.push_back(sp);
-      geometry_msgs::Pose posemsg;
-      it->second->getPosition(posemsg.position);
-      posemsg.orientation.x = 0.0;
-      posemsg.orientation.y = 0.0;
-      posemsg.orientation.z = 0.0;
-      posemsg.orientation.w = 1.0;
-      pc.constraint_region.primitive_poses.push_back(posemsg);
-      pc.weight = 1.0;
-      c.position_constraints.push_back(pc);
-
-      moveit_msgs::OrientationConstraint oc;
-      it->second->getOrientation(oc.orientation);
-      oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-        oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
-      oc.weight = 1.0;
-      c.orientation_constraints.push_back(oc);
-
-      try
-      {
-        constraints_storage_->addConstraints(c);
-      }
-      catch (std::runtime_error &ex)
-      {
-        ROS_ERROR("Cannot save constraint: %s", ex.what());
-      }
-    }
-  }
-  else
-  {
-    QMessageBox::warning(this, "Warning", "Not connected to a database.");
-  }
+  saveGoalsToDB();
 }
 
 void MainWindow::deleteGoalsOnDBButtonClicked(void)
