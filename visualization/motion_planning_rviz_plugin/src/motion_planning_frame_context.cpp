@@ -183,6 +183,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
           ui_->save_scene_button->setEnabled(true);
           ui_->reset_db_button->show();
           populatePlanningSceneTreeView();
+          loadStoredStates(".*"); // automatically populate the 'Stored States' tab with all states
           if (move_group_)
           {
             move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
