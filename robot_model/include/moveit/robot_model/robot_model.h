@@ -111,7 +111,7 @@ public:
   /** \brief Print information about the constructed model */
   void printModelInfo(std::ostream &out) const;
 
-  /** \defgroup RobotModel_JointModelAccess Access to joint models
+  /** \name Access to joint models
    *  @{
    */
 
@@ -215,7 +215,7 @@ public:
   
   /** @} */
 
-  /** \defgroup RobotModel_LinkModelAccess Access to link models
+  /** \name Access to link models
    *  @{
    */
 
@@ -328,7 +328,7 @@ public:
   double distance(const double *state1, const double *state2) const;  
   void interpolate(const double *from, const double *to, double t, double *state) const;
 
-  /** \defgroup RobotModel_JointGroupModelAccess Access to joint groups
+  /** \name Access to joint groups
    *  @{
    */
   

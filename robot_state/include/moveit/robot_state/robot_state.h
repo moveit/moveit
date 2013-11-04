@@ -126,7 +126,7 @@ public:
     return robot_model_->getJointModelGroup(group);
   }
   
-  /** \defgroup setVariablePosition_Fn Getting and setting variable position
+  /** \name Getting and setting variable position
    *  @{
    */
   
@@ -205,7 +205,7 @@ public:
   
   /** @} */
 
-  /** \defgroup setVariableVelocity_Fn Getting and setting variable velocity
+  /** \name Getting and setting variable velocity
    *  @{
    */
 
@@ -285,7 +285,7 @@ public:
   /** @} */
 
 
-  /** \defgroup setVariableAcceleration_Fn Getting and setting variable acceleration
+  /** \name Getting and setting variable acceleration
    *  @{
    */
 
@@ -366,7 +366,7 @@ public:
   /** @} */
 
   
-  /** \defgroup setVariableAcceleration_Fn Getting and setting variable effort
+  /** \name Getting and setting variable effort
    *  @{
    */
 
@@ -445,7 +445,7 @@ public:
   
   /** @} */
 
-  /** \defgroup setJointPosition_Fn Getting and setting joint positions, velocities, accelerations and effort
+  /** \name Getting and setting joint positions, velocities, accelerations and effort
    *  @{
    */
   void setJointPositions(const std::string &joint_name, const double *position)
@@ -525,7 +525,7 @@ public:
   /** @} */
   
   
-  /** \defgroup setGroupPosition_Fn Getting and setting group positions
+  /** \name Getting and setting group positions
    *  @{
    */
 
@@ -868,7 +868,7 @@ as the new values that correspond to the group */
   
   /** @} */
 
-  /** \defgroup setGroupPosition_Fn Getting and setting whole states
+  /** \name Getting and setting whole states
    *  @{
    */
   
@@ -889,7 +889,7 @@ as the new values that correspond to the group */
 
   /** @} */
   
-  /** \defgroup RobotStateGetTransforms Updating and getting transforms
+  /** \name Updating and getting transforms
    *  @{
    */
   
@@ -1007,7 +1007,7 @@ as the new values that correspond to the group */
   
   /** @} */
   
-  /** \defgroup distanceFunctions Computing distances
+  /** \name Computing distances
    *  @{
    */
   
@@ -1095,7 +1095,7 @@ as the new values that correspond to the group */
   
   /** @} */
   
-  /** \defgroup RobotStateAttachedBodies Managing attached bodies
+  /** \name Managing attached bodies
    *  @{
    */
   
