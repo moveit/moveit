@@ -103,26 +103,27 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
 
     //tests that when we set the state within the bounds
     //the constraint is satisfied
-    std::map<std::string, double> jvals;
-    jvals[jcm.joint_name] = 0.41;
-    ks.setStateValues(jvals);
+    double jval = 0.41;
+    ks.setJointPositions(jcm.joint_name, &jval);
     kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
     EXPECT_TRUE(p2.satisfied);
     EXPECT_NEAR(p2.distance, 0.01, 1e-6);
 
     //exactly equal to the low bound is fine too
-    jvals[jcm.joint_name] = 0.35;
-    ks.setStateValues(jvals);
+    jval = 0.35;
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //and so is less than epsilon when there's no other source of error
-    jvals[jcm.joint_name] = 0.35-std::numeric_limits<double>::epsilon();
-    ks.setStateValues(jvals);
+    //    jvals[jcm.joint_name] = 0.35-std::numeric_limits<double>::epsilon();
+    jval  = 0.35-std::numeric_limits<double>::epsilon();
+
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //but this is too much
-    jvals[jcm.joint_name] = 0.35-3*std::numeric_limits<double>::epsilon();
-    ks.setStateValues(jvals);
+    jval  = 0.35-3*std::numeric_limits<double>::epsilon();
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //negative value makes configuration fail
@@ -133,23 +134,23 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSimple)
     EXPECT_TRUE(jc.configure(jcm));
 
     //still satisfied at a slightly different state
-    jvals[jcm.joint_name] = 0.46;
-    ks.setStateValues(jvals);
+    jval =0.46;
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //still satisfied at a slightly different state
-    jvals[jcm.joint_name] = 0.501;
-    ks.setStateValues(jvals);
+    jval = 0.501;
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //still satisfied at a slightly different state
-    jvals[jcm.joint_name] = 0.39;
-    ks.setStateValues(jvals);
+    jval = 0.39;
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside the bounds
-    jvals[jcm.joint_name] = 0.34;
-    ks.setStateValues(jvals);
+    jval = 0.34;
+    ks.setJointPositions(jcm.joint_name, &jval);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //testing equality
@@ -216,22 +217,22 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
     // within the above tolerance
     jvals[jcm.joint_name] = .03;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside the above tolerance
     jvals[jcm.joint_name] = .05;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //inside the below tolerance
     jvals[jcm.joint_name] = -.01;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //ouside the below tolerance
     jvals[jcm.joint_name] = -.03;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //now testing wrap around from positive to negative
@@ -240,43 +241,43 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
     //testing that wrap works
     jvals[jcm.joint_name] = 3.17;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
     EXPECT_TRUE(p1.satisfied);
     EXPECT_NEAR(p1.distance, 0.03, 1e-6);
 
     //testing that negative wrap works
     jvals[jcm.joint_name] = -3.14;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
     EXPECT_TRUE(p2.satisfied);
     EXPECT_NEAR(p2.distance, 0.003185, 1e-4);
 
     //over bound testing
     jvals[jcm.joint_name] = 3.19;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //reverses to other direction
     //but still tested using above tolerance
     jvals[jcm.joint_name] = -3.11;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside of the bound given the wrap
     jvals[jcm.joint_name] = -3.09;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //lower tolerance testing
     //within bounds
     jvals[jcm.joint_name] = 3.13;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //within outside
     jvals[jcm.joint_name] = 3.11;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //testing the other direction
@@ -285,22 +286,22 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
     //should be governed by above tolerance
     jvals[jcm.joint_name] = -3.11;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside upper bound
     jvals[jcm.joint_name] = -3.09;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //governed by lower bound
     jvals[jcm.joint_name] = 3.13;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside lower bound (but would be inside upper)
     jvals[jcm.joint_name] = 3.12;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //testing wrap
@@ -309,7 +310,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 
     //should wrap to zero
     jvals[jcm.joint_name] = 0.0;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //should wrap to close and test to be near
@@ -343,17 +344,17 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
 
     std::map<std::string, double> jvals;
     jvals[jcm.joint_name] = 3.2;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p1 = jc.decide(ks);
     EXPECT_TRUE(p1.satisfied);
 
     jvals[jcm.joint_name] = 3.25;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p2 = jc.decide(ks);
     EXPECT_FALSE(p2.satisfied);
 
     jvals[jcm.joint_name] = -3.14;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p3 = jc.decide(ks);
     EXPECT_FALSE(p3.satisfied);
 
@@ -362,12 +363,12 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsMultiDOF)
     EXPECT_TRUE(jc.configure(jcm));
 
     jvals[jcm.joint_name] = -3.14;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p4 = jc.decide(ks);
     EXPECT_TRUE(p4.satisfied);
 
     jvals[jcm.joint_name] = 3.25;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     kinematic_constraints::ConstraintEvaluationResult p5 = jc.decide(ks);
     EXPECT_FALSE(p5.satisfied);
 }
@@ -421,7 +422,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 
     std::map<std::string, double> jvals;
     jvals["torso_lift_joint"] = 0.4;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(pc.decide(ks).satisfied);
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 
@@ -493,12 +494,12 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
 
     std::map<std::string, double> jvals;
     jvals["l_shoulder_pan_joint"] = 0.4;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(pc.decide(ks).satisfied);
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 
     jvals["l_shoulder_pan_joint"] = -0.4;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(pc.decide(ks).satisfied);
 
     //adding a second constrained region makes this work
@@ -648,7 +649,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ASSERT_TRUE(oc.getLinkModel());
 
     geometry_msgs::Pose p;
-    tf::poseEigenToMsg(ks.getLinkState(oc.getLinkModel()->getName())->getGlobalLinkTransform(), p);
+    tf::poseEigenToMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()), p);
 
     ocm.orientation = p.orientation;
     ocm.header.frame_id = kmodel->getModelFrame();
@@ -657,11 +658,11 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
     std::map<std::string, double> jvals;
     jvals["r_wrist_roll_joint"] = .05;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_TRUE(oc.decide(ks).satisfied);
 
     jvals["r_wrist_roll_joint"] = .11;
-    ks.setStateValues(jvals);
+    ks.setVariablePositions(jvals);
     EXPECT_FALSE(oc.decide(ks).satisfied);
 }
 
@@ -754,19 +755,19 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   state_values["l_shoulder_lift_joint"] = .5;
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -1.4;
-  ks.setStateValues(state_values);
+  ks.setVariablePositions(state_values);
   EXPECT_FALSE(vc.decide(ks, true).satisfied);
 
   //this moves far enough away that it's fine
   state_values["r_shoulder_pan_joint"] = .4;
-  ks.setStateValues(state_values);
+  ks.setVariablePositions(state_values);
   EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
   //this is in collision with the arm, but now the cone, and should be fine
   state_values["l_shoulder_lift_joint"] = 0;
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -.6;
-  ks.setStateValues(state_values);
+  ks.setVariablePositions(state_values);
   EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
   //this shouldn't matter
@@ -815,7 +816,7 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   //now it is
   std::map<std::string, double> jvals;
   jvals[jcm.joint_name] = 0.41;
-  ks.setStateValues(jvals);
+  ks.setVariablePositions(jvals);
   EXPECT_TRUE(kcs.decide(ks).satisfied);
 
   //adding another constraint for a different joint
@@ -831,12 +832,12 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 
   //now it is
   jvals[jcv.back().joint_name] = 0.41;
-  ks.setStateValues(jvals);
+  ks.setVariablePositions(jvals);
   EXPECT_TRUE(kcs.decide(ks).satisfied);
 
   //changing one joint outside the bounds makes it unsatisfied
   jvals[jcv.back().joint_name] = 0.51;
-  ks.setStateValues(jvals);
+  ks.setVariablePositions(jvals);
   EXPECT_FALSE(kcs.decide(ks).satisfied);
 
   //one invalid constraint makes the add return false
@@ -849,7 +850,7 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
 
   //violating the remaining good constraint changes this
   jvals["head_pan_joint"] = 0.51;
-  ks.setStateValues(jvals);
+  ks.setVariablePositions(jvals);
   EXPECT_FALSE(kcs.decide(ks).satisfied);
 }
 
