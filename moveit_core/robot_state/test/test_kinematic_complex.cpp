@@ -250,7 +250,7 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
   poses.push_back(Eigen::Affine3d::Identity());
   std::set<std::string> touch_links;
   
-  sensor_msgs::JointState empty_state;
+  trajectory_msgs::JointTrajectory empty_state;
   moveit::core::AttachedBody *attached_body = 
     new moveit::core::AttachedBody(robot_model->getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
   ks.attachBody(attached_body);
