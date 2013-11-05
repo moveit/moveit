@@ -217,7 +217,13 @@ private:
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
 
-  bool isStateColliding(robot_state::RobotState& robot_state, const std::string& group_name);
+  /** @brief Return true if any links of the given @a group_name are
+   * in collision with objects in the world (not including the rest of the
+   * robot).
+   *
+   * This function helps display collision state for a disconnected
+   * end-effector which is used to show goal poses. */
+  bool isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name);
 
   void checkIfGoalInCollision(const std::string & goal_name);
   void checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable = false);
