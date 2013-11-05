@@ -189,6 +189,7 @@ private:
   EigenSTL::map_string_Affine3d goals_initial_pose_;
   EigenSTL::map_string_Affine3d goals_dragging_initial_pose_;
   bool goal_pose_dragging_;
+  Eigen::Affine3d drag_initial_pose_;
 
   typedef std::map<std::string, GripperMarkerPtr> GoalPoseMap;
   typedef std::pair<std::string, GripperMarkerPtr> GoalPosePair;
