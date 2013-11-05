@@ -151,7 +151,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   EXPECT_TRUE(passed);
 
   robot_state::RobotState kstate(kmodel_);
-  kstate.setToRandomValues();
+  kstate.setToRandomPositions();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
   ompl::base::State *state = ss.allocState();
   for (int i = 0 ; i < 10 ; ++i)
@@ -159,13 +159,13 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     robot_state::RobotState kstate2(kstate);
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
     ss.copyToOMPLState(state, kstate);
-    kstate.getJointStateGroup(ss.getJointModelGroupName())->setToRandomValues();
-    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() -
-                  kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
+    kstate.setToRandomPositions(kstate.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
+    std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
     ss.copyToRobotState(kstate, state);
-    std::cout << (kstate.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation() -
-                  kstate2.getLinkState("r_wrist_roll_link")->getGlobalLinkTransform().translation()) << std::endl;
+    std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
   }
 
