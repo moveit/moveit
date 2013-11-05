@@ -158,7 +158,7 @@ public:
   robot_state::RobotStatePtr getCurrentStateUpdated(const moveit_msgs::RobotState &update) const;
 
   /**
-   * \defgroup planning_scene_frames Reasoning about frames
+   * \name Reasoning about frames
    */
   /**@{*/
 
@@ -213,7 +213,7 @@ public:
   /**@}*/
   
   /**
-   * \defgroup planning_scene_geometry Reasoning about the geometry of the planning scene
+   * \name Reasoning about the geometry of the planning scene
    */
   /**@{*/
 
@@ -329,7 +329,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup planning_scene_collision_checking Collision checking with respect to this planning scene
+   * \name Collision checking with respect to this planning scene
    */
   /**@{*/
 
@@ -595,7 +595,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup planning_scene_distance_computation Distance computation in this planning scene
+   * \name Distance computation
    */
   /**@{*/
   

@@ -81,7 +81,7 @@ public:
   const std::string& getTargetFrame() const;
 
   /**
-   * \defgroup transforms_settings Setting and retrieving transforms maintained in this class
+   * \name Setting and retrieving transforms maintained in this class
    */
   /**@{*/
 
@@ -124,7 +124,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup transforms_routines Applying transforms
+   * \name Applying transforms
    */
   /**@{*/
 
