@@ -146,6 +146,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
 
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   kinematic_constraints::JointConstraint jc1(kmodel);
   moveit_msgs::JointConstraint jcm1;
   //leaving off joint name
@@ -169,11 +172,11 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jcs.configure(js));
   EXPECT_EQ(jcs.getConstrainedJointCount(), 1);
   EXPECT_EQ(jcs.getUnconstrainedJointCount(), 6);
-  EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+  EXPECT_TRUE(jcs.sample(ks, ks, 1));
 
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
     EXPECT_TRUE(jc1.decide(ks).satisfied);
   }
 
@@ -194,12 +197,12 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
   //creating a constraint that conflicts with the other (leaves no sampleable region)
   EXPECT_FALSE(jcs.configure(js));
-  EXPECT_FALSE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+  EXPECT_FALSE(jcs.sample(ks, ks_const, 1));
 
   //we can't sample for a different group
   constraint_samplers::JointConstraintSampler jcs2(ps, "arms");
   jcs2.configure(js);
-  EXPECT_FALSE(jcs2.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+  EXPECT_FALSE(jcs2.sample(ks, ks_const, 1));
 
   //not ok to not have any references to joints in this group in the constraints
   constraint_samplers::JointConstraintSampler jcs3(ps, "left_arm");
@@ -224,7 +227,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   //should always be within narrower constraints
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
     EXPECT_TRUE(jc1.decide(ks).satisfied);
   }
 
@@ -257,10 +260,9 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jcs.configure(js));
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
     std::map<std::string, double> var_values;
-    ks.getJointStateGroup("right_arm")->getVariableValues(var_values);
-    EXPECT_NEAR(var_values["r_shoulder_pan_joint"], .4, std::numeric_limits<double>::epsilon());
+    EXPECT_NEAR(ks.getVariablePosition("r_shoulder_pan_joint"), .4, std::numeric_limits<double>::epsilon());
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
   }
@@ -275,7 +277,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
   EXPECT_TRUE(jcs.configure(js));
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("right_arm"), ks, 1));
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
   }
@@ -352,6 +354,9 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::OrientationConstraint oc(kmodel);
@@ -380,7 +385,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100; ++t)
   {
-    EXPECT_TRUE(iks.sample(ks.getJointStateGroup("right_arm"), ks, 100));
+    EXPECT_TRUE(iks.sample(ks, ks_const, 100));
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
 }
@@ -389,6 +394,9 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::PositionConstraint pc(kmodel);
@@ -437,7 +445,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
   EXPECT_TRUE(iks1.configure(constraint_samplers::IKSamplingPose(pc, oc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(iks1.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(iks1.sample(ks, ks_const, 100));
     EXPECT_TRUE(pc.decide(ks).satisfied);
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
@@ -446,7 +454,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
   EXPECT_TRUE(iks2.configure(constraint_samplers::IKSamplingPose(pc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(iks2.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(iks2.sample(ks, ks_const, 100));
     EXPECT_TRUE(pc.decide(ks).satisfied);
   }
 
@@ -454,7 +462,7 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
   EXPECT_TRUE(iks3.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(iks3.sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(iks3.sample(ks, ks_const, 100));
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
 }
@@ -463,12 +471,16 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::JointConstraint jc1(kmodel);
 
   std::map<std::string, double> state_values;
-  ks.getStateValues(state_values);
+  //  ks.getStateValues(state_values);
 
   moveit_msgs::JointConstraint torso_constraint;
   torso_constraint.joint_name = "torso_lift_joint";
@@ -481,7 +493,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   kinematic_constraints::JointConstraint jc2(kmodel);
   moveit_msgs::JointConstraint jcm2;
   jcm2.joint_name = "r_elbow_flex_joint";
-  jcm2.position = state_values["r_elbow_flex_joint"];
+  jcm2.position = ks.getVariablePosition("r_elbow_flex_joint");
   jcm2.tolerance_above = 0.01;
   jcm2.tolerance_below = 0.01;
   jcm2.weight = 1.0;
@@ -563,7 +575,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 
   for (int t = 0 ; t < 100; ++t)
   {
-    EXPECT_TRUE(ucs.sample(ks.getJointStateGroup("arms_and_torso"), ks, 100));
+    EXPECT_TRUE(ucs.sample(ks, ks_const, 100));
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
     EXPECT_TRUE(pc.decide(ks).satisfied);
@@ -619,6 +631,9 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::PositionConstraint pc(kmodel);
@@ -674,10 +689,10 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   int succ = 0;
   for (int t = 0 ; t < NT ; ++t)
   {
-    EXPECT_TRUE(s->sample(ks.getJointStateGroup("left_arm"), ks, 100));
+    EXPECT_TRUE(s->sample(ks, ks_const, 100));
     EXPECT_TRUE(iks->getPositionConstraint()->decide(ks).satisfied);
     EXPECT_TRUE(iks->getOrientationConstraint()->decide(ks).satisfied);
-    if (s->sample(ks.getJointStateGroup("left_arm"), ks, 1))
+    if (s->sample(ks, ks_const, 1))
       succ++;
   }
   ROS_INFO("Success rate for IK Constraint Sampler with position & orientation constraints for one arm: %lf", (double)succ / (double)NT);
@@ -865,16 +880,19 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   std::map<std::string, double> state_values;
-  ks.getStateValues(state_values);
+  //  ks.getStateValues(state_values);
 
   moveit_msgs::Constraints con;
   con.joint_constraints.resize(1);
 
   con.joint_constraints[0].joint_name = "torso_lift_joint";
-  con.joint_constraints[0].position = state_values["torso_lift_joint"];
+  con.joint_constraints[0].position = ks.getVariablePosition("torso_lift_joint");
   con.joint_constraints[0].tolerance_above = 0.01;
   con.joint_constraints[0].tolerance_below = 0.01;
   con.joint_constraints[0].weight = 1.0;
@@ -928,7 +946,7 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 
   for (int t = 0 ; t < 1; ++t)
   {
-    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms_and_torso"), ks, 1));
+    EXPECT_TRUE(s->sample(ks, ks_const, 1));
     EXPECT_TRUE(jc.decide(ks).satisfied);
     EXPECT_TRUE(ikcs_test->getPositionConstraint()->decide(ks).satisfied);
     EXPECT_TRUE(ikcs_test->getOrientationConstraint()->decide(ks).satisfied);
@@ -939,6 +957,9 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::JointConstraint jc1(kmodel);
@@ -990,7 +1011,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 
   for (int t = 0 ; t < 100 ; ++t)
   {
-    EXPECT_TRUE(jcs.sample(ks.getJointStateGroup("arms"), ks, 1));
+    EXPECT_TRUE(jcs.sample(ks, ks_const, 1));
     EXPECT_TRUE(jc2.decide(ks).satisfied);
     EXPECT_TRUE(jc3.decide(ks).satisfied);
   }
@@ -1014,7 +1035,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   // test the generated sampler
   for (int t = 0 ; t < 1000 ; ++t)
   {
-    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1));
+    EXPECT_TRUE(s->sample(ks, ks_const, 1));
     EXPECT_TRUE(jc2.decide(ks).satisfied);
     EXPECT_TRUE(jc3.decide(ks).satisfied);
   }
@@ -1084,13 +1105,16 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  robot_state::RobotState ks_const(kmodel);
+  ks_const.setToDefaultValues();
+
   static const int NT = 100;
   int succ = 0;
   for (int t = 0 ; t < NT ; ++t)
   {
-    EXPECT_TRUE(s->sample(ks.getJointStateGroup("arms"), ks, 1000));
+    EXPECT_TRUE(s->sample(ks, ks_const, 1000));
     EXPECT_TRUE(kset.decide(ks).satisfied);
-    if (s->sample(ks.getJointStateGroup("arms"), ks, 1))
+    if (s->sample(ks, ks_const, 1))
       succ++;
   }
   logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf", (double)succ / (double)NT);

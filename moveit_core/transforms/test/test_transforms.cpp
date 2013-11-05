@@ -41,7 +41,7 @@
 
 TEST(Transforms, Simple)
 {
-  robot_state::Transforms tf("global");
+  moveit::core::Transforms tf("global");
 
   Eigen::Affine3d t1;
   t1.setIdentity();
