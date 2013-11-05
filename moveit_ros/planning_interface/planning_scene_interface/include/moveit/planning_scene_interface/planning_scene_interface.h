@@ -51,7 +51,7 @@ public:
   ~PlanningSceneInterface();
 
   /**
-   * \defgroup move_group_interface_world_management Manage the world
+   * \name Manage the world
    */
   /**@{*/
 

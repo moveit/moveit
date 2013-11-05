@@ -175,7 +175,7 @@ public:
   void setSupportSurfaceName(const std::string &name);
 
   /**
-   * \defgroup set_joint_goal Setting a joint state target (goal)
+   * \name Setting a joint state target (goal)
    */
   /**@{*/
 
@@ -236,7 +236,7 @@ public:
 
 
   /**
-   * \defgroup set_pose_goal Setting a pose target (goal)
+   * \name Setting a pose target (goal)
    */
   /**@{*/
 
@@ -316,7 +316,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup plan_and_exec Planning a path from the start position to the Target (goal) position, and executing that plan.
+   * \name Planning a path from the start position to the Target (goal) position, and executing that plan.
    */
   /**@{*/
 
@@ -360,7 +360,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup high_level High level actions that trigger a sequence of plans and actions.
+   * \name High level actions that trigger a sequence of plans and actions.
    */
   /**@{*/
 
@@ -413,7 +413,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup query_robot_state Query current robot state
+   * \name Query current robot state
    */
   /**@{*/
 
@@ -448,7 +448,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup named_joint_goals Manage named joint configurations
+   * \name Manage named joint configurations
    */
   /**@{*/
 
@@ -470,7 +470,7 @@ public:
   /**@}*/
 
   /**
-   * \defgroup move_group_interface_constraints_management Manage planning constraints
+   * \name Manage planning constraints
    */
   /**@{*/
 
