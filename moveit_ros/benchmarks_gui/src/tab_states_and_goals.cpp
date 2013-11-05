@@ -701,11 +701,8 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   setStatusFromBackground(STATUS_INFO, "");
 }
 
-bool MainWindow::isStateColliding(robot_state::RobotState& robot_state, const std::string& group_name)
+bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name)
 {
-  // Want to do what you'd think this function would do:
-  // scene_display_->getPlanningSceneRO()->isStateColliding(robot_state, group_name);
-
   collision_detection::AllowedCollisionMatrix acm( scene_display_->getPlanningSceneRO()->getAllowedCollisionMatrix() );
   // get link names in group_name
   const std::vector<std::string>& group_link_names =
@@ -753,7 +750,7 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 
   robot_state::RobotState ks(scene_display_->getPlanningSceneRO()->getCurrentState());
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
-  bool in_collision = isStateColliding(ks, eef.eef_group);
+  bool in_collision = isGroupCollidingWithWorld(ks, eef.eef_group);
 
   if ( in_collision )
   {
