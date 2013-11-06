@@ -91,6 +91,9 @@ public:
 
     /// The trajectory of the robot (may not contain joints that are the same as for the start_state_)
     moveit_msgs::RobotTrajectory trajectory_;
+
+    /// The amount of time it took to generate the plan
+    double planning_time_;
   };
 
   /** \brief Construct a client for the MoveGroup action using a specified set of options \e opt. Optionally, specify a TF instance to use.

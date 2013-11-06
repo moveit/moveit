@@ -569,6 +569,7 @@ public:
     {
       plan.trajectory_ = move_action_client_->getResult()->planned_trajectory;
       plan.start_state_ = move_action_client_->getResult()->trajectory_start;
+      plan.planning_time_ = move_action_client_->getResult()->planning_time;
       return true;
     }
     else
