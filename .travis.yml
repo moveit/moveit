@@ -1,0 +1,50 @@
+# Generic MoveIt Travis Continuous Integration Configuration File
+# Works with all MoveIt! repositories/branches
+# Author: Dave Coleman, Jonathan Bohren
+language:
+  - cpp
+  - python
+python:
+  - "2.7"
+compiler:
+  - gcc
+notifications:
+  email:
+    recipients:
+      - dave.hershberger@sri.com
+    on_success: change #[always|never|change] # default: change
+    on_failure: change #[always|never|change] # default: always
+before_install: # Use this to prepare the system to install prerequisites or dependencies
+  # Define some config vars
+  - export ROS_DISTRO=hydro
+  - export CI_SOURCE_PATH=$(pwd)
+  - export REPOSITORY_NAME=${PWD##*/}
+  - echo "Testing branch $TRAVIS_BRANCH of $REPOSITORY_NAME"
+  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+  - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin ros-$ROS_DISTRO-ros
+  # MongoDB hack - I don't fully understand this but its for moveit_warehouse
+  - sudo apt-get remove -y mongodb mongodb-10gen
+  - sudo apt-get install -y mongodb-clients mongodb-server -o Dpkg::Options::="--force-confdef" # default actions
+  # Setup rosdep
+  - sudo rosdep init
+  - rosdep update
+install: # Use this to install any prerequisites or dependencies necessary to run your build
+  # Create workspace
+  - mkdir -p ~/ros/ws_moveit/src
+  - cd ~/ros/ws_moveit/src
+  - wstool init .
+  # Download non-debian stuff
+  - wstool merge https://raw.github.com/ros-planning/moveit_docs/hydro-devel/moveit.rosinstall
+  - wstool update
+  # Delete the moveit.rosinstall version of this repo and use the one of the branch we are testing
+  - rm -rf $REPOSITORY_NAME
+  - ln -s $CI_SOURCE_PATH . # Link the repo we are testing to the new workspace
+  - cd ../
+  # Install dependencies for source repos
+  - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
+before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
+  - source /opt/ros/$ROS_DISTRO/setup.bash  
+script: # All commands must exit with code 0 on success. Anything else is considered failure.
+  - catkin_make -j2
