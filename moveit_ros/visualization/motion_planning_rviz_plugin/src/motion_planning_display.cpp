@@ -217,6 +217,8 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                            SLOT(changedShowTrail()), this);
 
   background_process_.setJobUpdateEvent(boost::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, _1, _2));
+
+  connect(this, SIGNAL(timeToShowNewTrail()), this, SLOT(changedShowTrail()));
 }
 
 // ******************************************************************************************
@@ -530,7 +532,9 @@ void MotionPlanningDisplay::changedTrajectoryTopic()
 {
   trajectory_topic_sub_.shutdown();
   if (!trajectory_topic_property_->getStdString().empty())
+  {
     trajectory_topic_sub_ = update_nh_.subscribe(trajectory_topic_property_->getStdString(), 2, &MotionPlanningDisplay::incomingDisplayTrajectory, this);
+  }
 }
 
 void MotionPlanningDisplay::computeMetrics(bool start, const std::string &group, double payload)
@@ -1457,7 +1461,9 @@ void MotionPlanningDisplay::save(rviz::Config config) const
 void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
   if (!planning_scene_monitor_)
+  {
     return;
+  }
 
   if (!msg->model_id.empty() && msg->model_id != getRobotModel()->getName())
     ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
@@ -1467,6 +1473,7 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
 
   robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(planning_scene_monitor_->getRobotModel(), ""));
   for (std::size_t i = 0 ; i < msg->trajectory.size() ; ++i)
+  {
     if (t->empty())
     {
       const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
@@ -1478,12 +1485,18 @@ void MotionPlanningDisplay::incomingDisplayTrajectory(const moveit_msgs::Display
       tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
       t->append(tmp, 0.0);
     }
+  }
 
   if (!t->empty())
+  {
     trajectory_message_to_display_.swap(t);
-
+  }
   if (trail_display_property_->getBool())
-    changedShowTrail();
+  {
+    // incomingDisplayTrajectory() can be called from a non-GUI thread, so here we
+    // use a signal/slot connection to invoke changedShowTrail() in the GUI thread.
+    Q_EMIT timeToShowNewTrail();
+  }
 }
 
 void MotionPlanningDisplay::fixedFrameChanged()
