@@ -293,7 +293,7 @@ void moveit::core::RobotModel::buildJointInfo()
   for (std::size_t i = 0 ; i < link_model_vector_.size() ; ++i)
   {
     LinkTransformMap associated_transforms;
-    computeFixedTransforms(link_model_vector_[i], Eigen::Affine3d::Identity(), associated_transforms);
+    computeFixedTransforms(link_model_vector_[i],  link_model_vector_[i]->getJointOriginTransform().inverse() , associated_transforms);
     if (associated_transforms.size() > 1)
     {
       for (LinkTransformMap::iterator it = associated_transforms.begin() ; it != associated_transforms.end() ; ++it)
@@ -1325,7 +1325,7 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
 
 void moveit::core::RobotModel::computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform, LinkTransformMap &associated_transforms)
 {
-  associated_transforms[link] = transform;
+  associated_transforms[link] = transform * link->getJointOriginTransform();
   for (std::size_t i = 0 ; i < link->getChildJointModels().size() ; ++i)
     if (link->getChildJointModels()[i]->getType() == JointModel::FIXED)
       computeFixedTransforms(link->getChildJointModels()[i]->getChildLinkModel(), transform * link->getJointOriginTransform(), associated_transforms);
