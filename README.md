@@ -12,4 +12,4 @@ Tested on ROS Groovy with Catkin using OpenRave 0.8 with a 6dof and 7dof robot a
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/ros-planning/moveit_ikfast.png?branch=master)](https://travis-ci.org/ros-planning/moveit_ikfast)
+master branch: [![Build Status](https://travis-ci.org/ros-planning/moveit_ikfast.png?branch=master)](https://travis-ci.org/ros-planning/moveit_ikfast)
