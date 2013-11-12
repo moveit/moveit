@@ -252,10 +252,10 @@ void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octr
         Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
         points.push_back(point);
       } else {
-        double ceil_val = ceil(it.getSize()/resolution_)*resolution_;
-        for(double x = it.getX()-ceil_val; x < it.getX()+ceil_val; x += resolution_) {
-          for(double y = it.getY()-ceil_val; y < it.getY()+ceil_val; y += resolution_) {
-            for(double z = it.getZ()-ceil_val; z < it.getZ()+ceil_val; z += resolution_) {
+        double ceil_val = ceil(it.getSize()/resolution_)*resolution_/2.0;
+        for(double x = it.getX()-ceil_val; x <= it.getX()+ceil_val; x += resolution_) {
+          for(double y = it.getY()-ceil_val; y <= it.getY()+ceil_val; y += resolution_) {
+            for(double z = it.getZ()-ceil_val; z <= it.getZ()+ceil_val; z += resolution_) {
               points.push_back(Eigen::Vector3d(x,y,z));
             }
           }
