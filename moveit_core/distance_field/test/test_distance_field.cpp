@@ -824,7 +824,7 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
                                       PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
   df_highres.addOcTreeToField(&tree_lowres);
-  EXPECT_EQ(countOccupiedCells(df_highres), 3*(6*6*6));
+  EXPECT_EQ(countOccupiedCells(df_highres), 3*(4*4*4));
   std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
 
   //testing adding shape that happens to be octree
