@@ -72,7 +72,7 @@ void robot_trajectory::RobotTrajectory::swap(robot_trajectory::RobotTrajectory &
   robot_model_.swap(other.robot_model_);
   std::swap(group_, other.group_);
   waypoints_.swap(other.waypoints_);
-  duration_from_previous_.swap(duration_from_previous_);
+  duration_from_previous_.swap(other.duration_from_previous_);
 }
 
 void robot_trajectory::RobotTrajectory::append(const RobotTrajectory &source, double dt)
