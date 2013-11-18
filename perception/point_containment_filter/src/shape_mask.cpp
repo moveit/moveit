@@ -145,7 +145,7 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
     for (int i = 0 ; i < (int)np ; ++i)
     {
       Eigen::Vector3d pt = Eigen::Vector3d(data_in.points[i].x, data_in.points[i].y, data_in.points[i].z);
-      double d = (sensor_origin - pt).norm();
+      double d = pt.norm();
       int out = OUTSIDE;
       if (d < min_sensor_dist || d > max_sensor_dist)
         out = CLIP;
