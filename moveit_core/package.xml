@@ -3,9 +3,10 @@
   <version>0.5.4</version>
   <description>Core libraries used by MoveIt!</description>
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
-  <author email="sachinc@willowgarage.com">Sachin Chitta</author>
+  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
   <author email="acorn@willowgarage.com">Acorn Pooley</author>
 
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
   <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
 
   <license>BSD</license>  
