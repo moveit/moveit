@@ -153,15 +153,28 @@ public:
     return robot_model_;
   }
 
-  /** @brief Get the planning scene
-   *  @return An instance of the planning scene*/
+  /** @brief <b>Avoid this function!</b>  Returns an @b
+   *         unsafe pointer to the current planning scene.
+   * @warning Most likely you do not want to call this function
+   *          directly.  PlanningSceneMonitor has a background thread
+   *          which repeatedly updates and clobbers various contents
+   *          of its internal PlanningScene instance.  This function
+   *          just returns a pointer to that dynamic internal object.
+   *          The correct thing is usually to use a
+   *          LockedPlanningSceneRO or LockedPlanningSceneRW, which
+   *          locks the PlanningSceneMonitor and provides safe access
+   *          to the PlanningScene object.
+   * @see LockedPlanningSceneRO
+   * @see LockedPlanningSceneRW.
+   * @return A pointer to the current planning scene.*/
   const planning_scene::PlanningScenePtr& getPlanningScene()
   {
     return scene_;
   }
 
-  /** @brief Get the planning scene
-   *  @return An instance of the planning scene*/
+  /*! @brief <b>Avoid this function!</b>  Returns an @b
+   *         unsafe pointer to the current planning scene.
+   * @copydetails PlanningSceneMonitor::getPlanningScene() */
   const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return scene_const_;
@@ -454,7 +467,27 @@ private:
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
 typedef boost::shared_ptr<const PlanningSceneMonitor> PlanningSceneMonitorConstPtr;
 
-/** \brief This is a convenience class for obtaining access to an instance of a locked PlanningScene */
+/** \brief This is a convenience class for obtaining access to an
+ *         instance of a locked PlanningScene.
+ *
+ * Instances of this class can be used almost exactly like instances
+ * of a PlanningScenePtr because of the typecast operator and
+ * "operator->" functions.  Therefore you will often see code like this:
+ * @code
+ *   planning_scene_monitor::LockedPlanningSceneRO ls(planning_scene_monitor);
+ *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ * @endcode
+
+ * The function "getRobotModel()" is a member of PlanningScene and not
+ * a member of this class.  However because of the "operator->" here
+ * which returns a PlanningSceneConstPtr, this works.
+ *
+ * Any number of these "ReadOnly" locks can exist at a given time.
+ * The intention is that users which only need to read from the
+ * PlanningScene will use these and will thus not interfere with each
+ * other.
+ *
+ * @see LockedPlanningSceneRW */
 class LockedPlanningSceneRO
 {
 public:
@@ -526,6 +559,27 @@ protected:
   boost::shared_ptr<SingleUnlock> lock_;
 };
 
+/** \brief This is a convenience class for obtaining access to an
+ *         instance of a locked PlanningScene.
+ *
+ * Instances of this class can be used almost exactly like instances
+ * of a PlanningScenePtr because of the typecast operator and
+ * "operator->" functions.  Therefore you will often see code like this:
+ * @code
+ *   planning_scene_monitor::LockedPlanningSceneRW ls(planning_scene_monitor);
+ *   robot_model::RobotModelConstPtr model = ls->getRobotModel();
+ * @endcode
+
+ * The function "getRobotModel()" is a member of PlanningScene and not
+ * a member of this class.  However because of the "operator->" here
+ * which returns a PlanningSceneConstPtr, this works.
+ *
+ * Only one of these "ReadWrite" locks can exist at a given time.  The
+ * intention is that users which need to write to the PlanningScene
+ * will use these, preventing other writers and readers from locking
+ * the same PlanningScene at the same time.
+ *
+ * @see LockedPlanningSceneRO */
 class LockedPlanningSceneRW : public LockedPlanningSceneRO
 {
 public:
