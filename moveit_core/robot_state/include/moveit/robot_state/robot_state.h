@@ -45,6 +45,8 @@
 #include <geometry_msgs/Twist.h>
 #include <cassert>
 
+#include <boost/assert.hpp>
+
 namespace moveit
 {
 namespace core
@@ -72,9 +74,7 @@ typedef boost::function<bool(RobotState *robot_state, const JointModelGroup *joi
 
     For efficiency reasons a state computes forward kinematics in a
     lazy fashion. This can sometimes lead to problems if the update()
-    function was not called on the state. If compiling in Debug mode,
-    calls to assert() will trigger additional checks to identify such
-    problems. There is no checking in Release mode.*/
+    function was not called on the state. */
 class RobotState
 {
 public:
@@ -958,7 +958,7 @@ as the new values that correspond to the group */
   
   const Eigen::Affine3d& getGlobalLinkTransform(const LinkModel *link) const
   {
-    assert(checkLinkTransforms());
+    BOOST_VERIFY(checkLinkTransforms());
     return global_link_transforms_[link->getLinkIndex()];
   }
   
@@ -969,7 +969,7 @@ as the new values that correspond to the group */
   
   const Eigen::Affine3d& getCollisionBodyTransform(const LinkModel *link, std::size_t index) const
   {
-    assert(checkCollisionTransforms());
+    BOOST_VERIFY(checkCollisionTransforms());
     return global_collision_body_transforms_[link->getFirstCollisionBodyTransformIndex() + index];
   }
   
@@ -980,7 +980,7 @@ as the new values that correspond to the group */
   
   const Eigen::Affine3d& getJointTransform(const JointModel *joint) const
   {
-    assert(checkJointTransforms(joint));
+    BOOST_VERIFY(checkJointTransforms(joint));
     return variable_joint_transforms_[joint->getJointIndex()];
   }
   

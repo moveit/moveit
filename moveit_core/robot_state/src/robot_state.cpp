@@ -826,7 +826,7 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
 {
   if (!id.empty() && id[0] == '/')
     return getFrameTransform(id.substr(1)); 
-  assert(checkLinkTransforms());
+  BOOST_VERIFY(checkLinkTransforms());
   
   static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
   if (id.size() + 1 == robot_model_->getModelFrame().size() && '/' + id == robot_model_->getModelFrame())
@@ -961,7 +961,7 @@ Eigen::MatrixXd moveit::core::RobotState::getJacobian(const JointModelGroup *gro
 bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const LinkModel *link, const Eigen::Vector3d &reference_point_position,
                                            Eigen::MatrixXd& jacobian, bool use_quaternion_representation) const
 {
-  assert(checkLinkTransforms());
+  BOOST_VERIFY(checkLinkTransforms());
   
   if (!group->isChain())
   {
@@ -1712,7 +1712,7 @@ static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e
 
 void robot_state::RobotState::computeAABB(std::vector<double> &aabb) const
 {
-  assert(checkLinkTransforms());
+  BOOST_VERIFY(checkLinkTransforms());
   
   aabb.clear();
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
