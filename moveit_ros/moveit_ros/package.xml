@@ -2,11 +2,13 @@
   <name>moveit_ros</name>
   <version>0.5.8</version>
   <description>Components of MoveIt that use ROS</description>
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="isucan@gmail.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
+  <author email="acorn.pooley@sri.com">Acorn Pooley</author>
 
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
-  <maintainer email="robot.moveit@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
+  <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
 
   <license>BSD</license>
 
