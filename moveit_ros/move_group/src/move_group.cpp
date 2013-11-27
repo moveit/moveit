@@ -170,13 +170,13 @@ int main(int argc, char **argv)
     else
       ROS_INFO("MoveGroup debug mode is OFF");
 
-    move_group::MoveGroupExe mge(planning_scene_monitor, debug);
-
     printf(MOVEIT_CONSOLE_COLOR_CYAN "Starting context monitors...\n" MOVEIT_CONSOLE_COLOR_RESET);
     planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startWorldGeometryMonitor();
     planning_scene_monitor->startStateMonitor();
     printf(MOVEIT_CONSOLE_COLOR_CYAN "Context monitors started.\n" MOVEIT_CONSOLE_COLOR_RESET);
+
+    move_group::MoveGroupExe mge(planning_scene_monitor, debug);
 
     planning_scene_monitor->publishDebugInformation(debug);
 
