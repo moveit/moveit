@@ -41,7 +41,7 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   ROS_DEBUG("Limits");
   for(std::size_t i=0; i < q_min.rows(); ++i)
   { 
-    ROS_DEBUG("%d: Min: %f, Max: %f", i, q_min(i), q_max(i));
+    ROS_DEBUG("%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
   }
   ROS_DEBUG(" ");
 }
