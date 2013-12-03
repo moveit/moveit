@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2013-12-03)
+------------------
 * corrected maintainers email
 * PickPlace: Added comments, renamed variables to be more specific
 * use ROS_ERROR instead of logError

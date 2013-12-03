@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2013-12-03)
+------------------
 * fix cloud offset
 
 0.5.8 (2013-10-11)

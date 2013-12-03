@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2013-12-03)
+------------------
 * Doxygen: added warnings and details to planning_scene_monitor.h
 * correcting maintainer email
 * remove duplicate header

@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2013-12-03)
+------------------
 * correcting maintainer email
 * Fixed an occasional crash bug in rviz plugin caused by gui calls in non-gui thread.
 * Added planning feedback to gui, refactored states tab
