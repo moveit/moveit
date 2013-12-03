@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2013-12-03)
+------------------
 * Fix for computing jacobian when the root_joint is not an active joint.
 * RobotState: added doxygen comments clarifying action of attachBody().
 * Always check for dirty links.
