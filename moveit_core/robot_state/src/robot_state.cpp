@@ -975,7 +975,7 @@ bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const L
     return false;
   }
 
-  const robot_model::JointModel* root_joint_model = group->getJointRoots()[0];
+  const robot_model::JointModel* root_joint_model = group->getJointModels()[0];//group->getJointRoots()[0];
   const robot_model::LinkModel* root_link_model = root_joint_model->getParentLinkModel();
   Eigen::Affine3d reference_transform = root_link_model ? getGlobalLinkTransform(root_link_model).inverse() : Eigen::Affine3d::Identity();
   int rows = use_quaternion_representation ? 7 : 6;
