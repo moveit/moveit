@@ -2,15 +2,21 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* corrected maintainers email
+* PickPlace: Added comments, renamed variables to be more specific
+* use ROS_ERROR instead of logError
+
 0.5.8 (2013-10-11)
 ------------------
-* fix `#331 <https://github.com/ros-planning/moveit_ros/issues/331>`_
+* fix `#331 <https://github.com/ros-planning/moveit_ros/issues/331>`_.
 * try to identify the eef and group based on the attached object name
 
 0.5.7 (2013-10-01)
 ------------------
 * use the fact we know an eef must be defined for the place action to simplify code
-* abort place if eef cannot be determined, fixes `#325 <https://github.com/ros-planning/moveit_ros/issues/325>`_
+* abort place if eef cannot be determined, fixes `#325 <https://github.com/ros-planning/moveit_ros/issues/325>`_.
 * fix segfault in approach translate
 
 0.5.6 (2013-09-26)

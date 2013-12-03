@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed doxygen function-grouping.
+* Added planning feedback to gui, refactored states tab
+
 0.5.8 (2013-10-11)
 ------------------
 * add function to start state monitor in move_group_interface::MoveGroup

@@ -2,6 +2,11 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update email addresses
+* correcting maintainer email
+
 0.5.8 (2013-10-11)
 ------------------
 
