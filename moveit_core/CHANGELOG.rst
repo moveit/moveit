@@ -15,7 +15,7 @@ Changelog for package moveit_core
 * Compute associated transforms bug fixed.
 * Fixing broken tests for changes in robot_state.
 * Fixed doxygen function-grouping.
-* Fix `#95 <https://github.com/ros-planning/moveit_core/issues/95>`_
+* Fix `#95 <https://github.com/ros-planning/moveit_core/issues/95>`_.
 * More docs for RobotState.
 
 0.5.4 (2013-10-11)
