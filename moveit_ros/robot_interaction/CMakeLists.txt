@@ -31,6 +31,7 @@ include_directories(include
                     ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME}
   src/interactive_marker_helpers.cpp
