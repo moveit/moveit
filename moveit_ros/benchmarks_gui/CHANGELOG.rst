@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* renamed collision check function to be clearer
+* fixed bug in collision detection for goal pose queries
+* fixed dirty transform bugs
+* Fixed one crash bug and fixed goal-selection bug `#339 <https://github.com/ros-planning/moveit_ros/issues/339>`_.
+* Benchmarking GUI: removed code redundancy, added link_name and frame_id values to saved goal constraints as needed for benchmarking
+* Changed Warehouse Connect button to match wording and color of Rviz Motion Planning Plugin equivalent
+
 0.5.8 (2013-10-11)
 ------------------
 

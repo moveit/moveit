@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* adds KDL link directories to robot_interaction/CMakeLists.txt (fixes `#376 <https://github.com/ros-planning/moveit_ros/issues/376>`_)
+* fixed computation of dimension_.
+* fixes for mimic joints and redundant joints
+
 0.5.8 (2013-10-11)
 ------------------
 

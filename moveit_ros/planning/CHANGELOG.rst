@@ -2,6 +2,21 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Doxygen: added warnings and details to planning_scene_monitor.h
+* correcting maintainer email
+* remove duplicate header
+* Fixed exported targets
+* Fixed dependency issue
+* fixing joint limits setup for mimic joints
+* implement feature requests
+* clear monitored octomap when needed (see `#315 <https://github.com/ros-planning/moveit_ros/issues/315>`_)
+* fix the adapter for fixing path constraints for initial states
+* fixed computation of dimension_.
+* bugfixes in indexing added states for path adapters
+* fixes for mimic joints and redundant joints
+
 0.5.8 (2013-10-11)
 ------------------
 * add executable for publishing scene geometry from text

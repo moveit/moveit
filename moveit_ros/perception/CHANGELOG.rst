@@ -2,6 +2,10 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix cloud offset
+
 0.5.8 (2013-10-11)
 ------------------
 * adds compliance for mesa versions <9.2
@@ -11,8 +15,8 @@ Changelog for package moveit_ros_perception
 
 0.5.6 (2013-09-26)
 ------------------
-* fix `#320 <https://github.com/ros-planning/moveit_ros/issues/320>`_
-* fix `#318 <https://github.com/ros-planning/moveit_ros/issues/318>`_
+* fix `#320 <https://github.com/ros-planning/moveit_ros/issues/320>`_.
+* fix `#318 <https://github.com/ros-planning/moveit_ros/issues/318>`_.
 
 0.5.5 (2013-09-23)
 ------------------

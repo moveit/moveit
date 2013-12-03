@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* correcting maintainer email
+* Fixed an occasional crash bug in rviz plugin caused by gui calls in non-gui thread.
+* Added planning feedback to gui, refactored states tab
+* Stored states are auto loaded when warehouse database is connected
+
 0.5.8 (2013-10-11)
 ------------------
 * Added option to rviz plugin to show scene robot collision geometry
