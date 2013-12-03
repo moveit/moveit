@@ -2,6 +2,22 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix for computing jacobian when the root_joint is not an active joint.
+* RobotState: added doxygen comments clarifying action of attachBody().
+* Always check for dirty links.
+* Update email addresses.
+* Robot_state: fix copy size bug.
+* Corrected maintainer email.
+* Fixed duration in robottrajectory.swap.
+* Fixing distance field bugs.
+* Compute associated transforms bug fixed.
+* Fixing broken tests for changes in robot_state.
+* Fixed doxygen function-grouping.
+* Fix `#95 <https://github.com/ros-planning/moveit_core/issues/95>`_
+* More docs for RobotState.
+
 0.5.4 (2013-10-11)
 ------------------
 * Add functionality for enforcing velocity limits; update API to better naming to cleanly support the new additions
