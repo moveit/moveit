@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2013-12-03)
+------------------
 * Cleaned up var names and debug output
 
 0.5.8 (2013-10-11)
