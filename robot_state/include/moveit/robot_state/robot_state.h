@@ -1100,16 +1100,26 @@ as the new values that correspond to the group */
    */
   
   
-  /** \brief Attach a body to this state. Ownership of the memory for the attached body is assumed by the state. */
+  /** \brief Add an attached body to this state. Ownership of the memory for the attached body is assumed by the state.
+   *
+   * \note This only adds the given body to this RobotState
+   * instance.  It does not change anything about other
+   * representations of the object elsewhere in the system.  So if the
+   * body represents an object in a collision_detection::World (like
+   * from a planning_scene::PlanningScene), you will likely need to remove the
+   * corresponding object from that world to avoid having collisions
+   * detected against it. */
   void attachBody(AttachedBody *attached_body);
   
   /**
-     @brief Attach a body to a link
+     @brief Add an attached body to a link
      @param id The string id associated with the attached body
      @param shapes The shapes that make up the attached body
      @param attach_trans The desired transform between this link and the attached body
      @param touch_links The set of links that the attached body is allowed to touch
      @param link_name The link to attach to
+
+     @copydetails attachBody(AttachedBody *attached_body)
   */
   void attachBody(const std::string &id,
                   const std::vector<shapes::ShapeConstPtr> &shapes,
@@ -1119,12 +1129,14 @@ as the new values that correspond to the group */
                   const trajectory_msgs::JointTrajectory &detach_posture = trajectory_msgs::JointTrajectory());
 
   /**
-     @brief Attach a body to a link
+     @brief Add an attached body to a link
      @param id The string id associated with the attached body
      @param shapes The shapes that make up the attached body
      @param attach_trans The desired transform between this link and the attached body
      @param touch_links The set of links that the attached body is allowed to touch
      @param link_name The link to attach to
+
+     @copydetails attachBody(AttachedBody *attached_body)
   */
   void attachBody(const std::string &id,
                   const std::vector<shapes::ShapeConstPtr> &shapes,
