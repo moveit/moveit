@@ -86,7 +86,17 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   std::vector<double> near(dimension_, 0.0);
   for (std::size_t i = 0 ; i < dimension_; ++i)
     near[i] = seed_state(i);
-  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near, consistency_limits);
+
+  // Need to resize the consistency limits to remove mimic joints
+  std::vector<double> consistency_limits_mimic;
+  for(std::size_t i = 0; i < dimension_; ++i)
+  {
+    if(!mimic_joints_[i].active)
+      continue;
+    consistency_limits_mimic.push_back(consistency_limits[i]);
+  }
+
+  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near, consistency_limits_mimic);
   
   for (std::size_t i = 0; i < dimension_; ++i)
   {
@@ -164,12 +174,14 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   }
 
   dimension_ = joint_model_group->getActiveJointModels().size() + joint_model_group->getMimicJointModels().size();
-  ik_chain_info_.joint_names = joint_model_group->getJointModelNames();
-
-  for (std::size_t i = 0; i < joint_model_group->getJointModels().size(); ++i)
+  for (std::size_t i=0; i < joint_model_group->getJointModels().size(); ++i)
   {
-    const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
-    ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
+    if(joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::REVOLUTE || joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
+    {
+      ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
+      const std::vector<moveit_msgs::JointLimits> &jvec = joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
+      ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
+    }
   }
 
   fk_chain_info_.joint_names = ik_chain_info_.joint_names;
