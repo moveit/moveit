@@ -78,10 +78,22 @@ namespace collision_detection
       /** \brief The id for this object */
       std::string                         id_;
 
-      /** \brief An array of shapes */
+      /** \brief All the shapes making up this object.
+       *
+       * The pose of each Shape is stored in the corresponding element of the shape_poses_ array.
+       *
+       * @note Although the code generally supports having multiple
+       * shapes per object, there are many cases where it is better to
+       * have only a single shape per object.  For instance
+       * planning_scene::PlanningScene::getFrameTransform() will
+       * return the pose of an Object.  As defined here, the pose of a
+       * multi-shaped object is ambiguous, so getFrameTransform() just
+       * returns the pose of the first Shape in the object. */
       std::vector<shapes::ShapeConstPtr> shapes_;
 
-      /** \brief An array of shape poses */
+      /** \brief The poses of the corresponding entries in shapes_.
+       *
+       * @copydetails shapes_ */
       EigenSTL::vector_Affine3d          shape_poses_;
     };
 
