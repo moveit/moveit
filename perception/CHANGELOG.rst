@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.10 (2013-12-08)
+-------------------
 * comply to the new Table.msg
 * Contributors: Vincent Rabaud
 
