@@ -2,6 +2,9 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.9 (2013-12-03)
 ------------------
 * update email addresses

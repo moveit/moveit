@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* comply to the new Table.msg
+* Contributors: Vincent Rabaud
+
 0.5.9 (2013-12-03)
 ------------------
 * fix cloud offset
