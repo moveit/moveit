@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixing how joint names are filled up, fixed joints were getting included earlier, also resizing consistency limits for when random positions near by function is being called
+* Contributors: Sachin Chitta
+
 0.5.9 (2013-12-03)
 ------------------
 * Doxygen: added warnings and details to planning_scene_monitor.h
