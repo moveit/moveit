@@ -119,7 +119,21 @@ bool SemanticWorld::addTablesToCollisionWorld()
     current_tables_in_collision_world_[co.id] = table_array_.tables[i];
     co.operation = moveit_msgs::CollisionObject::ADD;
 
-    shapes::Shape* table_shape = shapes::constructShapeFromMsg(table_array_.tables[i].convex_hull);
+    const std::vector<geometry_msgs::Point>& convex_hull = table_array_.tables[i].convex_hull;
+
+    EigenSTL::vector_Vector3d vertices(convex_hull.size());
+    std::vector<unsigned int> triangles((vertices.size() - 2)* 3);
+    for (unsigned int j = 0 ; j < convex_hull.size() ; ++j)
+      vertices[j] = Eigen::Vector3d(convex_hull[j].x, convex_hull[j].y, convex_hull[j].z);
+    for (unsigned int j = 1; j < triangles.size() - 1; ++j)
+    {
+      unsigned int i3 = j * 3;
+      triangles[i3++] = 0;
+      triangles[i3++] = j;
+      triangles[i3] = j+1;
+    }
+
+    shapes::Shape* table_shape = shapes::createMeshFromVertices(vertices, triangles);
     if(!table_shape)
       continue;
 
@@ -142,8 +156,8 @@ bool SemanticWorld::addTablesToCollisionWorld()
     const shape_msgs::Mesh& table_shape_msg_mesh = boost::get<shape_msgs::Mesh> (table_shape_msg);
 
     co.meshes.push_back(table_shape_msg_mesh);
-    co.mesh_poses.push_back(table_array_.tables[i].pose.pose);
-    co.header = table_array_.tables[i].pose.header;
+    co.mesh_poses.push_back(table_array_.tables[i].pose);
+    co.header = table_array_.tables[i].header;
     planning_scene.world.collision_objects.push_back(co);    
     //    collision_object_publisher_.publish(co);
     delete table_shape;
@@ -160,12 +174,12 @@ object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, d
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
-    if(it->second.pose.pose.position.x >= minx &&
-       it->second.pose.pose.position.x <= maxx &&
-       it->second.pose.pose.position.y >= miny &&
-       it->second.pose.pose.position.y <= maxy &&
-       it->second.pose.pose.position.z >= minz &&
-       it->second.pose.pose.position.z <= maxz)
+    if(it->second.pose.position.x >= minx &&
+       it->second.pose.position.x <= maxx &&
+       it->second.pose.position.y >= miny &&
+       it->second.pose.position.y <= maxy &&
+       it->second.pose.position.z >= minz &&
+       it->second.pose.position.z <= maxz)
     {
       tables_in_roi.tables.push_back(it->second);
     }
@@ -180,12 +194,12 @@ std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double m
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
-    if(it->second.pose.pose.position.x >= minx &&
-       it->second.pose.pose.position.x <= maxx &&
-       it->second.pose.pose.position.y >= miny &&
-       it->second.pose.pose.position.y <= maxy &&
-       it->second.pose.pose.position.z >= minz &&
-       it->second.pose.pose.position.z <= maxz)
+    if(it->second.pose.position.x >= minx &&
+       it->second.pose.position.x <= maxx &&
+       it->second.pose.position.y >= miny &&
+       it->second.pose.position.y <= maxy &&
+       it->second.pose.position.z >= minz &&
+       it->second.pose.position.z <= maxz)
     {
       result.push_back(it->first);
     }
@@ -307,16 +321,28 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
 {
   std::vector<geometry_msgs::PoseStamped> place_poses;
   // Assumption that the table's normal is along the Z axis
-  if(table.convex_hull.vertices.empty())
+  if(table.convex_hull.empty())
      return place_poses;
   const int scale_factor = 100;
   std::vector<cv::Point2f> table_contour;
-  for(std::size_t j=0; j < table.convex_hull.vertices.size(); ++j)
-    table_contour.push_back(cv::Point((table.convex_hull.vertices[j].x-table.x_min)*scale_factor,
-                                      (table.convex_hull.vertices[j].y-table.y_min)*scale_factor));
+  float x_min=table.convex_hull[0].x, x_max=x_min, y_min=table.convex_hull[0].y, y_max=y_min;
+  for(std::size_t j=1; j < table.convex_hull.size(); ++j)
+  {
+    if (table.convex_hull[j].x < x_min)
+      x_min=table.convex_hull[j].x;
+    else if (table.convex_hull[j].x > x_max)
+      x_max=table.convex_hull[j].x;
+    if (table.convex_hull[j].y < y_min)
+      y_min=table.convex_hull[j].y;
+    else if (table.convex_hull[j].y > y_max)
+      y_max=table.convex_hull[j].y;
+  }
+  for(std::size_t j=0; j < table.convex_hull.size(); ++j)
+    table_contour.push_back(cv::Point((table.convex_hull[j].x-x_min)*scale_factor,
+                                      (table.convex_hull[j].y-y_min)*scale_factor));
 
-  double x_range = fabs(table.x_max-table.x_min);
-  double y_range = fabs(table.y_max-table.y_min);
+  double x_range = fabs(x_max-x_min);
+  double y_range = fabs(y_max-y_min);
   int max_range = (int) x_range + 1;
   if(max_range < (int) y_range + 1)
     max_range = (int) y_range + 1;
@@ -324,14 +350,14 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
   int image_scale = std::max<int>(max_range, 4);
   cv::Mat src = cv::Mat::zeros(image_scale*scale_factor, image_scale*scale_factor, CV_8UC1);
 
-  for(std::size_t j = 0; j < table.convex_hull.vertices.size(); ++j )
+  for(std::size_t j = 0; j < table.convex_hull.size(); ++j )
   {
-    cv::line(src, table_contour[j],  table_contour[(j+1)%table.convex_hull.vertices.size()],
+    cv::line(src, table_contour[j],  table_contour[(j+1)%table.convex_hull.size()],
              cv::Scalar( 255 ), 3, 8 );
   }
 
-  unsigned int num_x = fabs(table.x_max-table.x_min)/resolution + 1;
-  unsigned int num_y = fabs(table.y_max-table.y_min)/resolution + 1;
+  unsigned int num_x = fabs(x_max-x_min)/resolution + 1;
+  unsigned int num_y = fabs(y_max-y_min)/resolution + 1;
 
   ROS_DEBUG("Num points for possible place operations: %d %d", num_x, num_y);
 
@@ -351,18 +377,18 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
         double result = cv::pointPolygonTest(contours[0], point2f, true);
         if((int) result >= (int) (min_distance_from_edge*scale_factor))
         {
-          Eigen::Vector3d point((double) (point_x)/scale_factor + table.x_min,
-                                (double) (point_y)/scale_factor + table.y_min,
+          Eigen::Vector3d point((double) (point_x)/scale_factor + x_min,
+                                (double) (point_y)/scale_factor + y_min,
                                 height_above_table + mm * delta_height);
           Eigen::Affine3d pose;
-          tf::poseMsgToEigen(table.pose.pose, pose);
+          tf::poseMsgToEigen(table.pose, pose);
           point = pose * point;
           geometry_msgs::PoseStamped place_pose;
           place_pose.pose.orientation.w = 1.0;
           place_pose.pose.position.x = point.x();
           place_pose.pose.position.y = point.y();
           place_pose.pose.position.z = point.z();
-          place_pose.header = table.pose.header;
+          place_pose.header = table.header;
           place_poses.push_back(place_pose);
         }
       }
@@ -377,16 +403,28 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
                                          double min_vertical_offset) const
 {
   // Assumption that the table's normal is along the Z axis
-  if(table.convex_hull.vertices.empty())
+  if(table.convex_hull.empty())
      return false;
+  float x_min=table.convex_hull[0].x, x_max=x_min, y_min=table.convex_hull[0].y, y_max=y_min;
+  for(std::size_t j=1; j < table.convex_hull.size(); ++j)
+  {
+    if (table.convex_hull[j].x < x_min)
+      x_min=table.convex_hull[j].x;
+    else if (table.convex_hull[j].x > x_max)
+      x_max=table.convex_hull[j].x;
+    if (table.convex_hull[j].y < y_min)
+      y_min=table.convex_hull[j].y;
+    else if (table.convex_hull[j].y > y_max)
+      y_max=table.convex_hull[j].y;
+  }
   const int scale_factor = 100;
   std::vector<cv::Point2f> table_contour;
-  for(std::size_t j=0; j < table.convex_hull.vertices.size(); ++j)
-    table_contour.push_back(cv::Point((table.convex_hull.vertices[j].x-table.x_min)*scale_factor,
-                                      (table.convex_hull.vertices[j].y-table.y_min)*scale_factor));
+  for(std::size_t j=0; j < table.convex_hull.size(); ++j)
+    table_contour.push_back(cv::Point((table.convex_hull[j].x-x_min)*scale_factor,
+                                      (table.convex_hull[j].y-y_min)*scale_factor));
 
-  double x_range = fabs(table.x_max-table.x_min);
-  double y_range = fabs(table.y_max-table.y_min);
+  double x_range = fabs(x_max-x_min);
+  double y_range = fabs(y_max-y_min);
   int max_range = (int) x_range + 1;
   if(max_range < (int) y_range + 1)
     max_range = (int) y_range + 1;
@@ -394,9 +432,9 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
   int image_scale = std::max<int>(max_range, 4);
   cv::Mat src = cv::Mat::zeros(image_scale*scale_factor, image_scale*scale_factor, CV_8UC1);
 
-  for(std::size_t j = 0; j < table.convex_hull.vertices.size(); ++j )
+  for(std::size_t j = 0; j < table.convex_hull.size(); ++j )
   {
-    cv::line(src, table_contour[j],  table_contour[(j+1)%table.convex_hull.vertices.size()],
+    cv::line(src, table_contour[j],  table_contour[(j+1)%table.convex_hull.size()],
              cv::Scalar( 255 ), 3, 8 );
   }
 
@@ -406,7 +444,7 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
 
   Eigen::Vector3d point(pose.position.x, pose.position.y, pose.position.z);
   Eigen::Affine3d pose_table;
-  tf::poseMsgToEigen(table.pose.pose, pose_table);
+  tf::poseMsgToEigen(table.pose, pose_table);
 
   // Point in table frame
   point = pose_table.inverse() * point;
@@ -417,8 +455,8 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
     return false;  
   }  
 
-  int point_x = (point.x() -table.x_min) * scale_factor;
-  int point_y = (point.y() -table.y_min) * scale_factor;
+  int point_x = (point.x() -x_min) * scale_factor;
+  int point_y = (point.y() -y_min) * scale_factor;
   cv::Point2f point2f(point_x, point_y);
   double result = cv::pointPolygonTest(contours[0], point2f, true);
   ROS_DEBUG("table distance: %f", result);
@@ -461,24 +499,24 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &tab
 {
   for(std::size_t i=0; i < table_array.tables.size(); ++i)
   {
-    std::string original_frame = table_array.tables[i].pose.header.frame_id;
-    if(table_array.tables[i].convex_hull.vertices.empty())
+    std::string original_frame = table_array.tables[i].header.frame_id;
+    if(table_array.tables[i].convex_hull.empty())
       continue;
-    ROS_INFO_STREAM("Original pose: " << table_array.tables[i].pose.pose.position.x << "," 
-                    << table_array.tables[i].pose.pose.position.y << "," 
-                    << table_array.tables[i].pose.pose.position.z);
+    ROS_INFO_STREAM("Original pose: " << table_array.tables[i].pose.position.x << ","
+                    << table_array.tables[i].pose.position.y << ","
+                    << table_array.tables[i].pose.position.z);
     std::string error_text;
     const Eigen::Affine3d& original_transform = planning_scene_->getTransforms().getTransform(original_frame);
     Eigen::Affine3d original_pose;
-    tf::poseMsgToEigen(table_array.tables[i].pose.pose, original_pose);
+    tf::poseMsgToEigen(table_array.tables[i].pose, original_pose);
     original_pose = original_transform * original_pose;
-    tf::poseEigenToMsg(original_pose, table_array.tables[i].pose.pose);    
-    table_array.tables[i].pose.header.frame_id = planning_scene_->getTransforms().getTargetFrame();    
+    tf::poseEigenToMsg(original_pose, table_array.tables[i].pose);
+    table_array.tables[i].header.frame_id = planning_scene_->getTransforms().getTargetFrame();
     ROS_INFO_STREAM("Successfully transformed table array from " << original_frame << 
-                    "to " << table_array.tables[i].pose.header.frame_id);
-    ROS_INFO_STREAM("Transformed pose: " << table_array.tables[i].pose.pose.position.x << "," 
-                     << table_array.tables[i].pose.pose.position.y << "," 
-                     << table_array.tables[i].pose.pose.position.z);
+                    "to " << table_array.tables[i].header.frame_id);
+    ROS_INFO_STREAM("Transformed pose: " << table_array.tables[i].pose.position.x << ","
+                     << table_array.tables[i].pose.position.y << ","
+                     << table_array.tables[i].pose.position.z);
   }
 }
 
