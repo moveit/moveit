@@ -40,7 +40,10 @@
 #include <QWidget>
 #include <QLabel>
 #include <QTableWidget>
+
+#ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
 
 namespace moveit_setup_assistant
 {

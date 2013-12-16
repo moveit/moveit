@@ -78,6 +78,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
+  ${moc_sources}
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
@@ -90,16 +91,16 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
-    ${PROJECT_NAME}_tools 
+    ${PROJECT_NAME}_tools
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_visualization
     )
 
 # Link libraries
-add_executable(${PROJECT_NAME} ${sources} ${headers} ${moc_sources})
-target_link_libraries(${PROJECT_NAME} 
-  ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools 
+add_executable(${PROJECT_NAME} ${sources} ${headers})
+target_link_libraries(${PROJECT_NAME}
+  ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
