@@ -42,9 +42,13 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QProgressBar>
+
+#ifndef Q_MOC_RUN
 #include <urdf/model.h> // for testing a valid urdf is loaded
 #include <srdfdom/model.h> // for testing a valid srdf is loaded
 #include <moveit/setup_assistant/tools/moveit_config_data.h> // common datastructure class
+#endif
+
 #include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
 

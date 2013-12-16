@@ -42,7 +42,10 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QPushButton>
+
+#ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
 
 namespace moveit_setup_assistant
 {
