@@ -42,8 +42,12 @@
 #include <QTreeWidget>
 #include <QSplitter>
 #include <QStackedLayout>
+
 // Setup Asst
+#ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
+
 #include "double_list_widget.h" // for joints, links and subgroups pages
 #include "kinematic_chain_widget.h" // for kinematic chain page
 #include "group_edit_widget.h" // for group rename page
