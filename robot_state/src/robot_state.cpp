@@ -1657,7 +1657,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
   for (std::size_t i = 0; i < waypoints.size(); ++i)
   {
     std::vector<RobotStatePtr> waypoint_traj;
-    double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback);
+    double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame, max_step, jump_threshold, validCallback, options);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
