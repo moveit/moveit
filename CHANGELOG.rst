@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.6 (2013-12-31)
+------------------
 * Fix compilation on OS X 10.9 (clang)
 * Contributors: Nikolaus Demmel, isucan
 
