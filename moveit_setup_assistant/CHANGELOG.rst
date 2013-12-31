@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix compilation on OS X 10.9 (clang)
+* Contributors: Nikolaus Demmel, isucan
+
 0.5.5 (2013-12-03)
 ------------------
 * fix `#64 <https://github.com/ros-planning/moveit_setup_assistant/issues/64>`_.
