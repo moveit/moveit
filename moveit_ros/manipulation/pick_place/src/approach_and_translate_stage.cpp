@@ -166,7 +166,8 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
 
 // This function is called during trajectory execution, after the gripper is closed, to attach the currently gripped object
 bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data,
-  const trajectory_msgs::JointTrajectory &detach_posture, const plan_execution::ExecutableMotionPlan *motion_plan)
+                         const trajectory_msgs::JointTrajectory &detach_posture,
+                         const plan_execution::ExecutableMotionPlan *motion_plan)
 {
   ROS_DEBUG("Applying attached object diff to maintained planning scene (attaching/detaching object to end effector)");
   bool ok = false;
@@ -190,6 +191,7 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
   if (!plan->retreat_posture_.joint_names.empty())
   {
     robot_state::RobotStatePtr ee_closed_state(new robot_state::RobotState(plan->trajectories_.back().trajectory_->getLastWayPoint()));
+
     robot_trajectory::RobotTrajectoryPtr ee_closed_traj(new robot_trajectory::RobotTrajectory(
         ee_closed_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
     ee_closed_traj->setRobotTrajectoryMsg(*ee_closed_state, plan->retreat_posture_);
@@ -326,7 +328,7 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
             return true;
           }
         }
-        else // sufficient progress was not made in the desired direction
+        else // No retreat was specified, so package up approach and grip trajectories.
         {
           // Reset the approach_state_ RobotStatePtr so that we can retry computing the cartesian path
           plan->approach_state_.swap(first_approach_state);
