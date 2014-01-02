@@ -79,7 +79,7 @@ public:
   void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;  
 
   /** \brief Remove collision objects from the world*/
-  void removeCollisionObjects(const std::vector<std::string> object_ids) const;
+  void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
   
   /**@}*/
 
