@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group/capability_names.h>
@@ -51,6 +51,7 @@ public:
   PlanningSceneInterfaceImpl()
   {
     planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+    planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   }
 
   std::vector<std::string> getKnownObjectNames(bool with_type)
@@ -158,10 +159,33 @@ public:
     return result;
   }
 
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+  {
+    moveit_msgs::PlanningScene planning_scene;
+    planning_scene.world.collision_objects = collision_objects;
+    planning_scene.is_diff = true;
+    planning_scene_diff_publisher_.publish(planning_scene);    
+  }
+
+  void removeCollisionObjects(const std::vector<std::string> &object_ids) const
+  {
+    moveit_msgs::PlanningScene planning_scene;
+    moveit_msgs::CollisionObject object;
+    for(std::size_t i=0; i < object_ids.size(); ++i)
+    {
+      object.id = object_ids[i];      
+      object.operation = object.REMOVE;      
+      planning_scene.world.collision_objects.push_back(object);      
+    }
+    planning_scene.is_diff = true;
+    planning_scene_diff_publisher_.publish(planning_scene);    
+  }
+  
 private:
 
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
+  ros::Publisher planning_scene_diff_publisher_;  
   robot_model::RobotModelConstPtr robot_model_;
 };
 
@@ -188,6 +212,16 @@ std::vector<std::string> PlanningSceneInterface::getKnownObjectNamesInROI(double
 std::map<std::string, geometry_msgs::Pose> PlanningSceneInterface::getObjectPoses(const std::vector<std::string> &object_ids)
 {
   return impl_->getObjectPoses(object_ids);
+}
+
+void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+{
+  return impl_->addCollisionObjects(collision_objects);
+}
+
+void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string> &object_ids) const
+{
+  return impl_->removeCollisionObjects(object_ids);
 }
 
 }
