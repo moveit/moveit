@@ -290,12 +290,10 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
   planning_scene_publisher_.publish(msg);
   ROS_DEBUG("Published the full planning scene: '%s'", msg.name.c_str());
 
-  bool have_diff = false;
-  bool have_full = false;
   do
   {
-    have_diff = false;
-    have_full = false;
+    bool have_diff = false;
+    bool have_full = false;
     ros::Rate rate(publish_planning_scene_frequency_);
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
