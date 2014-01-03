@@ -168,6 +168,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   {
     robot_model_ = rm_loader_->getModel();
     scene_ = scene;
+    scene_const_ = scene_;
     if (!scene_)
     {
       try
