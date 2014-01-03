@@ -92,7 +92,7 @@ class MoveGroupCommander(object):
         return self._g.get_planning_frame()
 
     def get_current_joint_values(self):
-        """ Get the current configuration of the group as a dictionary (these are values published on /joint_states) """
+        """ Get the current configuration of the group as a list (these are values published on /joint_states) """
         return self._g.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link = ""):
