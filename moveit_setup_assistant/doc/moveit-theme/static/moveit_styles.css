@@ -1,0 +1,19 @@
+@import url("default.css");
+
+/* Provide some missing image alignment styles. */
+.align-top {
+    vertical-align: text-top;
+}
+.align-middle {
+    vertical-align: middle;
+}
+.align-bottom {
+    vertical-align: text-bottom;
+}
+
+/* Style "default" sets text-align to 'justify' which forces big ugly
+* spaces into lines with long words. I prefer 'start' which just
+* aligns the start of each line and leaves the end ragged. */
+div.body p, div.body dd, div.body li {
+    text-align: start;
+}
