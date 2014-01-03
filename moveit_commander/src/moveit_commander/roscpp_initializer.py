@@ -35,7 +35,12 @@
 from moveit_ros_planning_interface import _moveit_roscpp_initializer
 
 def roscpp_initialize(args):
-    _moveit_roscpp_initializer.roscpp_init("move_group_commander_wrappers", args)
+    # remove __name:= argument
+    args2 = []
+    for a in args:
+        if not a.startswith("__name:="):
+          args2 += a
+    _moveit_roscpp_initializer.roscpp_init("move_group_commander_wrappers", args2)
 
 def roscpp_shutdown():
     _moveit_roscpp_initializer.roscpp_shutdown()
