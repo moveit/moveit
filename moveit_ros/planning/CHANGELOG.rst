@@ -7,7 +7,7 @@ Changelog for package moveit_ros_planning
 * planning_scene_monitor: slight code simplification
 * planning_scene_monitor: fix scope of local vars
 * planning_scene_monitor: fix init bug
-  scene_const_ not set if scene passed to constructor.
+  scene_const\_ not set if scene passed to constructor.
 * kdl_kinematics_plugin: fix warning
 * Contributors: Acorn Pooley
 
@@ -27,7 +27,7 @@ Changelog for package moveit_ros_planning
 * implement feature requests
 * clear monitored octomap when needed (see `#315 <https://github.com/ros-planning/moveit_ros/issues/315>`_)
 * fix the adapter for fixing path constraints for initial states
-* fixed computation of dimension_.
+* fixed computation of dimension\_.
 * bugfixes in indexing added states for path adapters
 * fixes for mimic joints and redundant joints
 
