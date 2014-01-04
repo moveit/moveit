@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* planning_scene_monitor: slight code simplification
+* planning_scene_monitor: fix scope of local vars
+* planning_scene_monitor: fix init bug
+  scene_const_ not set if scene passed to constructor.
+* kdl_kinematics_plugin: fix warning
+* Contributors: Acorn Pooley
+
 0.5.10 (2013-12-08)
 -------------------
 * fixing how joint names are filled up, fixed joints were getting included earlier, also resizing consistency limits for when random positions near by function is being called
