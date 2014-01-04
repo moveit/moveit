@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.7 (2014-01-03)
+------------------
 * Added back-link to tutorial and updated moveit website URL.
 * Ported tutorial from wiki to sphinx in source repo.
 
