@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2014-01-03)
+------------------
 * work around name bug
   move group interface python programs cannot be launched from launch files if
   the __name:= argument is used.  This works around the problem and allows using
