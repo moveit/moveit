@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed trailing underscores in CHANGELOGs.
+* Contributors: Dave Hershberger
+
 0.5.11 (2014-01-03)
 -------------------
 * planning_scene_monitor: slight code simplification
