@@ -313,7 +313,4 @@ URDF
 Links
 @@@@@
 
-* Back to :moveit_website:`MoveIt! Setup Assistant<moveit-setup-assistant>`
-
-* Back to :moveit_website:`Main Page<>`
-
+* Back to :moveit_website:`MoveIt! Tutorials<tutorials>`
