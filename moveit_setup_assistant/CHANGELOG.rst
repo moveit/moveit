@@ -2,6 +2,11 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added back-link to tutorial and updated moveit website URL.
+* Ported tutorial from wiki to sphinx in source repo.
+
 0.5.6 (2013-12-31)
 ------------------
 * Fix compilation on OS X 10.9 (clang)
