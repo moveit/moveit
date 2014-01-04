@@ -2,6 +2,14 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* work around name bug
+  move group interface python programs cannot be launched from launch files if
+  the __name:= argument is used.  This works around the problem and allows using
+  launch files to launch python moveit programs.
+* Added Travis Continuous Integration
+
 0.5.2 (2013-09-23)
 ------------------
 * add support for setting joint targets from approximate IK
