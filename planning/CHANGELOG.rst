@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.12 (2014-01-03)
+-------------------
 * Fixed trailing underscores in CHANGELOGs.
 * Contributors: Dave Hershberger
 
