@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.11 (2014-01-03)
+-------------------
 * Fixed bug in computeCartesianPathPython.
 * Adding collision object interface to planning_scene interface.
 * Contributors: Acorn Pooley, Sachin Chitta
