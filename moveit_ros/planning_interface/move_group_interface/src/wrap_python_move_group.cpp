@@ -232,7 +232,6 @@ public:
       if (v.size() == 6 || v.size() == 7)
       {
         Eigen::Affine3d p;
-        p.translation() = Eigen::Vector3d(v[0], v[1], v[2]);
         if (v.size() == 6)
         {
           Eigen::Quaterniond q;
@@ -241,6 +240,7 @@ public:
         }
         else
           p = Eigen::Affine3d(Eigen::Quaterniond(v[6], v[3], v[4], v[5]));
+        p.translation() = Eigen::Vector3d(v[0], v[1], v[2]);
         geometry_msgs::Pose pm;
         tf::poseEigenToMsg(p, pm);
         msg.push_back(pm);
