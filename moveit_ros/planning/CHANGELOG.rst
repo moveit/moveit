@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.11 (2014-01-03)
+-------------------
 * planning_scene_monitor: slight code simplification
 * planning_scene_monitor: fix scope of local vars
 * planning_scene_monitor: fix init bug
