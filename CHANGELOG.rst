@@ -2,8 +2,8 @@
 Changelog for package moveit_ikfast
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.0.6 (2014-01-03)
+------------------
 * adding sphinx documentation
 * added branch name to build status
 * added travis build status indicator in README.md
