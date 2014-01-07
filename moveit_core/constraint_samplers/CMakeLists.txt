@@ -24,7 +24,6 @@ install(DIRECTORY include/
 
 if (${BUILD_MOVEIT_TESTS})
   find_package(orocos_kdl)
-  message("orocos_kdl_LIBRARIES is ${orocos_kdl_LIBRARIES}.")
 
   catkin_add_gtest(test_constraint_samplers
     test/test_constraint_samplers.cpp
