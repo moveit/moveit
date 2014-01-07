@@ -22,5 +22,18 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/
   DESTINATION include)
 
-catkin_add_gtest(test_constraint_samplers test/test_constraint_samplers.cpp test/pr2_arm_kinematics_plugin.cpp test/pr2_arm_ik.cpp)
-target_link_libraries(test_constraint_samplers ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES})
+if (${BUILD_MOVEIT_TESTS})
+  find_package(orocos_kdl)
+  message("orocos_kdl_LIBRARIES is ${orocos_kdl_LIBRARIES}.")
+
+  catkin_add_gtest(test_constraint_samplers
+    test/test_constraint_samplers.cpp
+    test/pr2_arm_kinematics_plugin.cpp
+    test/pr2_arm_ik.cpp
+  )
+  target_link_libraries(test_constraint_samplers
+    ${MOVEIT_LIB_NAME}
+    ${catkin_LIBRARIES}
+    ${orocos_kdl_LIBRARIES}
+  )
+endif()

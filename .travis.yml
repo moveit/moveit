@@ -1,6 +1,6 @@
-# Generic MoveIt Travis Continuous Integration Configuration File
-# Works with all MoveIt! repositories/branches
-# Author: Dave Coleman, Jonathan Bohren
+# MoveIt Travis Continuous Integration Configuration File
+# Copied from generic one, specialized for running certain tests.
+# Authors: Dave Coleman, Jonathan Bohren, Dave Hershberger
 language:
   - cpp
   - python
@@ -8,12 +8,14 @@ python:
   - "2.7"
 compiler:
   - gcc
+
 notifications:
   email:
     recipients:
       - davetcoleman@gmail.com
     on_success: change #[always|never|change] # default: change
     on_failure: change #[always|never|change] # default: always
+
 before_install: # Use this to prepare the system to install prerequisites or dependencies
   # Define some config vars
   - export ROS_DISTRO=hydro
@@ -30,6 +32,7 @@ before_install: # Use this to prepare the system to install prerequisites or dep
   # Setup rosdep
   - sudo rosdep init
   - rosdep update
+
 install: # Use this to install any prerequisites or dependencies necessary to run your build
   # Create workspace
   - mkdir -p ~/ros/ws_moveit/src
@@ -46,6 +49,35 @@ install: # Use this to install any prerequisites or dependencies necessary to ru
   - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
   - source /opt/ros/$ROS_DISTRO/setup.bash  
+
 script: # All commands must exit with code 0 on success. Anything else is considered failure.
+
+  # The main build.  Restricted to 2 parallel jobs to prevent
+  # exhausting memory on Travis servers.
   - catkin_make -j2
 
+  # Tests need the package's environment 
+  - source devel/setup.bash
+
+  # Go to build dir so can use straight "make"
+  - cd build
+
+  # Currently not all tests in moveit_core are passing, so I'm
+  # automating the running of the ones that *are* passing to prevent
+  # regressions in those.  When the other tests are fixed, these
+  # run_tests_... lines can all be replaced with a single line like
+  # this:
+  # make run_tests
+  - make run_tests_moveit_core_gtest_test_distance_field
+  - make run_tests_moveit_core_gtest_test_robot_model
+  - make run_tests_moveit_core_gtest_test_robot_state
+  - make run_tests_moveit_core_gtest_test_transforms
+  - make run_tests_moveit_core_gtest_test_voxel_grid
+  - make run_tests_moveit_core_gtest_test_world
+  - make run_tests_moveit_core_gtest_test_world_diff
+  
+  # "make run_tests" and friends return success even when tests fail,
+  # so here we run catkin_test_results which summarizes the results
+  # and returns a result code indicating whether there were any
+  # failures or not.
+  - catkin_test_results .
