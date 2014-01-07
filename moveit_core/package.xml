@@ -19,6 +19,7 @@
   <buildtool_depend>pkg-config</buildtool_depend>
 
   <test_depend>moveit_resources</test_depend>
+  <test_depend>orocos_kdl</test_depend>
 
   <build_depend>console_bridge</build_depend>
   <build_depend>random_numbers</build_depend>
