@@ -145,13 +145,13 @@ public:
 
   /** \brief Set the tolerance that is used for reaching the goal. For
       joint state goals, this will be distance for each joint, in the
-      configuration space. For pose goals this will be the radius of a sphere
-      where the end-effector must reach. This function simply triggers
-      calls to setGoalPositionTolerance(), setGoalOrientationTolerance()
-      and setGoalJointTolerance(). */
+      configuration space (radians or meters depending on joint type). For pose
+      goals this will be the radius of a sphere where the end-effector must
+      reach. This function simply triggers calls to setGoalPositionTolerance(),
+      setGoalOrientationTolerance() and setGoalJointTolerance(). */
   void setGoalTolerance(double tolerance);
 
-  /** \brief Set the joint tolerance (for each joint) that is used for reaching the goal when moving to a joint configuration. */
+  /** \brief Set the joint tolerance (for each joint) that is used for reaching the goal when moving to a joint value target. */
   void setGoalJointTolerance(double tolerance);
 
   /** \brief Set the position tolerance that is used for reaching the goal when moving to a pose. */
@@ -179,53 +179,179 @@ public:
 
   /**
    * \name Setting a joint state target (goal)
+   *
+   * There are 2 types of goal targets:
+   * \li a JointValueTarget (aka JointStateTarget) specifies an absolute value for each joint (angle for rotational joints or position for prismatic joints).
+   * \li a PoseTarget (Position, Orientation, or Pose) specifies the pose of one or more end effectors (and the planner can use any joint values that reaches the pose(s)).
+   *
+   * Only one or the other is used for planning.  Calling any of the
+   * set*JointValueTarget() functions sets the current goal target to the
+   * JointValueTarget.  Calling any of the setPoseTarget(),
+   * setOrientationTarget(), setRPYTarget(), setPositionTarget() functions sets
+   * the current goal target to the Pose target.
    */
   /**@{*/
 
-  /** \brief Given a vector of real values in the same order as expected by the group, set those as the joint state goal */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      \e group_variable_values MUST contain exactly one value per joint
+      variable in the same order as returned by
+      getJointValueTarget().getJointModelGroup(getName())->getVariableNames().
+
+      This always sets all of the group's joint values.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const std::vector<double> &group_variable_values);
 
-  /** \brief Given a map of joint names to real values, set those as the joint state goal */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      \e variable_values is a map of joint variable names to values.  Joints in
+      the group are used to set the JointValueTarget.  Joints in the model but
+      not in the group are ignored.  An exception is thrown if a joint name is
+      not found in the model.  Joint variables in the group that are missing
+      from \e variable_values remain unchanged (to reset all target variables
+      to their current values in the robot use
+      setJointValueTarget(getCurrentJointValues())).
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const std::map<std::string, double> &variable_values);
 
-  /** \brief Set the joint state goal from corresponding joint values from the specified state.
-      Values from state for joints not in this MoveGroup's group are ignored. */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      The target for all joints in the group are set to the value in \e robot_state.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const robot_state::RobotState &robot_state);
 
-  /** \brief Set the joint state goal for a particular joint */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      \e values MUST have one value for each variable in joint \e joint_name.
+      \e values are set as the target for this joint.
+      Other joint targets remain unchanged.
+      
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const std::string &joint_name, const std::vector<double> &values);
 
-  /** \brief Set the joint state goal for a particular joint */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      Joint \e joint_name must be a 1-DOF joint.
+      \e value is set as the target for this joint.  
+      Other joint targets remain unchanged.
+      
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const std::string &joint_name, double value);
 
-  /** \brief Set the joint state goal for a particular joint */
+  /** \brief Set the JointValueTarget and use it for future planning requests.
+
+      \e state is used to set the target joint state values.
+      Values not specified in \e state remain unchanged.
+      
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If these values are out of bounds then false is returned BUT THE VALUES
+      ARE STILL SET AS THE GOAL. */
   bool setJointValueTarget(const sensor_msgs::JointState &state);
 
-  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then false is returned BUT THE PARTIAL
+      RESULT OF IK IS STILL SET AS THE GOAL. */
   bool setJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then false is returned BUT THE PARTIAL
+      RESULT OF IK IS STILL SET AS THE GOAL. */
   bool setJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal for a particular joint by computing IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then false is returned BUT THE PARTIAL
+      RESULT OF IK IS STILL SET AS THE GOAL. */
   bool setJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then an approximation is used. */
   bool setApproximateJointValueTarget(const geometry_msgs::Pose &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then an approximation is used. */
   bool setApproximateJointValueTarget(const geometry_msgs::PoseStamped &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal for a particular joint by computing approximate IK. This is different from setPoseTarget() in that
-      a single IK state is computed to be the goal of the planner, rather than sending the pose itself to the planner. */
+  /** \brief Set the joint state goal for a particular joint by computing IK.
+
+      This is different from setPoseTarget() in that a single IK state (aka
+      JointValueTarget) is computed using IK, and the resulting
+      JointValueTarget is used as the target for planning.
+
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. 
+      
+      If IK fails to find a solution then an approximation is used. */
   bool setApproximateJointValueTarget(const Eigen::Affine3d &eef_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the joint state goal to a random joint configuration */
+  /** \brief Set the joint state goal to a random joint configuration
+        
+      After this call, the JointValueTarget is used \b instead of any
+      previously set Position, Orientation, or Pose targets. */
   void setRandomTarget();
 
   /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found,
@@ -240,61 +366,152 @@ public:
 
   /**
    * \name Setting a pose target (goal)
+   *
+   * Setting a Pose (or Position or Orientation) target disables any previously
+   * set JointValueTarget.
+   *
+   * For groups that have multiple end effectors, a pose can be set for each
+   * end effector in the group.  End effectors which do not have a pose target
+   * set will end up in arbitrary positions.
    */
   /**@{*/
 
-  /** \brief Set the goal position of the end-effector \e end_effector_link to be (\e x, \e y, \e z). If \e end_effector_link
-      is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed */
+  /** \brief Set the goal position of the end-effector \e end_effector_link to be (\e x, \e y, \e z).
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new position target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setPositionTarget(double x, double y, double z, const std::string &end_effector_link = "");
 
-  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e roll,\e pitch,\e yaw) radians. If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  /** \brief Set the goal orientation of the end-effector \e end_effector_link to be (\e roll,\e pitch,\e yaw) radians.
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setRPYTarget(double roll, double pitch, double yaw, const std::string &end_effector_link = "");
 
   /** \brief Set the goal orientation of the end-effector \e end_effector_link to be the quaternion (\e x,\e y,\e z,\e w).
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setOrientationTarget(double x, double y, double z, double w, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new pose target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setPoseTarget(const Eigen::Affine3d &end_effector_pose, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setPoseTarget(const geometry_msgs::Pose &target, const std::string &end_effector_link = "");
 
   /** \brief Set the goal pose of the end-effector \e end_effector_link.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target for this \e
+      end_effector_link. */
   bool setPoseTarget(const geometry_msgs::PoseStamped &target, const std::string &end_effector_link = "");
 
-  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  /** \brief Set goal poses for \e end_effector_link.
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      When planning, the planner will find a path to one (arbitrarily chosen)
+      pose from the list.  If this group contains multiple end effectors then
+      all end effectors in the group should have the same number of pose
+      targets.  If planning is successful then the result of the plan will
+      place all end effectors at a pose from the same index in the list.  (In
+      other words, if one end effector ends up at the 3rd pose in the list then
+      all end effectors in the group will end up at the 3rd pose in their
+      respective lists.  End effectors which do not matter (i.e. can end up in
+      any position) can have their pose targets disabled by calling
+      clearPoseTarget() for that end_effector_link.
+      
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target(s) for this \e
+      end_effector_link. */
   bool setPoseTargets(const EigenSTL::vector_Affine3d &end_effector_pose, const std::string &end_effector_link = "");
 
-  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  /** \brief Set goal poses for \e end_effector_link.
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      When planning, the planner will find a path to one (arbitrarily chosen)
+      pose from the list.  If this group contains multiple end effectors then
+      all end effectors in the group should have the same number of pose
+      targets.  If planning is successful then the result of the plan will
+      place all end effectors at a pose from the same index in the list.  (In
+      other words, if one end effector ends up at the 3rd pose in the list then
+      all end effectors in the group will end up at the 3rd pose in their
+      respective lists.  End effectors which do not matter (i.e. can end up in
+      any position) can have their pose targets disabled by calling
+      clearPoseTarget() for that end_effector_link.
+      
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target(s) for this \e
+      end_effector_link. */
   bool setPoseTargets(const std::vector<geometry_msgs::Pose> &target, const std::string &end_effector_link = "");
 
-  /** \brief Set the goal pose of the end-effector \e end_effector_link. In this case the goal pose can be any of the ones specified in the array.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+  /** \brief Set goal poses for \e end_effector_link.
+
+      If \e end_effector_link is empty then getEndEffectorLink() is used.
+
+      When planning, the planner will find a path to one (arbitrarily chosen)
+      pose from the list.  If this group contains multiple end effectors then
+      all end effectors in the group should have the same number of pose
+      targets.  If planning is successful then the result of the plan will
+      place all end effectors at a pose from the same index in the list.  (In
+      other words, if one end effector ends up at the 3rd pose in the list then
+      all end effectors in the group will end up at the 3rd pose in their
+      respective lists.  End effectors which do not matter (i.e. can end up in
+      any position) can have their pose targets disabled by calling
+      clearPoseTarget() for that end_effector_link.
+      
+      This new orientation target replaces any pre-existing JointValueTarget or
+      pre-existing Position, Orientation, or Pose target(s) for this \e
+      end_effector_link. */
   bool setPoseTargets(const std::vector<geometry_msgs::PoseStamped> &target, const std::string &end_effector_link = "");
 
   /// Specify which reference frame to assume for poses specified without a reference frame.
   void setPoseReferenceFrame(const std::string &pose_reference_frame);
 
-  /// Specify the link the end-effector to be considered is attached to
-  bool setEndEffectorLink(const std::string &link_name);
+  /** \brief Specify the parent link of the end-effector.
+      This \e end_effector_link will be used in calls to pose target functions
+      when end_effector_link is not explicitly specified. */
+  bool setEndEffectorLink(const std::string &end_effector_link);
 
-  /// Specify the name of the end-effector to use
+  /** \brief Specify the name of the end-effector to use.
+      This is equivalent to setting the EndEffectorLink to the parent link of this end effector. */
   bool setEndEffector(const std::string &eef_name);
 
-  /// Forget pose specified for the end-effector \e end_effector_link
+  /// Forget pose(s) specified for \e end_effector_link
   void clearPoseTarget(const std::string &end_effector_link = "");
 
-  /// Forget any poses specified for any end-effector
+  /// Forget any poses specified for all end-effectors.
   void clearPoseTargets();
 
   /** Get the currently set pose goal for the end-effector \e end_effector_link.
-      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
+      If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed.
+      If multiple targets are set for \e end_effector_link this will return the first one.
+      If no pose target is set for this \e end_effector_link then an empty pose will be returned (check for orientation.xyzw == 0). */
   const geometry_msgs::PoseStamped& getPoseTarget(const std::string &end_effector_link = "") const;
 
   /** Get the currently set pose goal for the end-effector \e end_effector_link. The pose goal can consist of multiple poses,
@@ -302,13 +519,15 @@ public:
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is assumed  */
   const std::vector<geometry_msgs::PoseStamped>& getPoseTargets(const std::string &end_effector_link = "") const;
 
-  /** \brief Get the current end-effector link. This returns the value set by setEndEffectorLink().
+  /** \brief Get the current end-effector link.
+      This returns the value set by setEndEffectorLink() (or indirectly by setEndEffector()).
       If setEndEffectorLink() was not called, this function reports the link name that serves as parent
       of an end-effector attached to this group. If there are multiple end-effectors, one of them is returned.
       If no such link is known, the empty string is returned. */
   const std::string& getEndEffectorLink() const;
 
-  /** \brief Get the current end-effector name. This returns the value set by setEndEffector().
+  /** \brief Get the current end-effector name.
+      This returns the value set by setEndEffector() (or indirectly by setEndEffectorLink()).
       If setEndEffector() was not called, this function reports an end-effector attached to this group.
       If there are multiple end-effectors, one of them is returned. If no end-effector is known, the empty string is returned. */
   const std::string& getEndEffector() const;
@@ -455,13 +674,19 @@ public:
    */
   /**@{*/
 
-  /** \brief Remember the current joint values (of the robot being monitored) under \e name. These can be used by setNamedTarget() */
+  /** \brief Remember the current joint values (of the robot being monitored) under \e name.
+      These can be used by setNamedTarget(). 
+      These values are remembered locally in the client.  Other clients will
+      not have access to them. */
   void rememberJointValues(const std::string &name);
 
-  /** \brief Remember the specified joint values  under \e name. These can be used by setNamedTarget() */
+  /** \brief Remember the specified joint values  under \e name.
+      These can be used by setNamedTarget(). 
+      These values are remembered locally in the client.  Other clients will
+      not have access to them. */
   void rememberJointValues(const std::string &name, const std::vector<double> &values);
 
-  /** \brief Get the currently remembered map of names to joint values */
+  /** \brief Get the currently remembered map of names to joint values. */
   const std::map<std::string, std::vector<double> >& getRememberedJointValues() const
   {
     return remembered_joint_values_;
@@ -480,16 +705,21 @@ public:
   /** \brief Specify where the MongoDB server that holds known constraints resides */
   void setConstraintsDatabase(const std::string &host, unsigned int port);
 
-  /** \brief Get the names of the constraints known (as read from the warehouse, if a connection was achieved) */
+  /** \brief Get the names of the constraints known as read from the MongoDB server, if a connection was achieved. */
   std::vector<std::string> getKnownConstraints() const;
 
-  /** \brief Specify a set of path constraints to use */
+  /** \brief Specify a set of path constraints to use.
+      The constraints are looked up by name from the MongoDB server.
+      This replaces any path constraints set in previous calls to setPathConstraints(). */
   bool setPathConstraints(const std::string &constraint);
 
-  /** \brief Specify a set of path constraints to use */
+  /** \brief Specify a set of path constraints to use.
+      This version does not require a MongoDB server.
+      This replaces any path constraints set in previous calls to setPathConstraints(). */
   void setPathConstraints(const moveit_msgs::Constraints &constraint);
 
-  /** \brief Specify that no path constraints are to be used */
+  /** \brief Specify that no path constraints are to be used.
+      This removes any path constraints set in previous calls to setPathConstraints(). */
   void clearPathConstraints();
 
   /**@}*/
