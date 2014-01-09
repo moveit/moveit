@@ -23,6 +23,7 @@ COMPONENTS
   random_numbers
   console_bridge
   visualization_msgs
+  roslib
   rostime
 )
 
