@@ -34,7 +34,6 @@
 
 /* Author: E. Gil Jones */
 
-#include <moveit/test_resources/config.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
@@ -42,6 +41,7 @@
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
+#include <ros/package.h>
 
 #include <gtest/gtest.h>
 #include <sstream>
@@ -54,10 +54,6 @@
 typedef collision_detection::CollisionWorldFCL DefaultCWorldType;
 typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 
-static std::string urdf_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string();
-static std::string srdf_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string();
-static std::string kinect_dae_file = (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/meshes/sensors/kinect_v0/kinect.dae").string();
-
 class FclCollisionDetectionTester : public testing::Test
 {
 
@@ -65,6 +61,17 @@ protected:
 
   virtual void SetUp()
   {
+    std::string resource_dir = ros::package::getPath("moveit_resources");
+    if(resource_dir == "")
+    {
+      FAIL() << "Failed to find package moveit_resources.";
+      return;
+    }
+    boost::filesystem::path res_path(resource_dir);
+    std::string urdf_file = (res_path / "test/urdf/robot.xml").string();
+    std::string srdf_file = (res_path / "test/srdf/robot.xml").string();
+    kinect_dae_resource_ = "package://moveit_resources/test/urdf/meshes/sensors/kinect_v0/kinect.dae";
+
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
     std::fstream xml_file(urdf_file.c_str(), std::fstream::in);
@@ -116,6 +123,7 @@ protected:
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 
+  std::string kinect_dae_resource_;
 };
 
 
@@ -380,9 +388,7 @@ TEST_F(FclCollisionDetectionTester, DiffSceneTester)
   std::vector<shapes::ShapeConstPtr> shapes;
   shapes.resize(1);
 
-  boost::filesystem::path path(boost::filesystem::current_path());
-
-  shapes[0].reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
+  shapes[0].reset(shapes::createMeshFromResource(kinect_dae_resource_));
 
   EigenSTL::vector_Affine3d poses;
   poses.push_back(Eigen::Affine3d::Identity());
@@ -417,8 +423,7 @@ TEST_F(FclCollisionDetectionTester, ConvertObjectToAttached)
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
 
-  boost::filesystem::path path(boost::filesystem::current_path());
-  shapes::ShapeConstPtr shape(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
+  shapes::ShapeConstPtr shape(shapes::createMeshFromResource(kinect_dae_resource_));
   Eigen::Affine3d pos1 = Eigen::Affine3d::Identity();
   Eigen::Affine3d pos2 = Eigen::Affine3d::Identity();
   pos2.translation().x() = 10.0;
@@ -501,8 +506,7 @@ TEST_F(FclCollisionDetectionTester, MoveMesh)
   Eigen::Affine3d kinect_pose;
   kinect_pose.setIdentity();
   shapes::ShapePtr kinect_shape;
-  boost::filesystem::path path(boost::filesystem::current_path());
-  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
+  kinect_shape.reset(shapes::createMeshFromResource(kinect_dae_resource_));
 
   cworld_->getWorld()->addToObject("kinect", kinect_shape, kinect_pose);
 
@@ -548,8 +552,7 @@ TEST_F(FclCollisionDetectionTester, TestChangingShapeSize)
 
   Eigen::Affine3d kinect_pose;
   shapes::ShapePtr kinect_shape;
-  boost::filesystem::path path(boost::filesystem::current_path());
-  kinect_shape.reset(shapes::createMeshFromResource("file://"+path.string()+"/"+kinect_dae_file));
+  kinect_shape.reset(shapes::createMeshFromResource(kinect_dae_resource_));
   cworld_->getWorld()->addToObject("kinect", kinect_shape, kinect_pose);
   collision_detection::CollisionRequest req2;
   collision_detection::CollisionResult res2;
