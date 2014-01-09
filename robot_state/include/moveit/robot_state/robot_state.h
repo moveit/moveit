@@ -880,7 +880,9 @@ as the new values that correspond to the group */
       setVariableVelocities(msg.name, msg.velocity);
   }
   
-  /** \brief Set all joints to their default positions */
+  /** \brief Set all joints to their default positions.
+       The default position is 0, or if that is not within bounds then half way
+       between min and max bound.  */
   void setToDefaultValues();
 
   /** \brief Set the joints in \e group to the position \e name defined in the SRDF */
