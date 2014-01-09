@@ -880,11 +880,32 @@ as the new values that correspond to the group */
       setVariableVelocities(msg.name, msg.velocity);
   }
   
+  /** \brief Set all joints to their default positions */
   void setToDefaultValues();
+
+  /** \brief Set the joints in \e group to the position \e name defined in the SRDF */
   bool setToDefaultValues(const JointModelGroup *group, const std::string &name);
+
+  /** \brief Set all joints to random values.  Values will be within default bounds. */
   void setToRandomPositions();
+
+  /** \brief Set all joints in \e group to random values.  Values will be within default bounds. */
   void setToRandomPositions(const JointModelGroup *group);
+
+  /** \brief Set all joints in \e group to random values near the value in \near.
+   *  \e distance is the maximum amount each joint value will vary from the
+   *  corresponding value in \e near.  \distance represents meters for
+   *  prismatic/postitional joints and radians for revolute/orientation joints.
+   *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, double distance);
+
+  /** \brief Set all joints in \e group to random values near the value in \near.
+   *  \e distances \b MUST have the same size as \c
+   *  group.getActiveJointModels().  Each value in \e distances is the maximum
+   *  amount the corresponding active joint in \e group will vary from the
+   *  corresponding value in \e near.  \distance represents meters for
+   *  prismatic/postitional joints and radians for revolute/orientation joints.
+   *  Resulting values are clamped within default bounds. */
   void setToRandomPositionsNearBy(const JointModelGroup *group, const RobotState &near, const std::vector<double> &distances);
 
   /** @} */
