@@ -61,12 +61,21 @@ public:
   /** @brief Query if sampler can find any sample*/
   virtual bool canSample() const;
 
+  /** @brief Query if sampler could find a sample in the future */
+  virtual bool couldSample() const;
+  
   /** @brief Is the goal satisfied for this state (given a distance)*/
   virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;
 
   /** @brief Find the distance of this state from the goal*/
   virtual double distanceGoal(const ompl::base::State *st) const;
 
+  /** @brief If there are any member lazy samplers, start them */
+  void startSampling();
+
+  /** @brief If there are any member lazy samplers, stop them */
+  void stopSampling();
+  
   /** @brief Pretty print goal information*/
   virtual void print(std::ostream &out = std::cout) const;
 
