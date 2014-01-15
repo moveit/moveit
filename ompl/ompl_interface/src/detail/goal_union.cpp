@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/detail/goal_union.h>
+#include <ompl/base/goals/GoalLazySamples.h>
 
 namespace
 {
@@ -55,6 +56,20 @@ ompl::base::SpaceInformationPtr getGoalsSI(const std::vector<ompl::base::GoalPtr
 ompl_interface::GoalSampleableRegionMux::GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals) :
   ompl::base::GoalSampleableRegion(getGoalsSI(goals)), goals_(goals), gindex_(0)
 {
+}
+
+void ompl_interface::GoalSampleableRegionMux::startSampling()
+{
+  for (std::size_t i = 0 ; i < goals_.size() ; ++i)
+    if (goals_[i]->hasType(ompl::base::GOAL_LAZY_SAMPLES))
+      static_cast<ompl::base::GoalLazySamples*>(goals_[i].get())->startSampling();
+}
+
+void ompl_interface::GoalSampleableRegionMux::stopSampling()
+{
+  for (std::size_t i = 0 ; i < goals_.size() ; ++i)
+    if (goals_[i]->hasType(ompl::base::GOAL_LAZY_SAMPLES))
+      static_cast<ompl::base::GoalLazySamples*>(goals_[i].get())->stopSampling();
 }
 
 void ompl_interface::GoalSampleableRegionMux::sampleGoal(ompl::base::State *st) const
@@ -83,6 +98,14 @@ bool ompl_interface::GoalSampleableRegionMux::canSample() const
 {
   for (std::size_t i = 0 ; i < goals_.size() ; ++i)
     if (goals_[i]->as<ompl::base::GoalSampleableRegion>()->canSample())
+      return true;
+  return false;
+}
+
+bool ompl_interface::GoalSampleableRegionMux::couldSample() const
+{
+  for (std::size_t i = 0 ; i < goals_.size() ; ++i)
+    if (goals_[i]->as<ompl::base::GoalSampleableRegion>()->couldSample())
       return true;
   return false;
 }
