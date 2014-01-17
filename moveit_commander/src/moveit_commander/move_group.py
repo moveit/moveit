@@ -92,7 +92,7 @@ class MoveGroupCommander(object):
         return self._g.get_planning_frame()
 
     def get_current_joint_values(self):
-        """ Get the current configuration of the group as a dictionary (these are values published on /joint_states) """
+        """ Get the current configuration of the group as a list (these are values published on /joint_states) """
         return self._g.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link = ""):
@@ -127,7 +127,7 @@ class MoveGroupCommander(object):
     def set_joint_value_target(self, arg1, arg2 = None, arg3 = None):
         """
         Specify a target joint configuration for the group.
-        - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments shold be provided.
+        - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments should be provided.
         The dict should specify pairs of joint variable names and their target values, the list should specify all the variable values
         for the group. The JointState message specifies the positions of some single-dof joints. 
         - if the type of arg1 is string, then arg2 is expected to be defined and be either a real value or a list of real values. This is
