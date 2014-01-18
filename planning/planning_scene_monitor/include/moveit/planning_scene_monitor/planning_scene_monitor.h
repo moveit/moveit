@@ -572,7 +572,7 @@ protected:
 
  * The function "getRobotModel()" is a member of PlanningScene and not
  * a member of this class.  However because of the "operator->" here
- * which returns a PlanningSceneConstPtr, this works.
+ * which returns a PlanningScenePtr, this works.
  *
  * Only one of these "ReadWrite" locks can exist at a given time.  The
  * intention is that users which need to write to the PlanningScene
