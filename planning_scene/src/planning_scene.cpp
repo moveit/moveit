@@ -563,7 +563,7 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
                                                            const robot_state::RobotState &kstate,
                                                            const collision_detection::AllowedCollisionMatrix& acm) const
 {
-  // check collision with the world using the padded version
+  // check collision with the world using the unpadded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
 
   // do self-collision checking with the unpadded version of the robot
