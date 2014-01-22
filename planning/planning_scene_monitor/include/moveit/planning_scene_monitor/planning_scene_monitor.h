@@ -405,6 +405,10 @@ protected:
   double                                default_object_padd_;
   /// default attached padding
   double                                default_attached_padd_;
+  /// default robot link padding
+  std::map<std::string, double>         default_robot_link_padd_;
+  /// default robot link scale
+  std::map<std::string, double>         default_robot_link_scale_;
 
   // variables for planning scene publishing
   ros::Publisher                        planning_scene_publisher_;

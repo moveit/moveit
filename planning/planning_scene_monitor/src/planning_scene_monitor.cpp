@@ -180,6 +180,12 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 
         scene_->getCollisionRobotNonConst()->setPadding(default_robot_padd_);
         scene_->getCollisionRobotNonConst()->setScale(default_robot_scale_);
+        for(std::map<std::string, double>::iterator it=default_robot_link_padd_.begin(); it != default_robot_link_padd_.end(); it++) {
+            scene_->getCollisionRobotNonConst()->setLinkPadding(it->first, it->second);
+        }
+        for(std::map<std::string, double>::iterator it=default_robot_link_scale_.begin(); it != default_robot_link_scale_.end(); it++) {
+            scene_->getCollisionRobotNonConst()->setLinkScale(it->first, it->second);
+        }
         scene_->propogateRobotPadding();
       }
       catch (moveit::ConstructException &e)
@@ -1088,4 +1094,6 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
   nh_.param(robot_description_ + "_planning/default_robot_scale", default_robot_scale_, 1.0);
   nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
+  nh_.param(robot_description_ + "_planning/default_robot_link_padding", default_robot_link_padd_, std::map<std::string, double>());
+  nh_.param(robot_description_ + "_planning/default_robot_link_scale", default_robot_link_padd_, std::map<std::string, double>());
 }
