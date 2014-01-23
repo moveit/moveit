@@ -131,6 +131,9 @@ public:
   /** \brief Specify the maximum amount of time to use when planning */
   void setPlanningTime(double seconds);
 
+  /** \brief Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1.*/
+  void setNumPlanningAttempts(unsigned int num_planning_attempts);
+  
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;
 

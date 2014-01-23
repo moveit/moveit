@@ -111,6 +111,7 @@ public:
     goal_position_tolerance_ = 1e-4; // 0.1 mm
     goal_orientation_tolerance_ = 1e-3; // ~0.1 deg
     planning_time_ = 5.0;
+    num_planning_attempts_ = 1;
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -220,6 +221,11 @@ public:
     planner_id_ = planner_id;
   }
 
+  void setNumPlanningAttempts(unsigned int num_planning_attempts)
+  {
+    num_planning_attempts_ = num_planning_attempts;
+  }
+  
   robot_state::RobotState& getJointStateTarget()
   {
     return *joint_state_target_;
@@ -783,7 +789,7 @@ public:
   {
     moveit_msgs::MoveGroupGoal goal;
     goal.request.group_name = opt_.group_name_;
-    goal.request.num_planning_attempts = 1;
+    goal.request.num_planning_attempts = num_planning_attempts_;
     goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
@@ -960,6 +966,7 @@ private:
   moveit_msgs::WorkspaceParameters workspace_parameters_;
   double planning_time_;
   std::string planner_id_;
+  unsigned int num_planning_attempts_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1025,6 +1032,11 @@ bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs:
 void moveit::planning_interface::MoveGroup::setPlannerId(const std::string &planner_id)
 {
   impl_->setPlannerId(planner_id);
+}
+
+void moveit::planning_interface::MoveGroup::setNumPlanningAttempts(unsigned int num_planning_attempts)
+{
+  impl_->setNumPlanningAttempts(num_planning_attempts);
 }
 
 bool moveit::planning_interface::MoveGroup::asyncMove()
