@@ -6,3 +6,7 @@ find_package(catkin)
 catkin_python_setup()
 
 catkin_package()
+
+install(DIRECTORY bin/
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        USE_SOURCE_PERMISSIONS)
