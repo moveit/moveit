@@ -14,7 +14,6 @@ COMPONENTS
   urdfdom
   urdfdom_headers
   srdfdom
-  fcl
   kdl_parser
   geometric_shapes
   shape_tools
@@ -28,6 +27,9 @@ COMPONENTS
 )
 
 find_package(octomap REQUIRED)
+
+find_package(PkgConfig)
+pkg_check_modules(LIBFCL REQUIRED fcl)
 
 # This is where the version file will be generated
 set(VERSION_FILE_PATH "${CMAKE_CURRENT_BINARY_DIR}/version")
