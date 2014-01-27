@@ -351,7 +351,6 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
                                    const moveit_msgs::Constraints &path_constraints,
                                    moveit_msgs::MoveItErrorCodes *error)
 {
-
   // ******************* check if the input is correct
   goal_constraints_.clear();
   for (std::size_t i = 0 ; i < goal_constraints.size() ; ++i)
@@ -396,6 +395,26 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   return filename.empty() ? ompl_benchmark_.saveResultsToFile() : ompl_benchmark_.saveResultsToFile(filename.c_str());
 }
 
+void ompl_interface::ModelBasedPlanningContext::startSampling()
+{
+  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
+  if (gls)
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
+  else
+    // we know this is a GoalSampleableMux by elimination
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_.getGoal().get())->startSampling();
+}
+
+void ompl_interface::ModelBasedPlanningContext::stopSampling()
+{
+  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
+  if (gls)
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+  else
+    // we know this is a GoalSampleableMux by elimination
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+}
+
 void ompl_interface::ModelBasedPlanningContext::preSolve()
 {
   // clear previously computed solutions
@@ -403,21 +422,13 @@ void ompl_interface::ModelBasedPlanningContext::preSolve()
   const ob::PlannerPtr planner = ompl_simple_setup_.getPlanner();
   if (planner)
     planner->clear();
-  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
-  // just in case sampling is not started
-  if (gls)
-    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
-
+  startSampling();
   ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
 }
 
 void ompl_interface::ModelBasedPlanningContext::postSolve()
 {
-  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
-  if (gls)
-    // just in case we need to stop sampling
-    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
-
+  stopSampling();
   int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
   logDebug("There were %d valid motions and %d invalid motions.", v, iv);
