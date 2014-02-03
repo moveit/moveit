@@ -92,6 +92,9 @@ public:
   /// The name of the topic used by default for receiving full planning scenes or planning scene diffs
   static const std::string DEFAULT_PLANNING_SCENE_TOPIC; // "/planning_scene"
   
+  /// The name of the service used by default for requesting full planning scene state
+  static const std::string DEFAULT_PLANNING_SCENE_SERVICE; // "/get_planning_scene"
+  
   /// The name of the topic used by default for publishing the monitored planning scene (this is without "/" in the name, so the topic is prefixed by the node name)
   static const std::string MONITORED_PLANNING_SCENE_TOPIC; // "monitored_planning_scene"
 
@@ -289,6 +292,14 @@ public:
    */
   void startSceneMonitor(const std::string &scene_topic = DEFAULT_PLANNING_SCENE_TOPIC);
 
+  /** @brief Request planning scene state using a service call
+   *  @param service_name The name of the service to use for requesting the
+   *     planning scene.  This must be a service of type
+   *     moveit_msgs::GetPlanningScene and is usually called
+   *     "/get_planning_scene".
+   */
+  bool requestPlanningSceneState(const std::string &service_name = DEFAULT_PLANNING_SCENE_SERVICE);
+
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor();
 
@@ -310,7 +321,7 @@ public:
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
 
-  /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
+  /** \brief Return the time when the last update was made to the planning scene (by \e any monitor) */
   const ros::Time& getLastUpdateTime() const
   {
     return last_update_time_;
@@ -344,9 +355,6 @@ protected:
 
   /** @brief Configure the default padding*/
   void configureDefaultPadding();
-
-  /** @brief Callback for a new planning scene msg*/
-  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
@@ -443,6 +451,8 @@ protected:
   CollisionBodyShapeHandles collision_body_shape_handles_;
   mutable boost::recursive_mutex shape_handles_lock_;
 
+  /// lock access to update_callbacks_
+  boost::recursive_mutex update_lock_;
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
   ros::Time last_update_time_; /// Last time the state was updated
 
@@ -450,15 +460,40 @@ private:
 
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms);
 
+  // publish planning scene update diffs (runs in its own thread)
   void scenePublishingThread();
 
+  // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
 
-  /// the amount of time to wait in between updates to the robot state (in seconds)
-  double dt_state_update_;
+  // called by state_update_timer_ when a state update it pending
+  void stateUpdateTimerCallback(const ros::WallTimerEvent& event);
 
-  /// the planning scene state is updated at a maximum specified frequency,
-  /// and this timestamp is used to implement that functionality
+  // Callback for a new planning scene msg
+  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
+
+  // Called to update the planning scene with a new message.
+  void newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
+
+
+  // Lock for state_update_pending_ and dt_state_update_
+  boost::mutex state_pending_mutex_;
+
+  /// True when we need to update the RobotState from current_state_monitor_
+  // This field is protected by state_pending_mutex_
+  volatile bool state_update_pending_;
+
+  /// the amount of time to wait in between updates to the robot state
+  // This field is protected by state_pending_mutex_
+  ros::WallDuration dt_state_update_;
+
+  /// timer for state updates.
+  // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
+  // Not safe to access from callback functions.
+  ros::WallTimer state_update_timer_;
+
+  /// Last time the state was updated from current_state_monitor_
+  // Only access this from callback functions (and constructor)
   ros::WallTime last_state_update_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;

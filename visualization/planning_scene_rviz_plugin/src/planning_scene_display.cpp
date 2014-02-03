@@ -358,7 +358,10 @@ void PlanningSceneDisplay::changedRobotSceneAlpha()
 void PlanningSceneDisplay::changedPlanningSceneTopic()
 {
   if (planning_scene_monitor_ && planning_scene_topic_property_)
+  {
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+    planning_scene_monitor_->requestPlanningSceneState();
+  }
 }
 
 void PlanningSceneDisplay::changedSceneDisplayTime()
@@ -516,8 +519,7 @@ void PlanningSceneDisplay::loadRobotModel()
 
 void PlanningSceneDisplay::onRobotModelLoaded()
 {
-  if (planning_scene_topic_property_)
-    planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
+  changedPlanningSceneTopic();
   planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
   planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
