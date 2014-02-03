@@ -92,6 +92,9 @@ public:
   /// The name of the topic used by default for receiving full planning scenes or planning scene diffs
   static const std::string DEFAULT_PLANNING_SCENE_TOPIC; // "/planning_scene"
   
+  /// The name of the service used by default for requesting full planning scene state
+  static const std::string DEFAULT_PLANNING_SCENE_SERVICE; // "/get_planning_scene"
+  
   /// The name of the topic used by default for publishing the monitored planning scene (this is without "/" in the name, so the topic is prefixed by the node name)
   static const std::string MONITORED_PLANNING_SCENE_TOPIC; // "monitored_planning_scene"
 
@@ -289,6 +292,14 @@ public:
    */
   void startSceneMonitor(const std::string &scene_topic = DEFAULT_PLANNING_SCENE_TOPIC);
 
+  /** @brief Request planning scene state using a service call
+   *  @param service_name The name of the service to use for requesting the
+   *     planning scene.  This must be a service of type
+   *     moveit_msgs::GetPlanningScene and is usually called
+   *     "/get_planning_scene".
+   */
+  bool requestPlanningSceneState(const std::string &service_name = DEFAULT_PLANNING_SCENE_SERVICE);
+
   /** @brief Stop the scene monitor*/
   void stopSceneMonitor();
 
@@ -344,9 +355,6 @@ protected:
 
   /** @brief Configure the default padding*/
   void configureDefaultPadding();
-
-  /** @brief Callback for a new planning scene msg*/
-  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
   /** @brief Callback for a new collision object msg*/
   void collisionObjectCallback(const moveit_msgs::CollisionObjectConstPtr &obj);
@@ -460,6 +468,12 @@ private:
 
   // called by state_update_timer_ when a state update it pending
   void stateUpdateTimerCallback(const ros::WallTimerEvent& event);
+
+  // Callback for a new planning scene msg
+  void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
+
+  // Called to update the planning scene with a new message.
+  void newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
 
 
   // Lock for state_update_pending_ and dt_state_update_
