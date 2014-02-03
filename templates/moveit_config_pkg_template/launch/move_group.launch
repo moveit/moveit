@@ -54,6 +54,7 @@
 				      move_group/MoveGroupPlanService
 				      move_group/MoveGroupQueryPlannersService
 				      move_group/MoveGroupStateValidationService
+				      move_group/MoveGroupGetPlanningSceneService
 				      " />
 
     <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
