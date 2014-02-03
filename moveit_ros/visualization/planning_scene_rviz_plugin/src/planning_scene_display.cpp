@@ -68,7 +68,6 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   current_scene_time_(0.0f),
   planning_scene_needs_render_(true)
 {
-  ROS_ERROR("ENTER PlanningSceneDisplay::PlanningSceneDisplay()");
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -162,7 +161,6 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
     robot_alpha_property_ = NULL;
     attached_body_color_property_ = NULL;
   }
-  ROS_ERROR("EXIT  PlanningSceneDisplay::PlanningSceneDisplay()");
 }
 
 // ******************************************************************************************
@@ -359,13 +357,11 @@ void PlanningSceneDisplay::changedRobotSceneAlpha()
 
 void PlanningSceneDisplay::changedPlanningSceneTopic()
 {
-  ROS_ERROR("ENTER changedPlanningSceneTopic()");
   if (planning_scene_monitor_ && planning_scene_topic_property_)
   {
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
     planning_scene_monitor_->requestPlanningSceneState();
   }
-  ROS_ERROR("EXIT  changedPlanningSceneTopic()");
 }
 
 void PlanningSceneDisplay::changedSceneDisplayTime()
@@ -558,7 +554,6 @@ void PlanningSceneDisplay::onSceneMonitorReceivedUpdate(planning_scene_monitor::
 
 void PlanningSceneDisplay::onEnable()
 {
-  ROS_ERROR("ENTER PlanningSceneDisplay::onEnable()");
   Display::onEnable();
 
   addBackgroundJob(boost::bind(&PlanningSceneDisplay::loadRobotModel, this), "loadRobotModel");
@@ -573,10 +568,6 @@ void PlanningSceneDisplay::onEnable()
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
   calculateOffsetPosition();
-
-  
-
-  ROS_ERROR("EXIT  PlanningSceneDisplay::onEnable()");
 }
 
 // ******************************************************************************************
