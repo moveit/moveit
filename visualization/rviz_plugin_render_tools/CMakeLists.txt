@@ -8,7 +8,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/octomap_render.cpp
 )
 
-target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(DIRECTORY include/ DESTINATION include)
 
