@@ -37,6 +37,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/exceptions/exceptions.h>
+#include <moveit_msgs/GetPlanningScene.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <moveit_ros_planning/PlanningSceneMonitorDynamicReconfigureConfig.h>
@@ -105,6 +106,7 @@ const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "collision_object";
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "planning_scene_world";
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "planning_scene";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE = "/get_planning_scene";
 const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
@@ -401,8 +403,50 @@ void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(Scene
   new_scene_update_condition_.notify_all();
 }
 
+// requestPlanningSceneState("/get_planning_scene");
+bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_name)
+{
+  ros::ServiceClient client = nh_.serviceClient<moveit_msgs::GetPlanningScene>(service_name);
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components = 
+      srv.request.components.SCENE_SETTINGS |
+      srv.request.components.ROBOT_STATE |
+      srv.request.components.ROBOT_STATE_ATTACHED_OBJECTS |
+      srv.request.components.WORLD_OBJECT_NAMES |
+      srv.request.components.WORLD_OBJECT_GEOMETRY |
+      srv.request.components.OCTOMAP |
+      srv.request.components.TRANSFORMS |
+      srv.request.components.ALLOWED_COLLISION_MATRIX |
+      srv.request.components.LINK_PADDING_AND_SCALING |
+      srv.request.components.OBJECT_COLORS;
+
+  if (client.call(srv))
+  {
+    ROS_INFO("Got planning scene service response from %s -- applying...  is_diff=%d",
+      service_name.c_str(), srv.response.scene.is_diff?1:0);
+
+    newPlanningSceneMessage(srv.response.scene);
+
+    ROS_INFO("Got planning scene service response from %s -- DONE applying.",service_name.c_str());
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service %s at %s:%d",
+      service_name.c_str(),
+      __FILE__,
+      __LINE__);
+    return false;
+  }
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
 {
+  newPlanningSceneMessage(*scene);
+}
+
+void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
+{
+  ROS_INFO("   newPlanningSceneCallback() isdiff=%d",scene.is_diff);
   if (scene_)
   {
     SceneUpdateType upd = UPDATE_SCENE;
@@ -413,10 +457,10 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
 
       last_update_time_ = ros::Time::now();
       old_scene_name = scene_->getName();
-      scene_->usePlanningSceneMsg(*scene);
+      scene_->usePlanningSceneMsg(scene);
       if (octomap_monitor_)
       {
-        if (!scene->is_diff && scene->world.octomap.octomap.data.empty())
+        if (!scene.is_diff && scene.world.octomap.octomap.data.empty())
         {
           octomap_monitor_->getOcTreePtr()->lockWrite();
           octomap_monitor_->getOcTreePtr()->clear();
@@ -426,7 +470,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
       robot_model_ = scene_->getRobotModel();
 
       // if we just reset the scene completely but we were maintaining diffs, we need to fix that
-      if (!scene->is_diff && parent_scene_)
+      if (!scene.is_diff && parent_scene_)
       {
         // the scene is now decoupled from the parent, since we just reset it
         scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
@@ -445,23 +489,23 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
     }
 
     // if we have a diff, try to more accuratelly determine the update type
-    if (scene->is_diff)
+    if (scene.is_diff)
     {
-      bool no_other_scene_upd = (scene->name.empty() || scene->name == old_scene_name) &&
-        scene->allowed_collision_matrix.entry_names.empty() && scene->link_padding.empty() && scene->link_scale.empty();
+      bool no_other_scene_upd = (scene.name.empty() || scene.name == old_scene_name) &&
+        scene.allowed_collision_matrix.entry_names.empty() && scene.link_padding.empty() && scene.link_scale.empty();
       if (no_other_scene_upd)
       {
         upd = UPDATE_NONE;
-        if (!planning_scene::PlanningScene::isEmpty(scene->world))
+        if (!planning_scene::PlanningScene::isEmpty(scene.world))
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
 
-        if (!scene->fixed_frame_transforms.empty())
+        if (!scene.fixed_frame_transforms.empty())
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_TRANSFORMS);
 
-        if (!planning_scene::PlanningScene::isEmpty(scene->robot_state))
+        if (!planning_scene::PlanningScene::isEmpty(scene.robot_state))
         {
           upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
-          if (!scene->robot_state.attached_collision_objects.empty() || scene->robot_state.is_diff == false)
+          if (!scene.robot_state.attached_collision_objects.empty() || scene.robot_state.is_diff == false)
             upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
         }
       }
