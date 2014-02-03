@@ -443,6 +443,8 @@ protected:
   CollisionBodyShapeHandles collision_body_shape_handles_;
   mutable boost::recursive_mutex shape_handles_lock_;
 
+  /// lock access to update_callbacks_
+  boost::recursive_mutex update_lock_;
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
   ros::Time last_update_time_; /// Last time the state was updated
 
