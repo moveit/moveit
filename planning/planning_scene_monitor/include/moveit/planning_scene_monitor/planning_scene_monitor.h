@@ -310,7 +310,7 @@ public:
   /** @brief Get the topic names that the monitor is listening to */
   void getMonitoredTopics(std::vector<std::string> &topics) const;
 
-  /** \brief Return the time when the last update was made to the planning scene (by the monitor) */
+  /** \brief Return the time when the last update was made to the planning scene (by \e any monitor) */
   const ros::Time& getLastUpdateTime() const
   {
     return last_update_time_;
@@ -450,15 +450,34 @@ private:
 
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped> &transforms);
 
+  // publish planning scene update diffs (runs in its own thread)
   void scenePublishingThread();
 
+  // called by current_state_monitor_ when robot state (as monitored on joint state topic) changes
   void onStateUpdate(const sensor_msgs::JointStateConstPtr &joint_state);
 
-  /// the amount of time to wait in between updates to the robot state (in seconds)
-  double dt_state_update_;
+  // called by state_update_timer_ when a state update it pending
+  void stateUpdateTimerCallback(const ros::WallTimerEvent& event);
 
-  /// the planning scene state is updated at a maximum specified frequency,
-  /// and this timestamp is used to implement that functionality
+
+  // Lock for state_update_pending_ and dt_state_update_
+  boost::mutex state_pending_mutex_;
+
+  /// True when we need to update the RobotState from current_state_monitor_
+  // This field is protected by state_pending_mutex_
+  volatile bool state_update_pending_;
+
+  /// the amount of time to wait in between updates to the robot state
+  // This field is protected by state_pending_mutex_
+  ros::WallDuration dt_state_update_;
+
+  /// timer for state updates.
+  // Check if last_state_update_ is true and if so call updateSceneWithCurrentState()
+  // Not safe to access from callback functions.
+  ros::WallTimer state_update_timer_;
+
+  /// Last time the state was updated from current_state_monitor_
+  // Only access this from callback functions (and constructor)
   ros::WallTime last_state_update_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
