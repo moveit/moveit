@@ -392,6 +392,9 @@ bool planning_scene_monitor::PlanningSceneMonitor::updatesScene(const planning_s
 
 void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(SceneUpdateType update_type)
 {
+  // do not modify update functions while we are calling them
+  boost::recursive_mutex::scoped_lock lock(update_lock_);
+
   for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)
     update_callbacks_[i](update_type);
   new_scene_update_ = (SceneUpdateType) ((int)new_scene_update_ | (int)update_type);
@@ -1026,12 +1029,14 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
 
 void planning_scene_monitor::PlanningSceneMonitor::addUpdateCallback(const boost::function<void(SceneUpdateType)> &fn)
 {
+  boost::recursive_mutex::scoped_lock lock(update_lock_);
   if (fn)
     update_callbacks_.push_back(fn);
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::clearUpdateCallbacks()
 {
+  boost::recursive_mutex::scoped_lock lock(update_lock_);
   update_callbacks_.clear();
 }
 
