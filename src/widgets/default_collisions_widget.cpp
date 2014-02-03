@@ -154,7 +154,8 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_->setColumnCount(4);
   collision_table_->setSortingEnabled(true);
   collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
-  connect( collision_table_, SIGNAL( cellClicked( int, int ) ), this, SLOT( previewClicked( int, int ) ) );
+  connect(collision_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
   layout_->addWidget(collision_table_);
 
   QStringList header_list;
@@ -434,22 +435,22 @@ void DefaultCollisionsWidget::collisionCheckboxToggle()
 // ******************************************************************************************
 // Called when user changes data in table, really just the checkbox
 // ******************************************************************************************
-void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped on purpose
+void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
 {
   // Only accept cell changes if table is enabled, otherwise it is this program making changes
   if( collision_table_->isEnabled() )
   {
     // Make sure change is the checkbox column
-    if( i == 2 )
+    if( column == 2 )
     {
 
       // Convert row to pair
       std::pair<std::string, std::string> link_pair;
-      link_pair.first = collision_table_->item(j, 0)->text().toStdString();
-      link_pair.second = collision_table_->item(j, 1)->text().toStdString();
+      link_pair.first = collision_table_->item(row, 0)->text().toStdString();
+      link_pair.second = collision_table_->item(row, 1)->text().toStdString();
 
       // Get the state of checkbox
-      bool check_state = collision_table_->item(j, 2)->checkState();
+      bool check_state = collision_table_->item(row, 2)->checkState();
 
 
       // Check if the checkbox state has changed from original value
@@ -466,7 +467,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped 
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
 
           // Change Reason in Table
-          collision_table_->item(j, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
+          collision_table_->item(row, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
         }
         // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
         else if( link_pairs_[ link_pair ].disable_check == false &&
@@ -475,7 +476,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int j, int i) // these are flipped 
           link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
 
           // Change Reason in Table
-          collision_table_->item(j, 3)->setText( "" );
+          collision_table_->item(row, 3)->setText( "" );
         }
 
       }
