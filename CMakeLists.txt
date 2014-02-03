@@ -29,6 +29,13 @@ add_definitions(-DQT_NO_KEYWORDS)
 include_directories(${QT_INCLUDE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
 
+# Support new yaml-cpp API.
+find_package(PkgConfig)
+pkg_check_modules(NEW_YAMLCPP yaml-cpp>=0.5)
+if(NEW_YAMLCPP_FOUND)
+add_definitions(-DHAVE_NEW_YAMLCPP)
+endif(NEW_YAMLCPP_FOUND)
+
 find_library(YAML yaml-cpp REQUIRED)
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
