@@ -51,6 +51,28 @@ namespace moveit_setup_assistant
 // File system
 namespace fs = boost::filesystem;
 
+#ifdef HAVE_NEW_YAMLCPP
+// The >> operator disappeared in yaml-cpp 0.5, so this function is
+// added to provide support for code written under the yaml-cpp 0.3 API.
+template<typename T>
+void operator >> (const YAML::Node& node, T& i)
+{
+  i = node.as<T>();
+}
+#endif
+
+// yaml-cpp 0.5 also changed how you load the YAML document.  This
+// function hides the changes.
+void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
+{
+#ifdef HAVE_NEW_YAMLCPP
+  doc_out = YAML::Load(in_stream);
+#else
+  YAML::Parser parser(in_stream);
+  parser.GetNextDocument(doc_out);
+#endif
+}
+
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
@@ -498,9 +520,8 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
 
   // Begin parsing
   try {
-    YAML::Parser parser(input_stream);
     YAML::Node doc;
-    parser.GetNextDocument(doc);
+    loadYaml(input_stream, doc);
 
     // Loop through all groups
     for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
@@ -576,9 +597,8 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
 
   // Begin parsing
   try {
-    YAML::Parser parser(input_stream);
     YAML::Node doc;
-    parser.GetNextDocument(doc);
+    loadYaml(input_stream, doc);
 
     // Get title node
     if( const YAML::Node *title_node =doc.FindValue( "moveit_setup_assistant_config" ) )
