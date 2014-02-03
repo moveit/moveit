@@ -38,10 +38,10 @@
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <geometric_shapes/mesh_operations.h>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
-#include <OGRE/OgreManualObject.h>
-#include <OGRE/OgreMaterialManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
+#include <OgreManualObject.h>
+#include <OgreMaterialManager.h>
 
 #include <rviz/ogre_helpers/shape.h>
 #include <rviz/ogre_helpers/mesh_shape.h>

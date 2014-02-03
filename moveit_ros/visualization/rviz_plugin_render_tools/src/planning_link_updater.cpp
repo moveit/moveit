@@ -35,8 +35,8 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
-#include <OGRE/OgreQuaternion.h>
-#include <OGRE/OgreVector3.h>
+#include <OgreQuaternion.h>
+#include <OgreVector3.h>
 
 bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
                                                                 Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
