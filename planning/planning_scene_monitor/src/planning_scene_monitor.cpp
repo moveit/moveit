@@ -403,7 +403,6 @@ void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(Scene
   new_scene_update_condition_.notify_all();
 }
 
-// requestPlanningSceneState("/get_planning_scene");
 bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_name)
 {
   ros::ServiceClient client = nh_.serviceClient<moveit_msgs::GetPlanningScene>(service_name);
@@ -422,12 +421,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(con
 
   if (client.call(srv))
   {
-    ROS_INFO("Got planning scene service response from %s -- applying...  is_diff=%d",
-      service_name.c_str(), srv.response.scene.is_diff?1:0);
-
     newPlanningSceneMessage(srv.response.scene);
-
-    ROS_INFO("Got planning scene service response from %s -- DONE applying.",service_name.c_str());
   }
   else
   {
@@ -446,7 +440,6 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
 {
-  ROS_INFO("   newPlanningSceneCallback() isdiff=%d",scene.is_diff);
   if (scene_)
   {
     SceneUpdateType upd = UPDATE_SCENE;
