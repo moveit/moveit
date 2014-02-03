@@ -80,19 +80,23 @@ private:
   dynamic_reconfigure::Server<PickPlaceDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-static DynamicReconfigureImpl PICK_PLACE_PARAMS;
+static DynamicReconfigureImpl* PICK_PLACE_PARAMS = NULL;
 }
 
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &scene,
                                                      const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
   ManipulationStage("approach & translate"),
   planning_scene_(scene),
-  collision_matrix_(collision_matrix),
-  max_goal_count_(PICK_PLACE_PARAMS.max_goal_count_),
-  max_fail_(PICK_PLACE_PARAMS.max_fail_),
-  max_step_(PICK_PLACE_PARAMS.max_step_),
-  jump_factor_(PICK_PLACE_PARAMS.jump_factor_)
+  collision_matrix_(collision_matrix)
 {
+  if(PICK_PLACE_PARAMS == NULL)
+  {
+    PICK_PLACE_PARAMS = new DynamicReconfigureImpl;
+  }
+  max_goal_count_ = PICK_PLACE_PARAMS->max_goal_count_;
+  max_fail_ = PICK_PLACE_PARAMS->max_fail_;
+  max_step_ = PICK_PLACE_PARAMS->max_step_;
+  jump_factor_ = PICK_PLACE_PARAMS->jump_factor_;
 }
 
 namespace
