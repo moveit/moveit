@@ -4,7 +4,9 @@
 #include <QtCore/QThread>
 #include <QProgressDialog>
 
+#ifndef Q_MOC_RUN
 #include <moveit/benchmarks/benchmark_execution.h>
+#endif
 
 class BenchmarkProcessingThread : public QThread
 {
