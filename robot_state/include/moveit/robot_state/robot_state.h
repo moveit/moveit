@@ -1123,27 +1123,41 @@ as the new values that correspond to the group */
    */
   
   
-  /** \brief Add an attached body to this state. Ownership of the memory for the attached body is assumed by the state.
+  /** \brief Add an attached body to this state. Ownership of the
+   * memory for the attached body is assumed by the state.
    *
-   * \note This only adds the given body to this RobotState
+   * This only adds the given body to this RobotState
+   * instance.  It does not change anything about other
+   * representations of the object elsewhere in the system.  So if the
+   * body represents an object in a collision_detection::World (like
+   * from a planning_scene::PlanningScene), you will likely need to remove the
+   * corresponding object from that world to avoid having collisions
+   * detected against it.
+   *
+   * \note This version of the function (taking an AttachedBody
+   * pointer) does not copy the AttachedBody object, it just uses it
+   * directly.  The AttachedBody object stores its position data
+   * internally.  This means you should <b>never attach a single
+   * AttachedBody instance to multiple RobotState instances</b>, or
+   * the body positions will get corrupted.  You need to make a fresh
+   * copy of the AttachedBody object for each RobotState you attach it
+   * to.*/
+  void attachBody(AttachedBody *attached_body);
+  
+  /** @brief Add an attached body to a link
+   * @param id The string id associated with the attached body
+   * @param shapes The shapes that make up the attached body
+   * @param attach_trans The desired transform between this link and the attached body
+   * @param touch_links The set of links that the attached body is allowed to touch
+   * @param link_name The link to attach to
+   *     
+   * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
    * representations of the object elsewhere in the system.  So if the
    * body represents an object in a collision_detection::World (like
    * from a planning_scene::PlanningScene), you will likely need to remove the
    * corresponding object from that world to avoid having collisions
    * detected against it. */
-  void attachBody(AttachedBody *attached_body);
-  
-  /**
-     @brief Add an attached body to a link
-     @param id The string id associated with the attached body
-     @param shapes The shapes that make up the attached body
-     @param attach_trans The desired transform between this link and the attached body
-     @param touch_links The set of links that the attached body is allowed to touch
-     @param link_name The link to attach to
-
-     @copydetails attachBody(AttachedBody *attached_body)
-  */
   void attachBody(const std::string &id,
                   const std::vector<shapes::ShapeConstPtr> &shapes,
                   const EigenSTL::vector_Affine3d &attach_trans,
@@ -1151,16 +1165,20 @@ as the new values that correspond to the group */
                   const std::string &link_name,
                   const trajectory_msgs::JointTrajectory &detach_posture = trajectory_msgs::JointTrajectory());
 
-  /**
-     @brief Add an attached body to a link
-     @param id The string id associated with the attached body
-     @param shapes The shapes that make up the attached body
-     @param attach_trans The desired transform between this link and the attached body
-     @param touch_links The set of links that the attached body is allowed to touch
-     @param link_name The link to attach to
-
-     @copydetails attachBody(AttachedBody *attached_body)
-  */
+  /** @brief Add an attached body to a link
+   * @param id The string id associated with the attached body
+   * @param shapes The shapes that make up the attached body
+   * @param attach_trans The desired transform between this link and the attached body
+   * @param touch_links The set of links that the attached body is allowed to touch
+   * @param link_name The link to attach to
+   *
+   * This only adds the given body to this RobotState
+   * instance.  It does not change anything about other
+   * representations of the object elsewhere in the system.  So if the
+   * body represents an object in a collision_detection::World (like
+   * from a planning_scene::PlanningScene), you will likely need to remove the
+   * corresponding object from that world to avoid having collisions
+   * detected against it. */
   void attachBody(const std::string &id,
                   const std::vector<shapes::ShapeConstPtr> &shapes,
                   const EigenSTL::vector_Affine3d &attach_trans,
