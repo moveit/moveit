@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fixing name in changelog
+* Contributors: Sachin Chitta
+
 0.5.13 (2014-02-06)
 -------------------
 * Fix Parse error at "BOOST_JOIN" error

@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.13 (2014-02-06)
 -------------------
 * ApproachAndTranslateStage dynamic reconfigure bug fixed.
