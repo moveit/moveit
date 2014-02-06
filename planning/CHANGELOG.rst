@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.13 (2014-02-06)
+-------------------
 * remove debug printfs
 * planning_scene_monitor: add requestPlanningSceneState()
 * planning_scene_monitor: fix race condition

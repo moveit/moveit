@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.13 (2014-02-06)
+-------------------
 * ApproachAndTranslateStage dynamic reconfigure bug fixed.
   The bug shows up in test code, where it becomes apparent that creating a ros::NodeHandle
   in a static initializer makes it very difficult to call ros::init() before creating
