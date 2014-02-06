@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.12 (2014-01-03)
 -------------------
 * Fixed trailing underscores in CHANGELOGs.
