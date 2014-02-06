@@ -8,14 +8,14 @@ Forthcoming
 * planning_scene_monitor: add requestPlanningSceneState()
 * planning_scene_monitor: fix race condition
 * planning_scene_monitor: fix state update bug
-  The rate of state updates is limited to dt_state_update_ per second.
+  The rate of state updates is limited to dt_state_update per second.
   When an update arrived it was not processed if another was recently
   processed.  This meant that if a quick sequence of state updates
   arrived and then no updates arrive for a while that the last update(s)
   were not seen until another arrives (which may be much later or
   never). This fixes the bug by periodically checking for pending
   updates and running them if they have been pending longer than
-  dt_state_update_.
+  dt_state_update.
 * add default_robot_link_padding/scale, set padding/scale value for each robot link, see https://github.com/ros-planning/moveit_ros/issues/402
 * fix LockedPlanningSceneRW docs
   fix the text that was originally copied from another class
