@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.6 (2014-02-06)
+------------------
 * fix mix-up comments, use getCollisionRobotUnpadded() since this function is checkCollisionUnpadded.
 * Updated tests to new run-time usage of moveit_resources.
 * robot_state: comment meaning of default
