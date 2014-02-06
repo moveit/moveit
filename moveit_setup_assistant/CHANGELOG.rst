@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update move_group.launch
+  Adding get planning scene service to template launch file.
+* Fix `#42 <https://github.com/ros-planning/moveit_setup_assistant/issues/42>` plus cosmetic param name change.
+* Contributors: Acorn, Dave Hershberger, sachinchitta
+
 0.5.7 (2014-01-03)
 ------------------
 * Added back-link to tutorial and updated moveit website URL.
