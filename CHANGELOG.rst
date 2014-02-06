@@ -2,6 +2,21 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix mix-up comments, use getCollisionRobotUnpadded() since this function is checkCollisionUnpadded.
+* Updated tests to new run-time usage of moveit_resources.
+* robot_state: comment meaning of default
+* Trying again to fix broken tests.
+* document RobotState methods
+* transforms: clarify comment
+* Fixed build of test which depends on moveit_resources.
+* Removed debug-write in CMakeLists.txt.
+* Added running of currently passing tests to .travis.yml.
+* Add kinematic options when planning for CartesianPath
+* -Fix kinematic options not getting forwarded, which can lead to undesired behavior in some cases
+* Added clarifying doxygen to collision_detection::World::Object.
+
 0.5.5 (2013-12-03)
 ------------------
 * Fix for computing jacobian when the root_joint is not an active joint.
