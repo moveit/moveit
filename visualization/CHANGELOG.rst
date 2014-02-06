@@ -13,7 +13,7 @@ Changelog for package moveit_ros_visualization
   enabled and/or model is loaded.
 * Fix Parse error at "BOOST_JOIN" error
   See: https://bugreports.qt-project.org/browse/QTBUG-22829
-* Contributors: Acorn Pooley, Benjamin Chrétien
+* Contributors: Acorn Pooley, Benjamin Chretien
 
 0.5.12 (2014-01-03)
 -------------------
