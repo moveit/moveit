@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove debug printfs
+* planning_scene_display: use requestPlanningSceneState()
+  Get current planning scene state when planning scene display is
+  enabled and/or model is loaded.
+* Fix Parse error at "BOOST_JOIN" error
+  See: https://bugreports.qt-project.org/browse/QTBUG-22829
+* Contributors: Acorn Pooley, Benjamin Chrétien
+
 0.5.12 (2014-01-03)
 -------------------
 
