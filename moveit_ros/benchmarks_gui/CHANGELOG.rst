@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.14 (2014-02-06)
+-------------------
 * fixing name in changelog
 * Contributors: Sachin Chitta
 
