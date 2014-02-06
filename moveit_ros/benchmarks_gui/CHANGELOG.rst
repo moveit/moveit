@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.13 (2014-02-06)
+-------------------
 * Fix Parse error at "BOOST_JOIN" error
   See: https://bugreports.qt-project.org/browse/QTBUG-22829
 * Contributors: Benjamin Chrétien

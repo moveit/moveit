@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.13 (2014-02-06)
+-------------------
 * remove debug printfs
 * planning_scene_display: use requestPlanningSceneState()
   Get current planning scene state when planning scene display is
