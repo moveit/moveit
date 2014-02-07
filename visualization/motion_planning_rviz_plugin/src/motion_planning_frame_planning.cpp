@@ -155,28 +155,54 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
       state.setToRandomPositions(jmg);
   }
   else
-    if (v == "<current>")
+    if (v == "<random no collision>")
     {
-      const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-      if (ps)
-        state = ps->getCurrentState();
-    }
-    else
-      if (v == "<same as goal>")
+      configureWorkspace();
+
+      // Loop until a collision free state is found
+      int max_iteration = 100; // prevent loop for going forever
+      while (max_iteration > 0)
       {
-        state = *planning_display_->getQueryGoalState();
-      }
-      else
-        if (v == "<same as start>")
+        // Generate random state
+        if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+          state.setToRandomPositions(jmg);
+
+        // Test for collision
+        if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", true)) // verbose
         {
-          state = *planning_display_->getQueryStartState();
+          ROS_INFO_STREAM_NAMED("temp","no collision!");
+          break;
         }
         else
         {
-          // maybe it is a named state
-          if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
-            state.setToDefaultValues(jmg, v);
+          ROS_ERROR_STREAM_NAMED("temp","THERE IS COLLISION");
         }
+        max_iteration --;
+      }
+    }
+    else
+      if (v == "<current>")
+      {
+        const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+        if (ps)
+          state = ps->getCurrentState();
+      }
+      else
+        if (v == "<same as goal>")
+        {
+          state = *planning_display_->getQueryGoalState();
+        }
+        else
+          if (v == "<same as start>")
+          {
+            state = *planning_display_->getQueryStartState();
+          }
+          else
+          {
+            // maybe it is a named state
+            if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+              state.setToDefaultValues(jmg, v);
+          }
 }
 
 void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
