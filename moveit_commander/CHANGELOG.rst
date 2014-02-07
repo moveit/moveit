@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2014-02-06)
+------------------
 
 * Install moveit_commander_cmdline.py into package specific directory, not to global bin.
 * Fix typos in comments
