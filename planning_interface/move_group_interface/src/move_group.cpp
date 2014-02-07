@@ -1592,6 +1592,11 @@ std::vector<double> moveit::planning_interface::MoveGroup::getCurrentRPY(const s
   return result;
 }
 
+const std::vector<std::string>& moveit::planning_interface::MoveGroup::getActiveJoints() const
+{
+  return impl_->getJointModelGroup()->getActiveJointModelNames();
+}
+
 const std::vector<std::string>& moveit::planning_interface::MoveGroup::getJoints() const
 {
   return impl_->getJointModelGroup()->getJointModelNames();
