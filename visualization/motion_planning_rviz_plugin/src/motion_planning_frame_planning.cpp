@@ -160,24 +160,24 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
       configureWorkspace();
 
       // Loop until a collision free state is found
-      int max_iteration = 100; // prevent loop for going forever
-      while (max_iteration > 0)
+      static const int MAX_ATTEMPTS = 100;
+      int attempt_count = 0; // prevent loop for going forever
+      while (attempt_count < MAX_ATTEMPTS)
       {
         // Generate random state
         if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
           state.setToRandomPositions(jmg);
 
         // Test for collision
-        if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", true)) // verbose
+        if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", false)) 
         {
-          ROS_INFO_STREAM_NAMED("temp","no collision!");
           break;
         }
         else
         {
-          ROS_ERROR_STREAM_NAMED("temp","THERE IS COLLISION");
+          ROS_WARN("Unable to find a random collision free configuration after %d attempts", MAX_ATTEMPTS);
         }
-        max_iteration --;
+        attempt_count ++;
       }
     }
     else
