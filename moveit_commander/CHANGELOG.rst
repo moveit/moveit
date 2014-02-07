@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+* Install moveit_commander_cmdline.py into package specific directory, not to global bin.
+* Fix typos in comments
+
 0.5.3 (2014-01-03)
 ------------------
 * work around name bug
