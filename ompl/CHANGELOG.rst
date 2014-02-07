@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.4 (2014-02-06)
+------------------
 * fix segfault when multiple goals are passed to move_group
 
 0.5.3 (2013-10-11)
