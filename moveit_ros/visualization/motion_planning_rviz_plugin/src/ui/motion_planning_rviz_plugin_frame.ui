@@ -302,6 +302,9 @@
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>
                 </property>
+                <property name="currentIndex">
+                 <number>1</number>
+                </property>
                 <widget class="QWidget" name="query_stackedwidgetPage2">
                  <property name="geometry">
                   <rect>
@@ -357,7 +360,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>109</width>
+                   <width>218</width>
                    <height>78</height>
                   </rect>
                  </property>
