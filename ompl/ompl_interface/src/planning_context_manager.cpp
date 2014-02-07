@@ -351,13 +351,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   {
     context->clear();
 
-    context->setPlanningScene(planning_scene);
-    context->setMotionPlanRequest(req);
-
     robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
 
-    // set the planning scene
+    // Setup the context
     context->setPlanningScene(planning_scene);
+    context->setMotionPlanRequest(req);
     context->setCompleteInitialState(*start_state);
 
     context->setPlanningVolume(req.workspace_parameters);
