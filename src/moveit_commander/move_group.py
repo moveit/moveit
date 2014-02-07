@@ -58,6 +58,10 @@ class MoveGroupCommander(object):
         """ Stop the current execution, if any """
         self._g.stop()
 
+    def get_active_joints(self):
+        """ Get the active joints of this group """
+        return self._g.get_active_joints()
+
     def get_joints(self):
         """ Get the joints of this group """
         return self._g.get_joints()
