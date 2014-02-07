@@ -230,8 +230,8 @@ void MotionPlanningFrame::fillStateSelectionOptions()
         ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
       }
     }
-    ui_->start_state_selection->setCurrentIndex(1);
-    ui_->goal_state_selection->setCurrentIndex(0);
+    ui_->start_state_selection->setCurrentIndex(2); // default to 'current'
+    ui_->goal_state_selection->setCurrentIndex(0); // default to 'random no collision'
   }
 }
 
