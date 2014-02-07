@@ -86,7 +86,8 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
   
   robot_state::RobotState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
-  
+
+  // Calculates cost from a summation of distance to obstacles times the size of the obstacle
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
   
@@ -108,6 +109,7 @@ double ompl_interface::StateValidityChecker::clearance(const ompl::base::State *
 
 bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state, bool verbose) const
 {
+  // check bounds
   if (!si_->satisfiesBounds(state))
   {
     if (verbose)
@@ -115,6 +117,7 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
     return false;
   }
 
+  // convert ompl state to moveit robot state
   robot_state::RobotState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 

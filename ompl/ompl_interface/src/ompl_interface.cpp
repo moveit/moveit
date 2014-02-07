@@ -79,7 +79,7 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
 {
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
   
-  // construct default configurations
+  // construct default configurations for planning groups that don't have configs already passed in
   const std::vector<const robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroups();
   for (std::size_t i = 0 ; i < groups.size() ; ++i)
   {
