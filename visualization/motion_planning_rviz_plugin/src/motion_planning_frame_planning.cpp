@@ -155,29 +155,35 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
       state.setToRandomPositions(jmg);
   }
   else
-    if (v == "<random no collision>")
+    if (v == "<random valid>")
     {
       configureWorkspace();
 
-      // Loop until a collision free state is found
-      static const int MAX_ATTEMPTS = 100;
-      int attempt_count = 0; // prevent loop for going forever
-      while (attempt_count < MAX_ATTEMPTS)
+      if (const robot_model::JointModelGroup *jmg =
+        state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
       {
-        // Generate random state
-        if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+        // Loop until a collision free state is found
+        static const int MAX_ATTEMPTS = 100;
+        int attempt_count = 0; // prevent loop for going forever
+        while (attempt_count < MAX_ATTEMPTS)
+        {
+          // Generate random state
           state.setToRandomPositions(jmg);
 
-        // Test for collision
-        if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", false)) 
-        {
-          break;
+          // Test for collision
+          if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", false))
+          {
+            break;
+          }
+          attempt_count ++;
         }
-        else
-        {
+        // Explain if no valid rand state found
+        if (attempt_count >= MAX_ATTEMPTS)
           ROS_WARN("Unable to find a random collision free configuration after %d attempts", MAX_ATTEMPTS);
-        }
-        attempt_count ++;
+      }
+      else
+      {
+        ROS_WARN_STREAM("Unable to get joint model group " << planning_display_->getCurrentPlanningGroup());
       }
     }
     else
