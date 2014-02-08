@@ -116,7 +116,10 @@ public:
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
 
-  /** \brief Get the joints this instance operates on */
+  /** \brief Get only the active (actuated) joints this instance operates on */
+  const std::vector<std::string>& getActiveJoints() const;
+
+  /** \brief Get all the joints this instance operates on (including fixed joints)*/
   const std::vector<std::string>& getJoints() const;
 
   /** \brief Get the number of variables used to describe the state of this group. This is larger or equal to the number of DOF. */
