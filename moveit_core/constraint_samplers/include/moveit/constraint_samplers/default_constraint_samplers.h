@@ -147,6 +147,16 @@ public:
     return unbounded_.size();
   }
 
+  /**
+   * \brief Get the name of the constraint sampler, for debugging purposes
+   * should be in CamelCase format.
+   * \return string of name
+   */
+  virtual std::string getName()
+  {
+    return "JointConstraintSampler";
+  }
+
 protected:
 
   /// \brief An internal structure used for maintaining constraints on a particular joint
@@ -466,6 +476,16 @@ public:
    * @return True if a sample was successfully produced, otherwise false
    */
   bool samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat, const robot_state::RobotState &ks, unsigned int max_attempts);
+
+  /**
+   * \brief Get the name of the constraint sampler, for debugging purposes
+   * should be in CamelCase format.
+   * \return string of name
+   */
+  virtual std::string getName()
+  {
+    return "IKConstraintSampler";
+  }
 
 protected:
 

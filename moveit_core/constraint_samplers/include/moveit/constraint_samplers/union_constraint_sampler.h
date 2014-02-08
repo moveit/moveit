@@ -154,6 +154,16 @@ public:
 
   virtual bool project(robot_state::RobotState &state, unsigned int max_attempts);
 
+  /**
+   * \brief Get the name of the constraint sampler, for debugging purposes
+   * should be in CamelCase format.
+   * \return string of name
+   */
+  virtual std::string getName()
+  {
+    return "UnionConstraintSampler";
+  }
+
 protected:
 
   std::vector<ConstraintSamplerPtr> samplers_; /**< \brief Holder for sorted internal list of samplers*/
