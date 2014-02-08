@@ -1127,7 +1127,7 @@ void planning_scene::PlanningScene::decoupleParent()
 
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
-  logDebug("Adding planning scene diff");
+  //logDebug("Adding planning scene diff");
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
 

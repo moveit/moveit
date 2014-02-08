@@ -250,7 +250,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
-  logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
+  //logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, torques))
     return false;
@@ -259,8 +259,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   for (unsigned int i = 0; i < num_joints_; ++i)
   {
     double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));//because we set the payload to 1.0
-    logDebug("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i, torques[i], max_torques_[i], zero_torques[i]);
-    logDebug("Joint: %d, Payload Allowed (N): %f", i, payload_joint);
+    //logDebug("Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i, torques[i], max_torques_[i], zero_torques[i]);
+    //logDebug("Joint: %d, Payload Allowed (N): %f", i, payload_joint);
     if (payload_joint < min_payload)
     {
       min_payload = payload_joint;
@@ -268,7 +268,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
     }
   }
   payload = min_payload/gravity_;
-  logDebug("Max payload (kg): %f", payload);
+  //logDebug("Max payload (kg): %f", payload);
   return true;
 }
 
@@ -302,7 +302,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
-  logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
+  //logDebug("New wrench (local frame): %f %f %f", wrenches.back().force.x, wrenches.back().force.y, wrenches.back().force.z);
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
     return false;
