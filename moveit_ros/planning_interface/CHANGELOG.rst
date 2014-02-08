@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.14 (2014-02-06)
+-------------------
+
+0.5.13 (2014-02-06)
+-------------------
+* add API for setting the number of motion plans to be evaluated via the MoveGroupInterface
+* move_group_interface: improve documentation
+* Contributors: Acorn Pooley, Ioan Sucan
+
 0.5.12 (2014-01-03)
 -------------------
 

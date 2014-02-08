@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.14 (2014-02-06)
+-------------------
+* fixing name in changelog
+* Contributors: Sachin Chitta
+
+0.5.13 (2014-02-06)
+-------------------
+* Fix Parse error at "BOOST_JOIN" error
+  See: https://bugreports.qt-project.org/browse/QTBUG-22829
+* Contributors: Benjamin Chre'tien
+
 0.5.12 (2014-01-03)
 -------------------
 
