@@ -167,8 +167,7 @@ public:
 
   /**
    * \brief Samples given the constraints, populating \e state.
-   * The value DEFAULT_MAX_SAMPLING_ATTEMPTS will be passed in
-   * as the maximum number of attempts to make to take a sample.
+   * This function allows the parameter max_attempts to be set.
    *
    * @param state The state into which the values will be placed. Only values for the group are written. The same state is used as reference if needed.
    * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this number of attempts, false will be returned.
@@ -210,10 +209,10 @@ public:
   }
 
   /**
-   * \brief Samples given the constraints, populating the joint state
-   * group.  This function allows the parameter max_attempts to be set.
+   * \brief Samples given the constraints, populating \e state.
+   * This function allows the parameter max_attempts to be set.
    *
-   * @param [out] state The joint state group into which the values will be placed
+   * @param [out] state The state into which the values will be placed. Only values for the group are written.
    * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
    * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this number of attempts, false will be returned.
    *
@@ -227,14 +226,14 @@ public:
    * \brief Project a sample given the constraints, updating the joint state
    * group. This function allows the parameter max_attempts to be set.
    *
-   * @param [out] jsg The joint state group which specifies the state to be projected, according to the constraints
-   * @param [in] reference_state Reference state that will be used to do transforms or perform other actions
+   * @param [out] state The state into which the values will be placed. Only values for the group are written.
    * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this number of attempts, false will be returned.
    *
    * @return True if a sample was successfully projected, false otherwise
    */
   virtual bool project(robot_state::RobotState &state,
                        unsigned int max_attempts) = 0;
+
   /**
    * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint model group must be available in the kinematic model.
    *
@@ -256,6 +255,13 @@ public:
   {
     verbose_ = flag;
   }
+
+  /**
+   * \brief Get the name of the constraint sampler, for debugging purposes
+   * should be in CamelCase format.
+   * \return string of name
+   */
+  virtual std::string getName() = 0;
 
 protected:
 
