@@ -209,12 +209,12 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
   {
-    ui_->start_state_selection->addItem(QString("<random no collision>"));
+    ui_->start_state_selection->addItem(QString("<random valid>"));
     ui_->start_state_selection->addItem(QString("<random>"));
     ui_->start_state_selection->addItem(QString("<current>"));
     ui_->start_state_selection->addItem(QString("<same as goal>"));
 
-    ui_->goal_state_selection->addItem(QString("<random no collision>"));
+    ui_->goal_state_selection->addItem(QString("<random valid>"));
     ui_->goal_state_selection->addItem(QString("<random>"));
     ui_->goal_state_selection->addItem(QString("<current>"));
     ui_->goal_state_selection->addItem(QString("<same as start>"));
@@ -231,7 +231,7 @@ void MotionPlanningFrame::fillStateSelectionOptions()
       }
     }
     ui_->start_state_selection->setCurrentIndex(2); // default to 'current'
-    ui_->goal_state_selection->setCurrentIndex(0); // default to 'random no collision'
+    ui_->goal_state_selection->setCurrentIndex(0); // default to 'random valid'
   }
 }
 
