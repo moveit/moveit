@@ -117,6 +117,11 @@ public:
     return getPlanningFrame().c_str();
   }
 
+  bp::list getActiveJointsList() const
+  {
+    return py_bindings_tools::listFromString(getActiveJoints());
+  }
+
   bp::list getJointsList() const
   {
     return py_bindings_tools::listFromString(getJoints());
@@ -367,6 +372,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
   MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
 
+  MoveGroupClass.def("get_active_joints", &MoveGroupWrapper::getActiveJointsList);
   MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
   MoveGroupClass.def("get_variable_count", &MoveGroupWrapper::getVariableCount);
   MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
