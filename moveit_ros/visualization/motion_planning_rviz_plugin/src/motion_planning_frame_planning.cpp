@@ -170,11 +170,12 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
           // Generate random state
           state.setToRandomPositions(jmg);
 
+          state.update(); // prevent dirty transforms
+
           // Test for collision
-          if (!planning_display_->getPlanningSceneRO()->isStateColliding(state, "", false))
-          {
+          if (planning_display_->getPlanningSceneRO()->isStateValid(state, "", false))
             break;
-          }
+
           attempt_count ++;
         }
         // Explain if no valid rand state found
