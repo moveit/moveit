@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#ifndef MOVEIT__ROBOT_INTERACTION__INTERACTION_HANDLER_H
-#define MOVEIT__ROBOT_INTERACTION__INTERACTION_HANDLER_H
+#ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
+#define MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 
 #include <moveit/robot_interaction/robot_interaction.h>
 

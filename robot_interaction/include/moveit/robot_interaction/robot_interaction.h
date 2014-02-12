@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#ifndef MOVEIT__ROBOT_INTERACTION__ROBOT_INTERACTION_H
-#define MOVEIT__ROBOT_INTERACTION__ROBOT_INTERACTION_H
+#ifndef MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
+#define MOVEIT_ROBOT_INTERACTION_ROBOT_INTERACTION_
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
