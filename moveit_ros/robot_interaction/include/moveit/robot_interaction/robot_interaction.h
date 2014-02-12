@@ -145,7 +145,8 @@ public:
   typedef boost::function<bool(const robot_state::RobotState&, visualization_msgs::InteractiveMarker&)> InteractiveMarkerConstructorFn;
 
   /// When using generic markers, this callback is called when the interactive marker changes and sends feedback.
-  /// Callback should update the robot state that was passed in according to the new position of the marker. Return true if the update was successful.
+  /// Callback should update the robot state that was passed in according to
+  /// the new position of the marker. Return true if the update was successful.
   /// Return false if the state was not successfully updated.
   typedef boost::function<bool(robot_state::RobotState&, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)> ProcessFeedbackFn;
 
@@ -165,15 +166,21 @@ public:
 
   class InteractionHandler;
 
-  /// This function is called by the InteractionHandler::handle* functions, when changes are made to the internal robot state the handler maintains.
-  /// The handler passes its own pointer as argument to the callback, as well as a boolean flag that indicates wheher the error state changed --
-  /// whether updates to the robot state performed in the InteractionHandler::handle* functions have switched from failing to succeeding or the other way around.
+  /// This function is called by the InteractionHandler::handle* functions,
+  /// when changes are made to the internal robot state the handler maintains.
+  /// The handler passes its own pointer as argument to the callback, as well
+  /// as a boolean flag that indicates whether the error state changed --
+  /// whether updates to the robot state performed in the
+  /// InteractionHandler::handle* functions have switched from failing to
+  /// succeeding or the other way around.
   typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
 
   /// Manage interactive markers to control a RobotState.
   ///
-  /// Each instance maintains one or more interactive markers to control various joints in one group of one RobotState.
-  /// The group being controlled is maintained by the RobotInteraction object that contains this InteractionHandler object.
+  /// Each instance maintains one or more interactive markers to control
+  /// various joints in one group of one RobotState.
+  /// The group being controlled is maintained by the RobotInteraction object
+  /// that contains this InteractionHandler object.
   /// All InteractionHandler objects in the same RobotInteraction are controlling the same group.
   class InteractionHandler
   {
