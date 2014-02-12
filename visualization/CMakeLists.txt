@@ -8,6 +8,10 @@ endif()
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread date_time system filesystem)
 
+# Ogre
+pkg_check_modules(OGRE OGRE)
+link_directories( ${OGRE_LIBRARY_DIRS} )
+
 # Qt Stuff
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -53,7 +57,8 @@ include_directories(rviz_plugin_render_tools/include
 
 include_directories(SYSTEM
                     ${Boost_INCLUDE_DIRS}
-                    ${QT_INCLUDE_DIR})
+                    ${QT_INCLUDE_DIR}
+                    ${OGRE_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
