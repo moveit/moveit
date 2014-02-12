@@ -36,6 +36,7 @@
 /* Author: Ioan Sucan, Adam Leeper */
 
 #include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 #include <moveit/transforms/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
