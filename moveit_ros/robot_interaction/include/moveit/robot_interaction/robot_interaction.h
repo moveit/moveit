@@ -403,27 +403,8 @@ public:
 
     std::string name_;
     std::string planning_frame_;
-    robot_state::RobotStatePtr kstate_;
     boost::shared_ptr<tf::Transformer> tf_;
     std::set<std::string> error_state_;
-
-    // Contains the (user-programmable) pose offset between the end-effector
-    // parent link (or a virtual joint) and the desired control frame for the
-    // interactive marker. The offset is expressed in the frame of the parent
-    // link or virtual joint. For example, on a PR2 an offset of +0.20 along
-    // the x-axis will move the center of the 6-DOF interactive marker from
-    // the wrist to the finger tips.
-    // PROTECTED BY offset_map_lock_
-    std::map<std::string, geometry_msgs::Pose> offset_map_;
-
-    // Contains the most recent poses received from interactive marker feedback,
-    // with the offset removed (e.g. in theory, coinciding with the end-effector
-    // parent or virtual joint). This allows a user application to query for the
-    // interactive marker pose (which could be useful for robot control using
-    // gradient-based methods) even when the IK solver failed to find a valid
-    // robot state that satisfies the feedback pose.
-    // PROTECTED BY pose_map_lock_
-    std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
 
     // For adding menus (and associated callbacks) to all the
     // end-effector and virtual-joint interactive markers
@@ -445,6 +426,28 @@ public:
     bool display_controls_;
 
   private:
+	// The state maintained by this handler.
+	// PROTECTED BY state_lock_
+    robot_state::RobotStatePtr kstate_;
+
+    // Contains the (user-programmable) pose offset between the end-effector
+    // parent link (or a virtual joint) and the desired control frame for the
+    // interactive marker. The offset is expressed in the frame of the parent
+    // link or virtual joint. For example, on a PR2 an offset of +0.20 along
+    // the x-axis will move the center of the 6-DOF interactive marker from
+    // the wrist to the finger tips.
+    // PROTECTED BY offset_map_lock_
+    std::map<std::string, geometry_msgs::Pose> offset_map_;
+
+    // Contains the most recent poses received from interactive marker feedback,
+    // with the offset removed (e.g. in theory, coinciding with the end-effector
+    // parent or virtual joint). This allows a user application to query for the
+    // interactive marker pose (which could be useful for robot control using
+    // gradient-based methods) even when the IK solver failed to find a valid
+    // robot state that satisfies the feedback pose.
+    // PROTECTED BY pose_map_lock_
+    std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
+
 
     std::map<std::string, kinematics::KinematicsQueryOptions> kinematics_query_options_map_;
     mutable boost::mutex state_lock_;
