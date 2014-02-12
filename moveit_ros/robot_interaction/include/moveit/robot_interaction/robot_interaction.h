@@ -280,4 +280,6 @@ MOVEIT_CLASS_FORWARD(RobotInteraction);
 
 }
 
+#include <moveit/robot_interaction/interaction_handler.h>
+
 #endif
