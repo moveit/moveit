@@ -65,6 +65,7 @@
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/interaction_handler.h>
 
 #endif
 
