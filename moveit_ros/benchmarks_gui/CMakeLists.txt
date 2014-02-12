@@ -8,6 +8,9 @@ endif()
 find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread program_options date_time system filesystem)
 
+pkg_check_modules(OGRE OGRE)
+link_directories(${OGRE_LIBRARY_DIRS})
+
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 add_definitions(-DQT_NO_KEYWORDS)
@@ -45,7 +48,8 @@ qt4_wrap_ui(UIC_FILES
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(SYSTEM
-                    ${QT_INCLUDE_DIR})
+                    ${QT_INCLUDE_DIR}
+                    ${OGRE_INCLUDE_DIRS})
 
 set(SOURCES
   src/main.cpp
@@ -63,6 +67,7 @@ add_executable(moveit_benchmark_gui ${SOURCES} ${MOC_FILES} ${UIC_FILES})
 
 target_link_libraries(moveit_benchmark_gui 
   ${catkin_LIBRARIES} 
+  ${OGRE_LIBRARIES} 
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
