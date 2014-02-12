@@ -39,8 +39,8 @@
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <rviz/display_context.h>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 namespace moveit_rviz_plugin
 {

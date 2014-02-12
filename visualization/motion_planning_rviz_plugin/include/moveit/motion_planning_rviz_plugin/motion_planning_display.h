@@ -44,6 +44,7 @@
 #ifndef Q_MOC_RUN
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/interaction_handler.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematics_metrics/kinematics_metrics.h>

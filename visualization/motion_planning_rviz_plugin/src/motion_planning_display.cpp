@@ -55,7 +55,8 @@
 #include <rviz/display_factory.h>
 #include <rviz/ogre_helpers/movable_text.h>
 
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneManager.h>
+#include <OgreSceneNode.h>
 #include <rviz/ogre_helpers/shape.h>
 
 #include <tf/transform_listener.h>

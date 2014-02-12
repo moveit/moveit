@@ -41,6 +41,7 @@
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 
 #include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_state/robot_state.h>
 
 #include <QObject>
