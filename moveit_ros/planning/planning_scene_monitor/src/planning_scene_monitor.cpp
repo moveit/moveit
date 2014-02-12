@@ -1213,5 +1213,5 @@ void planning_scene_monitor::PlanningSceneMonitor::configureDefaultPadding()
   nh_.param(robot_description_ + "_planning/default_object_padding", default_object_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_attached_padding", default_attached_padd_, 0.0);
   nh_.param(robot_description_ + "_planning/default_robot_link_padding", default_robot_link_padd_, std::map<std::string, double>());
-  nh_.param(robot_description_ + "_planning/default_robot_link_scale", default_robot_link_padd_, std::map<std::string, double>());
+  nh_.param(robot_description_ + "_planning/default_robot_link_scale", default_robot_link_scale_, std::map<std::string, double>());
 }
