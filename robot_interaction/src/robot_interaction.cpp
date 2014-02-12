@@ -206,32 +206,17 @@ void RobotInteraction::InteractionHandler::clearMenuHandler()
 robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState() const
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
-  if (kstate_)
-  {
-    kstate_->update();
-    return kstate_;
-  }
-  else
-  {
-    do
-    {
-      state_available_condition_.wait(ulock);
-    } while (!kstate_);
-    kstate_->update();
-    return kstate_;
-  }
+  while (!kstate_)
+    state_available_condition_.wait(ulock);
+  kstate_->update();
+  return kstate_;
 }
 
 void RobotInteraction::InteractionHandler::setState(const robot_state::RobotState& kstate)
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
-  if (!kstate_)
-  {
-    do
-    {
-      state_available_condition_.wait(ulock);
-    } while (!kstate_);
-  }
+  while (!kstate_)
+    state_available_condition_.wait(ulock);
   if (kstate_.unique())
     *kstate_ = kstate;
   else
