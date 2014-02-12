@@ -413,6 +413,7 @@ public:
     // link or virtual joint. For example, on a PR2 an offset of +0.20 along
     // the x-axis will move the center of the 6-DOF interactive marker from
     // the wrist to the finger tips.
+    // PROTECTED BY offset_map_lock_
     std::map<std::string, geometry_msgs::Pose> offset_map_;
 
     // Contains the most recent poses received from interactive marker feedback,
@@ -421,6 +422,7 @@ public:
     // interactive marker pose (which could be useful for robot control using
     // gradient-based methods) even when the IK solver failed to find a valid
     // robot state that satisfies the feedback pose.
+    // PROTECTED BY pose_map_lock_
     std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
 
     // For adding menus (and associated callbacks) to all the
