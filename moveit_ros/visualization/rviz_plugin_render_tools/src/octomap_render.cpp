@@ -39,8 +39,8 @@
 #include <octomap_msgs/Octomap.h>
 #include <octomap/octomap.h>
 
-#include <OGRE/OgreSceneNode.h>
-#include <OGRE/OgreSceneManager.h>
+#include <OgreSceneNode.h>
+#include <OgreSceneManager.h>
 
 #include <rviz/ogre_helpers/point_cloud.h>
 
