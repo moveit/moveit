@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <boost/algorithm/string.hpp>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <geometric_shapes/shape_operations.h>
@@ -1000,6 +1001,7 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
       std::getline(in, ns);
       if (!in.good() || in.eof())
         return;
+      boost::algorithm::trim(ns);
       unsigned int shape_count;
       in >> shape_count;
       for (std::size_t i = 0 ; i < shape_count && in.good() && !in.eof() ; ++i)
