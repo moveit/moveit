@@ -42,6 +42,20 @@
 namespace robot_interaction
 {
 
+
+/// Function type for notifying client of RobotState changes.
+//
+/// This callback function is called by the InteractionHandler::handle* functions,
+/// when changes are made to the internal robot state the handler maintains.
+/// The handler passes its own pointer as argument to the callback, as well
+/// as a boolean flag that indicates whether the error state changed --
+/// whether updates to the robot state performed in the
+/// InteractionHandler::handle* functions have switched from failing to
+/// succeeding or the other way around.
+typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
+
+
+
 /// Manage interactive markers to control a RobotState.
 ///
 /// Each instance maintains one or more interactive markers to control
@@ -49,7 +63,7 @@ namespace robot_interaction
 /// The group being controlled is maintained by the RobotInteraction object
 /// that contains this InteractionHandler object.
 /// All InteractionHandler objects in the same RobotInteraction are controlling the same group.
-class RobotInteraction::InteractionHandler
+class InteractionHandler
 {
 public:
 
@@ -162,35 +176,35 @@ return false;
    *         expressed in the frame of the end-effector parent.
    * @param  The target end-effector.
    * @param  The desired pose offset. */
-  void setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m);
+  void setPoseOffset(const EndEffectorInteraction& eef, const geometry_msgs::Pose& m);
 
   /** \brief Set the offset for drawing the interactive marker controls for a joint,
    *         expressed in the frame of the joint parent.
    * @param  The target joint.
    * @param  The desired pose offset. */
-  void setPoseOffset(const RobotInteraction::Joint& eef, const geometry_msgs::Pose& m);
+  void setPoseOffset(const JointInteraction& eef, const geometry_msgs::Pose& m);
 
   /** \brief Get the offset for the interactive marker controls for an end-effector,
    *         expressed in the frame of the end-effector parent.
    * @param  The target end-effector.
    * @param  The pose offset (only valid if return value is true).
    * @return True if an offset was found for the given end-effector, false otherwise. */
-  bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
+  bool getPoseOffset(const EndEffectorInteraction& eef, geometry_msgs::Pose& m);
 
   /** \brief Get the offset for the interactive marker controls for a joint,
    *         expressed in the frame of the joint parent.
    * @param  The target joint.
    * @param  The pose offset (only valid if return value is true).
    * @return True if an offset was found for the given joint, false otherwise. */
-  bool getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m);
+  bool getPoseOffset(const JointInteraction& vj, geometry_msgs::Pose& m);
 
   /** \brief Clear the interactive marker pose offset for the given end-effector.
    * @param  The target end-effector. */
-  void clearPoseOffset(const RobotInteraction::EndEffector& eef);
+  void clearPoseOffset(const EndEffectorInteraction& eef);
 
   /** \brief Clear the interactive marker pose offset for the given joint.
    * @param  The target joint. */
-  void clearPoseOffset(const RobotInteraction::Joint& vj);
+  void clearPoseOffset(const JointInteraction& vj);
 
   /** \brief Clear the pose offset for all end-effectors and virtual joints. */
   void clearPoseOffsets();
@@ -213,48 +227,48 @@ return false;
    * @param The end-effector in question.
    * @param A PoseStamped message containing the last (offset-removed) pose commanded for the end-effector.
    * @return True if a pose for that end-effector was found, false otherwise. */
-  bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
+  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& pose);
 
   /** \brief Get the last interactive_marker command pose for a joint.
    * @param The joint in question.
    * @param A PoseStamped message containing the last (offset-removed) pose commanded for the joint.
    * @return True if a pose for that joint was found, false otherwise. */
-  bool getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& pose);
+  bool getLastJointMarkerPose(const JointInteraction& vj, geometry_msgs::PoseStamped& pose);
 
   /** \brief Clear the last interactive_marker command pose for the given end-effector.
    * @param  The target end-effector. */
-  void clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef);
+  void clearLastEndEffectorMarkerPose(const EndEffectorInteraction& eef);
 
   /** \brief Clear the last interactive_marker command pose for the given joint.
    * @param  The target joint. */
-  void clearLastJointMarkerPose(const RobotInteraction::Joint& vj);
+  void clearLastJointMarkerPose(const JointInteraction& vj);
 
   /** \brief Clear the last interactive_marker command poses for all end-effectors and joints. */
   void clearLastMarkerPoses();
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleEndEffector(const RobotInteraction::EndEffector &eef,
+  virtual void handleEndEffector(const EndEffectorInteraction &eef,
                                  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleJoint(const RobotInteraction::Joint &vj,
+  virtual void handleJoint(const JointInteraction &vj,
                            const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleGeneric(const RobotInteraction::Generic &g,
+  virtual void handleGeneric(const GenericInteraction &g,
                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
   /** \brief Check if the marker corresponding to this end-effector leads to an invalid state */
-  virtual bool inError(const RobotInteraction::EndEffector& eef) const;
+  virtual bool inError(const EndEffectorInteraction& eef) const;
 
   /** \brief Check if the marker corresponding to this joint leads to an invalid state */
-  virtual bool inError(const RobotInteraction::Joint& vj) const;
+  virtual bool inError(const JointInteraction& vj) const;
 
   /** \brief Check if the generic marker to an invalid state */
-  virtual bool inError(const RobotInteraction::Generic& g) const;
+  virtual bool inError(const GenericInteraction& g) const;
 
   /** \brief Clear any error settings. This makes the markers appear as if the state is no longer invalid. */
   void clearError(void);
@@ -324,6 +338,9 @@ private:
 
   void setup();
 };
+
+typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
+typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
 
 }
 

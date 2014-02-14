@@ -54,7 +54,7 @@
 namespace robot_interaction
 {
 
-RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
+InteractionHandler::InteractionHandler(const std::string &name,
                                                          const robot_state::RobotState &kstate,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
@@ -66,7 +66,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   setup();
 }
 
-RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name,
+InteractionHandler::InteractionHandler(const std::string &name,
                                                          const robot_model::RobotModelConstPtr &robot_model,
                                                          const boost::shared_ptr<tf::Transformer> &tf) :
   name_(name),
@@ -78,7 +78,7 @@ RobotInteraction::InteractionHandler::InteractionHandler(const std::string &name
   setup();
 }
 
-void RobotInteraction::InteractionHandler::setup()
+void InteractionHandler::setup()
 {
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name
   ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
@@ -86,37 +86,37 @@ void RobotInteraction::InteractionHandler::setup()
   planning_frame_ = kstate_->getRobotModel()->getModelFrame();
 }
 
-void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m)
+void InteractionHandler::setPoseOffset(const EndEffectorInteraction& eef, const geometry_msgs::Pose& m)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_[eef.eef_group] = m;
 }
 
-void RobotInteraction::InteractionHandler::setPoseOffset(const RobotInteraction::Joint& vj, const geometry_msgs::Pose& m)
+void InteractionHandler::setPoseOffset(const JointInteraction& vj, const geometry_msgs::Pose& m)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_[vj.joint_name] = m;
 }
 
-void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::EndEffector& eef)
+void InteractionHandler::clearPoseOffset(const EndEffectorInteraction& eef)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.erase(eef.eef_group);
 }
 
-void RobotInteraction::InteractionHandler::clearPoseOffset(const RobotInteraction::Joint& vj)
+void InteractionHandler::clearPoseOffset(const JointInteraction& vj)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.erase(vj.joint_name);
 }
 
-void RobotInteraction::InteractionHandler::clearPoseOffsets()
+void InteractionHandler::clearPoseOffsets()
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   offset_map_.clear();
 }
 
-bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m)
+bool InteractionHandler::getPoseOffset(const EndEffectorInteraction& eef, geometry_msgs::Pose& m)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   std::map<std::string, geometry_msgs::Pose>::iterator it = offset_map_.find(eef.eef_group);
@@ -128,7 +128,7 @@ bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction:
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m)
+bool InteractionHandler::getPoseOffset(const JointInteraction& vj, geometry_msgs::Pose& m)
 {
   boost::mutex::scoped_lock slock(offset_map_lock_);
   std::map<std::string, geometry_msgs::Pose>::iterator it = offset_map_.find(vj.joint_name);
@@ -140,7 +140,7 @@ bool RobotInteraction::InteractionHandler::getPoseOffset(const RobotInteraction:
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& ps)
+bool InteractionHandler::getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& ps)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(eef.eef_group);
@@ -152,7 +152,7 @@ bool RobotInteraction::InteractionHandler::getLastEndEffectorMarkerPose(const Ro
   return false;
 }
 
-bool RobotInteraction::InteractionHandler::getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& ps)
+bool InteractionHandler::getLastJointMarkerPose(const JointInteraction& vj, geometry_msgs::PoseStamped& ps)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   std::map<std::string, geometry_msgs::PoseStamped>::iterator it = pose_map_.find(vj.joint_name);
@@ -164,40 +164,40 @@ bool RobotInteraction::InteractionHandler::getLastJointMarkerPose(const RobotInt
   return false;
 }
 
-void RobotInteraction::InteractionHandler::clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef)
+void InteractionHandler::clearLastEndEffectorMarkerPose(const EndEffectorInteraction& eef)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.erase(eef.eef_group);
 }
 
-void RobotInteraction::InteractionHandler::clearLastJointMarkerPose(const RobotInteraction::Joint& vj)
+void InteractionHandler::clearLastJointMarkerPose(const JointInteraction& vj)
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.erase(vj.joint_name);
 }
 
-void RobotInteraction::InteractionHandler::clearLastMarkerPoses()
+void InteractionHandler::clearLastMarkerPoses()
 {
   boost::mutex::scoped_lock slock(pose_map_lock_);
   pose_map_.clear();
 }
 
-void RobotInteraction::InteractionHandler::setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh)
+void InteractionHandler::setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh)
 {
   menu_handler_ = mh;
 }
 
-const boost::shared_ptr<interactive_markers::MenuHandler>& RobotInteraction::InteractionHandler::getMenuHandler()
+const boost::shared_ptr<interactive_markers::MenuHandler>& InteractionHandler::getMenuHandler()
 {
   return menu_handler_;
 }
 
-void RobotInteraction::InteractionHandler::clearMenuHandler()
+void InteractionHandler::clearMenuHandler()
 {
   menu_handler_.reset();
 }
 
-robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState() const
+robot_state::RobotStateConstPtr InteractionHandler::getState() const
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   while (!kstate_)
@@ -206,7 +206,7 @@ robot_state::RobotStateConstPtr RobotInteraction::InteractionHandler::getState()
   return kstate_;
 }
 
-void RobotInteraction::InteractionHandler::setState(const robot_state::RobotState& kstate)
+void InteractionHandler::setState(const robot_state::RobotState& kstate)
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   while (!kstate_)
@@ -217,7 +217,7 @@ void RobotInteraction::InteractionHandler::setState(const robot_state::RobotStat
     kstate_.reset(new robot_state::RobotState(kstate));
 }
 
-robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateAccess()
+robot_state::RobotStatePtr InteractionHandler::getUniqueStateAccess()
 {
   robot_state::RobotStatePtr result;
   {
@@ -236,7 +236,7 @@ robot_state::RobotStatePtr RobotInteraction::InteractionHandler::getUniqueStateA
   return result;
 }
 
-void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotStatePtr &state)
+void InteractionHandler::setStateToAccess(robot_state::RobotStatePtr &state)
 {
   boost::unique_lock<boost::mutex> ulock(state_lock_);
   if (state != kstate_)
@@ -244,7 +244,7 @@ void RobotInteraction::InteractionHandler::setStateToAccess(robot_state::RobotSt
   state_available_condition_.notify_all();
 }
 
-void RobotInteraction::InteractionHandler::handleGeneric(const RobotInteraction::Generic &g, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void InteractionHandler::handleGeneric(const GenericInteraction &g, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (g.process_feedback)
   {
@@ -269,7 +269,7 @@ void RobotInteraction::InteractionHandler::handleGeneric(const RobotInteraction:
   }
 }
 
-void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interaction::RobotInteraction::EndEffector &eef,
+void InteractionHandler::handleEndEffector(const EndEffectorInteraction &eef,
                                                              const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
@@ -313,7 +313,7 @@ void RobotInteraction::InteractionHandler::handleEndEffector(const robot_interac
     update_callback_(this, error_state_changed);
 }
 
-void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::RobotInteraction::Joint &vj,
+void InteractionHandler::handleJoint(const JointInteraction &vj,
                                                        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
@@ -352,27 +352,27 @@ void RobotInteraction::InteractionHandler::handleJoint(const robot_interaction::
     update_callback_(this, false);
 }
 
-bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::EndEffector& eef) const
+bool InteractionHandler::inError(const EndEffectorInteraction& eef) const
 {
   return error_state_.find(eef.parent_group) != error_state_.end();
 }
 
-bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::Generic& g) const
+bool InteractionHandler::inError(const GenericInteraction& g) const
 {
   return error_state_.find(g.marker_name_suffix) != error_state_.end();
 }
 
-bool RobotInteraction::InteractionHandler::inError(const robot_interaction::RobotInteraction::Joint& vj) const
+bool InteractionHandler::inError(const JointInteraction& vj) const
 {
   return false;
 }
 
-void RobotInteraction::InteractionHandler::clearError(void)
+void InteractionHandler::clearError(void)
 {
   error_state_.clear();
 }
 
-bool RobotInteraction::InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+bool InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
                                                                  const geometry_msgs::Pose &offset,
                                                                  geometry_msgs::PoseStamped &tpose)
 {
