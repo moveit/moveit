@@ -35,6 +35,7 @@
 /* Author: Acorn Pooley */
 
 #include <moveit/robot_interaction/kinematic_options.h>
+#include <boost/static_assert.hpp>
 
 robot_interaction::KinematicOptions::KinematicOptions()
 : timeout_seconds_(0.0) // 0.0 = use default timeout
@@ -58,5 +59,74 @@ void robot_interaction::KinematicOptions::setStateFromIK(
                             timeout_seconds_,
                             state_validity_callback_,
                             options_);
+  state->update();
 }
 
+
+void robot_interaction::KinematicOptions::setOptions(
+      const KinematicOptions& source,
+      OptionBitmask fields)
+{
+  // This function is implemented with the O_FIELDS and QO_FIELDS macros to
+  // ensure that any fields added to robot_interaction::KinematicOptions or
+  // kinematics::KinematicsQueryOptions are also added here and to the
+  // KinematicOptions::OptionBitmask enum.
+
+  // This needs to represent all the fields in
+  // robot_interaction::KinematicOptions except options_
+  #define O_FIELDS(F) \
+    F(double, timeout_seconds_, TIMEOUT) \
+    F(unsigned int, max_attempts_, MAX_ATTEMPTS) \
+    F(robot_state::GroupStateValidityCallbackFn, state_validity_callback_, \
+                                              STATE_VALIDITY_CALLBACK)
+
+  // This needs to represent all the fields in
+  // kinematics::KinematicsQueryOptions
+  #define QO_FIELDS(F) \
+    F(bool, lock_redundant_joints, LOCK_REDUNDANT_JOINTS) \
+    F(bool, return_approximate_solution, RETURN_APPROXIMATE_SOLUTION)
+  
+
+  // This structure should be identical to kinematics::KinematicsQueryOptions
+  // This is only used in the BOOST_STATIC_ASSERT below.
+  struct DummyKinematicsQueryOptions
+  {
+    #define F(type,member,enumval) type member;
+    QO_FIELDS(F)
+    #undef F
+  };
+  // This structure should be identical to robot_interaction::KinematicOptions
+  // This is only used in the BOOST_STATIC_ASSERT below.
+  struct DummyKinematicOptions
+  {
+    #define F(type,member,enumval) type member;
+    O_FIELDS(F)
+    #undef F
+    DummyKinematicsQueryOptions options_;
+  };
+
+  // If these asserts fails it means that fields were added to
+  // kinematics::KinematicsQueryOptions or robot_interaction::KinematicOptions
+  // and not added to the O_FIELDS and QO_FIELDS definitions above. To fix add
+  // any new fields to the definitions above.
+  BOOST_STATIC_ASSERT(sizeof(kinematics::KinematicsQueryOptions) ==
+                      sizeof(DummyKinematicsQueryOptions));
+  BOOST_STATIC_ASSERT(sizeof(KinematicOptions) ==
+                      sizeof(DummyKinematicOptions));
+
+  
+  // copy fields from other to this if its bit is set in fields
+  #define F(type,member,enumval) \
+          if (fields & KinematicOptions::enumval) \
+            member = source.member;
+  O_FIELDS(F)
+  #undef F
+
+  // copy fields from other.options_ to this.options_ if its bit is set in
+  // fields
+  #define F(type,member,enumval) \
+          if (fields & KinematicOptions::enumval) \
+            options_.member = source.options_.member;
+  QO_FIELDS(F)
+  #undef F
+}

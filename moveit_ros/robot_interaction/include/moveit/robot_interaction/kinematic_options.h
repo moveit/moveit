@@ -44,11 +44,31 @@ namespace robot_interaction
 {
 
 // Options for inverse kinematics calculations.
+//
+// This is intended to be lightweight and passable by value.  No virtual
+// functions and no destructor.
 struct KinematicOptions
 {
 public: 
   /// Constructor - set all options to reasonable default values
   KinematicOptions();
+
+  /// Bits corresponding to each member.
+  /// NOTE: when adding fields to this structure also add the field to this
+  /// enum and to the setOptions() method.
+  enum OptionBitmask
+  {
+    TIMEOUT                     = 0x00000001, // timeout_seconds_
+    MAX_ATTEMPTS                = 0x00000002, // max_attempts_
+    STATE_VALIDITY_CALLBACK     = 0x00000004, // state_validity_callback_
+    LOCK_REDUNDANT_JOINTS       = 0x00000008, // options_.lock_redundant_joints
+    RETURN_APPROXIMATE_SOLUTION = 0x00000010, // options_.return_approximate_solution
+
+    ALL_QUERY_OPTIONS           = LOCK_REDUNDANT_JOINTS |
+                                  RETURN_APPROXIMATE_SOLUTION,
+    ALL                         = 0x7fffffff
+  };
+
 
   /// Set \e state using inverse kinematics
   /// @param state the state to set
@@ -62,17 +82,23 @@ public:
                       const geometry_msgs::Pose* pose,
                       bool* result) const;
 
+  /// Copy a subset of source to this.
+  /// For each bit set in fields the corresponding member is copied from
+  /// source to this.
+  void setOptions(const KinematicOptions& source,
+                  OptionBitmask fields = ALL);
+
   /// max time an IK attempt can take before we give up.
   double timeout_seconds_;
 
   /// how many attempts before we give up.
   unsigned int max_attempts_;
 
-  /// other options
-  kinematics::KinematicsQueryOptions options_;
-
   /// This is called to determine if the state is valid
   robot_state::GroupStateValidityCallbackFn state_validity_callback_;
+
+  /// other options
+  kinematics::KinematicsQueryOptions options_;
 };
 
 }

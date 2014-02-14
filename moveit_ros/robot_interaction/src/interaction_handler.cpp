@@ -38,6 +38,7 @@
 #include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <moveit/robot_interaction/kinematic_options_map.h>
 #include <moveit/transforms/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
@@ -47,6 +48,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <limits>
+#include <stdexcept>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -54,26 +56,67 @@
 namespace robot_interaction
 {
 
-InteractionHandler::InteractionHandler(const std::string &name,
-                                                         const robot_state::RobotState &kstate,
-                                                         const boost::shared_ptr<tf::Transformer> &tf) :
-  name_(name),
-  kstate_(new robot_state::RobotState(kstate)),
-  tf_(tf),
-  display_meshes_(true),
-  display_controls_(true)
+InteractionHandler::InteractionHandler(
+      const RobotInteractionPtr& robot_interaction,
+      const std::string &name,
+      const robot_state::RobotState &initial_robot_state,
+      const boost::shared_ptr<tf::Transformer> &tf)
+:name_(name)
+,kstate_(new robot_state::RobotState(initial_robot_state))
+,tf_(tf)
+,display_meshes_(true)
+,display_controls_(true)
+,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
+,robot_interaction_(NULL)
+{
+  setup();
+  setRobotInteraction(robot_interaction.get());
+}
+
+InteractionHandler::InteractionHandler(
+      const RobotInteractionPtr& robot_interaction,
+      const std::string &name,
+      const boost::shared_ptr<tf::Transformer> &tf)
+:name_(name)
+,kstate_(new robot_state::RobotState(robot_interaction->getRobotModel()))
+,tf_(tf)
+,display_meshes_(true)
+,display_controls_(true)
+,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
+,robot_interaction_(NULL)
+{
+  setup();
+  setRobotInteraction(robot_interaction.get());
+}
+
+// DEPRECATED
+InteractionHandler::InteractionHandler(
+      const std::string &name,
+      const robot_state::RobotState &initial_robot_state,
+      const boost::shared_ptr<tf::Transformer> &tf)
+:name_(name)
+,kstate_(new robot_state::RobotState(initial_robot_state))
+,tf_(tf)
+,display_meshes_(true)
+,display_controls_(true)
+,kinematic_options_map_(new KinematicOptionsMap)
+,robot_interaction_(NULL)
 {
   setup();
 }
 
-InteractionHandler::InteractionHandler(const std::string &name,
-                                                         const robot_model::RobotModelConstPtr &robot_model,
-                                                         const boost::shared_ptr<tf::Transformer> &tf) :
-  name_(name),
-  kstate_(new robot_state::RobotState(robot_model)),
-  tf_(tf),
-  display_meshes_(true),
-  display_controls_(true)
+// DEPRECATED
+InteractionHandler::InteractionHandler(
+      const std::string &name,
+      const robot_model::RobotModelConstPtr &robot_model,
+      const boost::shared_ptr<tf::Transformer> &tf)
+:name_(name)
+,kstate_(new robot_state::RobotState(robot_model))
+,tf_(tf)
+,display_meshes_(true)
+,display_controls_(true)
+,kinematic_options_map_(new KinematicOptionsMap)
+,robot_interaction_(NULL)
 {
   setup();
 }
@@ -81,8 +124,6 @@ InteractionHandler::InteractionHandler(const std::string &name,
 void InteractionHandler::setup()
 {
   std::replace(name_.begin(), name_.end(), '_', '-'); // we use _ as a special char in marker name
-  ik_timeout_ = 0.0; // so that the default IK timeout is used in setFromIK()
-  ik_attempts_ = 0; // so that the default IK attempts is used in setFromIK()
   planning_frame_ = kstate_->getRobotModel()->getModelFrame();
 }
 
@@ -270,7 +311,7 @@ void InteractionHandler::handleGeneric(const GenericInteraction &g, const visual
 }
 
 void InteractionHandler::handleEndEffector(const EndEffectorInteraction &eef,
-                                                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+                                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
     return;
@@ -288,13 +329,20 @@ void InteractionHandler::handleEndEffector(const EndEffectorInteraction &eef,
   else
     return;
 
+  KinematicOptions kinematic_options;
+  {
+    boost::unique_lock<boost::mutex> lock(state_lock_);
+    kinematic_options = kinematic_options_map_->getOptions(eef.parent_group);
+  }
+
   robot_state::RobotStatePtr state = getUniqueStateAccess();
 
-  kinematics::KinematicsQueryOptions options;
-  if(!getKinematicsQueryOptionsForGroup(eef.parent_group, options))
-    options = kinematics_query_options_;
-
-  bool update_state_result = robot_interaction::RobotInteraction::updateState(*state, eef, tpose.pose, ik_attempts_, ik_timeout_, state_validity_callback_fn_, options);
+  bool update_state_result;
+  kinematic_options.setStateFromIK(state.get(),
+                                   &eef.parent_group,
+                                   &eef.parent_link,
+                                   &tpose.pose,
+                                   &update_state_result);
   setStateToAccess(state);
 
   bool error_state_changed = false;
@@ -314,7 +362,7 @@ void InteractionHandler::handleEndEffector(const EndEffectorInteraction &eef,
 }
 
 void InteractionHandler::handleJoint(const JointInteraction &vj,
-                                                       const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+                                     const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
     return;
@@ -406,5 +454,120 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
   }
   return true;
 }
+
+// This syncs the InteractionHandler's KinematicOptionsMap with the
+// RobotInteraction's.  After this both will share the same
+// KinematicOptionsMap.
+//
+// With the constructors that take a RobotInteraction parameter this function
+// is not needed (except as a sanity check that the RobotInteraction and
+// InteractionHandler are matched).  This function is necessary because when
+// the old constructors are used the InteractionHandler may not know what
+// RobotInteraction it is associated with until after some options have been
+// set on the InteractionHandler.
+void InteractionHandler::setRobotInteraction(RobotInteraction* robot_interaction)
+{
+  boost::unique_lock<boost::mutex> ulock(state_lock_);
+
+  // Verivy that this InteractionHandler is only used with one
+  // RobotInteraction.
+  // This is the only use for robot_interaction_.
+  if (robot_interaction_)
+  {
+    if (robot_interaction_ != robot_interaction)
+    {
+      ROS_ERROR("setKinematicOptions() called from 2 different RobotInteraction instances.");
+    }
+    return;
+  }
+
+  robot_interaction_ = robot_interaction;
+
+  KinematicOptionsMapPtr shared_kinematic_options_map = robot_interaction->getKinematicOptionsMap();
+
+  // merge old options into shared options
+  // This is necessary because some legacy code sets values using deprecated
+  // InteractionHandler methods before a RobotInteraction is associated with
+  // this InteractionHandler.
+  //
+  // This is a nop if a constructor with a robot_interaction parameter is used.
+  shared_kinematic_options_map->merge(*kinematic_options_map_);
+
+  // from now on the InteractionHandler shares the same KinematicOptionsMap
+  // with RobotInteraction.
+  // The old *kinematic_options_map_ is automatically deleted by boost::shared_ptr.
+  //
+  // This is a nop if a constructor with a robot_interaction parameter is used.
+  kinematic_options_map_ = shared_kinematic_options_map;
+}
+
+
+// ============= DEPRECATED FUNCTIONS =====================
+
+void InteractionHandler::setIKTimeout(double timeout)
+{
+  KinematicOptions delta;
+  delta.timeout_seconds_ = timeout;
+
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL,
+                                     delta,
+                                     KinematicOptions::TIMEOUT);
+}
+
+void InteractionHandler::setIKAttempts(unsigned int attempts)
+{
+  KinematicOptions delta;
+  delta.max_attempts_ = attempts;
+
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL,
+                                     delta,
+                                     KinematicOptions::MAX_ATTEMPTS);
+}
+
+void InteractionHandler::setKinematicsQueryOptions(
+      const kinematics::KinematicsQueryOptions &opt)
+{
+  KinematicOptions delta;
+  delta.options_ = opt;
+
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL,
+                                     delta,
+                                     KinematicOptions::ALL_QUERY_OPTIONS);
+}
+
+void InteractionHandler::setKinematicsQueryOptionsForGroup(
+      const std::string& group_name, 
+      kinematics::KinematicsQueryOptions &opt)
+{
+  KinematicOptions delta;
+  delta.options_ = opt;
+
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  kinematic_options_map_->setOptions(group_name,
+                                     delta,
+                                     KinematicOptions::ALL_QUERY_OPTIONS);
+}
+
+void InteractionHandler::setGroupStateValidityCallback(
+      const robot_state::GroupStateValidityCallbackFn &callback)
+{
+  KinematicOptions delta;
+  delta.state_validity_callback_ = callback;
+
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  kinematic_options_map_->setOptions(KinematicOptionsMap::ALL,
+                                     delta,
+                                     KinematicOptions::STATE_VALIDITY_CALLBACK);
+}
+
+const kinematics::KinematicsQueryOptions& InteractionHandler::getKinematicsQueryOptions() const
+{
+  boost::unique_lock<boost::mutex> lock(state_lock_);
+  return kinematic_options_map_->getOptions(KinematicOptionsMap::DEFAULT).options_;
+}
+
 
 }

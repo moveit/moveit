@@ -35,15 +35,27 @@
 /* Author: Acorn Pooley */
 
 #include <moveit/robot_interaction/kinematic_options_map.h>
+#include <ros/console.h>
+#include <algorithm>
+
+// These strings have no content.  They are compared by address.
+const std::string robot_interaction::KinematicOptionsMap::DEFAULT = "";
+const std::string robot_interaction::KinematicOptionsMap::ALL = "";
 
 robot_interaction::KinematicOptionsMap::KinematicOptionsMap()
 {}
 
+// Returns a copy of the KinematicOptions so that the caller does not need to
+// worry about locking.
 robot_interaction::KinematicOptions
 robot_interaction::KinematicOptionsMap::getOptions(
       const std::string& key) const
 {
   boost::mutex::scoped_lock lock(lock_);
+
+  if (&key == &DEFAULT)
+    return defaults_;
+
   M_options::const_iterator it = options_.find(key);
   if (it == options_.end())
     return defaults_;
@@ -52,43 +64,76 @@ robot_interaction::KinematicOptionsMap::getOptions(
 
 void robot_interaction::KinematicOptionsMap::setOptions(
       const std::string& key,
-      const KinematicOptions& options)
+      const KinematicOptions& options_delta,
+      KinematicOptions::OptionBitmask fields)
 {
   boost::mutex::scoped_lock lock(lock_);
-  options_[key] = options;
+
+  if (&key == &ALL)
+  {
+    if (fields == KinematicOptions::ALL)
+    {
+      // setting ALL fields for ALL keys
+      // so just clear all key-specific fields and set the defaults.
+      defaults_ = options_delta;
+      options_.clear();
+      return;
+    }
+
+    defaults_.setOptions(options_delta, fields);
+    for (M_options::iterator it = options_.begin() ;
+         it != options_.end() ;
+         ++it)
+    {
+      it->second.setOptions(options_delta, fields);
+    }
+    return;
+  }
+
+  if (&key == &DEFAULT)
+  {
+    defaults_.setOptions(options_delta, fields);
+    return;
+  }
+
+  M_options::iterator it = options_.find(key);
+  KinematicOptions* opts;
+  if (it == options_.end())
+  {
+    // create new entry for key and initialize to defaults_
+    opts = &options_[key];
+    *opts = defaults_;
+  }
+  else
+  {
+    opts = &it->second;
+  }
+
+  opts->setOptions(options_delta, fields);
 }
 
-robot_interaction::KinematicOptions
-robot_interaction::KinematicOptionsMap::getDefaultOptions() const
+// merge other into this.  All options in other take precedence over this.
+void robot_interaction::KinematicOptionsMap::merge(
+      const KinematicOptionsMap& other)
 {
-  boost::mutex::scoped_lock lock(lock_);
-  return defaults_;
-}
+  if (&other == this)
+    return;
 
-void robot_interaction::KinematicOptionsMap::setDefaultOptions(
-      const KinematicOptions& options)
-{
-  boost::mutex::scoped_lock lock(lock_);
-  defaults_ = options;
-}
+  // need to lock in consitent order to avoid deadlock. 
+  // Lock the one with lower address first.
+  boost::mutex *m1 = &lock_;
+  boost::mutex *m2 = &other.lock_;
+  if (m2 < m1)
+    std::swap(m1, m2);
+  boost::mutex::scoped_lock lock1(*m1);
+  boost::mutex::scoped_lock lock2(*m2);
 
-void robot_interaction::KinematicOptionsMap::clear()
-{
-  boost::mutex::scoped_lock lock(lock_);
-  options_.clear();
-}
-
-void robot_interaction::KinematicOptionsMap::getKeys(
-      std::vector<std::string>& keys) const
-{
-  boost::mutex::scoped_lock lock(lock_);
-  keys.clear();
-  keys.reserve(options_.size());
-  for (M_options::const_iterator it = options_.begin() ;
-       it != options_.end() ;
+  defaults_ = other.defaults_;
+  for (M_options::const_iterator it = other.options_.begin() ;
+       it != other.options_.end() ;
        ++it)
   {
-    keys.push_back(it->first);
+    options_[it->first] = it->second;
   }
 }
 
