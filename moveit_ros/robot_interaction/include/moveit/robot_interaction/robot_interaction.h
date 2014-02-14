@@ -41,8 +41,8 @@
 #include <visualization_msgs/InteractiveMarker.h>
 #include <interactive_markers/menu_handler.h>
 #include <moveit/robot_state/robot_state.h>
-#include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/interaction.h>
+#include <moveit/robot_interaction/kinematic_options_map.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
 #include <tf/tf.h>
@@ -134,6 +134,10 @@ public:
     return active_vj_;
   }
 
+  // Get the kinematic options map.
+  // Use this to set kinematic options (defaults or per-group).
+  KinematicOptionsMap& getKinematicOptionsMap() { return kinematic_options_map_; }
+
   static bool updateState(robot_state::RobotState &state, const EndEffectorInteraction &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout,
                           const robot_state::GroupStateValidityCallbackFn &validity_callback = robot_state::GroupStateValidityCallbackFn(),
@@ -183,6 +187,10 @@ private:
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
   std::string topic_;
 
+  // options for doing IK
+  // Locking is done internally
+  KinematicOptionsMap kinematic_options_map_;
+
 public:
   // DEPRECATED.  This is included for backwards compatibility.
   // These classes/enums used to be subclasses of RobotInteraction.  This allows
@@ -213,7 +221,9 @@ public:
   void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style);
 };
 
-MOVEIT_CLASS_FORWARD(RobotInteraction);
+typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
+typedef boost::shared_ptr<const RobotInteraction> RobotInteractionConstPtr;
+
 
 }
 

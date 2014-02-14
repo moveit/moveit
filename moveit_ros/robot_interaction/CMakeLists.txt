@@ -35,6 +35,8 @@ link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME}
   src/interactive_marker_helpers.cpp
+  src/kinematic_options.cpp
+  src/kinematic_options_map.cpp
   src/interaction_handler.cpp
   src/robot_interaction.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
