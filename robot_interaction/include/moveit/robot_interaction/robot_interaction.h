@@ -42,6 +42,7 @@
 #include <interactive_markers/menu_handler.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/macros/class_forward.h>
+#include <moveit/robot_interaction/interaction.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
 #include <tf/tf.h>
@@ -54,6 +55,10 @@ class InteractiveMarkerServer;
 namespace robot_interaction
 {
 
+class InteractionHandler;
+typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
+
+
 // Manage interactive markers for controlling a robot state.
 //
 // The RobotInteraction class manages one or more InteractionHandler objects
@@ -65,118 +70,17 @@ namespace robot_interaction
 class RobotInteraction
 {
 public:
+  // DEPRECATED TYPES.  For backwards compatibility.  Avoid using these.
+  typedef ::robot_interaction::InteractionHandler InteractionHandler;
+  typedef ::robot_interaction::InteractionHandlerPtr InteractionHandlerPtr;
+  typedef ::robot_interaction::EndEffectorInteraction EndEffector;
+  typedef ::robot_interaction::JointInteraction Joint;
+  typedef ::robot_interaction::GenericInteraction Generic;
+public:
 
   /// The topic name on which the internal Interactive Marker Server operates
   static const std::string INTERACTIVE_MARKER_TOPIC;
 
-  /// The different types of interaction that can be constructed for an end effector
-  // This is a bitmask so OR together the parts you want.
-  enum EndEffectorInteractionStyle
-  {
-    EEF_POSITION_ARROWS = 1,      // arrow handles to change position
-    EEF_ORIENTATION_CIRCLES = 2,  // circle handles to change orientation
-    EEF_POSITION_SPHERE = 4,      // a sphere which can be dragged to change position
-    EEF_ORIENTATION_SPHERE = 8,   // a sphere which can be dragged to change orientation
-    EEF_POSITION_EEF = 16,        // drag end effector to change position
-    EEF_ORIENTATION_EEF = 32,     // drag end effector to change orientation
-    EEF_FIXED = 64,               // keep arrow and circle axis fixed
-
-    EEF_POSITION = EEF_POSITION_ARROWS |
-                   EEF_POSITION_SPHERE |
-                   EEF_POSITION_EEF,
-    EEF_ORIENTATION = EEF_ORIENTATION_CIRCLES |
-                      EEF_ORIENTATION_SPHERE |
-                      EEF_ORIENTATION_EEF,
-    EEF_6DOF = EEF_POSITION |
-               EEF_ORIENTATION,
-    EEF_6DOF_SPHERE = EEF_POSITION_SPHERE |
-                      EEF_ORIENTATION_SPHERE,
-    EEF_POSITION_NOSPHERE = EEF_POSITION_ARROWS |
-                            EEF_POSITION_EEF,
-    EEF_ORIENTATION_NOSPHERE = EEF_ORIENTATION_CIRCLES |
-                               EEF_ORIENTATION_EEF,
-    EEF_6DOF_NOSPHERE = EEF_POSITION_NOSPHERE |
-                        EEF_ORIENTATION_NOSPHERE
-  };
-
-  /// Representation of an interaction via an end-effector
-  struct EndEffector
-  {
-    /// The name of the group that sustains the end-effector (usually an arm)
-    std::string parent_group;
-
-    /// The name of the link in the parent group that connects to the end-effector
-    std::string parent_link;
-
-    /// The name of the group that defines the group joints
-    std::string eef_group;
-
-    /// Which degrees of freedom to enable for the end-effector
-    EndEffectorInteractionStyle interaction;
-
-    /// The size of the end effector group (diameter of enclosing sphere)
-    double size;
-
-  };
-
-  /// Representation of an interaction via a joint.
-  struct Joint
-  {
-    /// The link in the robot model this joint is a parent of
-    std::string connecting_link;
-
-    /// The name of the frame that is a parent of this joint
-    std::string parent_frame;
-
-    /// The name of the joint
-    std::string joint_name;
-
-    /// The type of joint disguised as the number of DOF it has.  3=PLANAR in X/Y; 6=FLOATING
-    unsigned int dof;
-
-    /// The size of the connecting link  (diameter of enclosing sphere)
-    double size;
-  };
-
-  /// When using generic markers, a means to construct the marker is needed: this callback.
-  /// The callback should set up the passed in marker according to the passed in robot state.
-  /// Return true on success.  Return false on failure or if the marker should not be added
-  /// and displayed.
-  typedef boost::function<bool(const robot_state::RobotState&, visualization_msgs::InteractiveMarker&)> InteractiveMarkerConstructorFn;
-
-  /// When using generic markers, this callback is called when the interactive marker changes and sends feedback.
-  /// Callback should update the robot state that was passed in according to
-  /// the new position of the marker. Return true if the update was successful.
-  /// Return false if the state was not successfully updated.
-  typedef boost::function<bool(robot_state::RobotState&, const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)> ProcessFeedbackFn;
-
-  /// When using generic markers, this callback is called when the robot state changes. Callback should calculate a new
-  /// pose for the marker based on the passed in robot state.
-  /// Return true if the pose was modified, false if no update is to be issued (pose is unchanged).
-  typedef boost::function<bool(const robot_state::RobotState&, geometry_msgs::Pose&)> InteractiveMarkerUpdateFn;
-
-  /// Representation of a generic interaction.  Displays one interactive marker.
-  struct Generic
-  {
-    InteractiveMarkerConstructorFn construct_marker; // see comment on typedef above
-    ProcessFeedbackFn process_feedback;              // see comment on typedef above
-    InteractiveMarkerUpdateFn update_pose;           // see comment on typedef above
-    std::string marker_name_suffix; // automatically generated suffix added to name of markers
-  };
-
-  class InteractionHandler;
-
-  /// This function is called by the InteractionHandler::handle* functions,
-  /// when changes are made to the internal robot state the handler maintains.
-  /// The handler passes its own pointer as argument to the callback, as well
-  /// as a boolean flag that indicates whether the error state changed --
-  /// whether updates to the robot state performed in the
-  /// InteractionHandler::handle* functions have switched from failing to
-  /// succeeding or the other way around.
-  typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
-
-  typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
-  typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
 
   RobotInteraction(const robot_model::RobotModelConstPtr &kmodel, const std::string &ns = "");
   virtual ~RobotInteraction();
@@ -200,10 +104,12 @@ public:
   //  - each floating joint
   //  - each planar joint
   // If no end effector exists in the robot then adds an interactive marker for the last link in the chain.
-  void decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
+  void decideActiveComponents(const std::string &group);
+  void decideActiveComponents(const std::string &group, InteractionStyle::InteractionStyle style);
 
   /// called by decideActiveComponents(); add markers for end effectors
-  void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style = EEF_6DOF);
+  void decideActiveEndEffectors(const std::string &group);
+  void decideActiveEndEffectors(const std::string &group, InteractionStyle::InteractionStyle style);
 
   /// called by decideActiveComponents(); add markers for planar and floating joints
   void decideActiveJoints(const std::string &group);
@@ -211,38 +117,40 @@ public:
   // remove all interactive markers.
   void clear();
 
-  void addInteractiveMarkers(const InteractionHandlerPtr &handler, const double marker_scale = 0.0);
-  void updateInteractiveMarkers(const InteractionHandlerPtr &handler);
-  bool showingMarkers(const InteractionHandlerPtr &handler);
+  void addInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr &handler, const double marker_scale = 0.0);
+  void updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr &handler);
+  bool showingMarkers(const ::robot_interaction::InteractionHandlerPtr &handler);
 
   void publishInteractiveMarkers();
   void clearInteractiveMarkers();
 
-  const std::vector<EndEffector>& getActiveEndEffectors() const
+  const std::vector<EndEffectorInteraction>& getActiveEndEffectors() const
   {
     return active_eef_;
   }
 
-  const std::vector<Joint>& getActiveJoints() const
+  const std::vector<JointInteraction>& getActiveJoints() const
   {
     return active_vj_;
   }
 
-  static bool updateState(robot_state::RobotState &state, const EndEffector &eef, const geometry_msgs::Pose &pose,
+  static bool updateState(robot_state::RobotState &state, const EndEffectorInteraction &eef, const geometry_msgs::Pose &pose,
                           unsigned int attempts, double ik_timeout,
                           const robot_state::GroupStateValidityCallbackFn &validity_callback = robot_state::GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions &kinematics_query_options = kinematics::KinematicsQueryOptions());
-  static bool updateState(robot_state::RobotState &state, const Joint &vj, const geometry_msgs::Pose &pose);
+
+
+  static bool updateState(robot_state::RobotState &state, const JointInteraction &vj, const geometry_msgs::Pose &pose);
 
 private:
 
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupMarkerSize(const std::string &group);
-  void computeMarkerPose(const InteractionHandlerPtr &handler, const EndEffector &eef, const robot_state::RobotState &robot_state,
+  void computeMarkerPose(const ::robot_interaction::InteractionHandlerPtr &handler, const EndEffectorInteraction &eef, const robot_state::RobotState &robot_state,
                          geometry_msgs::Pose &pose, geometry_msgs::Pose &control_to_eef_tf) const;
 
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
-  void addEndEffectorMarkers(const InteractionHandlerPtr &handler, const EndEffector& eef, const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
+  void addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr &handler, const EndEffectorInteraction& eef, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
+  void addEndEffectorMarkers(const ::robot_interaction::InteractionHandlerPtr &handler, const EndEffectorInteraction& eef, const geometry_msgs::Pose& offset, visualization_msgs::InteractiveMarker& im, bool position = true, bool orientation = true);
   void processInteractiveMarkerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void processingThread();
   void clearInteractiveMarkersUnsafe();
@@ -255,11 +163,11 @@ private:
 
   robot_model::RobotModelConstPtr robot_model_;
 
-  std::vector<EndEffector> active_eef_;
-  std::vector<Joint> active_vj_;
-  std::vector<Generic> active_generic_;
+  std::vector<EndEffectorInteraction> active_eef_;
+  std::vector<JointInteraction> active_vj_;
+  std::vector<GenericInteraction> active_generic_;
 
-  std::map<std::string, InteractionHandlerPtr> handlers_;
+  std::map<std::string, ::robot_interaction::InteractionHandlerPtr> handlers_;
   std::map<std::string, std::size_t> shown_markers_;
 
   // This mutex is locked every time markers are read or updated;
@@ -274,6 +182,35 @@ private:
 
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
   std::string topic_;
+
+public:
+  // DEPRECATED.  This is included for backwards compatibility.
+  // These classes/enums used to be subclasses of RobotInteraction.  This allows
+  // client code to continue to work as if they are.
+
+  /// The different types of interaction that can be constructed for an end effector
+  /// DEPRECATED.  See robot_interaction::InteractionStyle::InteractionStyle in interaction.h
+  enum EndEffectorInteractionStyle
+  {
+    EEF_POSITION_ARROWS = InteractionStyle::POSITION_ARROWS,
+    EEF_ORIENTATION_CIRCLES = InteractionStyle::ORIENTATION_CIRCLES,
+    EEF_POSITION_SPHERE = InteractionStyle::POSITION_SPHERE,
+    EEF_ORIENTATION_SPHERE = InteractionStyle::ORIENTATION_SPHERE,
+    EEF_POSITION_EEF = InteractionStyle::POSITION_EEF,
+    EEF_ORIENTATION_EEF = InteractionStyle::ORIENTATION_EEF,
+    EEF_FIXED = InteractionStyle::FIXED,
+    EEF_POSITION = InteractionStyle::POSITION,
+    EEF_ORIENTATION = InteractionStyle::ORIENTATION,
+    EEF_6DOF = InteractionStyle::SIX_DOF,
+    EEF_6DOF_SPHERE = InteractionStyle::SIX_DOF_SPHERE,
+    EEF_POSITION_NOSPHERE = InteractionStyle::POSITION_NOSPHERE,
+    EEF_ORIENTATION_NOSPHERE = InteractionStyle::ORIENTATION_NOSPHERE,
+    EEF_6DOF_NOSPHERE = InteractionStyle::SIX_DOF_NOSPHERE
+  };
+  // DEPRECATED.  Use InteractionStyle::InteractionStyle version.
+  void decideActiveComponents(const std::string &group, EndEffectorInteractionStyle style);
+  // DEPRECATED.  Use InteractionStyle::InteractionStyle version.
+  void decideActiveEndEffectors(const std::string &group, EndEffectorInteractionStyle style);
 };
 
 MOVEIT_CLASS_FORWARD(RobotInteraction);
