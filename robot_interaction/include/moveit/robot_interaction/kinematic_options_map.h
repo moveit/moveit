@@ -39,6 +39,7 @@
 
 #include <moveit/robot_interaction/kinematic_options.h>
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
 
 namespace robot_interaction
 {
@@ -50,6 +51,12 @@ struct KinematicOptionsMap
 public: 
   /// Constructor - set all options to reasonable default values.
   KinematicOptionsMap();
+
+  /// When used as \e key this means the default value
+  static const std::string DEFAULT;
+
+  /// When used as \e key this means set ALL keys (including default)
+  static const std::string ALL;
 
   /// Set \e state using inverse kinematics.
   /// @param state the state to set
@@ -66,25 +73,27 @@ public:
                       bool* result) const;
 
   /// Get the options to use for a particular key.
+  /// To get the default values pass key = KinematicOptionsMap::DEFAULT
   KinematicOptions getOptions(const std::string& key) const;
 
-  // Set the options to be used for a particular key.
-  void setOptions(const std::string& key,
-                       const KinematicOptions& options);
+  /// Set some of the options to be used for a particular key.
+  ///
+  /// @param key set the options for this key.
+  ///         To set the default options use key = KinematicOptionsMap::DEFAULT
+  ///         To set ALL options use key = KinematicOptionsMap::ALL
+  ///
+  /// @param options the new value for the options.
+  ///
+  /// @fields which options to set for the key.
+  void setOptions(
+          const std::string& key,
+          const KinematicOptions& options,
+          KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
 
-  /// Get the options to use by default (for unknown keys).
-  KinematicOptions getDefaultOptions() const;
-
-  // Set the options to be used by default.
-  void setDefaultOptions(const KinematicOptions& options);
-
-  // Clear all the key-specific options.
-  // Does not affect the default values.
-  // After this all keys will return default options.
-  void clear();
-
-  /// get a list of all keys which have non-default values.
-  void getKeys(std::vector<std::string>& keys) const;
+  /// Merge all options from \e other into \e this.
+  /// Values in \e other (including defaults_) take precedence over values in \e
+  /// this.
+  void merge(const KinematicOptionsMap& other);
 
 private:
   // this protects all members.

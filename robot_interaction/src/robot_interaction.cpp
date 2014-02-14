@@ -38,6 +38,7 @@
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
+#include <moveit/robot_interaction/kinematic_options_map.h>
 #include <moveit/transforms/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
@@ -59,8 +60,9 @@ static const float END_EFFECTOR_REACHABLE_COLOR[4] = { 0.2, 1.0, 0.2, 1.0 };
 
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
-RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_model, const std::string &ns) :
-  robot_model_(robot_model)
+RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_model, const std::string &ns)
+: robot_model_(robot_model)
+, kinematic_options_map_(new KinematicOptionsMap)
 {
   topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(topic_);
@@ -423,6 +425,7 @@ void RobotInteraction::addInteractiveMarkers(
       const ::robot_interaction::InteractionHandlerPtr &handler,
       const double marker_scale)
 {
+  handler->setRobotInteraction(this);
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
   {
@@ -556,6 +559,7 @@ void RobotInteraction::computeMarkerPose(const ::robot_interaction::InteractionH
 
 void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr &handler)
 {
+  handler->setRobotInteraction(this);
   std::map<std::string, geometry_msgs::Pose> pose_updates;
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
@@ -637,6 +641,7 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const JointIn
   return true;
 }
 
+// TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffectorInteraction &eef, const geometry_msgs::Pose &pose,
                                    unsigned int attempts, double ik_timeout,
                                    const robot_state::GroupStateValidityCallbackFn &validity_callback,

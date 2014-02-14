@@ -42,6 +42,8 @@
 namespace robot_interaction
 {
 
+class KinematicOptionsMap;
+typedef boost::shared_ptr<KinematicOptionsMap> KinematicOptionsMapPtr;
 
 /// Function type for notifying client of RobotState changes.
 //
@@ -66,12 +68,24 @@ typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallb
 class InteractionHandler
 {
 public:
-
-  InteractionHandler(const std::string &name,
-                     const robot_state::RobotState &kstate,
+  // Use this constructor if you have an initial RobotState already.
+  InteractionHandler(const RobotInteractionPtr& robot_interaction,
+                     const std::string &name,
+                     const robot_state::RobotState &initial_robot_state,
                      const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  // Use this constructor to start with a default state.
+  InteractionHandler(const RobotInteractionPtr& robot_interaction,
+                     const std::string &name,
+                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  // DEPRECATED.
   InteractionHandler(const std::string &name,
-                     const robot_model::RobotModelConstPtr &kmodel,
+                     const robot_state::RobotState &initial_robot_state,
+                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  // DEPRECATED.
+  InteractionHandler(const std::string &name,
+                     const robot_model::RobotModelConstPtr &model,
                      const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   virtual ~InteractionHandler()
@@ -94,62 +108,6 @@ public:
   const InteractionHandlerCallbackFn& getUpdateCallback() const
   {
     return update_callback_;
-  }
-
-  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn &callback)
-  {
-    state_validity_callback_fn_ = callback;
-  }
-
-  const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
-  {
-    return state_validity_callback_fn_;
-  }
-
-  void setIKTimeout(double timeout)
-  {
-    ik_timeout_ = timeout;
-  }
-
-  double getIKTimeout() const
-  {
-    return ik_timeout_;
-  }
-
-  void setIKAttempts(unsigned int attempts)
-  {
-    ik_attempts_ = attempts;
-  }
-
-  unsigned int getIKAttempts() const
-  {
-    return ik_attempts_;
-  }
-
-  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const
-  {
-    return kinematics_query_options_;
-  }
-
-  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt)
-  {
-    kinematics_query_options_ = opt;
-  }
-
-  void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
-           kinematics::KinematicsQueryOptions &options)
-  {
-    kinematics_query_options_map_[group_name] = options;
-  }
-
-  const bool getKinematicsQueryOptionsForGroup(const std::string& group_name, 
-           kinematics::KinematicsQueryOptions &opt)
-  {
-    std::map<std::string, kinematics::KinematicsQueryOptions>::const_iterator it = kinematics_query_options_map_.find(group_name);
-    if (it == kinematics_query_options_map_.end())
-return false;
-    opt = it->second;
-    return true;
   }
 
   void setMeshesVisible(bool visible)
@@ -273,6 +231,11 @@ return false;
   /** \brief Clear any error settings. This makes the markers appear as if the state is no longer invalid. */
   void clearError(void);
 
+  /** \brief This should only be called by RobotInteraction.
+   * Associates this InteractionHandler to a RobotInteraction.
+   */
+  void setRobotInteraction(RobotInteraction* robot_interaction);
+
 protected:
 
   bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
@@ -296,19 +259,13 @@ protected:
   // error_state_changed is true if an end effector's error state may have changed.
   boost::function<void(InteractionHandler* handler, bool error_state_changed)> update_callback_;
 
-  robot_state::GroupStateValidityCallbackFn state_validity_callback_fn_;
-  double ik_timeout_;
-  unsigned int ik_attempts_;
-
-  // additional options for kinematics queries
-  kinematics::KinematicsQueryOptions kinematics_query_options_;
 
   bool display_meshes_;
   bool display_controls_;
 
 private:
-// The state maintained by this handler.
-// PROTECTED BY state_lock_
+  // The state maintained by this handler.
+  // PROTECTED BY state_lock_
   robot_state::RobotStatePtr kstate_;
 
   // Contains the (user-programmable) pose offset between the end-effector
@@ -329,14 +286,35 @@ private:
   // PROTECTED BY pose_map_lock_
   std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
 
+  // The RobotInteraction we are associated with.
+  // This is never safe to use because the RobotInteraction could be deleted at any time.
+  // Therefore it is stored as a void* to discourage its use.
+  // This is only used inside setKinematicOptions() with the state_lock_ held.
+  // That function should only be called from RobotInteraction methods.
+  // PROTECTED BY state_lock_
+  const void* robot_interaction_;
 
-  std::map<std::string, kinematics::KinematicsQueryOptions> kinematics_query_options_map_;
   mutable boost::mutex state_lock_;
   mutable boost::condition_variable state_available_condition_;
   boost::mutex pose_map_lock_;
   boost::mutex offset_map_lock_;
 
+  // per group options for doing kinematics.
+  // PROTECTED BY state_lock_
+  KinematicOptionsMapPtr kinematic_options_map_;
+
   void setup();
+
+public:
+  // DEPRECATED FUNCTIONS.
+  // DO NOT USE THESE.  Instead access the KinematicOptions by calling RobotInteraction::getKinematicOptionsMap()
+  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn &callback);
+  void setIKTimeout(double timeout);
+  void setIKAttempts(unsigned int attempts);
+  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
+  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
+  void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
+           kinematics::KinematicsQueryOptions &options);
 };
 
 typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
