@@ -1127,7 +1127,7 @@ void planning_scene::PlanningScene::decoupleParent()
 
 void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
-  //logDebug("Adding planning scene diff");
+  logDebug("moveit.planning_scene: Adding planning scene diff");
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
 
@@ -1186,7 +1186,7 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
 void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
-  logDebug("Setting new planning scene: '%s'", scene_msg.name.c_str());
+  logDebug("moveit.planning_scene: Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
