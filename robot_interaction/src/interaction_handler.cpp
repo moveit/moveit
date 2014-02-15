@@ -48,7 +48,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
 #include <limits>
-#include <stdexcept>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -584,7 +583,7 @@ void InteractionHandler::setKinematicsQueryOptions(
 
 void InteractionHandler::setKinematicsQueryOptionsForGroup(
       const std::string& group_name, 
-      kinematics::KinematicsQueryOptions &opt)
+      const kinematics::KinematicsQueryOptions &opt)
 {
   KinematicOptions delta;
   delta.options_ = opt;

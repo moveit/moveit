@@ -613,36 +613,6 @@ bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHand
   return true;
 }
 
-#if 0
-bool RobotInteraction::updateState(robot_state::RobotState &state, const JointInteraction &vj, const geometry_msgs::Pose &pose)
-{
-  Eigen::Quaterniond q;
-  tf::quaternionMsgToEigen(pose.orientation, q);
-  std::map<std::string, double> vals;
-  if (vj.dof == 3)
-  {
-    vals[vj.joint_name + "/x"] = pose.position.x;
-    vals[vj.joint_name + "/y"] = pose.position.y;
-    Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
-    vals[vj.joint_name + "/theta"] = xyz[2];
-  }
-  else
-    if (vj.dof == 6)
-    {
-      vals[vj.joint_name + "/trans_x"] = pose.position.x;
-      vals[vj.joint_name + "/trans_y"] = pose.position.y;
-      vals[vj.joint_name + "/trans_z"] = pose.position.z;
-      vals[vj.joint_name + "/rot_x"] = q.x();
-      vals[vj.joint_name + "/rot_y"] = q.y();
-      vals[vj.joint_name + "/rot_z"] = q.z();
-      vals[vj.joint_name + "/rot_w"] = q.w();
-    }
-  state.setVariablePositions(vals);
-  state.update();
-  return true;
-}
-#endif
-
 // TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffectorInteraction &eef, const geometry_msgs::Pose &pose,
                                    unsigned int attempts, double ik_timeout,

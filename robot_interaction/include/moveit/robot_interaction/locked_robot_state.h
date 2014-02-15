@@ -59,7 +59,6 @@ namespace robot_interaction
 class LockedRobotState
 {
 public:
-  LockedRobotState(const robot_state::RobotStatePtr& state);
   LockedRobotState(const robot_state::RobotState& state);
   LockedRobotState(const robot_model::RobotModelPtr& model);
 
@@ -86,7 +85,7 @@ public:
   // The \e modify function is passed a reference to the state which it can
   // modify.  No threads will be given access to the state while the \e modify
   // function is running.
-  void modifyState(ModifyStateFunction modify);
+  void modifyState(const ModifyStateFunction& modify);
 
 protected:
   // This is called when the internally maintained state has changed.
