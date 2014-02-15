@@ -613,6 +613,7 @@ bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHand
   return true;
 }
 
+#if 0
 bool RobotInteraction::updateState(robot_state::RobotState &state, const JointInteraction &vj, const geometry_msgs::Pose &pose)
 {
   Eigen::Quaterniond q;
@@ -640,6 +641,7 @@ bool RobotInteraction::updateState(robot_state::RobotState &state, const JointIn
   state.update();
   return true;
 }
+#endif
 
 // TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
 bool RobotInteraction::updateState(robot_state::RobotState &state, const EndEffectorInteraction &eef, const geometry_msgs::Pose &pose,

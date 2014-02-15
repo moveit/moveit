@@ -39,12 +39,12 @@
 
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
 #include <visualization_msgs/InteractiveMarker.h>
-#include <interactive_markers/menu_handler.h>
+//#include <interactive_markers/menu_handler.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_interaction/interaction.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
-#include <tf/tf.h>
+//#include <tf/tf.h>
 
 namespace interactive_markers
 {
@@ -152,7 +152,9 @@ public:
                           const kinematics::KinematicsQueryOptions &kinematics_query_options = kinematics::KinematicsQueryOptions());
 
 
+#if 0
   static bool updateState(robot_state::RobotState &state, const JointInteraction &vj, const geometry_msgs::Pose &pose);
+#endif
 
 private:
 
@@ -235,6 +237,6 @@ typedef boost::shared_ptr<const RobotInteraction> RobotInteractionConstPtr;
 
 }
 
-#include <moveit/robot_interaction/interaction_handler.h>
+//#include <moveit/robot_interaction/interaction_handler.h>
 
 #endif
