@@ -46,7 +46,7 @@ namespace robot_interaction
 
 // Maintains a set of KinematicOptions with a key/value mapping and a default
 // value.
-struct KinematicOptionsMap
+class KinematicOptionsMap
 {
 public: 
   /// Constructor - set all options to reasonable default values.

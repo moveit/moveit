@@ -91,27 +91,41 @@ namespace InteractionStyle
 
 /// Type of function for constructing markers.
 /// This callback sets up the marker used for an interaction.
+/// @param state the current state of the robot
+/// @param marker the function should fill this in with an InteractiveMarker
+///          that will be used to control the interaction.
+///  @returns true if the function succeeds, false if the function was not able
+///          to fill in \e marker.
 typedef boost::function<bool(
-          const robot_state::RobotState&,
-          visualization_msgs::InteractiveMarker&)>
+          const robot_state::RobotState& state,
+          visualization_msgs::InteractiveMarker& marker)>
                                                 InteractiveMarkerConstructorFn;
 
 /// Type of function for processing marker feedback.
 /// This callback function handles feedback for an Interaction's marker.
 /// Callback should update the robot state that was passed in according to
-/// the new position of the marker. Return true if the update was successful.
-/// Return false if the state was not successfully updated.
+/// the new position of the marker.
+///
+/// @param state the current state of the robot
+/// @param marker the function should fill this in with an InteractiveMarker
+///          that will be used to control the interaction.
+/// @returns false if the state was not successfully updated or the new state
+///           is somehow invalid or erronious (e.g. in collision).  true if
+///           everything worked well.
 typedef boost::function<bool(
-          robot_state::RobotState&,
-          const visualization_msgs::InteractiveMarkerFeedbackConstPtr &)>
+	  robot_state::RobotState& state,
+	  const visualization_msgs::InteractiveMarkerFeedbackConstPtr & feedback)>
                                                 ProcessFeedbackFn;
 
 /// Type of function for updating marker pose for new state.
 /// This callback is called when the robot state has changed.
 /// Callback should calculate a new
 /// pose for the marker based on the passed in robot state.
-/// Return true if the pose was modified, false if no update is needed (i.e. if
-/// the pose did not change).
+/// @param state the new state of the robot
+/// @param pose the function should fill this in with the new pose of the
+///              marker, given the new state of the robot.
+/// @returns true if the pose was modified, false if no update is needed (i.e.
+///              if the pose did not change).
 typedef boost::function<bool(
           const robot_state::RobotState&,
           geometry_msgs::Pose&)>
@@ -140,9 +154,8 @@ struct GenericInteraction
 
 /// Representation of an interaction via an end-effector
 /// Displays one marker for manipulating the EEF position.
-class EndEffectorInteraction
+struct EndEffectorInteraction
 {
-public:
   /// The name of the group that sustains the end-effector (usually an arm)
   std::string parent_group;
 
@@ -162,9 +175,8 @@ public:
 
 /// Representation of a joint interaction.
 /// Displays one marker for manipulating the joint.
-class JointInteraction
+struct JointInteraction
 {
-public:
   /// The link in the robot model this joint is a parent of
   std::string connecting_link;
 

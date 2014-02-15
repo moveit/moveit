@@ -152,10 +152,6 @@ public:
                           const kinematics::KinematicsQueryOptions &kinematics_query_options = kinematics::KinematicsQueryOptions());
 
 
-#if 0
-  static bool updateState(robot_state::RobotState &state, const JointInteraction &vj, const geometry_msgs::Pose &pose);
-#endif
-
 private:
 
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group

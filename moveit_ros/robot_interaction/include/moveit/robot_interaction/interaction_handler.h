@@ -346,7 +346,7 @@ public:
   const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
   void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
   void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
-           kinematics::KinematicsQueryOptions &options);
+           const kinematics::KinematicsQueryOptions &options);
 };
 
 

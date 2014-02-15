@@ -39,13 +39,6 @@
 #include <moveit/robot_interaction/locked_robot_state.h>
 
 robot_interaction::LockedRobotState::LockedRobotState(
-      const robot_state::RobotStatePtr& state)
-: state_(state)
-{
-  state_->update();
-}
-
-robot_interaction::LockedRobotState::LockedRobotState(
       const robot_state::RobotState& state)
 : state_(new robot_state::RobotState(state))
 {
@@ -90,7 +83,7 @@ void robot_interaction::LockedRobotState::setState(
 }
 
 void robot_interaction::LockedRobotState::modifyState(
-      ModifyStateFunction modify)
+      const ModifyStateFunction& modify)
 {
   {
     boost::mutex::scoped_lock lock(state_lock_);

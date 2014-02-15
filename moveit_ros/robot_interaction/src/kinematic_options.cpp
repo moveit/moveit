@@ -52,6 +52,12 @@ void robot_interaction::KinematicOptions::setStateFromIK(
       bool* result) const
 {
   const robot_model::JointModelGroup *jmg = state->getJointModelGroup(*group);
+  if (!jmg)
+  {
+    ROS_ERROR("No getJointModelGroup('%s') found",group->c_str());
+    *result = false;
+    return;
+  }
   *result = state->setFromIK(jmg,
                             *pose,
                             *tip,
