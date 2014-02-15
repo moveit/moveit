@@ -67,7 +67,7 @@ robot_interaction::LockedRobotState::~LockedRobotState()
 robot_state::RobotStateConstPtr
   robot_interaction::LockedRobotState::getState() const
 {
-  boost::unique_lock<boost::mutex> lock(state_lock_);
+  boost::mutex::scoped_lock lock(state_lock_);
   return state_;
 }
 
@@ -75,7 +75,7 @@ void robot_interaction::LockedRobotState::setState(
       const robot_state::RobotState& state)
 {
   {
-    boost::unique_lock<boost::mutex> lock(state_lock_);
+    boost::mutex::scoped_lock lock(state_lock_);
 
     // If someone else has a reference to the state, then make a new copy.
     // The old state is orphaned (does not change, but is now out of date).
@@ -93,7 +93,7 @@ void robot_interaction::LockedRobotState::modifyState(
       ModifyStateFunction modify)
 {
   {
-    boost::unique_lock<boost::mutex> lock(state_lock_);
+    boost::mutex::scoped_lock lock(state_lock_);
 
     // If someone else has a reference to the state, then make a copy.
     // The old state is orphaned (does not change, but is now out of date).

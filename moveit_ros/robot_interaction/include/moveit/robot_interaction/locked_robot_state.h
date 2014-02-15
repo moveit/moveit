@@ -96,10 +96,12 @@ protected:
   // TODO: is this needed?
   virtual void robotStateChanged();
 
-private:
+protected:
   // this locks all accesses to the state_ member.
+  // The lock can also be used by subclasses to lock additional fields.
   mutable boost::mutex state_lock_;
 
+private:
   // The state maintained by this class.
   // When a modify function is being called this is NULL.
   // PROTECTED BY state_lock_
