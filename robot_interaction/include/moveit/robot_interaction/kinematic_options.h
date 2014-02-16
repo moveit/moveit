@@ -49,7 +49,6 @@ namespace robot_interaction
 // functions and no destructor.
 struct KinematicOptions
 {
-public: 
   /// Constructor - set all options to reasonable default values
   KinematicOptions();
 
