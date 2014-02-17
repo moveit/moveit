@@ -139,16 +139,15 @@ void robot_interaction::KinematicOptionsMap::merge(
 
 // This is intended to be called as a ModifyStateFunction to modify the state
 // maintained by a LockedRobotState in place.
-void robot_interaction::KinematicOptionsMap::setStateFromIK(
-      robot_state::RobotState* state,
-      const std::string* key,
-      const std::string* group,
-      const std::string* tip,
-      const geometry_msgs::Pose* pose,
-      bool* result) const
+bool robot_interaction::KinematicOptionsMap::setStateFromIK(
+      robot_state::RobotState& state,
+      const std::string& key,
+      const std::string& group,
+      const std::string& tip,
+      const geometry_msgs::Pose& pose) const
 {
   // copy options so lock is not needed during IK solve.
-  KinematicOptions options = getOptions(*key);
-  options.setStateFromIK(state, group, tip, pose, result);
+  KinematicOptions options = getOptions(key);
+  return options.setStateFromIK(state, group, tip, pose);
 }
 
