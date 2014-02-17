@@ -95,7 +95,11 @@ public:
     return topic_;
   }
 
-  /// add an interactive marker.
+  /// add an interaction.
+  /// An interaction is a marker that can be used to manipulate the robot
+  /// state. 
+  /// This function does not add any markers.  To add markers for all
+  /// active interactions call addInteractiveMarkers().
   /// construct - a callback to construct the marker.  See comment on
   ///              InteractiveMarkerConstructorFn above.
   /// update - Called when the robot state changes.  Updates the marker pose.
@@ -108,57 +112,57 @@ public:
         const InteractiveMarkerUpdateFn &update = InteractiveMarkerUpdateFn(),
         const std::string &name = "");
 
-  /// Adds an interactive marker for:
+  /// Adds an interaction for:
   ///  - each end effector in the group that can be controller by IK
   ///  - each floating joint
   ///  - each planar joint
-  /// If no end effector exists in the robot then adds an interactive marker for
+  /// If no end effector exists in the robot then adds an interaction for
   /// the last link in the chain.
+  /// This function does not add any markers.  To add markers for all
+  /// active interactions call addInteractiveMarkers().
   void decideActiveComponents(const std::string &group);
   void decideActiveComponents(const std::string &group,
                               InteractionStyle::InteractionStyle style);
 
-  // remove all interactive markers.
+  /// remove all interactions.
+  /// Also removes all markers.
   void clear();
 
+  /// Add interactive markers for all active interactions.
+  /// This adds markers just to the one handler.  If there are multiple handlers
+  /// call this for each handler for which you want markers.
+  /// The markers are not actually added until you call
+  /// publishInteractiveMarkers().
   void addInteractiveMarkers(
         const ::robot_interaction::InteractionHandlerPtr &handler,
         const double marker_scale = 0.0);
+
+  // Update pose of all interactive markers to match the handler's RobotState.
+  // Call this when the handler's RobotState changes.
   void updateInteractiveMarkers(
         const ::robot_interaction::InteractionHandlerPtr &handler);
+
+  // True if markers are being shown for this handler.
   bool showingMarkers(
         const ::robot_interaction::InteractionHandlerPtr &handler);
 
+  // Display all markers that have been added.
+  // This is needed after calls to addInteractiveMarkers() to publish the
+  // resulting markers so they get displayed.  This call is not needed after
+  // calling updateInteractiveMarkers() which publishes the results itself.
   void publishInteractiveMarkers();
+
+  // Clear all interactive markers.
+  // This removes all interactive markers but does not affect which
+  // interactions are active.  After this a call to publishInteractiveMarkers()
+  // is needed to actually remove the markers from the display.
   void clearInteractiveMarkers();
-
-  const std::vector<EndEffectorInteraction>& getActiveEndEffectors() const
-  {
-    return active_eef_;
-  }
-
-  const std::vector<JointInteraction>& getActiveJoints() const
-  {
-    return active_vj_;
-  }
 
   const robot_model::RobotModelConstPtr& getRobotModel() const { return robot_model_; }
 
   // Get the kinematic options map.
   // Use this to set kinematic options (defaults or per-group).
   KinematicOptionsMapPtr getKinematicOptionsMap() { return kinematic_options_map_; }
-
-  static bool updateState(
-            robot_state::RobotState &state,
-            const EndEffectorInteraction &eef,
-            const geometry_msgs::Pose &pose,
-            unsigned int attempts,
-            double ik_timeout,
-            const robot_state::GroupStateValidityCallbackFn &validity_callback =
-                                robot_state::GroupStateValidityCallbackFn(),
-            const kinematics::KinematicsQueryOptions &kinematics_query_options =
-                                kinematics::KinematicsQueryOptions());
-
 
 private:
   // called by decideActiveComponents(); add markers for end effectors
@@ -260,6 +264,27 @@ public:
   // DEPRECATED.  Use InteractionStyle::InteractionStyle version.
   void decideActiveEndEffectors(const std::string &group,
                                 EndEffectorInteractionStyle style);
+  // DEPRECATED
+  const std::vector<EndEffectorInteraction>& getActiveEndEffectors() const
+  {
+    return active_eef_;
+  }
+  // DEPRECATED
+  const std::vector<JointInteraction>& getActiveJoints() const
+  {
+    return active_vj_;
+  }
+  // DEPRECATED
+  static bool updateState(
+            robot_state::RobotState &state,
+            const EndEffectorInteraction &eef,
+            const geometry_msgs::Pose &pose,
+            unsigned int attempts,
+            double ik_timeout,
+            const robot_state::GroupStateValidityCallbackFn &validity_callback =
+                                robot_state::GroupStateValidityCallbackFn(),
+            const kinematics::KinematicsQueryOptions &kinematics_query_options =
+                                kinematics::KinematicsQueryOptions());
 };
 
 typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
