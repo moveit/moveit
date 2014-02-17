@@ -65,12 +65,11 @@ public:
   /// @param tip link that will be posed
   /// @param pose desired pose of tip link
   /// @param result true if IK succeeded.
-  void setStateFromIK(robot_state::RobotState* state,
-                      const std::string* key,
-                      const std::string* group,
-                      const std::string* tip,
-                      const geometry_msgs::Pose* pose,
-                      bool* result) const;
+  bool setStateFromIK(robot_state::RobotState& state,
+                      const std::string& key,
+                      const std::string& group,
+                      const std::string& tip,
+                      const geometry_msgs::Pose& pose) const;
 
   /// Get the options to use for a particular key.
   /// To get the default values pass key = KinematicOptionsMap::DEFAULT

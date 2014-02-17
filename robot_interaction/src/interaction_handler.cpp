@@ -360,12 +360,10 @@ void InteractionHandler::updateStateEndEffector(
   // access kinematic_options_map_.
   KinematicOptions kinematic_options = kinematic_options_map_->getOptions(eef->parent_group);
 
-  bool ok;
-  kinematic_options.setStateFromIK(state,
-                                   &eef->parent_group,
-                                   &eef->parent_link,
-                                   pose,
-                                   &ok);
+  bool ok = kinematic_options.setStateFromIK(*state,
+                                             eef->parent_group,
+                                             eef->parent_link,
+                                             *pose);
   bool error_state_changed = setErrorState(eef->parent_group, !ok);
   if (update_callback_)
     *callback = boost::bind(update_callback_,

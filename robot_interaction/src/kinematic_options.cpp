@@ -45,28 +45,27 @@ robot_interaction::KinematicOptions::KinematicOptions()
 
 // This is intended to be called as a ModifyStateFunction to modify the state
 // maintained by a LockedRobotState in place.
-void robot_interaction::KinematicOptions::setStateFromIK(
-      robot_state::RobotState* state,
-      const std::string* group,
-      const std::string* tip,
-      const geometry_msgs::Pose* pose,
-      bool* result) const
+bool robot_interaction::KinematicOptions::setStateFromIK(
+      robot_state::RobotState& state,
+      const std::string& group,
+      const std::string& tip,
+      const geometry_msgs::Pose& pose) const
 {
-  const robot_model::JointModelGroup *jmg = state->getJointModelGroup(*group);
+  const robot_model::JointModelGroup *jmg = state.getJointModelGroup(group);
   if (!jmg)
   {
-    ROS_ERROR("No getJointModelGroup('%s') found",group->c_str());
-    *result = false;
-    return;
+    ROS_ERROR("No getJointModelGroup('%s') found",group.c_str());
+    return false;
   }
-  *result = state->setFromIK(jmg,
-                            *pose,
-                            *tip,
+  bool result = state.setFromIK(jmg,
+                            pose,
+                            tip,
                             max_attempts_,
                             timeout_seconds_,
                             state_validity_callback_,
                             options_);
-  state->update();
+  state.update();
+  return result;
 }
 
 
