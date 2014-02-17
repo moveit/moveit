@@ -112,13 +112,6 @@ public:
   void decideActiveComponents(const std::string &group);
   void decideActiveComponents(const std::string &group, InteractionStyle::InteractionStyle style);
 
-  /// called by decideActiveComponents(); add markers for end effectors
-  void decideActiveEndEffectors(const std::string &group);
-  void decideActiveEndEffectors(const std::string &group, InteractionStyle::InteractionStyle style);
-
-  /// called by decideActiveComponents(); add markers for planar and floating joints
-  void decideActiveJoints(const std::string &group);
-
   // remove all interactive markers.
   void clear();
 
@@ -139,7 +132,7 @@ public:
     return active_vj_;
   }
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const { robot_model_; }
+  const robot_model::RobotModelConstPtr& getRobotModel() const { return robot_model_; }
 
   // Get the kinematic options map.
   // Use this to set kinematic options (defaults or per-group).
@@ -155,6 +148,12 @@ public:
 
 
 private:
+  /// called by decideActiveComponents(); add markers for end effectors
+  void decideActiveEndEffectors(const std::string &group);
+  void decideActiveEndEffectors(const std::string &group, InteractionStyle::InteractionStyle style);
+
+  /// called by decideActiveComponents(); add markers for planar and floating joints
+  void decideActiveJoints(const std::string &group);
 
   // return the diameter of the sphere that certainly can enclose the AABB of the links in this group
   double computeGroupMarkerSize(const std::string &group);
