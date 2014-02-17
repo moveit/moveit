@@ -240,6 +240,7 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
+
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual bool enabled() const;
   virtual void clear();
@@ -387,6 +388,7 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
+
   virtual void clear();
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual bool enabled() const;
@@ -556,6 +558,7 @@ public:
    * @return True if equal, otherwise false
    */
   virtual bool equal(const KinematicConstraint &other, double margin) const;
+
   virtual void clear();
   virtual ConstraintEvaluationResult decide(const robot_state::RobotState &state, bool verbose = false) const;
   virtual bool enabled() const;

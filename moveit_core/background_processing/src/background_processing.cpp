@@ -73,9 +73,9 @@ void moveit::tools::BackgroundProcessing::processingThread()
       action_lock_.unlock();
       try
       {
-        logDebug("Begin executing '%s'", action_name.c_str());
+        logDebug("moveit.background: Begin executing '%s'", action_name.c_str());
         fn();
-        logDebug("Done executing '%s'", action_name.c_str());
+        logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
       catch(std::runtime_error &ex)
       {
