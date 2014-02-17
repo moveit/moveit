@@ -159,9 +159,10 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual std::string getName()
+  virtual const std::string& getName() const
   {
-    return "UnionConstraintSampler";
+    static const std::string SAMPLER_NAME = "UnionConstraintSampler";
+    return SAMPLER_NAME;
   }
 
 protected:
