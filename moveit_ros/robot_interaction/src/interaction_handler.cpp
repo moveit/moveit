@@ -484,12 +484,16 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
       }
       catch (tf::TransformException& e)
       {
-        ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(), planning_frame_.c_str());
+        ROS_ERROR("Error transforming from frame '%s' to frame '%s'",
+          tpose.header.frame_id.c_str(),
+          planning_frame_.c_str());
         return false;
       }
     else
     {
-      ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)", tpose.header.frame_id.c_str(), planning_frame_.c_str());
+      ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)",
+          tpose.header.frame_id.c_str(),
+          planning_frame_.c_str());
       return false;
     }
   }
