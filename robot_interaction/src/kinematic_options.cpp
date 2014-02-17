@@ -91,7 +91,7 @@ void robot_interaction::KinematicOptions::setOptions(
   #define QO_FIELDS(F) \
     F(bool, lock_redundant_joints, LOCK_REDUNDANT_JOINTS) \
     F(bool, return_approximate_solution, RETURN_APPROXIMATE_SOLUTION)
-  
+
 
   // This structure should be identical to kinematics::KinematicsQueryOptions
   // This is only used in the BOOST_STATIC_ASSERT below.
@@ -120,7 +120,7 @@ void robot_interaction::KinematicOptions::setOptions(
   BOOST_STATIC_ASSERT(sizeof(KinematicOptions) ==
                       sizeof(DummyKinematicOptions));
 
-  
+
   // copy fields from other to this if its bit is set in fields
   #define F(type,member,enumval) \
           if (fields & KinematicOptions::enumval) \

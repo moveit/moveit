@@ -48,7 +48,7 @@ namespace robot_interaction
 // value.
 class KinematicOptionsMap
 {
-public: 
+public:
   /// Constructor - set all options to reasonable default values.
   KinematicOptionsMap();
 
@@ -103,8 +103,8 @@ private:
   KinematicOptions defaults_;
 
   typedef std::map<std::string, KinematicOptions> M_options;
-  
-  // per key kinematic options.  
+
+  // per key kinematic options.
   // If key is not here, defaults are used.
   // PROTECTED BY lock_
   M_options options_;

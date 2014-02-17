@@ -119,7 +119,7 @@ void robot_interaction::KinematicOptionsMap::merge(
   if (&other == this)
     return;
 
-  // need to lock in consistent order to avoid deadlock. 
+  // need to lock in consistent order to avoid deadlock.
   // Lock the one with lower address first.
   boost::mutex *m1 = &lock_;
   boost::mutex *m2 = &other.lock_;
