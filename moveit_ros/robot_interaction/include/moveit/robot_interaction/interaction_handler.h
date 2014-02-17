@@ -181,7 +181,7 @@ public:
    * @param A PoseStamped message containing the last (offset-removed) pose
    *           commanded for the end-effector.
    * @return True if a pose for that end-effector was found, false otherwise. */
-  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, 
+  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef,
                                     geometry_msgs::PoseStamped& pose);
 
   /** \brief Get the last interactive_marker command pose for a joint.
@@ -189,7 +189,7 @@ public:
    * @param A PoseStamped message containing the last (offset-removed) pose
    *           commanded for the joint.
    * @return True if a pose for that joint was found, false otherwise. */
-  bool getLastJointMarkerPose(const JointInteraction& vj, 
+  bool getLastJointMarkerPose(const JointInteraction& vj,
                               geometry_msgs::PoseStamped& pose);
 
   /** \brief Clear the last interactive_marker command pose for the given
@@ -335,7 +335,7 @@ private:
   // CONTENTS is not.
   boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
 
-  // Called when the RobotState maintained by the handler changes. 
+  // Called when the RobotState maintained by the handler changes.
   // The caller may, for example, redraw the robot at the new state.
   // handler is the handler that changed.
   // error_state_changed is true if an end effector's error state may have
@@ -365,7 +365,7 @@ public:
   void setIKAttempts(unsigned int attempts);
   const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
   void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
-  void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
+  void setKinematicsQueryOptionsForGroup(const std::string& group_name,
            const kinematics::KinematicsQueryOptions &options);
 };
 

@@ -584,7 +584,7 @@ void InteractionHandler::setKinematicsQueryOptions(
 }
 
 void InteractionHandler::setKinematicsQueryOptionsForGroup(
-      const std::string& group_name, 
+      const std::string& group_name,
       const kinematics::KinematicsQueryOptions &opt)
 {
   KinematicOptions delta;

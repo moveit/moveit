@@ -95,25 +95,25 @@ public:
     return topic_;
   }
 
-  // add an interactive marker.
-  // construct - a callback to construct the marker.  See comment on
-  //              InteractiveMarkerConstructorFn above.
-  // update - Called when the robot state changes.  Updates the marker pose.
-  //              Optional.  See comment on InteractiveMarkerUpdateFn above.
-  // process - called when the marker moves.  Updates the robot state.  See
-  //              comment on ProcessFeedbackFn above.
+  /// add an interactive marker.
+  /// construct - a callback to construct the marker.  See comment on
+  ///              InteractiveMarkerConstructorFn above.
+  /// update - Called when the robot state changes.  Updates the marker pose.
+  ///              Optional.  See comment on InteractiveMarkerUpdateFn above.
+  /// process - called when the marker moves.  Updates the robot state.  See
+  ///              comment on ProcessFeedbackFn above.
   void addActiveComponent(
         const InteractiveMarkerConstructorFn &construct,
         const ProcessFeedbackFn &process,
         const InteractiveMarkerUpdateFn &update = InteractiveMarkerUpdateFn(),
         const std::string &name = "");
 
-  // Adds an interactive marker for:
-  //  - each end effector in the group that can be controller by IK
-  //  - each floating joint
-  //  - each planar joint
-  // If no end effector exists in the robot then adds an interactive marker for
-  // the last link in the chain.
+  /// Adds an interactive marker for:
+  ///  - each end effector in the group that can be controller by IK
+  ///  - each floating joint
+  ///  - each planar joint
+  /// If no end effector exists in the robot then adds an interactive marker for
+  /// the last link in the chain.
   void decideActiveComponents(const std::string &group);
   void decideActiveComponents(const std::string &group,
                               InteractionStyle::InteractionStyle style);
@@ -174,24 +174,24 @@ private:
   // the links in this group
   double computeGroupMarkerSize(const std::string &group);
   void computeMarkerPose(
-        const ::robot_interaction::InteractionHandlerPtr &handler, 
-        const EndEffectorInteraction &eef, 
+        const ::robot_interaction::InteractionHandlerPtr &handler,
+        const EndEffectorInteraction &eef,
         const robot_state::RobotState &robot_state,
-        geometry_msgs::Pose &pose, 
+        geometry_msgs::Pose &pose,
         geometry_msgs::Pose &control_to_eef_tf) const;
 
   void addEndEffectorMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler, 
-        const EndEffectorInteraction& eef, 
-        visualization_msgs::InteractiveMarker& im, 
-        bool position = true, 
+        const ::robot_interaction::InteractionHandlerPtr &handler,
+        const EndEffectorInteraction& eef,
+        visualization_msgs::InteractiveMarker& im,
+        bool position = true,
         bool orientation = true);
   void addEndEffectorMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler, 
-        const EndEffectorInteraction& eef, 
-        const geometry_msgs::Pose& offset, 
-        visualization_msgs::InteractiveMarker& im, 
-        bool position = true, 
+        const ::robot_interaction::InteractionHandlerPtr &handler,
+        const EndEffectorInteraction& eef,
+        const geometry_msgs::Pose& offset,
+        visualization_msgs::InteractiveMarker& im,
+        bool position = true,
         bool orientation = true);
   void processInteractiveMarkerFeedback(
         const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);

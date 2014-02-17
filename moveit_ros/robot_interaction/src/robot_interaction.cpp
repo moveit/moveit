@@ -211,7 +211,7 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
   {
     if ((joints[i]->getType() == robot_model::JointModel::PLANAR ||
-		 joints[i]->getType() == robot_model::JointModel::FLOATING) &&
+     joints[i]->getType() == robot_model::JointModel::FLOATING) &&
         used.find(joints[i]->getName()) == used.end())
     {
       JointInteraction v;
@@ -428,7 +428,7 @@ static inline std::string getMarkerName(
 }
 
 static inline std::string getMarkerName(
-      const ::robot_interaction::InteractionHandlerPtr &handler, 
+      const ::robot_interaction::InteractionHandlerPtr &handler,
       const JointInteraction &vj)
 {
   return "JJ:" + handler->getName() + "_" + vj.connecting_link;
@@ -563,10 +563,10 @@ void RobotInteraction::addInteractiveMarkers(
 }
 
 void RobotInteraction::computeMarkerPose(
-      const ::robot_interaction::InteractionHandlerPtr &handler, 
-      const EndEffectorInteraction &eef, 
+      const ::robot_interaction::InteractionHandlerPtr &handler,
+      const EndEffectorInteraction &eef,
       const robot_state::RobotState &robot_state,
-      geometry_msgs::Pose &pose, 
+      geometry_msgs::Pose &pose,
       geometry_msgs::Pose &control_to_eef_tf) const
 {
   // Need to allow for control pose offsets
@@ -654,10 +654,10 @@ bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHand
 
 // TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
 bool RobotInteraction::updateState(
-      robot_state::RobotState &state, 
-      const EndEffectorInteraction &eef, 
+      robot_state::RobotState &state,
+      const EndEffectorInteraction &eef,
       const geometry_msgs::Pose &pose,
-      unsigned int attempts, 
+      unsigned int attempts,
       double ik_timeout,
       const robot_state::GroupStateValidityCallbackFn &validity_callback,
       const kinematics::KinematicsQueryOptions &kinematics_query_options)
