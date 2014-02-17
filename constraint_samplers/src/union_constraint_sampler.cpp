@@ -147,3 +147,4 @@ bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotStat
       return false;
   return true;
 }
+
