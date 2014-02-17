@@ -261,7 +261,7 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual std::string getName() = 0;
+  virtual const std::string& getName() const = 0;
 
 protected:
 
