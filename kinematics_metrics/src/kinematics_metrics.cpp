@@ -189,7 +189,7 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3,jacobian.cols()));
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (unsigned int i = 0; i < singular_values.rows(); ++i)
-      logDebug("Singular value: %d %f",i,singular_values(i,0));
+      logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
     manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();
   }
   else
@@ -198,7 +198,7 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for(unsigned int i=0; i < singular_values.rows(); ++i)
-      logDebug("Singular value: %d %f",i,singular_values(i,0));
+      logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
     manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();
   }
   return true;
