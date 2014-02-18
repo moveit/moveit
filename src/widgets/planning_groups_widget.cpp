@@ -1387,8 +1387,6 @@ void PlanningGroupsWidget::previewSelectedLink( std::vector<std::string> links )
       continue;
     }
 
-    std::cout << "    previewSelectedLink " << links[i] << std::endl;
-
     // Highlight link
     Q_EMIT highlightLink( links[i] );
   }
