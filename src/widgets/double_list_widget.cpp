@@ -330,7 +330,6 @@ void DoubleListWidget::previewSelected( const QList<QTableWidgetItem*>& selected
   for(int i = 0; i < selected.size(); ++i)
   {
     selected_vector.push_back( selected[i]->text().toStdString() );
-    //std::cout << "  " << selected[i]->text().toStdString() << std::endl;
   }
 
   // Send to shared function
