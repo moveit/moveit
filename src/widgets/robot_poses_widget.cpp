@@ -355,7 +355,6 @@ void RobotPosesWidget::showPose( srdf::Model::GroupState *pose )
   // Update the joints
   publishJoints();
 
-
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
@@ -855,6 +854,9 @@ void RobotPosesWidget::publishJoints()
 
   // Publish!
   pub_robot_state_.publish( msg );
+
+  // Prevent dirty collision body transforms
+  config_data_->getPlanningScene()->getCurrentStateNonConst().update();
 
   // Decide if current state is in collision
   collision_detection::CollisionResult result;
