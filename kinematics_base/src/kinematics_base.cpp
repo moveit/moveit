@@ -48,8 +48,27 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
-  tip_frame_ = removeSlash(tip_frame);
+  tip_frames_.push_back(removeSlash(tip_frame));
+  tip_frame_ = tip_frame; // for backwards compatibility
   search_discretization_ = search_discretization;
+}
+
+void kinematics::KinematicsBase::setValues(const std::string& robot_description,
+                       const std::string& group_name,
+                       const std::string& base_frame,
+                       const std::vector<std::string>& tip_frames,
+                       double search_discretization)
+{
+  robot_description_ = robot_description;
+  group_name_ = group_name;
+  base_frame_ = removeSlash(base_frame);
+  search_discretization_ = search_discretization;
+
+  // Copy tip frames to local vector after stripping slashes
+  for (std::size_t i = 0; i < tip_frames.size(); ++i)
+    tip_frames_.push_back(removeSlash(tip_frames[i]));
+
+  // Note that we do not set tip_frame_ variable here, because it should never be used in combination with multiple tip frames
 }
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)

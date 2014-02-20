@@ -40,6 +40,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <boost/function.hpp>
+#include <console_bridge/console.h>
 #include <string>
 
 /** @brief API for forward and inverse kinematics */
@@ -54,12 +55,14 @@ struct KinematicsQueryOptions
 {
   KinematicsQueryOptions() :
     lock_redundant_joints(false),
-    return_approximate_solution(false)
+    return_approximate_solution(false),
+    solve_non_chains(false)
   {
   }
 
   bool lock_redundant_joints;
   bool return_approximate_solution;
+  bool solve_non_chains;
 };
 
 
@@ -130,7 +133,7 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
+    const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -179,6 +182,52 @@ public:
                                 const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
+   * @brief Given a set of desired poses for a planning group with multiple end-effectors, search for the joint angles 
+   * required to reach it them. This is useful for e.g. biped robots that need to perform whole-body IK. 
+   * Not necessary for most robots that have kinematic chains.
+   * This particular method is intended for "searching" for a solutions by stepping through the redundancy
+   * (or other numerical routines).
+   * @param ik_poses the desired pose of each tip link
+   * @param ik_seed_state an initial guess solution for the inverse kinematics
+   * @param timeout The amount of time (in seconds) available to the solver
+   * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the current seed state
+   * @param solution the solution vector
+   * @param desired_pose_callback A callback function for the desired link pose - could be used, e.g. to check for collisions for the end-effector
+   * @param solution_callback A callback solution for the IK solution
+   * @param error_code an error code that encodes the reason for failure or success
+   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed
+   * @return True if a valid solution was found, false otherwise
+   */
+  virtual bool searchPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                                const std::vector<double> &ik_seed_state,
+                                double timeout,
+                                const std::vector<double> &consistency_limits,
+                                std::vector<double> &solution,
+                                const IKCallbackFn &solution_callback,
+                                moveit_msgs::MoveItErrorCodes &error_code,
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const
+  {
+    // For IK solvers that do not support multiple poses, fall back to single pose call
+    if (ik_poses.size() == 1)
+    {
+      return searchPositionIK(ik_poses[0], 
+        ik_seed_state,
+        timeout,
+        consistency_limits,
+        solution,
+        solution_callback,
+        error_code,
+        options);
+    }
+    else
+    {
+      // Otherwise throw error
+      logError("moveit.kinematics_base: This kinematic solver does not support searchPositionIK with multiple poses");
+    }
+    return false;
+  }
+
+  /**
    * @brief Given a set of joint angles and a set of links, compute their pose
    * @param link_names A set of links for which FK needs to be computed
    * @param joint_angles The state for which FK is being computed
@@ -205,6 +254,21 @@ public:
                          double search_discretization);
 
   /**
+   * @brief Set the parameters for the solver
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected.
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frame The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   */
+  virtual void setValues(const std::string& robot_description,
+                         const std::string& group_name,
+                         const std::string& base_frame,
+                         const std::vector<std::string>& tip_frames,
+                         double search_discretization);
+
+  /**
    * @brief  Initialization function for the kinematics
    * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
@@ -219,6 +283,36 @@ public:
                           const std::string& base_frame,
                           const std::string& tip_frame,
                           double search_discretization) = 0;
+
+  /**
+   * @brief  Initialization function for the kinematics
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected.
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frame The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   * @return True if initialization was successful, false otherwise
+   */
+  virtual bool initialize(const std::string& robot_description,
+                          const std::string& group_name,
+                          const std::string& base_frame,
+                          const std::vector<std::string>& tip_frames,
+                          double search_discretization)
+  {
+    // For IK solvers that do not support multiple tip frames, fall back to single pose call
+    if (tip_frames.size() == 1)
+    {
+      return initialize(robot_description,
+        group_name,
+        base_frame,
+        tip_frames[0],
+        search_discretization);
+    }
+
+    logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip frames");
+    return false;
+  }
 
   /**
    * @brief  Return the name of the group that the solver is operating on
@@ -240,11 +334,24 @@ public:
 
   /**
    * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
+   * Deprecated in favor of getTipFrames(), but will remain for foreseeable future for backwards compatibility
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
   virtual const std::string& getTipFrame() const
   {
-    return tip_frame_;
+    if (tip_frames_.size() > 1)
+      logError("moveit.kinematics_base: This kinematic solver has more than one tip frame, do not call getTipFrame()");
+
+    return tip_frame_; // for backwards-compatibility. should actually use tip_frames_[0]
+  }
+
+  /**
+   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
+   * @return The string name of the tip frame of the chain on which the solver is operating
+   */
+  virtual const std::vector<std::string>& getTipFrames() const
+  {
+    return tip_frames_;
   }
 
   /**
@@ -319,7 +426,8 @@ public:
 
   KinematicsBase() :
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
-    default_timeout_(DEFAULT_TIMEOUT)
+    default_timeout_(DEFAULT_TIMEOUT),
+    tip_frame_("DEPRECATED") // help users understand why this variable might not be set (if provide multiple tip frames, this variable will be unset)
   {}
 
 protected:
@@ -327,7 +435,8 @@ protected:
   std::string robot_description_;
   std::string group_name_;
   std::string base_frame_;
-  std::string tip_frame_;
+  std::vector<std::string> tip_frames_;
+  std::string tip_frame_; // DEPRECATED - this variable only still exists for backwards compatibility with previously generated custom ik solvers like IKFast
   double search_discretization_;
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
