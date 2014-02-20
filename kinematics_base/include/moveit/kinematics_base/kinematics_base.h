@@ -55,14 +55,12 @@ struct KinematicsQueryOptions
 {
   KinematicsQueryOptions() :
     lock_redundant_joints(false),
-    return_approximate_solution(false),
-    solve_non_chains(false)
+    return_approximate_solution(false)
   {
   }
 
   bool lock_redundant_joints;
   bool return_approximate_solution;
-  bool solve_non_chains;
 };
 
 
@@ -133,7 +131,7 @@ public:
                                 const std::vector<double> &consistency_limits,
                                 std::vector<double> &solution,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-    const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -219,11 +217,9 @@ public:
         error_code,
         options);
     }
-    else
-    {
-      // Otherwise throw error
-      logError("moveit.kinematics_base: This kinematic solver does not support searchPositionIK with multiple poses");
-    }
+
+    // Otherwise throw error because this function should have been implemented
+    logError("moveit.kinematics_base: This kinematic solver does not support searchPositionIK with multiple poses");
     return false;
   }
 
@@ -239,7 +235,7 @@ public:
                              std::vector<geometry_msgs::Pose> &poses) const = 0;
 
   /**
-   * @brief Set the parameters for the solver
+   * @brief Set the parameters for the solver, for use with kinematic chain IK solvers
    * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
@@ -254,12 +250,12 @@ public:
                          double search_discretization);
 
   /**
-   * @brief Set the parameters for the solver
+   * @brief Set the parameters for the solver, for use with non-chain IK solvers
    * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
-   * @param tip_frame The tip of the chain
+   * @param tip_frames A vector of tips of the kinematic tree
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    */
   virtual void setValues(const std::string& robot_description,
@@ -269,7 +265,7 @@ public:
                          double search_discretization);
 
   /**
-   * @brief  Initialization function for the kinematics
+   * @brief  Initialization function for the kinematics, for use with kinematic chain IK solvers
    * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
@@ -285,12 +281,12 @@ public:
                           double search_discretization) = 0;
 
   /**
-   * @brief  Initialization function for the kinematics
+   * @brief  Initialization function for the kinematics, for use with non-chain IK solvers
    * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
-   * @param tip_frame The tip of the chain
+   * @param tip_frames A vector of tips of the kinematic tree
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
    */
@@ -346,8 +342,9 @@ public:
   }
 
   /**
-   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
-   * @return The string name of the tip frame of the chain on which the solver is operating
+   * @brief  Return the names of the tip frames of the kinematic tree on which the solver is operating. 
+   * This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
+   * @return The vector of names of the tip frames of the kinematic tree on which the solver is operating
    */
   virtual const std::vector<std::string>& getTipFrames() const
   {
@@ -427,7 +424,7 @@ public:
   KinematicsBase() :
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
     default_timeout_(DEFAULT_TIMEOUT),
-    tip_frame_("DEPRECATED") // help users understand why this variable might not be set (if provide multiple tip frames, this variable will be unset)
+    tip_frame_("DEPRECATED") // help users understand why this variable might not be set (if multiple tip frames provided, this variable will be unset)
   {}
 
 protected:
