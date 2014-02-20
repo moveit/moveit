@@ -48,8 +48,8 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
+  tip_frame_ = removeSlash(tip_frame); // for backwards compatibility
   tip_frames_.push_back(removeSlash(tip_frame));
-  tip_frame_ = tip_frame; // for backwards compatibility
   search_discretization_ = search_discretization;
 }
 
