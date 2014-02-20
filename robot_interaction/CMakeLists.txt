@@ -35,9 +35,18 @@ link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME}
   src/interactive_marker_helpers.cpp
+  src/kinematic_options.cpp
+  src/kinematic_options_map.cpp
+  src/locked_robot_state.cpp
   src/interaction_handler.cpp
   src/robot_interaction.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+catkin_add_gtest(locked_robot_state_test test/locked_robot_state_test.cpp)
+target_link_libraries(locked_robot_state_test
+  ${MOVEIT_LIB_NAME}
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)

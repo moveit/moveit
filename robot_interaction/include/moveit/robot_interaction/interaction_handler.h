@@ -37,10 +37,42 @@
 #ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 #define MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 
-#include <moveit/robot_interaction/robot_interaction.h>
+#include <moveit/robot_interaction/locked_robot_state.h>
+//#include <moveit/robot_interaction/robot_interaction.h>
+#include <visualization_msgs/InteractiveMarkerFeedback.h>
+#include <interactive_markers/menu_handler.h>
+#include <tf/tf.h>
 
 namespace robot_interaction
 {
+
+class InteractionHandler;
+typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
+typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
+
+class RobotInteraction;
+typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
+
+class KinematicOptionsMap;
+typedef boost::shared_ptr<KinematicOptionsMap> KinematicOptionsMapPtr;
+
+class EndEffectorInteraction;
+class JointInteraction;
+class GenericInteraction;
+
+
+/// Function type for notifying client of RobotState changes.
+///
+/// This callback function is called by the InteractionHandler::handle*
+/// functions, when changes are made to the internal robot state the handler
+/// maintains.  The handler passes its own pointer as argument to the callback,
+/// as well as a boolean flag that indicates whether the error state changed --
+/// whether updates to the robot state performed in the
+/// InteractionHandler::handle* functions have switched from failing to
+/// succeeding or the other way around.
+typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
+
+
 
 /// Manage interactive markers to control a RobotState.
 ///
@@ -48,16 +80,29 @@ namespace robot_interaction
 /// various joints in one group of one RobotState.
 /// The group being controlled is maintained by the RobotInteraction object
 /// that contains this InteractionHandler object.
-/// All InteractionHandler objects in the same RobotInteraction are controlling the same group.
-class RobotInteraction::InteractionHandler
+/// All InteractionHandler objects in the same RobotInteraction are controlling
+/// the same group.
+class InteractionHandler : public LockedRobotState
 {
 public:
-
-  InteractionHandler(const std::string &name,
-                     const robot_state::RobotState &kstate,
+  // Use this constructor if you have an initial RobotState already.
+  InteractionHandler(const RobotInteractionPtr& robot_interaction,
+                     const std::string &name,
+                     const robot_state::RobotState &initial_robot_state,
                      const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  // Use this constructor to start with a default state.
+  InteractionHandler(const RobotInteractionPtr& robot_interaction,
+                     const std::string &name,
+                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+
+  // DEPRECATED.
   InteractionHandler(const std::string &name,
-                     const robot_model::RobotModelConstPtr &kmodel,
+                     const robot_state::RobotState &initial_robot_state,
+                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  // DEPRECATED.
+  InteractionHandler(const std::string &name,
+                     const robot_model::RobotModelConstPtr &model,
                      const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
 
   virtual ~InteractionHandler()
@@ -69,128 +114,49 @@ public:
     return name_;
   }
 
-  robot_state::RobotStateConstPtr getState() const;
-  void setState(const robot_state::RobotState& kstate);
+  /// Get a copy of the RobotState maintained by this InteractionHandler.
+  using LockedRobotState::getState;
 
-  void setUpdateCallback(const InteractionHandlerCallbackFn &callback)
-  {
-    update_callback_ = callback;
-  }
+  /// Set a new RobotState for this InteractionHandler.
+  using LockedRobotState::setState;
 
-  const InteractionHandlerCallbackFn& getUpdateCallback() const
-  {
-    return update_callback_;
-  }
+  void setUpdateCallback(const InteractionHandlerCallbackFn &callback);
+  const InteractionHandlerCallbackFn& getUpdateCallback() const;
+  void setMeshesVisible(bool visible);
+  bool getMeshesVisible() const;
+  void setControlsVisible(bool visible);
+  bool getControlsVisible() const;
 
-  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn &callback)
-  {
-    state_validity_callback_fn_ = callback;
-  }
+  /** \brief Set the offset from EEF to its marker.
+   * @param eef The target end-effector.
+   * @param m The pose of the marker in the frame of the end-effector parent. */
+  void setPoseOffset(const EndEffectorInteraction& eef, const geometry_msgs::Pose& m);
 
-  const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
-  {
-    return state_validity_callback_fn_;
-  }
+  /** \brief Set the offset from a joint to its marker.
+   * @param j The target joint.
+   * @param m The pose of the marker in the frame of the joint parent. */
+  void setPoseOffset(const JointInteraction& j, const geometry_msgs::Pose& m);
 
-  void setIKTimeout(double timeout)
-  {
-    ik_timeout_ = timeout;
-  }
-
-  double getIKTimeout() const
-  {
-    return ik_timeout_;
-  }
-
-  void setIKAttempts(unsigned int attempts)
-  {
-    ik_attempts_ = attempts;
-  }
-
-  unsigned int getIKAttempts() const
-  {
-    return ik_attempts_;
-  }
-
-  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const
-  {
-    return kinematics_query_options_;
-  }
-
-  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt)
-  {
-    kinematics_query_options_ = opt;
-  }
-
-  void setKinematicsQueryOptionsForGroup(const std::string& group_name, 
-           kinematics::KinematicsQueryOptions &options)
-  {
-    kinematics_query_options_map_[group_name] = options;
-  }
-
-  const bool getKinematicsQueryOptionsForGroup(const std::string& group_name, 
-           kinematics::KinematicsQueryOptions &opt)
-  {
-    std::map<std::string, kinematics::KinematicsQueryOptions>::const_iterator it = kinematics_query_options_map_.find(group_name);
-    if (it == kinematics_query_options_map_.end())
-return false;
-    opt = it->second;
-    return true;
-  }
-
-  void setMeshesVisible(bool visible)
-  {
-    display_meshes_ = visible;
-  }
-
-  bool getMeshesVisible() const
-  {
-    return display_meshes_;
-  }
-
-  void setControlsVisible(bool visible)
-  {
-    display_controls_ = visible;
-  }
-
-  bool getControlsVisible() const
-  {
-    return display_controls_;
-  }
-
-  /** \brief Set the offset for drawing the interactive marker controls for an end-effector,
-   *         expressed in the frame of the end-effector parent.
-   * @param  The target end-effector.
-   * @param  The desired pose offset. */
-  void setPoseOffset(const RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& m);
-
-  /** \brief Set the offset for drawing the interactive marker controls for a joint,
-   *         expressed in the frame of the joint parent.
-   * @param  The target joint.
-   * @param  The desired pose offset. */
-  void setPoseOffset(const RobotInteraction::Joint& eef, const geometry_msgs::Pose& m);
-
-  /** \brief Get the offset for the interactive marker controls for an end-effector,
-   *         expressed in the frame of the end-effector parent.
+  /** \brief Get the offset from EEF to its marker.
    * @param  The target end-effector.
    * @param  The pose offset (only valid if return value is true).
-   * @return True if an offset was found for the given end-effector, false otherwise. */
-  bool getPoseOffset(const RobotInteraction::EndEffector& eef, geometry_msgs::Pose& m);
+   * @return True if an offset was found for the given end-effector. */
+  bool getPoseOffset(const EndEffectorInteraction& eef, geometry_msgs::Pose& m);
 
-  /** \brief Get the offset for the interactive marker controls for a joint,
-   *         expressed in the frame of the joint parent.
-   * @param  The target joint.
-   * @param  The pose offset (only valid if return value is true).
-   * @return True if an offset was found for the given joint, false otherwise. */
-  bool getPoseOffset(const RobotInteraction::Joint& vj, geometry_msgs::Pose& m);
+  /** \brief Get the offset from a joint to its marker.
+   * @param vj The joint.
+   * @param m The pose offset (only valid if return value is true).
+   * @return True if an offset was found for the given joint. */
+  bool getPoseOffset(const JointInteraction& vj, geometry_msgs::Pose& m);
 
-  /** \brief Clear the interactive marker pose offset for the given end-effector.
+  /** \brief Clear the interactive marker pose offset for the given
+   * end-effector.
    * @param  The target end-effector. */
-  void clearPoseOffset(const RobotInteraction::EndEffector& eef);
+  void clearPoseOffset(const EndEffectorInteraction& eef);
 
   /** \brief Clear the interactive marker pose offset for the given joint.
    * @param  The target joint. */
-  void clearPoseOffset(const RobotInteraction::Joint& vj);
+  void clearPoseOffset(const JointInteraction& vj);
 
   /** \brief Clear the pose offset for all end-effectors and virtual joints. */
   void clearPoseOffsets();
@@ -198,7 +164,8 @@ return false;
   /** \brief Set the menu handler that defines menus and callbacks for all
    *         interactive markers drawn by this interaction handler.
    * @param  A menu handler. */
-  void setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+  void setMenuHandler(
+        const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
 
 
   /** \brief Get the menu handler that defines menus and callbacks for all
@@ -211,91 +178,116 @@ return false;
 
   /** \brief Get the last interactive_marker command pose for an end-effector.
    * @param The end-effector in question.
-   * @param A PoseStamped message containing the last (offset-removed) pose commanded for the end-effector.
+   * @param A PoseStamped message containing the last (offset-removed) pose
+   *           commanded for the end-effector.
    * @return True if a pose for that end-effector was found, false otherwise. */
-  bool getLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef, geometry_msgs::PoseStamped& pose);
+  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef,
+                                    geometry_msgs::PoseStamped& pose);
 
   /** \brief Get the last interactive_marker command pose for a joint.
    * @param The joint in question.
-   * @param A PoseStamped message containing the last (offset-removed) pose commanded for the joint.
+   * @param A PoseStamped message containing the last (offset-removed) pose
+   *           commanded for the joint.
    * @return True if a pose for that joint was found, false otherwise. */
-  bool getLastJointMarkerPose(const RobotInteraction::Joint& vj, geometry_msgs::PoseStamped& pose);
+  bool getLastJointMarkerPose(const JointInteraction& vj,
+                              geometry_msgs::PoseStamped& pose);
 
-  /** \brief Clear the last interactive_marker command pose for the given end-effector.
+  /** \brief Clear the last interactive_marker command pose for the given
+   * end-effector.
    * @param  The target end-effector. */
-  void clearLastEndEffectorMarkerPose(const RobotInteraction::EndEffector& eef);
+  void clearLastEndEffectorMarkerPose(const EndEffectorInteraction& eef);
 
   /** \brief Clear the last interactive_marker command pose for the given joint.
    * @param  The target joint. */
-  void clearLastJointMarkerPose(const RobotInteraction::Joint& vj);
+  void clearLastJointMarkerPose(const JointInteraction& vj);
 
-  /** \brief Clear the last interactive_marker command poses for all end-effectors and joints. */
+  /** \brief Clear the last interactive_marker command poses for all
+   * end-effectors and joints. */
   void clearLastMarkerPoses();
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleEndEffector(const RobotInteraction::EndEffector &eef,
-                                 const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleEndEffector(
+        const EndEffectorInteraction &eef,
+        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleJoint(const RobotInteraction::Joint &vj,
-                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleJoint(
+        const JointInteraction &vj,
+        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleGeneric(const RobotInteraction::Generic &g,
-                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleGeneric(
+        const GenericInteraction &g,
+        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
 
-  /** \brief Check if the marker corresponding to this end-effector leads to an invalid state */
-  virtual bool inError(const RobotInteraction::EndEffector& eef) const;
+  /** \brief Check if the marker corresponding to this end-effector leads to an
+   * invalid state */
+  virtual bool inError(const EndEffectorInteraction& eef) const;
 
-  /** \brief Check if the marker corresponding to this joint leads to an invalid state */
-  virtual bool inError(const RobotInteraction::Joint& vj) const;
+  /** \brief Check if the marker corresponding to this joint leads to an
+   * invalid state */
+  virtual bool inError(const JointInteraction& vj) const;
 
   /** \brief Check if the generic marker to an invalid state */
-  virtual bool inError(const RobotInteraction::Generic& g) const;
+  virtual bool inError(const GenericInteraction& g) const;
 
-  /** \brief Clear any error settings. This makes the markers appear as if the state is no longer invalid. */
+  /** \brief Clear any error settings.
+   * This makes the markers appear as if the state is no longer invalid. */
   void clearError(void);
+
+  /** \brief This should only be called by RobotInteraction.
+   * Associates this InteractionHandler to a RobotInteraction.
+   */
+  void setRobotInteraction(RobotInteraction* robot_interaction);
 
 protected:
 
-  bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
-                             const geometry_msgs::Pose &offset,
-                             geometry_msgs::PoseStamped &tpose);
+  bool transformFeedbackPose(
+        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
+        const geometry_msgs::Pose &offset,
+        geometry_msgs::PoseStamped &tpose);
 
-  robot_state::RobotStatePtr getUniqueStateAccess();
-  void setStateToAccess(robot_state::RobotStatePtr &state);
-
-  std::string name_;
-  std::string planning_frame_;
+  const std::string name_;
+  const std::string planning_frame_;
   boost::shared_ptr<tf::Transformer> tf_;
-  std::set<std::string> error_state_;
-
-  // For adding menus (and associated callbacks) to all the
-  // end-effector and virtual-joint interactive markers
-  boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
-
-  // Called when the RobotState maintained by the handler changes.  The caller may, for example, redraw the robot at the new state.
-  // handler is the handler that changed.
-  // error_state_changed is true if an end effector's error state may have changed.
-  boost::function<void(InteractionHandler* handler, bool error_state_changed)> update_callback_;
-
-  robot_state::GroupStateValidityCallbackFn state_validity_callback_fn_;
-  double ik_timeout_;
-  unsigned int ik_attempts_;
-
-  // additional options for kinematics queries
-  kinematics::KinematicsQueryOptions kinematics_query_options_;
-
-  bool display_meshes_;
-  bool display_controls_;
 
 private:
-// The state maintained by this handler.
-// PROTECTED BY state_lock_
-  robot_state::RobotStatePtr kstate_;
+
+  typedef boost::function<void(InteractionHandler*)> StateChangeCallbackFn;
+
+  // Update RobotState using a generic interaction feedback message.
+  // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
+  void updateStateGeneric(
+        robot_state::RobotState* state,
+        const GenericInteraction* g,
+        const visualization_msgs::InteractiveMarkerFeedbackConstPtr *feedback,
+        StateChangeCallbackFn *callback);
+
+  // Update RobotState for a new pose of an eef.
+  // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
+  void updateStateEndEffector(robot_state::RobotState* state,
+                              const EndEffectorInteraction* eef,
+                              const geometry_msgs::Pose* pose,
+                              StateChangeCallbackFn *callback);
+
+  // Update RobotState for a new joint position.
+  // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
+  void updateStateJoint(robot_state::RobotState* state,
+                        const JointInteraction* vj,
+                        const geometry_msgs::Pose* pose,
+                        StateChangeCallbackFn *callback);
+
+  // Set the error state for \e name.
+  // Returns true if the error state for \e name changed.
+  // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
+  bool setErrorState(const std::string& name, bool new_error_state);
+
+  /** Get the error state for \e name.
+   * True if Interaction \e name is not in a valid pose. */
+  bool getErrorState(const std::string& name) const;
 
   // Contains the (user-programmable) pose offset between the end-effector
   // parent link (or a virtual joint) and the desired control frame for the
@@ -315,15 +307,68 @@ private:
   // PROTECTED BY pose_map_lock_
   std::map<std::string, geometry_msgs::PoseStamped> pose_map_;
 
+  // The RobotInteraction we are associated with.
+  // This is never safe to use because the RobotInteraction could be deleted at
+  // any time.
+  // Therefore it is stored as a void* to discourage its use.
+  // This is only used inside setKinematicOptions() with the state_lock_ held.
+  // That function should only be called from RobotInteraction methods.
+  // PROTECTED BY state_lock_
+  const void* robot_interaction_;
 
-  std::map<std::string, kinematics::KinematicsQueryOptions> kinematics_query_options_map_;
-  mutable boost::mutex state_lock_;
-  mutable boost::condition_variable state_available_condition_;
   boost::mutex pose_map_lock_;
   boost::mutex offset_map_lock_;
 
-  void setup();
+  // per group options for doing kinematics.
+  // PROTECTED BY state_lock_ - The POINTER is protected by state_lock_.  The
+  // CONTENTS is protected internally.
+  KinematicOptionsMapPtr kinematic_options_map_;
+
+  // A set of Interactions for which the pose is invalid.
+  // PROTECTED BY state_lock_
+  std::set<std::string> error_state_;
+
+  // For adding menus (and associated callbacks) to all the
+  // end-effector and virtual-joint interactive markers
+  //
+  // PROTECTED BY state_lock_ - The POINTER is protected by state_lock_.  The
+  // CONTENTS is not.
+  boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
+
+  // Called when the RobotState maintained by the handler changes.
+  // The caller may, for example, redraw the robot at the new state.
+  // handler is the handler that changed.
+  // error_state_changed is true if an end effector's error state may have
+  // changed.
+  //
+  // PROTECTED BY state_lock_ - the function pointer is protected, but the call
+  // is made without any lock held.
+  boost::function<void(InteractionHandler* handler,
+                       bool error_state_changed)> update_callback_;
+
+  // PROTECTED BY state_lock_
+  bool display_meshes_;
+
+  // PROTECTED BY state_lock_
+  bool display_controls_;
+
+  // remove '_' characters from name
+  static std::string fixName(std::string name);
+
+public:
+  // DEPRECATED FUNCTIONS.
+  // DO NOT USE THESE.  Instead access the KinematicOptions by calling
+  // RobotInteraction::getKinematicOptionsMap()
+  void setGroupStateValidityCallback(
+        const robot_state::GroupStateValidityCallbackFn &callback);
+  void setIKTimeout(double timeout);
+  void setIKAttempts(unsigned int attempts);
+  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
+  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
+  void setKinematicsQueryOptionsForGroup(const std::string& group_name,
+           const kinematics::KinematicsQueryOptions &options);
 };
+
 
 }
 
