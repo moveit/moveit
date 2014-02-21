@@ -241,10 +241,6 @@ TEST(LockedRobotState, load)
   state2.setToDefaultValues();
   robot_interaction::LockedRobotState ls2(state2);
   
-  moveit::core::RobotStatePtr state3(new moveit::core::RobotState(model));
-  state3->setToDefaultValues();
-  robot_interaction::LockedRobotState ls3(state3);
-  
   robot_interaction::LockedRobotStatePtr ls4(
                     new robot_interaction::LockedRobotState(model));
 }
