@@ -180,8 +180,8 @@ public:
                                 const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
-   * @brief Given a set of desired poses for a planning group with multiple end-effectors, search for the joint angles 
-   * required to reach it them. This is useful for e.g. biped robots that need to perform whole-body IK. 
+   * @brief Given a set of desired poses for a planning group with multiple end-effectors, search for the joint angles
+   * required to reach them. This is useful for e.g. biped robots that need to perform whole-body IK.
    * Not necessary for most robots that have kinematic chains.
    * This particular method is intended for "searching" for a solutions by stepping through the redundancy
    * (or other numerical routines).
@@ -208,7 +208,7 @@ public:
     // For IK solvers that do not support multiple poses, fall back to single pose call
     if (ik_poses.size() == 1)
     {
-      return searchPositionIK(ik_poses[0], 
+      return searchPositionIK(ik_poses[0],
         ik_seed_state,
         timeout,
         consistency_limits,
@@ -236,7 +236,8 @@ public:
 
   /**
    * @brief Set the parameters for the solver, for use with kinematic chain IK solvers
-   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics it is computed for;
+   * For example, the name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -251,7 +252,8 @@ public:
 
   /**
    * @brief Set the parameters for the solver, for use with non-chain IK solvers
-   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics it is computed for;
+   * For example, the name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -266,7 +268,8 @@ public:
 
   /**
    * @brief  Initialization function for the kinematics, for use with kinematic chain IK solvers
-   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics it is computed for;
+   * For example, the name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -282,7 +285,8 @@ public:
 
   /**
    * @brief  Initialization function for the kinematics, for use with non-chain IK solvers
-   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for; For example, rhe name of the ROS parameter that contains the robot description;
+   * @param robot_description This parameter can be used as an identifier for the robot kinematics is computed for;
+   * For example, rhe name of the ROS parameter that contains the robot description;
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
@@ -320,7 +324,8 @@ public:
   }
 
   /**
-   * @brief  Return the name of the frame in which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
+   * @brief  Return the name of the frame in which the solver is operating. This is usually a link name.
+   * No namespacing (e.g., no "/" prefix) should be used.
    * @return The string name of the frame in which the solver is operating
    */
   virtual const std::string& getBaseFrame() const
@@ -329,7 +334,8 @@ public:
   }
 
   /**
-   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
+   * @brief  Return the name of the tip frame of the chain on which the solver is operating. This is usually a link name.
+   * No namespacing (e.g., no "/" prefix) should be used.
    * Deprecated in favor of getTipFrames(), but will remain for foreseeable future for backwards compatibility
    * @return The string name of the tip frame of the chain on which the solver is operating
    */
@@ -342,7 +348,7 @@ public:
   }
 
   /**
-   * @brief  Return the names of the tip frames of the kinematic tree on which the solver is operating. 
+   * @brief  Return the names of the tip frames of the kinematic tree on which the solver is operating.
    * This is usually a link name. No namespacing (e.g., no "/" prefix) should be used.
    * @return The vector of names of the tip frames of the kinematic tree on which the solver is operating
    */
@@ -352,7 +358,8 @@ public:
   }
 
   /**
-   * @brief Set a set of redundant joints for the kinematics solver to use.  This can fail, depending on the IK solver and choice of redundant joints!
+   * @brief Set a set of redundant joints for the kinematics solver to use.
+   * This can fail, depending on the IK solver and choice of redundant joints!
    * @param redundant_joint_indices The set of redundant joint indices (corresponding to
    * the list of joints you get from getJointNames()).
    * @return False if any of the input joint indices are invalid (exceed number of
@@ -410,7 +417,8 @@ public:
     default_timeout_ = timeout;
   }
 
-  /** @brief For functions that require a timeout specified but one is not specified using arguments, this default timeout is used */
+  /** @brief For functions that require a timeout specified but one is not specified using arguments,
+      this default timeout is used */
   double getDefaultTimeout() const
   {
     return default_timeout_;
@@ -424,7 +432,8 @@ public:
   KinematicsBase() :
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
     default_timeout_(DEFAULT_TIMEOUT),
-    tip_frame_("DEPRECATED") // help users understand why this variable might not be set (if multiple tip frames provided, this variable will be unset)
+    tip_frame_("DEPRECATED") // help users understand why this variable might not be set
+                             // (if multiple tip frames provided, this variable will be unset)
   {}
 
 protected:
@@ -433,7 +442,8 @@ protected:
   std::string group_name_;
   std::string base_frame_;
   std::vector<std::string> tip_frames_;
-  std::string tip_frame_; // DEPRECATED - this variable only still exists for backwards compatibility with previously generated custom ik solvers like IKFast
+  std::string tip_frame_; // DEPRECATED - this variable only still exists for backwards compatibility with
+                          // previously generated custom ik solvers like IKFast
   double search_discretization_;
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;

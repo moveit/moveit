@@ -65,10 +65,13 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   search_discretization_ = search_discretization;
 
   // Copy tip frames to local vector after stripping slashes
+  tip_frames_.clear();
   for (std::size_t i = 0; i < tip_frames.size(); ++i)
     tip_frames_.push_back(removeSlash(tip_frames[i]));
 
-  // Note that we do not set tip_frame_ variable here, because it should never be used in combination with multiple tip frames
+  // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
+  if (tip_frames.size() == 1)
+    tip_frame_ = tip_frames[0];
 }
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
