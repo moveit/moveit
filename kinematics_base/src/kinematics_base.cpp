@@ -71,7 +71,7 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
 
   // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
   if (tip_frames.size() == 1)
-    tip_frame_ = tip_frames[0];
+    tip_frame_ = removeSlash(tip_frames[0]);
 }
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
