@@ -309,6 +309,16 @@ public:
     return getName().c_str();
   }
 
+  bool movePython()
+  {
+    return move();
+  } 
+
+  bool asyncMovePython()
+  {
+    return asyncMove();
+  }
+
   bool attachObjectPython(const std::string &object_name, const std::string &link_name, const bp::list &touch_links)
   {
     return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
@@ -359,8 +369,8 @@ static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string, std::string>());
 
-  MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
-  MoveGroupClass.def("move", &MoveGroupWrapper::move);
+  MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMovePython);
+  MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);

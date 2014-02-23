@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
+ *  Copyright (c) 2014, SRI International
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -32,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
@@ -550,7 +551,15 @@ public:
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
+  bool asyncMove(moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
+      This call is not blocking (does not wait for the execution of the trajectory to complete). */
   bool asyncMove();
+
+  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
+      This call is always blocking (waits for the execution of the trajectory to complete). */
+  bool move(moveit_msgs::MoveItErrorCodes &error_code);
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete). */
@@ -558,10 +567,20 @@ public:
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
-  bool plan(Plan &plan);
+  bool plan(Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
+      target. No execution is performed. The resulting plan is stored in \e plan*/
+  bool plan(Plan &plan);  
+
+  /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
+  bool asyncExecute(const Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
 
   /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
   bool asyncExecute(const Plan &plan);
+
+  /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
+  bool execute(const Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
 
   /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
   bool execute(const Plan &plan);
@@ -575,6 +594,16 @@ public:
       Return -1.0 in case of error. */
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
                               moveit_msgs::RobotTrajectory &trajectory,  bool avoid_collisions = true);
+
+  /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
+      between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
+      waypoints is that specified by setPoseReferenceFrame(). No more than \e jump_threshold
+      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
+      Collisions are avoided if \e avoid_collisions is set to true. If collisions cannot be avoided, the function fails.
+      Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
+      Return -1.0 in case of error. */
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+                              moveit_msgs::RobotTrajectory &trajectory, moveit_msgs::MoveItErrorCodes &error_code, bool avoid_collisions = true);
 
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
@@ -593,6 +622,15 @@ public:
   /**@{*/
 
   /** \brief Pick up an object */
+  bool pick(const std::string &object, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Pick up an object given a grasp pose */
+  bool pick(const std::string &object, const moveit_msgs::Grasp &grasp, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Pick up an object given possible grasp poses */
+  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Pick up an object */
   bool pick(const std::string &object);
 
   /** \brief Pick up an object given a grasp pose */
@@ -600,6 +638,18 @@ public:
 
   /** \brief Pick up an object given possible grasp poses */
   bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
+
+  /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
+  bool place(const std::string &object, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Place an object at one of the specified possible locations */
+  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Place an object at one of the specified possible locations */
+  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses, moveit_msgs::MoveItErrorCodes &error_code);
+
+  /** \brief Place an object at one of the specified possible location */
+  bool place(const std::string &object, const geometry_msgs::PoseStamped &pose, moveit_msgs::MoveItErrorCodes &error_code);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   bool place(const std::string &object);
