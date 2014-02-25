@@ -56,6 +56,12 @@ namespace moveit
 namespace planning_interface
 {
 
+class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
+{
+public:
+  operator bool() const { return val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
+ };
+
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
 class MoveGroup
 {
@@ -551,39 +557,21 @@ public:
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
-  bool asyncMove(moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
-      This call is not blocking (does not wait for the execution of the trajectory to complete). */
-  bool asyncMove();
+  MoveItErrorCode asyncMove();
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete). */
-  bool move(moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
-      This call is always blocking (waits for the execution of the trajectory to complete). */
-  bool move();
+  MoveItErrorCode move();
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
-  bool plan(Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
-      target. No execution is performed. The resulting plan is stored in \e plan*/
-  bool plan(Plan &plan);  
+  MoveItErrorCode plan(Plan &plan);
 
   /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
-  bool asyncExecute(const Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
-  bool asyncExecute(const Plan &plan);
+  MoveItErrorCode asyncExecute(const Plan &plan);
 
   /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
-  bool execute(const Plan &plan, moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
-  bool execute(const Plan &plan);
+  MoveItErrorCode execute(const Plan &plan);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
@@ -622,46 +610,25 @@ public:
   /**@{*/
 
   /** \brief Pick up an object */
-  bool pick(const std::string &object, moveit_msgs::MoveItErrorCodes &error_code);
+  MoveItErrorCode pick(const std::string &object);
 
   /** \brief Pick up an object given a grasp pose */
-  bool pick(const std::string &object, const moveit_msgs::Grasp &grasp, moveit_msgs::MoveItErrorCodes &error_code);
+  MoveItErrorCode pick(const std::string &object, const moveit_msgs::Grasp &grasp);
 
   /** \brief Pick up an object given possible grasp poses */
-  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps, moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Pick up an object */
-  bool pick(const std::string &object);
-
-  /** \brief Pick up an object given a grasp pose */
-  bool pick(const std::string &object, const moveit_msgs::Grasp &grasp);
-
-  /** \brief Pick up an object given possible grasp poses */
-  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
+  MoveItErrorCode pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
-  bool place(const std::string &object, moveit_msgs::MoveItErrorCodes &error_code);
+  MoveItErrorCode place(const std::string &object);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations, moveit_msgs::MoveItErrorCodes &error_code);
+  MoveItErrorCode place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses, moveit_msgs::MoveItErrorCodes &error_code);
+  MoveItErrorCode place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
 
   /** \brief Place an object at one of the specified possible location */
-  bool place(const std::string &object, const geometry_msgs::PoseStamped &pose, moveit_msgs::MoveItErrorCodes &error_code);
-
-  /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
-  bool place(const std::string &object);
-
-  /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations);
-
-  /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
-
-  /** \brief Place an object at one of the specified possible location */
-  bool place(const std::string &object, const geometry_msgs::PoseStamped &pose);
+  MoveItErrorCode place(const std::string &object, const geometry_msgs::PoseStamped &pose);
 
   /** \brief Given the name of an object in the planning scene, make
       the object attached to a link of the robot.  If no link name is
