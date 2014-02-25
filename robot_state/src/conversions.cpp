@@ -360,16 +360,6 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
             missing.erase(vnames[i]);
         }
       }
-
-    // Create error message
-    if (!missing.empty())
-    {
-      std::stringstream missing_frames;
-      std::copy(missing.begin(), missing.end(), std::ostream_iterator<std::string>(missing_frames, ", "));
-      logError("robot_state: State message is missing required frames: [%s]", missing_frames.str().c_str());
-      return false;
-    }
-
     return true;
   }
   else
