@@ -235,7 +235,9 @@ public:
                        unsigned int max_attempts) = 0;
 
   /**
-   * \brief Returns whether or not the constraint sampler is valid or not.  To be valid, the joint model group must be available in the kinematic model.
+   * \brief Returns whether or not the constraint sampler is valid or not.
+   * To be valid, the joint model group must be available in the kinematic model and configure() must have successfully
+   * been called
    *
    * @return True if the sampler is valid, and otherwise false.
    */

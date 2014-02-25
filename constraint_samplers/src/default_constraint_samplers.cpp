@@ -491,7 +491,10 @@ bool constraint_samplers::IKConstraintSampler::sample(robot_state::RobotState &s
 bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts, bool project)
 {
   if (!is_valid_)
+  {
+    logWarn("IKConstraintSampler not configured, won't sample");
     return false;
+  }
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
