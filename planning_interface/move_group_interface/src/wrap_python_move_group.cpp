@@ -347,14 +347,14 @@ public:
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
   
-  bool pickGrasp(const std::string &object, const std::string &grasp_str)
+  MoveItErrorCode pickGrasp(const std::string &object, const std::string &grasp_str)
   {
     moveit_msgs::Grasp grasp;    
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
     return pick(object, grasp);
   } 
 
-  bool pickGrasps(const std::string &object, const bp::list &grasp_list)
+  MoveItErrorCode pickGrasps(const std::string &object, const bp::list &grasp_list)
   {
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
@@ -372,7 +372,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMovePython);
   MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
-  bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
+  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
