@@ -286,7 +286,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
           ee.eef_group = eef[i].component_group_;
           ee.interaction = style;
           active_eef_.push_back(ee);
-          break;
         }
     }
   }
@@ -317,7 +316,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
 
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
-    // if we have a separate group for the eef, we compte the scale based on
+    // if we have a separate group for the eef, we compute the scale based on
     // it; otherwise, we use a default scale
     active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ?
                             computeGroupMarkerSize("") :
