@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #ifndef MOVEIT_KINEMATICS_PLUGIN_LOADER_
 #define MOVEIT_KINEMATICS_PLUGIN_LOADER_
