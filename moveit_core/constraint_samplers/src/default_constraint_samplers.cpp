@@ -132,7 +132,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
           continue;
       }
       unbounded_.push_back(joints[i]);
-      uindex_.push_back(joints[i]->getFirstVariableIndex());
+      // Get the first variable name of this joint and find its index position in the planning group
+      uindex_.push_back(jmg_->getVariableGroupIndex(vars[0]));
     }
   values_.resize(jmg_->getVariableCount());
   is_valid_ = true;
