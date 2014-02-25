@@ -61,7 +61,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   std::stringstream ss; ss << constr;
   logDebug("Attempting to construct constrained state sampler for group '%s', using constraints:\n%s.\n", jmg->getName().c_str(), ss.str().c_str());
 
-  ConstraintSamplerPtr joint_sampler;
+  ConstraintSamplerPtr joint_sampler; // location to put chosen joint sampler if needed
   // if there are joint constraints, we could possibly get a sampler from those
   if (!constr.joint_constraints.empty())
   {
@@ -86,6 +86,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       }
     }
 
+    // check if every joint is covered (constrained) by just joint samplers
     bool full_coverage = true;
     for (std::map<std::string, bool>::iterator it = joint_coverage.begin(); it != joint_coverage.end(); ++it)
       if (!it->second)
@@ -118,7 +119,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   }
 
   std::vector<ConstraintSamplerPtr> samplers;
-  if (joint_sampler)
+  if (joint_sampler) // Start making a union of constraint samplers
     samplers.push_back(joint_sampler);
 
   // read the ik allocators, if any
@@ -148,11 +149,14 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
             boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
             if(iks->configure(IKSamplingPose(pc, oc))) {
               bool use = true;
+              // Check if there already is a constraint on this link
               if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
+                // If there is, check if the previous one has a smaller volume for sampling
                 if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
-                  use = false;
+                  use = false; // only use new constraint if it has a smaller sampling volume
               if (use)
               {
+                // assign the link to a new constraint sampler
                 usedL[constr.position_constraints[p].link_name] = iks;
                 logDebug("Allocated an IK-based sampler for group '%s' satisfying position and orientation constraints on link '%s'",
                          jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
