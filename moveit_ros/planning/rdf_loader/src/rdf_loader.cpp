@@ -76,7 +76,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
     else
       ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
   }
-  ROS_DEBUG_STREAM("Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM_NAMED("rdf",  "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::string &srdf_string)
