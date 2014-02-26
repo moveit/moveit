@@ -554,29 +554,49 @@ bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string &tip) co
 {
   const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();
   if (!solver || tip.empty())
-    return false;
-  const std::string &tip_frame = solver->getTipFrame();
-  if (tip_frame.empty())
-    return false;
-  
-  // remove frame reference, if specified
-  const std::string &tip_local = tip[0] == '/' ? tip.substr(1) : tip;
-  const std::string &tip_frame_local = tip_frame[0] == '/' ? tip_frame.substr(1) : tip_frame;
-  
-  if (tip_local != tip_frame_local)
   {
-    if (hasLinkModel(tip_frame_local))
-    {
-      const LinkModel *lm = getLinkModel(tip_frame_local);
-      const LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-      for (LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
-        if (it->first->getName() == tip_local)
-          return true;
-    }
+    logError("Cannot set state, no solver or tip is empty");
     return false;
   }
-  else
-    return true;
+
+  const std::vector<std::string> &tip_frames = solver->getTipFrames();
+
+  if (tip_frames.empty())
+  {
+    logDebug("Group %s has no tip frame(s)", name_.c_str());
+    return false;
+  }
+
+  // loop through all tip frames supported by the JMG
+  for (std::size_t i = 0; i < tip_frames.size(); ++i)
+  {
+    // remove frame reference, if specified
+    const std::string &tip_local = tip[0] == '/' ? tip.substr(1) : tip;
+    const std::string &tip_frame_local = tip_frames[i][0] == '/' ? tip_frames[i].substr(1) : tip_frames[i];
+    logDebug("joint_model_group.canSetStateFromIK: comparing input tip: %s to this groups tip: %s ", tip_local.c_str(), tip_frame_local.c_str());
+
+    // Check if the IK solver's tip is the same as the frame of inquiry
+    if (tip_local != tip_frame_local)
+    {
+      // If not the same, check if this planning group includes the frame of inquiry
+      if (hasLinkModel(tip_frame_local))
+      {
+        const LinkModel *lm = getLinkModel(tip_frame_local);
+        const LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+        // Check if our frame of inquiry is located anywhere further down the chain (towards the tip of the arm)
+        for (LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+        {
+          if (it->first->getName() == tip_local)
+            return true;
+        }
+      }
+    }
+    else
+      return true;
+  }
+
+  // Did not find any valid tip frame links to use
+  return false;
 }
 
 void moveit::core::JointModelGroup::printGroupInfo(std::ostream &out) const

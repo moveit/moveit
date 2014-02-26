@@ -52,7 +52,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
   , dirty_collision_body_transforms_(NULL)
   , rng_(NULL)
 {
-  allocMemory();
+   allocMemory();
   
   // all transforms are dirty initially
   const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
@@ -1231,47 +1231,62 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     pose = getGlobalLinkTransform(lm).inverse() * pose;
   }
 
-  // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
-  std::string tip_frame = solver->getTipFrame();
-
-  // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
-  if (!tip_frame.empty() && tip_frame[0] == '/')
-    tip_frame = tip_frame.substr(1);
-  
-  if (tip != tip_frame)
+  // try all of the solver's possible tip frames to see if one works with our passed in pose tip frame
+  bool found_valid_frame = false;
+  for (std::vector<std::string>::const_iterator tip_frame_it = solver->getTipFrames().begin();
+       tip_frame_it < solver->getTipFrames().end(); ++tip_frame_it)
   {
-    if (hasAttachedBody(tip))
-    {
-      const AttachedBody *ab = getAttachedBody(tip);
-      const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
-      if (ab_trans.size() != 1)
-      {
-        logError("Cannot use an attached body with multiple geometries as a reference frame.");
-        return false;
-      }
-      tip = ab->getAttachedLinkName();
-      pose = pose * ab_trans[0].inverse();
-    }
+    // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+    std::string tip_frame = *tip_frame_it;
+    logDebug("moveit.robot_state: checking solver tip frame %s against request tip frame %s", tip_frame.c_str(), tip.c_str());
+
+    // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
+    if (!tip_frame.empty() && tip_frame[0] == '/')
+      tip_frame = tip_frame.substr(1);
+
     if (tip != tip_frame)
     {
-      const robot_model::LinkModel *lm = getLinkModel(tip);
-      if (!lm)
-        return false;
-      const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-      for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
-        if (Transforms::sameFrame(it->first->getName(), tip_frame))
+      if (hasAttachedBody(tip))
+      {
+        const AttachedBody *ab = getAttachedBody(tip);
+        const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
+        if (ab_trans.size() != 1)
         {
-          tip = tip_frame;
-          pose = pose * it->second;
-          break;
+          logError("Cannot use an attached body with multiple geometries as a reference frame.");
+          return false;
         }
+        tip = ab->getAttachedLinkName();
+        pose = pose * ab_trans[0].inverse();
+      }
+      if (tip != tip_frame)
+      {
+        const robot_model::LinkModel *lm = getLinkModel(tip);
+        if (!lm)
+          return false;
+        const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+        for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+          if (Transforms::sameFrame(it->first->getName(), tip_frame))
+          {
+            tip = tip_frame;
+            pose = pose * it->second;
+            break;
+          }
+      }
+    }
+
+    // Check if this tip frame works
+    if (tip == tip_frame)
+    {
+      found_valid_frame = true;
+      break;
     }
   }
-  
-  if (tip != tip_frame)
+
+  // Make sure one of the tip frames worked
+  if (!found_valid_frame)
   {
-    logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
-    return false;
+      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      return false;
   }
 
   // if no timeout has been specified, use the default one
@@ -1282,16 +1297,58 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     attempts = jmg->getDefaultIKAttempts();
   
   const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
-  Eigen::Quaterniond quat(pose.rotation());
-  Eigen::Vector3d point(pose.translation());
-  geometry_msgs::Pose ik_query;
-  ik_query.position.x = point.x();
-  ik_query.position.y = point.y();
-  ik_query.position.z = point.z();
-  ik_query.orientation.x = quat.x();
-  ik_query.orientation.y = quat.y();
-  ik_query.orientation.z = quat.z();
-  ik_query.orientation.w = quat.w();
+
+  // Create poses for all tips a solver expects, even if not passed into this function
+  std::vector<geometry_msgs::Pose> ik_queries;
+  std::vector<std::string> tip_frames;
+  Eigen::Affine3d current_pose;
+
+  for (std::vector<std::string>::const_iterator tip_frame_it = solver->getTipFrames().begin();
+       tip_frame_it < solver->getTipFrames().end(); ++tip_frame_it)
+  {
+    std::string tip_frame = *tip_frame_it;
+
+    // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
+    if (!tip_frame.empty() && tip_frame[0] == '/')
+      tip_frame = tip_frame.substr(1);
+
+    // check that this is not the current changed pose
+    if (tip != tip_frame)
+    {
+      // Get the pose of a different EE tip link
+      current_pose = getGlobalLinkTransform(tip_frame);
+
+      // bring the pose to the frame of the IK solver
+      const std::string &ik_frame = solver->getBaseFrame();
+      if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
+      {
+        const LinkModel *lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
+        if (!lm)
+          return false;
+        current_pose = getGlobalLinkTransform(lm).inverse() * current_pose;
+      }
+    }
+    else
+    {
+      current_pose = pose;
+    }
+
+    // Convert Eigen pose to geometry_msgs pose
+    Eigen::Quaterniond quat(current_pose.rotation());
+    Eigen::Vector3d point(current_pose.translation());
+    geometry_msgs::Pose ik_query;
+    ik_query.position.x = point.x();
+    ik_query.position.y = point.y();
+    ik_query.position.z = point.z();
+    ik_query.orientation.x = quat.x();
+    ik_query.orientation.y = quat.y();
+    ik_query.orientation.z = quat.z();
+    ik_query.orientation.w = quat.w();
+
+    // Save into vectors
+    ik_queries.push_back(ik_query);
+    tip_frames.push_back(tip_frame);
+  }
 
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
@@ -1332,9 +1389,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
-    if (ik_callback_fn ?
-        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options) :
-        solver->searchPositionIK(ik_query, seed, timeout, consistency_limits, ik_sol, error, options))
+    // \todo no function call that accepts multiple poses and no callback has been created. is it really needed?
+    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options))
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
