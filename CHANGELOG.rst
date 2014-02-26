@@ -2,6 +2,13 @@
 Changelog for package moveit_ikfast
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix issue `#16 <https://github.com/ros-planning/moveit_ikfast/issues/16>`_: install 'templates' directory into pkg share directory
+* Fix issue `#21 <https://github.com/ros-planning/moveit_ikfast/issues/21>`_: move catkin pkgs to catkin_depends in generated CMakeLists
+* Fix issue `#18 <https://github.com/ros-planning/moveit_ikfast/issues/18>`_: remove install rule for ikfast.h from generated package CMakeLists.txt
+* Contributors: Dave Coleman, gavanderhoorn
+
 3.0.6 (2014-01-03)
 ------------------
 * adding sphinx documentation
