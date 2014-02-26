@@ -38,17 +38,13 @@
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) :
   scene_(scene),
-  verbose_(false)
+  verbose_(false),
+  is_valid_(false)
 {
   jmg_ = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg_)
   {
     logError("A JointModelGroup should have been specified for the constraint sampler");
-    is_valid_ = false;
-  }
-  else
-  {
-    is_valid_ = true;
   }
 }
 
