@@ -132,7 +132,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
           continue;
       }
       unbounded_.push_back(joints[i]);
-      uindex_.push_back(joints[i]->getFirstVariableIndex());
+      // Get the first variable name of this joint and find its index position in the planning group
+      uindex_.push_back(jmg_->getVariableGroupIndex(vars[0]));
     }
   values_.resize(jmg_->getVariableCount());
   is_valid_ = true;
@@ -491,7 +492,10 @@ bool constraint_samplers::IKConstraintSampler::sample(robot_state::RobotState &s
 bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotState &state, const robot_state::RobotState &reference_state, unsigned int max_attempts, bool project)
 {
   if (!is_valid_)
+  {
+    logWarn("IKConstraintSampler not configured, won't sample");
     return false;
+  }
 
   kinematics::KinematicsBase::IKCallbackFn adapted_ik_validity_callback;
   if (group_state_validity_callback_)
