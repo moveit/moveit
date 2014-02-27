@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2014-02-27)
+------------------
 * adding get for active joints
 * Contributors: Acorn, Sachin Chitta
 
