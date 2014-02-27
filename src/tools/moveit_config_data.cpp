@@ -378,8 +378,8 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   emitter << YAML::Key << "joint_limits";
   emitter << YAML::Value << YAML::BeginMap;
 
-  // Union all the joints in groups
-  std::set<const robot_model::JointModel*> joints;
+  // Union all the joints in groups. Uses a custom comparator to allow the joints to be sorted by name
+  std::set<const robot_model::JointModel*, joint_model_compare> joints;
 
   // Loop through groups
   for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
