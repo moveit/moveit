@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.16 (2014-02-27)
+-------------------
 * back out problematic ogre fixes
 * robot_interaction: split InteractionHandler into its own file
 * Switched from isStateColliding to isStateValid

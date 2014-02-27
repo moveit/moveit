@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.16 (2014-02-27)
+-------------------
 * adding node handle to options in move_group_interface
 * adding get for active joints
 * Contributors: Sachin Chitta
