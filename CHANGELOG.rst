@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.7 (2014-02-27)
+------------------
 * Constraint samplers bug fix and improvements
 * fix for reverting PR #148
 * Fix joint variable location segfault
