@@ -1203,6 +1203,40 @@ bool PlanningGroupsWidget::saveGroupScreen()
         }
       }
     }
+
+    // Change all references to this group name in the end effectors screen
+    for( std::vector<srdf::Model::EndEffector>::iterator eef_it = config_data_->srdf_->end_effectors_.begin();
+         eef_it != config_data_->srdf_->end_effectors_.end();  ++eef_it )
+    {
+      // Check if this eef's parent group references old group name. if so, update it
+      if( eef_it->parent_group_.compare( old_group_name ) == 0 ) // same name
+      {
+        ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed eef '" << eef_it->name_ << "' to new parent group name " << group_name);
+        eef_it->parent_group_ = group_name; // updated
+      }
+
+      // Check if this eef's group references old group name. if so, update it
+      if( eef_it->component_group_.compare( old_group_name ) == 0 ) // same name
+      {
+        ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed eef '" << eef_it->name_ << "' to new group name " << group_name);
+        eef_it->component_group_ = group_name; // updated
+      }
+    }
+
+    // Change all references to this group name in the robot poses screen
+    for( std::vector<srdf::Model::GroupState>::iterator state_it = config_data_->srdf_->group_states_.begin();
+         state_it != config_data_->srdf_->group_states_.end();  ++state_it )
+    {
+      // Check if this eef's parent group references old group name. if so, update it
+      if( state_it->group_.compare( old_group_name ) == 0 ) // same name
+      {
+        ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed group state group '" << state_it->group_ << "' to new parent group name " << group_name);
+        state_it->group_ = group_name; // updated
+      }
+    }
+
+    // Now update the robot model based on our changed to the SRDF
+    config_data_->updateRobotModel();
   }
 
   // Save the group meta data
