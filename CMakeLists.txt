@@ -5,7 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 find_package(catkin REQUIRED 
 COMPONENTS
@@ -24,8 +23,10 @@ COMPONENTS
   visualization_msgs
   roslib
   rostime
+  cmake_modules
 )
 
+find_package(Eigen REQUIRED)
 find_package(octomap REQUIRED)
 
 find_package(PkgConfig REQUIRED)
