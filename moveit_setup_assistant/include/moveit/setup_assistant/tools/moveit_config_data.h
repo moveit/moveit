@@ -212,6 +212,20 @@ public:
    */
   std::string appendPaths( const std::string &path1, const std::string &path2 );
 
+  /**
+   * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
+   * \param jm1 - a pointer to the first joint model to compare
+   * \param jm2 - a pointer to the second joint model to compare
+   * \return bool of alphabetical sorting comparison
+   */
+  struct joint_model_compare
+  {
+    bool operator() (const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
+    {
+      return jm1->getName() < jm2->getName();
+    }
+  };
+
 private:
 
   // ******************************************************************************************
