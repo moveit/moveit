@@ -33,7 +33,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats */
+/* Author: Ioan Sucan, Sachin Chitta, Acorn Pooley, Mario Prats, Dave Coleman */
 
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
@@ -52,7 +52,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
   , dirty_collision_body_transforms_(NULL)
   , rng_(NULL)
 {
-   allocMemory();
+  allocMemory();
   
   // all transforms are dirty initially
   const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
