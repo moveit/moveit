@@ -2,6 +2,36 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2014-02-27)
+------------------
+* Constraint samplers bug fix and improvements
+* fix for reverting PR #148
+* Fix joint variable location segfault
+* Better enforce is_valid as a flag that indicated proper configuration has been completed, added comments and warning
+* Fix fcl dependency in CMakeLists.txt
+* Fixed asymmetry between planning scene read and write.
+* Improved error output for state conversion
+* Added doxygen for RobotState::attachBody() warning of danger.
+* Improved error output for state converstion
+* Debug and documentation
+* Added new virtual getName() function to constraint samplers
+* Made getName() const with static variable
+* KinematicsMetrics crashes when called with non-chain groups.
+* Added prefixes to debug messages
+* Documentation / comments
+* Fixed asymmetry between planning scene read and write.
+* Added new virtual getName function to constraint samplers for easier debugging and plugin management
+* KinematicsMetrics no longer crashes when called with non-chain groups.
+* Added doxygen for RobotState::attachBody() warning of danger.
+* resolve full path of fcl library
+  Because it seems to be common practice to ignore ${catkin_LIBRARY_DIRS}
+  it's more easy to resolve the full library path here instead.
+* Fix fcl dependency in CMakeLists.txt
+  See http://answers.ros.org/question/80936 for details
+  Interestingly collision_detection_fcl already uses the correct
+  variable ${LIBFCL_LIBRARIES} although it wasn't even set before
+* Contributors: Dave Coleman, Dave Hershberger, Ioan A Sucan, Sachin Chitta, sachinc, v4hn
+
 0.5.6 (2014-02-06)
 ------------------
 * fix mix-up comments, use getCollisionRobotUnpadded() since this function is checkCollisionUnpadded.
