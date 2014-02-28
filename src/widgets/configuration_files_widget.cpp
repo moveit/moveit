@@ -423,6 +423,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_    = boost::bind(&MoveItConfigData::outputSetupAssistantFile, config_data_, _1);
   gen_files_.push_back(file);
 
+  return true;
 }
 
 // ******************************************************************************************
@@ -901,6 +902,8 @@ void ConfigurationFilesWidget::loadTemplateStrings()
 bool ConfigurationFilesWidget::addTemplateString( const std::string& key, const std::string& value )
 {
   template_strings_.push_back( std::pair<std::string,std::string>(key,value) );
+
+  return true;
 }
 
 // ******************************************************************************************
