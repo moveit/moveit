@@ -34,7 +34,11 @@ pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 
-set(THIS_PACKAGE_INCLUDE_DIRS 
+set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
+file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
+
+set(THIS_PACKAGE_INCLUDE_DIRS
+    ${VERSION_FILE_PATH}
     background_processing/include
     exceptions/include
     backtrace/include
@@ -121,8 +125,8 @@ string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH 
 set(MOVEIT_VERSION_EXTRA "Alpha")
 set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit/version.h")
-install(FILES "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
+install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 # If the resources package is present, the tests can be built
 set(BUILD_MOVEIT_TESTS FALSE)
