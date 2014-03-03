@@ -89,5 +89,6 @@ install(
   FILES
     planning_request_adapters_plugin_description.xml
     kdl_kinematics_plugin_description.xml
+    srv_kinematics_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})
