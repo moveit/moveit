@@ -2,6 +2,55 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.16 (2014-02-27)
+-------------------
+* fix test
+  This was testing functionality that got removed.  Removed that part of the
+  test.
+* robot_interaction: add comments
+  Comment cryptic public function behavior.
+* robot_interaction: fix formatting
+  remove tabs and whitespace at the end of lines.
+* robot_interaction: fix comment formatting
+  Limit lines to 120 chars max (80 preferred in headers).
+* robot_interaction: fix setStateFromIK prototypes
+  use references instead of pointers.
+* robot_interaction: fix header problems
+  fix getRobotModel() bug
+  make internal functions private.
+* remove extraneous code
+* add missing headers
+* robot_interaction: Fix issues raised by Ioan
+* robot_interaction: use LockedRobotState
+  Fix a number of thread safety violations.
+* robot_interaction: add LockedRobotState and tests
+* robot_interaction: use KinematicOptionsMap
+  Fixes threading issues.
+  Separate the handling of kinematics options into a separate object which
+  enforces thread safe access.
+* robot_interaction: add KinematicOptions
+  KinematicOptions contains the parameters needed to call RobotState::setFromIK.
+  KinematicOptionsMap contains a map of string->KinematicOptions a default KinematicOptions.
+  These are useful in RobotInteraction with the group name as the key.
+* pull RobotInteraction structures out of class
+  The Generic, EndEffector, and Joint structures complicate the core of
+  RobotInteraction.  Pull them out to simplify the code.  This will also
+  help with future plans to make the core of RobotInteraction more
+  generic and flexible.
+* fix include guards to match moveit conventions
+* robot_interaction: include interaction_handler.h from robot_interaction.h
+  This is for backwards compatibility with code that only includes
+  robot_interaction.h
+* robot_interaction: split handler into own file
+* robot_interaction: split InteractionHandler into its own file
+* robot_interaction: make lock-protected members private
+  Since the lock is needed to access these and the lock is private it makes no
+  sense for them to be protected.
+* robot_interaction: add locking comments
+* robot_interaction: simplify code
+* robot_interaction: fix comments
+* Contributors: Acorn Pooley
+
 0.5.14 (2014-02-06)
 -------------------
 

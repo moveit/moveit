@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.16 (2014-02-27)
+-------------------
+* back out problematic ogre fixes
+* robot_interaction: split InteractionHandler into its own file
+* rviz: prepare for Ogre1.10
+* Contributors: Acorn Pooley
+
 0.5.14 (2014-02-06)
 -------------------
 * fixing name in changelog
