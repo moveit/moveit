@@ -34,6 +34,7 @@
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/> 
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/srv_kinematics_plugin_description.xml"/>
   </export>
 
 </package>
