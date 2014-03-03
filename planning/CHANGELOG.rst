@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.16 (2014-02-27)
+-------------------
+* Copy paste error fix
+* Contributors: fivef
+
 0.5.14 (2014-02-06)
 -------------------
 

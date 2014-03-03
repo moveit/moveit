@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.16 (2014-02-27)
+-------------------
+* empty state should be a diff state, otherwise attached objects are deleted
+* Contributors: sachinc
+
 0.5.14 (2014-02-06)
 -------------------
 

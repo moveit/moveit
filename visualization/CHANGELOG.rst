@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.16 (2014-02-27)
+-------------------
+* back out problematic ogre fixes
+* robot_interaction: split InteractionHandler into its own file
+* Switched from isStateColliding to isStateValid
+* Changed per PR review
+* Clean up debug output
+* Added ability to set a random <collision free> start/goal position
+* Merge branch 'hydro-devel' of https://github.com/ros-planning/moveit_ros into acorn_rviz_stereo
+* rviz: prepare for Ogre1.10
+* Contributors: Acorn Pooley, Dave Coleman
+
 0.5.14 (2014-02-06)
 -------------------
 

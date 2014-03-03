@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_planning_interface</name>
-  <version>0.5.15</version>
+  <version>0.5.16</version>
   <description>Components of MoveIt that offer simpler interfaces to planning and execution</description>
 
   <author email="isucan@willowgarage.com">Ioan Sucan</author>
