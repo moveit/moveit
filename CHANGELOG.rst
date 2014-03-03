@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.8 (2014-03-03)
+------------------
 * Dix bad includes after upstream catkin fix
 * update how we find eigen: this is needed for indigo
 * Contributors: Ioan A Sucan, Dirk Thomas, Vincent Rabaud
