@@ -181,8 +181,8 @@ class RobotCommander(object):
         if name in self.get_group_names():
             return self.get_group(name)
         elif name in self.get_joint_names():
-            return self.Joint(name)
+            return self.Joint(self,name)
         elif name in self.get_link_names():
-            return self.Link(name)
+            return self.Link(self,name)
         else:
             return object.__getattribute__(self, name)
