@@ -41,9 +41,57 @@
 #include <yaml-cpp/yaml.h> // outputing yaml config files
 #include <boost/filesystem.hpp>  // for creating folders/files
 #include <boost/algorithm/string.hpp> // for string find and replace in templates
+
+#ifdef HAVE_NEW_YAMLCPP
+#include <boost/optional.hpp> // optional
+#endif
+
 // ROS
 #include <ros/console.h>
 #include <ros/package.h> // for getting file path for loading images
+
+#ifdef HAVE_NEW_YAMLCPP
+namespace YAML {
+  // Create a legacy Iterator that can be used with the yaml-cpp 0.3 API.
+  class Iterator
+  {
+  public:
+    typedef YAML::iterator iterator_t;
+    typedef YAML::const_iterator const_iterator_t;
+
+    Iterator (iterator_t iter) : iter_ (iter)
+    {
+    }
+
+    const Node& first () const
+    {
+      return iter_->first;
+    }
+
+    const Node& second () const
+    {
+      return iter_->second;
+    }
+
+    detail::iterator_value operator*() { return *iter_; }
+
+    Iterator operator++() { return Iterator (++iter_); }
+
+    bool operator== (iterator_t const& other) const
+    {
+      return iter_ == other;
+    }
+
+    bool operator!= (iterator_t const& other) const
+    {
+      return iter_ != other;
+    }
+
+  private:
+    iterator_t iter_;
+  };
+}
+#endif
 
 namespace moveit_setup_assistant
 {
@@ -51,7 +99,18 @@ namespace moveit_setup_assistant
 // File system
 namespace fs = boost::filesystem;
 
+
 #ifdef HAVE_NEW_YAMLCPP
+typedef boost::optional<YAML::Node> yaml_node_t;
+
+// Helper function to find a value (yaml-cpp 0.5)
+template <typename T>
+yaml_node_t findValue (const YAML::Node& node, const T& key)
+{
+  if (node[key]) return node[key];
+  return yaml_node_t ();
+}
+
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
 // added to provide support for code written under the yaml-cpp 0.3 API.
 template<typename T>
@@ -59,7 +118,18 @@ void operator >> (const YAML::Node& node, T& i)
 {
   i = node.as<T>();
 }
+
+#else
+typedef const YAML::Node* yaml_node_t;
+
+// Helper function to find a value (yaml-cpp 0.3)
+template <typename T>
+yaml_node_t findValue (const YAML::Node& node, const T& key)
+{
+  return node.FindValue (key);
+}
 #endif
+
 
 // yaml-cpp 0.5 also changed how you load the YAML document.  This
 // function hides the changes.
@@ -363,18 +433,18 @@ bool MoveItConfigData::outputFakeControllersYAML( const std::string& file_path )
     emitter << YAML::Value << "fake_" + group_it->name_ + "_controller";
     emitter << YAML::Key << "joints";
     emitter << YAML::Value << YAML::BeginSeq;
-    
+
     // Iterate through the joints
     for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
          joint_it != joint_models.end(); ++joint_it)
     {
       emitter << (*joint_it)->getName();
     }
-    emitter << YAML::EndSeq; 
+    emitter << YAML::EndSeq;
     emitter << YAML::EndMap;
   }
-  emitter << YAML::EndSeq; 
-  emitter << YAML::EndMap; 
+  emitter << YAML::EndSeq;
+  emitter << YAML::EndMap;
 
   std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
   if( !output_stream.good() )
@@ -441,7 +511,7 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     // Output property
     emitter << YAML::Key << "max_velocity";
     emitter << YAML::Value << std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
-    
+
     // Output property
     emitter << YAML::Key << "has_acceleration_limits";
     if (b.acceleration_bounded_)
@@ -523,6 +593,8 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
+    yaml_node_t prop_name;
+
     // Loop through all groups
     for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
     {
@@ -533,13 +605,13 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       GroupMetaData new_meta_data;
 
       // kinematics_solver
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver" ) )
+      if( prop_name = findValue( group_it.second(), "kinematics_solver" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_;
       }
 
       // kinematics_solver_search_resolution
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_search_resolution" ) )
+      if( prop_name = findValue( group_it.second(), "kinematics_solver_search_resolution" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
       }
@@ -549,7 +621,7 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       }
 
       // kinematics_solver_timeout
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_timeout" ) )
+      if( prop_name = findValue( group_it.second(), "kinematics_solver_timeout" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
       }
@@ -559,7 +631,7 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       }
 
       // kinematics_solver_attempts
-      if( const YAML::Node *prop_name = group_it.second().FindValue( "kinematics_solver_attempts" ) )
+      if( prop_name = findValue( group_it.second(), "kinematics_solver_attempts" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_attempts_;
       }
@@ -600,14 +672,17 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
+    yaml_node_t title_node, urdf_node, package_node, srdf_node,
+                relative_node, config_node, timestamp_node;
+
     // Get title node
-    if( const YAML::Node *title_node =doc.FindValue( "moveit_setup_assistant_config" ) )
+    if( title_node = findValue( doc, "moveit_setup_assistant_config" ) )
     {
       // URDF Properties
-      if( const YAML::Node *urdf_node = title_node->FindValue( "URDF" ) )
+      if( urdf_node = findValue( *title_node, "URDF" ) )
       {
         // Load first property
-        if( const YAML::Node *package_node = urdf_node->FindValue( "package" ) )
+        if( package_node = findValue( *urdf_node, "package" ) )
         {
           *package_node >> urdf_pkg_name_;
         }
@@ -617,7 +692,7 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
         }
 
         // Load second property
-        if( const YAML::Node *relative_node = urdf_node->FindValue( "relative_path" ) )
+        if( relative_node = findValue( *urdf_node, "relative_path" ) )
         {
           *relative_node >> urdf_pkg_relative_path_;
         }
@@ -627,10 +702,10 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
         }
       }
       // SRDF Properties
-      if( const YAML::Node *srdf_node = title_node->FindValue( "SRDF" ) )
+      if( srdf_node = findValue( *title_node, "SRDF" ) )
       {
         // Load first property
-        if( const YAML::Node *relative_node = srdf_node->FindValue( "relative_path" ) )
+        if( relative_node = findValue( *srdf_node, "relative_path" ) )
         {
           *relative_node >> srdf_pkg_relative_path_;
         }
@@ -640,10 +715,10 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
         }
       }
       // Package generation time
-      if( const YAML::Node *config_node = title_node->FindValue( "CONFIG" ) )
+      if( config_node = findValue( *title_node, "CONFIG" ) )
       {
         // Load first property
-        if( const YAML::Node *timestamp_node = config_node->FindValue( "generated_timestamp" ) )
+        if( timestamp_node = findValue( *config_node, "generated_timestamp" ) )
         {
           *timestamp_node >> config_pkg_generated_timestamp_;
         }
