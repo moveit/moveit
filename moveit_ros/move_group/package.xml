@@ -2,11 +2,11 @@
   <name>moveit_ros_move_group</name>
   <version>0.5.16</version>
   <description>The move_group node for MoveIt</description>
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
   <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
-  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
 
   <license>BSD</license>
 
