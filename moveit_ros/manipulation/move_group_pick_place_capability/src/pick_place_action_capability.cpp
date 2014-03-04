@@ -485,7 +485,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
           goal.possible_grasps[i].pre_grasp_approach.desired_distance = response.grasps[i].approach.desired_distance;
           goal.possible_grasps[i].pre_grasp_approach.min_distance = response.grasps[i].approach.min_distance;
 
-          //  hard-code in the decision that after grasping, the object is lifted "up" (against gravity)
+          //  here we hard-code in the decision that after grasping, the object is lifted "up" (against gravity)
           //  we expect that in the planning frame Z points up
           goal.possible_grasps[i].post_grasp_retreat.direction.vector.x = 0.0;
           goal.possible_grasps[i].post_grasp_retreat.direction.vector.y = 0.0;
