@@ -62,6 +62,9 @@ script: # All commands must exit with code 0 on success. Anything else is consid
   # Go to build dir so can use straight "make"
   - cd build
 
+  # Build all tests.
+  - make tests
+
   # Currently not all tests in moveit_core are passing, so I'm
   # automating the running of the ones that *are* passing to prevent
   # regressions in those.  When the other tests are fixed, these
@@ -71,11 +74,16 @@ script: # All commands must exit with code 0 on success. Anything else is consid
   - make run_tests_moveit_core_gtest_test_distance_field
   - make run_tests_moveit_core_gtest_test_robot_model
   - make run_tests_moveit_core_gtest_test_robot_state
+  - make run_tests_moveit_core_gtest_test_robot_state_complex
   - make run_tests_moveit_core_gtest_test_transforms
   - make run_tests_moveit_core_gtest_test_voxel_grid
   - make run_tests_moveit_core_gtest_test_world
   - make run_tests_moveit_core_gtest_test_world_diff
   
+  # Run downstream tests as well.
+  # - make run_tests_moveit_ros_perception # this requires glut and therefore a video card.
+  - make run_tests_pr2_moveit_tests
+
   # "make run_tests" and friends return success even when tests fail,
   # so here we run catkin_test_results which summarizes the results
   # and returns a result code indicating whether there were any
