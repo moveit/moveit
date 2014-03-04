@@ -128,15 +128,6 @@ message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
-# If the resources package is present, the tests can be built
-set(BUILD_MOVEIT_TESTS FALSE)
-find_package(moveit_resources QUIET)
-if (${moveit_resources_FOUND})
-  message(STATUS " *** Building MoveIt! Tests ***")
-  include_directories(${moveit_resources_INCLUDE_DIRS})
-  set(BUILD_MOVEIT_TESTS TRUE)
-endif()
-
 add_subdirectory(version)
 add_subdirectory(macros)
 add_subdirectory(backtrace)

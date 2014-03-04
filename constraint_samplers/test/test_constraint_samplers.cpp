@@ -34,7 +34,6 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/test_resources/config.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/default_constraint_samplers.h>
@@ -45,6 +44,7 @@
 #include <moveit/robot_state/conversions.h>
 
 #include <geometric_shapes/shape_operations.h>
+#include <ros/package.h>
 #include <visualization_msgs/MarkerArray.h>
 
 #include <gtest/gtest.h>
@@ -75,9 +75,17 @@ protected:
 
   virtual void SetUp()
   {
+    std::string resource_dir = ros::package::getPath("moveit_resources");
+    if(resource_dir == "")
+    {
+      FAIL() << "Failed to find package moveit_resources.";
+      return;
+    }
+    boost::filesystem::path res_path(resource_dir);
+
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file((boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "urdf/robot.xml").string().c_str(), std::fstream::in);
+    std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -89,7 +97,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (boost::filesystem::path(MOVEIT_TEST_RESOURCES_DIR) / "srdf/robot.xml").string());
+    srdf_model->initFile(*urdf_model, (res_path / "test/srdf/robot.xml").string());
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
