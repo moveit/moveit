@@ -81,7 +81,7 @@ script: # All commands must exit with code 0 on success. Anything else is consid
   - make run_tests_moveit_core_gtest_test_world_diff
   
   # Run downstream tests as well.
-  - make run_tests_moveit_ros_perception
+  # - make run_tests_moveit_ros_perception # this requires glut and therefore a video card.
   - make run_tests_pr2_moveit_tests
 
   # "make run_tests" and friends return success even when tests fail,
