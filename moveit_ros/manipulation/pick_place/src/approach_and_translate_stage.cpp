@@ -39,64 +39,20 @@
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
-#include <dynamic_reconfigure/server.h>
-#include <moveit_ros_manipulation/PickPlaceDynamicReconfigureConfig.h>
 
 namespace pick_place
 {
-
-namespace
-{
-using namespace moveit_ros_manipulation;
-
-class DynamicReconfigureImpl
-{
-public:
-
-  DynamicReconfigureImpl() : dynamic_reconfigure_server_(ros::NodeHandle("~/pick_place")),
-                             max_goal_count_(5),
-                             max_fail_(3),
-                             max_step_(0.02),
-                             jump_factor_(2.0)
-  {
-    dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
-  }
-
-  unsigned int max_goal_count_;
-  unsigned int max_fail_;
-  double max_step_;
-  double jump_factor_;
-
-private:
-
-  void dynamicReconfigureCallback(PickPlaceDynamicReconfigureConfig &config, uint32_t level)
-  {
-    max_goal_count_ = config.max_attempted_states_per_pose;
-    max_fail_ = config.max_consecutive_fail_attempts;
-    max_step_ = config.cartesian_motion_step_size;
-    jump_factor_ = config.jump_factor;
-  }
-
-  dynamic_reconfigure::Server<PickPlaceDynamicReconfigureConfig> dynamic_reconfigure_server_;
-};
-
-static DynamicReconfigureImpl* PICK_PLACE_PARAMS = NULL;
-}
-
+  
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &scene,
                                                      const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
   ManipulationStage("approach & translate"),
   planning_scene_(scene),
   collision_matrix_(collision_matrix)
 {
-  if(PICK_PLACE_PARAMS == NULL)
-  {
-    PICK_PLACE_PARAMS = new DynamicReconfigureImpl;
-  }
-  max_goal_count_ = PICK_PLACE_PARAMS->max_goal_count_;
-  max_fail_ = PICK_PLACE_PARAMS->max_fail_;
-  max_step_ = PICK_PLACE_PARAMS->max_step_;
-  jump_factor_ = PICK_PLACE_PARAMS->jump_factor_;
+  max_goal_count_ = GetGlobalPickPlaceParams().max_goal_count_;
+  max_fail_ = GetGlobalPickPlaceParams().max_fail_;
+  max_step_ = GetGlobalPickPlaceParams().max_step_;
+  jump_factor_ = GetGlobalPickPlaceParams().jump_factor_;
 }
 
 namespace
