@@ -38,6 +38,7 @@
 #define MOVEIT_PICK_PLACE_PICK_PLACE_
 
 #include <moveit/pick_place/manipulation_pipeline.h>
+#include <moveit/pick_place/pick_place_params.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/PickupAction.h>
