@@ -3,11 +3,11 @@
   <version>0.5.16</version>
   <description>Components of MoveIt connecting to perception</description>
 
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="gedikli@willowgarage.com">Suat Gedikli</author>
   <author email="jbinney@willowgarage.com">Jon Binney</author>
 
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>

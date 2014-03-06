@@ -3,11 +3,11 @@
   <name>moveit_ros_planning</name>
   <version>0.5.16</version>
   <description>Planning components of MoveIt that use ROS</description>
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
   <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
 
   <license>BSD</license>
 

@@ -3,8 +3,8 @@
   <version>0.5.16</version>
   <description>Components of MoveIt that offer interaction via interactive markers</description>
 
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <author email="isucan@google.com">Ioan Sucan</author>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
 
   <license>BSD</license>
 
