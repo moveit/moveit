@@ -43,6 +43,14 @@
 #include <console_bridge/console.h>
 #include <string>
 
+namespace moveit
+{
+namespace core
+{
+class JointModelGroup;
+}
+}
+
 /** @brief API for forward and inverse kinematics */
 namespace kinematics
 {
@@ -393,6 +401,16 @@ public:
    * @brief  Return all the link names in the order they are represented internally
    */
   virtual const std::vector<std::string>& getLinkNames() const = 0;
+
+
+  /**
+   * \brief Only kinematic solvers know if they support a particular kinematic configuration, put the burden on them
+   *        to return an explanation of why they are unable to service a joint model group
+   *        Default implementation for legacy solvers provided
+   * \param JointModelGroup - the planning group being proposed to be solved by this IK solver
+   * \return a string specifying the reason the joint model group is not supported, or an empty string if supported
+   */
+  virtual const std::string supportsGroup(const moveit::core::JointModelGroup *jmg) const;
 
   /**
    * @brief  Set the search discretization
