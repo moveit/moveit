@@ -51,7 +51,7 @@ namespace core
 namespace
 {
 
-static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state, std::set<std::string> *missing)
+static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
   if (joint_state.name.size() != joint_state.position.size())
   {
@@ -61,14 +61,6 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, 
   }
   
   state.setVariableValues(joint_state);
-  if (missing)
-  {
-    std::vector<std::string> missing_variables;
-    state.getRobotModel()->getMissingVariableNames(joint_state.name, missing_variables);
-    missing->clear();
-    for (std::size_t i = 0; i < missing_variables.size(); ++i)
-      missing->insert(missing_variables[i]);
-  }
   
   return true;
 }
@@ -335,8 +327,7 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
 
 static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
 {
-  std::set<std::string> missing;
-  bool result1 = _jointStateToRobotState(robot_state.joint_state, state, &missing);
+  bool result1 = _jointStateToRobotState(robot_state.joint_state, state);
   bool result2 = _multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
 
   if (copy_attached_bodies)
@@ -347,23 +338,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
       _msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
   }
   
-  if (result1 && result2)
-  {
-    if (!missing.empty())
-      for (std::size_t i = 0 ; i < robot_state.multi_dof_joint_state.joint_names.size(); ++i)
-      {
-        const JointModel *jm = state.getJointModel(robot_state.multi_dof_joint_state.joint_names[i]);
-        if (jm)
-        {
-          const std::vector<std::string> &vnames = jm->getVariableNames();
-          for (std::size_t i = 0 ; i < vnames.size(); ++i)
-            missing.erase(vnames[i]);
-        }
-      }
-    return true;
-  }
-  else
-    return false;
+  return result1 && result2;
 }
 
 }
@@ -381,7 +356,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
 
 bool moveit::core::jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state)
 {
-  bool result = _jointStateToRobotState(joint_state, state, NULL);
+  bool result = _jointStateToRobotState(joint_state, state);
   state.update();
   return result;
 }
