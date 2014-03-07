@@ -35,6 +35,7 @@
 /* Author: Sachin Chitta, Dave Coleman */
 
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/robot_model/joint_model_group.h>
 
 const double kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double kinematics::KinematicsBase::DEFAULT_TIMEOUT = 1.0;
@@ -104,4 +105,15 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
 std::string kinematics::KinematicsBase::removeSlash(const std::string &str) const
 {
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
+}
+
+const std::string kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg) const
+{
+  // Default implementation for legacy solvers:
+  if (!jmg->isChain())
+  {
+    return "This plugin only supports joint groups which are chains";
+  }
+
+  return "";
 }
