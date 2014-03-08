@@ -1661,12 +1661,18 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
-      traj.insert(traj.end(), waypoint_traj.begin(), waypoint_traj.end());
+      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      if(i > 0)
+        std::advance(start, 1);
+      traj.insert(traj.end(), start, waypoint_traj.end());
     }
     else
     {
       percentage_solved += wp_percentage_solved / (double)waypoints.size();
-      traj.insert(traj.end(), waypoint_traj.begin(), waypoint_traj.end());
+      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      if(i > 0)
+        std::advance(start, 1);
+      traj.insert(traj.end(), start, waypoint_traj.end());
       break;
     }
   }
