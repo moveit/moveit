@@ -1662,7 +1662,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
       std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
-      if(i > 0)
+      if(i > 0 && !waypoint_traj.empty())
         std::advance(start, 1);
       traj.insert(traj.end(), start, waypoint_traj.end());
     }
@@ -1670,7 +1670,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
     {
       percentage_solved += wp_percentage_solved / (double)waypoints.size();
       std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
-      if(i > 0)
+      if(i > 0 && !waypoint_traj.empty())
         std::advance(start, 1);
       traj.insert(traj.end(), start, waypoint_traj.end());
       break;
