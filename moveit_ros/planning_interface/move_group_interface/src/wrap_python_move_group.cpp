@@ -352,6 +352,13 @@ public:
       py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
     return pick(object, grasps);
   }
+
+  void setPathConstraintsFromMsg(const std::string &constraints_str)
+  {
+      moveit_msgs::Constraints constraints_msg;
+      py_bindings_tools::deserializeMsg(constraints_str,constraints_msg);
+      setPathConstraints(constraints_msg);
+  } 
   
 };
 
@@ -441,6 +448,7 @@ static void wrap_move_group_interface()
 
   bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
   MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
+  MoveGroupClass.def("set_path_constraints_by_msgs", &MoveGroupWrapper::setPathConstraintsFromMsg);
 
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints);
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
