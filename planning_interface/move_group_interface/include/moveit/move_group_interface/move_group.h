@@ -718,7 +718,9 @@ public:
   /** \brief Get the names of the constraints known as read from the MongoDB server, if a connection was achieved. */
   std::vector<std::string> getKnownConstraints() const;
 
-  /** \brief Get the actual set of constraints for this MoveGroup. **/
+  /** \brief Get the actual set of constraints for this MoveGroup. 
+      @return A copy of the current path constraints set for this move_group
+      */
   moveit_msgs::Constraints getPathConstraints() const;
 
   /** \brief Specify a set of path constraints to use.
