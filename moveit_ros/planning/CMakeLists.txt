@@ -42,6 +42,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     trajectory_execution_manager/include
     plan_execution/include
     kdl_kinematics_plugin/include
+    srv_kinematics_plugin/include
 )
 
 catkin_package(
@@ -75,6 +76,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(rdf_loader)
 add_subdirectory(kdl_kinematics_plugin)
+add_subdirectory(srv_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(robot_model_loader)
 add_subdirectory(constraint_sampler_manager_loader)
