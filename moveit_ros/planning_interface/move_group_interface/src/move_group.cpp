@@ -916,6 +916,14 @@ public:
     return c;
   }
 
+  moveit_msgs::Constraints getPathConstraints() const
+  {
+    if (path_constraints_)
+       return *path_constraints_;
+    else
+       return moveit_msgs::Constraints();
+  }
+
   void initializeConstraintsStorage(const std::string &host, unsigned int port)
   {
     initializing_constraints_ = true;
@@ -1637,6 +1645,11 @@ void moveit::planning_interface::MoveGroup::allowReplanning(bool flag)
 std::vector<std::string> moveit::planning_interface::MoveGroup::getKnownConstraints() const
 {
   return impl_->getKnownConstraints();
+}
+
+moveit_msgs::Constraints moveit::planning_interface::MoveGroup::getPathConstraints() const 
+{
+   return impl_->getPathConstraints();
 }
 
 bool moveit::planning_interface::MoveGroup::setPathConstraints(const std::string &constraint)
