@@ -84,8 +84,8 @@ int main(int argc, char **argv)
 
   // Load Qt Widget
   moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
-  saw.setMinimumWidth(1024);
-  saw.setMinimumHeight(768);
+  saw.setMinimumWidth(980);
+  saw.setMinimumHeight(700);
   //  saw.setWindowState( Qt::WindowMaximized );
 
   saw.show();
