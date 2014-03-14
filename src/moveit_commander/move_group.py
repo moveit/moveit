@@ -33,7 +33,7 @@
 # Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
-from moveit_msgs.msg import RobotTrajectory, Grasp
+from moveit_msgs.msg import RobotTrajectory, Grasp, Constraints
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -339,12 +339,21 @@ class MoveGroupCommander(object):
         """ Get a list of names for the constraints specific for this group, as read from the warehouse """
         return self._g.get_known_constraints()
 
+    def get_path_constraints(self):
+        """ Get the acutal path constraints in form of a moveit_msgs.msgs.Constraints """
+        c = Constraints()
+        c_str = self._g.get_path_constraints()
+        conversions.msg_from_string(c,c_str)
+        return c
+
     def set_path_constraints(self, value):
         """ Specify the path constraints to be used (as read from the database) """
         if value == None:
             self.clear_path_constraints()
         else:
-            if not self._g.set_path_constraints(value):
+            if type(value) is Constraints:
+                self._g.set_path_constraints_from_msg(conversions.msg_to_string(value))
+            elif not self._g.set_path_constraints(value):
                 raise MoveItCommanderException("Unable to set path constraints " + value)
 
     def clear_path_constraints(self):
