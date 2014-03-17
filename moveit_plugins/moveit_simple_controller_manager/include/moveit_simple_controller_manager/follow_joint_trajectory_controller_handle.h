@@ -66,8 +66,7 @@ public:
 
     if (!trajectory.multi_dof_joint_trajectory.points.empty())
     {
-      ROS_ERROR("FollowJointTrajectoryController: cannot execute multi-dof trajectories.");
-      return false;
+      ROS_WARN("FollowJointTrajectoryController: cannot execute multi-dof trajectories.");
     }
 
     if (done_)
