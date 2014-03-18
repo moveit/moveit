@@ -22,7 +22,7 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/
   DESTINATION include)
 
-if (${BUILD_MOVEIT_TESTS})
+if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl)
 
   catkin_add_gtest(test_constraint_samplers
