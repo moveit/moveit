@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Sachin Chitta */
+/* Author: Sachin Chitta, Dave Coleman */
 
 #ifndef MOVEIT_KINEMATICS_BASE_KINEMATICS_BASE_
 #define MOVEIT_KINEMATICS_BASE_KINEMATICS_BASE_
