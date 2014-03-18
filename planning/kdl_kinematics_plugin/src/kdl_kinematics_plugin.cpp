@@ -167,7 +167,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     ROS_ERROR_NAMED("kdl","Could not initialize tree object");
     return false;
   }
-  if (!kdl_tree.getChain(base_frame_, tip_frame_, kdl_chain_))
+  if (!kdl_tree.getChain(base_frame_, getTipFrame(), kdl_chain_))
   {
     ROS_ERROR_NAMED("kdl","Could not initialize chain object");
     return false;
@@ -187,12 +187,12 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   fk_chain_info_.joint_names = ik_chain_info_.joint_names;
   fk_chain_info_.limits = ik_chain_info_.limits;
 
-  if(!joint_model_group->hasLinkModel(tip_frame_))
+  if(!joint_model_group->hasLinkModel(getTipFrame()))
   {
     ROS_ERROR_NAMED("kdl","Could not find tip name in joint group '%s'", group_name.c_str());
     return false;
   }
-  ik_chain_info_.link_names.push_back(tip_frame_);
+  ik_chain_info_.link_names.push_back(getTipFrame());
   fk_chain_info_.link_names = joint_model_group->getLinkModelNames();
 
   joint_min_.resize(ik_chain_info_.limits.size());
@@ -382,7 +382,7 @@ bool KDLKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
 
   return searchPositionIK(ik_pose,
                           ik_seed_state,
-              default_timeout_,
+                          default_timeout_,
                           solution,
                           solution_callback,
                           error_code,
@@ -486,14 +486,14 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
 
   if(ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR_STREAM("Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED("kdl","Seed state must have size " << dimension_ << " instead of size " << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
   if(!consistency_limits.empty() && consistency_limits.size() != dimension_)
   {
-    ROS_ERROR_STREAM("Consistency limits be empty or must have size " << dimension_ << " instead of size " << consistency_limits.size());
+    ROS_ERROR_STREAM_NAMED("kdl","Consistency limits be empty or must have size " << dimension_ << " instead of size " << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -524,7 +524,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
   KDL::Frame pose_desired;
   tf::poseMsgToKDL(ik_pose, pose_desired);
 
-  ROS_DEBUG_STREAM("searchPositionIK2: Position request pose is " <<
+  ROS_DEBUG_STREAM_NAMED("kdl","searchPositionIK2: Position request pose is " <<
                    ik_pose.position.x << " " <<
                    ik_pose.position.y << " " <<
                    ik_pose.position.z << " " <<
@@ -583,7 +583,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
 
     if(error_code.val == error_code.SUCCESS)
     {
-      ROS_DEBUG_STREAM("Solved after " << counter << " iterations");
+      ROS_DEBUG_STREAM_NAMED("kdl","Solved after " << counter << " iterations");
       ik_solver_vel.unlockRedundantJoints();
       return true;
     }

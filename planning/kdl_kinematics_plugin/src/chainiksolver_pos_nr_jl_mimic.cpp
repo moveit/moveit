@@ -38,12 +38,12 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   { 
     mimic_joints[i].reset(i);
   }
-  ROS_DEBUG("Limits");
+  ROS_DEBUG_NAMED("kdl","Limits");
   for(std::size_t i=0; i < q_min.rows(); ++i)
   { 
-    ROS_DEBUG("%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
+    ROS_DEBUG_NAMED("kdl","%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
   }
-  ROS_DEBUG(" ");
+  ROS_DEBUG_NAMED("kdl"," ");
 }
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
