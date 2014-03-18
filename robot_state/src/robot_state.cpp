@@ -1389,7 +1389,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
-    // \todo no function call that accepts multiple poses and no callback has been created. is it really needed?
     if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options))
     {
       std::vector<double> solution(bij.size());
