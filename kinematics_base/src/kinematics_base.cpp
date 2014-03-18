@@ -107,13 +107,18 @@ std::string kinematics::KinematicsBase::removeSlash(const std::string &str) cons
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
 }
 
-const std::string kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg) const
+const bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg,
+                                                     std::string* error_text_out) const
 {
   // Default implementation for legacy solvers:
   if (!jmg->isChain())
   {
-    return "This plugin only supports joint groups which are chains";
+    if(error_text_out)
+    {
+      *error_text_out = "This plugin only supports joint groups which are chains";
+    }
+    return false;
   }
 
-  return "";
+  return true;
 }

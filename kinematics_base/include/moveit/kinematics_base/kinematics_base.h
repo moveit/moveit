@@ -404,13 +404,23 @@ public:
 
 
   /**
-   * \brief Only kinematic solvers know if they support a particular kinematic configuration, put the burden on them
-   *        to return an explanation of why they are unable to service a joint model group
-   *        Default implementation for legacy solvers provided
-   * \param JointModelGroup - the planning group being proposed to be solved by this IK solver
-   * \return a string specifying the reason the joint model group is not supported, or an empty string if supported
+   * \brief Check if this solver supports a given JointModelGroup.
+   *
+   * Override this function to check if your kinematics solver
+   * implementation supports the given group.
+   *
+   * The default implementation just returns jmg->isChain(), since
+   * solvers written before this function was added all supported only
+   * chain groups.
+   *
+   * \param jmg the planning group being proposed to be solved by this IK solver
+   * \param error_text_out If this pointer is non-null and the group is
+   *          not supported, this is filled with a description of why it's not
+   *          supported.
+   * \return True if the group is supported, false if not.
    */
-  virtual const std::string supportsGroup(const moveit::core::JointModelGroup *jmg) const;
+  virtual const bool supportsGroup(const moveit::core::JointModelGroup *jmg,
+                                   std::string* error_text_out = NULL) const;
 
   /**
    * @brief  Set the search discretization
