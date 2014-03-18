@@ -554,10 +554,7 @@ bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string &tip) co
 {
   const kinematics::KinematicsBaseConstPtr& solver = getSolverInstance();
   if (!solver || tip.empty())
-  {
-    logError("Cannot set state, no solver or tip is empty");
     return false;
-  }
 
   const std::vector<std::string> &tip_frames = solver->getTipFrames();
 
