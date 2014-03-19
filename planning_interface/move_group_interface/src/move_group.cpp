@@ -83,7 +83,10 @@ class MoveGroup::MoveGroupImpl
 {
 public:
 
-  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server) : opt_(opt), tf_(tf), node_handle_(opt.node_handle_)
+  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
+    : opt_(opt),
+      node_handle_(opt.node_handle_),
+      tf_(tf)
   {
     robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
@@ -123,13 +126,19 @@ public:
     
     current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_);
     
-    move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(move_group::MOVE_ACTION, false));
+    move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(node_handle_,
+                                                                                              move_group::MOVE_ACTION,
+                                                                                              false));
     waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
     
-    pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(move_group::PICKUP_ACTION, false));
+    pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(node_handle_,
+                                                                                           move_group::PICKUP_ACTION,
+                                                                                           false));
     waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
     
-    place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(move_group::PLACE_ACTION, false));
+    place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(node_handle_,
+                                                                                           move_group::PLACE_ACTION,
+                                                                                           false));
     waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
     
     execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
