@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  * 
+ *  Copyright (c) 2014, SRI International
  *  Copyright (c) 2013, Ioan A. Sucan
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
@@ -33,7 +34,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #include <stdexcept>
 #include <moveit/warehouse/constraints_storage.h>
@@ -459,7 +460,7 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+  MoveItErrorCode place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
   {
     std::vector<moveit_msgs::PlaceLocation> locations;
     for (std::size_t i = 0; i < poses.size(); ++i)
@@ -483,17 +484,17 @@ public:
     return place(object, locations);
   }
 
-  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
+  MoveItErrorCode place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
   {
     if (!place_action_client_)
     {
       ROS_ERROR_STREAM("Place action client not found");
-      return false;
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     if (!place_action_client_->isServerConnected())
     {
       ROS_ERROR_STREAM("Place action server not connected");
-      return false;
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     moveit_msgs::PlaceGoal goal;
     constructGoal(goal, object);
@@ -513,26 +514,26 @@ public:
     }
     if (place_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      return true;
+      return MoveItErrorCode(place_action_client_->getResult()->error_code);
     }
     else
     {
       ROS_WARN_STREAM("Fail: " << place_action_client_->getState().toString() << ": " << place_action_client_->getState().getText());
-      return false;
+      return MoveItErrorCode(place_action_client_->getResult()->error_code);
     }
   }
 
-  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
+  MoveItErrorCode pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
   {
     if (!pick_action_client_)
     {
       ROS_ERROR_STREAM("Pick action client not found");
-      return false;
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     if (!pick_action_client_->isServerConnected())
     {
       ROS_ERROR_STREAM("Pick action server not connected");
-      return false;
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     moveit_msgs::PickupGoal goal;
     constructGoal(goal, object);
@@ -551,21 +552,25 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      return true;
+      return MoveItErrorCode(pick_action_client_->getResult()->error_code);
     }
     else
     {
       ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
-      return false;
+      return MoveItErrorCode(pick_action_client_->getResult()->error_code);
     }
   }
 
-  bool plan(Plan &plan)
+  MoveItErrorCode plan(Plan &plan)
   {
     if (!move_action_client_)
-      return false;
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
     if (!move_action_client_->isServerConnected())
-      return false;
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
 
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
@@ -585,21 +590,25 @@ public:
       plan.trajectory_ = move_action_client_->getResult()->planned_trajectory;
       plan.start_state_ = move_action_client_->getResult()->trajectory_start;
       plan.planning_time_ = move_action_client_->getResult()->planning_time;
-      return true;
+      return MoveItErrorCode(move_action_client_->getResult()->error_code);
     }
     else
     {
       ROS_WARN_STREAM("Fail: " << move_action_client_->getState().toString() << ": " << move_action_client_->getState().getText());
-      return false;
+      return MoveItErrorCode(move_action_client_->getResult()->error_code);
     }
   }
 
-  bool move(bool wait)
+  MoveItErrorCode move(bool wait)
   {
     if (!move_action_client_)
-      return false;
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }    
     if (!move_action_client_->isServerConnected())
-      return false;
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
 
     moveit_msgs::MoveGroupGoal goal;
     constructGoal(goal);
@@ -611,8 +620,10 @@ public:
     goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
     move_action_client_->sendGoal(goal);
-    if (!wait)
-      return true;
+    if (!wait)    
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::SUCCESS);
+    }
 
     if (!move_action_client_->waitForResult())
     {
@@ -620,28 +631,34 @@ public:
     }
 
     if (move_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      return true;
+    {
+      return MoveItErrorCode(move_action_client_->getResult()->error_code);
+    }    
     else
     {
       ROS_INFO_STREAM(move_action_client_->getState().toString() << ": " << move_action_client_->getState().getText());
-      return false;
+      return MoveItErrorCode(move_action_client_->getResult()->error_code);
     }
   }
 
-  bool execute(const Plan &plan, bool wait)
+  MoveItErrorCode execute(const Plan &plan, bool wait)
   {
     moveit_msgs::ExecuteKnownTrajectory::Request req;
     moveit_msgs::ExecuteKnownTrajectory::Response res;
     req.trajectory = plan.trajectory_;
     req.wait_for_execution = wait;
     if (execute_service_.call(req, res))
-      return res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+    {      
+      return MoveItErrorCode(res.error_code);
+    }    
     else
-      return false;
+    {
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }    
   }
 
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
-                              moveit_msgs::RobotTrajectory &msg, bool avoid_collisions)
+                              moveit_msgs::RobotTrajectory &msg, bool avoid_collisions, moveit_msgs::MoveItErrorCodes &error_code)
   {
     moveit_msgs::GetCartesianPath::Request req;
     moveit_msgs::GetCartesianPath::Response res;
@@ -658,6 +675,7 @@ public:
 
     if (cartesian_path_service_.call(req, res))
     {
+      error_code = res.error_code;      
       if (res.error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
       {
         msg = res.solution;
@@ -667,7 +685,10 @@ public:
         return -1.0;
     }
     else
+    {      
+      error_code.val =  error_code.FAILURE;      
       return -1.0;
+    }    
   }
 
   void stop()
@@ -1056,70 +1077,79 @@ void moveit::planning_interface::MoveGroup::setNumPlanningAttempts(unsigned int 
   impl_->setNumPlanningAttempts(num_planning_attempts);
 }
 
-bool moveit::planning_interface::MoveGroup::asyncMove()
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::asyncMove()
 {
   return impl_->move(false);
 }
 
-bool moveit::planning_interface::MoveGroup::move()
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::move()
 {
   return impl_->move(true);
 }
 
-bool moveit::planning_interface::MoveGroup::asyncExecute(const Plan &plan)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::asyncExecute(const Plan &plan)
 {
   return impl_->execute(plan, false);
 }
 
-bool moveit::planning_interface::MoveGroup::execute(const Plan &plan)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::execute(const Plan &plan)
 {
   return impl_->execute(plan, true);
 }
 
-bool moveit::planning_interface::MoveGroup::plan(Plan &plan)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::plan(Plan &plan)
 {
   return impl_->plan(plan);
 }
 
-bool moveit::planning_interface::MoveGroup::pick(const std::string &object)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::pick(const std::string &object)
 {
   return impl_->pick(object, std::vector<moveit_msgs::Grasp>());
 }
 
-bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const moveit_msgs::Grasp &grasp)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::pick(const std::string &object, const moveit_msgs::Grasp &grasp)
 {
   return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp));
 }
 
-bool moveit::planning_interface::MoveGroup::pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
 {
   return impl_->pick(object, grasps);
 }
 
-bool moveit::planning_interface::MoveGroup::place(const std::string &object)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::place(const std::string &object)
 {
   return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>());
 }
 
-bool moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations)
 {
   return impl_->place(object, locations);
 }
 
-bool moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses)
 {
   return impl_->place(object, poses);
 }
 
-bool moveit::planning_interface::MoveGroup::place(const std::string &object, const geometry_msgs::PoseStamped &pose)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::place(const std::string &object, const geometry_msgs::PoseStamped &pose)
 {
   return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose));
 }
 
 double moveit::planning_interface::MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-                                                                   moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions)
+                                                                   moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions, 
+								   moveit_msgs::MoveItErrorCodes *error_code)
 {
-  return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, avoid_collisions);
+  if(error_code)
+  {
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, avoid_collisions, *error_code);
+  }
+  else
+  {
+    moveit_msgs::MoveItErrorCodes error_code_tmp;
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, avoid_collisions, error_code_tmp);
+  }  
 }
 
 void moveit::planning_interface::MoveGroup::stop()
