@@ -128,7 +128,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
   for (std::size_t i = 0; i < joint_model_names.size(); ++i)
   {
     const urdf::Joint* ujoint = urdf_model->getJoint(joint_model_names[i]).get();
-    if (ujoint->limits)
+    if (ujoint && ujoint->limits)
       max_torques_.push_back(ujoint->limits->effort);
     else
       max_torques_.push_back(0.0);
