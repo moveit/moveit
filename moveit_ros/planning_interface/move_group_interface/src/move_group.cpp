@@ -1067,7 +1067,6 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::move()
 {
-  moveit_msgs::MoveItErrorCodes error_code;  
   return impl_->move(true);
 }
 
