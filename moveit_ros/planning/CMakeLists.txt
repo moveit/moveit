@@ -5,11 +5,11 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time program_options signals thread)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_perception
+  cmake_modules
   pluginlib
   actionlib
   roscpp
@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
 )
-
+find_package(Eigen REQUIRED)
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 
 include(${QT_USE_FILE})
