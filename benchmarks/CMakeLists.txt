@@ -5,7 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options system thread)
 
 find_package(catkin REQUIRED COMPONENTS
