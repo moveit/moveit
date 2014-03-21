@@ -7,7 +7,6 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread signals)
 find_package(PCL REQUIRED QUIET COMPONENTS common)
 
@@ -30,7 +29,9 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   image_transport
   object_recognition_msgs
+  cmake_modules
 )
+find_package(Eigen REQUIRED)
 
 find_package(OpenMP)
 find_package(octomap REQUIRED)

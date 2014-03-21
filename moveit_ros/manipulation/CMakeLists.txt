@@ -5,8 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
-find_package(Boost REQUIRED thread system filesystem date_time program_options)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning
@@ -17,7 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   pluginlib
   actionlib
+  cmake_modules
 )
+find_package(Eigen REQUIRED)
+find_package(Boost REQUIRED thread system filesystem date_time program_options)
 
 generate_dynamic_reconfigure_options("pick_place/cfg/PickPlaceDynamicReconfigure.cfg")
 
