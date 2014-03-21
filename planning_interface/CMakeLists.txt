@@ -5,7 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED COMPONENTS
   date_time
   filesystem
@@ -27,7 +26,9 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   rospy
   rosconsole
+  cmake_modules
 )
+find_package(Eigen REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
