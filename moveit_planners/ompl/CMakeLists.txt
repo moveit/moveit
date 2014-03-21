@@ -5,7 +5,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED system filesystem date_time thread serialization)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core 
@@ -34,7 +33,6 @@ catkin_package(
 )
 
 include_directories(SYSTEM
-                    ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
 
 include_directories(ompl_interface/include
