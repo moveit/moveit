@@ -2,6 +2,12 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update build system for ROS indigo
+* Removed duplicate call to setPlanningScene(), added various comments
+* Contributors: Dave Coleman, Ioan Sucan
+
 0.5.4 (2014-02-06)
 ------------------
 * fix segfault when multiple goals are passed to move_group
