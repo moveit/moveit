@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.5 (2014-03-22)
+------------------
 * update build system for ROS indigo
 * Removed duplicate call to setPlanningScene(), added various comments
 * Contributors: Dave Coleman, Ioan Sucan
