@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update build system for ROS indigo
+* update maintainer e-mail
+* Namespace a debug message
+* Minor non-functional changes to KDL
+* Contributors: Dave Coleman, Ioan Sucan
+
 0.5.16 (2014-02-27)
 -------------------
 * Copy paste error fix
