@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.17 (2014-03-22)
+-------------------
 * update build system for ROS indigo
 * fix merge
 * refactor how we use params for pick&place
