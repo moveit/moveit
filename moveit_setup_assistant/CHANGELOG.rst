@@ -2,6 +2,16 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed bug 82 in a quick way by reducing min size.
+* Fix for issue `#70 <https://github.com/ros-planning/moveit_setup_assistant/issues/70>`_: support yaml-cpp 0.5+ (new api).
+* Generate joint_limits.yaml using ordered joints
+* Ensures that group name changes are reflected in the end effectors and robot poses screens as well
+* Prevent dirty transforms warning
+* Cleaned up stray cout's
+* Contributors: Benjamin Chretien, Dave Coleman, Dave Hershberger, Sachin Chitta
+
 0.5.8 (2014-02-06)
 ------------------
 * Update move_group.launch
