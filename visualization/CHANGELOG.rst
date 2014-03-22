@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.17 (2014-03-22)
+-------------------
 * update build system for ROS indigo
 * update maintainer e-mail
 * Contributors: Ioan Sucan
