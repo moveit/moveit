@@ -7,6 +7,8 @@ endif()
 
 find_package(Boost REQUIRED thread program_options date_time system filesystem)
 
+find_package(PkgConfig REQUIRED)
+
 pkg_check_modules(OGRE OGRE)
 link_directories(${OGRE_LIBRARY_DIRS})
 
