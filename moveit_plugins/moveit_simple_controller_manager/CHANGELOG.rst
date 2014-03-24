@@ -2,6 +2,11 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Allow simple controller manager to ignore virtual joints without failing
+* Contributors: Dave Coleman
+
 0.5.5 (2013-09-30)
 ------------------
 * properly fill in the gripper command effort
