@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add pkg-config as dep
+* find PkgConfig before using pkg_check_modules
+  PC specific functions mustn't be used before including PkgConfig
+* Contributors: Ioan Sucan, v4hn
+
 0.5.17 (2014-03-22)
 -------------------
 * update build system for ROS indigo
