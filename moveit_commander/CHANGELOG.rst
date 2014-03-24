@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added the calls necessary to manage path constraints. 
+* fix joint and link acces on __getattr__  when trying to acces a joint and its paramaters throught
+* Contributors: Acorn, Emili Boronat, Sachin Chitta
+
 0.5.5 (2014-02-27)
 ------------------
 * adding get for active joints
