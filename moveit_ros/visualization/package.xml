@@ -16,6 +16,7 @@
   <url type="repository">https://github.com/ros-planning/moveit_ros</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
+  <buildtool_depend>pkg-config</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
   <build_depend>rviz</build_depend>
