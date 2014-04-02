@@ -155,7 +155,13 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan, const collision_detec
     robot_trajectory::RobotTrajectoryPtr ee_closed_traj(new robot_trajectory::RobotTrajectory(
         ee_closed_state->getRobotModel(), plan->shared_data_->end_effector_group_->getName()));
     ee_closed_traj->setRobotTrajectoryMsg(*ee_closed_state, plan->retreat_posture_);
-    ee_closed_traj->addPrefixWayPoint(ee_closed_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+    // If user has defined a time for it's gripper movement time, don't add the DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
+    if (plan->retreat_posture_.points.size() > 0  && plan->retreat_posture_.points.back().time_from_start > ros::Duration(0.0)){
+        ee_closed_traj->addPrefixWayPoint(ee_closed_state, 0.0);
+    }
+    else { // Do what was done before
+        ee_closed_traj->addPrefixWayPoint(ee_closed_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+    }
 
     plan_execution::ExecutableTrajectory et(ee_closed_traj, name);
 
