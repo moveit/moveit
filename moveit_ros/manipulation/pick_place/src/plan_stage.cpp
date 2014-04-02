@@ -85,7 +85,13 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
         pre_approach_traj->setRobotTrajectoryMsg(*pre_approach_state, plan->approach_posture_);
 
         // Apply the open gripper state to the waypoint
-        pre_approach_traj->addPrefixWayPoint(pre_approach_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+        // If user has defined a time for it's gripper movement time, don't add the DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
+        if (plan->approach_posture_.points.size() > 0  && plan->approach_posture_.points.back().time_from_start > ros::Duration(0.0)){
+            pre_approach_traj->addPrefixWayPoint(pre_approach_state, 0.0);
+        }
+        else {// Do what was done before
+            pre_approach_traj->addPrefixWayPoint(pre_approach_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+        }
 
         // Add the open gripper trajectory to the plan
         plan_execution::ExecutableTrajectory et(pre_approach_traj, "pre_grasp");
