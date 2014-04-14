@@ -419,13 +419,20 @@ bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(con
       srv.request.components.LINK_PADDING_AND_SCALING |
       srv.request.components.OBJECT_COLORS;
 
+  // Make sure client is connected to server
+  if (!client.exists())
+  {
+    ROS_DEBUG_STREAM("Waiting for service `" << service_name << "` to exist.");
+    client.waitForExistence(ros::Duration(5.0));
+  }
+
   if (client.call(srv))
   {
     newPlanningSceneMessage(srv.response.scene);
   }
   else
   {
-    ROS_ERROR("Failed to call service %s at %s:%d",
+    ROS_WARN("Failed to call service %s, have you launched move_group? at %s:%d",
       service_name.c_str(),
       __FILE__,
       __LINE__);
