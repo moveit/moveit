@@ -37,6 +37,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
+#include <typeinfo>
 
 robot_model_loader::RobotModelLoader::RobotModelLoader(const std::string &robot_description, bool load_kinematics_solvers)
 {
@@ -187,8 +188,27 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
 
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
 
-      // Any planning group can have an IK solver, not just chains
-      imap[groups[i]] = kinematics_allocator;
+      kinematics::KinematicsBasePtr solver = kinematics_allocator(jmg);
+      if(solver)
+      {
+        std::string error_msg;
+        if(solver->supportsGroup(jmg, &error_msg))
+        {
+          imap[groups[i]] = kinematics_allocator;
+        }
+        else
+        {
+          ROS_ERROR("Kinematics solver %s does not support joint group %s.  Error: %s",
+                    typeid(*solver).name(),
+                    groups[i].c_str(),
+                    error_msg.c_str());
+        }
+      }
+      else
+      {
+        ROS_ERROR("Kinematics solver could not be instantiated for joint group %s.",
+                  groups[i].c_str());
+      }
     }
     model_->setKinematicsAllocators(imap);
 
