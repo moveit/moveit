@@ -170,7 +170,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       pss_.getPlanningSceneNames(names);
       for (std::size_t i = 0 ; i < names.size() ; ++i)
         ss << names[i] << " ";
-      ROS_ERROR("Scene '%s' not found in warehouse. Available names: ", options_.scene.c_str(), ss.str().c_str());
+      ROS_ERROR("Scene '%s' not found in warehouse. Available names: %s", options_.scene.c_str(), ss.str().c_str());
       return;
     }
   }

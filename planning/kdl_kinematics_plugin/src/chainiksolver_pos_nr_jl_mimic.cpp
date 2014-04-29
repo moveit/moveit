@@ -50,7 +50,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
 {
   if(_mimic_joints.size() != chain.getNrOfJoints())
   {
-    ROS_ERROR("kdl","Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());
+    ROS_ERROR_NAMED("kdl","Mimic Joint info should be same size as number of joints in chain: %d", chain.getNrOfJoints());
     return false;
   }
 
@@ -58,7 +58,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   {
     if(_mimic_joints[i].map_index >= chain.getNrOfJoints())
     {
-      ROS_ERROR("kdl","Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());
+      ROS_ERROR_NAMED("kdl","Mimic Joint index should be less than number of joints in chain: %d", chain.getNrOfJoints());
       return false;
     }
   }
