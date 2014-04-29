@@ -150,14 +150,14 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
         if (nh.getParam(prefix + "has_acceleration_limits", has_acc_limits))
           jlim[j].has_acceleration_limits = has_acc_limits;
       }
-      jmodel->setVariableBounds(jlim); 
+      jmodel->setVariableBounds(jlim);
     }
   }
 
   if (model_ && opt.load_kinematics_solvers_)
     loadKinematicsSolvers();
 
-  ROS_DEBUG_STREAM("Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM_NAMED("robot_model_loader","Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader)
@@ -181,11 +181,14 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0 ; i < groups.size() ; ++i)
     {
+      // Check if a group in kinematics.yaml exists in the srdf
       if (!model_->hasJointModelGroup(groups[i]))
         continue;
+
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
-      if (jmg->isChain())
-        imap[groups[i]] = kinematics_allocator;
+
+      // Any planning group can have an IK solver, not just chains
+      imap[groups[i]] = kinematics_allocator;
     }
     model_->setKinematicsAllocators(imap);
 
