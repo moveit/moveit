@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_benchmarks_gui</name>
-  <version>0.5.16</version>
+  <version>0.5.18</version>
   <description>MoveIt GUI tools for benchmarking</description>
 
   <author email="mprats@willowgarage.com">Mario Prats</author>
@@ -15,6 +15,7 @@
   <url type="repository">https://github.com/ros-planning/moveit_ros</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
+  <buildtool_depend>pkg-config</buildtool_depend>
 
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
@@ -25,6 +26,7 @@
   <build_depend>eigen_conversions</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>cmake_modules</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>

@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.18 (2014-03-23)
+-------------------
+
+0.5.17 (2014-03-22)
+-------------------
+* update build system for ROS indigo
+* update maintainer e-mail
+* Contributors: Ioan Sucan
+
 0.5.16 (2014-02-27)
 -------------------
 

@@ -118,7 +118,7 @@ void RobotStateDisplay::onInitialize()
   robot_.reset(new RobotStateVisualization(scene_node_, context_, "Robot State", this));
   changedEnableVisualVisible();
   changedEnableCollisionVisible();
-  robot_->setVisible(true);
+  robot_->setVisible(false);
 }
 
 void RobotStateDisplay::reset()

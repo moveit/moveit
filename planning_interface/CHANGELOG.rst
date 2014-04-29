@@ -2,12 +2,30 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.18 (2014-03-23)
+-------------------
+
+0.5.17 (2014-03-22)
+-------------------
+* update build system for ROS indigo
+* added move_group python interface bindings to move group interface
+  function:
+  void setPathConstraints(const moveit_msgs::Constraint &constraint)
+  in order to be able to set path constraints from python scripts
+  directly and no need to use the DB.
+* Use member NodeHandle in action clients.
+  Currently services and topics are already using the member NodeHandle instance,
+  but not the action clients.
+  This is relevant for two reasons:
+  - Consistency in the resulting ROS API namespace (everything in the same namespace).
+  - Consistency in the spinning policy. All services, topics and actions will be spinned
+  by the same NodeHandle, and whatever custom (or not) spinners and callback queues it
+  has associated.
+* adding error code returns to relevant functions
+* Contributors: Adolfo Rodriguez Tsouroukdissian, Emili Boronat, Ioan A Sucan, Sachin Chitta
+
 0.5.16 (2014-02-27)
 -------------------
-* adding node handle to options in move_group_interface
-* adding get for active joints
-* Contributors: Sachin Chitta
-
 * adding node handle to options in move_group_interface
 * adding get for active joints
 * Contributors: Sachin Chitta

@@ -1,11 +1,11 @@
 <package>
   <name>moveit_ros_perception</name>
-  <version>0.5.16</version>
+  <version>0.5.18</version>
   <description>Components of MoveIt connecting to perception</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
+  <author email="jon.binney@gmail.com">Jon Binney</author>
   <author email="gedikli@willowgarage.com">Suat Gedikli</author>
-  <author email="jbinney@willowgarage.com">Jon Binney</author>
 
   <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
   <license>BSD</license>
@@ -30,7 +30,8 @@
   <build_depend>glut</build_depend>
   <build_depend>libglew-dev</build_depend>
   <build_depend>opengl</build_depend>
-  <build_depend>opencv2</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>cmake_modules</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>pcl_conversions</run_depend>
@@ -46,7 +47,7 @@
   <run_depend>glut</run_depend>
   <run_depend>libglew-dev</run_depend>
   <run_depend>opengl</run_depend>
-  <run_depend>opencv2</run_depend>
+  <run_depend>cv_bridge</run_depend>
 
   <export>
     <moveit_ros_perception plugin="${prefix}/pointcloud_octomap_updater_plugin_description.xml"/>

@@ -1,6 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
+ *  Copyright (c) 2014, SRI International
  *  Copyright (c) 2012, Willow Garage, Inc.
  *  All rights reserved.
  *
@@ -32,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Sachin Chitta */
 
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
@@ -54,6 +55,15 @@ namespace moveit
 /** \brief Simple interface to MoveIt! components */
 namespace planning_interface
 {
+
+class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
+{
+public:
+  MoveItErrorCode() { val = 0; };
+  MoveItErrorCode(int code) { val = code; };
+  MoveItErrorCode(const moveit_msgs::MoveItErrorCodes &code) { val = code.val; };
+  operator bool() const { return val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
+};
 
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
 class MoveGroup
@@ -554,21 +564,21 @@ public:
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is not blocking (does not wait for the execution of the trajectory to complete). */
-  bool asyncMove();
+  MoveItErrorCode asyncMove();
 
   /** \brief Plan and execute a trajectory that takes the group of joints declared in the constructor to the specified target.
       This call is always blocking (waits for the execution of the trajectory to complete). */
-  bool move();
+  MoveItErrorCode move();
 
   /** \brief Compute a motion plan that takes the group declared in the constructor from the current state to the specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
-  bool plan(Plan &plan);
+  MoveItErrorCode plan(Plan &plan);
 
   /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
-  bool asyncExecute(const Plan &plan);
+  MoveItErrorCode asyncExecute(const Plan &plan);
 
   /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
-  bool execute(const Plan &plan);
+  MoveItErrorCode execute(const Plan &plan);
 
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
@@ -578,7 +588,7 @@ public:
       Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
       Return -1.0 in case of error. */
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-                              moveit_msgs::RobotTrajectory &trajectory,  bool avoid_collisions = true);
+                              moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes *error_code = NULL);
 
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
@@ -597,25 +607,25 @@ public:
   /**@{*/
 
   /** \brief Pick up an object */
-  bool pick(const std::string &object);
+  MoveItErrorCode pick(const std::string &object);
 
   /** \brief Pick up an object given a grasp pose */
-  bool pick(const std::string &object, const moveit_msgs::Grasp &grasp);
+  MoveItErrorCode pick(const std::string &object, const moveit_msgs::Grasp &grasp);
 
   /** \brief Pick up an object given possible grasp poses */
-  bool pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
+  MoveItErrorCode pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
-  bool place(const std::string &object);
+  MoveItErrorCode place(const std::string &object);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations);
+  MoveItErrorCode place(const std::string &object, const std::vector<moveit_msgs::PlaceLocation> &locations);
 
   /** \brief Place an object at one of the specified possible locations */
-  bool place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
+  MoveItErrorCode place(const std::string &object, const std::vector<geometry_msgs::PoseStamped> &poses);
 
   /** \brief Place an object at one of the specified possible location */
-  bool place(const std::string &object, const geometry_msgs::PoseStamped &pose);
+  MoveItErrorCode place(const std::string &object, const geometry_msgs::PoseStamped &pose);
 
   /** \brief Given the name of an object in the planning scene, make
       the object attached to a link of the robot.  If no link name is
@@ -717,6 +727,11 @@ public:
 
   /** \brief Get the names of the constraints known as read from the MongoDB server, if a connection was achieved. */
   std::vector<std::string> getKnownConstraints() const;
+
+  /** \brief Get the actual set of constraints for this MoveGroup. 
+      @return A copy of the current path constraints set for this move_group
+      */
+  moveit_msgs::Constraints getPathConstraints() const;
 
   /** \brief Specify a set of path constraints to use.
       The constraints are looked up by name from the MongoDB server.
