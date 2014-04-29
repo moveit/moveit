@@ -57,11 +57,11 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
             bool is_selected, bool visible_x, bool visible_y, bool visible_z):
               parent_node_(parent_node),
               context_(context),
-              color_(color),
               selected_(is_selected),
               visible_x_(visible_x),
               visible_y_(visible_y),
               visible_z_(visible_z),
+              color_(color),
               receiver_(NULL),
               receiver_method_(NULL)
 {
@@ -328,9 +328,9 @@ GripperMarker::GripperMarker(const robot_state::RobotState& robot_state, Ogre::S
                              const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                              const GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
                              FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x, visible_y, visible_z),
-                             state_(state),
                              eef_(eef),
-                             display_gripper_mesh_(false)
+                             display_gripper_mesh_(false),
+                             state_(state)
 {
   robot_state_ = &robot_state;
 }

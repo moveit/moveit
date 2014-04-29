@@ -110,7 +110,7 @@ const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING
 const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), monitor_name_(name)
+  monitor_name_(name), nh_("~"), tf_(tf)
 {
   rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
   initialize(planning_scene::PlanningScenePtr());
@@ -118,7 +118,7 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::st
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const std::string &robot_description,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), monitor_name_(name)
+   monitor_name_(name), nh_("~"), tf_(tf)
 {
   rm_loader_.reset(new robot_model_loader::RobotModelLoader(robot_description));
   initialize(scene);
@@ -126,14 +126,14 @@ planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const plannin
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const robot_model_loader::RobotModelLoaderPtr &rm_loader,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), rm_loader_(rm_loader), monitor_name_(name)
+  monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
 {
   initialize(planning_scene::PlanningScenePtr());
 }
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const planning_scene::PlanningScenePtr &scene, const robot_model_loader::RobotModelLoaderPtr &rm_loader,
                                                                    const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
-  nh_("~"), tf_(tf), rm_loader_(rm_loader), monitor_name_(name)
+  monitor_name_(name), nh_("~"), tf_(tf), rm_loader_(rm_loader)
 {
   initialize(scene);
 }

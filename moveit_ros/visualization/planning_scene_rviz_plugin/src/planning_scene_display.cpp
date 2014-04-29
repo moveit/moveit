@@ -66,8 +66,8 @@ namespace moveit_rviz_plugin
 PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool show_scene_robot) :
   Display(),
   model_is_loading_(false),
-  current_scene_time_(0.0f),
-  planning_scene_needs_render_(true)
+  planning_scene_needs_render_(true),
+  current_scene_time_(0.0f)
 {
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
