@@ -32,9 +32,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Sachin Chitta */
+/* Author: Sachin Chitta, Dave Coleman */
 
 #include <moveit/kinematics_base/kinematics_base.h>
+#include <moveit/robot_model/joint_model_group.h>
 
 const double kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double kinematics::KinematicsBase::DEFAULT_TIMEOUT = 1.0;
@@ -48,8 +49,30 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   robot_description_ = robot_description;
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
-  tip_frame_ = removeSlash(tip_frame);
+  tip_frame_ = removeSlash(tip_frame); // for backwards compatibility
+  tip_frames_.push_back(removeSlash(tip_frame));
   search_discretization_ = search_discretization;
+}
+
+void kinematics::KinematicsBase::setValues(const std::string& robot_description,
+                       const std::string& group_name,
+                       const std::string& base_frame,
+                       const std::vector<std::string>& tip_frames,
+                       double search_discretization)
+{
+  robot_description_ = robot_description;
+  group_name_ = group_name;
+  base_frame_ = removeSlash(base_frame);
+  search_discretization_ = search_discretization;
+
+  // Copy tip frames to local vector after stripping slashes
+  tip_frames_.clear();
+  for (std::size_t i = 0; i < tip_frames.size(); ++i)
+    tip_frames_.push_back(removeSlash(tip_frames[i]));
+
+  // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
+  if (tip_frames.size() == 1)
+    tip_frame_ = removeSlash(tip_frames[0]);
 }
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
@@ -82,4 +105,20 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
 std::string kinematics::KinematicsBase::removeSlash(const std::string &str) const
 {
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
+}
+
+const bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg,
+                                                     std::string* error_text_out) const
+{
+  // Default implementation for legacy solvers:
+  if (!jmg->isChain())
+  {
+    if(error_text_out)
+    {
+      *error_text_out = "This plugin only supports joint groups which are chains";
+    }
+    return false;
+  }
+
+  return true;
 }
