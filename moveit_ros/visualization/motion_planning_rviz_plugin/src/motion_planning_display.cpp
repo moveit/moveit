@@ -81,14 +81,14 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 MotionPlanningDisplay::MotionPlanningDisplay() :
   PlanningSceneDisplay(),
+  text_to_display_(NULL),
+  private_handle_("~"),
+  animating_path_(false),
   frame_(NULL),
   frame_dock_(NULL),
-  animating_path_(false),
-  int_marker_display_(NULL),
-  private_handle_("~"),
   menu_handler_start_(new interactive_markers::MenuHandler),
   menu_handler_goal_(new interactive_markers::MenuHandler),
-  text_to_display_(NULL)
+  int_marker_display_(NULL)
 {
   // Category Groups
   plan_category_  = new rviz::Property("Planning Request", QVariant(), "", this);

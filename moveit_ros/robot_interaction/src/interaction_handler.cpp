@@ -60,14 +60,14 @@ InteractionHandler::InteractionHandler(
       const std::string &name,
       const robot_state::RobotState &initial_robot_state,
       const boost::shared_ptr<tf::Transformer> &tf)
-:name_(fixName(name))
-,LockedRobotState(initial_robot_state)
+:LockedRobotState(initial_robot_state)
+,name_(fixName(name))
+,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
 ,tf_(tf)
+,robot_interaction_(NULL)
+,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
 ,display_meshes_(true)
 ,display_controls_(true)
-,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
-,robot_interaction_(NULL)
-,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
 {
   setRobotInteraction(robot_interaction.get());
 }
@@ -76,14 +76,14 @@ InteractionHandler::InteractionHandler(
       const RobotInteractionPtr& robot_interaction,
       const std::string &name,
       const boost::shared_ptr<tf::Transformer> &tf)
-:name_(fixName(name))
-,LockedRobotState(robot_interaction->getRobotModel())
+:LockedRobotState(robot_interaction->getRobotModel())
+,name_(fixName(name))
+,planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
 ,tf_(tf)
+,robot_interaction_(NULL)
+,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
 ,display_meshes_(true)
 ,display_controls_(true)
-,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
-,robot_interaction_(NULL)
-,planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
 {
   setRobotInteraction(robot_interaction.get());
 }
@@ -93,14 +93,14 @@ InteractionHandler::InteractionHandler(
       const std::string &name,
       const robot_state::RobotState &initial_robot_state,
       const boost::shared_ptr<tf::Transformer> &tf)
-:name_(fixName(name))
-,LockedRobotState(initial_robot_state)
+:LockedRobotState(initial_robot_state)
+,name_(fixName(name))
+,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
 ,tf_(tf)
+,robot_interaction_(NULL)
+,kinematic_options_map_(new KinematicOptionsMap)
 ,display_meshes_(true)
 ,display_controls_(true)
-,kinematic_options_map_(new KinematicOptionsMap)
-,robot_interaction_(NULL)
-,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
 {
 }
 
@@ -109,14 +109,14 @@ InteractionHandler::InteractionHandler(
       const std::string &name,
       const robot_model::RobotModelConstPtr &robot_model,
       const boost::shared_ptr<tf::Transformer> &tf)
-:name_(fixName(name))
-,LockedRobotState(robot_model)
+:LockedRobotState(robot_model)
+,name_(fixName(name))
+,planning_frame_(robot_model->getModelFrame())
 ,tf_(tf)
+,robot_interaction_(NULL)
+,kinematic_options_map_(new KinematicOptionsMap)
 ,display_meshes_(true)
 ,display_controls_(true)
-,kinematic_options_map_(new KinematicOptionsMap)
-,robot_interaction_(NULL)
-,planning_frame_(robot_model->getModelFrame())
 {
 }
 

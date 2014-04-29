@@ -145,14 +145,11 @@ std::string move_group::MoveGroupCapability::getActionResultString(const moveit_
                   if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS)
                     return "Invalid goal constraints";
                   else
-                    if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME)
-                      return "Invalid group name";
+                    if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME)
+                      return "Invalid object name";
                     else
-                      if (error_code.val == moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME)
-                        return "Invalid object name";
-                      else
-                        if (error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
-                          return "Catastrophic failure";
+                      if (error_code.val == moveit_msgs::MoveItErrorCodes::FAILURE)
+                        return "Catastrophic failure";
   return "Unknown event";
 }
 

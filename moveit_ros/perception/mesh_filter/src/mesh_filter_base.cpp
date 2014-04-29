@@ -52,10 +52,12 @@
 #include <xmmintrin.h>
 #endif
 
-using namespace std;
+using std::string;
 using namespace Eigen;
 using shapes::Mesh;
-using namespace boost;
+using boost::shared_ptr;
+using boost::unique_lock;
+using boost::mutex;
 
 mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_callback,
               const SensorModel::Parameters& sensor_parameters,
@@ -70,6 +72,7 @@ mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_
 , padding_offset_ (0.01)
 , shadow_threshold_ (0.5)
 {
+  using boost::thread;
   filter_thread_ = thread (boost::bind(&MeshFilterBase::run, this,
                                        render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader));
 }
@@ -202,7 +205,7 @@ void mesh_filter::MeshFilterBase::removeMesh (MeshHandle handle)
   job->wait ();
 
   if (!remover->getResult ())
-    throw runtime_error ("Could not remove mesh. Mesh not found!");
+    throw std::runtime_error ("Could not remove mesh. Mesh not found!");
   min_handle_ = std::min(handle, min_handle_);
 }
 
@@ -288,7 +291,7 @@ void mesh_filter::MeshFilterBase::filter (const void* sensor_data, GLushort type
 {
   if (type != GL_FLOAT && type != GL_UNSIGNED_SHORT)
   {
-    stringstream msg;
+    std::stringstream msg;
     msg << "unknown type \"" << type << "\". Allowed values are GL_FLOAT or GL_UNSIGNED_SHORT.";
     throw std::runtime_error (msg.str ());
   }
@@ -319,7 +322,7 @@ void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int e
   glUniform3f (padding_coefficients_id, padding_coefficients [0], padding_coefficients [1], padding_coefficients [2]);
 
   Affine3d transform;
-  for (map<MeshHandle, shared_ptr<GLMesh> >::const_iterator meshIt = meshes_.begin (); meshIt != meshes_.end (); ++meshIt)
+  for (std::map<MeshHandle, shared_ptr<GLMesh> >::const_iterator meshIt = meshes_.begin (); meshIt != meshes_.end (); ++meshIt)
     if (transform_callback_ (meshIt->first, transform))
       meshIt->second->render (transform);
 

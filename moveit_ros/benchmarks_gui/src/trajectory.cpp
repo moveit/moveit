@@ -54,7 +54,7 @@ const std::string Trajectory::TRAJECTORY_FIX_CONTROL_FRAME_STRING = "Fix control
 Trajectory::Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
                        const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
                        const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-                       dragging_(false), control_marker_mode_(CONTROL_MARKER_FIXED), nwaypoints_(nwaypoints)
+                       dragging_(false), nwaypoints_(nwaypoints), control_marker_mode_(CONTROL_MARKER_FIXED)
 {
   createControlMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected, visible_x, visible_y, visible_z);
   createHandMarker();
