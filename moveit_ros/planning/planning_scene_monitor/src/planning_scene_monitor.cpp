@@ -438,6 +438,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(con
       __LINE__);
     return false;
   }
+  return true;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene)
