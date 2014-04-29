@@ -5,8 +5,9 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-find_package(Eigen REQUIRED)
 find_package(Boost REQUIRED thread date_time system filesystem)
+
+find_package(PkgConfig REQUIRED)
 
 # Ogre
 pkg_check_modules(OGRE OGRE)
@@ -22,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_robot_interaction
   moveit_ros_warehouse
   moveit_ros_perception
+  cmake_modules
   eigen_conversions
   geometric_shapes
   interactive_markers
@@ -32,6 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   object_recognition_msgs
 )
+find_package(Eigen REQUIRED)
 
 catkin_package(
   LIBRARIES

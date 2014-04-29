@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.18 (2014-03-23)
+-------------------
+* add pkg-config as dep
+* find PkgConfig before using pkg_check_modules
+  PC specific functions mustn't be used before including PkgConfig
+* Contributors: Ioan Sucan, v4hn
+
+0.5.17 (2014-03-22)
+-------------------
+* update build system for ROS indigo
+* Contributors: Ioan Sucan
+
 0.5.16 (2014-02-27)
 -------------------
 * back out problematic ogre fixes

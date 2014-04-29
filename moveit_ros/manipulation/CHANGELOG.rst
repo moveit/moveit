@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.18 (2014-03-23)
+-------------------
+
+0.5.17 (2014-03-22)
+-------------------
+* update build system for ROS indigo
+* fix merge
+* refactor how we use params for pick&place
+* set the pose frame so we don't get a crash in approach&translate
+* Contributors: Ioan Sucan
+
 0.5.16 (2014-02-27)
 -------------------
 

@@ -309,6 +309,16 @@ public:
     return getName().c_str();
   }
 
+  bool movePython()
+  {
+    return move();
+  } 
+
+  bool asyncMovePython()
+  {
+    return asyncMove();
+  }
+
   bool attachObjectPython(const std::string &object_name, const std::string &link_name, const bp::list &touch_links)
   {
     return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
@@ -337,20 +347,34 @@ public:
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
   
-  bool pickGrasp(const std::string &object, const std::string &grasp_str)
+  MoveItErrorCode pickGrasp(const std::string &object, const std::string &grasp_str)
   {
     moveit_msgs::Grasp grasp;    
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
     return pick(object, grasp);
   } 
 
-  bool pickGrasps(const std::string &object, const bp::list &grasp_list)
+  MoveItErrorCode pickGrasps(const std::string &object, const bp::list &grasp_list)
   {
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l ; ++i)
       py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
     return pick(object, grasps);
+  }
+
+  void setPathConstraintsFromMsg(const std::string &constraints_str)
+  {
+      moveit_msgs::Constraints constraints_msg;
+      py_bindings_tools::deserializeMsg(constraints_str,constraints_msg);
+      setPathConstraints(constraints_msg);
+  } 
+
+  std::string getPathConstraintsPython()
+  {
+     moveit_msgs::Constraints constraints_msg(getPathConstraints());
+     std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
+     return constraints_str;
   }
   
 };
@@ -359,10 +383,10 @@ static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string, std::string>());
 
-  MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMove);
-  MoveGroupClass.def("move", &MoveGroupWrapper::move);
+  MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMovePython);
+  MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
-  bool (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
+  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
@@ -441,7 +465,8 @@ static void wrap_move_group_interface()
 
   bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
   MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
-
+  MoveGroupClass.def("set_path_constraints_from_msg", &MoveGroupWrapper::setPathConstraintsFromMsg);
+  MoveGroupClass.def("get_path_constraints", &MoveGroupWrapper::getPathConstraintsPython);
   MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints);
   MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
   MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
