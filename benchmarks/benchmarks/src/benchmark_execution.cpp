@@ -1136,7 +1136,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
       // construct the list of all possible properties for all runs
       std::set<std::string> properties_set;
-      for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
+      for (std::size_t j = 0 ; j < std::size_t(data[run_id].size()) ; ++j)
       {
 
         for (RunData::const_iterator mit = data[run_id][j].begin() ; mit != data[run_id][j].end() ; ++mit)
