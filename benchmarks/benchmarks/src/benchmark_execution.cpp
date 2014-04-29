@@ -170,7 +170,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       pss_.getPlanningSceneNames(names);
       for (std::size_t i = 0 ; i < names.size() ; ++i)
         ss << names[i] << " ";
-      ROS_ERROR("Scene '%s' not found in warehouse. Available names: ", options_.scene.c_str(), ss.str().c_str());
+      ROS_ERROR("Scene '%s' not found in warehouse. Available names: %s", options_.scene.c_str(), ss.str().c_str());
       return;
     }
   }
@@ -1136,7 +1136,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
       // construct the list of all possible properties for all runs
       std::set<std::string> properties_set;
-      for (std::size_t j = 0 ; j < data[run_id].size() ; ++j)
+      for (std::size_t j = 0 ; j < std::size_t(data[run_id].size()) ; ++j)
       {
 
         for (RunData::const_iterator mit = data[run_id][j].begin() ; mit != data[run_id][j].end() ; ++mit)

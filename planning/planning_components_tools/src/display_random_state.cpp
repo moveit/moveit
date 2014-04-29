@@ -105,7 +105,7 @@ int main(int argc, char **argv)
         } while (!found && attempts < 100);
         if (!found)
         {
-          std::cout << "Unable to find valid state" << std::cout;
+          std::cout << "Unable to find valid state" << std::endl;
           continue;
         }
       }
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
           } while (!found && attempts < 100);
           if (!found)
           {
-            std::cout << "Unable to find invalid state" << std::cout;
+            std::cout << "Unable to find invalid state" << std::endl;
             continue;
           }
         }

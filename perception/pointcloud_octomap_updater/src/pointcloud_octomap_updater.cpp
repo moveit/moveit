@@ -34,6 +34,7 @@
 
 /* Author: Jon Binney, Ioan Sucan */
 
+#include <cmath>
 #include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <message_filters/subscriber.h>
@@ -44,13 +45,13 @@ namespace occupancy_map_monitor
 {
 
 PointCloudOctomapUpdater::PointCloudOctomapUpdater() : OccupancyMapUpdater("PointCloudUpdater"),
+                                                       private_nh_("~"),
                                                        scale_(1.0),
                                                        padding_(0.0),
                                                        max_range_(std::numeric_limits<double>::infinity()),
                                                        point_subsample_(1),
                                                        point_cloud_subscriber_(NULL),
-                                                       point_cloud_filter_(NULL),
-                               private_nh_("~")
+                                                       point_cloud_filter_(NULL)
 {
 }
 
@@ -227,7 +228,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
         const pcl::PointXYZ &p = cloud(col, row);
 
         /* check for NaN */
-        if ((p.x == p.x) && (p.y == p.y) && (p.z == p.z))
+        if (!isnan(p.x) && !isnan(p.y) && !isnan(p.z))
     {
       /* transform to map frame */
       tf::Vector3 point_tf = map_H_sensor * tf::Vector3(p.x, p.y, p.z);
