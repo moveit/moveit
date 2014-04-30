@@ -1100,9 +1100,9 @@ void moveit::core::RobotState::computeVariableVelocity(const JointModelGroup *jm
   Eigen::VectorXd Sinv = S;
   static const double pinvtoler = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0 ;
-  for (std::size_t i = 0; i < S.rows(); ++i)
+  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
     if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
-  for (std::size_t i = 0; i < S.rows(); ++i)
+  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
   {
     //Those singular values smaller than a percentage of the maximum singular value are removed
     if (fabs(S(i)) > maxsv * pinvtoler)

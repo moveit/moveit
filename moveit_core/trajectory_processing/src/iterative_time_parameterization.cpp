@@ -435,7 +435,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
       }
     }
     //logDebug("applyAcceleration: num_updates=%i", num_updates);
-  } while (num_updates > 0 && iteration < max_iterations_);
+  } while (num_updates > 0 && iteration < static_cast<int>(max_iterations_));
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const

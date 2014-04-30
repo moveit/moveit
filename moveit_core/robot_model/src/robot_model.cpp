@@ -1057,7 +1057,7 @@ const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const st
 
 const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(int index) const
 {
-  if (index < 0 || index >= joint_model_vector_.size())
+  if (index < 0 || index >= static_cast<int>(joint_model_vector_.size()))
   {
     logError("Joint index '%i' out of bounds of joints in model '%s'", index, model_name_.c_str());
     return NULL;
@@ -1086,7 +1086,7 @@ const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std:
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
 {
-  if (index < 0 || index >= link_model_vector_.size())
+  if (index < 0 || index >= static_cast<int>(link_model_vector_.size()))
   {
     logError("Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
     return NULL;
