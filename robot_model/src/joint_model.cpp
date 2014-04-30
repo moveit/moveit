@@ -50,8 +50,8 @@ moveit::core::JointModel::JointModel(const std::string& name)
   , mimic_offset_(0.0)
   , passive_(false)
   , distance_factor_(1.0)
-  , joint_index_(-1)
   , first_variable_index_(-1)
+  , joint_index_(-1)
 {
 }
 
