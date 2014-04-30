@@ -271,7 +271,7 @@ bool sampleCloud(const octomap::point3d_list& cloud,
   bool WYVILL = true;
 
   octomap::point3d_list::const_iterator it;
-  for ( it = cloud.begin(); it != cloud.end(); it++ )
+  for ( it = cloud.begin(); it != cloud.end(); ++it )
   {
     octomath::Vector3 v = (*it);
 
