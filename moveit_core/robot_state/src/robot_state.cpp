@@ -1200,6 +1200,7 @@ bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const 
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
+  return true;
 }
 }
 }

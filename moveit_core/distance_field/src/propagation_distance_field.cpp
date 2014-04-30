@@ -679,6 +679,7 @@ bool PropagationDistanceField::writeToStream(std::ostream& os) const
     }
   }
   out.flush();
+  return true;
 }
 
 bool PropagationDistanceField::readFromStream(std::istream& is)
@@ -751,6 +752,7 @@ bool PropagationDistanceField::readFromStream(std::istream& is)
     }
   }
   addNewObstacleVoxels(obs_points);
+  return true;
 }
 
 }
