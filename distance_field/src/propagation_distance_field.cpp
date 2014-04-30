@@ -270,7 +270,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
   propagatePositive();
 
   if(propagate_negative_) {
-    while(negative_stack.size() > 0)
+    while(!negative_stack.empty())
     {
       Eigen::Vector3i loc = negative_stack.back();
       negative_stack.pop_back();
@@ -356,7 +356,7 @@ void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vec
   }
 
   // Reset all neighbors who's closest point is now gone.
-  while(stack.size() > 0)
+  while(!stack.empty())
   {
     Eigen::Vector3i loc = stack.back();
     stack.pop_back();

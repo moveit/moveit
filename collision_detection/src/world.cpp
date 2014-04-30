@@ -69,7 +69,7 @@ void collision_detection::World::addToObject(const std::string &id,
     return;
   }
 
-  if (!shapes.size())
+  if (shapes.empty())
     return;
 
   int action = ADD_SHAPE;

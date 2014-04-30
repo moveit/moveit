@@ -258,7 +258,7 @@ void moveit::core::RobotModel::buildJointInfo()
     const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
     
     // compute index map
-    if (name_order.size() > 0)
+    if (!name_order.empty())
     {
       for (std::size_t j = 0; j < name_order.size(); ++j)
       {
