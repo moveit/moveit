@@ -195,7 +195,6 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
   const std::vector<int> &idx = group->getVariableIndexList();
-  const robot_model::RobotModel &rmodel = group->getParentModel();
 
   int num_points = rob_trajectory.getWayPointCount();
   
