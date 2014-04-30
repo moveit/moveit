@@ -737,7 +737,6 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
 
   if (world_diff_)
   {
-    bool do_cmap = false;
     bool do_omap = false;
     for (collision_detection::WorldDiff::const_iterator it = world_diff_->begin() ; it != world_diff_->end() ; ++it)
     {
