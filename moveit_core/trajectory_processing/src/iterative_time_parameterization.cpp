@@ -183,7 +183,7 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
                       const std::vector<double>& time_diff)
 {
   // Error check
-  if (time_diff.size() < 1)
+  if (time_diff.empty())
     return;
 
   double time_sum = 0.0;

@@ -471,7 +471,7 @@ void moveit::core::RobotState::updateLinkTransforms()
 void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *start)
 {  
   const std::vector<const LinkModel*> &links = start->getDescendantLinkModels();
-  if (links.size() > 0)
+  if (!links.empty())
   { 
     const LinkModel *parent = links[0]->getParentLinkModel();
     if (parent)
