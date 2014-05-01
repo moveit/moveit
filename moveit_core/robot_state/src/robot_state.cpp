@@ -471,7 +471,7 @@ void moveit::core::RobotState::updateLinkTransforms()
 void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *start)
 {  
   const std::vector<const LinkModel*> &links = start->getDescendantLinkModels();
-  if (links.size() > 0)
+  if (!links.empty())
   { 
     const LinkModel *parent = links[0]->getParentLinkModel();
     if (parent)
@@ -1100,9 +1100,9 @@ void moveit::core::RobotState::computeVariableVelocity(const JointModelGroup *jm
   Eigen::VectorXd Sinv = S;
   static const double pinvtoler = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0 ;
-  for (std::size_t i = 0; i < S.rows(); ++i)
+  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
     if (fabs(S(i)) > maxsv) maxsv = fabs(S(i));
-  for (std::size_t i = 0; i < S.rows(); ++i)
+  for (std::size_t i = 0; i < static_cast<std::size_t>(S.rows()); ++i)
   {
     //Those singular values smaller than a percentage of the maximum singular value are removed
     if (fabs(S(i)) > maxsv * pinvtoler)
@@ -1200,6 +1200,7 @@ bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const 
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
+  return true;
 }
 }
 }

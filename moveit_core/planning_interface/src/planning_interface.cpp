@@ -85,7 +85,7 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   }
   if (request_.num_planning_attempts < 0)
     logError("The number of desired planning attempts should be positive. Assuming one attempt.");
-  request_.num_planning_attempts == std::max(1, request_.num_planning_attempts);
+  request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
 bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr &, const std::string &)
