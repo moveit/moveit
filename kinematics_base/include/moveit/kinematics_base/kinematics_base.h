@@ -469,10 +469,10 @@ public:
   virtual ~KinematicsBase() {}
 
   KinematicsBase() :
+    tip_frame_("DEPRECATED"), // help users understand why this variable might not be set
+                              // (if multiple tip frames provided, this variable will be unset)
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
-    default_timeout_(DEFAULT_TIMEOUT),
-    tip_frame_("DEPRECATED") // help users understand why this variable might not be set
-                             // (if multiple tip frames provided, this variable will be unset)
+    default_timeout_(DEFAULT_TIMEOUT)
   {}
 
 protected:

@@ -37,9 +37,9 @@
 #include <moveit/constraint_samplers/constraint_sampler.h>
 
 constraint_samplers::ConstraintSampler::ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name) :
+  is_valid_(false),
   scene_(scene),
-  verbose_(false),
-  is_valid_(false)
+  verbose_(false)
 {
   jmg_ = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg_)

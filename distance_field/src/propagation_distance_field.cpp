@@ -270,7 +270,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
   propagatePositive();
 
   if(propagate_negative_) {
-    while(negative_stack.size() > 0)
+    while(!negative_stack.empty())
     {
       Eigen::Vector3i loc = negative_stack.back();
       negative_stack.pop_back();
@@ -356,7 +356,7 @@ void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vec
   }
 
   // Reset all neighbors who's closest point is now gone.
-  while(stack.size() > 0)
+  while(!stack.empty())
   {
     Eigen::Vector3i loc = stack.back();
     stack.pop_back();
@@ -663,9 +663,9 @@ bool PropagationDistanceField::writeToStream(std::ostream& os) const
   out.push(boost::iostreams::zlib_compressor());
   out.push(os);
 
-  for(unsigned int x = 0; x < getXNumCells(); x++) {
-    for(unsigned int y = 0; y < getYNumCells(); y++) {
-      for(unsigned int z = 0; z < getZNumCells(); z+=8) {
+  for(unsigned int x = 0; x < static_cast<unsigned int>(getXNumCells()); x++) {
+    for(unsigned int y = 0; y < static_cast<unsigned int>(getYNumCells()); y++) {
+      for(unsigned int z = 0; z < static_cast<unsigned int>(getZNumCells()); z+=8) {
         std::bitset<8> bs(0);
         unsigned int zv = std::min((unsigned int)8, getZNumCells()-z);
         for(unsigned int zi = 0; zi < zv; zi++) {
@@ -679,6 +679,7 @@ bool PropagationDistanceField::writeToStream(std::ostream& os) const
     }
   }
   out.flush();
+  return true;
 }
 
 bool PropagationDistanceField::readFromStream(std::istream& is)
@@ -731,9 +732,9 @@ bool PropagationDistanceField::readFromStream(std::istream& is)
   //std::cout << "Nums " << getXNumCells() << " " << getYNumCells() << " " << getZNumCells() << std::endl;
 
   std::vector<Eigen::Vector3i> obs_points;
-  for(unsigned int x = 0; x < getXNumCells(); x++) {
-    for(unsigned int y = 0; y < getYNumCells(); y++) {
-      for(unsigned int z = 0; z < getZNumCells(); z+=8) {
+  for(unsigned int x = 0; x < static_cast<unsigned int>(getXNumCells()); x++) {
+    for(unsigned int y = 0; y < static_cast<unsigned int>(getYNumCells()); y++) {
+      for(unsigned int z = 0; z < static_cast<unsigned int>(getZNumCells()); z+=8) {
         char inchar;
         if(!in.good()) {
           return false;
@@ -751,6 +752,7 @@ bool PropagationDistanceField::readFromStream(std::istream& is)
     }
   }
   addNewObstacleVoxels(obs_points);
+  return true;
 }
 
 }

@@ -183,7 +183,7 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
                       const std::vector<double>& time_diff)
 {
   // Error check
-  if (time_diff.size() < 1)
+  if (time_diff.empty())
     return;
 
   double time_sum = 0.0;
@@ -195,7 +195,6 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
   const std::vector<int> &idx = group->getVariableIndexList();
-  const robot_model::RobotModel &rmodel = group->getParentModel();
 
   int num_points = rob_trajectory.getWayPointCount();
   
@@ -435,7 +434,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
       }
     }
     //logDebug("applyAcceleration: num_updates=%i", num_updates);
-  } while (num_updates > 0 && iteration < max_iterations_);
+  } while (num_updates > 0 && iteration < static_cast<int>(max_iterations_));
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const
