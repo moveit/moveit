@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 include_directories(${catkin_INCLUDE_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
   LIBRARIES
