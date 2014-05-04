@@ -465,3 +465,7 @@ class MoveGroupCommander(object):
         else:
             result = self._g.place(object_name, conversions.pose_to_list(pose))
         return result
+
+    def set_support_surface_name(self, value):
+        """ Set the support surface name for a place operation """
+        self._g.set_support_surface_name(value)
