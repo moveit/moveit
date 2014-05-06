@@ -36,7 +36,7 @@ install(TARGETS ${IKFAST_LIBRARY_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_
 
 install(
   FILES
-  _ROBOT_NAME__moveit_ikfast_plugin_description.xml
+  _ROBOT_NAME___GROUP_NAME__moveit_ikfast_plugin_description.xml
   DESTINATION
   ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
