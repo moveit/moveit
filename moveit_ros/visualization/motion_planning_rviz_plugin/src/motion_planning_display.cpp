@@ -1454,6 +1454,9 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     float d;
     if (config.mapGetFloat("MoveIt_Planning_Time", &d))
       frame_->ui_->planning_time->setValue(d);
+    int attempts;
+    if (config.mapGetInt("MoveIt_Planning_Attempts", &attempts))
+      frame_->ui_->planning_attempts->setValue(attempts);
     if (config.mapGetFloat("MoveIt_Goal_Tolerance", &d))
       frame_->ui_->goal_tolerance->setValue(d);
     bool b;
@@ -1470,6 +1473,7 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Warehouse_Host", frame_->ui_->database_host->text());
     config.mapSetValue("MoveIt_Warehouse_Port", frame_->ui_->database_port->value());
     config.mapSetValue("MoveIt_Planning_Time", frame_->ui_->planning_time->value());
+    config.mapSetValue("MoveIt_Planning_Attempts", frame_->ui_->planning_attempts->value());
     config.mapSetValue("MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
   }
