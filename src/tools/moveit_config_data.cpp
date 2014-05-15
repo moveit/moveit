@@ -299,67 +299,67 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   std::vector<OMPLPlannerDescription> planner_des;
 
   OMPLPlannerDescription SBL("SBL","geometric");
-  SBL.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  SBL.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
   planner_des.push_back(SBL);
 
-  OMPLPlannerDescription EST("EST","geometric");
-  EST.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0 setup()" );
-  EST.addParameter("goal_bias","0.05","When close to goal select goal, with this probability. default: 0.05");
+  OMPLPlannerDescription EST("EST", "geometric");
+  EST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0 setup()" );
+  EST.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   planner_des.push_back(EST);
 
-  OMPLPlannerDescription LBKPIECE("LBKPIECE","geometric");
-  LBKPIECE.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  LBKPIECE.addParameter("border_fraction","0.9","Fraction of time focused on boarder default: 0.9");
-  LBKPIECE.addParameter("min_valid_path_fraction","0.5","Accept partially valid moves above fraction. default: 0.5");
+  OMPLPlannerDescription LBKPIECE("LBKPIECE", "geometric");
+  LBKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  LBKPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9");
+  LBKPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(LBKPIECE);
 
-  OMPLPlannerDescription BKPIECE("BKPIECE","geometric");
-  BKPIECE.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  BKPIECE.addParameter("border_fraction","0.9","Fraction of time focused on boarder default: 0.9");
-  BKPIECE.addParameter("failed_expansion_score_factor","0.5","When extending motion fails, scale score by factor. default: 0.5");
-  BKPIECE.addParameter("min_valid_path_fraction","0.5","Accept partially valid moves above fraction. default: 0.5");
+  OMPLPlannerDescription BKPIECE("BKPIECE", "geometric");
+  BKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  BKPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9");
+  BKPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. default: 0.5");
+  BKPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(BKPIECE);
 
-  OMPLPlannerDescription KPIECE("KPIECE","geometric");
-  KPIECE.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  KPIECE.addParameter("goal_bias","0.05","When close to goal select goal, with this probability. default: 0.05 ");
-  KPIECE.addParameter("border_fraction","0.9","Fraction of time focused on boarder default: 0.9 (0.0,1.]");
-  KPIECE.addParameter("failed_expansion_score_factor","0.5","When extending motion fails, scale score by factor. default: 0.5");
-  KPIECE.addParameter("min_valid_path_fraction","0.5","Accept partially valid moves above fraction. default: 0.5");
+  OMPLPlannerDescription KPIECE("KPIECE", "geometric");
+  KPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  KPIECE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  KPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9 (0.0,1.]");
+  KPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. default: 0.5");
+  KPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(KPIECE);
 
-  OMPLPlannerDescription RRT("RRT","geometric");
-  RRT.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  RRT.addParameter("goal_bias","0.05","When close to goal select goal, with this probability? default: 0.05");
+  OMPLPlannerDescription RRT("RRT", "geometric");
+  RRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  RRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
   planner_des.push_back(RRT);
 
-  OMPLPlannerDescription RRTConnect("RRTConnect","geometric");
-  RRTConnect.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  OMPLPlannerDescription RRTConnect("RRTConnect", "geometric");
+  RRTConnect.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
   planner_des.push_back(RRTConnect);
 
-  OMPLPlannerDescription RRTstar("RRTstar","geometric");
-  RRTstar.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  RRTstar.addParameter("goal_bias","0.05","When close to goal select goal, with this probability? default: 0.05");
-  RRTstar.addParameter("delay_collision_checking","1","Stop collision checking as soon as C-free parent found. default 1");
+  OMPLPlannerDescription RRTstar("RRTstar", "geometric");
+  RRTstar.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  RRTstar.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
+  RRTstar.addParameter("delay_collision_checking", "1", "Stop collision checking as soon as C-free parent found. default 1");
   planner_des.push_back(RRTstar);
 
-  OMPLPlannerDescription TRRT("TRRT","geometric");
-  TRRT.addParameter("range","0.0","Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
-  TRRT.addParameter("goal_bias","0.05","When close to goal select goal, with this probability? default: 0.05");
-  TRRT.addParameter("max_states_failed","10","when to start increasing temp. default: 10");
-  TRRT.addParameter("temp_change_factor","2.0","how much to increase or decrease temp. default: 2.0");
-  TRRT.addParameter("min_temperature","10e-10","lower limit of temp change. default: 10e-10");
-  TRRT.addParameter("init_temperature","10e-6","initial temperature. default: 10e-6");
-  TRRT.addParameter("frountier_threshold","0.0","dist new state to nearest neighbor to disqualify as frontier. default: 0.0 set in setup() ");
-  TRRT.addParameter("frountierNodeRatio","0.1","1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
-  TRRT.addParameter("k_constant","0.0","value used to normalize expresssion. default: 0.0 set in setup()");
+  OMPLPlannerDescription TRRT("TRRT", "geometric");
+  TRRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  TRRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
+  TRRT.addParameter("max_states_failed", "10", "when to start increasing temp. default: 10");
+  TRRT.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
+  TRRT.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
+  TRRT.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
+  TRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. default: 0.0 set in setup() ");
+  TRRT.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  TRRT.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(TRRT);
 
-  OMPLPlannerDescription PRM("PRM","geometric");
-  PRM.addParameter("max_nearest_neighbors","10","use k nearest neighbors. default: 10");
+  OMPLPlannerDescription PRM("PRM", "geometric");
+  PRM.addParameter("max_nearest_neighbors", "10", "use k nearest neighbors. default: 10");
   planner_des.push_back(PRM);
 
-  OMPLPlannerDescription PRMstar("PRMstar","geometric"); // no delcares in code
+  OMPLPlannerDescription PRMstar("PRMstar", "geometric"); // no delcares in code
   planner_des.push_back(PRMstar);
 
   // Add Planners with parameter values 
@@ -370,11 +370,12 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
     emitter << YAML::Key << defaultconfig;
     emitter << YAML::Value << YAML::BeginMap;
     emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
-    for(std::size_t  j=0; j<planner_des[i].parameter_list_.size(); j++){
-      emitter << YAML::Key  << planner_des[i].parameter_list_[j].name;
-      emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
-      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
-    }
+    for(std::size_t  j=0; j<planner_des[i].parameter_list_.size(); j++) 
+      {
+	emitter << YAML::Key  << planner_des[i].parameter_list_[j].name;
+	emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
+	emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
+      }
     emitter << YAML::EndMap;
 
     pconfigs.push_back(defaultconfig);

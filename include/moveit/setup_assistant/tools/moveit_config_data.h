@@ -79,20 +79,22 @@ struct GroupMetaData
 /**
  * Planning parameters which may be set in the config files
  */
- struct OmplPlanningParameter{
-   std::string name; // name of parameter
-   std::string value; // value parameter will receive (but as a string)
-   std::string comment; // comment briefly describing what this parameter does
+ struct OmplPlanningParameter
+{
+  std::string name; // name of parameter
+  std::string value; // value parameter will receive (but as a string)
+  std::string comment; // comment briefly describing what this parameter does
  };
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the ompl_planning.yaml file */
- class OMPLPlannerDescription{
+ class OMPLPlannerDescription 
+{
  public:
 /** \brief Constructor
  *  @param name: name of planner
  *  @parameter type: type of planner
  */
-   OMPLPlannerDescription(const std::string  & name, const std::string  & type){
+   OMPLPlannerDescription(const std::string  &name, const std::string  &type){
      name_ = name;
      type_ = type;
    };
@@ -105,7 +107,7 @@ struct GroupMetaData
     * @parameter: value: value of parameter as a string
     *  @parameter: value: value of parameter as a string
     */
-   void   addParameter(const std::string & name, const  std::string & value="", const  std::string  & comment=""){
+   void   addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment=""){
      OmplPlanningParameter temp;
      temp.name =  name;
      temp.value =  value;
