@@ -264,7 +264,7 @@ void MotionPlanningFrame::populateConstraintsList(const std::vector<std::string>
 void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanRequest &mreq)
 {
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
-  mreq.num_planning_attempts = 1;
+  mreq.num_planning_attempts = ui_->planning_attempts->value();
   mreq.allowed_planning_time = ui_->planning_time->value();
   robot_state::robotStateToRobotStateMsg(*planning_display_->getQueryStartState(), mreq.start_state);
   mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
@@ -325,6 +325,7 @@ void MotionPlanningFrame::configureForPlanning()
   move_group_->setStartState(*planning_display_->getQueryStartState());
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
   move_group_->setPlanningTime(ui_->planning_time->value());
+  move_group_->setNumPlanningAttempts(ui_->planning_attempts->value());
   configureWorkspace();
 }
 
