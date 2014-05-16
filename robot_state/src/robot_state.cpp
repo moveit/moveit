@@ -1622,7 +1622,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
   const Eigen::Affine3d &start_pose = getGlobalLinkTransform(link);
   
   //the direction can be in the local reference frame (in which case we rotate it)
-  const Eigen::Vector3d &rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
 
   //The target pose is built by applying a translation to the start pose for the desired direction and distance
   Eigen::Affine3d target_pose = start_pose;
