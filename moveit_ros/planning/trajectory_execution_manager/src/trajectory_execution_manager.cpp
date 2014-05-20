@@ -918,6 +918,20 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
   for (std::set<std::string>::const_iterator it = actuated_joints.begin() ; it != actuated_joints.end() ; ++it)
     ss << *it << " ";
   ROS_ERROR("Unable to identify any set of controllers that can actuate the specified joints: [ %s]", ss.str().c_str());
+
+  std::stringstream ss2;
+  std::map<std::string, ControllerInformation>::const_iterator mi;
+  for(mi = known_controllers_.begin(); mi != known_controllers_.end(); mi++)
+  {
+    ss2 << "controller '" << mi->second.name_ << "' controls joints:\n";
+
+    std::set<std::string>::const_iterator ji;
+    for(ji = mi->second.joints_.begin(); ji != mi->second.joints_.end(); ji++)
+    {
+      ss2 << "  " << *ji << std::endl;
+    }
+  }
+  ROS_ERROR("Known controllers and their joints:\n%s", ss2.str().c_str());
   return false;
 }
 
