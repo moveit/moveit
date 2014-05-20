@@ -449,25 +449,6 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
     return false;
   }
 
-  // Collect the set of virtual joint names so we can ignore them.
-  std::set<std::string> virtual_joints;
-  const std::vector<srdf::Model::VirtualJoint> &vjoints =
-    trajectory.getRobotModel()->getSRDF()->getVirtualJoints();
-  for(size_t i = 0; i < vjoints.size(); i++)
-  {
-    virtual_joints.insert(vjoints[i].name_);
-  }
-
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-  for(std::size_t i = 0 ; i < jnt.size() ; ++i)
-  {
-    if(jnt[i]->getVariableCount() > 1 && virtual_joints.count(jnt[i]->getName()) == 0)
-    {
-      logWarn("Time parametrization works for single-dof joints only");
-      return false;
-    }
-  }
-
   // this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
 
