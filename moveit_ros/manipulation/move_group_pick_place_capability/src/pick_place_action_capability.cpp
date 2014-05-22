@@ -122,7 +122,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
       action_res.trajectory_descriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
         action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
-      if (goal->possible_grasps.size() < result->id_)
+      if (result->id_ < goal->possible_grasps.size())
         action_res.grasp = goal->possible_grasps[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
@@ -163,8 +163,8 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
       convertToMsg(result->trajectories_, action_res.trajectory_start, action_res.trajectory_stages);
       action_res.trajectory_descriptions.resize(result->trajectories_.size());
       for (std::size_t i = 0 ; i < result->trajectories_.size() ; ++i)
-        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;  
-      if (goal->place_locations.size() < result->id_)
+        action_res.trajectory_descriptions[i] = result->trajectories_[i].description_;
+      if (result->id_ < goal->place_locations.size())
         action_res.place_location = goal->place_locations[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
@@ -206,8 +206,8 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
     else
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
-      plan.plan_components_ = result->trajectories_; 
-      if (goal.possible_grasps.size() < result->id_)
+      plan.plan_components_ = result->trajectories_;
+      if (result->id_ < goal.possible_grasps.size())
         action_res->grasp = goal.possible_grasps[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
@@ -252,7 +252,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
     {
       const pick_place::ManipulationPlanPtr &result = success.back();
       plan.plan_components_ = result->trajectories_;
-      if (goal.place_locations.size() < result->id_)
+      if (result->id_ < goal.place_locations.size())
         action_res->place_location = goal.place_locations[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
@@ -423,13 +423,13 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     manipulation_msgs::GraspPlanning::Request request;
     manipulation_msgs::GraspPlanning::Response response;
     bool valid = true;
-    
+
     collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
     if (object && !object->shape_poses_.empty())
     {
       request.arm_name = goal.group_name;
       request.target.reference_frame_id = lscene->getPlanningFrame();
-      
+
       household_objects_database_msgs::DatabaseModelPose dbp;
       dbp.pose.header.frame_id = lscene->getPlanningFrame();
       dbp.pose.header.stamp = ros::Time::now();
@@ -450,9 +450,9 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     else
     {
       valid = false;
-      ROS_ERROR("Object has no geometry"); 
+      ROS_ERROR("Object has no geometry");
     }
-    
+
     if (valid)
     {
       ROS_DEBUG("Calling grasp planner...");
@@ -469,14 +469,14 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
           goal.possible_grasps[i].pre_grasp_posture.points.resize(1);
           goal.possible_grasps[i].pre_grasp_posture.points[0].positions = response.grasps[i].pre_grasp_posture.position;
           goal.possible_grasps[i].pre_grasp_posture.points[0].velocities = response.grasps[i].pre_grasp_posture.velocity;
-          goal.possible_grasps[i].pre_grasp_posture.points[0].effort = response.grasps[i].pre_grasp_posture.effort;          
+          goal.possible_grasps[i].pre_grasp_posture.points[0].effort = response.grasps[i].pre_grasp_posture.effort;
 
           goal.possible_grasps[i].grasp_posture.header = response.grasps[i].grasp_posture.header;
           goal.possible_grasps[i].grasp_posture.joint_names = response.grasps[i].grasp_posture.name;
           goal.possible_grasps[i].grasp_posture.points.resize(1);
           goal.possible_grasps[i].grasp_posture.points[0].positions = response.grasps[i].grasp_posture.position;
           goal.possible_grasps[i].grasp_posture.points[0].velocities = response.grasps[i].grasp_posture.velocity;
-          goal.possible_grasps[i].grasp_posture.points[0].effort = response.grasps[i].grasp_posture.effort;          
+          goal.possible_grasps[i].grasp_posture.points[0].effort = response.grasps[i].grasp_posture.effort;
 
           goal.possible_grasps[i].grasp_pose = response.grasps[i].grasp_pose;
           goal.possible_grasps[i].grasp_quality = response.grasps[i].grasp_quality;
