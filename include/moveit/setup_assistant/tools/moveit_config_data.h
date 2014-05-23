@@ -76,6 +76,49 @@ struct GroupMetaData
   int kinematics_solver_attempts_; // solver attempts
 };
 
+/**
+ * Planning parameters which may be set in the config files
+ */
+ struct OmplPlanningParameter
+{
+  std::string name; // name of parameter
+  std::string value; // value parameter will receive (but as a string)
+  std::string comment; // comment briefly describing what this parameter does
+ };
+
+/** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the ompl_planning.yaml file */
+ class OMPLPlannerDescription 
+{
+ public:
+/** \brief Constructor
+ *  @param name: name of planner
+ *  @parameter type: type of planner
+ */
+   OMPLPlannerDescription(const std::string  &name, const std::string  &type){
+     name_ = name;
+     type_ = type;
+   };
+   /** \brief Destructor */
+   ~OMPLPlannerDescription(){
+     parameter_list_.clear();
+   };
+   /** \brief adds a parameter to the planner description 
+    * @param name: name of parameter to add
+    * @parameter: value: value of parameter as a string
+    *  @parameter: value: value of parameter as a string
+    */
+   void   addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment=""){
+     OmplPlanningParameter temp;
+     temp.name =  name;
+     temp.value =  value;
+     temp.comment = comment;
+     parameter_list_.push_back(temp);
+   }
+   std::vector<OmplPlanningParameter> parameter_list_;
+   std::string name_; // name of planner
+   std::string type_;  // type of planner (geometric)
+ };
+
 /** \brief This class is shared with all widgets and contains the common configuration data
     needed for generating each robot's MoveIt configuration package.
 
