@@ -299,7 +299,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
 
   ROS_DEBUG_STREAM_NAMED("ikfast","Reading joints and links from URDF");
 
-  boost::shared_ptr<urdf::Link> link = boost::const_pointer_cast<urdf::Link>(robot_model.getLink(tip_frame_));
+  boost::shared_ptr<urdf::Link> link = boost::const_pointer_cast<urdf::Link>(robot_model.getLink(getTipFrame()));
   while(link->name != base_frame_ && joint_names_.size() <= num_joints_)
   {
     ROS_DEBUG_NAMED("ikfast","Link %s",link->name.c_str());
@@ -589,8 +589,8 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_
     return false;
   }
 
-  if(link_names.size()!=1 || link_names[0]!=tip_frame_){
-    ROS_ERROR_NAMED("ikfast","Can compute FK for %s only",tip_frame_.c_str());
+  if(link_names.size()!=1 || link_names[0]!=getTipFrame()){
+    ROS_ERROR_NAMED("ikfast","Can compute FK for %s only",getTipFrame().c_str());
     return false;
   }
 
