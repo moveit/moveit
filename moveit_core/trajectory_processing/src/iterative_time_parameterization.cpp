@@ -449,14 +449,6 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
     return false;
   }
 
-  const std::vector<const robot_model::JointModel*> &jnt = group->getJointModels();
-  for (std::size_t i = 0 ; i < jnt.size() ; ++i)
-    if (jnt[i]->getVariableCount() > 1)
-    {
-      logWarn("Time parametrization works for single-dof joints only");
-      return false;
-    }
-
   // this lib does not actually work properly when angles wrap around, so we need to unwind the path first
   trajectory.unwind();
 
