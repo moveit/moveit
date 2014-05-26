@@ -263,25 +263,20 @@ if __name__ == '__main__':
    package_file_name = plugin_pkg_dir+"/package.xml"
    package_xml = etree.parse(package_file_name, parser)
 
-   # Check that all the dependencies are in the depends list
-   modified_pkg = False
-   for dependency in ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]:
-      found = False
-      for depend_entry in package_xml.getroot().findall("build_depend"):
-         if depend_entry.text == dependency:
-            found = True
-            break  
-      if not found:    
-         modified_pkg = True
-         # Build depend
-         child = etree.Element("build_depend")
-         child.text = dependency
-         package_xml.getroot().append(child)
+   # Make sure at least all required dependencies are in the depends lists
+   build_deps = ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]
+   run_deps   = ["moveit_core", "pluginlib", "roscpp", "tf_conversions"]
 
-         # Run depend
-         child = etree.Element("run_depend")
-         child.text = dependency
-         package_xml.getroot().append(child)
+   def update_deps(reqd_deps, req_type, e_parent):
+      curr_deps = [e.text for e in e_parent.findall(req_type)]
+      missing_deps = set(reqd_deps) - set(curr_deps)
+      for d in missing_deps:
+         etree.SubElement(e_parent, req_type).text = d
+      return missing_deps
+
+   # empty sets evaluate to false
+   modified_pkg = (update_deps(build_deps, "build_depend", package_xml.getroot()) or
+                     update_deps(run_deps, "run_depend", package_xml.getroot()))
 
    if modified_pkg:
       with open(package_file_name,"w") as f:
