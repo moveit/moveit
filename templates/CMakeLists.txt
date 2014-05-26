@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(_PACKAGE_NAME_)
 
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
   moveit_core
   pluginlib
   roscpp
@@ -23,9 +22,6 @@ catkin_package(
 include_directories(include)
 
 set(IKFAST_LIBRARY_NAME _LIBRARY_NAME_)
-
-find_package(Eigen REQUIRED)
-include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
 
 find_package(LAPACK REQUIRED)
 
