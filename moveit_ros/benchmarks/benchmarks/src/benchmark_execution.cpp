@@ -49,6 +49,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/progress.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <eigen_conversions/eigen_msg.h>
 #include <Eigen/Core>
