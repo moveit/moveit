@@ -48,6 +48,7 @@ namespace moveit
 namespace core
 {
 class JointModelGroup;
+class RobotState;
 }
 }
 
@@ -198,7 +199,15 @@ public:
    * @param solution the solution vector
    * @param solution_callback A callback solution for the IK solution
    * @param error_code an error code that encodes the reason for failure or success
-   * @param lock_redundant_joints if setRedundantJoints() was previously called, keep the values of the joints marked as redundant the same as in the seed
+   * @param options container for other IK options
+   * @param context_state (optional) the context in which this request
+   *        is being made.  The position values corresponding to
+   *        joints in the current group may not match those in
+   *        ik_seed_state.  The values in ik_seed_state are the ones
+   *        to use.  This is passed just to provide the \em other
+   *        joint values, in case they are needed for context, like
+   *        with an IK solver that computes a balanced result for a
+   *        biped.
    * @return True if a valid solution was found, false otherwise
    */
   virtual bool searchPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
@@ -208,7 +217,8 @@ public:
                                 std::vector<double> &solution,
                                 const IKCallbackFn &solution_callback,
                                 moveit_msgs::MoveItErrorCodes &error_code,
-                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const
+                                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions(),
+                                const moveit::core::RobotState* context_state = NULL) const
   {
     // For IK solvers that do not support multiple poses, fall back to single pose call
     if (ik_poses.size() == 1)
