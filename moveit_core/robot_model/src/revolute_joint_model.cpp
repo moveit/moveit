@@ -154,7 +154,7 @@ double moveit::core::RevoluteJointModel::distance(const double *values1, const d
 {
   if (continuous_)
   {
-    double d = fabs(values1[0] - values2[0]);
+    double d = fmod(fabs(values1[0] - values2[0]), 2.0 * boost::math::constants::pi<double>());
     return (d > boost::math::constants::pi<double>()) ? 2.0 * boost::math::constants::pi<double>() - d : d;
   }
   else
