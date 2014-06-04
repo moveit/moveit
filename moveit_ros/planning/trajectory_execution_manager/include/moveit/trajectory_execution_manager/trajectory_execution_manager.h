@@ -168,7 +168,7 @@ public:
   /// is given to the already loaded ones. If no controller is specified, a default is used. This call is non-blocking.
   bool pushAndExecute(const sensor_msgs::JointState &state, const std::vector<std::string> &controllers);
 
-  /// Wait until the execution is complete. This applies for executions started by either execute() or pushAndExecute()
+  /// Wait until the execution is complete. This only works for executions started by execute().  If you call this after pushAndExecute(), it will immediately stop execution.
   moveit_controller_manager::ExecutionStatus waitForExecution();
 
   /// Get the state that the robot is expected to be at, given current time, after execute() has been called. The return value is a pair of two index values:
