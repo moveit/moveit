@@ -275,8 +275,8 @@ if __name__ == '__main__':
       return missing_deps
 
    # empty sets evaluate to false
-   modified_pkg = (update_deps(build_deps, "build_depend", package_xml.getroot()) or
-                     update_deps(run_deps, "run_depend", package_xml.getroot()))
+   modified_pkg  = update_deps(build_deps, "build_depend", package_xml.getroot())
+   modified_pkg |= update_deps(run_deps, "run_depend", package_xml.getroot())
 
    if modified_pkg:
       with open(package_file_name,"w") as f:
