@@ -387,7 +387,8 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
   switch (GetIkType())
   {
     case IKP_Transform6D:
-      // For **Transform6D**, eerot is 9 values for the 3x3 rotation matrix.
+    case IKP_Translation3D:
+      // For **Transform6D**, eerot is 9 values for the 3x3 rotation matrix. For **Translation3D**, these are ignored.
 
       mult = pose_frame.M;
 
@@ -428,7 +429,6 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
       return 0;
 
     case IKP_Rotation3D:
-    case IKP_Translation3D:
     case IKP_Lookat3D:
     case IKP_TranslationXY2D:
     case IKP_TranslationXYOrientation3D:
