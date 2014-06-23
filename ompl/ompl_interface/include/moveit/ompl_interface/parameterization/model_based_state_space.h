@@ -198,6 +198,7 @@ public:
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual bool equalStates(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual double getMaximumExtent() const;
+  virtual double getMeasure() const;
 
   virtual unsigned int getSerializationLength() const;
   virtual void serialize(void *serialization, const ompl::base::State *state) const;
