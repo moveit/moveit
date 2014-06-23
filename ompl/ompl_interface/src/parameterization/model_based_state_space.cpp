@@ -147,6 +147,20 @@ double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
   return spec_.joint_model_group_->getMaximumExtent(spec_.joint_bounds_);
 }
 
+double ompl_interface::ModelBasedStateSpace::getMeasure() const
+{
+    double m = 1.0;
+    for (std::size_t i = 0 ; i < spec_.joint_bounds_.size() ; ++i)
+    {
+        const robot_model::JointModel::Bounds& bounds = *spec_.joint_bounds_[i];
+        for (std::size_t j = 0; j < bounds.size(); ++j)
+        {
+            m *= bounds[j].max_position_ - bounds[j].min_position_;
+        }
+    }
+    return m;
+}
+
 double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
 {
   if (distance_function_)
