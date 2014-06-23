@@ -589,6 +589,10 @@
               </property>
              </widget>
             </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QLabel" name="label_10">
               <property name="text">
@@ -609,7 +613,7 @@
               </property>
               <property name="value">
                <number>10</number>
-              </property>
+               </property>
              </widget>
             </item>
            </layout>
