@@ -2,6 +2,66 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed bug in RevoluteJointModel::distance() giving large negative numbers.
+* kinematics_base: added an optional RobotState for context.
+* fix pick/place approach/retreat on indigo/14.04
+* Fixed bug in RevoluteJointModel::distance() giving large negative numbers.
+* IterativeParabolicTimeParameterization now ignores virtual joints.
+* kinematics_base: added an optional RobotState for context.
+* Removed check for multi-dof joints in iterative_time_parameterization.cpp.
+* fix pick/place approach/retreat on indigo/14.04
+* IterativeParabolicTimeParameterization now ignores virtual joints.
+  When checking if all joints are single-DOF, it accepts multi-DOF joints only if they are
+  also virtual.
+* Fix compiler warnings
+* Address [cppcheck: unreadVariable] warning.
+* Address [cppcheck: postfixOperator] warning.
+* Address [cppcheck: stlSize] warning.
+* Address [-Wunused-value] warning.
+* Address [-Wunused-variable] warning.
+* Address [-Wreturn-type] warning.
+* Address [-Wsign-compare] warning.
+* Address [-Wreorder] warning.
+* Allow joint model group to have use IK solvers with multiple tip frames
+* KinematicsBase support for multiple tip frames and IK requests with multiple poses
+* dynamics_solver: fix crashbug
+  Ignore joint that does not exist (including the virtual joint if it is part of
+  the group).
+* Changed KinematicsBase::supportsGroup() to use a more standard call signature.
+* Merged with hydro-devel
+* Removed unnecessary error output
+* Removed todo
+* Added support for legacy IK calls without solution_callback
+* Merge branch 'hydro-devel' into kinematic_base
+* Changed KinematicsBase::supportsGroup() to use a more standard call signature.
+* Added empty check.
+* computeCartesianPath waypoints double-up fix
+  computeCartesianPath appends full trajectories between waypoints when given a vector of waypoints. As trajectories include their endpoints, this leads to the combined trajectory being generated with duplicate points at waypoints, which can lead to pauses or stuttering.
+  This change skips the first point in trajectories generated between waypoints.
+* avoid unnecessary calculations
+* Created supportsGroup() test for IK solvers
+* from ros-planning/more-travis-tests
+  More Travis test fixes.
+* Commented out failing test.
+  run_tests_moveit_ros_perception requires glut library, and thus a video card or X server, but I haven't had any luck making such things work on Travis.
+* avoid unnecessary calculations
+  If we are not going to use the missing vector then we should not create it
+  (avoid an expensive operation).
+* Code cleanup
+* Allow joint model group to have use IK solvers with multiple tip frames
+* Authorship
+* Fixed missing removeSlash to setValues()
+* Feedback and cleaned up comment lengths
+* Cleaned up commit
+* KinematicsBase support for multiple tip frames and IK requests with multiple poses
+* More Travis test fixes.
+  Switched test_constraint_samplers.cpp from build-time to run-time reference to moveit_resources.
+  Added passing run_tests_moveit_core_gtest_test_robot_state_complex test to .travis.yml.
+  Added 'make tests' to .travis.yml to make all tests, even failing ones.
+* Contributors: Acorn Pooley, Adolfo Rodriguez Tsouroukdissian, Dave Coleman, Dave Hershberger, Martin Szarski, Michael Ferguson, Sachin Chitta, hersh, sachinc
+
 0.5.8 (2014-03-03)
 ------------------
 * Dix bad includes after upstream catkin fix
