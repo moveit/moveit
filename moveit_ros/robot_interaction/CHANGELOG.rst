@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix [-Wreorder] warning.
+* Allow planning groups to have more than one tip
+* Contributors: Adolfo Rodriguez Tsouroukdissian, Dave Coleman
+
 0.5.18 (2014-03-23)
 -------------------
 

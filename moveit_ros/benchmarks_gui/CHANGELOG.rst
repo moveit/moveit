@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix [-Wreorder] warning.
+* Contributors: Adolfo Rodriguez Tsouroukdissian
+
 0.5.18 (2014-03-23)
 -------------------
 * add pkg-config as dep
