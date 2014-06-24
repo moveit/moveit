@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.19 (2014-06-23)
+-------------------
 * Fix [-Wreorder] warning.
 * Address [cppcheck: duplicateExpression] error.
   The existing check for NaNs is in fact correct for IEEE-compliant floating

@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.19 (2014-06-23)
+-------------------
 * benchmarks: add missing include.
 * Fix broken log & output statements.
   - Address [cppcheck: coutCerrMisusage] and [-Werror=format-extra-args] errors.
