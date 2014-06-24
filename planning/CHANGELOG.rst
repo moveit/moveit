@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.19 (2014-06-23)
+-------------------
 * Updated doxygen comment in TrajectoryExecutionManager.
 * Added more informative error message text when cant' find controllers.
 * robot_model_loader.cpp: added call to KinematicsBase::supportsGroup().
