@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_benchmarks_gui</name>
-  <version>0.5.18</version>
+  <version>0.5.19</version>
   <description>MoveIt GUI tools for benchmarking</description>
 
   <author email="mprats@willowgarage.com">Mario Prats</author>

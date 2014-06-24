@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.19 (2014-06-23)
+-------------------
 * fixes `#461 <https://github.com/ros-planning/moveit_ros/issues/461>` and a potential segfault
 * Now check if there is a time for the gripper trajectory.
   If there is a time, use that one on the gripper trajectory, if not, keep
