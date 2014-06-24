@@ -98,6 +98,7 @@ catkin_package(
     moveit_msgs
     kdl_parser
     srdfdom
+    angles
   DEPENDS
     Boost
     Eigen
