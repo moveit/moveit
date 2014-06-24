@@ -201,6 +201,7 @@ void MotionPlanningFrame::setAsGoalStateButtonClicked()
   }
 }
 
+
 void MotionPlanningFrame::removeStateButtonClicked()
 {
   if (robot_state_storage_)
