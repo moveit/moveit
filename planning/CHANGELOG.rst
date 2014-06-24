@@ -2,6 +2,26 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updated doxygen comment in TrajectoryExecutionManager.
+* Added more informative error message text when cant' find controllers.
+* robot_model_loader.cpp: added call to KinematicsBase::supportsGroup().
+* Fix [-Wreorder] warning.
+* Fix broken log & output statements.
+  - Address [cppcheck: coutCerrMisusage] and [-Werror=format-extra-args] errors.
+  - ROS_ERROR -> ROS_ERROR_NAMED.
+  - Print size_t values portably.
+* Address [-Wreturn-type] warning.
+* Address [cppcheck: postfixOperator] warning.
+* Address [cppcheck: duplicateIf] error.
+  The same condition was being checked twice, and the same action was being taken.
+* Add check for planning scene monitor connection, with 5 sec delay
+* Fix for building srv_kinematics_plugin
+* New ROS service call-based IK plugin
+* Allow planning groups to have more than one tip
+* Contributors: Adolfo Rodriguez Tsouroukdissian, Dave Coleman, Dave Hershberger
+
 0.5.18 (2014-03-23)
 -------------------
 

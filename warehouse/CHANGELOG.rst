@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.18 (2014-03-23)
 -------------------
 
