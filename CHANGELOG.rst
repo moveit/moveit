@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.9 (2014-06-23)
+------------------
 * Fixed bug in RevoluteJointModel::distance() giving large negative numbers.
 * kinematics_base: added an optional RobotState for context.
 * fix pick/place approach/retreat on indigo/14.04
