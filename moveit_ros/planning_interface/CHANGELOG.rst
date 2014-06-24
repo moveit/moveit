@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add check for planning scene monitor connection, with 5 sec delay
+* Contributors: Dave Coleman
+
 0.5.18 (2014-03-23)
 -------------------
 

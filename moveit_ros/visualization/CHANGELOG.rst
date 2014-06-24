@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Changed rviz plugin action server wait to non-simulated time
+* Fix [-Wreorder] warning.
+* Fix RobotState rviz plugin to not display when disabled
+* Add check for planning scene monitor connection, with 5 sec delay
+* Contributors: Adolfo Rodriguez Tsouroukdissian, Dave Coleman
+
 0.5.18 (2014-03-23)
 -------------------
 * add pkg-config as dep
