@@ -1206,22 +1206,8 @@ bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const 
 }
 }
 
-bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen::Affine3d &pose_in, const std::string &tip_in,
-                                         const std::vector<double> &consistency_limits, unsigned int attempts, double timeout,
-                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
+bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver)
 {
-  const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
-  if (!solver)
-  {
-    logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
-    return false;
-  }
-
-  Eigen::Affine3d pose = pose_in;
-  std::string tip = tip_in;
-  if (!tip.empty() && tip[0] == '/')
-    tip = tip.substr(1);
-  
   // bring the pose to the frame of the IK solver
   const std::string &ik_frame = solver->getBaseFrame();
   if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
@@ -1231,63 +1217,195 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       return false;
     pose = getGlobalLinkTransform(lm).inverse() * pose;
   }
+  return true;
+}
 
-  // try all of the solver's possible tip frames to see if one works with our passed in pose tip frame
-  bool found_valid_frame = false;
-  for (std::vector<std::string>::const_iterator tip_frame_it = solver->getTipFrames().begin();
-       tip_frame_it < solver->getTipFrames().end(); ++tip_frame_it)
+void moveit::core::RobotState::poseToMsg(const Eigen::Affine3d &pose, geometry_msgs::Pose &pose_msg)
+{
+  // Convert Eigen pose to geometry_msgs pose
+  Eigen::Quaterniond quat(pose.rotation());
+  Eigen::Vector3d point(pose.translation());
+
+  pose_msg.position.x = point.x();
+  pose_msg.position.y = point.y();
+  pose_msg.position.z = point.z();
+  pose_msg.orientation.x = quat.x();
+  pose_msg.orientation.y = quat.y();
+  pose_msg.orientation.z = quat.z();
+  pose_msg.orientation.w = quat.w();
+}
+
+bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen::Affine3d &pose_in, const std::string &tip_in,
+                                         const std::vector<double> &consistency_limits_in, unsigned int attempts, double timeout,
+                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
+{
+  // Convert from single pose and tip to vectors
+  EigenSTL::vector_Affine3d poses;
+  poses.push_back(pose_in);
+
+  std::vector<std::string> tips;
+  tips.push_back(tip_in);
+
+  std::vector<std::vector<double> > consistency_limits;
+  consistency_limits.push_back(consistency_limits_in);
+
+  return setFromIK(jmg, poses, tips, consistency_limits, attempts, timeout, constraint, options);
+}
+
+bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, const std::vector<std::string> &tips_in,
+                                         unsigned int attempts, double timeout,
+                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
+{
+  static const std::vector<std::vector<double> > consistency_limits;
+  return setFromIK(jmg, poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);
+}
+
+bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, const std::vector<std::string> &tips_in,
+                                         const std::vector<std::vector<double> > &consistency_limits,
+                                         unsigned int attempts, double timeout,
+                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
+{
+  // Error check
+  if (poses_in.size() != tips_in.size())
   {
-    // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+    logError("Number of poses must be the same as number of tips");
+    return false;
+  }
+
+  // Load solver
+  const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
+
+  // Check if this jmg's IK solver can handle multiple tips (non-chain solver)
+  if (!solver)
+  {
+    if (poses_in.size() > 1)
+    {
+      // Forward to setFromIKSubgroups() to allow different subgroup IK solvers to work together
+      return setFromIKSubgroups(jmg, poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);
+    }
+    else
+    {
+      logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
+      return false;
+    }
+  }
+
+  std::vector<geometry_msgs::Pose> ik_queries;
+  std::vector<std::string> tip_frames;
+  std::vector<std::string> available_tip_frames = solver->getTipFrames();
+
+  // Bring each pose to the frame of the IK solver
+  for (std::size_t i = 0; i < poses_in.size(); ++i)
+  {
+    // Make non-const
+    Eigen::Affine3d pose = poses_in[i];
+    std::string tip = tips_in[i];
+
+    // Remove extra slash
+    if (!tip.empty() && tip[0] == '/')
+      tip = tip.substr(1);
+
+    // bring the pose to the frame of the IK solver
+    if (!setToIKSolverFrame(pose, solver))
+      return false;
+
+    // try all of the solver's possible tip frames to see if they uniquely align with our passed in tip frames
+    bool found_valid_frame = false;
+    std::vector<std::string>::iterator tip_frame_it;
+    for ( tip_frame_it = available_tip_frames.begin(); tip_frame_it < available_tip_frames.end(); ++tip_frame_it)
+    {
+      // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
+      std::string tip_frame = *tip_frame_it;
+      logDebug("moveit.robot_state: checking solver tip frame %s against request tip frame %s", tip_frame.c_str(), tip.c_str());
+
+      // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
+      if (!tip_frame.empty() && tip_frame[0] == '/')
+        tip_frame = tip_frame.substr(1);
+
+      if (tip != tip_frame)
+      {
+        if (hasAttachedBody(tip))
+        {
+          const AttachedBody *ab = getAttachedBody(tip);
+          const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
+          if (ab_trans.size() != 1)
+          {
+            logError("Cannot use an attached body with multiple geometries as a reference frame.");
+            return false;
+          }
+          tip = ab->getAttachedLinkName();
+          pose = pose * ab_trans[0].inverse();
+        }
+        if (tip != tip_frame)
+        {
+          const robot_model::LinkModel *lm = getLinkModel(tip);
+          if (!lm)
+            return false;
+          const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
+          for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
+            if (Transforms::sameFrame(it->first->getName(), tip_frame))
+            {
+              tip = tip_frame;
+              pose = pose * it->second;
+              break;
+            }
+        }
+
+      } // end if tip
+
+        // Check if this tip frame works
+      if (tip == tip_frame)
+      {
+        found_valid_frame = true;
+        break;
+      }
+
+    } // end for available_tip_frames
+
+    // Make sure one of the tip frames worked
+    if (!found_valid_frame)
+    {
+      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      return false;
+    }
+
+    // Remove that tip from the list of available tip frames because each can only have one pose
+    available_tip_frames.erase(tip_frame_it);
+
+    // Convert Eigen pose to geometry_msgs pose
+    geometry_msgs::Pose ik_query;
+    poseToMsg(pose, ik_query);
+
+    // Save into vectors
+    ik_queries.push_back(ik_query);
+    tip_frames.push_back(tip);
+  } // end for poses_in
+
+  // Create poses for all remaining tips a solver expects, even if not passed into this function
+  for (std::vector<std::string>::const_iterator tip_frame_it = available_tip_frames.begin();
+       tip_frame_it < available_tip_frames.end(); ++tip_frame_it)
+  {
     std::string tip_frame = *tip_frame_it;
-    logDebug("moveit.robot_state: checking solver tip frame %s against request tip frame %s", tip_frame.c_str(), tip.c_str());
+
 
     // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
     if (!tip_frame.empty() && tip_frame[0] == '/')
       tip_frame = tip_frame.substr(1);
 
-    if (tip != tip_frame)
-    {
-      if (hasAttachedBody(tip))
-      {
-        const AttachedBody *ab = getAttachedBody(tip);
-        const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
-        if (ab_trans.size() != 1)
-        {
-          logError("Cannot use an attached body with multiple geometries as a reference frame.");
-          return false;
-        }
-        tip = ab->getAttachedLinkName();
-        pose = pose * ab_trans[0].inverse();
-      }
-      if (tip != tip_frame)
-      {
-        const robot_model::LinkModel *lm = getLinkModel(tip);
-        if (!lm)
-          return false;
-        const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
-        for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
-          if (Transforms::sameFrame(it->first->getName(), tip_frame))
-          {
-            tip = tip_frame;
-            pose = pose * it->second;
-            break;
-          }
-      }
-    }
+    // Get the pose of a different EE tip link
+    Eigen::Affine3d current_pose = getGlobalLinkTransform(tip_frame);
 
-    // Check if this tip frame works
-    if (tip == tip_frame)
-    {
-      found_valid_frame = true;
-      break;
-    }
-  }
-
-  // Make sure one of the tip frames worked
-  if (!found_valid_frame)
-  {
-      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+    // bring the pose to the frame of the IK solver
+    if (!setToIKSolverFrame(current_pose, solver))
       return false;
+
+    // Convert Eigen pose to geometry_msgs pose
+    geometry_msgs::Pose ik_query;
+    poseToMsg(current_pose, ik_query);
+
+    // Save into vectors
+    ik_queries.push_back(ik_query);
+    tip_frames.push_back(tip_frame);
   }
 
   // if no timeout has been specified, use the default one
@@ -1296,64 +1414,14 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
   if (attempts == 0)
     attempts = jmg->getDefaultIKAttempts();
-  
-  const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
 
-  // Create poses for all tips a solver expects, even if not passed into this function
-  std::vector<geometry_msgs::Pose> ik_queries;
-  std::vector<std::string> tip_frames;
-  Eigen::Affine3d current_pose;
-
-  for (std::vector<std::string>::const_iterator tip_frame_it = solver->getTipFrames().begin();
-       tip_frame_it < solver->getTipFrames().end(); ++tip_frame_it)
-  {
-    std::string tip_frame = *tip_frame_it;
-
-    // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
-    if (!tip_frame.empty() && tip_frame[0] == '/')
-      tip_frame = tip_frame.substr(1);
-
-    // check that this is not the current changed pose
-    if (tip != tip_frame)
-    {
-      // Get the pose of a different EE tip link
-      current_pose = getGlobalLinkTransform(tip_frame);
-
-      // bring the pose to the frame of the IK solver
-      const std::string &ik_frame = solver->getBaseFrame();
-      if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
-      {
-        const LinkModel *lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
-        if (!lm)
-          return false;
-        current_pose = getGlobalLinkTransform(lm).inverse() * current_pose;
-      }
-    }
-    else
-    {
-      current_pose = pose;
-    }
-
-    // Convert Eigen pose to geometry_msgs pose
-    Eigen::Quaterniond quat(current_pose.rotation());
-    Eigen::Vector3d point(current_pose.translation());
-    geometry_msgs::Pose ik_query;
-    ik_query.position.x = point.x();
-    ik_query.position.y = point.y();
-    ik_query.position.z = point.z();
-    ik_query.orientation.x = quat.x();
-    ik_query.orientation.y = quat.y();
-    ik_query.orientation.z = quat.z();
-    ik_query.orientation.w = quat.w();
-
-    // Save into vectors
-    ik_queries.push_back(ik_query);
-    tip_frames.push_back(tip_frame);
-  }
-
+  // set callback function
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
     ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
+
+  // Bijection?
+  const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
 
   bool first_seed = true;
   std::vector<double> initial_values;
@@ -1387,10 +1455,16 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       }
     }
     
+    // Todo: this might be a hack, i don't fully understand the implications of this
+    std::vector<double> consistency_limit;
+    if (!consistency_limits.empty())
+      consistency_limit = consistency_limits[0]; // big assumption
+
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
-    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options, this))
+
+    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limit, ik_sol, ik_callback_fn, error, options, this))
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
@@ -1402,32 +1476,24 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   return false;
 }
 
-bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, const std::vector<std::string> &tips_in,
-                                         unsigned int attempts, double timeout,
-                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
+bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, 
+                                                  const std::vector<std::string> &tips_in,
+                                                  const std::vector<std::vector<double> > &consistency_limits,
+                                                  unsigned int attempts, double timeout,
+                                                  const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
-  static const std::vector<std::vector<double> > consistency_limits;
-  return setFromIK(jmg, poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);
-}
+  // Assume we have already ran setFromIK() and those checks
 
-bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, const std::vector<std::string> &tips_in,
-                                         const std::vector<std::vector<double> > &consistency_limits,
-                                         unsigned int attempts, double timeout,
-                                         const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
-{
-  if (poses_in.size() == 1 && tips_in.size() == 1 && consistency_limits.size() <= 1)
-  {
-    if (consistency_limits.empty())
-      return setFromIK(jmg, poses_in[0], tips_in[0], attempts, timeout, constraint, options);
-    else
-      return setFromIK(jmg, poses_in[0], tips_in[0], consistency_limits[0], attempts, timeout, constraint, options);
-  }
-
+  // Get containing subgroups
   const std::vector<std::string>& sub_group_names = jmg->getSubgroupNames();
   std::vector<const JointModelGroup*> sub_groups(sub_group_names.size());
   for (std::size_t i = 0 ; i < sub_group_names.size() ; ++i)
+  {
+    logError("Subgroup found: %s", sub_group_names[i].c_str());
     sub_groups[i] = robot_model_->getJointModelGroup(sub_group_names[i]);
-  
+  }
+
+  // Error check
   if (poses_in.size() != sub_group_names.size())
   {
     logError("Number of poses must be the same as number of sub-groups");
@@ -1455,6 +1521,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
   }
 
+  // Populate list of kin solvers for the various subgroups
   std::vector<kinematics::KinematicsBaseConstPtr> solvers;
   for (std::size_t i = 0; i < poses_in.size() ; ++i)
   {
@@ -1467,23 +1534,19 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     solvers.push_back(solver);
   }
   
+  // Make non-const versions
   EigenSTL::vector_Affine3d transformed_poses = poses_in;
   std::vector<std::string> tip_names = tips_in;
 
+  // Each each pose's tip frame naming
   for (std::size_t i = 0 ; i < poses_in.size() ; ++i)
   {
     Eigen::Affine3d &pose = transformed_poses[i];
     std::string &tip = tip_names[i];
 
     // bring the pose to the frame of the IK solver
-    const std::string &ik_frame = solvers[i]->getBaseFrame();
-    if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
-    {
-      const LinkModel *lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
-      if (!lm)
-        return false;
-      pose = getGlobalLinkTransform(lm).inverse() * pose;
-    }
+    if (!setToIKSolverFrame(pose, solvers[i]))
+      return false;
 
     // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
     std::string tip_frame = solvers[i]->getTipFrame();
@@ -1529,6 +1592,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
   }
 
+  // Convert Eigen poses to geometry_msg format
   std::vector<geometry_msgs::Pose> ik_queries(poses_in.size());
   kinematics::KinematicsBase::IKCallbackFn ik_callback_fn;
   if (constraint)
@@ -1609,8 +1673,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       }
     }
   }
-  
-  return false;
 }
 
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *group, std::vector<RobotStatePtr> &traj, const LinkModel *link,
