@@ -3,7 +3,6 @@ project(moveit_resources)
 
 find_package(catkin REQUIRED)
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include")
 catkin_package(INCLUDE_DIRS include)
 
 set(MOVEIT_TEST_RESOURCES_DIR_INSTALL "${CMAKE_INSTALL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/test")
