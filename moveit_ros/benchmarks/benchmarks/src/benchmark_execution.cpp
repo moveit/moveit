@@ -1079,7 +1079,6 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
           // run a single benchmark
           ROS_DEBUG("Calling %s:%s", planner_interfaces_to_benchmark[i]->getDescription().c_str(), motion_plan_req.planner_id.c_str());
-          pcontext->clear();
           planning_interface::MotionPlanDetailedResponse mp_res;
           ros::WallTime start = ros::WallTime::now();
           bool solved = pcontext->solve(mp_res);
