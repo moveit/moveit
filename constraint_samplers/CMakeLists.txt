@@ -13,7 +13,7 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_kinematic_constraints
   moveit_kinematics_base
   moveit_planning_scene 
-  ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+  ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
@@ -32,7 +32,7 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(test_constraint_samplers
     ${MOVEIT_LIB_NAME}
-    ${catkin_LIBRARIES}
+    ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES}
     ${orocos_kdl_LIBRARIES}
   )
 endif()
