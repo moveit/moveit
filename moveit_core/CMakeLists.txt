@@ -10,8 +10,6 @@ find_package(catkin REQUIRED
 COMPONENTS
   moveit_msgs
   resource_retriever
-  urdfdom
-  urdfdom_headers
   srdfdom
   kdl_parser
   geometric_shapes
@@ -19,15 +17,16 @@ COMPONENTS
   eigen_stl_containers 
   eigen_conversions
   random_numbers
-  console_bridge
   visualization_msgs
   roslib
   rostime
   cmake_modules
 )
-
+find_package(console_bridge REQUIRED)
 find_package(Eigen REQUIRED)
 find_package(octomap REQUIRED)
+find_package(urdfdom REQUIRED)
+find_package(urdfdom_headers REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL REQUIRED fcl)
@@ -112,6 +111,9 @@ include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
                     ${catkin_INCLUDE_DIRS} 
+                    ${console_bridge_INCLUDE_DIRS} 
+                    ${urdfdom_INCLUDE_DIRS} 
+                    ${urdfdom_headers_INCLUDE_DIRS} 
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 
