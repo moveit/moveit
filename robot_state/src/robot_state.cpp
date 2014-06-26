@@ -1275,9 +1275,27 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   // Load solver
   const kinematics::KinematicsBaseConstPtr& solver = jmg->getSolverInstance();
 
-  // Check if this jmg's IK solver can handle multiple tips (non-chain solver)
-  if (!solver)
+  // Check if this jmg has a solver
+  bool valid_solver = true;
+  if(!solver)
   {
+    valid_solver = false;
+  }
+  // Check if this jmg's IK solver can handle multiple tips (non-chain solver)
+  else if (poses_in.size() > 1)
+  {
+    std::string error_msg;
+    if(!solver->supportsGroup(jmg, &error_msg))
+    {
+      logError("Kinematics solver %s does not support joint group %s.  Error: %s",
+        typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
+      valid_solver = false;
+    }
+  }
+
+  if (!valid_solver)
+  {
+    // Check if there are subgroups that can solve this for us (non-chains)
     if (poses_in.size() > 1)
     {
       // Forward to setFromIKSubgroups() to allow different subgroup IK solvers to work together
