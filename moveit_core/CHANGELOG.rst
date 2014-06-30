@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* making Saucy and Trusty version of includes to be compatible with upstream packaging. re: https://github.com/ros/rosdistro/issues/4633
+* Contributors: Tully Foote
+
 0.5.9 (2014-06-23)
 ------------------
 * Fixed bug in RevoluteJointModel::distance() giving large negative numbers.
