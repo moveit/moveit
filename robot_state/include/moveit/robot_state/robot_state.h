@@ -619,6 +619,15 @@ as the new values that correspond to the group */
    */
   bool setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver);
 
+
+  /**
+   * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
+   * @param pose - the input to change
+   * @param ik_frame - the name of frame of reference of base of ik solver
+   * @return true if no error
+   */
+  bool setToIKSolverFrame(Eigen::Affine3d &pose, const std::string &ik_frame);
+
   /**
    * \brief Convert an Eigen pose to a geometry_msgs pose
    * @param pose - input
