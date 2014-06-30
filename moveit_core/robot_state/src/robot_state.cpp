@@ -1208,8 +1208,13 @@ bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const 
 
 bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver)
 {
-  // bring the pose to the frame of the IK solver
   const std::string &ik_frame = solver->getBaseFrame();
+  return setToIKSolverFrame( pose, ik_frame );
+}
+
+bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const std::string &ik_frame)
+{
+  // Bring the pose to the frame of the IK solver
   if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
   {
     const LinkModel *lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
