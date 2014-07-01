@@ -1248,6 +1248,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
                                          const std::vector<double> &consistency_limits_in, unsigned int attempts, double timeout,
                                          const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
+  std::cout << "First tip is " << tip_in << std::endl;
+
   // Convert from single pose and tip to vectors
   EigenSTL::vector_Affine3d poses;
   poses.push_back(pose_in);
@@ -1317,9 +1319,15 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
   }
 
-  std::vector<geometry_msgs::Pose> ik_queries;
-  std::vector<std::string> tip_frames;
-  std::vector<std::string> available_tip_frames = solver->getTipFrames();
+  const std::vector<std::string> &solver_tip_frames = solver->getTipFrames();
+  std::cout << "Solver tip frames: " << std::endl;
+  std::copy(solver_tip_frames.begin(), solver_tip_frames.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
+
+  // Track which possible tips frames we have filled in so far
+  std::vector<bool> tip_frames_used (solver_tip_frames.size(), false);
+
+  // Create vector to hold the output frames in the same order as solver_tip_frames
+  std::vector<geometry_msgs::Pose> ik_queries(solver_tip_frames.size());
 
   // Bring each pose to the frame of the IK solver
   for (std::size_t i = 0; i < poses_in.size(); ++i)
@@ -1336,13 +1344,17 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     if (!setToIKSolverFrame(pose, solver))
       return false;
 
-    // try all of the solver's possible tip frames to see if they uniquely align with our passed in tip frames
+    // try all of the solver's possible tip frames to see if they uniquely align with any of our passed in tip frames
     bool found_valid_frame = false;
-    std::vector<std::string>::iterator tip_frame_it;
-    for ( tip_frame_it = available_tip_frames.begin(); tip_frame_it < available_tip_frames.end(); ++tip_frame_it)
+    std::size_t tip_id; // our current index
+    for (tip_id = 0; tip_id < solver_tip_frames.size(); ++tip_id)
     {
+      // Check if this tip frame is already accounted for
+      if (tip_frames_used[tip_id] == true)
+        continue; // already has a pose
+
       // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
-      std::string tip_frame = *tip_frame_it;
+      std::string tip_frame = solver_tip_frames[tip_id];
       logDebug("moveit.robot_state: checking solver tip frame %s against request tip frame %s", tip_frame.c_str(), tip.c_str());
 
       // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
@@ -1387,7 +1399,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
         break;
       }
 
-    } // end for available_tip_frames
+    } // end for solver_tip_frames
 
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
@@ -1397,23 +1409,30 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
 
     // Remove that tip from the list of available tip frames because each can only have one pose
-    available_tip_frames.erase(tip_frame_it);
+    tip_frames_used[tip_id] = true;
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
     poseToMsg(pose, ik_query);
 
     // Save into vectors
-    ik_queries.push_back(ik_query);
-    tip_frames.push_back(tip);
+    ik_queries[tip_id] = ik_query;
   } // end for poses_in
 
-  // Create poses for all remaining tips a solver expects, even if not passed into this function
-  for (std::vector<std::string>::const_iterator tip_frame_it = available_tip_frames.begin();
-       tip_frame_it < available_tip_frames.end(); ++tip_frame_it)
-  {
-    std::string tip_frame = *tip_frame_it;
+  std::cout << "DEBUGGING TIP FRAMES AND POSES " << std::endl;
+  std::copy(tip_frames_used.begin(), tip_frames_used.end(), std::ostream_iterator<bool>(std::cout, "\n"));
 
+  // Create poses for all remaining tips a solver expects, even if not passed into this function
+  for (std::size_t tip_id = 0; tip_id < solver_tip_frames.size(); ++tip_id)
+  {
+    // Check if this tip frame is already accounted for
+    if (tip_frames_used[tip_id] == true)
+      continue; // already has a pose
+
+    // Process this tip
+    std::string tip_frame = solver_tip_frames[tip_id];
+
+    std::cout << "Getting extra pose for:  " << tip_frame << " of index " << tip_id << std::endl;
 
     // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
     if (!tip_frame.empty() && tip_frame[0] == '/')
@@ -1430,9 +1449,16 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     geometry_msgs::Pose ik_query;
     poseToMsg(current_pose, ik_query);
 
-    // Save into vectors
-    ik_queries.push_back(ik_query);
-    tip_frames.push_back(tip_frame);
+    // Save into vectors - but this needs to be ordered in the same order as the IK solver expects its tip frames
+    ik_queries[tip_id] = ik_query;
+
+    // Remove that tip from the list of available tip frames because each can only have one pose
+    tip_frames_used[tip_id] = true;
+  }
+
+  for (std::size_t i = 0; i < ik_queries.size(); ++i)
+  {
+    std::cout << "XYZ value of pose  " << i << " is: " << ik_queries[i].position.x << "\t" << ik_queries[i].position.y << "\t" << ik_queries[i].position.z << std::endl;
   }
 
   // if no timeout has been specified, use the default one
