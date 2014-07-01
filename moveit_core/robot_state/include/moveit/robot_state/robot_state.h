@@ -894,6 +894,10 @@ as the new values that correspond to the group */
   /** \brief Set all joints in \e group to random values.  Values will be within default bounds. */
   void setToRandomPositions(const JointModelGroup *group);
 
+  /** \brief Set all joints in \e group to random values using a specified random number generator.
+      Values will be within default bounds. */
+  void setToRandomPositions(const JointModelGroup *group, random_numbers::RandomNumberGenerator &rng);
+
   /** \brief Set all joints in \e group to random values near the value in \near.
    *  \e distance is the maximum amount each joint value will vary from the
    *  corresponding value in \e near.  \distance represents meters for
