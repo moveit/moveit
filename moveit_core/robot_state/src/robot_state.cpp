@@ -1248,8 +1248,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
                                          const std::vector<double> &consistency_limits_in, unsigned int attempts, double timeout,
                                          const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
-  std::cout << "First tip is " << tip_in << std::endl;
-
   // Convert from single pose and tip to vectors
   EigenSTL::vector_Affine3d poses;
   poses.push_back(pose_in);
@@ -1320,8 +1318,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   }
 
   const std::vector<std::string> &solver_tip_frames = solver->getTipFrames();
-  std::cout << "Solver tip frames: " << std::endl;
-  std::copy(solver_tip_frames.begin(), solver_tip_frames.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
 
   // Track which possible tips frames we have filled in so far
   std::vector<bool> tip_frames_used (solver_tip_frames.size(), false);
@@ -1419,9 +1415,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     ik_queries[tip_id] = ik_query;
   } // end for poses_in
 
-  std::cout << "DEBUGGING TIP FRAMES AND POSES " << std::endl;
-  std::copy(tip_frames_used.begin(), tip_frames_used.end(), std::ostream_iterator<bool>(std::cout, "\n"));
-
   // Create poses for all remaining tips a solver expects, even if not passed into this function
   for (std::size_t tip_id = 0; tip_id < solver_tip_frames.size(); ++tip_id)
   {
@@ -1431,8 +1424,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
     // Process this tip
     std::string tip_frame = solver_tip_frames[tip_id];
-
-    std::cout << "Getting extra pose for:  " << tip_frame << " of index " << tip_id << std::endl;
 
     // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
     if (!tip_frame.empty() && tip_frame[0] == '/')
@@ -1454,11 +1445,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
     // Remove that tip from the list of available tip frames because each can only have one pose
     tip_frames_used[tip_id] = true;
-  }
-
-  for (std::size_t i = 0; i < ik_queries.size(); ++i)
-  {
-    std::cout << "XYZ value of pose  " << i << " is: " << ik_queries[i].position.x << "\t" << ik_queries[i].position.y << "\t" << ik_queries[i].position.z << std::endl;
   }
 
   // if no timeout has been specified, use the default one
@@ -1492,6 +1478,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
     else
     {
+      logDebug("Rerunning IK solver with random joint positions");
+
       // sample a random seed
       random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
       std::vector<double> random_values;
