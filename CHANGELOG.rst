@@ -2,6 +2,13 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#21 <https://github.com/ros-planning/moveit_commander/issues/21>` from pirobot/hydro-devel
+  Added set_support_surface_name function to move_group.py
+* Added set_support_surface_name function to move_group.py
+* Contributors: Patrick Goebel, Sachin Chitta
+
 0.5.6 (2014-03-24)
 ------------------
 * Added the calls necessary to manage path constraints. 
