@@ -347,20 +347,20 @@ public:
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
   
-  MoveItErrorCode pickGrasp(const std::string &object, const std::string &grasp_str)
+  int pickGrasp(const std::string &object, const std::string &grasp_str)
   {
     moveit_msgs::Grasp grasp;    
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
-    return pick(object, grasp);
+    return pick(object, grasp).val;
   } 
 
-  MoveItErrorCode pickGrasps(const std::string &object, const bp::list &grasp_list)
+  int pickGrasps(const std::string &object, const bp::list &grasp_list)
   {
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
     for (int i = 0; i < l ; ++i)
       py_bindings_tools::deserializeMsg(bp::extract<std::string>(grasp_list[i]), grasps[i]);
-    return pick(object, grasps);
+    return pick(object, grasps).val;
   }
 
   void setPathConstraintsFromMsg(const std::string &constraints_str)
