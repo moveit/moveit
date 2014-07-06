@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2014-07-06)
+------------------
 * indigo version of moveit planners
 * fix compile error on Indigo
 * Fix for getMeasure() virtual function OMPL change
