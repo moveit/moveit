@@ -249,10 +249,11 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   {
     if (move_group_ && move_group_->getName() == group)
       return;
-    ROS_INFO("Constructing new MoveGroup connection for group '%s'", group.c_str());
+    ROS_INFO("Constructing new MoveGroup connection for group '%s' in namespace '%s'", group.c_str(), planning_display_->getMoveGroupNS().c_str());
     moveit::planning_interface::MoveGroup::Options opt(group);
     opt.robot_model_ = kmodel;
-    opt.robot_description_.clear();
+    opt.robot_description_.clear(); 
+    opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
       move_group_.reset(new moveit::planning_interface::MoveGroup(opt, context_->getFrameManager()->getTFClientPtr(), ros::Duration(30, 0)));
