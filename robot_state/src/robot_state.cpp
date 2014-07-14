@@ -1269,7 +1269,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 }
 
 bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, const std::vector<std::string> &tips_in,
-                                         const std::vector<std::vector<double> > &consistency_limits,
+                                         const std::vector<std::vector<double> > &consistency_limit_sets,
                                          unsigned int attempts, double timeout,
                                          const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
 {
@@ -1307,7 +1307,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     if (poses_in.size() > 1)
     {
       // Forward to setFromIKSubgroups() to allow different subgroup IK solvers to work together
-      return setFromIKSubgroups(jmg, poses_in, tips_in, consistency_limits, attempts, timeout, constraint, options);
+      return setFromIKSubgroups(jmg, poses_in, tips_in, consistency_limit_sets, attempts, timeout, constraint, options);
     }
     else
     {
@@ -1315,6 +1315,17 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       return false;
     }
   }
+
+  // Check that no, or only one set of consistency limits have been passed in, and choose that one
+  std::vector<double> consistency_limits;
+  if (consistency_limit_sets.size() > 1)
+  {
+    logError("An invalid number (%d) of sets of consistency limits have been passed in for a setFromIK request that is being solved by a single IK solver",
+      consistency_limit_sets.size());
+    return false;
+  }
+  else if (!consistency_limit_sets.size() == 1)
+    consistency_limits = consistency_limit_sets[0];
 
   const std::vector<std::string> &solver_tip_frames = solver->getTipFrames();
 
@@ -1458,7 +1469,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   if (constraint)
     ik_callback_fn = boost::bind(&ikCallbackFnAdapter, this, jmg, constraint, _1, _2, _3);
 
-  // Bijection?
+  // Bijection
   const std::vector<unsigned int> &bij = jmg->getKinematicsSolverJointBijection();
 
   bool first_seed = true;
@@ -1496,16 +1507,11 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       }
     }
     
-    // Todo: this might be a hack, i don't fully understand the implications of this
-    std::vector<double> consistency_limit;
-    if (!consistency_limits.empty())
-      consistency_limit = consistency_limits[0]; // big assumption
-
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
 
-    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limit, ik_sol, ik_callback_fn, error, options, this))
+    if (solver->searchPositionIK(ik_queries, seed, timeout, consistency_limits, ik_sol, ik_callback_fn, error, options, this))
     {
       std::vector<double> solution(bij.size());
       for (std::size_t i = 0 ; i < bij.size() ; ++i)

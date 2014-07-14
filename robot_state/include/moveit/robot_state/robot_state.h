@@ -619,7 +619,6 @@ as the new values that correspond to the group */
    */
   bool setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver);
 
-
   /**
    * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
    * @param pose - the input to change
