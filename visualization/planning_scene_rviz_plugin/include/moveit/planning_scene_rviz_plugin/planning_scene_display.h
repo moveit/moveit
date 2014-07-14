@@ -98,6 +98,7 @@ public:
   // remove all queued jobs
   void clearJobs();
 
+  const std::string getMoveGroupNS() const;
   const robot_model::RobotModelConstPtr& getRobotModel() const;
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
@@ -108,6 +109,7 @@ private Q_SLOTS:
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
+  void changedMoveGroupNS();
   void changedRobotDescription();
   void changedSceneName();
   void changedSceneEnabled();
@@ -184,6 +186,7 @@ protected:
   rviz::Property* scene_category_;
   rviz::Property* robot_category_;
 
+  rviz::StringProperty* move_group_ns_property_;
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* scene_name_property_;
   rviz::BoolProperty* scene_enabled_property_;
