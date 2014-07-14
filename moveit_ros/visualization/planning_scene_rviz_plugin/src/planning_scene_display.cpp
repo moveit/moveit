@@ -69,6 +69,10 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
   planning_scene_needs_render_(true),
   current_scene_time_(0.0f)
 {
+  move_group_ns_property_ =
+    new rviz::StringProperty( "Move Group Namespace", "", "The name of the ROS namespace in which the move_group node is running",
+                              this,
+                              SLOT( changedMoveGroupNS() ), this );
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
                               this,
@@ -270,6 +274,11 @@ const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::get
   return planning_scene_monitor_;
 }
 
+const std::string PlanningSceneDisplay::getMoveGroupNS() const
+{
+  return move_group_ns_property_->getStdString();
+}
+
 const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel() const
 {
   if (planning_scene_monitor_)
@@ -299,6 +308,12 @@ void PlanningSceneDisplay::changedAttachedBodyColor()
 void PlanningSceneDisplay::changedSceneColor()
 {
   queueRenderSceneGeometry();
+}
+
+void PlanningSceneDisplay::changedMoveGroupNS()
+{
+  if (isEnabled())
+    reset();
 }
 
 void PlanningSceneDisplay::changedRobotDescription()
@@ -361,7 +376,8 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
   if (planning_scene_monitor_ && planning_scene_topic_property_)
   {
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
-    planning_scene_monitor_->requestPlanningSceneState();
+    planning_scene_monitor_->requestPlanningSceneState(
+        ros::names::append(getMoveGroupNS(),planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE));
   }
 }
 
