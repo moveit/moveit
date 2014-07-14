@@ -1212,8 +1212,7 @@ bool ikCallbackFnAdapter(RobotState *state, const JointModelGroup *group, const 
 
 bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver)
 {
-  const std::string &ik_frame = solver->getBaseFrame();
-  return setToIKSolverFrame( pose, ik_frame );
+  return setToIKSolverFrame( pose, solver->getBaseFrame() );
 }
 
 bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const std::string &ik_frame)
@@ -1464,15 +1463,15 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
   bool first_seed = true;
   std::vector<double> initial_values;
-  copyJointGroupPositions(jmg, initial_values);
   for (unsigned int st = 0 ; st < attempts ; ++st)
   {
     std::vector<double> seed(bij.size());
 
-    // the first seed is the initial state
+    // the first seed is the current robot state joint values
     if (first_seed)
     {
       first_seed = false;
+      copyJointGroupPositions(jmg, initial_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[i] = initial_values[bij[i]];
     }
@@ -1491,6 +1490,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       {
         std::vector<unsigned int> red_joints;
         solver->getRedundantJoints(red_joints);
+        copyJointGroupPositions(jmg, initial_values);
         for(std::size_t i = 0 ; i < red_joints.size(); ++i)
           seed[red_joints[i]] = initial_values[bij[red_joints[i]]];
       }
