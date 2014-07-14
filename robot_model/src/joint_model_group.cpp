@@ -278,6 +278,13 @@ void moveit::core::JointModelGroup::setSubgroupNames(const std::vector<std::stri
     subgroup_names_set_.insert(subgroup_names_[i]);
 }
 
+void moveit::core::JointModelGroup::getSubgroups(std::vector<const JointModelGroup*>& sub_groups) const
+{
+  sub_groups.resize(subgroup_names_.size());
+  for (std::size_t i = 0 ; i < subgroup_names_.size() ; ++i)
+    sub_groups[i] = parent_model_->getJointModelGroup(subgroup_names_[i]);
+}
+
 bool moveit::core::JointModelGroup::hasJointModel(const std::string &joint) const
 {
   return joint_model_map_.find(joint) != joint_model_map_.end();
