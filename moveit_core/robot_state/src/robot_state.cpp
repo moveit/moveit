@@ -1276,7 +1276,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   // Error check
   if (poses_in.size() != tips_in.size())
   {
-    logError("Number of poses must be the same as number of tips");
+    logError("moveit.robot_state: Number of poses must be the same as number of tips");
     return false;
   }
 
@@ -1295,7 +1295,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     std::string error_msg;
     if(!solver->supportsGroup(jmg, &error_msg))
     {
-      logError("Kinematics solver %s does not support joint group %s.  Error: %s",
+      logError("moveit.robot_state: Kinematics solver %s does not support joint group %s.  Error: %s",
         typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
       valid_solver = false;
     }
@@ -1311,7 +1311,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
     else
     {
-      logError("No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
+      logError("moveit.robot_state: No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
       return false;
     }
   }
@@ -1320,7 +1320,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    logError("An invalid number (%d) of sets of consistency limits have been passed in for a setFromIK request that is being solved by a single IK solver",
+    logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK request that is being solved by a single IK solver",
       consistency_limit_sets.size());
     return false;
   }
@@ -1361,7 +1361,6 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
       // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
       std::string tip_frame = solver_tip_frames[tip_id];
-      logDebug("moveit.robot_state: checking solver tip frame %s against request tip frame %s", tip_frame.c_str(), tip.c_str());
 
       // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
       if (!tip_frame.empty() && tip_frame[0] == '/')
@@ -1375,7 +1374,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
           const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
-            logError("Cannot use an attached body with multiple geometries as a reference frame.");
+            logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a reference frame.");
             return false;
           }
           tip = ab->getAttachedLinkName();
@@ -1410,7 +1409,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      logError("moveit.robot_state: Cannot compute IK for tip reference frame '%s'", tip.c_str());
       return false;
     }
 
@@ -1488,7 +1487,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     }
     else
     {
-      logDebug("Rerunning IK solver with random joint positions");
+      logDebug("moveit.robot_state: Rerunning IK solver with random joint positions");
 
       // sample a random seed
       random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
@@ -1532,28 +1531,23 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
   // Assume we have already ran setFromIK() and those checks
 
   // Get containing subgroups
-  const std::vector<std::string>& sub_group_names = jmg->getSubgroupNames();
-  std::vector<const JointModelGroup*> sub_groups(sub_group_names.size());
-  for (std::size_t i = 0 ; i < sub_group_names.size() ; ++i)
-  {
-    logError("Subgroup found: %s", sub_group_names[i].c_str());
-    sub_groups[i] = robot_model_->getJointModelGroup(sub_group_names[i]);
-  }
+  std::vector<const JointModelGroup*> sub_groups;
+  jmg->getSubgroups(sub_groups);
 
   // Error check
-  if (poses_in.size() != sub_group_names.size())
+  if (poses_in.size() != sub_groups.size())
   {
     logError("Number of poses must be the same as number of sub-groups");
     return false;
   }
 
-  if (tips_in.size() != sub_group_names.size())
+  if (tips_in.size() != sub_groups.size())
   {
     logError("Number of tip names must be the same as number of sub-groups");
     return false;
   }
 
-  if (!consistency_limits.empty() && consistency_limits.size() != sub_group_names.size())
+  if (!consistency_limits.empty() && consistency_limits.size() != sub_groups.size())
   {
     logError("Number of consistency limit vectors must be the same as number of sub-groups");
     return false;
@@ -1575,7 +1569,7 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
     kinematics::KinematicsBaseConstPtr solver = sub_groups[i]->getSolverInstance();
     if (!solver)
     {
-      logError("Could not find solver for group '%s'", sub_group_names[i].c_str());
+      logError("Could not find solver for group '%s'", sub_groups[i]->getName().c_str());
       return false;
     }
     solvers.push_back(solver);
