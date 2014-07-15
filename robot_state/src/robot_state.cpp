@@ -1324,7 +1324,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       consistency_limit_sets.size());
     return false;
   }
-  else if (!consistency_limit_sets.size() == 1)
+  else if (consistency_limit_sets.size() == 1)
     consistency_limits = consistency_limit_sets[0];
 
   const std::vector<std::string> &solver_tip_frames = solver->getTipFrames();
