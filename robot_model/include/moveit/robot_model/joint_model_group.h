@@ -409,6 +409,9 @@ public:
     return subgroup_names_;
   }
 
+  /** \brief Get the groups that are subsets of this one (in terms of joints set) */
+  void getSubgroups(std::vector<const JointModelGroup*>& sub_groups) const;
+
   /** \brief Check if the joints of group \e group are a subset of the joints in this group */
   bool isSubgroup(const std::string& group) const
   {
