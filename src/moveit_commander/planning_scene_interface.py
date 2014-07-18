@@ -130,9 +130,9 @@ class PlanningSceneInterface(object):
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
         
-    def attach_mesh(self, link, name, pose, filename, touch_links = []):
+    def attach_mesh(self, link, name, pose, filename, size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.__make_mesh(name, pose, filename)
+        aco.object = self.__make_mesh(name, pose, filename, size)
         aco.link_name = link
         aco.touch_links = [link]
         if len(touch_links) > 0:
@@ -167,3 +167,4 @@ class PlanningSceneInterface(object):
         aco.link_name = link
         aco.object.id = name
         self._pub_aco.publish(aco)
+
