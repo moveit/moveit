@@ -106,7 +106,7 @@ const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC = "collision_object";
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC = "planning_scene_world";
 const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC = "planning_scene";
-const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE = "/get_planning_scene";
+const std::string planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const std::string planning_scene_monitor::PlanningSceneMonitor::MONITORED_PLANNING_SCENE_TOPIC = "monitored_planning_scene";
 
 planning_scene_monitor::PlanningSceneMonitor::PlanningSceneMonitor(const std::string &robot_description, const boost::shared_ptr<tf::Transformer> &tf, const std::string &name) :
@@ -405,7 +405,8 @@ void planning_scene_monitor::PlanningSceneMonitor::triggerSceneUpdateEvent(Scene
 
 bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(const std::string& service_name)
 {
-  ros::ServiceClient client = nh_.serviceClient<moveit_msgs::GetPlanningScene>(service_name);
+  // use global namespace for service
+  ros::ServiceClient client = ros::NodeHandle().serviceClient<moveit_msgs::GetPlanningScene>(service_name);
   moveit_msgs::GetPlanningScene srv;
   srv.request.components.components = 
       srv.request.components.SCENE_SETTINGS |
