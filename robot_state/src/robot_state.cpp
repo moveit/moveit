@@ -564,7 +564,7 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel *link, cons
         if (cj[i] != child_link->getParentJointModel())
           updateLinkTransformsInternal(cj[i]);
     }
-    // update the root joint of the model to match (as best as possible given #DOF) the transfor we wish to obtain for the root link.
+    // update the root joint of the model to match (as best as possible given #DOF) the transform we wish to obtain for the root link.
     // but I am disabling this code, since I do not think this function should modify variable values.
     //    parent_link->getParentJointModel()->computeVariableValues(global_link_transforms_[parent_link->getLinkIndex()],
     //                                                              position_ + parent_link->getParentJointModel()->getFirstVariableIndex());
