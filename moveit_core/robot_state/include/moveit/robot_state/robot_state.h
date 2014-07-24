@@ -1306,6 +1306,8 @@ as the new values that correspond to the group */
   void printStateInfo(std::ostream &out) const;
   
   void printTransforms(std::ostream &out) const;
+
+  void printTransform(const Eigen::Affine3d &transform, std::ostream &out) const;
   
   void printDirtyInfo(std::ostream &out) const;
   
@@ -1361,7 +1363,6 @@ private:
   
   void getMissingKeys(const std::map<std::string, double> &variable_map, std::vector<std::string> &missing_variables) const;
   void getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const;
-  void printTransform(const Eigen::Affine3d &transform, std::ostream &out) const;
 
   /** \brief This function is only called in debug mode */
   bool checkJointTransforms(const JointModel *joint) const;

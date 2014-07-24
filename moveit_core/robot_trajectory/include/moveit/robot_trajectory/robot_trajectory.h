@@ -132,11 +132,21 @@ public:
     return waypoints_.empty();
   }
 
+  /**
+   * \brief Add a point to the trajectory
+   * \param state - current robot state
+   * \param dt - duration from previous
+   */
   void addSuffixWayPoint(const robot_state::RobotState &state, double dt)
   {
     addSuffixWayPoint(robot_state::RobotStatePtr(new robot_state::RobotState(state)), dt);
   }
 
+  /**
+   * \brief Add a point to the trajectory
+   * \param state - current robot state
+   * \param dt - duration from previous
+   */
   void addSuffixWayPoint(const robot_state::RobotStatePtr &state, double dt)
   {
     state->update();
