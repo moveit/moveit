@@ -42,7 +42,7 @@
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
                                                                const constraint_samplers::ConstraintSamplerPtr &cs) 
-  : ob::GoalLazySamples(pc->getOMPLSimpleSetup().getSpaceInformation(),
+  : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
                         boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)
@@ -95,7 +95,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     return false;
   
   // terminate the sampling thread when a solution has been found
-  if (planning_context_->getOMPLSimpleSetup().getProblemDefinition()->hasSolution())
+  if (planning_context_->getOMPLSimpleSetup()->getProblemDefinition()->hasSolution())
     return false;
 
   unsigned int max_attempts_div2 = max_attempts/2;
