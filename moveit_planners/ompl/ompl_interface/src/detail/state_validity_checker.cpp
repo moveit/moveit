@@ -40,7 +40,7 @@
 #include <ros/ros.h>
 
 ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlanningContext *pc)
-  : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup().getSpaceInformation())
+  : ompl::base::StateValidityChecker(pc->getOMPLSimpleSetup()->getSpaceInformation())
   , planning_context_(pc)
   , group_name_(pc->getGroupName())
   , tss_(pc->getCompleteInitialRobotState())

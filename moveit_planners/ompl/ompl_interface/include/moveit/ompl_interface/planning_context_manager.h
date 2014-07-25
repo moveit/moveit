@@ -181,7 +181,9 @@ protected:
   void registerDefaultPlanners();
   void registerDefaultStateSpaces();
 
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings &config, const StateSpaceFactoryTypeSelector &factory) const;
+  /** \brief This is the function that constructs new planning contexts if no previous ones exist that are suitable */
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings &config, const StateSpaceFactoryTypeSelector &factory_selector, const moveit_msgs::MotionPlanRequest &req) const;
+
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string &group_name, const std::string &factory_type) const;
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string &group_name, const moveit_msgs::MotionPlanRequest &req) const;
 

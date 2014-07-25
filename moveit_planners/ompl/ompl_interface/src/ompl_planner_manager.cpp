@@ -179,8 +179,8 @@ private:
     ompl_interface::ModelBasedPlanningContextPtr pc = ompl_interface_->getLastPlanningContext();
     if (pc)
     {
-      ompl::base::PlannerData pd(pc->getOMPLSimpleSetup().getSpaceInformation());
-      pc->getOMPLSimpleSetup().getPlannerData(pd);
+      ompl::base::PlannerData pd(pc->getOMPLSimpleSetup()->getSpaceInformation());
+      pc->getOMPLSimpleSetup()->getPlannerData(pd);
       robot_state::RobotState kstate = planning_scene->getCurrentState();
       visualization_msgs::MarkerArray arr;
       std_msgs::ColorRGBA color;
