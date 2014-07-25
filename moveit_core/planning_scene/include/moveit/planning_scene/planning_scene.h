@@ -88,7 +88,7 @@ class PlanningScene : private boost::noncopyable,
 public:
 
   /** \brief construct using an existing RobotModel */
-  PlanningScene(const robot_model::RobotModelPtr &robot_model,
+  PlanningScene(const robot_model::RobotModelConstPtr &robot_model,
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   /** \brief construct using a urdf and srdf.

@@ -120,7 +120,7 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorl
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
 
-planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelPtr &robot_model,
+planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr &robot_model,
                                              collision_detection::WorldPtr world) :
   kmodel_(robot_model),
   world_(world),
