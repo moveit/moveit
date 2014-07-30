@@ -33,7 +33,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #include <moveit/robot_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
@@ -407,4 +407,68 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
     joint_state.velocity.clear();
 
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
+}
+
+void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out, bool include_header, const std::string& separator)
+{
+  // Output name of variables
+  if (include_header)
+  {
+    for (std::size_t i = 0; i < state.getVariableCount(); ++i)
+    {
+      out << state.getVariableNames()[i];
+
+      // Output comma except at end
+      if (i < state.getVariableCount() - 1)
+        out << separator;
+    }
+    out << std::endl;
+  }
+
+  // Output values of joints
+  for (std::size_t i = 0; i < state.getVariableCount(); ++i)
+  {
+    out << state.getVariablePositions()[i];
+
+    // Output comma except at end
+    if (i < state.getVariableCount() - 1)
+      out << separator;
+  }
+  out << std::endl;
+}
+
+void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
+                                      bool include_header, const std::string& separator)
+{
+  std::stringstream headers;
+  std::stringstream joints;
+
+  for (std::size_t j = 0; j < joint_groups_ordering.size(); ++j)
+  {
+    const JointModelGroup *jmg = state.getRobotModel()->getJointModelGroup(joint_groups_ordering[j]);
+
+    // Output name of variables
+    if (include_header)
+    {
+      for (std::size_t i = 0; i < jmg->getVariableCount(); ++i)
+      {
+        headers << jmg->getVariableNames()[i] << separator;
+      }
+    }
+
+    // Copy the joint positions for each joint model group
+    std::vector<double> group_variable_positions;
+    state.copyJointGroupPositions(jmg, group_variable_positions);
+
+    // Output values of joints
+    for (std::size_t i = 0; i < jmg->getVariableCount(); ++i)
+    {
+      joints << group_variable_positions[i] << separator;
+    }
+  }
+
+  // Push all headers and joints to our output stream
+  if (include_header)
+    out << headers.str() << std::endl;
+  out << joints.str() << std::endl;
 }
