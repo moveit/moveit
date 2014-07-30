@@ -239,12 +239,25 @@ public:
     return spec_.joint_bounds_;
   }
 
-  /// Copy the data from an OMPL state to a set of joint states. The join states \b must be specified in the same order as the joint models in the constructor
+  /// Copy the data from an OMPL state to a set of joint states.
+  // The joint states \b must be specified in the same order as the joint models in the constructor
   virtual void copyToRobotState(robot_state::RobotState &rstate, const ompl::base::State *state) const;
 
-  /// Copy the data from a set of joint states to an OMPL state. The join states \b must be specified in the same order as the joint models in the constructor
+  /// Copy the data from a set of joint states to an OMPL state.
+  //  The joint states \b must be specified in the same order as the joint models in the constructor
   virtual void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const;
-  
+
+  /**
+   * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt! robot_state to an OMPL state.
+   * \param state - output OMPL state with single joint modified
+   * \param robot_state - input MoveIt! state to get the joint value from
+   * \param joint_model - the joint to copy values of
+   * \param ompl_state_joint_index - the index of the joint in the ompl state (passed in for efficiency, you should cache this index)
+   *        e.g. ompl_state_joint_index = joint_model_group_->getVariableGroupIndex("virtual_joint");
+   */
+  virtual void copyJointToOMPLState(ompl::base::State *state, const robot_state::RobotState &robot_state,
+                                    const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const;
+
   double getTagSnapToSegment() const;
   void setTagSnapToSegment(double snap);
 
