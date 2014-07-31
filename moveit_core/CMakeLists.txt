@@ -21,6 +21,7 @@ COMPONENTS
   roslib
   rostime
   cmake_modules
+  angles
 )
 find_package(console_bridge REQUIRED)
 find_package(Eigen REQUIRED)
