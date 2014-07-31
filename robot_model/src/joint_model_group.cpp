@@ -474,6 +474,46 @@ void moveit::core::JointModelGroup::attachEndEffector(const std::string &eef_nam
   attached_end_effector_names_.push_back(eef_name);
 }
 
+bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string> &tips)
+{
+  // Get a vector of tip links
+  std::vector<const LinkModel*> tip_links;
+  if (!getEndEffectorTips(tip_links))
+    return false;
+
+  // Convert to string names
+  tips.clear();
+  for (std::size_t i = 0; i < tip_links.size(); ++i)
+  {
+    tips.push_back(tip_links[i]->getName());
+  }
+  return true;
+}
+
+bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*> &tips)
+{
+  for (std::size_t i = 0; i < getAttachedEndEffectorNames().size(); ++i)
+  {
+    const JointModelGroup *eef = parent_model_->getEndEffector(getAttachedEndEffectorNames()[i]);
+    if (!eef)
+    {
+      logError("Unable to find joint model group for eef");
+      return false;
+    }
+    const std::string &eef_parent = eef->getEndEffectorParentGroup().second;
+
+    const LinkModel* eef_link = parent_model_->getLinkModel(eef_parent);
+    if (!eef_link)
+    {
+      logError("Unable to find end effector link for eef");
+      return false;
+    }
+
+    tips.push_back(eef_link);
+  }
+  return true;
+}
+
 int moveit::core::JointModelGroup::getVariableGroupIndex(const std::string &variable) const
 {
   VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
