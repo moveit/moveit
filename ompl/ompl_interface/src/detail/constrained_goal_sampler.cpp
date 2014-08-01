@@ -58,15 +58,15 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedP
   startSampling();
 }
 
-bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* newGoal,
+bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* new_goal,
                                                                 const robot_state::RobotState& state,
                                                                 bool verbose) const
 {
-  planning_context_->getOMPLStateSpace()->copyToOMPLState(newGoal, state);
-  return static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose);
+  planning_context_->getOMPLStateSpace()->copyToOMPLState(new_goal, state);
+  return static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(new_goal, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* newGoal, 
+bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* new_goal, 
                                                                    robot_state::RobotState const* state,
                                                                    const robot_model::JointModelGroup* jmg,
                                                                    const double* jpos,
@@ -76,10 +76,10 @@ bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* ne
   robot_state::RobotState solution_state( *state );
   solution_state.setJointGroupPositions(jmg, jpos);
   solution_state.update();
-  return checkStateValidity(newGoal, solution_state, verbose);
+  return checkStateValidity(new_goal, solution_state, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *newGoal)
+bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *new_goal)
 {
   //  moveit::Profiler::ScopedBlock sblock("ConstrainedGoalSampler::sampleUsingConstraintSampler");
   
@@ -114,7 +114,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
       // makes the constraint sampler also perform a validity callback
       robot_state::GroupStateValidityCallbackFn gsvcf = boost::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback,
                                                                     this,
-                                                                    newGoal, 
+                                                                    new_goal, 
                                                                     _1,  // pointer to state 
                                                                     _2,  // const* joint model group
                                                                     _3,  // double* of joint positions
@@ -126,7 +126,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
         work_state_.update();
         if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
         {
-          if (checkStateValidity(newGoal, work_state_, verbose))
+          if (checkStateValidity(new_goal, work_state_, verbose))
             return true;
         }
         else
@@ -142,10 +142,10 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     }
     else
     {
-      default_sampler_->sampleUniform(newGoal);
-      if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(newGoal, verbose))
+      default_sampler_->sampleUniform(new_goal);
+      if (static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(new_goal, verbose))
       {
-        planning_context_->getOMPLStateSpace()->copyToRobotState(work_state_, newGoal);
+        planning_context_->getOMPLStateSpace()->copyToRobotState(work_state_, new_goal);
         if (kinematic_constraint_set_->decide(work_state_, verbose).satisfied)
           return true;
       }
