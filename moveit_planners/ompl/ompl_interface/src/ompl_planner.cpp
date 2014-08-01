@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
 #include <tf/transform_listener.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/profiler/profiler.h>
@@ -66,8 +67,17 @@ public:
     if (debug_)
       pub_request_.publish(req.motion_plan_request);
     planning_interface::MotionPlanResponse response;
-    bool result = ompl_interface_.solve(psm_.getPlanningScene(), req.motion_plan_request, response);
-    res.motion_plan_response.error_code = response.error_code_;
+
+    ompl_interface::ModelBasedPlanningContextPtr context =
+      ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
+    if (!context)
+    {
+      ROS_ERROR_STREAM_NAMED("computePlan","No planning context found");
+      return false;
+    }
+    context->clear();
+
+    bool result = context->solve(response);
 
     if (debug_)
     {
