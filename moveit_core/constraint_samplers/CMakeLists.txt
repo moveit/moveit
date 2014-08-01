@@ -26,6 +26,8 @@ if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl)
   find_package(angles)
 
+  include_directories(${angles_INCLUDE_DIRS})
+
   catkin_add_gtest(test_constraint_samplers
     test/test_constraint_samplers.cpp
     test/pr2_arm_kinematics_plugin.cpp
@@ -35,5 +37,6 @@ if(CATKIN_ENABLE_TESTING)
     ${MOVEIT_LIB_NAME}
     ${catkin_LIBRARIES}
     ${orocos_kdl_LIBRARIES}
+    ${angles_LIBRARIES}
   )
 endif()
