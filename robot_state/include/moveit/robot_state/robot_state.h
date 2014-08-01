@@ -1301,15 +1301,15 @@ as the new values that correspond to the group */
     const_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, include_attached);
   }
   
-  void printStatePositions(std::ostream &out) const;
+  void printStatePositions(std::ostream &out = std::cout) const;
   
-  void printStateInfo(std::ostream &out) const;
+  void printStateInfo(std::ostream &out = std::cout) const;
   
-  void printTransforms(std::ostream &out) const;
+  void printTransforms(std::ostream &out = std::cout) const;
 
-  void printTransform(const Eigen::Affine3d &transform, std::ostream &out) const;
+  void printTransform(const Eigen::Affine3d &transform, std::ostream &out = std::cout) const;
   
-  void printDirtyInfo(std::ostream &out) const;
+  void printDirtyInfo(std::ostream &out = std::cout) const;
   
   std::string getStateTreeString(const std::string& prefix = "") const;
   
