@@ -467,7 +467,23 @@ public:
   {
     return attached_end_effector_names_;
   }
-  
+
+  /**
+   * \brief Get a vector of end effector tips included in a particular joint model group as defined by the SRDF end effector semantic
+   *        e.g. for a humanoid robot this would return 4 tips for the hands and feet
+   * \param tips - the output vector of link models of the tips
+   * \return true on success
+   */
+  bool getEndEffectorTips(std::vector<const LinkModel*> &tips);
+
+  /**
+   * \brief Get a vector of end effector tips included in a particular joint model group as defined by the SRDF end effector semantic
+   *        e.g. for a humanoid robot this would return 4 tips for the hands and feet
+   * \param tips - the output vector of link names of the tips
+   * \return true on success
+   */
+  bool getEndEffectorTips(std::vector<std::string> &tips);
+
   /** \brief Get the bounds for all the active joints */
   const JointBoundsVector& getActiveJointModelsBounds() const
   {
