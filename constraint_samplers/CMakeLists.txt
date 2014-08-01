@@ -24,6 +24,7 @@ install(DIRECTORY include/
 
 if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl)
+  find_package(angles)
 
   catkin_add_gtest(test_constraint_samplers
     test/test_constraint_samplers.cpp
