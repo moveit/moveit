@@ -28,7 +28,6 @@ COMPONENTS
 
 find_package(Eigen REQUIRED)
 find_package(octomap REQUIRED)
-find_package(angles)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL REQUIRED fcl)
