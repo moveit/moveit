@@ -106,6 +106,8 @@ protected:
 
   void updateSceneMarkers(float wall_dt, float ros_dt);
 
+  void updateExternalCommunication();
+  
   MotionPlanningDisplay *planning_display_;
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
@@ -140,6 +142,7 @@ private Q_SLOTS:
   void planAndExecuteButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
+  void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
   void useStartStateButtonClicked();
   void useGoalStateButtonClicked();
@@ -278,7 +281,7 @@ private:
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-
+  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;

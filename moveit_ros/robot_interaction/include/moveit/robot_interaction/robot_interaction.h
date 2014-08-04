@@ -165,7 +165,9 @@ public:
   // Get the kinematic options map.
   // Use this to set kinematic options (defaults or per-group).
   KinematicOptionsMapPtr getKinematicOptionsMap() { return kinematic_options_map_; }
-
+  
+  // enable/disable subscription of the topics to move interactive marker
+  void toggleMoveInteractiveMarkerTopic(bool enable);
 private:
   // called by decideActiveComponents(); add markers for end effectors
   void decideActiveEndEffectors(const std::string &group);
@@ -176,6 +178,12 @@ private:
   // joints
   void decideActiveJoints(const std::string &group);
 
+  void moveInteractiveMarker(const std::string name,
+                             const geometry_msgs::PoseStampedConstPtr& msg);
+  // register the name of the topic and marker name to move
+  // interactive marker from other ROS nodes
+  void registerMoveInteractiveMarkerTopic(
+    const std::string marker_name, const std::string& name);
   // return the diameter of the sphere that certainly can enclose the AABB of
   // the links in this group
   double computeGroupMarkerSize(const std::string &group);
@@ -201,8 +209,6 @@ private:
         bool orientation = true);
   void processInteractiveMarkerFeedback(
         const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
-  void moveInteractiveMarker(const std::string name,
-                             const geometry_msgs::PoseStampedConstPtr& msg);
   void subscribeMoveInteractiveMarker(const std::string marker_name, const std::string& name);
   void processingThread();
   void clearInteractiveMarkersUnsafe();
@@ -233,8 +239,14 @@ private:
   boost::mutex marker_access_lock_;
 
   interactive_markers::InteractiveMarkerServer *int_marker_server_;
-  // ros subscribers for move the interactive markers by other ros nodes
+  // ros subscribers to move the interactive markers by other ros nodes
   std::vector<ros::Subscriber> int_marker_move_subscribers_;
+  // the array of the names of the topics which need to be subscribed
+  // to move the interactive markers by other ROS nodes
+  std::vector<std::string> int_maker_move_topics_;
+  // the array of the marker names in the same order to int_maker_move_topics_
+  std::vector<std::string> int_marker_names_;
+  
   std::string topic_;
 
   // options for doing IK
