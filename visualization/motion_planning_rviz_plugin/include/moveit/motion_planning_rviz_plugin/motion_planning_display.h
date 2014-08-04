@@ -141,6 +141,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void setStatusTextColor(const QColor &color);
   void resetStatusTextColor();
 
+  void toggleSelectPlanningGroupSubscription(bool enable);
+  
 Q_SIGNALS:
   void timeToShowNewTrail();
 

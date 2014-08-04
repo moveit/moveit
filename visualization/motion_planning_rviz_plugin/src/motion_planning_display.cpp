@@ -287,9 +287,7 @@ void MotionPlanningDisplay::onInitialize()
   text_to_display_->setVisible(false);
   text_display_for_start_ = false;
   text_display_scene_node_->attachObject(text_to_display_);
-
-  planning_group_sub_ = node_handle_.subscribe("/rviz/moveit/select_planning_group", 1, &MotionPlanningDisplay::selectPlanningGroupCallback, this);
-
+  
   if (context_ && context_->getWindowManager() && context_->getWindowManager()->getParentWindow())
   {
     QShortcut *im_reset_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
@@ -297,6 +295,16 @@ void MotionPlanningDisplay::onInitialize()
   }
 }
 
+void MotionPlanningDisplay::toggleSelectPlanningGroupSubscription(bool enable)
+{
+  if (enable) {
+    planning_group_sub_ = node_handle_.subscribe("/rviz/moveit/select_planning_group", 1, &MotionPlanningDisplay::selectPlanningGroupCallback, this);  
+  }
+  else {
+    planning_group_sub_.shutdown();
+  }
+}
+  
 void MotionPlanningDisplay::selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg)
 {
   if (!getRobotModel() || !robot_interaction_)
@@ -895,6 +903,9 @@ void MotionPlanningDisplay::publishInteractiveMarkers(bool pose_update)
       if (query_goal_state_property_->getBool())
         robot_interaction_->addInteractiveMarkers(query_goal_state_, query_marker_scale_property_->getFloat());
       robot_interaction_->publishInteractiveMarkers();
+    }
+    if (frame_) {
+      frame_->updateExternalCommunication();
     }
   }
 }
