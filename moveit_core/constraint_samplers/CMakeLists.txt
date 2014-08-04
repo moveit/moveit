@@ -24,6 +24,7 @@ install(DIRECTORY include/
 
 if(CATKIN_ENABLE_TESTING)
   find_package(orocos_kdl)
+  find_package(angles)
 
   include_directories(${angles_INCLUDE_DIRS})
 
