@@ -209,6 +209,10 @@ void moveit::core::RobotState::setToRandomPositions(const JointModelGroup *group
   // we do not make calls to RobotModel for random number generation because mimic joints
   // could trigger updates outside the state of the group itself
   random_numbers::RandomNumberGenerator &rng = getRandomNumberGenerator();
+  setToRandomPositions(group, rng);
+}
+void moveit::core::RobotState::setToRandomPositions(const JointModelGroup *group, random_numbers::RandomNumberGenerator &rng)
+{
   const std::vector<const JointModel*> &joints = group->getActiveJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
     joints[i]->getVariableRandomPositions(rng, position_ + joints[i]->getFirstVariableIndex());
