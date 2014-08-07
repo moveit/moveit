@@ -1228,21 +1228,6 @@ bool moveit::core::RobotState::setToIKSolverFrame(Eigen::Affine3d &pose, const s
   return true;
 }
 
-void moveit::core::RobotState::poseToMsg(const Eigen::Affine3d &pose, geometry_msgs::Pose &pose_msg)
-{
-  // Convert Eigen pose to geometry_msgs pose
-  Eigen::Quaterniond quat(pose.rotation());
-  Eigen::Vector3d point(pose.translation());
-
-  pose_msg.position.x = point.x();
-  pose_msg.position.y = point.y();
-  pose_msg.position.z = point.z();
-  pose_msg.orientation.x = quat.x();
-  pose_msg.orientation.y = quat.y();
-  pose_msg.orientation.z = quat.z();
-  pose_msg.orientation.w = quat.w();
-}
-
 bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen::Affine3d &pose_in, const std::string &tip_in,
                                          const std::vector<double> &consistency_limits_in, unsigned int attempts, double timeout,
                                          const GroupStateValidityCallbackFn &constraint, const kinematics::KinematicsQueryOptions &options)
@@ -1418,7 +1403,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
-    poseToMsg(pose, ik_query);
+    tf::poseEigenToMsg(pose, ik_query);
 
     // Save into vectors
     ik_queries[tip_id] = ik_query;
@@ -1447,7 +1432,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
-    poseToMsg(current_pose, ik_query);
+    tf::poseEigenToMsg(current_pose, ik_query);
 
     // Save into vectors - but this needs to be ordered in the same order as the IK solver expects its tip frames
     ik_queries[tip_id] = ik_query;
