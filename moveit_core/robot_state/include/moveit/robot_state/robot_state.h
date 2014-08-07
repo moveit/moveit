@@ -627,13 +627,6 @@ as the new values that correspond to the group */
    */
   bool setToIKSolverFrame(Eigen::Affine3d &pose, const std::string &ik_frame);
 
-  /**
-   * \brief Convert an Eigen pose to a geometry_msgs pose
-   * @param pose - input
-   * @param pose_msg - output
-   */
-  void poseToMsg(const Eigen::Affine3d &pose, geometry_msgs::Pose &pose_msg);
-
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve
