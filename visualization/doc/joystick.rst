@@ -3,19 +3,16 @@ Joystick Control of Rviz Interactive Markers
 
 Run
 ==================
-First, enable "Allow External Comm." checkbox at ``Planning`` tab.
+Before running moveit stuff, please run ``joy_node`` like::
+  rosrun joy joy_node _dev:=/dev/input/js0
 
+First, enable "Allow External Comm." checkbox at ``Planning`` tab.
 
 Second, please execute following command::
 
-   roslaunch moveit_ros_visualization joy_sample.launch
+   rosrun moveit_ros_visualization moveit_joy.py
 
-If your joystick is connected to ``/dev/input/foo``, please use ``DEV`` argument::
-
-   roslaunch moveit_ros_visualization joy_sample.launch DEV:=/dev/input/foo
-
-
-The script ``moveit_joy.py`` can read three types of joy stick:
+The script ``moveit_joy.py`` can read three types of joy sticks:
 
 1. XBox360 Controller via USB
 2. PS3 Controller via USB
@@ -34,3 +31,6 @@ Joystick Cheat Sheet
    select/start: change end effector
    square: plan
    circle: execute
+
+
+Please add "Pose" to rviz Displays and subscribe ``/joy_pose`` in order to see the output from joystick.
