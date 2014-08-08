@@ -1,6 +1,7 @@
 <launch>
+  <arg name="DEV" default="/dev/input/js0" />
   <node pkg="joy" type="joy_node" name="joy">
-    <param name="dev" value="/dev/input/js0" />
+    <param name="dev" value="$(arg DEV)" />
     <param name="deadzone" value="0.2" />
     <param name="autorepeat_rate" value="40" />
     <param name="coalesce_interval" value="0.025" />
