@@ -474,7 +474,7 @@ void moveit::core::JointModelGroup::attachEndEffector(const std::string &eef_nam
   attached_end_effector_names_.push_back(eef_name);
 }
 
-bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string> &tips)
+bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string> &tips) const
 {
   // Get a vector of tip links
   std::vector<const LinkModel*> tip_links;
@@ -490,7 +490,7 @@ bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string> 
   return true;
 }
 
-bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*> &tips)
+bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*> &tips) const
 {
   for (std::size_t i = 0; i < getAttachedEndEffectorNames().size(); ++i)
   {
