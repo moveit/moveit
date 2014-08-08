@@ -237,6 +237,7 @@ static void wrap_robot_interface()
 
   RobotClass.def("get_joint_names", &RobotInterfacePython::getJointNames);
   RobotClass.def("get_group_joint_names", &RobotInterfacePython::getGroupJointNames);
+  RobotClass.def("get_group_joint_tips", &RobotInterfacePython::getGroupJointTips);
   RobotClass.def("get_group_names", &RobotInterfacePython::getGroupNames);
   RobotClass.def("get_link_names", &RobotInterfacePython::getLinkNames);
   RobotClass.def("get_group_link_names", &RobotInterfacePython::getGroupLinkNames);
