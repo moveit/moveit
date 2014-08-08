@@ -74,6 +74,19 @@ public:
       return bp::list();
   }
 
+  bp::list getGroupJointTips(const std::string &group) const
+  {
+    const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
+    if (jmg)
+    {
+      std::vector<std::string> tips;
+      jmg->getEndEffectorTips(tips);
+      return py_bindings_tools::listFromString(tips);
+    }
+    else
+      return bp::list();
+  }
+
   bp::list getLinkNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getLinkModelNames());
