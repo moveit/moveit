@@ -474,7 +474,7 @@ public:
    * \param tips - the output vector of link models of the tips
    * \return true on success
    */
-  bool getEndEffectorTips(std::vector<const LinkModel*> &tips);
+  bool getEndEffectorTips(std::vector<const LinkModel*> &tips) const;
 
   /**
    * \brief Get a vector of end effector tips included in a particular joint model group as defined by the SRDF end effector semantic
@@ -482,7 +482,7 @@ public:
    * \param tips - the output vector of link names of the tips
    * \return true on success
    */
-  bool getEndEffectorTips(std::vector<std::string> &tips);
+  bool getEndEffectorTips(std::vector<std::string> &tips) const;
 
   /** \brief Get the bounds for all the active joints */
   const JointBoundsVector& getActiveJointModelsBounds() const
