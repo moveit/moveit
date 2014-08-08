@@ -641,7 +641,7 @@
           <item>
            <widget class="QCheckBox" name="allow_external_program">
             <property name="text">
-             <string>Allow External Communication</string>
+             <string>Allow External Comm.</string>
             </property>
             <property name="checked">
              <bool>false</bool>
