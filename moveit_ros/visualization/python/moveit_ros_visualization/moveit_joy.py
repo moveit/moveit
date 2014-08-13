@@ -1,4 +1,41 @@
 #!/usr/bin/env python
+# ********************************************************************
+# Software License Agreement (BSD License)
+#
+#  Copyright (c) 2014, JSK, The University of Tokyo.
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#   * Neither the name of the JSK, The University of Tokyo nor the names of its
+#     nor the names of its contributors may be
+#     used to endorse or promote products derived
+#     from this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+#  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+#  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+#  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+#  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+#  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+#  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+# ********************************************************************/
+
+#   Author: Ryohei Ueda, Dave Coleman
+#   Desc:   Interface between PS3/XBox controller and MoveIt! Motion Planning Rviz Plugin
 
 import xml.dom.minidom
 from operator import add
@@ -307,14 +344,15 @@ class StatusHistory():
       return getattr(status, attr)
     else:
       return getattr(status, attr) and not getattr(self.latest(), attr)
-    
+
 class MoveitJoy:
     def parseSRDF(self):
         ri = RobotInterface("/robot_description")
         planning_groups = {}
         for g in ri.get_group_names():
+            self.planning_groups_tips[g] = ri.get_group_joint_tips(g)
             planning_groups[g] = ["/rviz/moveit/move_marker/goal_" + l
-                                  for l in ri.get_group_joint_tips(g)]
+                                  for l in self.planning_groups_tips[g]]
         for name in planning_groups.keys():
             if len(planning_groups[name]) == 0:
                 del planning_groups[name]
@@ -325,6 +363,7 @@ class MoveitJoy:
         self.frame_id = ri.get_planning_frame()
     def __init__(self):
         self.initial_poses = {}
+        self.planning_groups_tips = {}
         self.tf_listener = tf.TransformListener()
         self.marker_lock = threading.Lock()
         self.prev_time = rospy.Time.now()
@@ -357,7 +396,7 @@ class MoveitJoy:
         else:
             self.current_planning_group_index = next_index
         next_planning_group = self.planning_groups_keys[self.current_planning_group_index]
-        rospy.loginfo("change planning group to " + next_planning_group)
+        rospy.loginfo("Changed planning group to " + next_planning_group)
         self.plan_group_pub.publish(next_planning_group)
     def updatePoseTopic(self, next_index, wait=True):
         planning_group = self.planning_groups_keys[self.current_planning_group_index]
@@ -369,7 +408,8 @@ class MoveitJoy:
         else:
             self.current_eef_index = next_index
         next_topic = topics[self.current_eef_index]
-        rospy.loginfo("change planning eef to " + next_topic)
+
+        rospy.loginfo("Changed controlled end effector to " + self.planning_groups_tips[planning_group][self.current_eef_index])
         self.pose_pub = rospy.Publisher(next_topic, PoseStamped)
         if wait:
             self.waitForInitialPose(next_topic)
@@ -410,7 +450,7 @@ class MoveitJoy:
                     return True
                 else:
                     rospy.logdebug(self.initial_poses.keys())
-                    rospy.loginfo("waiting for %s to be initialized", 
+                    rospy.loginfo("Waiting for pose topic of '%s' to be initialized",
                                   topic_suffix)
                     rospy.sleep(1)
             finally:
@@ -423,7 +463,7 @@ class MoveitJoy:
         elif len(msg.axes) == 20 and len(msg.buttons) == 17:
             status = PS3Status(msg)
         else:
-            raise Exception("unknown joystick")
+            raise Exception("Unknown joystick")
         self.run(status)
         self.history.add(status)
     def computePoseFromJoy(self, pre_pose, status):
@@ -447,7 +487,7 @@ class MoveitJoy:
         else:
             z_scale = 2.0
         local_move = numpy.array((x_diff, y_diff,
-                                  z_diff * z_scale, 
+                                  z_diff * z_scale,
                                   1.0))
         q = numpy.array((pre_pose.pose.orientation.x,
                          pre_pose.pose.orientation.y,
@@ -507,13 +547,18 @@ class MoveitJoy:
                 planning_group = self.planning_groups_keys[self.current_planning_group_index]
                 topics = self.planning_groups[planning_group]
                 next_topic = topics[self.current_eef_index]
-                if not self.waitForInitialPose(next_topic, timeout=10):
-                    rospy.logwarn("not yet planning group is initialized")
+                if not self.waitForInitialPose(next_topic, timeout=3):
+                    rospy.logwarn("Unable to initialize planning group " + planning_group + ". Trying different group.")
+                    rospy.logwarn("Is 'Allow External Comm.' enabled in Rviz?")
                 else:
-                    rospy.loginfo("initialized planning group")
+                    rospy.loginfo("Initialized planning group")
                     self.initialized = True
                     self.updatePoseTopic(self.current_eef_index)
                     return
+                # Try to initialize with different planning group
+                self.current_planning_group_index += 1
+                if self.current_planning_group_index >= len(self.planning_groups_keys):
+                    self.current_planning_group_index = 0 # reset loop
         if self.history.new(status, "select"):   #increment planning group
             self.updatePlanningGroup(self.current_planning_group_index + 1)
             self.current_eef_index = 0    # force to reset
@@ -558,7 +603,7 @@ class MoveitJoy:
         self.marker_lock.acquire()
         self.initial_poses[self.current_pose_topic.split("/")[-1]] = new_pose.pose
         self.marker_lock.release()
-    
+
 if __name__ == "__main__":
     rospy.init_node("moveit_joy")
     app = MoveitJoy()
