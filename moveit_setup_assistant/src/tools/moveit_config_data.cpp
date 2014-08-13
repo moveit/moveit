@@ -176,14 +176,14 @@ MoveItConfigData::~MoveItConfigData()
 // ******************************************************************************************
 robot_model::RobotModelConstPtr MoveItConfigData::getRobotModel()
 {
-  if( !kin_model_ )
+  if( !robot_model_ )
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    kin_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
-    kin_model_const_ = kin_model_;
+    robot_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
+    robot_model_const_ = robot_model_;
   }
 
-  return kin_model_const_;
+  return robot_model_const_;
 }
 
 // ******************************************************************************************
@@ -197,8 +197,8 @@ void MoveItConfigData::updateRobotModel()
   srdf_->updateSRDFModel( *urdf_model_ );
 
   // Create new kin model
-  kin_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
-  kin_model_const_ = kin_model_;
+  robot_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
+  robot_model_const_ = robot_model_;
 
   // Reset the planning scene
   planning_scene_.reset();
@@ -215,7 +215,7 @@ planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
     getRobotModel();
 
     // Allocate an empty planning scene
-    planning_scene_.reset(new planning_scene::PlanningScene(kin_model_));
+    planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
   }
   return planning_scene_;
 }
