@@ -276,8 +276,8 @@ private:
   // ******************************************************************************************
 
   // Shared kinematic model
-  robot_model::RobotModelPtr kin_model_;
-  robot_model::RobotModelConstPtr kin_model_const_;
+  robot_model::RobotModelPtr robot_model_;
+  robot_model::RobotModelConstPtr robot_model_const_;
 
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
