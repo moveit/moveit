@@ -540,10 +540,6 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   emitter << YAML::Key << "joint_limits";
   emitter << YAML::Value << YAML::BeginMap;
 
-  // Set an optional velocity scaling factor, off by default
-  emitter << YAML::Key << "velocity_scaling_factor";
-  emitter << YAML::Value << 1.0;
-
   // Union all the joints in groups. Uses a custom comparator to allow the joints to be sorted by name
   std::set<const robot_model::JointModel*, joint_model_compare> joints;
 
@@ -612,7 +608,6 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed" << std::endl;
   output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]" << std::endl;
   output_stream << "# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]" << std::endl;
-  output_stream << "# Finally, as a final step velocity limits can be scaled using a global value [velocity_scaling_factor]" << std::endl;
   output_stream << emitter.c_str();
   output_stream.close();
 
