@@ -604,7 +604,10 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
     ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
     return false;
   }
-
+  // Add documentation into joint_limits.yaml
+  output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed" << std::endl;
+  output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]" << std::endl;
+  output_stream << "# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]" << std::endl;
   output_stream << emitter.c_str();
   output_stream.close();
 
