@@ -396,6 +396,14 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
+  // joystick_control.launch ------------------------------------------------------------------
+  file.file_name_   = "joystick_control.launch";
+  file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
+  template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
+  file.description_ = "Control the Rviz Motion Planning Plugin with a joystick";
+  file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  gen_files_.push_back(file);
+
   // setup_assistant.launch ------------------------------------------------------------------
   file.file_name_   = "setup_assistant.launch";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
