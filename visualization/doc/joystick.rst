@@ -31,8 +31,8 @@ Command               | PS3 Controller     | Xbox Controller    |
 +-yaw                 | L1/R1              | LB/RB              |
 +-roll                | left/right         | left/right         |
 +-pitch               | up/down            | up/down            |
-change planning group | triangle/cross     | Y/A                |
-change end effector   | select/start       | back/start         |
+change planning group | select/start       | Y/A                |
+change end effector   | triangle/cross     | back/start         |
 plan                  | square             | X                  |
 execute               | circle             | B                  |
 
