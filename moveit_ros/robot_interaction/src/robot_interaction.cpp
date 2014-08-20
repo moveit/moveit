@@ -720,30 +720,21 @@ bool RobotInteraction::updateState(
 
 void RobotInteraction::moveInteractiveMarker(const std::string name, const geometry_msgs::PoseStampedConstPtr& msg)
 {
+  std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
+  if (it != shown_markers_.end())
   {
-    
-    std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
-    if (it != shown_markers_.end())
+    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback (new visualization_msgs::InteractiveMarkerFeedback);
+    feedback->header = msg->header;
+    feedback->marker_name = name;
+    feedback->pose = msg->pose;
+    feedback->event_type = visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE;
+    processInteractiveMarkerFeedback(feedback);
     {
-      visualization_msgs::InteractiveMarkerFeedback::Ptr feedback (new visualization_msgs::InteractiveMarkerFeedback);
-      feedback->header = msg->header;
-      feedback->marker_name = name;
-      feedback->pose = msg->pose;
-      feedback->event_type = visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE;
-      processInteractiveMarkerFeedback(feedback);
-      {
-        boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-        int_marker_server_->setPose(name, msg->pose, msg->header); // move the interactive marker
-        int_marker_server_->applyChanges();
-      }
-    }
-    else
-    {
-      return;
+      boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+      int_marker_server_->setPose(name, msg->pose, msg->header); // move the interactive marker
+      int_marker_server_->applyChanges();
     }
   }
-  
-//  }
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(
