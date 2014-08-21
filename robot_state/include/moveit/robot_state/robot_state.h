@@ -611,6 +611,22 @@ as the new values that correspond to the group */
   /** \brief For a given group, copy the position values of the variables that make up the group into another location, in the order that the variables are found in the group. This is not necessarily a contiguous block of memory in the RobotState itself, so we copy instead of returning a pointer.*/  
   void copyJointGroupPositions(const JointModelGroup *group, Eigen::VectorXd& values) const;
 
+  /**
+   * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
+   * @param pose - the input to change
+   * @param solver - a kin solver whose base frame is important to us
+   * @return true if no error
+   */
+  bool setToIKSolverFrame(Eigen::Affine3d &pose, const kinematics::KinematicsBaseConstPtr& solver);
+
+  /**
+   * \brief Convert the frame of reference of the pose to that same frame as the IK solver expects
+   * @param pose - the input to change
+   * @param ik_frame - the name of frame of reference of base of ik solver
+   * @return true if no error
+   */
+  bool setToIKSolverFrame(Eigen::Affine3d &pose, const std::string &ik_frame);
+
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
       @param pose The pose the last link in the chain needs to achieve
@@ -710,7 +726,24 @@ as the new values that correspond to the group */
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn &constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
-  
+
+  /**
+      \brief setFromIK for multiple poses and tips (end effectors) when no solver exists for the jmg that can solver for
+      non-chain kinematics. In this case, we divide the group into subgroups and do IK solving individually
+      @param poses The poses the last link in each chain needs to achieve
+      @param tips The names of the frames for which IK is attempted.
+      @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param attempts The number of times IK is attempted
+      @param timeout The timeout passed to the kinematics solver on each attempt
+      @param constraint A state validity constraint to be required for IK solutions */
+  bool setFromIKSubgroups(const JointModelGroup *group,
+                 const EigenSTL::vector_Affine3d &poses,
+                 const std::vector<std::string> &tips,
+                 const std::vector<std::vector<double> > &consistency_limits,
+                 unsigned int attempts = 0, double timeout = 0.0,
+                 const GroupStateValidityCallbackFn &constraint = GroupStateValidityCallbackFn(),
+                 const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
+
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param group the group of joints this function operates on
    * @param twist a cartesian velocity on the 'tip' frame
