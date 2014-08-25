@@ -35,7 +35,11 @@
 /* Author: Suat Gedikli */
 
 #include <GL/glew.h>
+#ifdef __APPLE__
+#include <OpenGL/glu.h>
+#else
 #include <GL/glu.h>
+#endif
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 #include <moveit/mesh_filter/gl_renderer.h>
