@@ -198,7 +198,8 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
 {
   planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
   planning_display_->toggleSelectPlanningGroupSubscription(enable);
-  if (enable) {
+  if (enable)
+  {
     ros::NodeHandle nh;
     plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
     execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
@@ -207,7 +208,8 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     update_goal_state_subscriber_ = nh.subscribe("/rviz/moveit/update_goal_state",1,
                                                  &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
   }
-  else {                        // disable
+  else
+  {                        // disable
     plan_subscriber_.shutdown();
     execute_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
@@ -445,7 +447,8 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
 
 void MotionPlanningFrame::updateExternalCommunication()
 {
-  if (ui_->allow_external_program->isChecked()) {
+  if (ui_->allow_external_program->isChecked())
+  {
     planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(true);
   }
 }

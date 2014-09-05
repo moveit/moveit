@@ -350,7 +350,7 @@ void RobotInteraction::clearInteractiveMarkersUnsafe()
   handlers_.clear();
   shown_markers_.clear();
   int_marker_move_subscribers_.clear();
-  int_maker_move_topics_.clear();
+  int_marker_move_topics_.clear();
   int_marker_names_.clear();
   int_marker_server_->clear();
 }
@@ -579,21 +579,20 @@ void RobotInteraction::registerMoveInteractiveMarkerTopic(
   std::stringstream ss;
   ss << "/rviz/moveit/move_marker/";
   ss << name;
-  int_maker_move_topics_.push_back(ss.str());
+  int_marker_move_topics_.push_back(ss.str());
   int_marker_names_.push_back(marker_name);
 }
 
 void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
 {
-  if (enable) {
+  if (enable)
+  {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-    if (int_marker_move_subscribers_.size() != 0) {
-      
-    }
-    else {
+    if (int_marker_move_subscribers_.size() == 0)
+    {
       ros::NodeHandle nh;
-      for (size_t i = 0; i < int_maker_move_topics_.size(); i++) {
-        std::string topic_name = int_maker_move_topics_[i];
+      for (size_t i = 0; i < int_marker_move_topics_.size(); i++) {
+        std::string topic_name = int_marker_move_topics_[i];
         std::string marker_name = int_marker_names_[i];
         int_marker_move_subscribers_.push_back(
           nh.subscribe<geometry_msgs::PoseStamped>
@@ -602,7 +601,8 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
       }
     }
   }
-  else {
+  else
+  {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
     int_marker_move_subscribers_.clear();
   }
