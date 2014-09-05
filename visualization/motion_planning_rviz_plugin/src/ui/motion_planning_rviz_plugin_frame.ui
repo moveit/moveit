@@ -639,6 +639,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="allow_external_program">
+            <property name="text">
+             <string>Allow External Comm.</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
              <string>Path Constraints:</string>

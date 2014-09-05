@@ -46,6 +46,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include <algorithm>
 #include <limits>
 
@@ -66,7 +68,7 @@ RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_
 {
   topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(topic_);
-
+  
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
   processing_thread_.reset(new boost::thread(boost::bind(&RobotInteraction::processingThread, this)));
@@ -238,7 +240,6 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group)
 void RobotInteraction::decideActiveEndEffectors(const std::string &group, InteractionStyle::InteractionStyle style)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
-
   active_eef_.clear();
 
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
@@ -348,6 +349,9 @@ void RobotInteraction::clearInteractiveMarkersUnsafe()
 {
   handlers_.clear();
   shown_markers_.clear();
+  int_marker_move_subscribers_.clear();
+  int_marker_move_topics_.clear();
+  int_marker_names_.clear();
   int_marker_server_->clear();
 }
 
@@ -446,10 +450,11 @@ void RobotInteraction::addInteractiveMarkers(
   handler->setRobotInteraction(this);
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
   std::vector<visualization_msgs::InteractiveMarker> ims;
+  ros::NodeHandle nh;
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
     robot_state::RobotStateConstPtr s = handler->getState();
-
+    
     for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
     {
       visualization_msgs::InteractiveMarker im;
@@ -464,9 +469,11 @@ void RobotInteraction::addInteractiveMarkers(
                         im.scale);
       }
     }
-
+    ros::NodeHandle nh;
+    
     for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
+      
       geometry_msgs::PoseStamped pose;
       geometry_msgs::Pose control_to_eef_tf;
       pose.header.frame_id = robot_model_->getModelFrame();
@@ -510,6 +517,9 @@ void RobotInteraction::addInteractiveMarkers(
                               active_eef_[i].interaction & EEF_POSITION_EEF,
                               active_eef_[i].interaction & EEF_ORIENTATION_EEF);
       ims.push_back(im);
+      registerMoveInteractiveMarkerTopic(
+        marker_name,
+        handler->getName() + "_" + active_eef_[i].parent_link);
       ROS_DEBUG_NAMED("robot_interaction",
                       "Publishing interactive marker %s (size = %lf)",
                       marker_name.c_str(),
@@ -536,6 +546,7 @@ void RobotInteraction::addInteractiveMarkers(
           add6DOFControl(im, false);
       }
       ims.push_back(im);
+      registerMoveInteractiveMarkerTopic(marker_name,  handler->getName() + "_" + active_vj_[i].connecting_link);
       ROS_DEBUG_NAMED("robot_interaction",
                       "Publishing interactive marker %s (size = %lf)",
                       marker_name.c_str(),
@@ -561,6 +572,42 @@ void RobotInteraction::addInteractiveMarkers(
   }
 }
 
+void RobotInteraction::registerMoveInteractiveMarkerTopic(
+  const std::string marker_name, const std::string& name)
+{
+  ros::NodeHandle nh;
+  std::stringstream ss;
+  ss << "/rviz/moveit/move_marker/";
+  ss << name;
+  int_marker_move_topics_.push_back(ss.str());
+  int_marker_names_.push_back(marker_name);
+}
+
+void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
+{
+  if (enable)
+  {
+    boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+    if (int_marker_move_subscribers_.size() == 0)
+    {
+      ros::NodeHandle nh;
+      for (size_t i = 0; i < int_marker_move_topics_.size(); i++) {
+        std::string topic_name = int_marker_move_topics_[i];
+        std::string marker_name = int_marker_names_[i];
+        int_marker_move_subscribers_.push_back(
+          nh.subscribe<geometry_msgs::PoseStamped>
+          (topic_name, 1, boost::bind(&RobotInteraction::moveInteractiveMarker,
+                                      this, marker_name, _1)));
+      }
+    }
+  }
+  else
+  {
+    boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+    int_marker_move_subscribers_.clear();
+  }
+}
+  
 void RobotInteraction::computeMarkerPose(
       const ::robot_interaction::InteractionHandlerPtr &handler,
       const EndEffectorInteraction &eef,
@@ -669,6 +716,25 @@ bool RobotInteraction::updateState(
     return true;
   }
   return false;
+}
+
+void RobotInteraction::moveInteractiveMarker(const std::string name, const geometry_msgs::PoseStampedConstPtr& msg)
+{
+  std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
+  if (it != shown_markers_.end())
+  {
+    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback (new visualization_msgs::InteractiveMarkerFeedback);
+    feedback->header = msg->header;
+    feedback->marker_name = name;
+    feedback->pose = msg->pose;
+    feedback->event_type = visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE;
+    processInteractiveMarkerFeedback(feedback);
+    {
+      boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
+      int_marker_server_->setPose(name, msg->pose, msg->header); // move the interactive marker
+      int_marker_server_->applyChanges();
+    }
+  }
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(

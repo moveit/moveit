@@ -78,6 +78,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
   connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
   connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
+  connect( ui_->allow_external_program, SIGNAL( toggled(bool) ), this, SLOT( allowExternalProgramCommunication(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
   connect( ui_->import_file_button, SIGNAL( clicked() ), this, SLOT( importFileButtonClicked() ));
   connect( ui_->import_url_button, SIGNAL( clicked() ), this, SLOT( importUrlButtonClicked() ));
@@ -193,6 +194,29 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, b
     found_items[i]->setSelected(selection);
 }
 
+void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
+{
+  planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
+  planning_display_->toggleSelectPlanningGroupSubscription(enable);
+  if (enable)
+  {
+    ros::NodeHandle nh;
+    plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
+    execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
+    update_start_state_subscriber_ = nh.subscribe("/rviz/moveit/update_start_state",1,
+                                                  &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
+    update_goal_state_subscriber_ = nh.subscribe("/rviz/moveit/update_goal_state",1,
+                                                 &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
+  }
+  else
+  {                        // disable
+    plan_subscriber_.shutdown();
+    execute_subscriber_.shutdown();
+    update_start_state_subscriber_.shutdown();
+    update_goal_state_subscriber_.shutdown();
+  }
+}
+  
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
   ui_->start_state_selection->clear();
@@ -421,4 +445,13 @@ void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
     scene_marker_->update(wall_dt);
 }
 
+void MotionPlanningFrame::updateExternalCommunication()
+{
+  if (ui_->allow_external_program->isChecked())
+  {
+    planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(true);
+  }
+}
+
+  
 } // namespace

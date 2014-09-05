@@ -57,6 +57,7 @@
 
 
 #include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
 #include <map>
 #include <string>
 
@@ -105,6 +106,8 @@ protected:
 
   void updateSceneMarkers(float wall_dt, float ros_dt);
 
+  void updateExternalCommunication();
+  
   MotionPlanningDisplay *planning_display_;
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
@@ -139,6 +142,7 @@ private Q_SLOTS:
   void planAndExecuteButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
+  void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
   void useStartStateButtonClicked();
   void useGoalStateButtonClicked();
@@ -260,15 +264,24 @@ private:
   void waitForAction(const T &action, const ros::NodeHandle &node_handle, const ros::Duration &wait_for_server, const std::string &name);
   void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg);  
   ros::Subscriber object_recognition_subscriber_;  
-
+  
+  ros::Subscriber plan_subscriber_;
+  ros::Subscriber execute_subscriber_;
+  ros::Subscriber update_start_state_subscriber_;
+  ros::Subscriber update_goal_state_subscriber_;
   //General
   void changePlanningGroupHelper();
   void importResource(const std::string &path);
   void loadStoredStates(const std::string& pattern);
 
+  void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteExecuteCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
+
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-
+  
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
