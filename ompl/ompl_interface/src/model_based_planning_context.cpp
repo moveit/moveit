@@ -58,6 +58,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   ompl_simple_setup_(spec.state_space_),
   ompl_benchmark_(ompl_simple_setup_),
   ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
+  ptc_(NULL),
   last_plan_time_(0.0),
   last_simplify_time_(0.0),
   max_goal_samples_(0),

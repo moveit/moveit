@@ -41,6 +41,9 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
 
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_model/joint_model_group.h>
+
 namespace ompl_interface
 {
 
@@ -57,7 +60,10 @@ public:
 
 private:
 
-  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *newGoal);
+  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *new_goal);
+  bool stateValidityCallback(ompl::base::State* new_goal, robot_state::RobotState const* state,
+                              const robot_model::JointModelGroup*, const double*, bool verbose=false) const;
+  bool checkStateValidity(ompl::base::State* new_goal, const robot_state::RobotState& state, bool verbose=false) const;
 
   const ModelBasedPlanningContext                 *planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
