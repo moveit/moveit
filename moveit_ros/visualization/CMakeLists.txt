@@ -35,18 +35,18 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
 )
 find_package(Eigen REQUIRED)
-
+catkin_python_setup()
 catkin_package(
   LIBRARIES
     moveit_rviz_plugin_render_tools
-    moveit_robot_state_rviz_plugin_core 
-    moveit_motion_planning_rviz_plugin_core 
+    moveit_robot_state_rviz_plugin_core
+    moveit_motion_planning_rviz_plugin_core
     moveit_planning_scene_rviz_plugin_core
   INCLUDE_DIRS
     rviz_plugin_render_tools/include
     robot_state_rviz_plugin/include
     planning_scene_rviz_plugin/include
-    motion_planning_rviz_plugin/include  
+    motion_planning_rviz_plugin/include
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
@@ -78,3 +78,4 @@ install(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY joystick_control/launch DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION} USE_SOURCE_PERMISSIONS)

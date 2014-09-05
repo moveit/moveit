@@ -40,6 +40,7 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <std_msgs/String.h>
 
 #ifndef Q_MOC_RUN
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
@@ -140,6 +141,8 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void setStatusTextColor(const QColor &color);
   void resetStatusTextColor();
 
+  void toggleSelectPlanningGroupSubscription(bool enable);
+  
 Q_SIGNALS:
   void timeToShowNewTrail();
 
@@ -225,6 +228,8 @@ protected:
   void setQueryStateHelper(bool use_start_state, const std::string &v);
   void populateMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
 
+  void selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg);
+
   // overrides from Display
   virtual void onInitialize();
   virtual void onEnable();
@@ -243,6 +248,7 @@ protected:
   robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
   robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
   std::vector<rviz::Robot*> trajectory_trail_;
+  ros::Subscriber planning_group_sub_;
   ros::Subscriber trajectory_topic_sub_;
   ros::NodeHandle private_handle_, node_handle_;
   bool animating_path_;
