@@ -320,5 +320,18 @@ void ompl_interface::ModelBasedStateSpace::copyToRobotState(robot_state::RobotSt
 void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const
 {
   rstate.copyJointGroupPositions(spec_.joint_model_group_, state->as<StateType>()->values);
+  // clear any cached info (such as validity known or not)
+  state->as<StateType>()->clearKnownInformation();
+}
+
+void ompl_interface::ModelBasedStateSpace::copyJointToOMPLState(ompl::base::State *state, const robot_state::RobotState &robot_state,
+                                                                const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const
+{
+  // Copy one joint (multiple variables possibly)
+  memcpy(getValueAddressAtIndex(state, ompl_state_joint_index),
+         robot_state.getVariablePositions() + joint_model->getFirstVariableIndex() * sizeof(double),
+         joint_model->getVariableCount() * sizeof(double));
+
+  // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
 }
