@@ -243,8 +243,8 @@ private:
   std::vector<ros::Subscriber> int_marker_move_subscribers_;
   // the array of the names of the topics which need to be subscribed
   // to move the interactive markers by other ROS nodes
-  std::vector<std::string> int_maker_move_topics_;
-  // the array of the marker names in the same order to int_maker_move_topics_
+  std::vector<std::string> int_marker_move_topics_;
+  // the array of the marker names in the same order to int_marker_move_topics_
   std::vector<std::string> int_marker_names_;
   
   std::string topic_;

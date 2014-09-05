@@ -297,10 +297,12 @@ void MotionPlanningDisplay::onInitialize()
 
 void MotionPlanningDisplay::toggleSelectPlanningGroupSubscription(bool enable)
 {
-  if (enable) {
+  if (enable)
+  {
     planning_group_sub_ = node_handle_.subscribe("/rviz/moveit/select_planning_group", 1, &MotionPlanningDisplay::selectPlanningGroupCallback, this);  
   }
-  else {
+  else
+  {
     planning_group_sub_.shutdown();
   }
 }
