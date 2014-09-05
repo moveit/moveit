@@ -97,13 +97,13 @@ bool callAdapter1(const PlanningRequestAdapter *adapter,
   }
   catch(std::runtime_error &ex)
   {
-    logError("Exception caught executing adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
+    logError("Exception caught executing *final* adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
     added_path_index.clear();
     return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
   catch(...)
   {
-    logError("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    logError("Exception caught executing *final* adapter '%s'", adapter->getDescription().c_str());
     added_path_index.clear();
     return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
@@ -122,13 +122,13 @@ bool callAdapter2(const PlanningRequestAdapter *adapter,
   }
   catch(std::runtime_error &ex)
   {
-    logError("Exception caught executing adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
+    logError("Exception caught executing *next* adapter '%s': %s", adapter->getDescription().c_str(), ex.what());
     added_path_index.clear();
     return planner(planning_scene, req, res);
   }
   catch(...)
   {
-    logError("Exception caught executing adapter '%s'", adapter->getDescription().c_str());
+    logError("Exception caught executing *next* adapter '%s'", adapter->getDescription().c_str());
     added_path_index.clear();
     return planner(planning_scene, req, res);
   }

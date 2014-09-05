@@ -49,7 +49,7 @@
   <build_depend>rostime</build_depend>
   <build_depend>cmake_modules</build_depend>
   <test_depend>angles</test_depend>
-
+  <test_depend>tf_conversions</test_depend>
 
   <run_depend>libconsole-bridge-dev</run_depend>
   <run_depend>liburdfdom-dev</run_depend>
