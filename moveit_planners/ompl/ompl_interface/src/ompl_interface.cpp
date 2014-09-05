@@ -311,10 +311,10 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
   for(planning_interface::PlannerConfigurationMap::iterator it = pconfig.begin();
       it != pconfig.end(); ++it)
   {
-    ROS_DEBUG_STREAM("Parameters for configuration '"<< it->first << "'");
+    ROS_DEBUG_STREAM_NAMED("parameters","Parameters for configuration '"<< it->first << "'");
     for (std::map<std::string, std::string>::const_iterator config_it = it->second.config.begin() ;
          config_it != it->second.config.end() ; ++config_it)
-      ROS_DEBUG_STREAM(" - " << config_it->first << " = " << config_it->second);
+      ROS_DEBUG_STREAM_NAMED("parameters"," - " << config_it->first << " = " << config_it->second);
   }
   setPlannerConfigurations(pconfig);
 }
