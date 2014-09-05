@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Dave Coleman */
 
 #ifndef MOVEIT_ROBOT_STATE_CONVERSIONS_
 #define MOVEIT_ROBOT_STATE_CONVERSIONS_
@@ -48,45 +48,67 @@ namespace core
 {
 
 /**
- * @brief Convert a joint state to a kinematic state
+ * @brief Convert a joint state to a MoveIt! robot state
  * @param joint_state The input joint state to be converted
- * @param state The resultant kinematic state
+ * @param state The resultant MoveIt! robot state
  * @return True if successful, false if failed for any reason
  */
 bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotState& state);
 
 /**
- * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
+ * @brief Convert a robot state msg (with accompanying extra transforms) to a MoveIt! robot state
  * @param tf An instance of a transforms object
- * @param robot_state The input robot state
- * @param state The resultant kinematic state
+ * @param robot_state The input robot state msg
+ * @param state The resultant MoveIt! robot state
  * @param copy_attached_bodies Flag to include attached objects in robot state copy
  * @return True if successful, false if failed for any reason
  */
 bool robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
 /**
- * @brief Convert a robot state (with accompanying extra transforms) to a kinematic state
- * @param robot_state The input robot state
- * @param state The resultant kinematic state
+ * @brief Convert a robot state msg (with accompanying extra transforms) to a MoveIt! robot state
+ * @param robot_state The input robot state msg
+ * @param state The resultant MoveIt! robot state
  * @param copy_attached_bodies Flag to include attached objects in robot state copy
  * @return True if successful, false if failed for any reason
  */
 bool robotStateMsgToRobotState(const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
 
 /**
- * @brief Convert a kinematic state to a robot state message
- * @param state The input kinematic state object
+ * @brief Convert a MoveIt! robot state to a robot state message
+ * @param state The input MoveIt! robot state object
  * @param robot_state The resultant RobotState *message
  * @param copy_attached_bodies Flag to include attached objects in robot state copy
  */
 void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState &robot_state, bool copy_attached_bodies = true);
 
 /**
- * @brief Convert a kinematic state to a joint state message
- * @param state The input kinematic state object
+ * @brief Convert a MoveIt! robot state to a joint state message
+ * @param state The input MoveIt! robot state object
  * @param robot_state The resultant JointState message
  */
 void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState &joint_state);
+
+/**
+ * @brief Convert a MoveIt! robot state to common separated values (CSV) on a single line that is
+ *        outputted to a stream e.g. for file saving
+ * @param state - The input MoveIt! robot state object
+ * @param out - a file stream, or any other stream
+ * @param include_header - flag to prefix the output with a line of joint names.
+ * @param separator - allows to override the comma seperator with any symbol, such as a white space
+ */
+void robotStateToStream(const RobotState& state, std::ostream &out, bool include_header = true, const std::string& separator = ",");
+
+/**
+ * @brief Convert a MoveIt! robot state to common separated values (CSV) on a single line that is
+ *        outputted to a stream e.g. for file saving. This version can order by joint model groups
+ * @param state - The input MoveIt! robot state object
+ * @param out - a file stream, or any other stream
+ * @param joint_group_ordering - output joints based on ordering of joint groups
+ * @param include_header - flag to prefix the output with a line of joint names.
+ * @param separator - allows to override the comma seperator with any symbol, such as a white space
+ */
+void robotStateToStream(const RobotState& state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
+                        bool include_header = true, const std::string& separator = ",");
 
 }
 }
