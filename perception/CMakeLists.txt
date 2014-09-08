@@ -8,7 +8,6 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 find_package(Boost REQUIRED thread signals)
-find_package(PCL REQUIRED QUIET COMPONENTS common)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -25,7 +24,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   tf
   tf_conversions
-  pcl_conversions
   pluginlib
   image_transport
   object_recognition_msgs
@@ -46,7 +44,6 @@ catkin_package(
     pointcloud_octomap_updater/include
     semantic_world/include
     ${OCTOMAP_INCLUDE_DIRS}
-    ${PCL_COMMON_INCLUDE_DIRS}
   LIBRARIES
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
@@ -66,7 +63,6 @@ include_directories(mesh_filter/include
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
-		    ${PCL_COMMON_INCLUDE_DIRS}
 		    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}

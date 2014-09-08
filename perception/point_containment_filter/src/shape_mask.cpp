@@ -37,6 +37,7 @@
 #include <moveit/point_containment_filter/shape_mask.h>
 #include <geometric_shapes/body_operations.h>
 #include <ros/console.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 point_containment_filter::ShapeMask::ShapeMask(const TransformCallback& transform_callback) :
   transform_callback_(transform_callback),
@@ -110,13 +111,15 @@ void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
     ROS_ERROR("Unable to remove shape handle %u", handle);
 }
 
-void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,
+void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::PointCloud2& data_in,
                                                           const Eigen::Vector3d &sensor_origin,
                                                           const double min_sensor_dist, const double max_sensor_dist,
                                                           std::vector<int> &mask)
 {
   boost::mutex::scoped_lock _(shapes_lock_);
-  mask.resize(data_in.points.size());
+  const unsigned int np = data_in.data.size() / data_in.point_step;
+  mask.resize(np);
+
   if (bodies_.empty())
     std::fill(mask.begin(), mask.end(), (int)OUTSIDE);
   else
@@ -133,7 +136,6 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
       }
     }
 
-    const unsigned int np = data_in.points.size();
 
     // compute a sphere that bounds the entire robot
     bodies::BoundingSphere bound;
@@ -141,10 +143,15 @@ void point_containment_filter::ShapeMask::maskContainment(const pcl::PointCloud<
     const double radiusSquared = bound.radius * bound.radius;
 
     // we now decide which points we keep
+    sensor_msgs::PointCloud2ConstIterator<float> iter_x(data_in, "x");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_y(data_in, "y");
+    sensor_msgs::PointCloud2ConstIterator<float> iter_z(data_in, "z");
+
+    // Cloud iterators are not incremented in the for loop, because of the pragma
 #pragma omp parallel for schedule(dynamic)
     for (int i = 0 ; i < (int)np ; ++i)
     {
-      Eigen::Vector3d pt = Eigen::Vector3d(data_in.points[i].x, data_in.points[i].y, data_in.points[i].z);
+      Eigen::Vector3d pt = Eigen::Vector3d(*(iter_x+i), *(iter_y+i), *(iter_z+i));
       double d = pt.norm();
       int out = OUTSIDE;
       if (d < min_sensor_dist || d > max_sensor_dist)

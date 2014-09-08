@@ -17,7 +17,6 @@
   <buildtool_depend>catkin</buildtool_depend> 
 
   <build_depend>moveit_core</build_depend>
-  <build_depend>pcl_conversions</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
   <build_depend>urdf</build_depend>
@@ -34,7 +33,6 @@
   <build_depend>cmake_modules</build_depend>
 
   <run_depend>moveit_core</run_depend>
-  <run_depend>pcl_conversions</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
   <run_depend>urdf</run_depend>
