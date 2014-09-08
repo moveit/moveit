@@ -72,6 +72,7 @@ struct ModelBasedPlanningContextSpecification
 
   ModelBasedStateSpacePtr state_space_;
   std::vector<ModelBasedStateSpacePtr> subspaces_;
+  og::SimpleSetupPtr ompl_simple_setup_;  // pass in the correct simple setup type
 };
 
 class ModelBasedPlanningContext : public planning_interface::PlanningContext
@@ -125,12 +126,12 @@ public:
     return spec_.state_space_;
   }
 
-  const og::SimpleSetup& getOMPLSimpleSetup() const
+  const og::SimpleSetupPtr& getOMPLSimpleSetup() const
   {
     return ompl_simple_setup_;
   }
 
-  og::SimpleSetup& getOMPLSimpleSetup()
+  og::SimpleSetupPtr& getOMPLSimpleSetup()
   {
     return ompl_simple_setup_;
   }
@@ -330,7 +331,7 @@ protected:
   robot_state::RobotState complete_initial_robot_state_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
-  og::SimpleSetup ompl_simple_setup_;
+  og::SimpleSetupPtr ompl_simple_setup_;
 
   /// the OMPL tool for benchmarking planners
   ot::Benchmark ompl_benchmark_;

@@ -296,7 +296,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     {
       moveit_msgs::Constraints msg;
       hexToMsg(serialization, msg);
-      ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup().getStateSpace());
+      ConstraintApproximationStateStorage *cass = new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup()->getStateSpace());
       cass->load((path + "/" + filename).c_str());
       ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions, msg, filename,
                                                                  ompl::base::StateStoragePtr(cass), milestones));
@@ -500,10 +500,10 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
     
     // construct connexions
-    const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup().getStateSpace();
+    const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup()->getStateSpace();
     unsigned int milestones = sstor->size();
     std::vector<ob::State*> int_states(options.max_explicit_points, NULL);
-    pcontext->getOMPLSimpleSetup().getSpaceInformation()->allocStates(int_states);
+    pcontext->getOMPLSimpleSetup()->getSpaceInformation()->allocStates(int_states);
     
     ompl::time::point start = ompl::time::now();
     int good = 0;
@@ -572,7 +572,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
     logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
-    pcontext->getOMPLSimpleSetup().getSpaceInformation()->freeStates(int_states);
+    pcontext->getOMPLSimpleSetup()->getSpaceInformation()->freeStates(int_states);
     
     return sstor;
   }
