@@ -55,9 +55,9 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName()),
   spec_(spec),
   complete_initial_robot_state_(spec.state_space_->getRobotModel()),
-  ompl_simple_setup_(spec.state_space_),
-  ompl_benchmark_(ompl_simple_setup_),
-  ompl_parallel_plan_(ompl_simple_setup_.getProblemDefinition()),
+  ompl_simple_setup_(spec.ompl_simple_setup_),
+  ompl_benchmark_(*ompl_simple_setup_),
+  ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition()),
   ptc_(NULL),
   last_plan_time_(0.0),
   last_simplify_time_(0.0),
@@ -70,8 +70,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   use_state_validity_cache_(true),
   simplify_solutions_(true)
 {
-  ompl_simple_setup_.getStateSpace()->computeSignature(space_signature_);
-  ompl_simple_setup_.getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
+  ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
+  ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
 void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string &peval)
@@ -181,8 +181,8 @@ void ompl_interface::ModelBasedPlanningContext::configure()
   // convert the input state to the corresponding OMPL state
   ompl::base::ScopedState<> ompl_start_state(spec_.state_space_);
   spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
-  ompl_simple_setup_.setStartState(ompl_start_state);
-  ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
+  ompl_simple_setup_->setStartState(ompl_start_state);
+  ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
 
   if (path_constraints_ && spec_.constraints_library_)
   {
@@ -195,8 +195,8 @@ void ompl_interface::ModelBasedPlanningContext::configure()
   }
 
   useConfig();
-  if (ompl_simple_setup_.getGoal())
-    ompl_simple_setup_.setup();
+  if (ompl_simple_setup_->getGoal())
+    ompl_simple_setup_->setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::useConfig()
@@ -228,17 +228,17 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     std::string type = it->second;
     cfg.erase(it);
-    ompl_simple_setup_.setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
+    ompl_simple_setup_->setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
                                name_ != getGroupName() ? name_ : "", spec_));
     logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
               name_.c_str(), type.c_str());
   }
 
   // call the setParams() after setup(), so we know what the params are
-  ompl_simple_setup_.getSpaceInformation()->setup();
-  ompl_simple_setup_.getSpaceInformation()->params().setParams(cfg, true);
+  ompl_simple_setup_->getSpaceInformation()->setup();
+  ompl_simple_setup_->getSpaceInformation()->params().setParams(cfg, true);
   // call setup() again for possibly new param values
-  ompl_simple_setup_.getSpaceInformation()->setup();
+  ompl_simple_setup_->getSpaceInformation()->setup();
 }
 
 void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
@@ -258,15 +258,15 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
 {
-  ompl_simple_setup_.simplifySolution(timeout);
-  last_simplify_time_ = ompl_simple_setup_.getLastSimplificationTime();
+  ompl_simple_setup_->simplifySolution(timeout);
+  last_simplify_time_ = ompl_simple_setup_->getLastSimplificationTime();
 }
 
 void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
 {
-  if (ompl_simple_setup_.haveSolutionPath())
+  if (ompl_simple_setup_->haveSolutionPath())
   {
-    og::PathGeometric &pg = ompl_simple_setup_.getSolutionPath();
+    og::PathGeometric &pg = ompl_simple_setup_->getSolutionPath();
     pg.interpolate(std::max((unsigned int)floor(0.5 + pg.length() / max_solution_segment_length_), minimum_waypoint_count_));
   }
 }
@@ -284,16 +284,16 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
 bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory &traj) const
 {
   traj.clear();
-  if (!ompl_simple_setup_.haveSolutionPath())
+  if (!ompl_simple_setup_->haveSolutionPath())
     return false;
-  convertPath(ompl_simple_setup_.getSolutionPath(), traj);
+  convertPath(ompl_simple_setup_->getSolutionPath(), traj);
   return true;
 }
 
 void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)
 {
-  if (ompl_simple_setup_.getStateValidityChecker())
-    static_cast<StateValidityChecker*>(ompl_simple_setup_.getStateValidityChecker().get())->setVerbose(flag);
+  if (ompl_simple_setup_->getStateValidityChecker())
+    static_cast<StateValidityChecker*>(ompl_simple_setup_->getStateValidityChecker().get())->setVerbose(flag);
 }
 
 ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
@@ -328,10 +328,10 @@ void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(const ro
 
 void ompl_interface::ModelBasedPlanningContext::clear()
 {
-  ompl_simple_setup_.clear();
-  ompl_simple_setup_.clearStartStates();
-  ompl_simple_setup_.setGoal(ob::GoalPtr());
-  ompl_simple_setup_.setStateValidityChecker(ob::StateValidityCheckerPtr());
+  ompl_simple_setup_->clear();
+  ompl_simple_setup_->clearStartStates();
+  ompl_simple_setup_->setGoal(ob::GoalPtr());
+  ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr());
   path_constraints_.reset();
   goal_constraints_.clear();
   getOMPLStateSpace()->setInterpolationFunction(InterpolationFunction());
@@ -372,7 +372,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
   }
 
   ob::GoalPtr goal = constructGoal();
-  ompl_simple_setup_.setGoal(goal);
+  ompl_simple_setup_->setGoal(goal);
   if (goal)
     return true;
   else
@@ -382,8 +382,8 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::ve
 bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsigned int count, const std::string &filename)
 {
   ompl_benchmark_.clearPlanners();
-  ompl_simple_setup_.setup();
-  ompl_benchmark_.addPlanner(ompl_simple_setup_.getPlanner());
+  ompl_simple_setup_->setup();
+  ompl_benchmark_.addPlanner(ompl_simple_setup_->getPlanner());
   ompl_benchmark_.setExperimentName(getRobotModel()->getName() + "_" + getGroupName() + "_" +
                     getPlanningScene()->getName() + "_" + name_);
 
@@ -398,43 +398,43 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
 
 void ompl_interface::ModelBasedPlanningContext::startSampling()
 {
-  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
+  bool gls = ompl_simple_setup_->getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
   if (gls)
-    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->startSampling();
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_->getGoal().get())->startSampling();
   else
     // we know this is a GoalSampleableMux by elimination
-    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_.getGoal().get())->startSampling();
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_->getGoal().get())->startSampling();
 }
 
 void ompl_interface::ModelBasedPlanningContext::stopSampling()
 {
-  bool gls = ompl_simple_setup_.getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
+  bool gls = ompl_simple_setup_->getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
   if (gls)
-    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_->getGoal().get())->stopSampling();
   else
     // we know this is a GoalSampleableMux by elimination
-    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_.getGoal().get())->stopSampling();
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_->getGoal().get())->stopSampling();
 }
 
 void ompl_interface::ModelBasedPlanningContext::preSolve()
 {
   // clear previously computed solutions
-  ompl_simple_setup_.getProblemDefinition()->clearSolutionPaths();
-  const ob::PlannerPtr planner = ompl_simple_setup_.getPlanner();
+  ompl_simple_setup_->getProblemDefinition()->clearSolutionPaths();
+  const ob::PlannerPtr planner = ompl_simple_setup_->getPlanner();
   if (planner)
     planner->clear();
   startSampling();
-  ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->resetMotionCounter();
+  ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->resetMotionCounter();
 }
 
 void ompl_interface::ModelBasedPlanningContext::postSolve()
 {
   stopSampling();
-  int v = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getValidMotionCount();
-  int iv = ompl_simple_setup_.getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
+  int v = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getValidMotionCount();
+  int iv = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
   logDebug("There were %d valid motions and %d invalid motions.", v, iv);
 
-  if (ompl_simple_setup_.getProblemDefinition()->hasApproximateSolution())
+  if (ompl_simple_setup_->getProblemDefinition()->hasApproximateSolution())
     logWarn("Computed solution is approximate");
 }
 
@@ -452,7 +452,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
     // fill the response
     logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
-             getOMPLSimpleSetup().getSolutionPath().getStateCount());
+             getOMPLSimpleSetup()->getSolutionPath().getStateCount());
 
     res.trajectory_.reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
     getSolutionPath(*res.trajectory_);
@@ -502,7 +502,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
 
     // fill the response
     logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
-             getOMPLSimpleSetup().getSolutionPath().getStateCount());
+             getOMPLSimpleSetup()->getSolutionPath().getStateCount());
     return true;
   }
   else
@@ -525,8 +525,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     logDebug("%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
     registerTerminationCondition(ptc);
-    result = ompl_simple_setup_.solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
-    last_plan_time_ = ompl_simple_setup_.getLastPlanComputationTime();
+    result = ompl_simple_setup_->solve(ptc) == ompl::base::PlannerStatus::EXACT_SOLUTION;
+    last_plan_time_ = ompl_simple_setup_->getLastPlanComputationTime();
     unregisterTerminationCondition();
   }
   else
@@ -536,12 +536,12 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
     if (count <= max_planning_threads_)
     {
       ompl_parallel_plan_.clearPlanners();
-      if (ompl_simple_setup_.getPlannerAllocator())
+      if (ompl_simple_setup_->getPlannerAllocator())
         for (unsigned int i = 0 ; i < count ; ++i)
-          ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
+          ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_->getPlannerAllocator());
       else
         for (unsigned int i = 0 ; i < count ; ++i)
-          ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+          ompl_parallel_plan_.addPlanner(ompl::geometric::getDefaultPlanner(ompl_simple_setup_->getGoal()));
 
       ob::PlannerTerminationCondition ptc = ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
       registerTerminationCondition(ptc);
@@ -558,12 +558,12 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       for (int i = 0 ; i < n && ptc() == false ; ++i)
       {
         ompl_parallel_plan_.clearPlanners();
-        if (ompl_simple_setup_.getPlannerAllocator())
+        if (ompl_simple_setup_->getPlannerAllocator())
           for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
-            ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
+            ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_->getPlannerAllocator());
         else
           for (unsigned int i = 0 ; i < max_planning_threads_ ; ++i)
-            ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+            ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }
@@ -571,12 +571,12 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
       if (n && ptc() == false)
       {
         ompl_parallel_plan_.clearPlanners();
-        if (ompl_simple_setup_.getPlannerAllocator())
+        if (ompl_simple_setup_->getPlannerAllocator())
           for (int i = 0 ; i < n ; ++i)
-            ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_.getPlannerAllocator());
+            ompl_parallel_plan_.addPlannerAllocator(ompl_simple_setup_->getPlannerAllocator());
         else
           for (int i = 0 ; i < n ; ++i)
-            ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_.getGoal()));
+            ompl_parallel_plan_.addPlanner(og::getDefaultPlanner(ompl_simple_setup_->getGoal()));
         bool r = ompl_parallel_plan_.solve(ptc, 1, count, true) == ompl::base::PlannerStatus::EXACT_SOLUTION;
         result = result && r;
       }

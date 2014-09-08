@@ -178,7 +178,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   if (pc != planner_configs_.end())
   {
-    return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type));
+    moveit_msgs::MotionPlanRequest req; // dummy request with default values
+    return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type), req);
   }
   else
   {
@@ -188,7 +189,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_interface::PlannerConfigurationSettings &config,
-                                                                                                        const StateSpaceFactoryTypeSelector &factory_selector) const
+                                                                                                        const StateSpaceFactoryTypeSelector &factory_selector,
+                                                                                                        const moveit_msgs::MotionPlanRequest &req) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
 
@@ -220,6 +222,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context_spec.planner_selector_ = getPlannerSelector();
     context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
     context_spec.state_space_ = factory->getNewStateSpace(space_spec);
+
+    // Choose the correct simple setup type to load
+    context_spec.ompl_simple_setup_.reset(new ompl::geometric::SimpleSetup(context_spec.state_space_));
+
     bool state_validity_cache = true;
     if (config.config.find("subspaces") != config.config.end())
     {
@@ -253,7 +259,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
   context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
   if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())
-    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup().getStateSpace()->getMaximumExtent() / 100.0);
+    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup()->getStateSpace()->getMaximumExtent() / 100.0);
   else
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
   context->setMinimumWaypointCount(minimum_waypoint_count_);
@@ -346,7 +352,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
 
-  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req));
+  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req), req);
   if (context)
   {
     context->clear();
