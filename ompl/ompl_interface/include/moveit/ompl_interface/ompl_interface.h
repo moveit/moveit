@@ -78,14 +78,6 @@ public:
     return context_manager_.getPlannerConfigurations();
   }
 
-  /** @brief Solve the planning problem */
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res) const;
-
-  /** @brief Solve the planning problem but give a more detailed response */
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanDetailedResponse &res) const;
-
   ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                   const planning_interface::MotionPlanRequest &req) const;
   ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
