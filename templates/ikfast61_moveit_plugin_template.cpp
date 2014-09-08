@@ -578,10 +578,10 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_
                                            const std::vector<double> &joint_angles,
                                            std::vector<geometry_msgs::Pose> &poses) const
 {
-#ifndef IKTYPE_TRANSFORM_6D
-  ROS_ERROR_NAMED("ikfast", "Can only compute FK for IKTYPE_TRANSFORM_6D!");
-  return false;
-#endif
+  if (GetIkType() != IKP_Transform6D) {
+    ROS_ERROR_NAMED("ikfast", "Can only compute FK for IKTYPE_TRANSFORM_6D!");
+    return false;
+  }
 
   KDL::Frame p_out;
   if(link_names.size() == 0) {
