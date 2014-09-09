@@ -37,7 +37,7 @@
 #ifndef MOVEIT_POINT_CONTAINMENT_FILTER_SELF_MASK_
 #define MOVEIT_POINT_CONTAINMENT_FILTER_SELF_MASK_
 
-#include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <geometric_shapes/bodies.h>
 #include <boost/function.hpp>
 #include <string>
@@ -46,8 +46,6 @@
 #include <map>
 
 #include <boost/thread/mutex.hpp>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 
 namespace point_containment_filter
 {
@@ -84,7 +82,7 @@ public:
   /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the point
       is inside the robot. The point is outside if the mask element is OUTSIDE.
   */
-  void maskContainment(const pcl::PointCloud<pcl::PointXYZ>& data_in,  const Eigen::Vector3d &sensor_pos,
+  void maskContainment(const sensor_msgs::PointCloud2& data_in,  const Eigen::Vector3d &sensor_pos,
                        const double min_sensor_dist, const double max_sensor_dist, std::vector<int> &mask);
 
   /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point.
