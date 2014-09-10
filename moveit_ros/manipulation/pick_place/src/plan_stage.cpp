@@ -66,6 +66,7 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
   req.allowed_planning_time = (plan->shared_data_->timeout_ - ros::WallTime::now()).toSec();
   req.path_constraints = plan->shared_data_->path_constraints_;
   req.planner_id = plan->shared_data_->planner_id_;
+  req.start_state.is_diff = true;
 
   req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_, plan->shared_data_->planning_group_));
   unsigned int attempts = 0;
