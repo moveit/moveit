@@ -114,16 +114,48 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &st
   double penalty = getJointLimitsPenalty(state, joint_model_group);
   if (translation)
   {
-    Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3,jacobian.cols());
-    Eigen::MatrixXd matrix = jacobian_2*jacobian_2.transpose();
-    // Get manipulability index
-    manipulability_index = penalty * sqrt(matrix.determinant());
+    if(jacobian.cols()<6)
+    {
+      Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3,jacobian.cols()));
+      Eigen::MatrixXd singular_values = svdsolver.singularValues();
+      manipulability_index = 1.0;
+      for(unsigned int i=0; i < singular_values.rows(); ++i)
+      {
+        logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
+        manipulability_index *= singular_values(i,0);
+      }
+      // Get manipulability index
+      manipulability_index = penalty * manipulability_index;
+    }
+    else
+    {
+      Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3,jacobian.cols());
+      Eigen::MatrixXd matrix = jacobian_2*jacobian_2.transpose();
+      // Get manipulability index
+      manipulability_index = penalty * sqrt(matrix.determinant());
+    }
   }
   else
   {
-    Eigen::MatrixXd matrix = jacobian*jacobian.transpose();
-    // Get manipulability index
-    manipulability_index = penalty * sqrt(matrix.determinant());
+    if(jacobian.cols()<6)
+    {
+      Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
+      Eigen::MatrixXd singular_values = svdsolver.singularValues();
+      manipulability_index = 1.0;
+      for(unsigned int i=0; i < singular_values.rows(); ++i)
+      {
+        logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
+        manipulability_index *= singular_values(i,0);
+      }
+      // Get manipulability index
+      manipulability_index = penalty * manipulability_index;
+    }
+    else
+    {
+      Eigen::MatrixXd matrix = jacobian*jacobian.transpose();
+      // Get manipulability index
+      manipulability_index = penalty * sqrt(matrix.determinant());
+    }
   }
   return true;
 }
