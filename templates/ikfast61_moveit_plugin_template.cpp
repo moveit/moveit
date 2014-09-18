@@ -838,12 +838,14 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
             {
               // Costs for solution: Largest joint motion
               double costs = 0.0;
-              for(unsigned int i = 0; i < solution.size(); i++) {
+              for(unsigned int i = 0; i < solution.size(); i++)
+              {
                 double d = fabs(ik_seed_state[i] - solution[i]);
                 if (d > costs)
                   costs = d;
               }
-              if (costs < best_costs || best_costs == -1.0) {
+              if (costs < best_costs || best_costs == -1.0)
+              {
                 best_costs = costs;
                 best_solution = solution;
               }
@@ -869,7 +871,8 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 
   ROS_DEBUG_STREAM_NAMED("ikfast", "Valid solutions: " << nvalid << "/" << nattempts);
 
-  if (search_best && best_costs != -1.0) {
+  if (search_best && best_costs != -1.0)
+  {
     solution = best_solution;
     error_code.val = error_code.SUCCESS;
     return true;
