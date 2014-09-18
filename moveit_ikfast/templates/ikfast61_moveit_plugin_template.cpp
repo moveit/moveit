@@ -831,7 +831,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
       }
     }
 
-    if(!getCount(counter, num_positive_increments, num_negative_increments))
+    if(!getCount(counter, num_positive_increments, -num_negative_increments))
     {
       error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
       return false;
