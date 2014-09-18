@@ -684,6 +684,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                               const kinematics::KinematicsQueryOptions &options) const
 {
   ROS_DEBUG_STREAM_NAMED("ikfast","searchPositionIK");
+  bool search_best = true; // whether to search entire space for best solution
 
   // Check if there are no redundant joints
   if(free_params_.size()==0)
@@ -782,6 +783,12 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   // Begin searching
 
   ROS_DEBUG_STREAM_NAMED("ikfast","Free param is " << free_params_[0] << " initial guess is " << initial_guess << ", # positive increments: " << num_positive_increments << ", # negative increments: " << num_negative_increments);
+  if (search_best && (num_positive_increments + num_negative_increments) > 1000)
+      ROS_WARN_STREAM_ONCE_NAMED("ikfast", "Large search space, consider increasing the search discretization");
+  
+  double best_costs = -1.0;
+  std::vector<double> best_solution;
+  int nattempts = 0, nvalid = 0;
 
   while(true)
   {
@@ -796,6 +803,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
     {
       for(int s = 0; s < numsol; ++s)
       {
+        nattempts++;
         std::vector<double> sol;
         getSolution(solutions,s,sol);
 
@@ -825,7 +833,24 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 
           if(error_code.val == error_code.SUCCESS)
           {
-            return true;
+            nvalid++;
+            if (search_best)
+            {
+              // Costs for solution: Largest joint motion
+              double costs = 0.0;
+              for(unsigned int i = 0; i < solution.size(); i++) {
+                double d = fabs(ik_seed_state[i] - solution[i]);
+                if (d > costs)
+                  costs = d;
+              }
+              if (costs < best_costs || best_costs == -1.0) {
+                best_costs = costs;
+                best_solution = solution;
+              }
+            }
+            else
+              // Return first feasible solution
+              return true;
           }
         }
       }
@@ -833,15 +858,24 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 
     if(!getCount(counter, num_positive_increments, -num_negative_increments))
     {
+      // Everything searched
       error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
-      return false;
+      break;
     }
 
     vfree[0] = initial_guess+search_discretization_*counter;
-    ROS_DEBUG_STREAM_NAMED("ikfast","Attempt " << counter << " with 0th free joint having value " << vfree[0]);
+    //ROS_DEBUG_STREAM_NAMED("ikfast","Attempt " << counter << " with 0th free joint having value " << vfree[0]);
   }
 
-  // not really needed b/c shouldn't ever get here
+  ROS_DEBUG_STREAM_NAMED("ikfast", "Valid solutions: " << nvalid << "/" << nattempts);
+
+  if (search_best && best_costs != -1.0) {
+    solution = best_solution;
+    error_code.val = error_code.SUCCESS;
+    return true;
+  }
+
+  // No solution found
   error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return false;
 }
