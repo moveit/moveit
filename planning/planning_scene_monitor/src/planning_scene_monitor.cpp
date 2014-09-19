@@ -447,6 +447,13 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneCallback(cons
   newPlanningSceneMessage(*scene);
 }
 
+void planning_scene_monitor::PlanningSceneMonitor::clearOctomap()
+{
+  octomap_monitor_->getOcTreePtr()->lockWrite();
+  octomap_monitor_->getOcTreePtr()->clear();
+  octomap_monitor_->getOcTreePtr()->unlockWrite();
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
 {
   if (scene_)

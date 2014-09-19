@@ -347,6 +347,8 @@ public:
   /** \brief Lock the scene from writing (only one thread can lock for writing and no other thread can lock for reading) */
   void unlockSceneWrite();
 
+  void clearOctomap();
+
 protected:
 
   /** @brief Initialize the planning scene monitor

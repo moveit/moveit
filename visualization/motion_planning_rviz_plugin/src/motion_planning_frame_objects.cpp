@@ -89,6 +89,7 @@ void MotionPlanningFrame::clearSceneButtonClicked()
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
+//  publishSceneButtonClicked();
 }
 
 void MotionPlanningFrame::sceneScaleChanged(int value)
@@ -155,6 +156,7 @@ void MotionPlanningFrame::removeObjectButtonClicked()
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
     planning_display_->queueRenderSceneGeometry();
   }
+//  publishSceneButtonClicked();
 }
 
 static QString decideStatusText(const collision_detection::CollisionWorld::ObjectConstPtr &obj)
@@ -335,6 +337,7 @@ void MotionPlanningFrame::updateCollisionObjectPose(bool update_marker_position)
       }
     }
   }
+//  publishSceneButtonClicked();
 }
 
 void MotionPlanningFrame::collisionObjectChanged(QListWidgetItem *item)
@@ -935,6 +938,7 @@ void MotionPlanningFrame::computeImportFromText(const std::string &path)
     else
       ROS_WARN("Unable to load scene geometry from '%s'", path.c_str());
   }
+//  publishSceneButtonClicked();
 }
 
 void MotionPlanningFrame::importFromTextButtonClicked()
