@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2014, SRI, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,27 +32,32 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: David Hershberger */
 
-#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#ifndef MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
 
-#include <string>
+#include <moveit/move_group/move_group_capability.h>
+#include <std_srvs/Empty.h>
 
 namespace move_group
 {
 
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
-static const std::string CLEAR_OCTOMAP_SERVICE_NAME = "clear_octomap"; // name of the service that can be used to clear the octomap
+class ClearOctomapService : public MoveGroupCapability
+{
+public:
+
+  ClearOctomapService();
+
+  virtual void initialize();
+
+private:
+
+  bool clearOctomap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
+  ros::ServiceServer service_;
+};
 
 }
 
-#endif
+#endif // MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
