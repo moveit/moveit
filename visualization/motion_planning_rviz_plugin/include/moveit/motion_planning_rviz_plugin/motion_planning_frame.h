@@ -146,6 +146,7 @@ private Q_SLOTS:
   void pathConstraintsIndexChanged(int index);
   void useStartStateButtonClicked();
   void useGoalStateButtonClicked();
+  void onClearOctomapClicked();
 
   //Scene Objects tab
   void importFileButtonClicked();
@@ -291,7 +292,7 @@ private:
   std::vector< std::pair<std::string, bool> > known_collision_objects_;
   long unsigned int known_collision_objects_version_;
   bool first_time_;
-
+  ros::ServiceClient clear_octomap_service_client_;
 };
 
 // \todo THIS IS REALLY BAD. NEED TO MOVE THIS AND RELATED FUNCTIONALITY OUT OF HERE

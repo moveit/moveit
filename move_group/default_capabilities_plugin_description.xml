@@ -48,4 +48,10 @@
     </description>
   </class>
 
+  <class name="move_group/ClearOctomapService" type="move_group::ClearOctomapService" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Provide a ROS service that allows for clearing the octomap
+    </description>
+  </class>
+
 </library>
