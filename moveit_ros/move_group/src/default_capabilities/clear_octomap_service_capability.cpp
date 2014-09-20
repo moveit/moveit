@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2014, SRI, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,27 +32,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: David Hershberger */
 
-#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#include "clear_octomap_service_capability.h"
+#include <moveit/move_group/capability_names.h>
 
-#include <string>
-
-namespace move_group
+move_group::ClearOctomapService::ClearOctomapService():
+  MoveGroupCapability("ExecutePathService")
 {
-
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
-static const std::string CLEAR_OCTOMAP_SERVICE_NAME = "clear_octomap"; // name of the service that can be used to clear the octomap
-
 }
 
-#endif
+void move_group::ClearOctomapService::initialize()
+{
+  service_ = root_node_handle_.advertiseService(CLEAR_OCTOMAP_SERVICE_NAME, &ClearOctomapService::clearOctomap, this);
+}
+
+bool move_group::ClearOctomapService::clearOctomap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+  if (!context_->planning_scene_monitor_)
+  {
+    ROS_ERROR("Cannot clear octomap since planning_scene_monitor_ does not exist.");
+    return true;
+  }
+
+  ROS_INFO("Clearing octomap...");
+  context_->planning_scene_monitor_->clearOctomap();
+  ROS_INFO("Octomap cleared.");
+  return true;
+}
+
+
+#include <class_loader/class_loader.h>
+CLASS_LOADER_REGISTER_CLASS(move_group::ClearOctomapService, move_group::MoveGroupCapability)

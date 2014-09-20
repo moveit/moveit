@@ -36,11 +36,14 @@
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/move_group/capability_names.h>
 
 #include <geometric_shapes/shape_operations.h>
 
 #include <rviz/display_context.h>
 #include <rviz/frame_manager.h>
+
+#include <std_srvs/Empty.h>
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -56,7 +59,8 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   planning_display_(pdisplay),
   context_(context),
   ui_(new Ui::MotionPlanningUI()),
-  first_time_(true)
+  first_time_(true),
+  clear_octomap_service_client_(nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME))
 {
   // set up the GUI
   ui_->setupUi(this);
@@ -97,6 +101,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
   connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectChanged( QListWidgetItem * ) ));
   connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
+  connect( ui_->clear_octomap_button, SIGNAL( clicked() ), this, SLOT( onClearOctomapClicked() ));
   connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
   connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
   connect( ui_->export_scene_text_button, SIGNAL( clicked() ), this, SLOT( exportAsTextButtonClicked() ));
