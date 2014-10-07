@@ -2,8 +2,8 @@
 Changelog for package moveit_ikfast
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.0 (2014-10-07)
+------------------
 * Search for cheapest IK solution
 * Specify search mode during code generation
 * Fix issue: min_count must be negative (negative direction was ignored!)
