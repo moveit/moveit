@@ -33,7 +33,7 @@
 # Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
-from moveit_msgs.msg import RobotTrajectory, Grasp, Constraints
+from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -454,16 +454,22 @@ class MoveGroupCommander(object):
         else:
             return self._g.pick(object_name, [conversions.msg_to_string(x) for x in grasp])
 
-    def place(self, object_name, pose):
-        """Place the named object at a particular location in the environment"""
+    def place(self, object_name, location=None):
+        """Place the named object at a particular location in the environment or somewhere safe in the world if location is not provided"""
         result = False
-        if type(pose) is PoseStamped:
+        if location is None:
+            result = self._g.place(object_name)
+        elif type(location) is PoseStamped:
             old = self.get_pose_reference_frame()
-            self.set_pose_reference_frame(pose.header.frame_id)
-            result = self._g.place(object_name, conversions.pose_to_list(pose.pose))
+            self.set_pose_reference_frame(location.header.frame_id)
+            result = self._g.place(object_name, conversions.pose_to_list(location.pose))
             self.set_pose_reference_frame(old)
+        elif type(location) is Pose:
+            result = self._g.place(object_name, conversions.pose_to_list(location))
+        elif type(location) is PlaceLocation:
+            result = self._g.place(object_name, conversions.msg_to_string(location))
         else:
-            result = self._g.place(object_name, conversions.pose_to_list(pose))
+            raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped or PlaceLocation object")
         return result
 
     def set_support_surface_name(self, value):
