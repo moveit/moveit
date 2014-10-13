@@ -66,9 +66,13 @@ protected:
         std::string line;
         std::getline( xml_file, line);
         xml_string += (line + "\n");
-      }
+      }     
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
+    }
+    else
+    {
+      FAIL() << "Failed to find robot.xml";
     }
     srdf_model->initFile(*urdf_model, (res_path / "test/srdf/robot.xml").string());
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
@@ -205,6 +209,7 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
+    ks.update();
     robot_state::Transforms tf(kmodel->getModelFrame());
 
     kinematic_constraints::JointConstraint jc(kmodel);
@@ -226,11 +231,13 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsCont)
     // within the above tolerance
     jvals[jcm.joint_name] = .03;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_TRUE(jc.decide(ks).satisfied);
 
     //outside the above tolerance
     jvals[jcm.joint_name] = .05;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_FALSE(jc.decide(ks).satisfied);
 
     //inside the below tolerance
@@ -385,8 +392,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
+    ks.update(true);
     robot_state::Transforms tf(kmodel->getModelFrame());
-
     kinematic_constraints::PositionConstraint pc(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
@@ -431,6 +438,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsFixed)
     std::map<std::string, double> jvals;
     jvals["torso_lift_joint"] = 0.4;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_FALSE(pc.decide(ks).satisfied);
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 
@@ -461,7 +469,8 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
     robot_state::Transforms tf(kmodel->getModelFrame());
-
+    ks.update();
+    
     kinematic_constraints::PositionConstraint pc(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
@@ -503,11 +512,13 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     std::map<std::string, double> jvals;
     jvals["l_shoulder_pan_joint"] = 0.4;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_TRUE(pc.decide(ks).satisfied);
     EXPECT_TRUE(pc.equal(pc, 1e-12));
 
     jvals["l_shoulder_pan_joint"] = -0.4;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_FALSE(pc.decide(ks).satisfied);
 
     //adding a second constrained region makes this work
@@ -621,9 +632,11 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
+    ks.update();
     robot_state::Transforms tf(kmodel->getModelFrame());
 
     kinematic_constraints::OrientationConstraint oc(kmodel);
+
     moveit_msgs::OrientationConstraint ocm;
 
     EXPECT_FALSE(oc.configure(ocm, tf));
@@ -650,6 +663,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
     ocm.header.frame_id = ocm.link_name;
     EXPECT_TRUE(oc.configure(ocm, tf));
+
     EXPECT_TRUE(oc.decide(ks).satisfied);
     EXPECT_TRUE(oc.equal(oc, 1e-12));
     EXPECT_TRUE(oc.mobileReferenceFrame());
@@ -657,6 +671,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ASSERT_TRUE(oc.getLinkModel());
 
     geometry_msgs::Pose p;
+ 
     tf::poseEigenToMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()), p);
 
     ocm.orientation = p.orientation;
@@ -667,10 +682,12 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     std::map<std::string, double> jvals;
     jvals["r_wrist_roll_joint"] = .05;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_TRUE(oc.decide(ks).satisfied);
 
     jvals["r_wrist_roll_joint"] = .11;
     ks.setVariablePositions(jvals);
+    ks.update();
     EXPECT_FALSE(oc.decide(ks).satisfied);
 }
 
@@ -678,6 +695,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsSimple)
 {
     robot_state::RobotState ks(kmodel);
     ks.setToDefaultValues();
+    ks.update();
     robot_state::Transforms tf(kmodel->getModelFrame());
 
     kinematic_constraints::VisibilityConstraint vc(kmodel);
@@ -729,6 +747,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::Transforms tf(kmodel->getModelFrame());
 
   kinematic_constraints::VisibilityConstraint vc(kmodel);
@@ -764,11 +783,13 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -1.4;
   ks.setVariablePositions(state_values);
+  ks.update();
   EXPECT_FALSE(vc.decide(ks, true).satisfied);
 
   //this moves far enough away that it's fine
   state_values["r_shoulder_pan_joint"] = .4;
   ks.setVariablePositions(state_values);
+  ks.update();
   EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
   //this is in collision with the arm, but now the cone, and should be fine
@@ -776,6 +797,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   state_values["r_shoulder_pan_joint"] = .5;
   state_values["r_elbow_flex_joint"] = -.6;
   ks.setVariablePositions(state_values);
+  ks.update();
   EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
   //this shouldn't matter
@@ -783,7 +805,7 @@ TEST_F(LoadPlanningModelsPr2, VisibilityConstraintsPR2)
   EXPECT_TRUE(vc.decide(ks, true).satisfied);
 
   ks.setToDefaultValues();
-
+  ks.update();
   //just hits finger tip
   vcm.target_radius = .01;
   vcm.target_pose.pose.position.z = 0.00;
@@ -825,6 +847,7 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSet)
   std::map<std::string, double> jvals;
   jvals[jcm.joint_name] = 0.41;
   ks.setVariablePositions(jvals);
+  ks.update();
   EXPECT_TRUE(kcs.decide(ks).satisfied);
 
   //adding another constraint for a different joint
