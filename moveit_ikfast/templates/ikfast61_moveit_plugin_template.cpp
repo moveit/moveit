@@ -220,9 +220,6 @@ public:
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
    *
-   * This FK routine is only used if 'use_plugin_fk' is set in the 'arm_kinematics_constraint_aware' node,
-   * otherwise ROS TF is used to calculate the forward kinematics
-   *
    * @param link_names A set of links for which FK needs to be computed
    * @param joint_angles The state for which FK is being computed
    * @param poses The resultant set of poses (in the frame returned by getBaseFrame())
@@ -581,7 +578,11 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_
                                            std::vector<geometry_msgs::Pose> &poses) const
 {
   if (GetIkType() != IKP_Transform6D) {
-    ROS_ERROR_NAMED("ikfast", "Can only compute FK for IKTYPE_TRANSFORM_6D!");
+    // ComputeFk() is the inverse function of ComputeIk(), so the format of
+    // eerot differs depending on IK type. The Transform6D IK type is the only
+    // one for which a 3x3 rotation matrix is returned, which means we can only
+    // compute FK for that IK type.
+    ROS_ERROR_NAMED("ikfast", "Can only compute FK for Transform6D IK type!");
     return false;
   }
 
