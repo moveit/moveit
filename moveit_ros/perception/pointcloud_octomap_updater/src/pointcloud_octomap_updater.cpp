@@ -206,17 +206,26 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
   boost::scoped_ptr<sensor_msgs::PointCloud2> filtered_cloud;
 
+  //We only use these iterators if we are creating a filtered_cloud for
+  //publishing. We cannot default construct these, so we use scoped_ptr's
+  //to defer construction
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
+
   if (!filtered_cloud_topic_.empty()) {
     filtered_cloud.reset(new sensor_msgs::PointCloud2());
     filtered_cloud->header = cloud_msg->header;
     sensor_msgs::PointCloud2Modifier pcd_modifier(*filtered_cloud);
     pcd_modifier.setPointCloud2FieldsByString(1, "xyz");
     pcd_modifier.resize(cloud_msg->width * cloud_msg->height);
+
+    //we have created a filtered_out, so we can create the iterators now
+    iter_filtered_x.reset(new sensor_msgs::PointCloud2Iterator<float>(*filtered_cloud, "x"));
+    iter_filtered_y.reset(new sensor_msgs::PointCloud2Iterator<float>(*filtered_cloud, "y"));
+    iter_filtered_z.reset(new sensor_msgs::PointCloud2Iterator<float>(*filtered_cloud, "z"));
   }
   size_t filtered_cloud_size = 0;
-  sensor_msgs::PointCloud2Iterator<float> iter_filtered_x(*filtered_cloud, "x");
-  sensor_msgs::PointCloud2Iterator<float> iter_filtered_y(*filtered_cloud, "y");
-  sensor_msgs::PointCloud2Iterator<float> iter_filtered_z(*filtered_cloud, "z");
 
   tree_->lockRead();
 
@@ -227,43 +236,42 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     for (unsigned int row = 0; row < cloud_msg->height; row += point_subsample_)
     {
       unsigned int row_c = row * cloud_msg->width;
-      sensor_msgs::PointCloud2Iterator<float> iter_x(*filtered_cloud, "x");
-      sensor_msgs::PointCloud2Iterator<float> iter_y(*filtered_cloud, "y");
-      sensor_msgs::PointCloud2Iterator<float> iter_z(*filtered_cloud, "z");
-      iter_x += row*cloud_msg->row_step;
-      iter_y += row*cloud_msg->row_step;
-      iter_z += row*cloud_msg->row_step;
+      sensor_msgs::PointCloud2ConstIterator<float> pt_iter(*cloud_msg, "x");
+      //set iterator to point at start of the current row
+      pt_iter += row_c;
 
-      for (unsigned int col = 0; col < cloud_msg->width; col += point_subsample_, iter_x += point_subsample_,
-        iter_y += point_subsample_, iter_z += point_subsample_)
+      for (unsigned int col = 0; col < cloud_msg->width; col += point_subsample_,
+        pt_iter += point_subsample_)
       {
         //if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
         //  continue;
 
         /* check for NaN */
-        if (!isnan(*iter_x) && !isnan(*iter_y) && !isnan(*iter_z))
-    {
-      /* transform to map frame */
-      tf::Vector3 point_tf = map_H_sensor * tf::Vector3(*iter_x, *iter_y, *iter_z);
+        if (!isnan(pt_iter[0]) && !isnan(pt_iter[1]) && !isnan(pt_iter[2]))
+        {
+          /* transform to map frame */
+          tf::Vector3 point_tf = map_H_sensor * tf::Vector3(pt_iter[0], pt_iter[1],
+            pt_iter[2]);
 
-      /* occupied cell at ray endpoint if ray is shorter than max range and this point
-         isn't on a part of the robot*/
-      if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
-        model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-      else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
-        clip_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-      else
+          /* occupied cell at ray endpoint if ray is shorter than max range and this point
+             isn't on a part of the robot*/
+          if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
+            model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+          else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
+            clip_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+          else
           {
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
+            //build list of valid points if we want to publish them
             if (filtered_cloud)
             {
-              *iter_filtered_x = *iter_x;
-              *iter_filtered_y = *iter_y;
-              *iter_filtered_z = *iter_z;
+              **iter_filtered_x = pt_iter[0];
+              **iter_filtered_y = pt_iter[1];
+              **iter_filtered_z = pt_iter[2];
               ++filtered_cloud_size;
-              ++iter_filtered_x;
-              ++iter_filtered_y;
-              ++iter_filtered_z;
+              ++*iter_filtered_x;
+              ++*iter_filtered_y;
+              ++*iter_filtered_z;
             }
           }
         }
