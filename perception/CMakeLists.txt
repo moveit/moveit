@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   object_recognition_msgs
   cmake_modules
+  sensor_msgs
 )
 find_package(Eigen REQUIRED)
 
@@ -53,22 +54,22 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     image_transport)
-  
+
 include_directories(mesh_filter/include
                     depth_image_octomap_updater/include
-		    point_containment_filter/include
+                    point_containment_filter/include
                     occupancy_map_monitor/include
-		    pointcloud_octomap_updater/include
-		    semantic_world/include
+                    pointcloud_octomap_updater/include
+                    semantic_world/include
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
-		    ${OpenCV_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
-		    ${GLEW_INCLUDE_DIR}
-		    ${GLUT_INCLUDE_DIR}
-		    )
+                    ${GLEW_INCLUDE_DIR}
+                    ${GLUT_INCLUDE_DIR}
+                    )
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
