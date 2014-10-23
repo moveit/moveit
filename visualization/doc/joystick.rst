@@ -6,7 +6,11 @@ Run
 
 Startup regular MoveIt! planning node with Rviz (for example demo.launch)
 
-In the Motion Planning plugin of Rviz, enable "Allow External Comm." checkbox in the ``Planning`` tab.
+Make sure you have the dependencies installed:
+
+sudo apt-get install ros-indigo-joy
+
+In the Motion Planning plugin of Rviz, enable "Allow External Comm." checkbox in the ``Planning`` tab. Enable the 'Query Goal State' robot display in the MoveIt! Motion Planning Plugins's 'Planning Request' section.
 
 Now launch the joystick control launch file specific to your robot. If you are missing this file, first re-run the MoveIt! Setup Assistant using the latest version of the Setup Assistant:
 
