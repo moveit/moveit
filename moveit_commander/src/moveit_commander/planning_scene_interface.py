@@ -79,7 +79,7 @@ class PlanningSceneInterface(object):
         co.primitive_poses = [pose.pose]
         return co
     
-    def __make_mesh(self, name, pose, filename):
+    def __make_mesh(self, name, pose, filename, scale = (1, 1, 1)):
         co = CollisionObject()
         scene = pyassimp.load(filename)
         if not scene.meshes:
@@ -96,20 +96,20 @@ class PlanningSceneInterface(object):
             mesh.triangles.append(triangle)
         for vertex in scene.meshes[0].vertices:
             point = Point()
-            point.x = vertex[0]
-            point.y = vertex[1]
-            point.z = vertex[2]
+            point.x = vertex[0]*scale[0]
+            point.y = vertex[1]*scale[1]
+            point.z = vertex[2]*scale[2]
             mesh.vertices.append(point)
         co.meshes = [mesh]
         co.mesh_poses = [pose.pose]
         pyassimp.release(scene)
         return co
     
-    def add_mesh(self, name, pose, filename):
+    def add_mesh(self, name, pose, filename, size = (1, 1, 1)):
         """
         Add a mesh to the planning scene
         """
-        self._pub_co.publish(self.__make_mesh(name, pose, filename))
+        self._pub_co.publish(self.__make_mesh(name, pose, filename, size))
 
     def add_box(self, name, pose, size = (1, 1, 1)):
         """
@@ -130,9 +130,9 @@ class PlanningSceneInterface(object):
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
         
-    def attach_mesh(self, link, name, pose, filename, touch_links = []):
+    def attach_mesh(self, link, name, pose, filename, size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.__make_mesh(name, pose, filename)
+        aco.object = self.__make_mesh(name, pose, filename, size)
         aco.link_name = link
         aco.touch_links = [link]
         if len(touch_links) > 0:
@@ -167,3 +167,4 @@ class PlanningSceneInterface(object):
         aco.link_name = link
         aco.object.id = name
         self._pub_aco.publish(aco)
+
