@@ -267,9 +267,9 @@ public:
   }
 
   /** \brief Enable/disable verbose mode for sampler */
-  void setVerbose(bool flag)
+  virtual void setVerbose(bool verbose)
   {
-    verbose_ = flag;
+    verbose_ = verbose;
   }
 
   /**
