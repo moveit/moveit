@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add missing variants of place (PlaceLocation, place anywhere) for python interface
+* Python wrapper for getEndEffectorTips()
+* Contributors: Dave Coleman, Sachin Chitta, corot
+
 0.5.19 (2014-06-23)
 -------------------
 * Add check for planning scene monitor connection, with 5 sec delay
