@@ -2,6 +2,40 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added move_group capability for clearing octomap.
+* Fix coding style according to the moveit style
+* Better user output, kinematic solver error handling, disclaimer
+* Remove sample launch file for joystick and update
+  joystick python script.
+  1) Use moveit-python binding to parse SRDF.
+  2) Make the speed slower to control the marker from joystick.
+  3) Change joystick button mapping to be suitable for the users.
+* Update joystick documentation and rename the
+  the launch file for joy stick program.
+  Shorten the message the check box to toggle
+  communication with joy stick script.
+* add checkbox to toggle if moveit rviz plugin subscribes
+  the topics to be used for communication to the external ros nodes.
+  update moveit_joy.py to parse srdf to know planning_groups and the
+  names of the end effectors and support multi-endeffector planning groups.
+* motion_planning_rviz_plugin: add move_group namespace option
+  This allows multiple motion_planning_rviz_plugin /
+  planning_scene_rviz_plugin to be used in RViz and connect to
+  differently-namespaced move_group nodes.
+* moved planning_attempts down one row in gui to maintain gui width
+* Added field next to planning_time for planning_attempts
+  Now, ParallelPlanner terminates either due to timeout, or due to this many attempts.
+  Note, that ParallelPlanner run's Dijkstra's on all the nodes of all the sucessful plans (hybridize==true).
+* adding PoseStamped topic to move the interactive marker from other ros nodes
+  such as joystick programs.
+* motion_planning_rviz_plugin: add move_group namespace option
+  This allows multiple motion_planning_rviz_plugin /
+  planning_scene_rviz_plugin to be used in RViz and connect to
+  differently-namespaced move_group nodes.
+* Contributors: Chris Lewis, Dave Coleman, Dave Hershberger, Jonathan Bohren, Ryohei Ueda, Sachin Chitta
+
 0.5.19 (2014-06-23)
 -------------------
 * Changed rviz plugin action server wait to non-simulated time

@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix coding style according to the moveit style
+* update joystick documentation according to the latest implementation
+* add checkbox to toggle if moveit rviz plugin subscribes
+  the topics to be used for communication to the external ros nodes.
+  update moveit_joy.py to parse srdf to know planning_groups and the
+  names of the end effectors and support multi-endeffector planning groups.
+* adding PoseStamped topic to move the interactive marker from other ros nodes
+  such as joystick programs.
+* Contributors: Ryohei Ueda, Sachin Chitta
+
 0.5.19 (2014-06-23)
 -------------------
 * Fix [-Wreorder] warning.

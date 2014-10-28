@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixing invalid iterators if filtered_cloud_topic is not set.
+  Adding missing dependency on sensor_msgs.
+  Fixing indentation, whitespace, and tabs.
+  Incrementing PointCloud2Iterator pixel-at-a-time, not byte-at-a-time.
+* remove PCL dependency
+* Fixed issue with unordered_map and libc++ (LLVM, Mac OS X Mavericks)
+  libc++ doesn't have std::tr1::unordered_map, just std::unordered_map
+* Fixing OpenGL gl.h and glu.h inclusion on Mac OS X
+* Contributors: Jason Ziglar, Marco Esposito, Sachin Chitta, Vincent Rabaud
+
 0.5.19 (2014-06-23)
 -------------------
 * Fix [-Wreorder] warning.
