@@ -2,6 +2,32 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Made setVerbose virtual in constraint_sampler so that child classes can override
+* Manipulability Index Error for few DOF
+  When the group has fewer than 6 DOF, the Jacobian is of the form 6xM and when multiplied by its transpose, forms a 6x6 matrix that is singular and its determinant is always 0 (or NAN if the solver cannot calculate it).
+  Since calculating the SVD of a Jacobian is a costly operation, I propose to retain the calculation of the Manipulability Index through the determinant for 6 or more DOF (where it produces the correct result), but use the product of the singular values of the Jacobian for fewer DOF.
+* Fixed missing test depends for tf_conversions
+* Allow setFromIK() with multiple poses to single IK solver
+* Improved debug output
+* Removed duplicate functionality poseToMsg function
+* New setToRandomPositions function with custom rand num generator
+* Moved find_package angles to within CATKIN_ENABLE_TESTING
+* Getter for all tips (links) of every end effector in a joint model group
+* New robot state to (file) stream conversion functions
+* Added default values for iostream in print statements
+* Change PlanningScene constructor to RobotModelConstPtr
+* Documentation and made printTransform() public
+* Reduced unnecessary joint position copying
+* Added getSubgroups() helper function to joint model groups
+* Maintain ordering of poses in order that IK solver expects
+* Added new setToRandomPositions function that allows custom random number generator to be specified
+* Split setToIKSolverFrame() into two functions
+* Add check for correct solver type
+* Allowed setFromIK to do whole body IK solving with multiple tips
+* Contributors: Acorn, Dave Coleman, Ioan A Sucan, Jonathan Weisz, Konstantinos Chatzilygeroudis, Sachin Chitta, hersh
+
 0.5.10 (2014-06-30)
 -------------------
 * making Saucy and Trusty version of includes to be compatible with upstream packaging. re: https://github.com/ros/rosdistro/issues/4633
