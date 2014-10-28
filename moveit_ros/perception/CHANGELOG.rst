@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-10-27)
+------------------
 * Fixing invalid iterators if filtered_cloud_topic is not set.
   Adding missing dependency on sensor_msgs.
   Fixing indentation, whitespace, and tabs.

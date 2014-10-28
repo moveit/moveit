@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-10-27)
+------------------
 * Added move_group capability for clearing octomap.
 * Fix coding style according to the moveit style
 * Better user output, kinematic solver error handling, disclaimer

@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-10-27)
+------------------
 * Add missing variants of place (PlaceLocation, place anywhere) for python interface
 * Python wrapper for getEndEffectorTips()
 * Contributors: Dave Coleman, Sachin Chitta, corot
