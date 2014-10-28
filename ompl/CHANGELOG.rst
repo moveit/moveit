@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.7 (2014-10-28)
+------------------
 * Changed OMPL SimpleSetup member variable to shared pointer, passed MotionPlanningRequest to child function
 * Simplified number of solve() entry points in moveit_planners_ompl
 * Fixed uninitialized ptc_ pointer causing a crash.
