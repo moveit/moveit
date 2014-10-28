@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-10-27)
+------------------
 * Removed leadings slash from rosparam for robot padding
 * Added move_group capability for clearing octomap.
 * Made loading octomap_monitor optional in planning_scene_monitor when using WorldGeometryMonitor

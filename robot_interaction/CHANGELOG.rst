@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-10-27)
+------------------
 * Fix coding style according to the moveit style
 * update joystick documentation according to the latest implementation
 * add checkbox to toggle if moveit rviz plugin subscribes
