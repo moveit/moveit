@@ -376,14 +376,14 @@ class MoveitJoy:
         self.initialize_poses = False
         self.initialized = False
         self.parseSRDF()
-        self.plan_group_pub = rospy.Publisher('/rviz/moveit/select_planning_group', String)
+        self.plan_group_pub = rospy.Publisher('/rviz/moveit/select_planning_group', String, queue_size=5)
         self.updatePlanningGroup(0)
         self.updatePoseTopic(0, False)
-        self.joy_pose_pub = rospy.Publisher("/joy_pose", PoseStamped)
-        self.plan_pub = rospy.Publisher("/rviz/moveit/plan", Empty)
-        self.execute_pub = rospy.Publisher("/rviz/moveit/execute", Empty)
-        self.update_start_state_pub = rospy.Publisher("/rviz/moveit/update_start_state", Empty)
-        self.update_goal_state_pub = rospy.Publisher("/rviz/moveit/update_goal_state", Empty)
+        self.joy_pose_pub = rospy.Publisher("/joy_pose", PoseStamped, queue_size=1)
+        self.plan_pub = rospy.Publisher("/rviz/moveit/plan", Empty, queue_size=5)
+        self.execute_pub = rospy.Publisher("/rviz/moveit/execute", Empty, queue_size=5)
+        self.update_start_state_pub = rospy.Publisher("/rviz/moveit/update_start_state", Empty, queue_size=5)
+        self.update_goal_state_pub = rospy.Publisher("/rviz/moveit/update_goal_state", Empty, queue_size=5)
         self.interactive_marker_sub = rospy.Subscriber("/rviz_moveit_motion_planning_display/robot_interaction_interactive_marker_topic/update_full",
                                                        InteractiveMarkerInit,
                                                        self.markerCB, queue_size=1)
@@ -410,7 +410,7 @@ class MoveitJoy:
         next_topic = topics[self.current_eef_index]
 
         rospy.loginfo("Changed controlled end effector to " + self.planning_groups_tips[planning_group][self.current_eef_index])
-        self.pose_pub = rospy.Publisher(next_topic, PoseStamped)
+        self.pose_pub = rospy.Publisher(next_topic, PoseStamped, queue_size=5)
         if wait:
             self.waitForInitialPose(next_topic)
         self.current_pose_topic = next_topic
@@ -549,7 +549,7 @@ class MoveitJoy:
                 next_topic = topics[self.current_eef_index]
                 if not self.waitForInitialPose(next_topic, timeout=3):
                     rospy.logwarn("Unable to initialize planning group " + planning_group + ". Trying different group.")
-                    rospy.logwarn("Is 'Allow External Comm.' enabled in Rviz?")
+                    rospy.logwarn("Is 'Allow External Comm.' enabled in Rviz? Is the 'Query Goal State' robot enabled?")
                 else:
                     rospy.loginfo("Initialized planning group")
                     self.initialized = True
