@@ -7,7 +7,7 @@ add_library(${MOVEIT_LIB_NAME}_core
 
 set_target_properties(${MOVEIT_LIB_NAME}_core PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 set_target_properties(${MOVEIT_LIB_NAME}_core PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-target_link_libraries(${MOVEIT_LIB_NAME}_core moveit_mesh_filter ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME}_core moveit_mesh_filter moveit_occupancy_map_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_dependencies(${MOVEIT_LIB_NAME}_core sensor_msgs_generate_cpp)
 
