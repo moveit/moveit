@@ -364,7 +364,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
   std::reverse(joint_has_limits_vector_.begin(), joint_has_limits_vector_.end());
 
   for(size_t i=0; i <num_joints_; ++i)
-    ROS_INFO_STREAM_NAMED("ikfast",joint_names_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i] << " " << joint_has_limits_vector_[i]);
+    ROS_DEBUG_STREAM_NAMED("ikfast",joint_names_[i] << " " << joint_min_vector_[i] << " " << joint_max_vector_[i] << " " << joint_has_limits_vector_[i]);
 
   active_ = true;
   return true;
