@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* re-add libqt4 dependency (previously came from pcl-all)
+* Contributors: Michael Ferguson
+
 0.6.0 (2014-10-27)
 ------------------
 * Removed leadings slash from rosparam for robot padding
