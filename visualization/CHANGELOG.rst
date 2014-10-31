@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed joystick documentation
+* Joystick documentation and queue_size addition
+* Contributors: Dave Coleman
+
 0.6.0 (2014-10-27)
 ------------------
 * Added move_group capability for clearing octomap.
