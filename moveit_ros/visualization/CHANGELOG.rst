@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-10-31)
+------------------
 * Fixed joystick documentation
 * Joystick documentation and queue_size addition
 * Contributors: Dave Coleman
