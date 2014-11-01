@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   roscpp
   pluginlib
+  std_srvs
   tf
 )
 
