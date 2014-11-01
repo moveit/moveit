@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2014-10-31)
+------------------
 * Merge pull request `#522 <https://github.com/ros-planning/moveit_ros/issues/522>`_ from mikeferguson/indigo-devel
   add dependency on std_srvs (part of octomap clearing service)
 * add dependency on std_srvs (part of octomap clearing service)
