@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.1 (2014-10-31)
 ------------------
 * re-add libqt4 dependency (previously came from pcl-all)
