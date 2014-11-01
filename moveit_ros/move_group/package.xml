@@ -21,12 +21,14 @@
   <build_depend>actionlib</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>pluginlib</build_depend>
+  <build_depend>std_srvs</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>pluginlib</run_depend>
+  <run_depend>std_srvs</run_depend>
 
   <export>
     <moveit_ros_move_group plugin="${prefix}/default_capabilities_plugin_description.xml"/>
