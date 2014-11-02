@@ -58,14 +58,14 @@ template<typename Type>
 class FilterTraits
 {
   public:
-    static const GLushort GL_TYPE = GL_ZERO;
+    static const GLushort FILTER_GL_TYPE = GL_ZERO;
 };
 
 template<>
 class FilterTraits<unsigned short>
 {
   public:
-    static const GLushort GL_TYPE = GL_UNSIGNED_SHORT;
+    static const GLushort FILTER_GL_TYPE = GL_UNSIGNED_SHORT;
     static const double ToMetricScale = 0.001;
 };
 
@@ -73,14 +73,14 @@ template<>
 class FilterTraits<float>
 {
   public:
-    static const GLushort GL_TYPE = GL_FLOAT;
+    static const GLushort FILTER_GL_TYPE = GL_FLOAT;
     static const double ToMetricScale = 1.0f;
 };
 
 template<typename Type>
 class MeshFilterTest : public testing::TestWithParam <double>
 {
-  BOOST_STATIC_ASSERT_MSG (FilterTraits<Type>::GL_TYPE != GL_ZERO, "Only \"float\" and \"unsigned short int\" are allowed.");
+  BOOST_STATIC_ASSERT_MSG (FilterTraits<Type>::FILTER_GL_TYPE != GL_ZERO, "Only \"float\" and \"unsigned short int\" are allowed.");
   public:
     MeshFilterTest (unsigned width = 500, unsigned height = 500, double near = 0.5, double far = 5.0, double shadow = 0.1, double epsilon = 1e-7);
     void test ();
@@ -206,7 +206,7 @@ void MeshFilterTest<Type>::test ()
 {
   shapes::Mesh mesh = createMesh (0);
   mesh_filter::MeshHandle handle = filter_.addMesh (mesh);
-  filter_.filter (&sensor_data_[0], FilterTraits<Type>::GL_TYPE, false);
+  filter_.filter (&sensor_data_[0], FilterTraits<Type>::FILTER_GL_TYPE, false);
 
   vector<float> gt_depth (width_ * height_);
   vector<unsigned int> gt_labels (width_ * height_);
