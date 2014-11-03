@@ -2,6 +2,13 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#204 <https://github.com/ros-planning/moveit_core/issues/204>`_ from mikeferguson/indigo-devel
+  forward port `#198 <https://github.com/ros-planning/moveit_core/issues/198>`_ to indigo
+* forward port `#198 <https://github.com/ros-planning/moveit_core/issues/198>`_ to indigo
+* Contributors: Ioan A Sucan, Michael Ferguson
+
 0.6.10 (2014-10-27)
 -------------------
 * Made setVerbose virtual in constraint_sampler so that child classes can override
