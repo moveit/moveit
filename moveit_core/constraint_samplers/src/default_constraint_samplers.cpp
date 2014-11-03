@@ -571,9 +571,7 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
 
-    assert(validate(state));
-
-    return true;
+    return validate(state);
   }
   else
   {
