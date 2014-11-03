@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.11 (2014-11-03)
+-------------------
 * Merge pull request `#204 <https://github.com/ros-planning/moveit_core/issues/204>`_ from mikeferguson/indigo-devel
   forward port `#198 <https://github.com/ros-planning/moveit_core/issues/198>`_ to indigo
 * forward port `#198 <https://github.com/ros-planning/moveit_core/issues/198>`_ to indigo
