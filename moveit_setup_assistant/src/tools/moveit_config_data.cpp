@@ -666,48 +666,84 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
+#ifndef HAVE_NEW_YAMLCPP
     yaml_node_t prop_name;
+#endif
 
     // Loop through all groups
+#ifdef HAVE_NEW_YAMLCPP
+    for( YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+#else
     for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+#endif
     {
+#ifdef HAVE_NEW_YAMLCPP
+      const std::string group_name = group_it->first.as<std::string>();
+#else
       std::string group_name;
       group_it.first() >> group_name;
+#endif
 
       // Create new meta data
       GroupMetaData new_meta_data;
 
       // kinematics_solver
+#ifdef HAVE_NEW_YAMLCPP
+      if( const YAML::Node& node = group_it->second["kinematics_solver"] )
+        new_meta_data.kinematics_solver_ = node.as<std::string>();
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_;
       }
+#endif
 
       // kinematics_solver_search_resolution
+#ifdef HAVE_NEW_YAMLCPP
+      if( const YAML::Node& node = group_it->second["kinematics_solver_search_resolution"] )
+      {
+        new_meta_data.kinematics_solver_search_resolution_ = node.as<double>();
+      }
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_search_resolution" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
       }
+#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
       }
 
       // kinematics_solver_timeout
+#ifdef HAVE_NEW_YAMLCPP
+      if( const YAML::Node& node = group_it->second["kinematics_solver_timeout"] )
+      {
+        new_meta_data.kinematics_solver_timeout_ = node.as<double>();
+      }
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_timeout" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
       }
+#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
       }
 
       // kinematics_solver_attempts
+#ifdef HAVE_NEW_YAMLCPP
+      if( const YAML::Node& node = group_it->second["kinematics_solver_attempts"] )
+      {
+        new_meta_data.kinematics_solver_attempts_ = node.as<int>();
+      }
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_attempts" ) )
       {
         *prop_name >> new_meta_data.kinematics_solver_attempts_;
       }
+#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_ATTEMPTS_;
