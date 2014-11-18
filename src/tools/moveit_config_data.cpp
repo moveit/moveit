@@ -666,9 +666,7 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
-#ifndef HAVE_NEW_YAMLCPP
     yaml_node_t prop_name;
-#endif
 
     // Loop through all groups
 #ifdef HAVE_NEW_YAMLCPP
@@ -689,27 +687,23 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
 
       // kinematics_solver
 #ifdef HAVE_NEW_YAMLCPP
-      if( const YAML::Node& node = group_it->second["kinematics_solver"] )
-        new_meta_data.kinematics_solver_ = node.as<std::string>();
+      if( prop_name = findValue( group_it->second, "kinematics_solver" ) )
 #else
       if( prop_name = findValue( group_it.second(), "kinematics_solver" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_;
       }
-#endif
 
       // kinematics_solver_search_resolution
 #ifdef HAVE_NEW_YAMLCPP
-      if( const YAML::Node& node = group_it->second["kinematics_solver_search_resolution"] )
-      {
-        new_meta_data.kinematics_solver_search_resolution_ = node.as<double>();
-      }
+      if( prop_name = findValue( group_it->second, "kinematics_solver_search_resolution" ) )
 #else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_search_resolution" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
       }
-#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
@@ -717,16 +711,13 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
 
       // kinematics_solver_timeout
 #ifdef HAVE_NEW_YAMLCPP
-      if( const YAML::Node& node = group_it->second["kinematics_solver_timeout"] )
-      {
-        new_meta_data.kinematics_solver_timeout_ = node.as<double>();
-      }
+      if( prop_name = findValue( group_it->second, "kinematics_solver_timeout" ) )
 #else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_timeout" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
       }
-#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
@@ -734,16 +725,13 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
 
       // kinematics_solver_attempts
 #ifdef HAVE_NEW_YAMLCPP
-      if( const YAML::Node& node = group_it->second["kinematics_solver_attempts"] )
-      {
-        new_meta_data.kinematics_solver_attempts_ = node.as<int>();
-      }
+      if( prop_name = findValue( group_it->second, "kinematics_solver_attempts" ) )
 #else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_attempts" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_attempts_;
       }
-#endif
       else
       {
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_ATTEMPTS_;
