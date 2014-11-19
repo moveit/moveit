@@ -669,22 +669,38 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
     yaml_node_t prop_name;
 
     // Loop through all groups
+#ifdef HAVE_NEW_YAMLCPP
+    for( YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+#else
     for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+#endif
     {
+#ifdef HAVE_NEW_YAMLCPP
+      const std::string group_name = group_it->first.as<std::string>();
+#else
       std::string group_name;
       group_it.first() >> group_name;
+#endif
 
       // Create new meta data
       GroupMetaData new_meta_data;
 
       // kinematics_solver
+#ifdef HAVE_NEW_YAMLCPP
+      if( prop_name = findValue( group_it->second, "kinematics_solver" ) )
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_;
       }
 
       // kinematics_solver_search_resolution
+#ifdef HAVE_NEW_YAMLCPP
+      if( prop_name = findValue( group_it->second, "kinematics_solver_search_resolution" ) )
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_search_resolution" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
       }
@@ -694,7 +710,11 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       }
 
       // kinematics_solver_timeout
+#ifdef HAVE_NEW_YAMLCPP
+      if( prop_name = findValue( group_it->second, "kinematics_solver_timeout" ) )
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_timeout" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
       }
@@ -704,7 +724,11 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       }
 
       // kinematics_solver_attempts
+#ifdef HAVE_NEW_YAMLCPP
+      if( prop_name = findValue( group_it->second, "kinematics_solver_attempts" ) )
+#else
       if( prop_name = findValue( group_it.second(), "kinematics_solver_attempts" ) )
+#endif
       {
         *prop_name >> new_meta_data.kinematics_solver_attempts_;
       }
