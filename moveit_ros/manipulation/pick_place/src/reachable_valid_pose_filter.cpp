@@ -137,10 +137,10 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
       }
       else
         if (verbose_)
-          ROS_INFO("Sampler failed to produce a state");
+          ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state");
     }
     else
-      ROS_ERROR_THROTTLE(1, "No sampler was constructed");
+      ROS_ERROR_THROTTLE_NAMED(1, "manipulation", "No sampler was constructed");
   }
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
