@@ -101,11 +101,11 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
   }
   catch(std::runtime_error &ex)
   {
-    ROS_ERROR("Pick&place threw an exception: %s", ex.what());
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
   catch(...)
   {
-    ROS_ERROR("Pick&place threw an exception");
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (plan)
@@ -143,11 +143,11 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
   }
   catch(std::runtime_error &ex)
   {
-    ROS_ERROR("Pick&place threw an exception: %s", ex.what());
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
   catch(...)
   {
-    ROS_ERROR("Pick&place threw an exception");
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (plan)
@@ -189,11 +189,11 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   }
   catch(std::runtime_error &ex)
   {
-    ROS_ERROR("Pick&place threw an exception: %s", ex.what());
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
   catch(...)
   {
-    ROS_ERROR("Pick&place threw an exception");
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (pick_plan)
@@ -234,11 +234,11 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   }
   catch(std::runtime_error &ex)
   {
-    ROS_ERROR("Pick&place threw an exception: %s", ex.what());
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
   catch(...)
   {
-    ROS_ERROR("Pick&place threw an exception");
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (place_plan)
@@ -339,7 +339,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback(const moveit_ms
   if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
-      ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the pick goal request has plan_only set to false. Only a motion plan will be computed anyway.");
+      ROS_WARN_NAMED("manipulation", "This instance of MoveGroup is not allowed to execute trajectories but the pick goal request has plan_only set to false. Only a motion plan will be computed anyway.");
     executePickupCallback_PlanOnly(goal, action_res);
   }
   else
@@ -371,7 +371,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback(const moveit_msg
   if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
   {
     if (!goal->planning_options.plan_only)
-      ROS_WARN("This instance of MoveGroup is not allowed to execute trajectories but the place goal request has plan_only set to false. Only a motion plan will be computed anyway.");
+      ROS_WARN_NAMED("manipulation", "This instance of MoveGroup is not allowed to execute trajectories but the place goal request has plan_only set to false. Only a motion plan will be computed anyway.");
     executePlaceCallback_PlanOnly(goal, action_res);
   }
   else
@@ -438,24 +438,24 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
       try
       {
         dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
-        ROS_DEBUG("Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+        ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
         request.target.potential_models.push_back(dbp);
       }
       catch (boost::bad_lexical_cast &)
       {
         valid = false;
-        ROS_ERROR("Expected an integer object id, not '%s'", dbp.type.key.c_str());
+        ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
       }
     }
     else
     {
       valid = false;
-      ROS_ERROR("Object has no geometry");
+      ROS_ERROR_NAMED("manipulation", "Object has no geometry");
     }
 
     if (valid)
     {
-      ROS_DEBUG("Calling grasp planner...");
+      ROS_DEBUG_NAMED("manipulation", "Calling grasp planner...");
       if (grasp_planning_service_.call(request, response))
       {
         goal.possible_grasps.resize(response.grasps.size());
@@ -507,7 +507,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
 
   if (goal.possible_grasps.empty())
   {
-    ROS_DEBUG("Using default grasp poses");
+    ROS_DEBUG_NAMED("manipulation", "Using default grasp poses");
     goal.minimize_object_distance = true;
 
     // add a number of default grasp points

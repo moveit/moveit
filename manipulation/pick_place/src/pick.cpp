@@ -84,7 +84,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
     {
       end_effector = eefs.front();
       if (eefs.size() > 1)
-        ROS_WARN_STREAM("Choice of end-effector for group '" << planning_group << "' is ambiguous. Assuming '" << end_effector << "'");
+        ROS_WARN_STREAM_NAMED("manipulation", "Choice of end-effector for group '" << planning_group << "' is ambiguous. Assuming '" << end_effector << "'");
     }
   }
   else
@@ -99,17 +99,17 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       planning_group = jmg->getEndEffectorParentGroup().first;
       if (planning_group.empty())
       {   
-        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
+        ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
       else
-        ROS_INFO_STREAM("Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
+        ROS_INFO_STREAM_NAMED("manipulation", "Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
     }
   const robot_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
   {
-    ROS_ERROR("No end-effector specified for pick action");
+    ROS_ERROR_NAMED("manipulation", "No end-effector specified for pick action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
   }
@@ -202,7 +202,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       if (goal.possible_grasps.size() > 0)
       {
-        ROS_WARN("All supplied grasps failed. Retrying last grasp in verbose mode.");
+        ROS_WARN_NAMED("manipulation", "All supplied grasps failed. Retrying last grasp in verbose mode.");
         // everything failed. we now start the pipeline again in verbose mode for one grasp
         initialize();
         pipeline_.setVerbose(true);
@@ -214,7 +214,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       }
     }
   }
-  ROS_INFO("Pickup planning completed after %lf seconds", last_plan_time_);
+  ROS_INFO_NAMED("manipulation", "Pickup planning completed after %lf seconds", last_plan_time_);
 
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }

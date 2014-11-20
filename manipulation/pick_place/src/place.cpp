@@ -85,7 +85,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       const std::string &eef_parent = eef->getEndEffectorParentGroup().first;
       if (eef_parent.empty())
       {
-        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
+        ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
@@ -103,7 +103,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       const std::vector<std::string> &eef_names = jmg->getAttachedEndEffectorNames();  
       if (eef_names.empty())
       {
-        ROS_ERROR_STREAM("There are no end-effectors specified for group '" << goal.group_name << "'");
+        ROS_ERROR_STREAM_NAMED("manipulation", "There are no end-effectors specified for group '" << goal.group_name << "'");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
@@ -152,8 +152,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
             // if we previoulsy have set the eef it means we have more options we could use, so things are ambiguous
             if (eef)
             {
-              ROS_ERROR_STREAM("There are multiple end-effectors for group '" << goal.group_name <<
-                               "' that are currently holding objects. It is ambiguous which end-effector to use. Please specify it explicitly.");
+              ROS_ERROR_STREAM_NAMED("manipulation", "There are multiple end-effectors for group '" << goal.group_name <<
+                                     "' that are currently holding objects. It is ambiguous which end-effector to use. Please specify it explicitly.");
               error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
               return false;
             }
@@ -179,8 +179,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
         {
           if (eef)
           {
-            ROS_ERROR_STREAM("There are multiple end-effectors that include the link '" << link->getName() <<
-                             "' which is where the body '" << attached_object_name << "' is attached. It is unclear which end-effector to use.");
+            ROS_ERROR_STREAM_NAMED("manipulation", "There are multiple end-effectors that include the link '" << link->getName() <<
+                                   "' which is where the body '" << attached_object_name << "' is attached. It is unclear which end-effector to use.");
             error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
             return false;
           }
@@ -193,7 +193,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       const std::string &eef_parent = eef->getEndEffectorParentGroup().first;
       if (eef_parent.empty())
       {
-        ROS_ERROR_STREAM("No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
+        ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << goal.group_name << "'. Please define a parent group in the SRDF.");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;
       }
@@ -220,7 +220,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     loop_count++;
     if (attached_bodies.size() > 1)
     {
-      ROS_ERROR("Multiple attached bodies for group '%s' but no explicit attached object to place was specified", goal.group_name.c_str());
+      ROS_ERROR_NAMED("manipulation", "Multiple attached bodies for group '%s' but no explicit attached object to place was specified", goal.group_name.c_str());
       error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME;
       return false;
     }
@@ -231,7 +231,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   const robot_state::AttachedBody *attached_body = planning_scene->getCurrentState().getAttachedBody(attached_object_name);
   if (!attached_body)
   {
-    ROS_ERROR("There is no object to detach for place action");
+    ROS_ERROR_NAMED("manipulation", "There is no object to detach for place action");
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME;
     return false;
   }
@@ -303,7 +303,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       if (!transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_))
       {    
         p->goal_pose_ = pl.place_pose;
-        ROS_ERROR("Unable to transform the desired pose of the object to the pose of the end-effector");
+        ROS_ERROR_NAMED("manipulation", "Unable to transform the desired pose of the object to the pose of the end-effector");
       }
     
     p->approach_ = pl.pre_place_approach;
@@ -314,7 +314,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       p->retreat_posture_ = attached_body->getDetachPosture();
     pipeline_.push(p);
   }
-  ROS_INFO("Added %d place locations", (int) goal.place_locations.size());
+  ROS_INFO_NAMED("manipulation", "Added %d place locations", (int) goal.place_locations.size());
 
   // wait till we're done
   waitForPipeline(endtime);
@@ -334,7 +334,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       if (goal.place_locations.size() > 0)
       {
-        ROS_WARN("All supplied place locations failed. Retrying last location in verbose mode.");
+        ROS_WARN_NAMED("manipulation", "All supplied place locations failed. Retrying last location in verbose mode.");
         // everything failed. we now start the pipeline again in verbose mode for one grasp
         initialize();
         pipeline_.setVerbose(true);
@@ -346,7 +346,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       }
     }
   }
-  ROS_INFO("Place planning completed after %lf seconds", last_plan_time_);
+  ROS_INFO_NAMED("manipulation", "Place planning completed after %lf seconds", last_plan_time_);
 
   return error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS;
 }
