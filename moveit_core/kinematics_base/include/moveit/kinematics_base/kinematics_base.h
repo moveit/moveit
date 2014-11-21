@@ -40,6 +40,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
+#include <moveit/macros/deprecation.h>
 #include <ros/node_handle.h>
 
 #include <boost/function.hpp>
@@ -49,8 +50,9 @@ namespace moveit
 {
 namespace core
 {
-class JointModelGroup;
-class RobotState;
+MOVEIT_CLASS_FORWARD(JointModelGroup)
+MOVEIT_CLASS_FORWARD(RobotState)
+MOVEIT_CLASS_FORWARD(RobotModel)
 }
 }
 
@@ -168,7 +170,7 @@ public:
                 const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
-   * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.
+   * @brief Given the desired poses of all end-effectors, compute joint angles that are able to reach it.
    *
    * This is a default implementation that returns only one solution and so its result is equivalent to calling
    * 'getPositionIK(...)' with a zero initialized seed.
@@ -366,7 +368,10 @@ public:
    * @param tip_frame The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
+   *
+   * Instead of this method, use the method passing in a RobotModel.
    */
+  MOVEIT_DEPRECATED
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                           const std::string& base_frame, const std::string& tip_frame,
                           double search_discretization) = 0;
@@ -381,19 +386,30 @@ public:
    * @param tip_frames A vector of tips of the kinematic tree
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
+   *
+   * Instead of this method, use the method passing in a RobotModel.
    */
+  MOVEIT_DEPRECATED
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
+                          const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                          double search_discretization);
+
+  /**
+   * @brief  Initialization function for the kinematics, for use with kinematic chain IK solvers
+   * @param robot_model - allow the URDF to be loaded much quicker by passing in a pre-parsed model of the robot
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected.
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frames The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   * @return true if initialization was successful, false otherwise
+   */
+  virtual bool initialize(const moveit::core::RobotModel& robot_model, const std::string& group_name,
                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
                           double search_discretization)
   {
-    // For IK solvers that do not support multiple tip frames, fall back to single pose call
-    if (tip_frames.size() == 1)
-    {
-      return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
-    }
-
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support initialization "
-                                       "with more than one tip frames");
+    // For IK solvers that do not support passing in a RobotModel, return false and have
+    // the kinematics_plugin_loader try the older version of loading
     return false;
   }
 
@@ -446,10 +462,9 @@ public:
    * @brief Set a set of redundant joints for the kinematics solver to use.
    * This can fail, depending on the IK solver and choice of redundant joints!. Also, it sets
    * the discretization values for each redundant joint to a default value.
-   * @param redundant_joint_indices The set of redundant joint indices (corresponding to
-   * the list of joints you get from getJointNames()).
-   * @return False if any of the input joint indices are invalid (exceed number of
-   * joints)
+   * @param redundant_joint_indices The set of redundant joint indices
+   *        (corresponding to the list of joints you get from getJointNames()).
+   * @return False if any of the input joint indices are invalid (exceed number of joints)
    */
   virtual bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices);
 
@@ -457,8 +472,7 @@ public:
    * @brief Set a set of redundant joints for the kinematics solver to use.
    * This function is just a convenience function that calls the previous definition of setRedundantJoints()
    * @param redundant_joint_names The set of redundant joint names.
-   * @return False if any of the input joint indices are invalid (exceed number of
-   * joints)
+   * @return False if any of the input joint indices are invalid (exceed number of joints)
    */
   bool setRedundantJoints(const std::vector<std::string>& redundant_joint_names);
 

@@ -75,6 +75,21 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
     tip_frame_ = removeSlash(tip_frames[0]);
 }
 
+bool KinematicsBase::initialize(const std::string& robot_description, const std::string& group_name,
+                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                double search_discretization)
+{
+  // For IK solvers that do not support multiple tip frames, fall back to single pose call
+  if (tip_frames.size() == 1)
+  {
+    return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
+  }
+
+  ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support initialization "
+                                     "with more than one tip frames");
+  return false;
+}
+
 bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
   for (std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
@@ -142,7 +157,7 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
 
   if (ik_poses.size() != 1)
   {
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support getPositionIK for multiple poses");
+    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support getPositionIK for multiple tips");
     result.kinematic_error = KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
