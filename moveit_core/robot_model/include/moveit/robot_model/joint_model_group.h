@@ -125,6 +125,12 @@ public:
     return *parent_model_;
   }
 
+  /** \brief Get the pointer to the kinematic model this group is part of */
+  const RobotModel* getParentModelPtr() const
+  {
+    return parent_model_;
+  }
+
   /** \brief Get the name of the joint group */
   const std::string& getName() const
   {
