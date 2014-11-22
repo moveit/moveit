@@ -37,7 +37,7 @@
 #include "moveit/py_bindings_tools/roscpp_initializer.h"
 #include "moveit/py_bindings_tools/py_conversions.h"
 #include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <ros/ros.h>
 
 static std::vector<std::string>& ROScppArgs()
