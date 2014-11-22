@@ -293,8 +293,6 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
-  robot_state::RobotState ks(kmodel);
-  ks.setToDefaultValues();
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::PositionConstraint pc(kmodel);
@@ -362,8 +360,10 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -393,6 +393,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100; ++t)
   {
+    ks.update();
     EXPECT_TRUE(iks.sample(ks, ks_const, 100));
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
@@ -402,8 +403,10 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -479,9 +482,11 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
 
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -584,6 +589,8 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   for (int t = 0 ; t < 100; ++t)
   {
     EXPECT_TRUE(ucs.sample(ks, ks_const, 100));
+    ks.update();
+    ks_const.update();
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
     EXPECT_TRUE(pc.decide(ks).satisfied);
@@ -639,8 +646,10 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -723,6 +732,7 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
 
   moveit_msgs::Constraints con;
   con.joint_constraints.resize(1);
@@ -888,8 +898,10 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -965,8 +977,10 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -1113,8 +1127,10 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   static const int NT = 100;
   int succ = 0;
