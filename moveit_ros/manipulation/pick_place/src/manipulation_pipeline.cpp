@@ -143,8 +143,8 @@ void ManipulationPipeline::stop()
 
 void ManipulationPipeline::processingThread(unsigned int index)
 {
-  ROS_DEBUG_STREAM("Start thread " << index << " for '" << name_ << "'");
-  
+  ROS_DEBUG_STREAM_NAMED("manipulation", "Start thread " << index << " for '" << name_ << "'");
+
   while (!stop_processing_)
   {
     bool inc_queue = false;
@@ -181,7 +181,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
           {
             boost::mutex::scoped_lock slock(result_lock_);
             failed_.push_back(g);
-            ROS_INFO_STREAM("Manipulation plan " << g->id_ << " failed at stage '" << stages_[i]->getName() << "' on thread " << index);
+            ROS_INFO_STREAM_NAMED("manipulation", "Manipulation plan " << g->id_ << " failed at stage '" << stages_[i]->getName() << "' on thread " << index);
             break;
           }
         }
@@ -193,18 +193,18 @@ void ManipulationPipeline::processingThread(unsigned int index)
             success_.push_back(g);
           }
           signalStop();
-          ROS_INFO_STREAM("Found successful manipulation plan!");
+          ROS_INFO_STREAM_NAMED("manipulation", "Found successful manipulation plan!");
           if (solution_callback_)
             solution_callback_();
         }
       }
       catch (std::runtime_error &ex)
       {
-        ROS_ERROR("[%s:%u] %s", name_.c_str(), index, ex.what());
+        ROS_ERROR_NAMED("manipulation", "[%s:%u] %s", name_.c_str(), index, ex.what());
       }
       catch (...)
       {
-        ROS_ERROR("[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
+        ROS_ERROR_NAMED("manipulation", "[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
       }
       queue_access_lock_.lock();
     }
@@ -215,7 +215,7 @@ void ManipulationPipeline::push(const ManipulationPlanPtr &plan)
 {
   boost::mutex::scoped_lock slock(queue_access_lock_);
   queue_.push_back(plan);
-  ROS_INFO_STREAM("Added plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
+  ROS_INFO_STREAM_NAMED("manipulation", "Added plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
 
@@ -228,7 +228,7 @@ void ManipulationPipeline::reprocessLastFailure()
   failed_.pop_back();
   plan->clear();
   queue_.push_back(plan);
-  ROS_INFO_STREAM("Re-added last failed plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
+  ROS_INFO_STREAM_NAMED("manipulation", "Re-added last failed plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
 
