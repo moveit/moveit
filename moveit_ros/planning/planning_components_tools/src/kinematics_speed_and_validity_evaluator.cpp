@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         ROS_INFO("Running %u tests", test_count);
         
         moveit::tools::Profiler::Start();
-        for (int i = 0 ; i < test_count ; ++i)
+        for (unsigned int i = 0 ; i < test_count ; ++i)
         {
           state.setToRandomPositions(jmg);
           Eigen::Affine3d pose = state.getGlobalLinkTransform(tip);
