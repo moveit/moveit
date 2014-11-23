@@ -174,7 +174,7 @@ void distance_field::DistanceField::getGradientMarkers(double min_distance,
           marker.pose.position.y = worldY;
           marker.pose.position.z = worldZ;
 
-          Eigen::Vector3d axis = gradient.cross(unitX).norm() > 0 ? gradient.cross(unitX) : unitY;
+          //Eigen::Vector3d axis = gradient.cross(unitX).norm() > 0 ? gradient.cross(unitX) : unitY;
           //double angle = -gradient.angle(unitX);
           //Eigen::AngleAxisd rotation(angle, axis);
 
