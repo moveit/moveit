@@ -125,7 +125,7 @@ namespace srv_kinematics_plugin
     {
       std::vector<std::string> tip_frames;
       tip_frames.push_back(tip_frame);
-      initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
+      return initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
     }
 
     virtual bool initialize(const std::string &robot_description,

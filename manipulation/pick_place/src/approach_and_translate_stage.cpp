@@ -99,7 +99,6 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
 {
   // initialize with scene state
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(reference_state));
-  const robot_state::JointModelGroup *jmg = plan->shared_data_->planning_group_;
   for (unsigned int j = 0 ; j < attempts ; ++j)
   {
     double min_d = std::numeric_limits<double>::infinity();
