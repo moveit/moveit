@@ -222,7 +222,6 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   num_possible_redundant_joints_ = kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik? 3:6);
 
   // Check for mimic joints
-  bool has_mimic_joints = joint_model_group->getMimicJointModels().size() > 0;
   std::vector<unsigned int> redundant_joints_map_index;
 
   std::vector<JointMimic> mimic_joints;
@@ -294,7 +293,7 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
     ROS_ERROR_NAMED("kdl","This group cannot have redundant joints");
     return false;
   }
-  if(redundant_joints.size() > num_possible_redundant_joints_)
+  if(static_cast<int>(redundant_joints.size()) > num_possible_redundant_joints_)
   {
     ROS_ERROR_NAMED("kdl","This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
