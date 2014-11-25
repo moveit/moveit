@@ -48,8 +48,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   CollisionData *cdata = reinterpret_cast<CollisionData*>(data);
   if (cdata->done_)
     return true;
-  const CollisionGeometryData *cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
-  const CollisionGeometryData *cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
+  const CollisionGeometryData *cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
+  const CollisionGeometryData *cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
 
   // do not collision check geoms part of the same object / link / attached body
   if (cd1->sameObject(*cd2))
@@ -361,8 +361,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
 {
   CollisionData* cdata = reinterpret_cast<CollisionData*>(data);
 
-  const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->getCollisionGeometry()->getUserData());
-  const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->getCollisionGeometry()->getUserData());
+  const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
+  const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
 
   // If active components are specified
   if (cdata->active_components_only_)
