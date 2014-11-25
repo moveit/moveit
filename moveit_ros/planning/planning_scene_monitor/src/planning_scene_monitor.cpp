@@ -170,12 +170,14 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   {
     robot_model_ = rm_loader_->getModel();
     scene_ = scene;
+    collision_loader_.setupScene(nh_, scene_);
     scene_const_ = scene_;
     if (!scene_)
     {
       try
       {
         scene_.reset(new planning_scene::PlanningScene(rm_loader_->getModel()));
+        collision_loader_.setupScene(nh_, scene_);
         scene_const_ = scene_;
         configureCollisionMatrix(scene_);
         configureDefaultPadding();
