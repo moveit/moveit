@@ -90,6 +90,7 @@ TEST(PlanningScene, LoadRestoreDiff)
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
   moveit_msgs::PlanningScene ps_msg;
+  ps_msg.robot_state.is_diff = true;
   EXPECT_TRUE(planning_scene::PlanningScene::isEmpty(ps_msg));
   ps->getPlanningSceneMsg(ps_msg);
   ps->setPlanningSceneMsg(ps_msg);
