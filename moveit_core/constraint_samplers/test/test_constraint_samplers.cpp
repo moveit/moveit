@@ -293,8 +293,6 @@ TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
 
 TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 {
-  robot_state::RobotState ks(kmodel);
-  ks.setToDefaultValues();
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::PositionConstraint pc(kmodel);
@@ -325,9 +323,8 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
   EXPECT_FALSE(ik_bad.isValid());
 
   constraint_samplers::IKConstraintSampler iks(ps, "left_arm");
-  EXPECT_TRUE(iks.isValid());
-
   EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose()));
+  EXPECT_FALSE(iks.isValid());
 
   EXPECT_FALSE(iks.configure(constraint_samplers::IKSamplingPose(pc)));
 
@@ -337,8 +334,8 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 
   //ik link not in this group
   constraint_samplers::IKConstraintSampler ik_bad_2(ps, "right_arm");
-  EXPECT_TRUE(ik_bad_2.isValid());
   EXPECT_FALSE(ik_bad_2.configure(constraint_samplers::IKSamplingPose(pc)));
+  EXPECT_FALSE(ik_bad_2.isValid());
 
   //not the ik link
   pcm.link_name = "l_shoulder_pan_link";
@@ -347,10 +344,10 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerSimple)
 
   //solver for base doesn't cover group
   constraint_samplers::IKConstraintSampler ik_base(ps, "base");
-  EXPECT_TRUE(ik_base.isValid());
   pcm.link_name = "l_wrist_roll_link";
   EXPECT_TRUE(pc.configure(pcm, tf));
   EXPECT_FALSE(ik_base.configure(constraint_samplers::IKSamplingPose(pc)));
+  EXPECT_FALSE(ik_base.isValid());
 
   //shouldn't work as no direct constraint solver
   constraint_samplers::IKConstraintSampler ik_arms(ps, "arms");
@@ -362,8 +359,10 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -393,6 +392,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSampler)
   EXPECT_TRUE(iks.configure(constraint_samplers::IKSamplingPose(oc)));
   for (int t = 0 ; t < 100; ++t)
   {
+    ks.update();
     EXPECT_TRUE(iks.sample(ks, ks_const, 100));
     EXPECT_TRUE(oc.decide(ks).satisfied);
   }
@@ -402,8 +402,10 @@ TEST_F(LoadPlanningModelsPr2, IKConstraintsSamplerValid)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -479,20 +481,21 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
 
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::JointConstraint jc1(kmodel);
 
   std::map<std::string, double> state_values;
-  //  ks.getStateValues(state_values);
 
   moveit_msgs::JointConstraint torso_constraint;
   torso_constraint.joint_name = "torso_lift_joint";
-  torso_constraint.position = state_values["torso_lift_joint"];
+  torso_constraint.position = ks.getVariablePosition("torso_lift_joint");
   torso_constraint.tolerance_above = 0.01;
   torso_constraint.tolerance_below = 0.01;
   torso_constraint.weight = 1.0;
@@ -562,8 +565,8 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   EXPECT_TRUE(oc.configure(ocm, tf));
 
   boost::shared_ptr<constraint_samplers::IKConstraintSampler> iksp(new constraint_samplers::IKConstraintSampler(ps, "left_arm"));
-  EXPECT_TRUE(iksp->isValid());
   EXPECT_TRUE(iksp->configure(constraint_samplers::IKSamplingPose(pc, oc)));
+  EXPECT_TRUE(iksp->isValid());
 
   std::vector<constraint_samplers::ConstraintSamplerPtr> cspv;
   cspv.push_back(jcsp2);
@@ -584,6 +587,8 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   for (int t = 0 ; t < 100; ++t)
   {
     EXPECT_TRUE(ucs.sample(ks, ks_const, 100));
+    ks.update();
+    ks_const.update();
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
     EXPECT_TRUE(pc.decide(ks).satisfied);
@@ -601,8 +606,8 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   EXPECT_TRUE(oc2.configure(ocm, tf));
 
   boost::shared_ptr<constraint_samplers::IKConstraintSampler> iksp2(new constraint_samplers::IKConstraintSampler(ps, "right_arm"));
-  EXPECT_TRUE(iksp2->isValid());
   EXPECT_TRUE(iksp2->configure(constraint_samplers::IKSamplingPose(pc2, oc2)));
+  EXPECT_TRUE(iksp2->isValid());
 
   //totally disjoint, so should break ties based on alphabetical order
   cspv.clear();
@@ -639,8 +644,10 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -723,6 +730,7 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
 
   moveit_msgs::Constraints con;
   con.joint_constraints.resize(1);
@@ -888,8 +896,10 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -965,8 +975,10 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 {
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   robot_state::Transforms &tf = ps->getTransformsNonConst();
 
@@ -1113,8 +1125,10 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
 
   robot_state::RobotState ks(kmodel);
   ks.setToDefaultValues();
+  ks.update();
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
+  ks_const.update();
 
   static const int NT = 100;
   int succ = 0;
