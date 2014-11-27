@@ -649,8 +649,6 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   ks_const.setToDefaultValues();
   ks_const.update();
 
-  robot_state::Transforms &tf = ps->getTransformsNonConst();
-
   kinematic_constraints::PositionConstraint pc(kmodel);
 
   moveit_msgs::PositionConstraint pcm;
@@ -901,11 +899,6 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
   ks_const.setToDefaultValues();
   ks_const.update();
 
-  robot_state::Transforms &tf = ps->getTransformsNonConst();
-
-  std::map<std::string, double> state_values;
-  //  ks.getStateValues(state_values);
-
   moveit_msgs::Constraints con;
   con.joint_constraints.resize(1);
 
@@ -959,12 +952,11 @@ TEST_F(LoadPlanningModelsPr2, MixedJointAndIkSamplerManager)
   ASSERT_TRUE(ucs);
 
   constraint_samplers::IKConstraintSampler* ikcs_test  = dynamic_cast<constraint_samplers::IKConstraintSampler*>(ucs->getSamplers()[1].get());
-
   ASSERT_TRUE(ikcs_test);
 
   for (int t = 0 ; t < 1; ++t)
   {
-    EXPECT_TRUE(s->sample(ks, ks_const, 1));
+    EXPECT_TRUE(s->sample(ks, ks_const, 100));
     EXPECT_TRUE(jc.decide(ks).satisfied);
     EXPECT_TRUE(ikcs_test->getPositionConstraint()->decide(ks).satisfied);
     EXPECT_TRUE(ikcs_test->getOrientationConstraint()->decide(ks).satisfied);
@@ -979,8 +971,6 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   robot_state::RobotState ks_const(kmodel);
   ks_const.setToDefaultValues();
   ks_const.update();
-
-  robot_state::Transforms &tf = ps->getTransformsNonConst();
 
   kinematic_constraints::JointConstraint jc1(kmodel);
   moveit_msgs::JointConstraint jcm1;
