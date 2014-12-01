@@ -60,14 +60,14 @@ bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned in
   if (jmodel->getType() == robot_model::JointModel::PLANAR && index == 2)
     ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
   else
-  if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
-    ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
-  else
-  if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
-      static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
-    ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
-  else
-    ok = true;
+    if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
+      ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
+    else
+      if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
+          static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
+        ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
+      else
+        ok = true;
   return ok;
 }
 }

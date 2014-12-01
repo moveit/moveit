@@ -158,7 +158,8 @@ public:
                 double search_res = search_res_.find(jmg->getName())->second[i]; // we know this exists, by construction
 
                 if (!result->initialize(robot_description_, jmg->getName(),
-                                        (base.empty() || base[0] != '/') ? base : base.substr(1) , tips, search_res))
+                                        (base.empty() || base[0] != '/') ? base : base.substr(1) , tips, search_res,
+                                        jmg->getParentModelPtr()))
                 {
                   ROS_ERROR("Kinematics solver of type '%s' could not be initialized for group '%s'", it->second[i].c_str(), jmg->getName().c_str());
                   result.reset();

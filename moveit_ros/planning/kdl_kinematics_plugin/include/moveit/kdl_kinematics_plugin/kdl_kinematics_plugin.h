@@ -125,7 +125,8 @@ namespace kdl_kinematics_plugin
                             const std::string &group_name,
                             const std::string &base_name,
                             const std::string &tip_name,
-                            double search_discretization);
+                            double search_discretization,
+                            const robot_model::RobotModel* robot_model);
 
     /**
      * @brief  Return all the joint names in the order they are used internally
@@ -214,16 +215,14 @@ namespace kdl_kinematics_plugin
 
     mutable random_numbers::RandomNumberGenerator random_number_generator_;
 
-    robot_model::RobotModelPtr robot_model_;
-
-    robot_state::RobotStatePtr state_, state_2_;
+    robot_state::RobotStatePtr robot_state_;
 
     int num_possible_redundant_joints_;
     std::vector<unsigned int> redundant_joints_map_index_;
 
     // Storage required for when the set of redundant joints is reset
     bool position_ik_; //whether this solver is only being used for position ik
-    robot_model::JointModelGroup* joint_model_group_;
+    const robot_model::JointModelGroup* joint_model_group_;
     double max_solver_iterations_;
     double epsilon_;
     std::vector<JointMimic> mimic_joints_;

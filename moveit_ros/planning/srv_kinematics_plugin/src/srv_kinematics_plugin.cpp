@@ -59,10 +59,11 @@ SrvKinematicsPlugin::SrvKinematicsPlugin()
 {}
 
 bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
-  const std::string& group_name,
-  const std::string& base_frame,
-  const std::vector<std::string>& tip_frames,
-  double search_discretization)
+                                     const std::string& group_name,
+                                     const std::string& base_frame,
+                                     const std::vector<std::string>& tip_frames,
+                                     double search_discretization,
+                                     const robot_model::RobotModel* robot_model)
 {
   bool debug = false;
 
@@ -71,19 +72,15 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
   setValues(robot_description, group_name, base_frame, tip_frames, search_discretization);
 
   ros::NodeHandle private_handle("~");
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
 
-  if (!urdf_model || !srdf)
+  // Check robot_state is initialized
+  if (!robot_state_)
   {
-    ROS_ERROR_NAMED("srv","URDF and SRDF must be loaded for SRV kinematics solver to work."); // TODO: is this true?
-    return false;
+    robot_state_.reset(new robot_state::RobotState(robot_model->getConstPtr()));
+    robot_state_->setToDefaultValues();
   }
 
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
-
-  joint_model_group_ = robot_model_->getJointModelGroup(group_name);
+  joint_model_group_ = robot_model->getJointModelGroup(group_name);
   if (!joint_model_group_)
     return false;
 
@@ -130,9 +127,6 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
   std::string ik_service_name;
   private_handle.param(group_name_ + "/kinematics_solver_service_name", ik_service_name, std::string("solve_ik"));
 
-  // Setup the joint state groups that we need
-  robot_state_.reset(new robot_state::RobotState(robot_model_));
-  robot_state_->setToDefaultValues();
 
   // Create the ROS service client
   ros::NodeHandle nonprivate_handle("");

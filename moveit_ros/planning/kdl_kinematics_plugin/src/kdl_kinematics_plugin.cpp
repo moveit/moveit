@@ -53,13 +53,15 @@ CLASS_LOADER_REGISTER_CLASS(kdl_kinematics_plugin::KDLKinematicsPlugin, kinemati
 namespace kdl_kinematics_plugin
 {
 
-  KDLKinematicsPlugin::KDLKinematicsPlugin():active_(false) {}
+KDLKinematicsPlugin::KDLKinematicsPlugin()
+  : active_(false)
+{}
 
 void KDLKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array, bool lock_redundancy) const
 {
   std::vector<double> jnt_array_vector(dimension_, 0.0);
-  state_->setToRandomPositions(joint_model_group_);
-  state_->copyJointGroupPositions(joint_model_group_, &jnt_array_vector[0]);
+  robot_state_->setToRandomPositions(joint_model_group_);
+  robot_state_->copyJointGroupPositions(joint_model_group_, &jnt_array_vector[0]);
   for (std::size_t i = 0; i < dimension_; ++i)
   {
     if (lock_redundancy)
@@ -128,24 +130,20 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
                                      const std::string& group_name,
                                      const std::string& base_frame,
                                      const std::string& tip_frame,
-                                     double search_discretization)
+                                     double search_discretization,
+                                     const robot_model::RobotModel* robot_model)
 {
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
-  ros::NodeHandle private_handle("~");
-  rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
-
-  if (!urdf_model || !srdf)
+  // Check robot_state is initialized
+  if (!robot_state_)
   {
-    ROS_ERROR_NAMED("kdl","URDF and SRDF must be loaded for KDL kinematics solver to work.");
-    return false;
+    robot_state_.reset(new robot_state::RobotState(robot_model->getConstPtr()));
   }
 
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
+  ros::NodeHandle private_handle("~");
 
-  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(group_name);
   if (!joint_model_group)
     return false;
 
@@ -162,11 +160,12 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
 
   KDL::Tree kdl_tree;
 
-  if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
+  if (!kdl_parser::treeFromUrdfModel(*(robot_model->getURDF()), kdl_tree))
   {
     ROS_ERROR_NAMED("kdl","Could not initialize tree object");
     return false;
   }
+
   if (!kdl_tree.getChain(base_frame_, getTipFrame(), kdl_chain_))
   {
     ROS_ERROR_NAMED("kdl","Could not initialize chain object");
@@ -270,10 +269,6 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
     }
   }
   mimic_joints_ = mimic_joints;
-
-  // Setup the joint state groups that we need
-  state_.reset(new robot_state::RobotState(robot_model_));
-  state_2_.reset(new robot_state::RobotState(robot_model_));
 
   // Store things for when the set of redundant joints may change
   position_ik_ = position_ik;

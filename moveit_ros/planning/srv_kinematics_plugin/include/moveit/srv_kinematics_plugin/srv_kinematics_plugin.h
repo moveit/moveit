@@ -121,18 +121,21 @@ namespace srv_kinematics_plugin
                             const std::string &group_name,
                             const std::string &base_name,
                             const std::string &tip_frame,
-                            double search_discretization)
+                            double search_discretization,
+                            const robot_model::RobotModel* robot_model)
     {
       std::vector<std::string> tip_frames;
       tip_frames.push_back(tip_frame);
-      return initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
+
+      return initialize(robot_description, group_name, base_name, tip_frames, search_discretization, robot_model);
     }
 
     virtual bool initialize(const std::string &robot_description,
                             const std::string &group_name,
                             const std::string &base_name,
                             const std::vector<std::string> &tip_frames,
-                            double search_discretization);
+                            double search_discretization,
+                            const robot_model::RobotModel* robot_model);
 
     /**
      * @brief  Return all the joint names in the order they are used internally
@@ -185,8 +188,7 @@ namespace srv_kinematics_plugin
 
     unsigned int dimension_; /** Dimension of the group */
 
-    robot_model::RobotModelPtr robot_model_;
-    robot_model::JointModelGroup* joint_model_group_;
+    const robot_model::JointModelGroup* joint_model_group_;
 
     robot_state::RobotStatePtr robot_state_;
 
