@@ -33,7 +33,7 @@
  *********************************************************************/
 
 #ifndef MOVEIT_BACKTRACE_
-#define MOVEIT_BACKTARCE_
+#define MOVEIT_BACKTRACE_
 
 #include <iostream>
 
