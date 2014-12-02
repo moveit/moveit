@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-12-01)
+------------------
 * Values are now read from kinematics.yaml correctly.
 * Simplified the inputKinematicsYAML() code.
 * Debug and octomap improvements in launch file templates
