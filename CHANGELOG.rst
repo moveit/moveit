@@ -2,6 +2,30 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Values are now read from kinematics.yaml correctly.
+* Simplified the inputKinematicsYAML() code.
+* Debug and octomap improvements in launch file templates
+* Values are now read from kinematics.yaml correctly. Previously, keys such
+  as "kinematics_solver" were not found.
+* Added clear octomap service to move_group launch file template
+* Added gdb debug helper that allows easier break point addition
+* Add launch file for joystick control of MotionPlanningPlugin
+* Joint limits comments
+* Removed velocity scaling factor
+* Added a new 'velocity_scaling_factor' parameter to evenly reduce max joint velocity for all joints. Added documentation.
+* Simply renamed kin_model to robot_model for more proper naming convension
+* Added new launch file for controll Rviz with joystick
+* use relative instead of absolute names for topics (to allow for namespaces)
+* Added planner specific parameters to ompl_planning.yaml emitter.
+* Added space after every , in function calls
+  Added either a space or a c-return before opening {
+  Moved & next to the variable in the member function declarations
+* Added planner specific parameters to ompl_planning.yaml emitter.
+  Each parameter is set to current defaults. This is fragile, as defaults may change.
+* Contributors: Chris Lewis, Dave Coleman, Ioan A Sucan, Jim Rothrock, ahb, hersh
+
 0.5.9 (2014-03-22)
 ------------------
 * Fixed bug 82 in a quick way by reducing min size.
