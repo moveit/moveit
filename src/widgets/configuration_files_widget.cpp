@@ -281,7 +281,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_   = "move_group.launch";
   file.rel_path_    = config_data_->appendPaths( launch_path, file.file_name_ );
   template_path     = config_data_->appendPaths( template_launch_path, file.file_name_ );
-  file.description_ = "Launches the move_group node that provides the MoveGroup action and other parameters <a href='http://moveit.ros.org/move_group.html'>MoveGroup action</a>";
+  file.description_ = "Launches the move_group node that provides the MoveGroup action and other parameters <a href='http://moveit.ros.org/doxygen/classmoveit_1_1planning__interface_1_1MoveGroup.html#details'>MoveGroup action</a>";
   file.gen_func_    = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   gen_files_.push_back(file);
 
