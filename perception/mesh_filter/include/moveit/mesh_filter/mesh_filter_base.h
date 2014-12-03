@@ -247,6 +247,9 @@ class MeshFilterBase
     /** \brief mutex for synchronization of updating filtered meshes */
     mutable boost::mutex meshes_mutex_;
 
+    /** \brief mutex for synchronization of setting/calling transform_callback_ */
+    mutable boost::mutex transform_callback_mutex_;
+
     /** \brief indicates whether the filtering loop should stop*/
     bool stop_;
 

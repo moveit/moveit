@@ -168,7 +168,7 @@ void mesh_filter::MeshFilterBase::setSize (unsigned int width, unsigned int heig
 
 void mesh_filter::MeshFilterBase::setTransformCallback (const TransformCallback& transform_callback)
 {
-  mutex::scoped_lock _(meshes_mutex_);
+  mutex::scoped_lock _(transform_callback_mutex_);
   transform_callback_ = transform_callback;
 }
 
@@ -304,7 +304,7 @@ void mesh_filter::MeshFilterBase::filter (const void* sensor_data, GLushort type
 
 void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int encoding) const
 {
-  mutex::scoped_lock _(meshes_mutex_);
+  mutex::scoped_lock _(transform_callback_mutex_);
 
   mesh_renderer_->begin ();
   sensor_parameters_->setRenderParameters (*mesh_renderer_);
