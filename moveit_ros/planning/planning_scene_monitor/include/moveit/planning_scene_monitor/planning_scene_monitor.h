@@ -45,6 +45,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
+#include <moveit/collision_plugin_loader/collision_plugin_loader.h>
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
@@ -503,6 +504,8 @@ private:
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   robot_model::RobotModelConstPtr robot_model_;
+
+  collision_detection::CollisionPluginLoader collision_loader_;
 
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;

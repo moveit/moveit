@@ -43,6 +43,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     plan_execution/include
     kdl_kinematics_plugin/include
     srv_kinematics_plugin/include
+    collision_plugin_loader/include
 )
 
 catkin_package(
@@ -75,6 +76,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(rdf_loader)
+add_subdirectory(collision_plugin_loader)
 add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(srv_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
