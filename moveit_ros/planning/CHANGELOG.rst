@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2014-12-03)
+------------------
 * add plugin interface for collision detectors
 * fix missing return value
 * trivial fixes for warnings
