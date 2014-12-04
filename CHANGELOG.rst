@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.12 (2014-12-03)
+-------------------
 * Merge pull request `#214 <https://github.com/ros-planning/moveit_core/issues/214>`_ from mikeferguson/collision_plugin
   moveit_core components of collision plugins
 * Merge pull request `#210 <https://github.com/ros-planning/moveit_core/issues/210>`_ from davetcoleman/debug_model
