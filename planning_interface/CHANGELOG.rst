@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* include correct boost::*_ptr class for boost 1.57.
+* Contributors: v4hn
+
 0.6.2 (2014-10-31)
 ------------------
 
