@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2014-12-03)
+------------------
 * port `#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
 * disable test that needs display when no display defined
 * GL_TYPE() is a function in newer versions of OpenGL, this fixes tests on Ubuntu 14.04
