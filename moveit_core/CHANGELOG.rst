@@ -2,6 +2,17 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#214 <https://github.com/ros-planning/moveit_core/issues/214>`_ from mikeferguson/collision_plugin
+  moveit_core components of collision plugins
+* Merge pull request `#210 <https://github.com/ros-planning/moveit_core/issues/210>`_ from davetcoleman/debug_model
+  Fix truncated debug message
+* Fixed a number of tests, all are now passing on buildfarm
+* Merge pull request `#208 <https://github.com/ros-planning/moveit_core/issues/208>`_ from mikeferguson/update_fcl_api
+  update to use non-deprecated call
+* Contributors: Dave Coleman, Ioan A Sucan, Michael Ferguson
+
 0.6.11 (2014-11-03)
 -------------------
 * Merge pull request `#204 <https://github.com/ros-planning/moveit_core/issues/204>`_ from mikeferguson/indigo-devel
