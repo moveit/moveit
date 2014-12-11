@@ -120,6 +120,15 @@ namespace srv_kinematics_plugin
     virtual bool initialize(const std::string &robot_description,
                             const std::string &group_name,
                             const std::string &base_name,
+                            const std::string &tip_name,
+                            double search_discretization)
+    {
+      ROS_ERROR_STREAM_NAMED("kdl","This initialization function is deprecated and not implemented");
+    }
+
+    virtual bool initialize(const std::string &robot_description,
+                            const std::string &group_name,
+                            const std::string &base_name,
                             const std::string &tip_frame,
                             double search_discretization,
                             const robot_model::RobotModel* robot_model)
