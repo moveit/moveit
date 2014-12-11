@@ -419,7 +419,7 @@ public:
                           const moveit::core::RobotModel* robot_model)
   {
     // For IK solvers that do not support passing in a robot_model pointer
-    return initialize(robot_description, group_name, base_frame, tip_frame, search_discretization, NULL);
+    return initialize(robot_description, group_name, base_frame, tip_frame, search_discretization);
   }
 
   /**
