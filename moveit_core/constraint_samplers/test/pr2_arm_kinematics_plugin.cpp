@@ -109,7 +109,7 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
   std::vector<std::vector<double> > solution_ik;
   if(free_angle_ == 0)
   {
-    ROS_DEBUG("Solving with %f",q_init(0));
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solving with %f",q_init(0));
     pr2_arm_ik_.computeIKShoulderPan(b,q_init(0),solution_ik);
   }
   else
@@ -125,14 +125,14 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
 
   for(int i=0; i< (int) solution_ik.size(); i++)
   {
-    ROS_DEBUG("Solution : %d",(int)solution_ik.size());
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solution : %d",(int)solution_ik.size());
 
     for(int j=0; j < (int)solution_ik[i].size(); j++)
     {
-      ROS_DEBUG("%d: %f",j,solution_ik[i][j]);
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d: %f",j,solution_ik[i][j]);
     }
-    ROS_DEBUG(" ");
-    ROS_DEBUG(" ");
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
 
     double tmp_distance = computeEuclideanDistance(solution_ik[i],q_init);
     if(tmp_distance < min_distance)
@@ -169,7 +169,7 @@ int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
 
   int num_positive_increments = (int)((pr2_arm_ik_.solver_info_.limits[free_angle_].max_position-initial_guess)/search_discretization_angle_);
   int num_negative_increments = (int)((initial_guess-pr2_arm_ik_.solver_info_.limits[free_angle_].min_position)/search_discretization_angle_);
-  ROS_DEBUG("%f %f %f %d %d \n\n",initial_guess,pr2_arm_ik_.solver_info_.limits[free_angle_].max_position,pr2_arm_ik_.solver_info_.limits[free_angle_].min_position,num_positive_increments,num_negative_increments);
+  ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%f %f %f %d %d \n\n",initial_guess,pr2_arm_ik_.solver_info_.limits[free_angle_].max_position,pr2_arm_ik_.solver_info_.limits[free_angle_].min_position,num_positive_increments,num_negative_increments);
   while(loop_time < timeout)
   {
     if(CartToJnt(q_init,p_in,q_out) > 0)
@@ -177,17 +177,17 @@ int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
     if(!getCount(count,num_positive_increments,-num_negative_increments))
       return -1;
     q_init(free_angle_) = initial_guess + search_discretization_angle_ * count;
-    ROS_DEBUG("%d, %f",count,q_init(free_angle_));
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d, %f",count,q_init(free_angle_));
     loop_time = (ros::Time::now()-start_time).toSec();
   }
   if(loop_time >= timeout)
   {
-    ROS_DEBUG("IK Timed out in %f seconds",timeout);
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","IK Timed out in %f seconds",timeout);
     return TIMED_OUT;
   }
   else
   {
-    ROS_DEBUG("No IK solution was found");
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","No IK solution was found");
     return NO_IK_SOLUTION;
   }
   return NO_IK_SOLUTION;
@@ -270,7 +270,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description,
   std::string xml_string;
   dimension_ = 7;
 
-  ROS_DEBUG("Loading KDL Tree");
+  ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Loading KDL Tree");
   if(!getKDLChain(*robot_model_.get(),base_frame_,tip_frame_,kdl_chain_))
   {
     active_ = false;
@@ -293,17 +293,17 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description,
 
     for(unsigned int i=0; i < ik_solver_info_.joint_names.size(); i++)
     {
-      ROS_DEBUG("PR2Kinematics:: joint name: %s",ik_solver_info_.joint_names[i].c_str());
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics:: joint name: %s",ik_solver_info_.joint_names[i].c_str());
     }
     for(unsigned int i=0; i < ik_solver_info_.link_names.size(); i++)
     {
-      ROS_DEBUG("PR2Kinematics can solve IK for %s",ik_solver_info_.link_names[i].c_str());
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve IK for %s",ik_solver_info_.link_names[i].c_str());
     }
     for(unsigned int i=0; i < fk_solver_info_.link_names.size(); i++)
     {
-      ROS_DEBUG("PR2Kinematics can solve FK for %s",fk_solver_info_.link_names[i].c_str());
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve FK for %s",fk_solver_info_.link_names[i].c_str());
     }
-    ROS_DEBUG("PR2KinematicsPlugin::active for %s",group_name.c_str());
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2KinematicsPlugin::active for %s",group_name.c_str());
     active_ = true;
   }
   return active_;
@@ -367,7 +367,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   }
   else
   {
-    ROS_DEBUG("An IK solution could not be found");
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","An IK solution could not be found");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
