@@ -985,6 +985,11 @@ void planning_scene::PlanningScene::saveGeometryToStream(std::ostream &out) cons
 
 void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
 {
+  loadGeometryFromStream(in, Eigen::Affine3d::Identity()); // Use no offset
+}
+
+void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in, const Eigen::Affine3d &offset)
+{
   if (!in.good() || in.eof())
     return;
   std::getline(in, name_);
@@ -1014,6 +1019,8 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in)
         if (s)
         {
           Eigen::Affine3d pose = Eigen::Translation3d(x, y, z) * Eigen::Quaterniond(rw, rx, ry, rz);
+          // Transform pose by input pose offset
+          pose = offset * pose;
           world_->addToObject(ns, shapes::ShapePtr(s), pose);
           if (r > 0.0f || g > 0.0f || b > 0.0f || a > 0.0f)
           {
