@@ -391,36 +391,14 @@ public:
    * @param tip_frame The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
    * @return True if initialization was successful, false otherwise
+   *
+   * Note: this is intended to be removed in future ROS versions in favor of robot_model being passed in
    */
-  MOVEIT_DEPRECATED
   virtual bool initialize(const std::string& robot_description,
                           const std::string& group_name,
                           const std::string& base_frame,
                           const std::string& tip_frame,
                           double search_discretization) = 0;
-
-  /**
-   * @brief  Initialization function for the kinematics, for use with kinematic chain IK solvers
-   * @param robot_description This parameter can be used as an identifier for the robot kinematics it is computed for;
-   * For example, the name of the ROS parameter that contains the robot description;
-   * @param group_name The group for which this solver is being configured
-   * @param base_frame The base frame in which all input poses are expected.
-   * This may (or may not) be the root frame of the chain that the solver operates on
-   * @param tip_frame The tip of the chain
-   * @param search_discretization The discretization of the search when the solver steps through the redundancy
-   * @param robot_model - intended to replace reliance on robot_description, this allows the URDF to be loaded much quicker
-   * @return True if initialization was successful, false otherwise
-   */
-  virtual bool initialize(const std::string& robot_description,
-                          const std::string& group_name,
-                          const std::string& base_frame,
-                          const std::string& tip_frame,
-                          double search_discretization,
-                          const moveit::core::RobotModel* robot_model)
-  {
-    // For IK solvers that do not support passing in a robot_model pointer
-    return initialize(robot_description, group_name, base_frame, tip_frame, search_discretization);
-  }
 
   /**
    * @brief  Initialization function for the kinematics, for use with non-chain IK solvers
@@ -431,28 +409,49 @@ public:
    * This may (or may not) be the root frame of the chain that the solver operates on
    * @param tip_frames A vector of tips of the kinematic tree
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
-   * @param robot_model - intended to replace reliance on robot_description, this allows the URDF to be loaded much quicker
    * @return True if initialization was successful, false otherwise
+   *
+   * Note: this is intended to be removed in future ROS versions in favor of robot_model being passed in
    */
   virtual bool initialize(const std::string& robot_description,
                           const std::string& group_name,
                           const std::string& base_frame,
                           const std::vector<std::string>& tip_frames,
-                          double search_discretization,
-                          const moveit::core::RobotModel* robot_model)
+                          double search_discretization)
   {
     // For IK solvers that do not support multiple tip frames, fall back to single pose call
     if (tip_frames.size() == 1)
     {
       return initialize(robot_description,
-        group_name,
-        base_frame,
-        tip_frames[0],
-        search_discretization,
-        robot_model);
+                        group_name,
+                        base_frame,
+                        tip_frames[0],
+                        search_discretization);
     }
 
     logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip frames");
+    return false;
+  }
+
+  /**
+   * @brief  Initialization function for the kinematics, for use with kinematic chain IK solvers
+   * @param robot_model - allow the URDF to be loaded much quicker by passing in a pre-parsed model of the robot
+   * @param group_name The group for which this solver is being configured
+   * @param base_frame The base frame in which all input poses are expected.
+   * This may (or may not) be the root frame of the chain that the solver operates on
+   * @param tip_frame The tip of the chain
+   * @param search_discretization The discretization of the search when the solver steps through the redundancy
+   * @return True if initialization was successful, false otherwise
+   */
+  virtual bool initialize(const moveit::core::RobotModel* robot_model,
+                          const std::string& group_name,
+                          const std::string& base_frame,
+                          const std::vector<std::string>& tip_frames,
+                          double search_discretization)
+                          
+  {
+    // For IK solvers that do not support passing in a robot_model pointer, return false and have
+    // the kinematics_plugin_loader try the older version of loading
     return false;
   }
 
