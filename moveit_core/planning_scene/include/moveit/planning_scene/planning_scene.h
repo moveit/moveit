@@ -691,6 +691,11 @@ public:
   void processOctomapMsg(const octomap_msgs::Octomap &map);
   void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
 
+  /**
+   * \brief Clear all collision objects in planning scene
+   */
+  void removeAllCollisionObjects();
+
   /** \brief Set the current robot state to be \e state. If not
       all joint values are specified, the previously maintained
       joint values are kept. */
