@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/depth_image_octomap_updater/lazy_free_space_updater.h>
+#include <moveit/lazy_free_space_updater/lazy_free_space_updater.h>
 #include <ros/console.h>
 
 namespace occupancy_map_monitor
