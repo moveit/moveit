@@ -1265,6 +1265,14 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   }
 }
 
+void planning_scene::PlanningScene::removeAllCollisionObjects()
+{
+  const std::vector<std::string> &object_ids = world_->getObjectIds();
+  for (std::size_t i = 0; i < object_ids.size(); ++i)
+    if (object_ids[i] != OCTOMAP_NS)
+      world_->removeObject(object_ids[i]);
+}
+
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose &map)
 {
   // each octomap replaces any previous one
@@ -1629,10 +1637,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   {
     if (object.id.empty())
     {
-      const std::vector<std::string> &object_ids = world_->getObjectIds();
-      for (std::size_t i = 0; i < object_ids.size(); ++i)
-        if (object_ids[i] != OCTOMAP_NS)
-          world_->removeObject(object_ids[i]);
+      removeAllCollisionObjects();
     }
     else
       world_->removeObject(object.id);
