@@ -37,6 +37,7 @@
 #ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
 #define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
 
+#include <moveit/macros/deprecation.h>
 #include <moveit/distance_field/voxel_grid.h>
 #include <vector>
 #include <list>
@@ -170,7 +171,11 @@ public:
    * @param [in] pose The pose of the shape
    */
   void addShapeToField(const shapes::Shape* shape,
-                       const geometry_msgs::Pose& pose);
+                       const Eigen::Affine3d& pose);
+
+  // DEPRECATED form
+  MOVEIT_DEPRECATED void addShapeToField(const shapes::Shape* shape,
+                                         const geometry_msgs::Pose& pose);
 
   /**
    * \brief Adds an octree to the distance field.  Cells that are
@@ -206,8 +211,13 @@ public:
    * @param [in] new_pose The new pose of the shape
    */
   void moveShapeInField(const shapes::Shape* shape,
-                        const geometry_msgs::Pose& old_pose,
-                        const geometry_msgs::Pose& new_pose);
+                        const Eigen::Affine3d& old_pose,
+                        const Eigen::Affine3d& new_pose);
+
+  // DEPRECATED form
+  MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape,
+                                          const geometry_msgs::Pose& old_pose,
+                                          const geometry_msgs::Pose& new_pose);
 
   /**
    * \brief All points corresponding to the shape are removed from the
@@ -219,7 +229,11 @@ public:
    * @param [in] pose The pose of the shape to remove
    */
   void removeShapeFromField(const shapes::Shape* shape,
-                            const geometry_msgs::Pose& pose);
+                            const Eigen::Affine3d& pose);
+
+  // DEPRECATED form
+  MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape,
+                                              const geometry_msgs::Pose& pose);
 
   /**
    * \brief Resets all points in the distance field to an uninitialize
@@ -610,5 +624,6 @@ protected:
   int inv_twice_resolution_;    /**< \brief Computed value 1.0/(2.0*resolution_) */
 };
 
-}
+}  // namespace distance_field
+
 #endif
