@@ -153,6 +153,17 @@ public:
                                    const EigenSTL::vector_Vector3d& new_points) = 0;
 
   /**
+   * @brief Get the points associated with a shape.
+   *        This is mainly used when the external application needs to cache points.
+   * @param [in] shape The shape to find points for.
+   * @param [in] pose The pose of the shape.
+   * @param [out] points The points determined for this shape.
+   */
+  bool getShapePoints(const shapes::Shape* shape,
+                      const Eigen::Affine3d& pose,
+                      EigenSTL::vector_Vector3d* points);
+
+  /**
    * \brief Adds the set of points corresponding to the shape at the
    * given pose as obstacle points into the distance field.  If the
    * shape is an OcTree, the pose information is ignored and the
@@ -434,8 +445,6 @@ public:
                             const ros::Time stamp,
                             visualization_msgs::Marker& marker ) const;
 
-
-
   /**
    * \brief Populates the supplied marker array with a series of
    * arrows representing gradients of cells that are within the
@@ -594,6 +603,14 @@ public:
   virtual double getUninitializedDistance() const = 0;
 
 protected:
+  /**
+   * @brief Get the points associated with an octree.
+   * @param [in] octree The octree to find points for.
+   * @param [out] points The points determined for this octree.
+   */
+  void getOcTreePoints(const octomap::OcTree* octree,
+                       EigenSTL::vector_Vector3d* points);
+
   /**
    * \brief Helper function that sets the point value and color given
    * the distance.
