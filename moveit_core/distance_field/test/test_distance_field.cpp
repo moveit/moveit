@@ -462,7 +462,10 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.y = .5;
   p.position.z = .5;
 
-  gradient_df.addShapeToField(&sphere, p);
+  Eigen::Affine3d p_eigen;
+  tf::poseMsgToEigen(p, p_eigen);
+
+  gradient_df.addShapeToField(&sphere, p_eigen);
   printBoth(gradient_df, numX, numY, numZ);
   EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
   //all negative cells should have gradients that point towards cells with distance 1
@@ -551,24 +554,13 @@ TEST(TestSignedPropagationDistanceField, TestShape)
 
   shapes::Sphere sphere(.25);
 
-  geometry_msgs::Pose p;
-  p.orientation.w = 1.0;
-  p.position.x = .5;
-  p.position.y = .5;
-  p.position.z = .5;
-
-  geometry_msgs::Pose np;
-  np.orientation.w = 1.0;
-  np.position.x = .7;
-  np.position.y = .7;
-  np.position.z = .7;
+  Eigen::Affine3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Affine3d np = Eigen::Translation3d(0.7, 0.7, 0.7) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   df.addShapeToField(&sphere, p);
 
   bodies::Body* body = bodies::createBodyFromShape(&sphere);
-  Eigen::Affine3d pose_e;
-  tf::poseMsgToEigen(p, pose_e);
-  body->setPose(pose_e);
+  body->setPose(p);
   EigenSTL::vector_Vector3d point_vec;
   findInternalPointsConvex(*body, resolution, point_vec);
   delete body;
@@ -583,9 +575,7 @@ TEST(TestSignedPropagationDistanceField, TestShape)
   df.addShapeToField(&sphere, np);
 
   body = bodies::createBodyFromShape(&sphere);
-  Eigen::Affine3d npose_e;
-  tf::poseMsgToEigen(np, npose_e);
-  body->setPose(npose_e);
+  body->setPose(np);
 
   EigenSTL::vector_Vector3d point_vec_2;
   findInternalPointsConvex(*body, resolution, point_vec_2);
@@ -638,17 +628,12 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   shapes::Box big_table(2.0,2.0,.5);
 
-  geometry_msgs::Pose p;
-  p.orientation.w = 1.0;
-  p.position.x = PERF_WIDTH/2.0;
-  p.position.y = PERF_DEPTH/2.0;
-  p.position.z = PERF_HEIGHT/2.0;
-
-  geometry_msgs::Pose np;
-  np.orientation.w = 1.0;
-  np.position.x = p.position.x+.01;
-  np.position.y = p.position.y;
-  np.position.z = p.position.z;
+  Eigen::Affine3d p = Eigen::Translation3d(PERF_WIDTH/2.0,
+                                           PERF_DEPTH/2.0,
+                                           PERF_HEIGHT/2.0) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
+  Eigen::Affine3d np = Eigen::Translation3d(PERF_WIDTH/2.0+.01,
+                                           PERF_DEPTH/2.0,
+                                           PERF_HEIGHT/2.0) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   unsigned int big_num_points = ceil(2.0/PERF_RESOLUTION)*ceil(2.0/PERF_RESOLUTION)*ceil(.5/PERF_RESOLUTION);
 
@@ -725,8 +710,6 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
   PropagationDistanceField worstdfs(PERF_WIDTH, PERF_HEIGHT, PERF_DEPTH, PERF_RESOLUTION,
                                    PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, true);
-
-
 
   EigenSTL::vector_Vector3d bad_vec;
   unsigned int count = 0;
@@ -845,7 +828,7 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
                                            PERF_ORIGIN_X, PERF_ORIGIN_Y, PERF_ORIGIN_Z, PERF_MAX_DIST, false);
 
   df_test_shape_1.addOcTreeToField(tree_shape.get());
-  df_test_shape_2.addShapeToField(shape_oc.get(), geometry_msgs::Pose());
+  df_test_shape_2.addShapeToField(shape_oc.get(), Eigen::Affine3d());
   EXPECT_TRUE(areDistanceFieldsDistancesEqual(df_test_shape_1, df_test_shape_2));
 }
 
@@ -875,11 +858,7 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
 
   shapes::Sphere sphere(.5);
 
-  geometry_msgs::Pose p;
-  p.orientation.w = 1.0;
-  p.position.x = .5;
-  p.position.y = .5;
-  p.position.z = .5;
+  Eigen::Affine3d p = Eigen::Translation3d(0.5, 0.5, 0.5) * Eigen::Quaterniond(0.0, 0.0, 0.0, 1.0);
 
   df.addShapeToField(&sphere, p);
 
@@ -904,7 +883,5 @@ TEST(TestSignedPropagationDistanceField, TestReadWrite)
 
 int main(int argc, char **argv){
   testing::InitGoogleTest(&argc, argv);
-
   return RUN_ALL_TESTS();
 }
-
