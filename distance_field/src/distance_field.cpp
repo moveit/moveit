@@ -42,7 +42,6 @@
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
-
 distance_field::DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
                              double origin_x, double origin_y, double origin_z) :
   size_x_(size_x),
@@ -199,8 +198,9 @@ void distance_field::DistanceField::getGradientMarkers(double min_distance,
   }
 }
 
-void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape,
-                                    const geometry_msgs::Pose& pose)
+void distance_field::DistanceField::addShapeToField(
+  const shapes::Shape* shape,
+  const Eigen::Affine3d& pose)
 {
   if(shape->type == shapes::OCTREE) {
     const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
@@ -211,14 +211,22 @@ void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape,
     addOcTreeToField(oc->octree.get());
   } else {
     bodies::Body* body = bodies::createBodyFromShape(shape);
-    Eigen::Affine3d pose_e;
-    tf::poseMsgToEigen(pose, pose_e);
-    body->setPose(pose_e);
+    body->setPose(pose);
     EigenSTL::vector_Vector3d point_vec;
     findInternalPointsConvex(*body, resolution_, point_vec);
     delete body;
     addPointsToField(point_vec);
   }
+}
+
+// DEPRECATED
+void distance_field::DistanceField::addShapeToField(
+  const shapes::Shape* shape,
+  const geometry_msgs::Pose& pose)
+{
+  Eigen::Affine3d pose_e;
+  tf::poseMsgToEigen(pose, pose_e);
+  addShapeToField(shape, pose_e);
 }
 
 void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
@@ -266,23 +274,20 @@ void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octr
   addPointsToField(points);
 }
 
-void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
-                                     const geometry_msgs::Pose& old_pose,
-                                     const geometry_msgs::Pose& new_pose)
+void distance_field::DistanceField::moveShapeInField(
+  const shapes::Shape* shape,
+  const Eigen::Affine3d& old_pose,
+  const Eigen::Affine3d& new_pose)
 {
   if(shape->type == shapes::OCTREE) {
     logWarn("Move shape not supported for Octree");
     return;
   }
   bodies::Body* body = bodies::createBodyFromShape(shape);
-  Eigen::Affine3d old_pose_e;
-  tf::poseMsgToEigen(old_pose, old_pose_e);
-  body->setPose(old_pose_e);
+  body->setPose(old_pose);
   EigenSTL::vector_Vector3d old_point_vec;
   findInternalPointsConvex(*body, resolution_, old_point_vec);
-  Eigen::Affine3d new_pose_e;
-  tf::poseMsgToEigen(new_pose, new_pose_e);
-  body->setPose(new_pose_e);
+  body->setPose(new_pose);
   EigenSTL::vector_Vector3d new_point_vec;
   findInternalPointsConvex(*body, resolution_, new_point_vec);
   delete body;
@@ -290,17 +295,38 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
                       new_point_vec);
 }
 
-void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape,
-                                         const geometry_msgs::Pose& pose)
+// DEPRECATED
+void distance_field::DistanceField::moveShapeInField(
+  const shapes::Shape* shape,
+  const geometry_msgs::Pose& old_pose,
+  const geometry_msgs::Pose& new_pose)
+{
+  Eigen::Affine3d old_pose_e, new_pose_e;
+  tf::poseMsgToEigen(old_pose, old_pose_e);
+  tf::poseMsgToEigen(new_pose, new_pose_e);
+  moveShapeInField(shape, old_pose_e, new_pose_e);
+}
+
+void distance_field::DistanceField::removeShapeFromField(
+  const shapes::Shape* shape,
+  const Eigen::Affine3d& pose)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
-  Eigen::Affine3d pose_e;
-  tf::poseMsgToEigen(pose, pose_e);
-  body->setPose(pose_e);
+  body->setPose(pose);
   EigenSTL::vector_Vector3d point_vec;
   findInternalPointsConvex(*body, resolution_, point_vec);
   delete body;
   removePointsFromField(point_vec);
+}
+
+// DEPRECATED
+void distance_field::DistanceField::removeShapeFromField(
+  const shapes::Shape* shape,
+  const geometry_msgs::Pose& pose)
+{
+  Eigen::Affine3d pose_e;
+  tf::poseMsgToEigen(pose, pose_e);
+  removeShapeFromField(shape, pose_e);
 }
 
 void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width,
