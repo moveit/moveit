@@ -198,25 +198,38 @@ void distance_field::DistanceField::getGradientMarkers(double min_distance,
   }
 }
 
+bool distance_field::DistanceField::getShapePoints(
+  const shapes::Shape* shape,
+  const Eigen::Affine3d& pose,
+  EigenSTL::vector_Vector3d* points)
+{
+  if (shape->type == shapes::OCTREE)
+  {
+    const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
+    if (!oc)
+    {
+      logError("Problem dynamic casting shape that claims to be OcTree");
+      return false;
+    }
+    getOcTreePoints(oc->octree.get(), points);
+  }
+  else
+  {
+    bodies::Body* body = bodies::createBodyFromShape(shape);
+    body->setPose(pose);
+    findInternalPointsConvex(*body, resolution_, *points);
+    delete body;
+  }
+  return true;
+}
+
 void distance_field::DistanceField::addShapeToField(
   const shapes::Shape* shape,
   const Eigen::Affine3d& pose)
 {
-  if(shape->type == shapes::OCTREE) {
-    const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
-    if(!oc) {
-      logError("Problem dynamic casting shape that claims to be OcTree");
-      return;
-    }
-    addOcTreeToField(oc->octree.get());
-  } else {
-    bodies::Body* body = bodies::createBodyFromShape(shape);
-    body->setPose(pose);
-    EigenSTL::vector_Vector3d point_vec;
-    findInternalPointsConvex(*body, resolution_, point_vec);
-    delete body;
-    addPointsToField(point_vec);
-  }
+  EigenSTL::vector_Vector3d point_vec;
+  getShapePoints(shape, pose, &point_vec);
+  addPointsToField(point_vec);
 }
 
 // DEPRECATED
@@ -229,7 +242,9 @@ void distance_field::DistanceField::addShapeToField(
   addShapeToField(shape, pose_e);
 }
 
-void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+void distance_field::DistanceField::getOcTreePoints(
+  const octomap::OcTree* octree,
+  EigenSTL::vector_Vector3d* points)
 {
   //lower extent
   double min_x, min_y, min_z;
@@ -249,8 +264,6 @@ void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octr
 
   octomap::point3d bbx_max(max_x, max_y, max_z);
 
-  EigenSTL::vector_Vector3d points;
-
   for(octomap::OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min,bbx_max),
         end=octree->end_leafs_bbx(); it!= end; ++it)
   {
@@ -258,19 +271,25 @@ void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octr
     {
       if(it.getSize() <= resolution_) {
         Eigen::Vector3d point(it.getX(), it.getY(), it.getZ());
-        points.push_back(point);
+        points->push_back(point);
       } else {
         double ceil_val = ceil(it.getSize()/resolution_)*resolution_/2.0;
         for(double x = it.getX()-ceil_val; x <= it.getX()+ceil_val; x += resolution_) {
           for(double y = it.getY()-ceil_val; y <= it.getY()+ceil_val; y += resolution_) {
             for(double z = it.getZ()-ceil_val; z <= it.getZ()+ceil_val; z += resolution_) {
-              points.push_back(Eigen::Vector3d(x,y,z));
+              points->push_back(Eigen::Vector3d(x,y,z));
             }
           }
         }
       }
     }
   }
+}
+
+void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+{
+  EigenSTL::vector_Vector3d points;
+  getOcTreePoints(octree, &points);
   addPointsToField(points);
 }
 
