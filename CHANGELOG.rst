@@ -2,6 +2,15 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add getShapePoints() to distance field
+* update distance_field API to no longer use geometry_msgs
+* Added ability to remove all collision objects directly through API (without using ROS msgs)
+* Planning Scene: Ability to offset geometry loaded from stream
+* Namespaced pr2_arm_kinematics_plugin tests to allow DEBUG output to be suppressed during testing
+* Contributors: Dave Coleman, Ioan A Sucan, Michael Ferguson
+
 0.6.12 (2014-12-03)
 -------------------
 * Merge pull request `#214 <https://github.com/ros-planning/moveit_core/issues/214>`_ from mikeferguson/collision_plugin
