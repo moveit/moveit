@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.13 (2014-12-20)
+-------------------
 * add getShapePoints() to distance field
 * update distance_field API to no longer use geometry_msgs
 * Added ability to remove all collision objects directly through API (without using ROS msgs)
