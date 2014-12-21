@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* install moveit_benchmark_statistics.py
+* Contributors: Michael Ferguson
+
 0.6.3 (2014-12-03)
 ------------------
 * Add missing include of scoped_ptr
