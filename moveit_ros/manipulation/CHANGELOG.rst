@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.3 (2014-12-03)
 ------------------
 * trivial fixes for warnings

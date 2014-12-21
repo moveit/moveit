@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Namespaced "traj_execution" for all trajectory_execution_manager logging
+* planning_scene_monitor: add ros parameter for adding a wait-for-transform lookup time
+  fixes `#465 <https://github.com/ros-planning/moveit_ros/issues/465>`_
+* Contributors: Dave Coleman, Jonathan Bohren
+
 0.6.3 (2014-12-03)
 ------------------
 * add plugin interface for collision detectors
