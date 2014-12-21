@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2014-12-20)
+------------------
 * install moveit_benchmark_statistics.py
 * Contributors: Michael Ferguson
 

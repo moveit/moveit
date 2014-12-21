@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2014-12-20)
+------------------
 * Namespaced "traj_execution" for all trajectory_execution_manager logging
 * planning_scene_monitor: add ros parameter for adding a wait-for-transform lookup time
   fixes `#465 <https://github.com/ros-planning/moveit_ros/issues/465>`_
