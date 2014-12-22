@@ -150,6 +150,9 @@ public:
 
   /** \brief Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1.*/
   void setNumPlanningAttempts(unsigned int num_planning_attempts);
+
+  /** \brief Set a factor that can be used to slow down trajectory execution speed from (0..1] The default value is 1 (i.e. max speed)*/
+  void setMotionExecutionTimeFactor(double motion_execution_time_factor);
   
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;
