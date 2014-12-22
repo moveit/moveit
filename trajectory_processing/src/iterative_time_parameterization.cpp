@@ -99,7 +99,8 @@ void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::v
 
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                      std::vector<double> &time_diff) const
+                                                                      std::vector<double> &time_diff,
+                                                                      const double motion_execution_time_factor) const
 {
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
@@ -111,13 +112,18 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
   {
     const robot_state::RobotStatePtr &curr_waypoint = rob_trajectory.getWayPointPtr(i);
     const robot_state::RobotStatePtr &next_waypoint = rob_trajectory.getWayPointPtr(i+1);
-    
+
+    double time_factor = 1.0;
+
+    if (motion_execution_time_factor > 0.0 && motion_execution_time_factor <= 1.0)
+      time_factor = motion_execution_time_factor;
+
     for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
       double v_max = 1.0;
       const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
-        v_max = std::min(fabs(b.max_velocity_), fabs(b.min_velocity_));
+        v_max = std::min(fabs(b.max_velocity_* time_factor), fabs(b.min_velocity_* time_factor));
       const double dq1 = curr_waypoint->getVariablePosition(idx[j]);
       const double dq2 = next_waypoint->getVariablePosition(idx[j]);
       const double t_min = std::abs(dq2-dq1) / v_max;
@@ -437,7 +443,8 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
   } while (num_updates > 0 && iteration < static_cast<int>(max_iterations_));
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory) const
+bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                                                               const double motion_execution_time_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -455,7 +462,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   const int num_points = trajectory.getWayPointCount();
   std::vector<double> time_diff(num_points-1, 0.0);       // the time difference between adjacent points
   
-  applyVelocityConstraints(trajectory, time_diff);
+  applyVelocityConstraints(trajectory, time_diff, motion_execution_time_factor);
   applyAccelerationConstraints(trajectory, time_diff);
   
   updateTrajectory(trajectory, time_diff);
