@@ -113,17 +113,17 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
     const robot_state::RobotStatePtr &curr_waypoint = rob_trajectory.getWayPointPtr(i);
     const robot_state::RobotStatePtr &next_waypoint = rob_trajectory.getWayPointPtr(i+1);
 
-    double time_factor = 1.0;
+    double velocity_scaling_factor = 1.0;
 
     if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
-      time_factor = max_velocity_scaling_factor;
+      velocity_scaling_factor = max_velocity_scaling_factor;
 
     for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
       double v_max = 1.0;
       const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
-        v_max = std::min(fabs(b.max_velocity_* time_factor), fabs(b.min_velocity_* time_factor));
+        v_max = std::min(fabs(b.max_velocity_* velocity_scaling_factor), fabs(b.min_velocity_* velocity_scaling_factor));
       const double dq1 = curr_waypoint->getVariablePosition(idx[j]);
       const double dq2 = next_waypoint->getVariablePosition(idx[j]);
       const double t_min = std::abs(dq2-dq1) / v_max;
