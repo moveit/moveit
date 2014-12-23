@@ -100,7 +100,7 @@ void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::v
 // Applies velocity
 void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                                                       std::vector<double> &time_diff,
-                                                                      const double motion_execution_time_factor) const
+                                                                      const double max_velocity_scaling_factor) const
 {
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
@@ -115,8 +115,8 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 
     double time_factor = 1.0;
 
-    if (motion_execution_time_factor > 0.0 && motion_execution_time_factor <= 1.0)
-      time_factor = motion_execution_time_factor;
+    if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
+      time_factor = max_velocity_scaling_factor;
 
     for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
@@ -444,7 +444,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                                                               const double motion_execution_time_factor) const
+                                                               const double max_velocity_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -462,7 +462,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   const int num_points = trajectory.getWayPointCount();
   std::vector<double> time_diff(num_points-1, 0.0);       // the time difference between adjacent points
   
-  applyVelocityConstraints(trajectory, time_diff, motion_execution_time_factor);
+  applyVelocityConstraints(trajectory, time_diff, max_velocity_scaling_factor);
   applyAccelerationConstraints(trajectory, time_diff);
   
   updateTrajectory(trajectory, time_diff);
