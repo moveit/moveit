@@ -55,7 +55,7 @@ public:
   ~IterativeParabolicTimeParameterization();
 
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                         const double motion_execution_time_factor = 1.0) const;
+                         const double max_velocity_scaling_factor = 1.0) const;
 
 private:
 
@@ -64,7 +64,7 @@ private:
 
   void applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                 std::vector<double> &time_diff,
-                                const double motion_execution_time_factor) const;
+                                const double max_velocity_scaling_factor) const;
 
   void applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
                                     std::vector<double> & time_diff) const;
