@@ -609,10 +609,10 @@
                </sizepolicy>
               </property>
               <property name="maximum">
-               <double>1000.000000000000000</double>
+               <number>1000</number>
               </property>
               <property name="value">
-               <double>10.000000000000000</double>
+               <number>10</number>
               </property>
              </widget>
             </item>
