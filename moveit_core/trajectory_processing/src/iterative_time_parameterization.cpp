@@ -107,16 +107,21 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
   const std::vector<int> &idx = group->getVariableIndexList();
   const robot_model::RobotModel &rmodel = group->getParentModel();
   const int num_points = rob_trajectory.getWayPointCount();
+  
+  double velocity_scaling_factor = 1.0;
+
+  if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)  
+    velocity_scaling_factor = max_velocity_scaling_factor;
+  else
+    if (max_velocity_scaling_factor == 0.0)
+      logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+    else
+      logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor, velocity_scaling_factor);
 
   for (int i = 0 ; i < num_points-1 ; ++i)
   {
     const robot_state::RobotStatePtr &curr_waypoint = rob_trajectory.getWayPointPtr(i);
     const robot_state::RobotStatePtr &next_waypoint = rob_trajectory.getWayPointPtr(i+1);
-
-    double velocity_scaling_factor = 1.0;
-
-    if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
-      velocity_scaling_factor = max_velocity_scaling_factor;
 
     for (std::size_t j = 0 ; j < vars.size() ; ++j)
     {
