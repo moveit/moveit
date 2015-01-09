@@ -73,7 +73,13 @@ class TrajectoryVisualization : public QObject
 
 public:
 
-  TrajectoryVisualization(rviz::Display *display, rviz::Property *widget);
+  /**
+   * \brief Playback a trajectory from a planned path
+   * \param widget - either a rviz::Display or rviz::Property
+   * \param display - the rviz::Display from the parent
+   * \return true on success
+   */
+  TrajectoryVisualization(rviz::Property *widget, rviz::Display *display);
 
   virtual ~TrajectoryVisualization();
 
@@ -85,7 +91,7 @@ public:
     return robot_model_;
   }
 
-  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, ros::NodeHandle update_nh);
+  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, ros::NodeHandle update_nh);                          
   void onEnable();
   void onDisable();
 
@@ -133,6 +139,7 @@ protected:
 
   // Pointers from parent display taht we save
   rviz::Display* display_; // the parent display that this class populates
+  rviz::Property *widget_;
   Ogre::SceneNode* scene_node_;
   rviz::DisplayContext* context_;
   ros::NodeHandle update_nh_;

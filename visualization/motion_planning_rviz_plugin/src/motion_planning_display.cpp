@@ -173,7 +173,7 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                                                                             SLOT(changedQueryJointViolationColor()), this);
 
   // Trajectory playback / planned path category ---------------------------------------------
-  trajectory_visual_.reset(new TrajectoryVisualization(this, path_category_));
+  trajectory_visual_.reset(new TrajectoryVisualization(path_category_, this));
 
   // Start background jobs
   background_process_.setJobUpdateEvent(boost::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, _1, _2));
