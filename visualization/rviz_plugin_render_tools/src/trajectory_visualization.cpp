@@ -57,11 +57,6 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
   , widget_(widget)
   , animating_path_(false)
 {
-  robot_description_property_ =
-    new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-                              widget,
-                              SLOT( changedRobotDescription() ), this );
-
   trajectory_topic_property_ =
     new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
                                ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
@@ -131,6 +126,25 @@ void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::Di
   display_path_robot_->setVisible(false);
 }
 
+void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model)
+{
+  robot_model_ = robot_model;
+
+  // Error check
+  if (!robot_model_)
+  {
+    ROS_ERROR_STREAM_NAMED("trajectory_visualization","No robot model found");
+    return;
+  }
+
+  // Load robot state
+  robot_state_.reset(new robot_state::RobotState(robot_model_));
+  robot_state_->setToDefaultValues();
+
+  // Load rviz robot
+  display_path_robot_->load(*robot_model_->getURDF());
+}
+
 void TrajectoryVisualization::reset()
 {
   clearTrajectoryTrail();
@@ -144,7 +158,10 @@ void TrajectoryVisualization::reset()
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
 
-  loadRobotModel();
+  if (!robot_model_)
+    ROS_WARN_STREAM_NAMED("trajectory_visualization","No robot model found");
+  else
+    display_path_robot_->load(*robot_model_->getURDF());
 }
 
 void TrajectoryVisualization::clearTrajectoryTrail()
@@ -152,30 +169,6 @@ void TrajectoryVisualization::clearTrajectoryTrail()
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
     delete trajectory_trail_[i];
   trajectory_trail_.clear();
-}
-
-void TrajectoryVisualization::loadRobotModel()
-{
-  if (!rdf_loader_)
-    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
-
-  if (rdf_loader_->getURDF())
-  {
-    const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
-    robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
-    display_path_robot_->load(*robot_model_->getURDF());
-    robot_state_.reset(new robot_state::RobotState(robot_model_));
-    robot_state_->setToDefaultValues();
-    //setStatus( rviz::StatusProperty::Ok, "RobotModel", "Robot model loaded successfully" );
-  }
-  //else
-    //setStatus( rviz::StatusProperty::Error, "RobotModel", "Unable to load robot model" );
-}
-
-void TrajectoryVisualization::changedRobotDescription()
-{
-  if (display_->isEnabled())
-    reset();
 }
 
 void TrajectoryVisualization::changedLoopDisplay()
@@ -199,7 +192,7 @@ void TrajectoryVisualization::changedShowTrail()
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
   {
     rviz::Robot *r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
-    r->load(*getRobotModel()->getURDF());
+    r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
@@ -252,8 +245,6 @@ void TrajectoryVisualization::changedDisplayPathCollisionEnabled()
 
 void TrajectoryVisualization::onEnable()
 {
-  loadRobotModel();
-
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(displaying_trajectory_message_ && animating_path_);
@@ -347,13 +338,20 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 
 void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
-  if (!msg->model_id.empty() && msg->model_id != getRobotModel()->getName())
+  // Error check
+  if (!robot_state_ || !robot_model_)
+  {
+    ROS_ERROR_STREAM_NAMED("trajectory_visualization","No robot state or robot model loaded");
+    return;
+  }
+
+  if (!msg->model_id.empty() && msg->model_id != robot_model_->getName())
     ROS_WARN("Received a trajectory to display for model '%s' but model '%s' was expected",
-             msg->model_id.c_str(), getRobotModel()->getName().c_str());
+             msg->model_id.c_str(), robot_model_->getName().c_str());
 
   trajectory_message_to_display_.reset();
 
-  robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(getRobotModel(), ""));
+  robot_trajectory::RobotTrajectoryPtr t(new robot_trajectory::RobotTrajectory(robot_model_, ""));
   for (std::size_t i = 0 ; i < msg->trajectory.size() ; ++i)
   {
     if (t->empty())
@@ -362,7 +360,7 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
     }
     else
     {
-      robot_trajectory::RobotTrajectory tmp(getRobotModel(), "");
+      robot_trajectory::RobotTrajectory tmp(robot_model_, "");
       tmp.setRobotTrajectoryMsg(t->getLastWayPoint(), msg->trajectory[i]);
       t->append(tmp, 0.0);
     }
