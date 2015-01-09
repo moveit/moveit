@@ -47,7 +47,7 @@ namespace moveit_rviz_plugin
 class TrajectoryDisplay : public rviz::Display
 {
   Q_OBJECT
-  friend class TrajectoryVisualization; // allow the visualization class to access the display
+//friend class TrajectoryVisualization; // allow the visualization class to access the display
 
 public:
 

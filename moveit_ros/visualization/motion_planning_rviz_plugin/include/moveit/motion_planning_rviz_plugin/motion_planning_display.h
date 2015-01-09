@@ -40,6 +40,7 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 #include <std_msgs/String.h>
 
 #ifndef Q_MOC_RUN
@@ -259,6 +260,9 @@ protected:
   kinematics_metrics::KinematicsMetricsPtr kinematics_metrics_;
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
   boost::mutex update_metrics_lock_;
+
+  // The trajectory playback component
+  TrajectoryVisualizationPtr trajectory_visual_;
 
   // properties to show on side panel
   rviz::Property* path_category_;
