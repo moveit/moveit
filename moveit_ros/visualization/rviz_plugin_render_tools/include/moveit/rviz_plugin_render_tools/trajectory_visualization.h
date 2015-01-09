@@ -40,9 +40,7 @@
 #include <moveit/macros/class_forward.h>
 #include <rviz/display.h>
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/rdf_loader/rdf_loader.h>
 #include <ros/ros.h>
-
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -86,12 +84,8 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
-  {
-    return robot_model_;
-  }
-
-  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, ros::NodeHandle update_nh);                          
+  void onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context, ros::NodeHandle update_nh);
+  void onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model);
   void onEnable();
   void onDisable();
 
@@ -103,7 +97,6 @@ private Q_SLOTS:
   /**
    * \brief Slot Event Functions
    */
-  void changedRobotDescription();
   void changedDisplayPathVisualEnabled();
   void changedDisplayPathCollisionEnabled();
   void changedRobotPathAlpha();  
@@ -120,7 +113,6 @@ protected:
   void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
   float getStateDisplayTime();
   void clearTrajectoryTrail();
-  void loadRobotModel();
 
   // Handles actually drawing the robot along motion plans
   RobotStateVisualizationPtr display_path_robot_; 
@@ -133,7 +125,6 @@ protected:
   int current_state_;
   float current_state_time_;
 
-  rdf_loader::RDFLoaderPtr rdf_loader_;
   robot_model::RobotModelConstPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
 
@@ -152,7 +143,6 @@ protected:
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
-  rviz::StringProperty* robot_description_property_;
 
 };
 

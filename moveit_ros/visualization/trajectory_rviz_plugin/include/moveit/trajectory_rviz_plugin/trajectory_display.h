@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2008, Willow Garage, Inc.
+ *  Copyright (c) 2015, University of Colorado, Boulder
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the Univ of CO, Boulder nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,7 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Dave Coleman
+   Desc:   Wraps a trajectory_visualization playback class for Rviz into a stand alone display
+*/
 
 #ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
@@ -40,6 +42,12 @@
 #include <rviz/display.h>
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 #include <ros/ros.h>
+#include <moveit/rdf_loader/rdf_loader.h>
+
+namespace rviz
+{
+class StringProperty;
+}
 
 namespace moveit_rviz_plugin
 {
@@ -55,6 +63,8 @@ public:
 
   virtual ~TrajectoryDisplay();
 
+  void loadRobotModel();
+
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
@@ -63,9 +73,21 @@ public:
   virtual void onEnable();
   virtual void onDisable();
 
-  // The trajectory playback component
-  TrajectoryVisualizationPtr traj_visual_;
+  /**
+   * \brief Slot Event Functions
+   */
+  void changedRobotDescription();
 
+  // The trajectory playback component
+  TrajectoryVisualizationPtr trajectory_visual_;
+
+  // Load robot model
+  rdf_loader::RDFLoaderPtr rdf_loader_;
+  robot_model::RobotModelConstPtr robot_model_;
+  robot_state::RobotStatePtr robot_state_;
+
+  // Properties
+  rviz::StringProperty* robot_description_property_;
 };
 
 } // namespace moveit_rviz_plugin
