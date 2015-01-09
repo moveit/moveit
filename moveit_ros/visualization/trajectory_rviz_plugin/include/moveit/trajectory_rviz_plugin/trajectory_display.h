@@ -38,7 +38,7 @@
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
 
 #include <rviz/display.h>
-#include <moveit/trajectory_rviz_plugin/trajectory_visualization.h>
+#include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 #include <ros/ros.h>
 
 namespace moveit_rviz_plugin
