@@ -73,10 +73,13 @@ public:
   virtual void onEnable();
   virtual void onDisable();
 
+private Q_SLOTS:
   /**
    * \brief Slot Event Functions
    */
   void changedRobotDescription();
+
+protected:
 
   // The trajectory playback component
   TrajectoryVisualizationPtr trajectory_visual_;

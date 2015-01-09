@@ -153,7 +153,6 @@ void TrajectoryVisualization::reset()
   animating_path_ = false;
 
   display_path_robot_->clear();
-
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
@@ -245,6 +244,8 @@ void TrajectoryVisualization::changedDisplayPathCollisionEnabled()
 
 void TrajectoryVisualization::onEnable()
 {
+  changedRobotPathAlpha(); // set alpha property
+
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(displaying_trajectory_message_ && animating_path_);
