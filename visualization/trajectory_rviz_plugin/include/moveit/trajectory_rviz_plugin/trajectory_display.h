@@ -38,28 +38,8 @@
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN__TRAJECTORY_DISPLAY
 
 #include <rviz/display.h>
-#include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
-#include <moveit/rdf_loader/rdf_loader.h>
+#include <moveit/trajectory_rviz_plugin/trajectory_visualization.h>
 #include <ros/ros.h>
-
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
-#include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit_msgs/DisplayTrajectory.h>
-
-namespace rviz
-{
-class Robot;
-class Shape;
-class Property;
-class StringProperty;
-class BoolProperty;
-class FloatProperty;
-class RosTopicProperty;
-class EditableEnumProperty;
-class ColorProperty;
-class MovableText;
-}
 
 namespace moveit_rviz_plugin
 {
@@ -67,6 +47,7 @@ namespace moveit_rviz_plugin
 class TrajectoryDisplay : public rviz::Display
 {
   Q_OBJECT
+  friend class TrajectoryVisualization; // allow the visualization class to access the display
 
 public:
 
@@ -77,66 +58,13 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
-  {
-    return robot_model_;
-  }
-
-Q_SIGNALS:
-  void timeToShowNewTrail();
-
-private Q_SLOTS:
-
-  /**
-   * \brief Slot Event Functions
-   */
-  void changedRobotDescription();
-  void changedDisplayPathVisualEnabled();
-  void changedDisplayPathCollisionEnabled();
-  void changedRobotPathAlpha();  
-  void changedLoopDisplay();
-  void changedShowTrail();
-  void changedTrajectoryTopic();
-  void changedStateDisplayTime();
-
-protected:
-
-  /**
-   * \brief ROS callback for an incoming path message
-   */
-  void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
-  float getStateDisplayTime();
-  void clearTrajectoryTrail();
-  void loadRobotModel();
-
   // overrides from Display
   virtual void onInitialize();
   virtual void onEnable();
   virtual void onDisable();
 
-  // Handles actually drawing the robot along motion plans
-  RobotStateVisualizationPtr display_path_robot_; 
-
-  robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
-  robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
-  std::vector<rviz::Robot*> trajectory_trail_;
-  ros::Subscriber trajectory_topic_sub_;
-  bool animating_path_;
-  int current_state_;
-  float current_state_time_;
-
-  rdf_loader::RDFLoaderPtr rdf_loader_;
-  robot_model::RobotModelConstPtr robot_model_;
-  robot_state::RobotStatePtr robot_state_;
-
-  rviz::BoolProperty* display_path_visual_enabled_property_;
-  rviz::BoolProperty* display_path_collision_enabled_property_;
-  rviz::EditableEnumProperty* state_display_time_property_;
-  rviz::RosTopicProperty* trajectory_topic_property_;
-  rviz::FloatProperty* robot_path_alpha_property_;
-  rviz::BoolProperty* loop_display_property_;
-  rviz::BoolProperty* trail_display_property_;
-  rviz::StringProperty* robot_description_property_;
+  // The trajectory playback component
+  TrajectoryVisualizationPtr traj_visual_;
 
 };
 
