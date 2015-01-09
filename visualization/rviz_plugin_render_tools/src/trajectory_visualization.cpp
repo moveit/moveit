@@ -52,42 +52,42 @@
 namespace moveit_rviz_plugin
 {
 
-TrajectoryVisualization::TrajectoryVisualization(rviz::Display *display)
+TrajectoryVisualization::TrajectoryVisualization(rviz::Display *display, rviz::Property *widget)
   : display_(display)
   , animating_path_(false)
 {
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-                              display_,
+                              widget,
                               SLOT( changedRobotDescription() ), this );
 
   trajectory_topic_property_ =
     new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
                                ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
                                "The topic on which the moveit_msgs::DisplayTrajectory messages are received",
-                               display_,
+                               widget,
                                SLOT(changedTrajectoryTopic()), this);
 
   display_path_visual_enabled_property_ =
     new rviz::BoolProperty("Show Robot Visual", true, "Indicates whether the geometry of the robot as defined for visualisation purposes should be displayed",
-                           display_,
+                           widget,
                            SLOT(changedDisplayPathVisualEnabled()), this);
 
   display_path_collision_enabled_property_ =
     new rviz::BoolProperty("Show Robot Collision", false, "Indicates whether the geometry of the robot as defined for collision detection purposes should be displayed",
-                           display_,
+                           widget,
                            SLOT(changedDisplayPathCollisionEnabled()), this);
 
   robot_path_alpha_property_ =
     new rviz::FloatProperty("Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
-                            display_,
+                            widget,
                             SLOT(changedRobotPathAlpha()), this);
   robot_path_alpha_property_->setMin(0.0);
   robot_path_alpha_property_->setMax(1.0);
 
   state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s",
                                                                  "The amount of wall-time to wait in between displaying states along a received trajectory path",
-                                                                 display_,
+                                                                 widget,
                                                                  SLOT(changedStateDisplayTime()), this);
   state_display_time_property_->addOptionStd("REALTIME");
   state_display_time_property_->addOptionStd("0.05 s");
@@ -96,12 +96,12 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Display *display)
 
   loop_display_property_ =
     new rviz::BoolProperty("Loop Animation", false, "Indicates whether the last received path is to be animated in a loop",
-                           display_,
+                           widget,
                            SLOT(changedLoopDisplay()), this);
 
   trail_display_property_ =
     new rviz::BoolProperty("Show Trail", false, "Show a path trail",
-                           display_,
+                           widget,
                            SLOT(changedShowTrail()), this);
 
   connect(this, SIGNAL(timeToShowNewTrail()), this, SLOT(changedShowTrail()));

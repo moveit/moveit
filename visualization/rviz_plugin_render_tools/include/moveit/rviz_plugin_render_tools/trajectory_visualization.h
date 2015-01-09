@@ -73,7 +73,7 @@ class TrajectoryVisualization : public QObject
 
 public:
 
-  TrajectoryVisualization(rviz::Display *display);
+  TrajectoryVisualization(rviz::Display *display, rviz::Property *widget);
 
   virtual ~TrajectoryVisualization();
 

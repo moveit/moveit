@@ -42,7 +42,7 @@ namespace moveit_rviz_plugin
 TrajectoryDisplay::TrajectoryDisplay() :
   Display()
 {
-  traj_visual_.reset(new TrajectoryVisualization(this));
+  traj_visual_.reset(new TrajectoryVisualization(this, this));
 }
 
 TrajectoryDisplay::~TrajectoryDisplay()

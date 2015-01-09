@@ -172,6 +172,10 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
                                                                             plan_category_,
                                                                             SLOT(changedQueryJointViolationColor()), this);
 
+  // Trajectory playback / planned path category ---------------------------------------------
+  trajectory_visual_.reset(new TrajectoryVisualization(this, path_category_));
+
+  // Start background jobs
   background_process_.setJobUpdateEvent(boost::bind(&MotionPlanningDisplay::backgroundJobUpdate, this, _1, _2));
 }
 
@@ -194,6 +198,9 @@ MotionPlanningDisplay::~MotionPlanningDisplay()
 void MotionPlanningDisplay::onInitialize()
 {
   PlanningSceneDisplay::onInitialize();
+
+  // Planned Path Display
+  trajectory_visual_->onInitialize(scene_node_, context_, update_nh_);
 
   query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
   query_robot_start_->setCollisionVisible(false);
@@ -272,6 +279,9 @@ void MotionPlanningDisplay::reset()
   query_robot_goal_->clear();
 
   PlanningSceneDisplay::reset();
+
+  // Planned Path Display
+  trajectory_visual_->reset();
 
   frame_->disable();
   frame_->enable();
@@ -1174,6 +1184,9 @@ void MotionPlanningDisplay::onEnable()
 {
   PlanningSceneDisplay::onEnable();
 
+  // Planned Path Display
+  trajectory_visual_->onEnable();
+
   text_to_display_->setVisible(false);
 
   query_robot_start_->setVisible(query_start_state_property_->getBool());
@@ -1199,6 +1212,9 @@ void MotionPlanningDisplay::onDisable()
   text_to_display_->setVisible(false);
 
   PlanningSceneDisplay::onDisable();
+
+  // Planned Path Display
+  trajectory_visual_->onDisable();
 }
 
 // ******************************************************************************************
@@ -1217,6 +1233,9 @@ void MotionPlanningDisplay::update(float wall_dt, float ros_dt)
 void MotionPlanningDisplay::updateInternal(float wall_dt, float ros_dt)
 {
   PlanningSceneDisplay::updateInternal(wall_dt, ros_dt);
+
+  // Planned Path Display
+  trajectory_visual_->update(wall_dt, ros_dt);  
 
   renderWorkspaceBox();
 }
