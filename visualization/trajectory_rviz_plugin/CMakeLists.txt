@@ -3,7 +3,6 @@ set(MOVEIT_LIB_NAME moveit_trajectory_rviz_plugin)
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
   include/moveit/trajectory_rviz_plugin/trajectory_display.h
-#  include/moveit/trajectory_rviz_plugin/trajectory_visualization.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
