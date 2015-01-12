@@ -150,6 +150,13 @@ public:
 
   /** \brief Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1.*/
   void setNumPlanningAttempts(unsigned int num_planning_attempts);
+
+  /** \brief Set a scaling factor for optionally reducing the maximum joint velocity.
+      Allowed values are in (0,1]. The maximum joint velocity specified
+      in the robot model is multiplied by the factor. If outside valid range
+      (imporantly, this includes it being set to 0.0), the factor is set to a
+      default value of 1.0 internally (i.e. maximum joint velocity) */  
+  void setMaxVelocityScalingFactor(double max_velocity_scaling_factor);
   
   /** \brief Get the number of seconds set by setPlanningTime() */
   double getPlanningTime() const;
