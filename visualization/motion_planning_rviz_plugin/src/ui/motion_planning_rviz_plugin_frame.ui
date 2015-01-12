@@ -623,7 +623,7 @@
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
-               <string>Execution Time Factor:</string>
+               <string>Velocity Scaling:</string>	               
               </property>
              </widget>
             </item>
