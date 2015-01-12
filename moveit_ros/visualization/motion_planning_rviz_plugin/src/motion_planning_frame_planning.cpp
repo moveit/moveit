@@ -274,6 +274,7 @@ void MotionPlanningFrame::constructPlanningRequest(moveit_msgs::MotionPlanReques
   mreq.group_name = planning_display_->getCurrentPlanningGroup();
   mreq.num_planning_attempts = ui_->planning_attempts->value();
   mreq.allowed_planning_time = ui_->planning_time->value();
+  mreq.max_velocity_scaling_factor = ui_->exec_time_factor->value();
   robot_state::robotStateToRobotStateMsg(*planning_display_->getQueryStartState(), mreq.start_state);
   mreq.workspace_parameters.min_corner.x = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   mreq.workspace_parameters.min_corner.y = ui_->wcenter_y->value() - ui_->wsize_y->value() / 2.0;
@@ -334,6 +335,7 @@ void MotionPlanningFrame::configureForPlanning()
   move_group_->setJointValueTarget(*planning_display_->getQueryGoalState());
   move_group_->setPlanningTime(ui_->planning_time->value());
   move_group_->setNumPlanningAttempts(ui_->planning_attempts->value());
+  move_group_->setMaxVelocityScalingFactor(ui_->exec_time_factor->value());
   configureWorkspace();
 }
 

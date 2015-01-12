@@ -157,7 +157,7 @@ public:
     if (result && res.trajectory_)
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      if (!time_param_.computeTimeStamps(*res.trajectory_))
+      if (!time_param_.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor))
         ROS_WARN("Time parametrization for the solution path failed.");
     }
 

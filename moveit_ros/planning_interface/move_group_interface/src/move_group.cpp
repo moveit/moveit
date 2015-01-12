@@ -116,6 +116,7 @@ public:
     goal_orientation_tolerance_ = 1e-3; // ~0.1 deg
     planning_time_ = 5.0;
     num_planning_attempts_ = 1;
+    max_velocity_scaling_factor_ = 1.0;
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -234,6 +235,11 @@ public:
   void setNumPlanningAttempts(unsigned int num_planning_attempts)
   {
     num_planning_attempts_ = num_planning_attempts;
+  }
+
+  void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
+  {
+    max_velocity_scaling_factor_ = max_velocity_scaling_factor;
   }
   
   robot_state::RobotState& getJointStateTarget()
@@ -820,6 +826,7 @@ public:
     moveit_msgs::MoveGroupGoal goal;
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = num_planning_attempts_;
+    goal.request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
@@ -1005,6 +1012,7 @@ private:
   double planning_time_;
   std::string planner_id_;
   unsigned int num_planning_attempts_;
+  double max_velocity_scaling_factor_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1076,6 +1084,12 @@ void moveit::planning_interface::MoveGroup::setNumPlanningAttempts(unsigned int 
 {
   impl_->setNumPlanningAttempts(num_planning_attempts);
 }
+
+void moveit::planning_interface::MoveGroup::setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
+{
+  impl_->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
+}
+
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::asyncMove()
 {

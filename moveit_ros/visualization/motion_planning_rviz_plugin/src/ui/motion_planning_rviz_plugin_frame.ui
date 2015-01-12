@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>688</width>
-    <height>377</height>
+    <width>702</width>
+    <height>395</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -310,7 +310,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>218</width>
+                   <width>109</width>
                    <height>78</height>
                   </rect>
                  </property>
@@ -360,7 +360,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>218</width>
+                   <width>205</width>
                    <height>78</height>
                   </rect>
                  </property>
@@ -613,7 +613,31 @@
               </property>
               <property name="value">
                <number>10</number>
-               </property>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
+            <item>
+             <widget class="QLabel" name="label_11">
+              <property name="text">
+               <string>Velocity Scaling:</string>	               
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="exec_time_factor">
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
              </widget>
             </item>
            </layout>
