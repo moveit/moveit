@@ -310,7 +310,11 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
 
   // publish the full planning scene
   moveit_msgs::PlanningScene msg;
-  scene_->getPlanningSceneMsg(msg);
+  {
+    if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->lockRead();
+    scene_->getPlanningSceneMsg(msg);
+    if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->unlockRead();
+  }
   planning_scene_publisher_.publish(msg);
   ROS_DEBUG("Published the full planning scene: '%s'", msg.name.c_str());
 
@@ -331,7 +335,11 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
           if (new_scene_update_ == UPDATE_SCENE)
             is_full = true;
           else
+          {
+            if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->lockRead();
             scene_->getPlanningSceneDiffMsg(msg);
+            if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->unlockRead();
+          }
           boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
           scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
           scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
@@ -344,8 +352,12 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
             excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
             excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
           }
-          if (is_full)
+          if (is_full) 
+          {
+            if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->lockRead();
             scene_->getPlanningSceneMsg(msg);
+            if (octomap_monitor_) octomap_monitor_->getOcTreePtr()->unlockRead();
+          }
           publish_msg = true;
         }
         new_scene_update_ = UPDATE_NONE;
