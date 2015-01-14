@@ -39,6 +39,7 @@ find_package(OpenCV)
 catkin_package(
   INCLUDE_DIRS
     mesh_filter/include
+    lazy_free_space_updater/include
     depth_image_octomap_updater/include
     point_containment_filter/include
     occupancy_map_monitor/include
@@ -46,6 +47,7 @@ catkin_package(
     semantic_world/include
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
+    moveit_lazy_free_space_updater
     moveit_point_containment_filter
     moveit_occupancy_map_monitor
     moveit_pointcloud_octomap_updater_core
@@ -56,6 +58,7 @@ catkin_package(
     image_transport)
 
 include_directories(mesh_filter/include
+                    lazy_free_space_updater/include
                     depth_image_octomap_updater/include
                     point_containment_filter/include
                     occupancy_map_monitor/include
@@ -74,6 +77,7 @@ include_directories(SYSTEM
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
+add_subdirectory(lazy_free_space_updater)
 add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
