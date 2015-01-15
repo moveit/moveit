@@ -10,4 +10,5 @@ This repository includes components of MoveIt that use ROS. This is where much o
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/ros-planning/moveit_ros.png?branch=hydro-devel)](https://travis-ci.org/ros-planning/moveit_ros)
+ * Devel Job Status: [![Devel Job Status](http://jenkins.ros.org/buildStatus/icon?job=devel-indigo-moveit_ros)](http://jenkins.ros.org/job/devel-indigo-moveit_ros)
+ * AMD64 Debian Job Status: [![Build Status](http://jenkins.ros.org/buildStatus/icon?job=ros-indigo-moveit-ros_binarydeb_trusty_amd64)](http://jenkins.ros.org/job/ros-indigo-moveit-ros_binarydeb_trusty_amd64/)
