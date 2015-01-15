@@ -85,6 +85,19 @@ public:
     tree_mutex_.unlock();
   }
 
+  typedef boost::shared_lock<boost::shared_mutex> ReadLock;
+  typedef boost::unique_lock<boost::shared_mutex> WriteLock;
+
+  ReadLock reading()
+  {
+    return ReadLock(tree_mutex_);
+  }
+
+  WriteLock writing()
+  {
+    return WriteLock(tree_mutex_);
+  }
+
   void triggerUpdateCallback(void)
   {
     if (update_callback_)
