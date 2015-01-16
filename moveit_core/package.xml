@@ -9,6 +9,7 @@
   <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
   <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
   <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
 
   <license>BSD</license>  
   <url type="website">http://moveit.ros.org</url>
