@@ -4,7 +4,9 @@
   <description>Components of MoveIt connecting to MongoDB</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
+
   <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
 
   <license>BSD</license>
 
