@@ -8,6 +8,8 @@
   <author email="gedikli@willowgarage.com">Suat Gedikli</author>
 
   <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org</url>
