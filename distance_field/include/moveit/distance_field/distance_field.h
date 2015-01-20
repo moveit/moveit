@@ -34,8 +34,8 @@
 
 /* Author: Mrinal Kalakrishnan, Ken Anderson, E. Gil Jones */
 
-#ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
-#define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_
+#ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
+#define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
 
 #include <moveit/macros/deprecation.h>
 #include <moveit/distance_field/voxel_grid.h>
@@ -641,6 +641,9 @@ protected:
   int inv_twice_resolution_;    /**< \brief Computed value 1.0/(2.0*resolution_) */
 };
 
+typedef boost::shared_ptr<DistanceField> DistanceFieldPtr;
+typedef boost::shared_ptr<const DistanceField> DistanceFieldConstPtr;
+
 }  // namespace distance_field
 
-#endif
+#endif  // MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
