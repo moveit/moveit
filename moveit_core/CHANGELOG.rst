@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.15 (2015-01-20)
+-------------------
 * add ptr/const ptr types for distance field
 * update maintainers
 * Contributors: Ioan A Sucan, Michael Ferguson
