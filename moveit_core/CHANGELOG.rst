@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add ptr/const ptr types for distance field
+* update maintainers
+* Contributors: Ioan A Sucan, Michael Ferguson
+
 0.6.14 (2015-01-15)
 -------------------
 * Add time factor to iterative_time_parametrization
