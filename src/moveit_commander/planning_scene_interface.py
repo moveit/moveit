@@ -163,22 +163,24 @@ class PlanningSceneInterface(object):
             aco.touch_links = [link]
         self._pub_aco.publish(aco)
 
-    def remove_world_object(self, name):
+    def remove_world_object(self, name = None):
         """
-        Remove object from planning scene         
+        Remove an object from planning scene, or all if no name is provided         
         """
         co = CollisionObject()
         co.operation = CollisionObject.REMOVE
-        co.id = name
+        if name != None:
+            co.id = name
         self._pub_co.publish(co)
 
-    def remove_attached_object(self, link, name = ''):
+    def remove_attached_object(self, link, name = None):
         """
-        Remove object from planning scene         
+        Remove an attached object from planning scene, or all objects attached to this link if no name is provided             
         """
         aco = AttachedCollisionObject()
         aco.object.operation = CollisionObject.REMOVE
         aco.link_name = link
-        aco.object.id = name
+        if name != None:
+            aco.object.id = name
         self._pub_aco.publish(aco)
 
