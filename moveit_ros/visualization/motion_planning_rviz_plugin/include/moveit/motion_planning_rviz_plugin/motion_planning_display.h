@@ -40,6 +40,7 @@
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
+#include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 #include <std_msgs/String.h>
 
 #ifndef Q_MOC_RUN
@@ -143,22 +144,12 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
 
   void toggleSelectPlanningGroupSubscription(bool enable);
   
-Q_SIGNALS:
-  void timeToShowNewTrail();
-
 private Q_SLOTS:
 
   // ******************************************************************************************
   // Slot Event Functions
   // ******************************************************************************************
 
-  void changedDisplayPathVisualEnabled();
-  void changedDisplayPathCollisionEnabled();
-  void changedRobotPathAlpha();
-  void changedStateDisplayTime();
-  void changedLoopDisplay();
-  void changedShowTrail();
-  void changedTrajectoryTopic();
   void changedQueryStartState();
   void changedQueryGoalState();
   void changedQueryMarkerScale();
@@ -190,11 +181,6 @@ protected:
   virtual void onSceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   virtual void updateInternal(float wall_dt, float ros_dt);
 
-  /**
-   * \brief ROS callback for an incoming path message
-   */
-  void incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
-
   void renderWorkspaceBox();
   void updateLinkColors();
 
@@ -204,7 +190,6 @@ protected:
   void displayMetrics(bool start);
 
   void executeMainLoopJobs();
-  void clearTrajectoryTrail();
   void publishInteractiveMarkers(bool pose_update);
 
   void recomputeQueryStartStateMetrics();
@@ -221,7 +206,6 @@ protected:
                               const robot_interaction::RobotInteraction::EndEffector &eef,
                               const robot_state::RobotState &state, double payload);
   void updateStateExceptModified(robot_state::RobotState &dest, const robot_state::RobotState &src);
-  float getStateDisplayTime();
   void updateBackgroundJobProgressBar();
   void backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent event, const std::string &jobname);
 
@@ -239,21 +223,13 @@ protected:
 
   RobotStateVisualizationPtr query_robot_start_;                  ///< Handles drawing the robot at the start configuration
   RobotStateVisualizationPtr query_robot_goal_;                   ///< Handles drawing the robot at the goal configuration
-  RobotStateVisualizationPtr display_path_robot_;                 ///< Handles actually drawing the robot along motion plans
 
   Ogre::SceneNode* text_display_scene_node_;        ///< displays texts
   bool text_display_for_start_;                     ///< indicates whether the text display is for the start state or not
   rviz::MovableText *text_to_display_;
 
-  robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
-  robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
-  std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber planning_group_sub_;
-  ros::Subscriber trajectory_topic_sub_;
   ros::NodeHandle private_handle_, node_handle_;
-  bool animating_path_;
-  int current_state_;
-  float current_state_time_;
 
   // render the workspace box
   boost::scoped_ptr<rviz::Shape> workspace_box_;
@@ -285,6 +261,9 @@ protected:
   std::map<std::string, dynamics_solver::DynamicsSolverPtr> dynamics_solver_;
   boost::mutex update_metrics_lock_;
 
+  // The trajectory playback component
+  TrajectoryVisualizationPtr trajectory_visual_;
+
   // properties to show on side panel
   rviz::Property* path_category_;
   rviz::Property* plan_category_;
@@ -301,13 +280,6 @@ protected:
   rviz::ColorProperty* query_colliding_link_color_property_;
   rviz::ColorProperty* query_outside_joint_limits_link_color_property_;
 
-  rviz::BoolProperty* display_path_visual_enabled_property_;
-  rviz::BoolProperty* display_path_collision_enabled_property_;
-  rviz::EditableEnumProperty* state_display_time_property_;
-  rviz::RosTopicProperty* trajectory_topic_property_;
-  rviz::FloatProperty* robot_path_alpha_property_;
-  rviz::BoolProperty* loop_display_property_;
-  rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* compute_weight_limit_property_;
   rviz::BoolProperty* show_manipulability_index_property_;
   rviz::BoolProperty* show_manipulability_property_;
