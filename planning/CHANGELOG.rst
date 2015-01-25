@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainers
+* perception: adding RAII-based locking for OccMapTree
+* perception: adding locks to planning scene monitor
+* Add time factor support for iterative_time_parametrization
+* Contributors: Jonathan Bohren, Michael Ferguson, kohlbrecher
+
 0.6.4 (2014-12-20)
 ------------------
 * Namespaced "traj_execution" for all trajectory_execution_manager logging

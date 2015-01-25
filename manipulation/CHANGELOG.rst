@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainers
+* Contributors: Michael Ferguson
+
 0.6.4 (2014-12-20)
 ------------------
 
