@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2015-01-24)
+------------------
 * update maintainers
 * Contributors: Michael Ferguson
 

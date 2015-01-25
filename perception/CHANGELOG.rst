@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2015-01-24)
+------------------
 * update maintainers
 * adding RAII-based locking for OccMapTree
 * moving lazy_free_space_updater into it's own library

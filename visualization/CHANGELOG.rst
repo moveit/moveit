@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2015-01-24)
+------------------
 * update maintainers
 * Created new trajectory display, split from motion planning display
 * Added new trajectory display inside of motion planning display
