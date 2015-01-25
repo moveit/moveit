@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2015-01-24)
+------------------
 * update maintainers
 * perception: adding RAII-based locking for OccMapTree
 * perception: adding locks to planning scene monitor
