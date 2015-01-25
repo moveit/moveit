@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainers
+* Add time factor support for iterative_time_parametrization
+* Contributors: Michael Ferguson, kohlbrecher
+
 0.6.4 (2014-12-20)
 ------------------
 

@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainers
+* Created new trajectory display, split from motion planning display
+* Added new trajectory display inside of motion planning display
+* Fix bug with alpha property in trajectory robot
+* Optimized number of URDFs loaded
+* Changed motion planning Rviz icon to MoveIt icon
+* Add time factor support for iterative_time_parametrization
+* Contributors: Dave Coleman, Michael Ferguson, kohlbrecher
+
 0.6.4 (2014-12-20)
 ------------------
 
