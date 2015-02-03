@@ -15,5 +15,7 @@ install(TARGETS ${MOVEIT_LIB_NAME}
 install(DIRECTORY include/
   DESTINATION include)
 
-catkin_add_gtest(test_constraints test/test_constraints.cpp)
-target_link_libraries(test_constraints  ${MOVEIT_LIB_NAME})
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_constraints test/test_constraints.cpp)
+  target_link_libraries(test_constraints  ${MOVEIT_LIB_NAME})
+endif()
