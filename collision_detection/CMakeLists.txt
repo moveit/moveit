@@ -16,11 +16,13 @@ target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_state ${catkin_LIBRARIES} 
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 # unit tests
-catkin_add_gtest(test_world test/test_world.cpp)
-target_link_libraries(test_world ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_world test/test_world.cpp)
+  target_link_libraries(test_world ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 
-catkin_add_gtest(test_world_diff test/test_world_diff.cpp)
-target_link_libraries(test_world_diff ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+  catkin_add_gtest(test_world_diff test/test_world_diff.cpp)
+  target_link_libraries(test_world_diff ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+endif()
 
 
 install(TARGETS ${MOVEIT_LIB_NAME}
