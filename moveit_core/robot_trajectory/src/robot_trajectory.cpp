@@ -40,9 +40,16 @@
 #include <boost/math/constants/constants.hpp>
 #include <numeric>
 
-robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &kmodel, const std::string &group) :
-  robot_model_(kmodel),
-  group_(group.empty() ? NULL : kmodel->getJointModelGroup(group))
+robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, const std::string &group) :
+  robot_model_(robot_model),
+  group_(group.empty() ? NULL : robot_model->getJointModelGroup(group))
+{
+}
+
+robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, 
+                                                   const robot_model::JointModelGroup* group) :
+  robot_model_(robot_model),
+  group_(group)
 {
 }
 
