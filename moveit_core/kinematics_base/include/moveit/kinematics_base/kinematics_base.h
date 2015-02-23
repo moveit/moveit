@@ -56,6 +56,19 @@ class RobotState;
 namespace kinematics
 {
 
+namespace KinematicsSolution
+{
+  enum KinematicsSolutionSearch
+  {
+    ONE = 1,
+    ALL_DISCRETIZED ,
+    SOME_DISCRETIZED,
+    RANDOM_SAMPLE,
+    ALL
+  };
+}
+typedef KinematicsSolution::KinematicsSolutionSearch KinematicsSolutionSearch;
+
 /**
  * @struct KinematicsQueryOptions
  * @brief A set of options for the kinematics solver
@@ -101,6 +114,12 @@ public:
                              std::vector<double> &solution,
                              moveit_msgs::MoveItErrorCodes &error_code,
                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
+
+  virtual bool getMultipleIK(const geometry_msgs::Pose &ik_pose,
+                             std::vector< std::vector<double> >& solutions,
+                             moveit_msgs::MoveItErrorCodes &error_code,
+                             double& solution_percentage,
+                             const kinematics::KinematicsQueryOptions &options) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
