@@ -122,3 +122,35 @@ bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGro
 
   return true;
 }
+
+bool kinematics::KinematicsBase::getMultipleIK(const geometry_msgs::Pose &ik_pose,
+                           std::vector< std::vector<double> >& solutions,
+                           kinematics::KinematicsResult& result,
+                           const kinematics::KinematicsQueryOptions &options) const
+{
+  std::vector<double> solution;
+  std::vector<double> seed(getJointNames().size(),0.0f);
+  result.solution_percentage = 0.0f;
+
+  if(options.solutions_search_code != KinematicSearches::ONE)
+  {
+    result.kinematic_error = kinematics::KinematicErrors::UNSUPORTED_SEARCH_REQUESTED;
+    return false;
+  }
+
+  moveit_msgs::MoveItErrorCodes error_code;
+  if(getPositionIK(ik_pose,seed,solution,error_code,options))
+  {
+    solutions.resize(1);
+    solutions[0] = solution;
+    result.kinematic_error = kinematics::KinematicErrors::OK;
+    result.solution_percentage = 1.0f;
+  }
+  else
+  {
+    result.kinematic_error = kinematics::KinematicErrors::NO_SOLUTION;
+    return false;
+  }
+
+  return true;
+}

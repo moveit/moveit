@@ -56,9 +56,13 @@ class RobotState;
 namespace kinematics
 {
 
-namespace KinematicsSolution
+/*
+ * @enum KinematicSearches
+ * @brief Flags for choosing the type discretization applied on the redundancy during a multiple ik solution search
+ */
+namespace KinematicSearches
 {
-  enum KinematicsSolutionSearch
+  enum KinematicSearch
   {
     ONE = 1,
     ALL_DISCRETIZED ,
@@ -67,7 +71,23 @@ namespace KinematicsSolution
     ALL
   };
 }
-typedef KinematicsSolution::KinematicsSolutionSearch KinematicsSolutionSearch;
+typedef KinematicSearches::KinematicSearch KinematicSearch;
+
+/*
+ * @enum KinematicErrors
+ * @brief Kinematic error codes that occur in a multiple ik solution search
+ */
+namespace KinematicErrors
+{
+  enum KinematicError
+  {
+    OK = 1,
+    UNSUPORTED_SEARCH_REQUESTED,
+    DISCRETIZATION_NOT_INITIALIZED,
+    NO_SOLUTION
+  };
+}
+typedef KinematicErrors::KinematicError KinematicError;
 
 /**
  * @struct KinematicsQueryOptions
@@ -77,12 +97,24 @@ struct KinematicsQueryOptions
 {
   KinematicsQueryOptions() :
     lock_redundant_joints(false),
-    return_approximate_solution(false)
+    return_approximate_solution(false),
+  	solutions_search_code(KinematicSearches::ONE)
   {
   }
 
   bool lock_redundant_joints;
   bool return_approximate_solution;
+  KinematicSearch solutions_search_code;  // used when finding multiple solutions for the same pose
+};
+
+/*
+ * @struct KinematicsResult
+ * @brief Reports result details of an ik solution query
+ */
+struct KinematicsResult
+{
+	KinematicError kinematic_error;
+	double solution_percentage; // the percentage of solutions achieved over the total number of solutions searched.
 };
 
 
@@ -115,10 +147,20 @@ public:
                              moveit_msgs::MoveItErrorCodes &error_code,
                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
+  /**
+   * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.  This
+   * is a default implementation that returns only one solution and so its result is equivalent to calling 'getPositionIK(...)'
+   * with a zero initialized seed.
+   * @param ik_pose the desired pose of the tip frame
+   * @param solutions a vector of vectors where each entry is a valid solution
+   * @param result a struct that reports the results of the query
+   * @param an option struct which contains the type of redundancy discretization used.  This default implementation only
+   * supports the KinmaticSearches::ONE discretization; requesting any other will result in failure.
+   * @return True if a valid set of solutions was found, false otherwise
+   */
   virtual bool getMultipleIK(const geometry_msgs::Pose &ik_pose,
                              std::vector< std::vector<double> >& solutions,
-                             moveit_msgs::MoveItErrorCodes &error_code,
-                             double& solution_percentage,
+                             KinematicsResult& result,
                              const kinematics::KinematicsQueryOptions &options) const;
 
   /**
@@ -471,11 +513,30 @@ public:
   }
 
   /**
+   * @brief Sets the discretization applied to each redundant joint
+   * @param discretization a map of joint indices and discretization value pairs.  The first pair element corresponds
+   * to the index of the joint to be discretized.
+   */
+  void setJointDiscretization(const std::map<int,double>& discretization)
+  {
+    redundant_joint_discretization_ = discretization;
+  }
+
+  /**
    * @brief  Get the value of the search discretization
    */
   double getSearchDiscretization() const
   {
     return search_discretization_;
+  }
+
+  /**
+   * @brief Returns the set of supported kinematics discretization search types.  This implementation only supports
+   * the KinematicSearches::ONE search.
+   */
+  std::vector<KinematicSearch> getSuportedSolutionSearches() const
+  {
+    return supported_searches_;
   }
 
   /** @brief For functions that require a timeout specified but one is not specified using arguments,
@@ -502,7 +563,9 @@ public:
                               // (if multiple tip frames provided, this variable will be unset)
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
     default_timeout_(DEFAULT_TIMEOUT)
-  {}
+  {
+    supported_searches_.push_back(KinematicSearches::ONE);
+  }
 
 protected:
 
@@ -515,6 +578,8 @@ protected:
   double search_discretization_;
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
+  std::map<int,double> redundant_joint_discretization_;
+  std::vector<KinematicSearch> supported_searches_;
 
 private:
 
