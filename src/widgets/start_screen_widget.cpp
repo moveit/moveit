@@ -44,6 +44,7 @@
 #include <QApplication>
 #include <QFont>
 #include <QFileDialog>
+#include <QTextEdit>
 // ROS
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loadng images
@@ -872,11 +873,10 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   layout->setAlignment( widget_title, Qt::AlignTop);
 
   // Widget Instructions
-  QLabel * widget_instructions = new QLabel(this);
+  QTextEdit * widget_instructions = new QTextEdit(this);
   widget_instructions->setText( "All settings for MoveIt are stored in a Moveit configuration package. Here you have the option to create a new configuration package, or load an existing one. Note: any changes to a MoveIt configuration package outside this setup assistant will likely be overwritten by this tool." );
-  widget_instructions->setWordWrap(true);
+  widget_instructions->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
   //widget_instructions->setMinimumWidth(1);
-  widget_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Preferred );
   layout->addWidget( widget_instructions);
   layout->setAlignment( widget_instructions, Qt::AlignTop);
 
