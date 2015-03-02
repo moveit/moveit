@@ -109,7 +109,7 @@ StartScreenWidget::StartScreenWidget( QWidget* parent, moveit_setup_assistant::M
 
   if (logo_image_->load( image_path.c_str() ))
   {
-    logo_image_label_->setPixmap(QPixmap::fromImage( *logo_image_));
+    logo_image_label_->setPixmap(QPixmap::fromImage(logo_image_->scaledToHeight(50)));
     logo_image_label_->setMinimumWidth(96);
   }
   else
