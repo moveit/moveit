@@ -43,13 +43,16 @@
 namespace moveit_fake_controller_manager
 {
 
+static const double POSITION_STEP_FACTOR = 10;
+
 class FakeControllerHandle : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
   FakeControllerHandle(const std::string &name, ros::NodeHandle &nh, const std::vector<std::string> &joints) :
     moveit_controller_manager::MoveItControllerHandle(name),
     nh_(nh),
-    joints_(joints)
+    joints_(joints),
+    loop_hz_(50)
   {
     std::stringstream ss;
     ss << "Fake controller '" << name << "' with joints [ ";
@@ -58,6 +61,41 @@ public:
     ss << "]";
     ROS_INFO("%s", ss.str().c_str());
     pub_ = nh_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+
+    // Create default values to publish
+    //js_.header = t.joint_trajectory.header;
+    js_.name = joints_;
+    for (std::size_t i = 0; i < joints_.size(); ++i)
+    {
+      js_.position.push_back(0.1);
+      js_.velocity.push_back(0.0);
+      js_.effort.push_back(0.0);
+    }
+
+    // Populate the commanded positions
+    commanded_.joint_trajectory.points.resize(1);
+    for (std::size_t i = 0; i < joints_.size(); ++i)
+    {
+      commanded_.joint_trajectory.points.back().positions.push_back(0.1);
+    }    
+
+    ros::Duration update_freq = ros::Duration(1.0/loop_hz_);
+    non_realtime_loop_ = nh_.createTimer(update_freq, &FakeControllerHandle::update, this);
+  }
+
+  void update(const ros::TimerEvent& e)
+  {
+    double p_error;
+    for (std::size_t i = 0; i < commanded_.joint_trajectory.joint_names.size(); ++i)
+    {
+      // Position
+      p_error = commanded_.joint_trajectory.points.back().positions[i] - js_.position[i];
+   
+      // scale the rate it takes to achieve position by a factor that is invariant to the feedback loop
+      js_.position[i] += p_error * POSITION_STEP_FACTOR / loop_hz_;
+    }
+
+    pub_.publish(js_);
   }
   
   void getJoints(std::vector<std::string> &joints) const
@@ -68,17 +106,8 @@ public:
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t)
   {
     ROS_INFO("Fake execution of trajectory");
-    if (!t.joint_trajectory.points.empty())
-    {
-      sensor_msgs::JointState js;
-      js.header = t.joint_trajectory.header;
-      js.name = t.joint_trajectory.joint_names;
-      js.position = t.joint_trajectory.points.back().positions;
-      js.velocity = t.joint_trajectory.points.back().velocities;
-      js.effort = t.joint_trajectory.points.back().effort;
-      pub_.publish(js);
-    }
-    
+    commanded_ = t;
+
     return true;
   }
   
@@ -103,6 +132,10 @@ private:
   ros::NodeHandle nh_;
   std::vector<std::string> joints_;
   ros::Publisher pub_;
+  sensor_msgs::JointState js_;
+  double loop_hz_;
+  ros::Timer non_realtime_loop_;
+  moveit_msgs::RobotTrajectory commanded_; // store the goal positions
 };
 
 
