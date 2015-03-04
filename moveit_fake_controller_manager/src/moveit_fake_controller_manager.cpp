@@ -43,7 +43,7 @@
 namespace moveit_fake_controller_manager
 {
 
-static const double POSITION_STEP_FACTOR = 10;
+static const double POSITION_STEP_FACTOR = 2; //10;
 
 class FakeControllerHandle : public moveit_controller_manager::MoveItControllerHandle
 {
@@ -54,8 +54,9 @@ public:
     joints_(joints),
     loop_hz_(50)
   {
+    ROS_INFO_STREAM("Fake controller '" << name << "' loaded");
     std::stringstream ss;
-    ss << "Fake controller '" << name << "' with joints [ ";
+    ss << "With joints [ ";
     for (std::size_t i = 0 ; i < joints.size() ; ++i)
       ss << joints[i] << " ";
     ss << "]";
@@ -67,10 +68,21 @@ public:
     js_.name = joints_;
     for (std::size_t i = 0; i < joints_.size(); ++i)
     {
-      js_.position.push_back(0.1);
+      js_.position.push_back(0.0);
       js_.velocity.push_back(0.0);
       js_.effort.push_back(0.0);
     }
+
+    // HACK - home position of JACO arm
+    js_.position[0] = -1.7293;
+    js_.position[1] = -1.7342;
+    js_.position[2] = 0.7016;
+    js_.position[3] = -0.8139;
+    js_.position[4] = 1.5164;
+    js_.position[5] = 3.1415;
+    js_.position[6] = 0.697;
+    js_.position[7] = 0.697;
+    js_.position[8] = 0.697;
 
     // Populate the commanded positions
     commanded_.joint_trajectory.points.resize(1);
@@ -82,6 +94,14 @@ public:
     ros::Duration update_freq = ros::Duration(1.0/loop_hz_);
     non_realtime_loop_ = nh_.createTimer(update_freq, &FakeControllerHandle::update, this);
   }
+
+  /*
+  virtual ~FakeControllerHandle()
+  {
+    std::cout << "killing controller handle " << std::endl;
+    non_realtime_loop_.stop();
+  }
+  */
 
   void update(const ros::TimerEvent& e)
   {
@@ -119,7 +139,8 @@ public:
   
   virtual bool waitForExecution(const ros::Duration &)
   {
-    sleep(1);
+    //ROS_WARN_STREAM_NAMED("temp","Sleep " << commanded_.joint_trajectory.points.back().time_from_start);
+    //ros::Duration(commanded_.joint_trajectory.points.back().time_from_start).sleep();
     return true;
   }
   
