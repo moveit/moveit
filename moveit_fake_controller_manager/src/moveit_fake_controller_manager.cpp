@@ -61,6 +61,8 @@ public:
       ss << joints[i] << " ";
     ss << "]";
     ROS_INFO("%s", ss.str().c_str());
+
+    // Load joint state publisher
     pub_ = nh_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
 
     // Create default values to publish
@@ -73,16 +75,25 @@ public:
       js_.effort.push_back(0.0);
     }
 
+    std::cout << "JOINTS SIZE: " << joints_.size() << std::endl;
     // HACK - home position of JACO arm
-    js_.position[0] = -1.7293;
-    js_.position[1] = -1.7342;
-    js_.position[2] = 0.7016;
-    js_.position[3] = -0.8139;
-    js_.position[4] = 1.5164;
-    js_.position[5] = 3.1415;
-    js_.position[6] = 0.697;
-    js_.position[7] = 0.697;
-    js_.position[8] = 0.697;
+    if (joints_.size() == 6)
+    {
+      ROS_WARN_STREAM_NAMED("temp","Hacked joint values for arm");
+      js_.position[0] = -1.7293;
+      js_.position[1] = -1.7342;
+      js_.position[2] = 0.7016;
+      js_.position[3] = -0.8139;
+      js_.position[4] = 1.5164;
+      js_.position[5] = 3.1415;
+    }
+    else if (joints_.size() == 3)
+    {
+      ROS_WARN_STREAM_NAMED("temp","Hacked joint values for end effector");
+      js_.position[0] = 0.697;
+      js_.position[1] = 0.697;
+      js_.position[2] = 0.697;
+    }
 
     // Populate the commanded positions
     commanded_.joint_trajectory.points.resize(1);
@@ -139,8 +150,8 @@ public:
   
   virtual bool waitForExecution(const ros::Duration &)
   {
-    //ROS_WARN_STREAM_NAMED("temp","Sleep " << commanded_.joint_trajectory.points.back().time_from_start);
-    //ros::Duration(commanded_.joint_trajectory.points.back().time_from_start).sleep();
+    ROS_WARN_STREAM_NAMED("temp","Sleep " << commanded_.joint_trajectory.points.back().time_from_start);
+    ros::Duration(commanded_.joint_trajectory.points.back().time_from_start).sleep();
     return true;
   }
   
