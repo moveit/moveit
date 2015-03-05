@@ -39,11 +39,16 @@
 #include <sensor_msgs/JointState.h>
 #include <pluginlib/class_list_macros.h>
 #include <map>
+#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
 namespace moveit_fake_controller_manager
 {
 
 static const double POSITION_STEP_FACTOR = 2; //10;
+static const std::string ROBOT_DESCRIPTION = "robot_description";
+static const std::string JOINT_MODEL_GROUP = "whole_body";
+static const std::string JOINT_MODEL_GROUP_POSE = "home";
 
 class FakeControllerHandle : public moveit_controller_manager::MoveItControllerHandle
 {
@@ -75,44 +80,68 @@ public:
       js_.effort.push_back(0.0);
     }
 
-    std::cout << "JOINTS SIZE: " << joints_.size() << std::endl;
-    // HACK - home position of JACO arm
-    if (joints_.size() == 6)
-    {
-      ROS_WARN_STREAM_NAMED("temp","Hacked joint values for arm");
-      js_.position[0] = -1.7293;
-      js_.position[1] = -1.7342;
-      js_.position[2] = 0.7016;
-      js_.position[3] = -0.8139;
-      js_.position[4] = 1.5164;
-      js_.position[5] = 3.1415;
-    }
-    else if (joints_.size() == 3)
-    {
-      ROS_WARN_STREAM_NAMED("temp","Hacked joint values for end effector");
-      js_.position[0] = 0.697;
-      js_.position[1] = 0.697;
-      js_.position[2] = 0.697;
-    }
+    // Load default joint values
+    loadDefaultJointValues();
 
     // Populate the commanded positions
     commanded_.joint_trajectory.points.resize(1);
     for (std::size_t i = 0; i < joints_.size(); ++i)
     {
       commanded_.joint_trajectory.points.back().positions.push_back(0.1);
-    }    
+    }
 
     ros::Duration update_freq = ros::Duration(1.0/loop_hz_);
     non_realtime_loop_ = nh_.createTimer(update_freq, &FakeControllerHandle::update, this);
   }
 
-  /*
-  virtual ~FakeControllerHandle()
+  void loadDefaultJointValues()
   {
-    std::cout << "killing controller handle " << std::endl;
-    non_realtime_loop_.stop();
+    // Note: the js_ vector should already be populated with zeros
+
+    // Load the robot loader
+    robot_model_loader::RobotModelLoader robot_model_loader(ROBOT_DESCRIPTION);
+    // Load the robot model
+    robot_model::RobotModelPtr robot_model = robot_model_loader.getModel(); // Get a shared pointer to the robot
+
+    if (robot_model->hasJointModelGroup(JOINT_MODEL_GROUP))
+    {
+      moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup("whole_body");
+
+      // Load a robot state
+      moveit::core::RobotState robot_state(robot_model);
+
+      // Check for existance of joint model group
+      if (robot_state.setToDefaultValues(jmg, JOINT_MODEL_GROUP_POSE))
+      {
+        ROS_INFO_STREAM_NAMED("loadDefaultJointValues","Set joints to pose " << JOINT_MODEL_GROUP_POSE);
+
+        for (std::size_t i = 0; i < joints_.size(); ++i)
+        {
+          const moveit::core::JointModel* jm = robot_state.getJointModel(joints_[i]);
+
+          // Error check
+          if (!jm)
+          {
+            ROS_WARN_STREAM_NAMED("loadDefaultJointValues","Unable to find joint model group: " << joints_[i]);
+            continue;
+          }
+          if (jm->getVariableCount() != 1)
+          {
+            ROS_WARN_STREAM_NAMED("loadDefaultJointValues","Fake joint controller does not currently accept more than 1 variable per joint");
+            continue;
+          }
+
+          // Set position from SRDF
+          js_.position[i] = robot_state.getJointPositions(jm)[0];
+          std::cout << "setting joint " << joints_[i] << " to value " << js_.position[i] << std::endl;
+        }
+      }
+      else
+        ROS_WARN_STREAM_NAMED("loadDefaultJointValues","Unable to find pose " << JOINT_MODEL_GROUP_POSE << " for the fake controller manager");
+    }
+    else
+      ROS_WARN_STREAM_NAMED("loadDefaultJointValues","Unable to find joint model group " << JOINT_MODEL_GROUP << " for the fake controller manager");
   }
-  */
 
   void update(const ros::TimerEvent& e)
   {
@@ -121,19 +150,19 @@ public:
     {
       // Position
       p_error = commanded_.joint_trajectory.points.back().positions[i] - js_.position[i];
-   
+
       // scale the rate it takes to achieve position by a factor that is invariant to the feedback loop
       js_.position[i] += p_error * POSITION_STEP_FACTOR / loop_hz_;
     }
 
     pub_.publish(js_);
   }
-  
+
   void getJoints(std::vector<std::string> &joints) const
   {
     joints = joints_;
   }
-  
+
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t)
   {
     ROS_INFO("Fake execution of trajectory");
@@ -141,25 +170,25 @@ public:
 
     return true;
   }
-  
+
   virtual bool cancelExecution()
-  {   
+  {
     ROS_INFO("Fake trajectory execution cancel");
     return true;
   }
-  
+
   virtual bool waitForExecution(const ros::Duration &)
   {
-    ROS_WARN_STREAM_NAMED("temp","Sleep " << commanded_.joint_trajectory.points.back().time_from_start);
+    ROS_INFO_STREAM_NAMED("waitForExecution","Sleep " << commanded_.joint_trajectory.points.back().time_from_start);
     ros::Duration(commanded_.joint_trajectory.points.back().time_from_start).sleep();
     return true;
   }
-  
+
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus()
   {
     return moveit_controller_manager::ExecutionStatus(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
   }
-  
+
 private:
   ros::NodeHandle nh_;
   std::vector<std::string> joints_;
@@ -182,7 +211,7 @@ public:
       ROS_ERROR_STREAM("MoveItFakeControllerManager: No controller_list specified.");
       return;
     }
-    
+
     XmlRpc::XmlRpcValue controller_list;
     node_handle_.getParam("controller_list", controller_list);
     if (controller_list.getType() != XmlRpc::XmlRpcValue::TypeArray)
@@ -190,7 +219,7 @@ public:
       ROS_ERROR("MoveItFakeControllerManager: controller_list should be specified as an array");
       return;
     }
-    
+
     /* actually create each controller */
     for (int i = 0 ; i < controller_list.size() ; ++i)
     {
@@ -199,11 +228,11 @@ public:
         ROS_ERROR("MoveItFakeControllerManager: Name and joints must be specifed for each controller");
         continue;
       }
-      
+
       try
       {
         std::string name = std::string(controller_list[i]["name"]);
-        
+
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
           ROS_ERROR_STREAM("MoveItFakeControllerManager: The list of joints for controller " << name << " is not specified as an array");
@@ -221,7 +250,7 @@ public:
       }
     }
   }
-  
+
   virtual ~MoveItFakeControllerManager()
   {
   }
