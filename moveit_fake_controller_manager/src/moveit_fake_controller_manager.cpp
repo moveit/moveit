@@ -133,7 +133,6 @@ public:
 
           // Set position from SRDF
           js_.position[i] = robot_state.getJointPositions(jm)[0];
-          std::cout << "setting joint " << joints_[i] << " to value " << js_.position[i] << std::endl;
         }
       }
       else
