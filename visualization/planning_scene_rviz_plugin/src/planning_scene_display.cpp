@@ -376,8 +376,10 @@ void PlanningSceneDisplay::changedPlanningSceneTopic()
   if (planning_scene_monitor_ && planning_scene_topic_property_)
   {
     planning_scene_monitor_->startSceneMonitor(planning_scene_topic_property_->getStdString());
-    planning_scene_monitor_->requestPlanningSceneState(
-        ros::names::append(getMoveGroupNS(),planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE));
+    std::string service_name = planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE;
+    if (!getMoveGroupNS().empty())
+      service_name = ros::names::append(getMoveGroupNS(), service_name);
+    planning_scene_monitor_->requestPlanningSceneState(service_name);
   }
 }
 
