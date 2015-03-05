@@ -11,6 +11,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
+  moveit_ros_planning
   pluginlib
   roscpp
   REQUIRED)
@@ -23,6 +24,7 @@ catkin_package(
   INCLUDE_DIRS
   DEPENDS
     moveit_core
+    moveit_ros_planning
     )
 
 include_directories(include)
