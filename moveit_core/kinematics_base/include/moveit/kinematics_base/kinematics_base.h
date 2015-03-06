@@ -57,34 +57,41 @@ namespace kinematics
 {
 
 /*
- * @enum KinematicSearches
- * @brief Flags for choosing the type discretization applied on the redundancy during a multiple ik solution search
+ * @enum DiscretizationMethods
+ *
+ * @brief Flags for choosing the type discretization method applied on the redundant joints during an ik query
  */
-namespace KinematicSearches
+namespace DiscretizationMethods
 {
-  enum KinematicSearch
+  enum DiscretizationMethod
   {
-    ONE = 1,
-    ALL_DISCRETIZED ,
-    SOME_DISCRETIZED,
-    RANDOM_SAMPLE,
-    ALL
+    NO_DISCRETIZATION = 1,      /**< The redundant joints will be fixed at their current value. */
+    ALL_DISCRETIZED ,           /**< All redundant joints will be discretized uniformly */
+    SOME_DISCRETIZED,           /**< Some redundant joints will be discretized uniformly. The unused redundant joints will be fixed at their
+                                     current value */
+    ALL_RANDOM_SAMPLED ,        /**< the discretization for each redundant joint will be randomly generated.*/
+    SOME_RANDOM_SAMPLED         /**< the discretization for some redundant joint will be randomly generated.
+                                     The unused redundant joints will be fixed at their current value. */
   };
 }
-typedef KinematicSearches::KinematicSearch KinematicSearch;
+typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
 
 /*
  * @enum KinematicErrors
- * @brief Kinematic error codes that occur in a multiple ik solution search
+ * @brief Kinematic error codes that occur in a ik query
  */
 namespace KinematicErrors
 {
   enum KinematicError
   {
-    OK = 1,
-    UNSUPORTED_SEARCH_REQUESTED,
-    DISCRETIZATION_NOT_INITIALIZED,
-    NO_SOLUTION
+    OK = 1,                                     /**< No errors*/
+    UNSUPORTED_DISCRETIZATION_REQUESTED,        /**< Discretization method isn't supported by this implementation */
+    DISCRETIZATION_NOT_INITIALIZED,             /**< Discretization values for the redundancy has not been set. See
+                                                     setSearchDiscretization(...) method*/
+    MULTIPLE_TIPS_NO_SUPPORTED,                 /**< Only single tip link support is allowed */
+    EMPTY_TIP_POSES,                            /**< Empty ik_poses array passed */
+    NO_SOLUTION                                 /**< A valid joint solution that can reach this pose(s) could not be found */
+
   };
 }
 typedef KinematicErrors::KinematicError KinematicError;
@@ -98,25 +105,30 @@ struct KinematicsQueryOptions
   KinematicsQueryOptions() :
     lock_redundant_joints(false),
     return_approximate_solution(false),
-  	solutions_search_code(KinematicSearches::ONE)
+    discretization_method(DiscretizationMethods::NO_DISCRETIZATION)
   {
   }
 
-  bool lock_redundant_joints;
-  bool return_approximate_solution;
-  KinematicSearch solutions_search_code;  // used when finding multiple solutions for the same pose
+  bool lock_redundant_joints;                   /**<  KinematicsQueryOptions#lock_redundant_joints. */
+  bool return_approximate_solution;             /**<  KinematicsQueryOptions#return_approximate_solution. */
+  DiscretizationMethod discretization_method;   /**< Enumeration value that indicates the method for discretizing the redundant. joints KinematicsQueryOptions#discretization_method. */
 };
 
 /*
  * @struct KinematicsResult
- * @brief Reports result details of an ik solution query
+ * @brief Reports result details of an ik query
+ *
+ * This struct is used as an output argument of the getPositionIK(...) method that returns multiple joint solutions.
+ * It contains the type of error that led to a failure or KinematicErrors::OK when a set of joint solutions is found.
+ * The solution percentage shall provide a ration of solutions found over solutions searched.
+ *
  */
 struct KinematicsResult
 {
-	KinematicError kinematic_error;
-	double solution_percentage; // the percentage of solutions achieved over the total number of solutions searched.
+	KinematicError kinematic_error;         /**< Error code that indicates the type of failure */
+	double solution_percentage;             /**< The percentage of solutions achieved over the total number
+	                                             of solutions explored. */
 };
-
 
 /**
  * @class KinematicsBase
@@ -148,17 +160,20 @@ public:
                              const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const = 0;
 
   /**
-   * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.  This
-   * is a default implementation that returns only one solution and so its result is equivalent to calling 'getPositionIK(...)'
-   * with a zero initialized seed.
-   * @param ik_pose the desired pose of the tip frame
-   * @param solutions a vector of vectors where each entry is a valid solution
-   * @param result a struct that reports the results of the query
-   * @param an option struct which contains the type of redundancy discretization used.  This default implementation only
-   * supports the KinmaticSearches::ONE discretization; requesting any other will result in failure.
-   * @return True if a valid set of solutions was found, false otherwise
+   * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.
+   *
+   * This is a default implementation that returns only one solution and so its result is equivalent to calling
+   * 'getPositionIK(...)' with a zero initialized seed.
+   *
+   * @param ik_pose The desired pose of the tip frame
+   * @param solutions A vector of vectors where each entry is a valid joint solution
+   * @param result A struct that reports the results of the query
+   * @param options An option struct which contains the type of redundancy discretization used. This default
+   *                implementation only supports the KinmaticSearches::NO_DISCRETIZATION method; requesting any
+   *                other will result in failure.
+   * @return True if a valid set of solutions was found, false otherwise.
    */
-  virtual bool getMultipleIK(const geometry_msgs::Pose &ik_pose,
+  virtual bool getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
                              std::vector< std::vector<double> >& solutions,
                              KinematicsResult& result,
                              const kinematics::KinematicsQueryOptions &options) const;
@@ -449,7 +464,8 @@ public:
 
   /**
    * @brief Set a set of redundant joints for the kinematics solver to use.
-   * This can fail, depending on the IK solver and choice of redundant joints!
+   * This can fail, depending on the IK solver and choice of redundant joints!. Also, it sets
+   * the discretization values for each redundant joint to a default value.
    * @param redundant_joint_indices The set of redundant joint indices (corresponding to
    * the list of joints you get from getJointNames()).
    * @return False if any of the input joint indices are invalid (exceed number of
@@ -505,38 +521,59 @@ public:
                                    std::string* error_text_out = NULL) const;
 
   /**
-   * @brief  Set the search discretization
+   * @brief  Set the search discretization value for all the redundant joints
    */
   void setSearchDiscretization(double sd)
   {
-    search_discretization_ = sd;
+    redundant_joint_discretization_.clear();
+    for(std::vector<unsigned int>::iterator i = redundant_joint_indices_.begin();
+       i != redundant_joint_indices_.end();i++)
+    {
+      redundant_joint_discretization_[*i] = sd;
+    }
   }
 
   /**
-   * @brief Sets the discretization applied to each redundant joint
-   * @param discretization a map of joint indices and discretization value pairs.  The first pair element corresponds
-   * to the index of the joint to be discretized.
+   * @brief Sets individual discretization values for each redundant joint.
+   *
+   * Calling this method replaces previous discretization settings.
+   *
+   * @param discretization a map of joint indices and discretization value pairs.
    */
-  void setJointDiscretization(const std::map<int,double>& discretization)
+  void setSearchDiscretization(const std::map<int,double>& discretization)
   {
-    redundant_joint_discretization_ = discretization;
+    redundant_joint_discretization_.clear();
+    redundant_joint_indices_.clear();
+    for(std::map<int,double>::const_iterator i = discretization.begin();
+        i != discretization.end() ; i++)
+    {
+      redundant_joint_discretization_.insert(*i);
+      redundant_joint_indices_.push_back(i->first);
+    }
   }
 
   /**
    * @brief  Get the value of the search discretization
    */
-  double getSearchDiscretization() const
+  double getSearchDiscretization(int joint_index = 0) const
   {
-    return search_discretization_;
+    if(redundant_joint_discretization_.count(joint_index) > 0)
+    {
+      return redundant_joint_discretization_.at(joint_index);
+    }
+    else
+    {
+      return 0.0f; // returned when there aren't any redundant joints
+    }
   }
 
   /**
    * @brief Returns the set of supported kinematics discretization search types.  This implementation only supports
-   * the KinematicSearches::ONE search.
+   * the DiscretizationMethods::ONE search.
    */
-  std::vector<KinematicSearch> getSuportedSolutionSearches() const
+  std::vector<DiscretizationMethod> getSuportedDiscretizationMethods() const
   {
-    return supported_searches_;
+    return supported_methods_;
   }
 
   /** @brief For functions that require a timeout specified but one is not specified using arguments,
@@ -564,7 +601,8 @@ public:
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
     default_timeout_(DEFAULT_TIMEOUT)
   {
-    supported_searches_.push_back(KinematicSearches::ONE);
+    supported_methods_.push_back(DiscretizationMethods::NO_DISCRETIZATION);
+
   }
 
 protected:
@@ -575,11 +613,16 @@ protected:
   std::vector<std::string> tip_frames_;
   std::string tip_frame_; // DEPRECATED - this variable only still exists for backwards compatibility with
                           // previously generated custom ik solvers like IKFast
-  double search_discretization_;
+
+  double search_discretization_; // DEPRECATED - this variable only still exists for backwards compatibility
+                                 // with previous implementations.  Discretization values for each joint are
+                                 // now stored in the redundant_joint_discretization_ member
+
+
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
   std::map<int,double> redundant_joint_discretization_;
-  std::vector<KinematicSearch> supported_searches_;
+  std::vector<DiscretizationMethod> supported_methods_;
 
 private:
 
