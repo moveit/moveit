@@ -192,7 +192,7 @@ public:
    * Not necessary for most robots that have kinematic chains.
    * This particular method is intended for "searching" for a solutions by stepping through the redundancy
    * (or other numerical routines).
-   * @param ik_poses the desired pose of each tip link
+   * @param ik_poses the desired pose of each tip link, in the same order as the getTipFrames() vector
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param timeout The amount of time (in seconds) available to the solver
    * @param consistency_limits the distance that any joint in the solution can be from the corresponding joints in the current seed state
