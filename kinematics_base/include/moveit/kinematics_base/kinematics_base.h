@@ -440,7 +440,7 @@ public:
    *          supported.
    * \return True if the group is supported, false if not.
    */
-  virtual const bool supportsGroup(const moveit::core::JointModelGroup *jmg,
+  virtual bool supportsGroup(const moveit::core::JointModelGroup *jmg,
                                    std::string* error_text_out = NULL) const;
 
   /**

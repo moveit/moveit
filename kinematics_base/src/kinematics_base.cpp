@@ -107,7 +107,7 @@ std::string kinematics::KinematicsBase::removeSlash(const std::string &str) cons
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
 }
 
-const bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg,
+bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg,
                                                      std::string* error_text_out) const
 {
   // Default implementation for legacy solvers:
