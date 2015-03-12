@@ -142,7 +142,7 @@ public:
 
   void simplifySolutions(bool flag)
   {
-    simplify_solutions_ = true;
+    simplify_solutions_ = flag;
   }
 
   /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint approximations to */
