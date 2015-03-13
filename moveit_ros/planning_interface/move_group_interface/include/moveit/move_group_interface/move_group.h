@@ -127,6 +127,9 @@ public:
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;
 
+  /** \brief Get the ROS node handle of this instance operates on */
+  const ros::NodeHandle& getNodeHandle() const;
+
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
 
