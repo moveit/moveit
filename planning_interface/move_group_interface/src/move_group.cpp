@@ -1070,6 +1070,11 @@ const std::string& moveit::planning_interface::MoveGroup::getName() const
   return impl_->getOptions().group_name_;
 }
 
+const ros::NodeHandle& moveit::planning_interface::MoveGroup::getNodeHandle() const
+{
+  return impl_->getOptions().node_handle_;
+}
+
 bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
 {
   return impl_->getInterfaceDescription(desc);
