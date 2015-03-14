@@ -190,7 +190,7 @@ public:
   }
   
   /** \brief Get the position of a particular variable. An exception is thrown if the variable is not known. */
-  const double getVariablePosition(const std::string &variable) const
+  double getVariablePosition(const std::string &variable) const
   {
     return position_[robot_model_->getVariableIndex(variable)];
   }
@@ -198,7 +198,7 @@ public:
   /** \brief Get the position of a particular variable. The variable is
       specified by its index. No checks are performed for the validity
       of the index passed  */  
-  const double getVariablePosition(int index) const
+  double getVariablePosition(int index) const
   {
     return position_[index];
   }
@@ -269,7 +269,7 @@ public:
   }
   
   /** \brief Get the velocity of a particular variable. An exception is thrown if the variable is not known. */
-  const double getVariableVelocity(const std::string &variable) const
+  double getVariableVelocity(const std::string &variable) const
   {
     return velocity_[robot_model_->getVariableIndex(variable)];
   }
@@ -277,7 +277,7 @@ public:
   /** \brief Get the velocity of a particular variable. The variable is
       specified by its index. No checks are performed for the validity
       of the index passed  */  
-  const double getVariableVelocity(int index) const
+  double getVariableVelocity(int index) const
   {
     return velocity_[index];
   }
@@ -350,7 +350,7 @@ public:
   }
   
   /** \brief Get the acceleration of a particular variable. An exception is thrown if the variable is not known. */
-  const double getVariableAcceleration(const std::string &variable) const
+  double getVariableAcceleration(const std::string &variable) const
   {
     return acceleration_[robot_model_->getVariableIndex(variable)];
   }
@@ -358,7 +358,7 @@ public:
   /** \brief Get the acceleration of a particular variable. The variable is
       specified by its index. No checks are performed for the validity
       of the index passed  */    
-  const double getVariableAcceleration(int index) const
+  double getVariableAcceleration(int index) const
   {
     return acceleration_[index];
   }
@@ -430,7 +430,7 @@ public:
   }
 
   /** \brief Get the effort of a particular variable. An exception is thrown if the variable is not known. */  
-  const double getVariableEffort(const std::string &variable) const
+  double getVariableEffort(const std::string &variable) const
   {
     return effort_[robot_model_->getVariableIndex(variable)];
   }
@@ -438,7 +438,7 @@ public:
   /** \brief Get the effort of a particular variable. The variable is
       specified by its index. No checks are performed for the validity
       of the index passed  */      
-  const double getVariableEffort(int index) const
+  double getVariableEffort(int index) const
   {
     return effort_[index];
   }
