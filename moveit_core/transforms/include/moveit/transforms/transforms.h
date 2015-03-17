@@ -130,6 +130,7 @@ public:
 
   /**
    * @brief Transform a vector in from_frame to the target_frame
+   *        Note: assumes that v_in and v_out are "free" vectors, not points
    * @param from_frame The frame from which the transform is computed
    * @param v_in The input vector (in from_frame)
    * @param v_out The resultant (transformed) vector

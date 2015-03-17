@@ -770,7 +770,7 @@ as the new values that correspond to the group */
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path for a particular group.
 
       The Cartesian path to be followed is specified as a direction of motion (\e direction, unit vector) for the origin of a robot
-      link (\e link_name). The direction is assumed to be either in a global reference frame or in the local reference frame of the
+      link (\e link). The direction is assumed to be either in a global reference frame or in the local reference frame of the
       link. In the latter case (\e global_reference_frame is false) the \e direction is rotated accordingly. The link needs to move in a
       straight line, following the specified direction, for the desired \e distance. The resulting joint values are stored in
       the vector \e traj, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
@@ -794,7 +794,7 @@ as the new values that correspond to the group */
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path, for a particular group.
 
       The Cartesian path to be followed is specified as a target frame to be reached (\e target) for the origin of a robot
-      link (\e link_name). The target frame is assumed to be either in a global reference frame or in the local reference frame of the
+      link (\e link). The target frame is assumed to be either in a global reference frame or in the local reference frame of the
       link. In the latter case (\e global_reference_frame is false) the \e target is rotated accordingly. The link needs to move in a
       straight line towards the target. The resulting joint values are stored in
       the vector \e traj, one by one. The maximum distance in Cartesian space between consecutive points on the resulting path
@@ -818,7 +818,7 @@ as the new values that correspond to the group */
   /** \brief Compute the sequence of joint values that perform a general Cartesian path.
 
       The Cartesian path to be followed is specified as a set of \e waypoints to be sequentially reached for the origin of a robot
-      link (\e link_name). The waypoints are transforms given either in a global reference frame or in the local reference frame of the
+      link (\e link). The waypoints are transforms given either in a global reference frame or in the local reference frame of the
       link at the immediately preceeding waypoint. The link needs to move in a straight line between two consecutive waypoints.
       The resulting joint values are stored in the vector \e traj, one by one. The maximum distance in Cartesian space between
       consecutive points on the resulting path is specified by \e max_step.  If a \e validCallback is specified, this is passed to the
