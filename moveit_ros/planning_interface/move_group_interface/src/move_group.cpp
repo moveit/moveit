@@ -1070,6 +1070,11 @@ const std::string& moveit::planning_interface::MoveGroup::getName() const
   return impl_->getOptions().group_name_;
 }
 
+robot_model::RobotModelConstPtr moveit::planning_interface::MoveGroup::getRobotModel() const
+{
+  return impl_->getRobotModel();
+}
+
 bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
 {
   return impl_->getInterfaceDescription(desc);

@@ -38,6 +38,9 @@
 #include <moveit/py_bindings_tools/roscpp_initializer.h>
 #include <moveit/py_bindings_tools/py_conversions.h>
 #include <moveit/py_bindings_tools/serialize_msg.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 
@@ -389,7 +392,41 @@ public:
      return constraints_str;
   }
 
+  std::string retimeTrajectory(const std::string& ref_state_str,
+                               const std::string& traj_str,
+                               double velocity_scaling_factor)
+  {
+    // Convert reference state message to object
+    moveit_msgs::RobotState ref_state_msg;
+    py_bindings_tools::deserializeMsg(ref_state_str, ref_state_msg);
+    moveit::core::RobotState ref_state_obj(getRobotModel());
+    if(moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
+    {
+      // Convert trajectory message to object
+      moveit_msgs::RobotTrajectory traj_msg;
+      py_bindings_tools::deserializeMsg(traj_str, traj_msg);
+      robot_trajectory::RobotTrajectory traj_obj(getRobotModel(), getName());
+      traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
+
+      // Do the actual retiming
+      trajectory_processing::IterativeParabolicTimeParameterization time_param;
+      time_param.computeTimeStamps(traj_obj, velocity_scaling_factor);
+
+      // Convert the retimed trajectory back into a message
+      traj_obj.getRobotTrajectoryMsg(traj_msg);
+      std::string traj_str = py_bindings_tools::serializeMsg(traj_msg);
+
+      // Return it.
+      return traj_str;
+    }
+    else
+    {
+      ROS_ERROR("Unable to convert RobotState message to RobotState instance.");
+      return "";
+    }
+  }
 };
+
 
 static void wrap_move_group_interface()
 {
@@ -493,6 +530,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
   MoveGroupClass.def("attach_object", &MoveGroupWrapper::attachObjectPython);
   MoveGroupClass.def("detach_object", &MoveGroupWrapper::detachObject);
+  MoveGroupClass.def("retime_trajectory", &MoveGroupWrapper::retimeTrajectory);
 }
 
 }
