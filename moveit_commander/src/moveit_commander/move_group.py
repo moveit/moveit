@@ -435,9 +435,12 @@ class MoveGroupCommander(object):
         path.deserialize(ser_path)
         return (path, fraction)
 
-    def execute(self, plan_msg):
+    def execute(self, plan_msg, wait = True):
         """Execute a previously planned path"""
-        return self._g.execute(conversions.msg_to_string(plan_msg))
+        if wait:
+            return self._g.execute(conversions.msg_to_string(plan_msg))
+        else:
+            return self._g.async_execute(conversions.msg_to_string(plan_msg))
 
     def attach_object(self, object_name, link_name = "", touch_links = []):
         """ Given the name of an object existing in the planning scene, attach it to a link. The link used is specified by the second argument. If left unspecified, the end-effector link is used, if one is known. If there is no end-effector link, the first link in the group is used. If no link is identified, failure is reported. True is returned if an attach request was succesfully sent to the move_group node. This does not verify that the attach request also was successfuly applied by move_group."""
