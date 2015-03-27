@@ -346,6 +346,13 @@ public:
     return execute(plan);
   }
 
+  bool asyncExecutePython(const std::string &plan_str)
+  {
+    MoveGroup::Plan plan;
+    py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
+    return asyncExecute(plan);
+  }
+
   std::string getPlanPython()
   {
     MoveGroup::Plan plan;
@@ -435,6 +442,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMovePython);
   MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
+  MoveGroupClass.def("async_execute", &MoveGroupWrapper::asyncExecutePython);
   moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
