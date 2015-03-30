@@ -472,3 +472,19 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out
     out << headers.str() << std::endl;
   out << joints.str() << std::endl;
 }
+
+void moveit::core::streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+{
+  std::stringstream lineStream(line);
+  std::string cell;
+
+  // For each item/column
+  for (std::size_t i = 0; i < state.getVariableCount(); ++i)
+  {
+    // Get a variable
+    if(!std::getline(lineStream, cell, separator[0]))
+      logError("Missing variable %i", i);
+
+    state.getVariablePositions()[i] = atof(cell.c_str());
+  }
+}

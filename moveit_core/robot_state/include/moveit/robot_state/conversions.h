@@ -110,6 +110,15 @@ void robotStateToStream(const RobotState& state, std::ostream &out, bool include
 void robotStateToStream(const RobotState& state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
                         bool include_header = true, const std::string& separator = ",");
 
+/**
+ * \brief Convert a string of joint values from a file (CSV) or input source into a RobotState
+ * @param state - the output MoveIt! robot state object
+ * @param line - the input string of joint values
+ * @param separator - allows to override the comma seperator with any symbol, such as a white space
+ * \return true on success
+ */
+void streamToRobotState(RobotState& state, const std::string &line, const std::string& separator = ",");
+
 }
 }
 
