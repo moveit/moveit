@@ -10,6 +10,7 @@ find_package(Boost REQUIRED COMPONENTS date_time filesystem program_options syst
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
+  tf
   eigen_conversions
   roscpp
   rosconsole
