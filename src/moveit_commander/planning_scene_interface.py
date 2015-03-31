@@ -105,6 +105,14 @@ class PlanningSceneInterface(object):
         pyassimp.release(scene)
         return co
     
+    def __make_existing(self, name):
+        """
+        Create an empty Collision Object, used when the object already exists 
+        """
+        co = CollisionObject()
+        co.id = name
+        return co
+
     def add_mesh(self, name, pose, filename, size = (1, 1, 1)):
         """
         Add a mesh to the planning scene
@@ -130,18 +138,24 @@ class PlanningSceneInterface(object):
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
         
-    def attach_mesh(self, link, name, pose, filename, size = (1, 1, 1), touch_links = []):
+    def attach_mesh(self, link, name, pose = None, filename = '', size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.__make_mesh(name, pose, filename, size)
+        if pose!=None and not filename.empty():
+            aco.object = self.__make_mesh(name, pose, filename, size)
+        else:
+            aco.object = self.__make_existing(name)
         aco.link_name = link
         aco.touch_links = [link]
         if len(touch_links) > 0:
             aco.touch_links = touch_links
         self._pub_aco.publish(aco)
 
-    def attach_box(self, link, name, pose, size = (1, 1, 1), touch_links = []):
+    def attach_box(self, link, name, pose = None, size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        aco.object = self.__make_box(name, pose, size)
+        if pose!=None:
+            aco.object = self.__make_box(name, pose, size)
+        else:
+            aco.object = self.__make_existing(name)
         aco.link_name = link
         if len(touch_links) > 0:
             aco.touch_links = touch_links
@@ -149,22 +163,24 @@ class PlanningSceneInterface(object):
             aco.touch_links = [link]
         self._pub_aco.publish(aco)
 
-    def remove_world_object(self, name):
+    def remove_world_object(self, name = None):
         """
-        Remove object from planning scene         
+        Remove an object from planning scene, or all if no name is provided         
         """
         co = CollisionObject()
         co.operation = CollisionObject.REMOVE
-        co.id = name
+        if name != None:
+            co.id = name
         self._pub_co.publish(co)
 
-    def remove_attached_object(self, link, name = ''):
+    def remove_attached_object(self, link, name = None):
         """
-        Remove object from planning scene         
+        Remove an attached object from planning scene, or all objects attached to this link if no name is provided             
         """
         aco = AttachedCollisionObject()
         aco.object.operation = CollisionObject.REMOVE
         aco.link_name = link
-        aco.object.id = name
+        if name != None:
+            aco.object.id = name
         self._pub_aco.publish(aco)
 
