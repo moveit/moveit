@@ -166,7 +166,7 @@ public:
 private:
 
   void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
-  bool isPassiveDOF(const std::string &dof) const;
+  bool isPassiveOrMimicDOF(const std::string &dof) const;
 
   ros::NodeHandle                              nh_;
   boost::shared_ptr<tf::Transformer>           tf_;
