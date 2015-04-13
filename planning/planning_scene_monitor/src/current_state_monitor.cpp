@@ -140,11 +140,12 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic() con
     return "";
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::isPassiveDOF(const std::string &dof) const
+bool planning_scene_monitor::CurrentStateMonitor::isPassiveOrMimicDOF(const std::string &dof) const
 {
   if (robot_model_->hasJointModel(dof))
   {
-    if (robot_model_->getJointModel(dof)->isPassive())
+    if (robot_model_->getJointModel(dof)->isPassive() ||
+        robot_model_->getJointModel(dof)->getMimic())
       return true;
   }
   else
@@ -155,7 +156,8 @@ bool planning_scene_monitor::CurrentStateMonitor::isPassiveDOF(const std::string
     {
       std::string joint_name = dof.substr(0, slash);
       if (robot_model_->hasJointModel(joint_name))
-        if (robot_model_->getJointModel(joint_name)->isPassive())
+        if (robot_model_->getJointModel(joint_name)->isPassive() ||
+            robot_model_->getJointModel(joint_name)->getMimic())
           return true;
     }
   }
@@ -170,7 +172,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
     {
-      if (!isPassiveDOF(dof[i]))
+      if (!isPassiveOrMimicDOF(dof[i]))
       {
         ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
         result = false;
@@ -186,7 +188,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
     if (joint_time_.find(dof[i]) == joint_time_.end())
-      if (!isPassiveDOF(dof[i]))
+      if (!isPassiveOrMimicDOF(dof[i]))
       {
         missing_states.push_back(dof[i]);
         result = false;
@@ -203,7 +205,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
   {
-    if (isPassiveDOF(dof[i]))
+    if (isPassiveOrMimicDOF(dof[i]))
       continue;
     std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
     if (it == joint_time_.end())
@@ -232,7 +234,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (std::size_t i = 0 ; i < dof.size() ; ++i)
   {
-    if (isPassiveDOF(dof[i]))
+    if (isPassiveOrMimicDOF(dof[i]))
       continue;
     std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
     if (it == joint_time_.end())
