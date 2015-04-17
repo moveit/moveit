@@ -26,7 +26,6 @@
   <build_depend>liburdfdom-dev</build_depend>
   <build_depend>liburdfdom-headers-dev</build_depend>
   <build_depend>random_numbers</build_depend>
-  <build_depend>shape_tools</build_depend>
   <build_depend>octomap_msgs</build_depend>  
   <build_depend>moveit_msgs</build_depend>
   <build_depend>actionlib_msgs</build_depend>
@@ -56,7 +55,6 @@
   <run_depend>liburdfdom-dev</run_depend>
   <run_depend>liburdfdom-headers-dev</run_depend>
   <run_depend>random_numbers</run_depend>
-  <run_depend>shape_tools</run_depend>
   <run_depend>octomap</run_depend>
   <run_depend>srdfdom</run_depend> 
   <run_depend>kdl_parser</run_depend>
