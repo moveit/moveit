@@ -165,11 +165,11 @@ public:
    * This is a default implementation that returns only one solution and so its result is equivalent to calling
    * 'getPositionIK(...)' with a zero initialized seed.
    *
-   * @param ik_pose The desired pose of the tip frame
+   * @param ik_poses  The desired pose of each tip link
    * @param solutions A vector of vectors where each entry is a valid joint solution
    * @param result A struct that reports the results of the query
    * @param options An option struct which contains the type of redundancy discretization used. This default
-   *                implementation only supports the KinmaticSearches::NO_DISCRETIZATION method; requesting any
+   *                implementation only supports the KinematicSearches::NO_DISCRETIZATION method; requesting any
    *                other will result in failure.
    * @return True if a valid set of solutions was found, false otherwise.
    */
