@@ -88,7 +88,7 @@ namespace KinematicErrors
     UNSUPORTED_DISCRETIZATION_REQUESTED,        /**< Discretization method isn't supported by this implementation */
     DISCRETIZATION_NOT_INITIALIZED,             /**< Discretization values for the redundancy has not been set. See
                                                      setSearchDiscretization(...) method*/
-    MULTIPLE_TIPS_NO_SUPPORTED,                 /**< Only single tip link support is allowed */
+    MULTIPLE_TIPS_NOT_SUPPORTED,                 /**< Only single tip link support is allowed */
     EMPTY_TIP_POSES,                            /**< Empty ik_poses array passed */
     NO_SOLUTION                                 /**< A valid joint solution that can reach this pose(s) could not be found */
 

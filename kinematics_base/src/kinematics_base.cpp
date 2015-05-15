@@ -147,7 +147,7 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
   if(ik_poses.size() != 1)
   {
     logError("moveit.kinematics_base: This kinematic solver does not support getPositionIK for multiple poses");
-    result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NO_SUPPORTED;
+    result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
 
