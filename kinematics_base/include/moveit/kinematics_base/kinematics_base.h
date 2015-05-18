@@ -563,7 +563,7 @@ public:
     }
     else
     {
-      return 0.0f; // returned when there aren't any redundant joints
+      return 0.0; // returned when there aren't any redundant joints
     }
   }
 
@@ -571,7 +571,7 @@ public:
    * @brief Returns the set of supported kinematics discretization search types.  This implementation only supports
    * the DiscretizationMethods::ONE search.
    */
-  std::vector<DiscretizationMethod> getSuportedDiscretizationMethods() const
+  std::vector<DiscretizationMethod> getSupportedDiscretizationMethods() const
   {
     return supported_methods_;
   }

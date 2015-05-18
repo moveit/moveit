@@ -133,8 +133,8 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
                            const kinematics::KinematicsQueryOptions &options) const
 {
   std::vector<double> solution;
-  std::vector<double> seed(getJointNames().size(),0.0f);
-  result.solution_percentage = 0.0f;
+  std::vector<double> seed(getJointNames().size(),0.0);
+  result.solution_percentage = 0.0;
 
   bool supported = false;
   if(std::find(supported_methods_.begin(),supported_methods_.end(),options.discretization_method) ==
