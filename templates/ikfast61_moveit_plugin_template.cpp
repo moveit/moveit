@@ -132,7 +132,14 @@ public:
   /** @class
    *  @brief Interface for an IKFast kinematics plugin
    */
-  IKFastKinematicsPlugin():active_(false){}
+  IKFastKinematicsPlugin():
+    active_(false)
+  {
+    srand( time(NULL) );
+    supported_methods_.push_back(kinematics::DiscretizationMethods::NO_DISCRETIZATION);
+    supported_methods_.push_back(kinematics::DiscretizationMethods::ALL_DISCRETIZED);
+    supported_methods_.push_back(kinematics::DiscretizationMethods::ALL_RANDOM_SAMPLED);
+  }
 
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it
@@ -248,6 +255,23 @@ public:
                      const std::vector<double> &joint_angles,
                      std::vector<geometry_msgs::Pose> &poses) const;
 
+
+  /**
+   * @brief Sets the discretization value for the redundant joint.
+   *
+   * Since this ikfast implementation allows for one redundant joint then only the first entry will be in the discretization map will be used.
+   * Calling this method replaces previous discretization settings.
+   *
+   * @param discretization a map of joint indices and discretization value pairs.
+   */
+  void setSearchDiscretization(const std::map<int,double>& discretization);
+
+  /**
+   * @brief Overrides the default method to prevent changing the redundant joints
+   */
+  bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
+
+
 private:
 
   bool initialize(const std::string &robot_description,
@@ -273,6 +297,8 @@ private:
   void fillFreeParams(int count, int *array);
   bool getCount(int &count, const int &max_count, const int &min_count) const;
 
+  bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
+
 }; // end class
 
 bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
@@ -294,8 +320,14 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
 
   if(free_params_.size() > 1)
   {
-    ROS_FATAL("Only one free joint paramter supported!");
+    ROS_FATAL("Only one free joint parameter supported!");
     return false;
+  }
+  else if(free_params_.size() == 1)
+  {
+    redundant_joint_indices_.clear();
+    redundant_joint_indices_.push_back(free_params_[0]);
+    KinematicsBase::setSearchDiscretization(0);
   }
 
   urdf::Model robot_model;
@@ -387,6 +419,40 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
 
   active_ = true;
   return true;
+}
+
+void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int,double>& discretization)
+{
+
+  if(discretization.empty())
+  {
+    ROS_ERROR("The 'discretization' map is empty");
+    return;
+  }
+
+  if(redundant_joint_indices_.empty())
+  {
+    ROS_ERROR_STREAM("This group's solver doesn't support redundant joints");
+    return;
+  }
+
+  if(discretization.begin()->first != redundant_joint_indices_[0])
+  {
+    std::string redundant_joint = joint_names_[free_params_[0]];
+    ROS_ERROR_STREAM("Attempted to discretize a non-redundant joint "<<discretization.begin()->first<<", only joint '"<<
+                     redundant_joint<<"' with index " <<redundant_joint_indices_[0]<<" is redundant.");
+    return;
+  }
+
+  redundant_joint_discretization_.clear();
+  redundant_joint_discretization_[redundant_joint_indices_[0]] = discretization.begin()->second;
+}
+
+bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
+{
+
+  ROS_ERROR_STREAM("Changing the redundant joints isn't permitted by this group's solver ");
+  return false;
 }
 
 int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<double> &vfree, IkSolutionList<IkReal> &solutions) const
@@ -991,56 +1057,95 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
     return false;
   }
 
-  std::vector<double> vfree(free_params_.size());
-  const std::vector<double> ik_seed_state(num_joints_);
-  for(std::size_t i = 0; i < free_params_.size(); ++i)
-  {
-    int p = free_params_[i];
-    ROS_ERROR("%u is %f",p,ik_seed_state[p]);  // DTC
-    vfree[i] = ik_seed_state[p];
-  }
-
   if(ik_poses.empty())
   {
     ROS_ERROR("ik_poses is empty");
+    result.kinematic_error = kinematics::KinematicErrors::EMPTY_TIP_POSES;
+    return false;
+  }
+
+  if(ik_poses.size() > 1)
+  {
+    ROS_ERROR("ik_poses contains multiple entries, only one is allowed");
+    result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
 
   KDL::Frame frame;
   tf::poseMsgToKDL(ik_poses[0],frame);
 
+  // solving ik
+  std::vector< IkSolutionList<IkReal> > solution_set;
   IkSolutionList<IkReal> ik_solutions;
-  int numsol = solve(frame,vfree,ik_solutions);
+  std::vector<double> vfree;
+  int numsol = 0;
+  std::vector<double> sampled_joint_vals;
+  if(!redundant_joint_indices_.empty())
+  {
+    // computing all solutions sets for each sampled value of the redundant joint
+    if(!sampleRedundantJoint(options.discretization_method,sampled_joint_vals))
+    {
+      result.kinematic_error = kinematics::KinematicErrors::UNSUPORTED_DISCRETIZATION_REQUESTED;
+      return false;
+    }
+
+    for(unsigned int i = 0; i < sampled_joint_vals.size(); i++)
+    {
+      vfree.clear();
+      vfree.push_back(sampled_joint_vals[i]);
+      numsol += solve(frame,vfree,ik_solutions);
+      solution_set.push_back(ik_solutions);
+    }
+  }
+  else
+  {
+    // computing for single solution set
+    numsol = solve(frame,vfree,ik_solutions);
+    solution_set.push_back(ik_solutions);
+  }
 
   ROS_DEBUG_STREAM_NAMED("ikfast","Found " << numsol << " solutions from IKFast");
   bool solutions_found = false;
-  if(numsol)
+  std::stringstream ss;
+  if( numsol > 0 )
   {
-    for(int s = 0; s < numsol; ++s)
+    for(unsigned int r = 0; r < solution_set.size() ; r++)
     {
-      std::vector<double> sol;
-      getSolution(ik_solutions,s,sol);
-      ROS_DEBUG_NAMED("ikfast","Sol %d: %e   %e   %e   %e   %e   %e", s, sol[0], sol[1], sol[2], sol[3], sol[4], sol[5]);
 
-      bool obeys_limits = true;
-      for(unsigned int i = 0; i < sol.size(); i++)
+      ik_solutions = solution_set[r];
+      numsol = ik_solutions.GetNumSolutions();
+      for(int s = 0; s < numsol; ++s)
       {
-        // Add tolerance to limit check
-        if(joint_has_limits_vector_[i] && ( (sol[i] < (joint_min_vector_[i]-LIMIT_TOLERANCE)) ||
-                                            (sol[i] > (joint_max_vector_[i]+LIMIT_TOLERANCE)) ) )
+        std::vector<double> sol;
+        getSolution(ik_solutions,s,sol);
+        ss.str("");
+        ss<<"[";
+        for(unsigned int i = 0 ; i < sol.size() ; i++)
         {
-          // One element of solution is not within limits
-          obeys_limits = false;
-          ROS_DEBUG_STREAM_NAMED("ikfast","Not in limits! " << i << " value " << sol[i] << " has limit: " << joint_has_limits_vector_[i] << "  being  " << joint_min_vector_[i] << " to " << joint_max_vector_[i]);
-          break;
+          ss<<sol[i]<<" ";
         }
-      }
-      if(obeys_limits)
-      {
-        // All elements of solution obey limits
-        solutions_found = true;
-        solutions.push_back(sol);
+        ss<<"]";
+        ROS_DEBUG_NAMED("ikfast","Sol %d: %s", s, ss.str().c_str());
 
+        bool obeys_limits = true;
+        for(unsigned int i = 0; i < sol.size(); i++)
+        {
+          // Add tolerance to limit check
+          if(joint_has_limits_vector_[i] && ( (sol[i] < (joint_min_vector_[i]-LIMIT_TOLERANCE)) ||
+                                              (sol[i] > (joint_max_vector_[i]+LIMIT_TOLERANCE)) ) )
+          {
+            // One element of solution is not within limits
+            obeys_limits = false;
+            ROS_DEBUG_STREAM_NAMED("ikfast","Not in limits! " << i << " value " << sol[i] << " has limit: " << joint_has_limits_vector_[i] << "  being  " << joint_min_vector_[i] << " to " << joint_max_vector_[i]);
+            break;
+          }
+        }
+        if(obeys_limits)
+        {
+          // All elements of solution obey limits
+          solutions_found = true;
+          solutions.push_back(sol);
+        }
       }
     }
 
@@ -1059,6 +1164,55 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   return false;
 }
 
+bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const
+{
+  double joint_min = -M_PI;
+  double joint_max = M_PI;
+  int index =  redundant_joint_indices_.front();
+  double joint_dscrt = redundant_joint_discretization_.at(index);
+
+  if(joint_has_limits_vector_[redundant_joint_indices_.front()])
+  {
+    joint_min = joint_min_vector_[index];
+    joint_max = joint_max_vector_[index];
+  }
+
+
+  switch(method)
+  {
+    case kinematics::DiscretizationMethods::ALL_DISCRETIZED:
+    {
+      int steps = std::ceil((joint_max - joint_min)/joint_dscrt);
+      for(unsigned int i = 0; i < steps;i++)
+      {
+        sampled_joint_vals.push_back(joint_min + joint_dscrt*i);
+      }
+      sampled_joint_vals.push_back(joint_max);
+    }
+      break;
+    case kinematics::DiscretizationMethods::ALL_RANDOM_SAMPLED:
+    {
+      int count = joint_dscrt > 1 ? static_cast<int>(joint_dscrt) : 1;
+      double diff = joint_max - joint_min;
+      for(int i = 0; i < count; i++)
+      {
+        sampled_joint_vals.push_back( ((diff*std::rand())/(static_cast<double>(RAND_MAX))) + joint_min );
+      }
+    }
+
+      break;
+    case kinematics::DiscretizationMethods::NO_DISCRETIZATION:
+      sampled_joint_vals.push_back( ((joint_dscrt > (joint_min - LIMIT_TOLERANCE))
+          && (joint_dscrt < (joint_max + LIMIT_TOLERANCE))) ? joint_dscrt : 0.5*(joint_max - joint_min) );
+      break;
+
+    default:
+      ROS_ERROR_STREAM("Discretization method "<<method<<" is not supported");
+      return false;
+  }
+
+  return true;
+}
 
 
 } // end namespace
