@@ -172,6 +172,7 @@ public:
    * @return True if a valid set of solutions was found, false otherwise.
    */
   bool getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                             const std::vector<double> &ik_seed_state,
                              std::vector< std::vector<double> >& solutions,
                              kinematics::KinematicsResult& result,
                              const kinematics::KinematicsQueryOptions &options) const;
@@ -1043,8 +1044,8 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
   return false;
 }
 
-// Used when there are no redundant joints - aka no free params
 bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                                           const std::vector<double> &ik_seed_state,
                                            std::vector< std::vector<double> >& solutions,
                                            kinematics::KinematicsResult& result,
                                            const kinematics::KinematicsQueryOptions &options) const
@@ -1054,6 +1055,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   if(!active_)
   {
     ROS_ERROR("kinematics not active");
+    result.kinematic_error = kinematics::KinematicErrors::SOLVER_NOT_ACTIVE;
     return false;
   }
 
@@ -1071,6 +1073,12 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
     return false;
   }
 
+  if(ik_seed_state.size() < num_joints_)
+  {
+    ROS_ERROR_STREAM("ik_seed_state only has "<<ik_seed_state.size()<<" entries, this ikfast solver requires "<<num_joints_);
+    return false;
+  }
+
   KDL::Frame frame;
   tf::poseMsgToKDL(ik_poses[0],frame);
 
@@ -1082,6 +1090,27 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   std::vector<double> sampled_joint_vals;
   if(!redundant_joint_indices_.empty())
   {
+    // initializing from seed
+    sampled_joint_vals.push_back(ik_seed_state[redundant_joint_indices_[0]]);
+
+    // checking joint limits when using no discretization
+    if(options.discretization_method == kinematics::DiscretizationMethods::NO_DISCRETIZATION &&
+        joint_has_limits_vector_[redundant_joint_indices_.front()])
+    {
+      double joint_min = joint_min_vector_[redundant_joint_indices_.front()];
+      double joint_max = joint_max_vector_[redundant_joint_indices_.front()];
+
+      double jv = sampled_joint_vals[0];
+      if(!( (jv > (joint_min - LIMIT_TOLERANCE)) && (jv < (joint_max + LIMIT_TOLERANCE)) ))
+      {
+        result.kinematic_error = kinematics::KinematicErrors::IK_SEED_OUTSIDE_LIMITS;
+        ROS_ERROR_STREAM("ik seed is out of bounds");
+        return false;
+      }
+
+    }
+
+
     // computing all solutions sets for each sampled value of the redundant joint
     if(!sampleRedundantJoint(options.discretization_method,sampled_joint_vals))
     {
@@ -1202,10 +1231,8 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
 
       break;
     case kinematics::DiscretizationMethods::NO_DISCRETIZATION:
-      sampled_joint_vals.push_back( ((joint_dscrt > (joint_min - LIMIT_TOLERANCE))
-          && (joint_dscrt < (joint_max + LIMIT_TOLERANCE))) ? joint_dscrt : 0.5*(joint_max - joint_min) );
-      break;
 
+      break;
     default:
       ROS_ERROR_STREAM("Discretization method "<<method<<" is not supported");
       return false;
