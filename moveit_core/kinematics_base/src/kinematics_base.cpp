@@ -128,12 +128,12 @@ bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGro
 }
 
 bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                           const std::vector<double> &ik_seed_state,
                            std::vector< std::vector<double> >& solutions,
                            kinematics::KinematicsResult& result,
                            const kinematics::KinematicsQueryOptions &options) const
 {
   std::vector<double> solution;
-  std::vector<double> seed(getJointNames().size(),0.0);
   result.solution_percentage = 0.0;
 
   bool supported = false;
@@ -160,7 +160,7 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
 
 
   moveit_msgs::MoveItErrorCodes error_code;
-  if(getPositionIK(ik_poses[0],seed,solution,error_code,options))
+  if(getPositionIK(ik_poses[0],ik_seed_state,solution,error_code,options))
   {
     solutions.resize(1);
     solutions[0] = solution;

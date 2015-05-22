@@ -90,6 +90,8 @@ namespace KinematicErrors
                                                      setSearchDiscretization(...) method*/
     MULTIPLE_TIPS_NOT_SUPPORTED,                 /**< Only single tip link support is allowed */
     EMPTY_TIP_POSES,                            /**< Empty ik_poses array passed */
+    IK_SEED_OUTSIDE_LIMITS,                                /**< Ik seed is out of bounds*/
+    SOLVER_NOT_ACTIVE,                          /**< Solver isn't active */
     NO_SOLUTION                                 /**< A valid joint solution that can reach this pose(s) could not be found */
 
   };
@@ -166,6 +168,7 @@ public:
    * 'getPositionIK(...)' with a zero initialized seed.
    *
    * @param ik_poses  The desired pose of each tip link
+   * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @param solutions A vector of vectors where each entry is a valid joint solution
    * @param result A struct that reports the results of the query
    * @param options An option struct which contains the type of redundancy discretization used. This default
@@ -174,6 +177,7 @@ public:
    * @return True if a valid set of solutions was found, false otherwise.
    */
   virtual bool getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                             const std::vector<double> &ik_seed_state,
                              std::vector< std::vector<double> >& solutions,
                              KinematicsResult& result,
                              const kinematics::KinematicsQueryOptions &options) const;
