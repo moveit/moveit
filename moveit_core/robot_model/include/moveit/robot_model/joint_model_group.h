@@ -393,8 +393,8 @@ public:
   double distance(const double *state1, const double *state2) const;  
   void interpolate(const double *from, const double *to, double t, double *state) const;
   
-  /** \brief Get the number of variables that describe this joint group. This includes variables necessary for mimic joints, so will always be >=
-      the number of items returned by getActiveVariableNames() */
+  /** \brief Get the number of variables that describe this joint group. This includes variables necessary for mimic 
+      joints, so will always be >= the number of items returned by getActiveVariableNames() */      
   unsigned int getVariableCount() const
   {
     return variable_count_;
@@ -450,7 +450,8 @@ public:
   /** \brief Set the name of the end-effector, and remember this group is indeed an end-effector. */
   void setEndEffectorName(const std::string &name);
   
-  /** \brief If this group is an end-effector, specify the parent group (e.g., the arm holding the eef) and the link the end effector connects to */
+  /** \brief If this group is an end-effector, specify the parent group (e.g., the arm holding the eef) and the link the end 
+      effector connects to */
   void setEndEffectorParent(const std::string &group, const std::string &link);
   
   /** \brief Notify this group that there is an end-effector attached to it */
@@ -540,8 +541,8 @@ public:
   void setDefaultIKAttempts(unsigned int ik_attempts);
 
   /** \brief Return the mapping between the order of the joints in this group and the order of the joints in the kinematics solver.
-      An element bijection[i] at index \e i in this array, maps the variable at index bijection[i] in this group to the variable at index
-      i in the kinematic solver. */
+      An element bijection[i] at index \e i in this array, maps the variable at index bijection[i] in this group to 
+      the variable at index i in the kinematic solver. */      
   const std::vector<unsigned int>& getKinematicsSolverJointBijection() const
   {
     return group_kinematics_.first.bijection_;
@@ -554,7 +555,9 @@ protected:
 
   bool computeIKIndexBijection(const std::vector<std::string> &ik_jnames, std::vector<unsigned int> &joint_bijection) const;
   
-  /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, there are no values to be read (\e values is only the group state) */
+  /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates 
+      mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group, 
+      there are no values to be read (\e values is only the group state) */
   void updateMimicJoints(double *values) const;
 
   /** \brief Owner model */
@@ -584,10 +587,12 @@ protected:
   /** \brief The set of continuous joints this group contains */
   std::vector<const JointModel*>                             continuous_joint_model_vector_;
 
-  /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
+  /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not 
+      necessarily joint names!) */
   std::vector<std::string>                                   variable_names_;
 
-  /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not necessarily joint names!) */
+  /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not 
+      necessarily joint names!) */
   std::set<std::string>                                      variable_names_set_;
 
   /** \brief A map from joint names to their instances. This includes all joints in the group. */
@@ -610,7 +615,8 @@ protected:
   /** \brief The list of index values this group includes, with respect to a full robot state; this includes mimic joints. */
   std::vector<int>                                           variable_index_list_;
     
-  /** \brief For each active joint model in this group, hold the index at which the corresponding joint state starts in the group state */
+  /** \brief For each active joint model in this group, hold the index at which the corresponding joint state starts in 
+      the group state */
   std::vector<int>                                           active_joint_model_start_index_;
   
   /** \brief The links that are on the direct lineage between joints
@@ -669,7 +675,8 @@ protected:
   /** \brief If an end-effector is attached to this group, the name of that end-effector is stored in this variable */
   std::vector<std::string>                                   attached_end_effector_names_;
 
-  /** \brief First: name of the group that is parent to this end-effector group; Second: the link this in the parent group that this group attaches to */
+  /** \brief First: name of the group that is parent to this end-effector group; Second: the link this in the parent group 
+      that this group attaches to */
   std::pair<std::string, std::string>                        end_effector_parent_;
 
   /** \brief The name of the end effector, if this group is an end-effector */
