@@ -1776,7 +1776,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
     last_valid_percentage = percentage;
   }
 
-  if (test_joint_space_jump)
+  if (test_joint_space_jump && !dist_vector.empty())
   {
     // compute the average distance between the states we looked at
     double thres = jump_threshold * (total_dist / (double)dist_vector.size());
