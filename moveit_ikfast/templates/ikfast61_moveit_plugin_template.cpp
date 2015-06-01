@@ -329,7 +329,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description,
   {
     redundant_joint_indices_.clear();
     redundant_joint_indices_.push_back(free_params_[0]);
-    KinematicsBase::setSearchDiscretization(0);
+    KinematicsBase::setSearchDiscretization(DEFAULT_SEARCH_DISCRETIZATION);
   }
 
   urdf::Model robot_model;
@@ -445,6 +445,13 @@ void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int,double>&
                      redundant_joint<<"' with index " <<redundant_joint_indices_[0]<<" is redundant.");
     return;
   }
+
+  if(discretization.begin()->second <= 0.0)
+  {
+	  ROS_ERROR_STREAM("Discretization can not takes values that are <= 0");
+	  return;
+  }
+
 
   redundant_joint_discretization_.clear();
   redundant_joint_discretization_[redundant_joint_indices_[0]] = discretization.begin()->second;
