@@ -26,7 +26,8 @@ endif()
 
 
 install(TARGETS ${MOVEIT_LIB_NAME}
-  LIBRARY DESTINATION lib)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 install(DIRECTORY include/
   DESTINATION include)

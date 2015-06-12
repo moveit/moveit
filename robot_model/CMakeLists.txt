@@ -20,5 +20,7 @@ if(${CATKIN_ENABLE_TESTING})
   target_link_libraries(test_robot_model ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
+install(TARGETS ${MOVEIT_LIB_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
