@@ -10,7 +10,8 @@ target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection ${catkin_LIB
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
-  LIBRARY DESTINATION lib)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 install(DIRECTORY include/
   DESTINATION include)
   
