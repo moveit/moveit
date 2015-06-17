@@ -10,7 +10,9 @@ target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_model moveit_kinematics_ba
 
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
-install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
+install(TARGETS ${MOVEIT_LIB_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 
 # Unit tests
