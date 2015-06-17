@@ -13,7 +13,6 @@ COMPONENTS
   srdfdom
   kdl_parser
   geometric_shapes
-  shape_tools
   eigen_stl_containers 
   eigen_conversions
   random_numbers
@@ -90,7 +89,6 @@ catkin_package(
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
-    shape_tools
     eigen_stl_containers
     eigen_conversions
     random_numbers
