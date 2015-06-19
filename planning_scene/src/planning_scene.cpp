@@ -909,11 +909,18 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   if (comp.components & moveit_msgs::PlanningSceneComponents::TRANSFORMS)
     getTransforms().copyTransforms(scene_msg.fixed_frame_transforms);
 
-  if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
+  if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS) {
     robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);
-  else
-    if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE)
+    for(std::vector<moveit_msgs::AttachedCollisionObject>::iterator it
+            = scene_msg.robot_state.attached_collision_objects.begin();
+            it != scene_msg.robot_state.attached_collision_objects.end(); ++it) {
+        if(hasObjectType(it->object.id)) {
+            it->object.type = getObjectType(it->object.id);
+        }
+    }
+  } else if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE) {
       robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, false);
+  }
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX)
     getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
