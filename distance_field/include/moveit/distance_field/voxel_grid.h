@@ -475,7 +475,7 @@ inline const T& VoxelGrid<T>::operator()(double x, double y, double z) const
 template<typename T>
 inline const T& VoxelGrid<T>::operator()(const Eigen::Vector3d& pos) const
 {
-  this->operator()(pos.x(), pos.y(), pos.z());
+  return this->operator()(pos.x(), pos.y(), pos.z());
 }
 
 template<typename T>
