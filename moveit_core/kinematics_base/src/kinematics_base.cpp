@@ -52,6 +52,7 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   tip_frame_ = removeSlash(tip_frame); // for backwards compatibility
   tip_frames_.push_back(removeSlash(tip_frame));
   search_discretization_ = search_discretization;
+  setSearchDiscretization(search_discretization);
 }
 
 void kinematics::KinematicsBase::setValues(const std::string& robot_description,
@@ -64,6 +65,7 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   group_name_ = group_name;
   base_frame_ = removeSlash(base_frame);
   search_discretization_ = search_discretization;
+  setSearchDiscretization(search_discretization);
 
   // Copy tip frames to local vector after stripping slashes
   tip_frames_.clear();
@@ -85,6 +87,8 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned i
     }
   }
   redundant_joint_indices_ = redundant_joint_indices;
+  setSearchDiscretization(DEFAULT_SEARCH_DISCRETIZATION);
+
   return true;
 }
 
@@ -117,6 +121,55 @@ bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGro
     {
       *error_text_out = "This plugin only supports joint groups which are chains";
     }
+    return false;
+  }
+
+  return true;
+}
+
+bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
+                           const std::vector<double> &ik_seed_state,
+                           std::vector< std::vector<double> >& solutions,
+                           kinematics::KinematicsResult& result,
+                           const kinematics::KinematicsQueryOptions &options) const
+{
+  std::vector<double> solution;
+  result.solution_percentage = 0.0;
+
+  bool supported = false;
+  if(std::find(supported_methods_.begin(),supported_methods_.end(),options.discretization_method) ==
+      supported_methods_.end())
+  {
+    result.kinematic_error = kinematics::KinematicErrors::UNSUPORTED_DISCRETIZATION_REQUESTED;
+    return false;
+  }
+
+  if(ik_poses.size() != 1)
+  {
+    logError("moveit.kinematics_base: This kinematic solver does not support getPositionIK for multiple poses");
+    result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
+    return false;
+  }
+
+  if(ik_poses.size() == 0)
+  {
+    logError("moveit.kinematics_base: Input ik_poses array is empty");
+    result.kinematic_error = kinematics::KinematicErrors::EMPTY_TIP_POSES;
+    return false;
+  }
+
+
+  moveit_msgs::MoveItErrorCodes error_code;
+  if(getPositionIK(ik_poses[0],ik_seed_state,solution,error_code,options))
+  {
+    solutions.resize(1);
+    solutions[0] = solution;
+    result.kinematic_error = kinematics::KinematicErrors::OK;
+    result.solution_percentage = 1.0f;
+  }
+  else
+  {
+    result.kinematic_error = kinematics::KinematicErrors::NO_SOLUTION;
     return false;
   }
 
