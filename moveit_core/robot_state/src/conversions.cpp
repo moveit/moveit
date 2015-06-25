@@ -38,6 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/lexical_cast.hpp>
 
 namespace moveit
 {
@@ -485,6 +486,6 @@ void moveit::core::streamToRobotState(RobotState& state, const std::string& line
     if(!std::getline(lineStream, cell, separator[0]))
       logError("Missing variable %i", i);
 
-    state.getVariablePositions()[i] = atof(cell.c_str());
+    state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());
   }
 }
