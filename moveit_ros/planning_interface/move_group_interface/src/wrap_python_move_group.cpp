@@ -533,6 +533,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
   MoveGroupClass.def("get_planning_time", &MoveGroupWrapper::getPlanningTime);
   MoveGroupClass.def("set_planner_id", &MoveGroupWrapper::setPlannerId);
+  MoveGroupClass.def("set_num_planning_attempts", &MoveGroupWrapper::setNumPlanningAttempts);
   MoveGroupClass.def("compute_plan", &MoveGroupWrapper::getPlanPython);
   MoveGroupClass.def("compute_cartesian_path", &MoveGroupWrapper::computeCartesianPathPython);
   MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
