@@ -1126,8 +1126,8 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Kinemat
                                                                                                         bool verbose) const
 {
   ConstraintEvaluationResult result(true, 0.0);
-  results.resize(joint_constraints_.size());
-  for (std::size_t i = 0 ; i < joint_constraints_.size() ; ++i)
+  results.resize(kinematic_constraints_.size());
+  for (std::size_t i = 0 ; i < kinematic_constraints_.size() ; ++i)
   {
     results[i] = kinematic_constraints_[i]->decide(state, verbose);
     result.satisfied = result.satisfied && results[i].satisfied;
