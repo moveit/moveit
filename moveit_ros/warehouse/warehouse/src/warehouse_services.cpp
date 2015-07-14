@@ -118,13 +118,24 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  //  TODO(dg-shadow) check that host + port available. check db is working
-
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  moveit_warehouse::RobotStateStorage rs(vm.count("host") ? vm["host"].as<std::string>() : "",
-                                         vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+  moveit_warehouse::RobotStateStorage rs;
+
+  std::string host = vm.count("host") ? vm["host"].as<std::string>() : "";
+  std::size_t port = vm.count("port") ? vm["port"].as<std::size_t>() : 0;
+
+  try
+  {
+    rs = moveit_warehouse::RobotStateStorage(host, port);
+  }
+  catch (...)
+  {
+    ROS_FATAL_STREAM("Couldn't connect to MongoDB on " << host << ":" <<  port);
+    return -1;
+  }
+
   std::vector<std::string> names;
   rs.getKnownRobotStates(names);
   if (names.empty())
@@ -151,8 +162,6 @@ int main(int argc, char **argv)
   boost::function<bool(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request&  request,
                        moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response& response)>
     has_cb = boost::bind(&has_state, _1, _2, &rs);
-
-
 
   ros::NodeHandle node("~");
   ros::ServiceServer save_state_server  = node.advertiseService("save_robot_state",  save_cb);
