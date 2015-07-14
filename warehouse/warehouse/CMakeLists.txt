@@ -1,6 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_warehouse)
 
-add_library(${MOVEIT_LIB_NAME} 
+add_library(${MOVEIT_LIB_NAME}
   src/moveit_message_storage.cpp
   src/planning_scene_storage.cpp
   src/planning_scene_world_storage.cpp
@@ -25,14 +25,18 @@ target_link_libraries(moveit_warehouse_save_as_text ${catkin_LIBRARIES} ${MOVEIT
 add_executable(moveit_init_demo_warehouse src/initialize_demo_db.cpp)
 target_link_libraries(moveit_init_demo_warehouse ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
 
+add_executable(moveit_warehouse_services src/warehouse_services.cpp)
+target_link_libraries(moveit_warehouse_services ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME} ${Boost_LIBRARIES})
+
 install(
   TARGETS
-    ${MOVEIT_LIB_NAME} 
+    ${MOVEIT_LIB_NAME}
     moveit_save_to_warehouse
     moveit_warehouse_broadcast
     moveit_warehouse_import_from_text
     moveit_warehouse_save_as_text
     moveit_init_demo_warehouse
+    moveit_warehouse_services
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)
