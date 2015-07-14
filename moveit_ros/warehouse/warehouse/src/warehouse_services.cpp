@@ -34,14 +34,8 @@
 
 /* Author: Dan Greenwald */
 
-
-#include <moveit/warehouse/state_storage.h>
-#include <boost/program_options/cmdline.hpp>
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/variables_map.hpp>
-
 #include <ros/ros.h>
+#include <moveit/warehouse/state_storage.h>
 #include <moveit_msgs/SaveRobotStateToWarehouse.h>
 #include <moveit_msgs/ListRobotStatesInWarehouse.h>
 #include <moveit_msgs/GetRobotStateFromWarehouse.h>
