@@ -169,17 +169,6 @@ int main(int argc, char **argv)
   ros::ServiceServer get_state_server   = node.advertiseService("get_robot_state",   get_cb);
   ros::ServiceServer has_state_server   = node.advertiseService("has_robot_state",   has_cb);
 
-//  ros::Subscriber state_sub = nh.subscribe("robot_state", 100, save_cb);
-/*
-  std::vector<std::string> topics; psm.getMonitoredTopics(topics);
-  ROS_INFO_STREAM("Listening for scene updates on topics " <<
-  boost::algorithm::join(topics, ", ")); ROS_INFO_STREAM("Listening
-  for planning requests on topic " << mplan_req_sub.getTopic());
-  ROS_INFO_STREAM("Listening for named constraints on topic " <<
-  constr_sub.getTopic()); ROS_INFO_STREAM("Listening for states on
-  topic " << state_sub.getTopic());
-
-*/
   ros::waitForShutdown();
   return 0;
 }
