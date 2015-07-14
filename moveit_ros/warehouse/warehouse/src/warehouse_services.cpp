@@ -32,17 +32,15 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dan Greenwalducan */
+/* Author: Dan Greenwald */
 
-#include <moveit/warehouse/planning_scene_storage.h>
-#include <moveit/warehouse/constraints_storage.h>
+
 #include <moveit/warehouse/state_storage.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/program_options/cmdline.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
+
 #include <ros/ros.h>
 #include <moveit_msgs/SaveRobotStateToWarehouse.h>
 #include <moveit_msgs/ListRobotStatesInWarehouse.h>
@@ -102,39 +100,16 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "moveit_warehouse_services");
 
-  boost::program_options::options_description desc;
-  desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
-
-  boost::program_options::variables_map vm;
-  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-  boost::program_options::notify(vm);
-
-  if (vm.count("help"))
-  {
-    std::cout << desc << std::endl;
-    return 1;
-  }
-
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  moveit_warehouse::RobotStateStorage rs;
+  ros::NodeHandle node("~");
+  std::string host; int port;
+  node.param<std::string>("/warehouse_host", host, "");
+  node.param<int>("/warehouse_port", port, 0);
 
-  std::string host = vm.count("host") ? vm["host"].as<std::string>() : "";
-  std::size_t port = vm.count("port") ? vm["port"].as<std::size_t>() : 0;
-
-  try
-  {
-    rs = moveit_warehouse::RobotStateStorage(host, port);
-  }
-  catch (...)
-  {
-    ROS_FATAL_STREAM("Couldn't connect to MongoDB on " << host << ":" <<  port);
-    return -1;
-  }
+  ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
+  moveit_warehouse::RobotStateStorage rs(host, port);
 
   std::vector<std::string> names;
   rs.getKnownRobotStates(names);
@@ -163,7 +138,7 @@ int main(int argc, char **argv)
                        moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response& response)>
     has_cb = boost::bind(&has_state, _1, _2, &rs);
 
-  ros::NodeHandle node("~");
+
   ros::ServiceServer save_state_server  = node.advertiseService("save_robot_state",  save_cb);
   ros::ServiceServer list_states_server = node.advertiseService("list_robot_states", list_cb);
   ros::ServiceServer get_state_server   = node.advertiseService("get_robot_state",   get_cb);
