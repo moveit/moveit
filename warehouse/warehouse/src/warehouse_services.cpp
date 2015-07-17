@@ -45,7 +45,7 @@
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
-bool store_state(moveit_msgs::SaveRobotStateToWarehouse::Request&  request,
+bool storeState(moveit_msgs::SaveRobotStateToWarehouse::Request&  request,
                  moveit_msgs::SaveRobotStateToWarehouse::Response& response,
                  moveit_warehouse::RobotStateStorage* rs)
 {
@@ -59,7 +59,7 @@ bool store_state(moveit_msgs::SaveRobotStateToWarehouse::Request&  request,
   return response.success = true;
 }
 
-bool list_states(moveit_msgs::ListRobotStatesInWarehouse::Request&  request,
+bool listStates(moveit_msgs::ListRobotStatesInWarehouse::Request&  request,
                   moveit_msgs::ListRobotStatesInWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
@@ -74,7 +74,7 @@ bool list_states(moveit_msgs::ListRobotStatesInWarehouse::Request&  request,
   return true;
 }
 
-bool has_state(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request&  request,
+bool hasState(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request&  request,
                moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response& response,
                moveit_warehouse::RobotStateStorage* rs)
 {
@@ -82,7 +82,7 @@ bool has_state(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request&  reques
   return true;
 }
 
-bool get_state(moveit_msgs::GetRobotStateFromWarehouse::Request&  request,
+bool getState(moveit_msgs::GetRobotStateFromWarehouse::Request&  request,
                moveit_msgs::GetRobotStateFromWarehouse::Response& response,
                moveit_warehouse::RobotStateStorage* rs)
 {
@@ -92,7 +92,7 @@ bool get_state(moveit_msgs::GetRobotStateFromWarehouse::Request&  request,
   return true;
 }
 
-bool rename_state(moveit_msgs::RenameRobotStateInWarehouse::Request&  request,
+bool renameState(moveit_msgs::RenameRobotStateInWarehouse::Request&  request,
                   moveit_msgs::RenameRobotStateInWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
@@ -100,7 +100,7 @@ bool rename_state(moveit_msgs::RenameRobotStateInWarehouse::Request&  request,
   return true;
 }
 
-bool delete_state(moveit_msgs::DeleteRobotStateFromWarehouse::Request&  request,
+bool deleteState(moveit_msgs::DeleteRobotStateFromWarehouse::Request&  request,
                   moveit_msgs::DeleteRobotStateFromWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
@@ -117,8 +117,8 @@ int main(int argc, char **argv)
 
   ros::NodeHandle node("~");
   std::string host; int port;
-  node.param<std::string>("/warehouse_host", host, "");
-  node.param<int>("/warehouse_port", port, 0);
+  node.param<std::string>("warehouse_host", host, "localhost");
+  node.param<int>("warehouse_port", port, 33829);
 
   ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
   moveit_warehouse::RobotStateStorage rs(host, port);
@@ -136,28 +136,27 @@ int main(int argc, char **argv)
 
   boost::function<bool(moveit_msgs::SaveRobotStateToWarehouse::Request&  request,
                        moveit_msgs::SaveRobotStateToWarehouse::Response& response)>
-    save_cb = boost::bind(&store_state, _1, _2, &rs);
+    save_cb = boost::bind(&storeState, _1, _2, &rs);
 
   boost::function<bool(moveit_msgs::ListRobotStatesInWarehouse::Request&  request,
                        moveit_msgs::ListRobotStatesInWarehouse::Response& response)>
-    list_cb = boost::bind(&list_states, _1, _2, &rs);
+    list_cb = boost::bind(&listStates, _1, _2, &rs);
 
   boost::function<bool(moveit_msgs::GetRobotStateFromWarehouse::Request&  request,
                        moveit_msgs::GetRobotStateFromWarehouse::Response& response)>
-    get_cb = boost::bind(&get_state, _1, _2, &rs);
+    get_cb = boost::bind(&getState, _1, _2, &rs);
 
   boost::function<bool(moveit_msgs::CheckIfRobotStateExistsInWarehouse::Request&  request,
                        moveit_msgs::CheckIfRobotStateExistsInWarehouse::Response& response)>
-    has_cb = boost::bind(&has_state, _1, _2, &rs);
+    has_cb = boost::bind(&hasState, _1, _2, &rs);
 
   boost::function<bool(moveit_msgs::RenameRobotStateInWarehouse::Request&  request,
                        moveit_msgs::RenameRobotStateInWarehouse::Response& response)>
-    rename_cb = boost::bind(&rename_state, _1, _2, &rs);
+    rename_cb = boost::bind(&renameState, _1, _2, &rs);
 
   boost::function<bool(moveit_msgs::DeleteRobotStateFromWarehouse::Request&  request,
                        moveit_msgs::DeleteRobotStateFromWarehouse::Response& response)>
-    delete_cb = boost::bind(&delete_state, _1, _2, &rs);
-
+    delete_cb = boost::bind(&deleteState, _1, _2, &rs);
 
   ros::ServiceServer save_state_server   = node.advertiseService("save_robot_state",   save_cb);
   ros::ServiceServer list_states_server  = node.advertiseService("list_robot_states",  list_cb);
