@@ -289,42 +289,6 @@ void collision_detection::BodyDecomposition::init(const std::vector<shapes::Shap
     distance_field::findInternalPointsConvex(*bodies_.getBody(i),resolution,body_collision_points);
     relative_collision_points_.insert(relative_collision_points_.end(),body_collision_points.begin(), body_collision_points.end());
 
-    // completing unpopulated portions of the geometry with resolution size spheres
-    body_collision_points.clear();
-    distance_field::findInternalPointsConvex(*bodies_.getBody(i),2*radius,body_collision_points);
-    std::vector<CollisionSphere> filling_spheres;
-    bool add_sphere = false;
-    CollisionSphere sphere(Eigen::Vector3d::Zero(),radius);
-    for(unsigned int k = 0; k < body_collision_points.size(); k++)
-    {
-      add_sphere = true;
-      //sphere.relative_vec_ = relative_cylinder_pose_.inverse() *  body_collision_points[k];
-      sphere.relative_vec_ = body_collision_points[k];
-      Eigen::Vector3d& v = sphere.relative_vec_;
-
-      for(unsigned int j = 0; j < body_spheres.size(); j++)
-      {
-        double dist = (v - body_spheres[j].relative_vec_).norm();
-        // check if there is overlap between spheres
-        if(dist < (sphere.radius_ + body_spheres[j].radius_))
-        {
-          add_sphere = false;
-          break;
-        }
-      }
-
-      if(add_sphere)
-      {
-        filling_spheres.push_back(sphere);
-      }
-
-    }
-
-    if(!filling_spheres.empty())
-    {
-      collision_spheres_.insert(collision_spheres_.end(),filling_spheres.begin(), filling_spheres.end());
-      ROS_DEBUG_STREAM("Filled geometry with "<<filling_spheres.size()<<" r = "<<filling_spheres.front().radius_<<" size spheres");
-    }
   }
 
   sphere_radii_.resize(collision_spheres_.size());

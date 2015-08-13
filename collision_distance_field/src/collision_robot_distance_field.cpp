@@ -45,6 +45,8 @@
 namespace collision_detection
 {
 
+const double EPSILON = 0.001;
+
 CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel)
   : CollisionRobot(kmodel)
 {  
@@ -681,15 +683,12 @@ bool CollisionRobotDistanceField::getIntraGroupProximityGradients(boost::shared_
           double dist = gradient.norm();
           if(dist < gsr->gradients_[i].distances[k])
           {
-            //ROS_INFO_STREAM("Gradient " << gradient);
-            //ROS_INFO_STREAM("Dist " << dist);
             gsr->gradients_[i].distances[k] = dist;
             gsr->gradients_[i].gradients[k] = gradient;
             gsr->gradients_[i].types[k] = INTRA;
           }
-          if(dist < gsr->gradients_[j].distances[l]) {
-            //ROS_INFO_STREAM("Gradient sec " << gradient);
-            //ROS_INFO_STREAM("Dist sec " << dist);
+          if(dist < gsr->gradients_[j].distances[l])
+          {
             gsr->gradients_[j].distances[l] = dist;
             gsr->gradients_[j].gradients[l] = -gradient;
             gsr->gradients_[j].types[l] = INTRA;
@@ -789,10 +788,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
              t == collision_detection::AllowedCollision::ALWAYS) 
           {
             dfce->intra_group_collision_enabled_[i][j] = false;
-          } 
-          //else {
-          //std::cerr << "Setting not allowed for " << link_name << " and " << dfce->link_names_[j] << std::endl;
-          //}
+          }
         }
 
         std::vector<const moveit::core::AttachedBody*> link_attached_bodies;
@@ -867,95 +863,93 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   std::map<std::string, bool> updated_map;
   if(!dfce->link_names_.empty())
   {
-    //const moveit::core::JointModel* joint_model = dfce->state_->getLinkModel(dfce->link_names_[0])->getParentJointModel();
-    //std::vector<const moveit::core::JointModel*> child_joint_models = joint_model->getDescendantJointModels();
-    const std::vector<const moveit::core::JointModel*> &child_joint_models = dfce->state_->getLinkModel(dfce->link_names_[0])->getChildJointModels();
+    //const std::vector<const moveit::core::JointModel*> &child_joint_models = dfce->state_->getLinkModel(dfce->link_names_[0])->getChildJointModels();
+    const std::vector<const moveit::core::JointModel*> &child_joint_models = dfce->state_->getJointModelGroup(dfce->group_name_)->getActiveJointModels();
     for(unsigned int i = 0; i < child_joint_models.size(); i++)
     {
       updated_map[child_joint_models[i]->getName()] = true;
+      ROS_DEBUG_STREAM("Joint "<<child_joint_models[i]->getName()<<" has been added to updated list");
     }
   }
 
-
-  const std::vector<const moveit::core::JointModel* > joint_models = state.getJointModelGroup(group_name)->getActiveJointModels();
-  for(unsigned int i = 0; i < joint_models.size(); i++)
+  const std::vector<std::string> state_variable_names = state.getVariableNames();
+  for(std::vector<std::string>::const_iterator name_iter = state_variable_names.begin();
+      name_iter != state_variable_names.end();
+      name_iter++)
   {
-    if(joint_models[i]->getMimic()) continue;
-
-    if(updated_map.find(joint_models[i]->getName()) == updated_map.end())
+    double val = state.getVariablePosition(*name_iter);
+    dfce->state_values_.push_back(val);
+    if(updated_map.count(*name_iter)== 0)
     {
-      unsigned start_index = joint_models[i]->getFirstVariableIndex();
-      for(unsigned int j = 0; j < joint_models[i]->getVariableCount(); j++)
-      {
-        unsigned int current_index = start_index + j;
-        dfce->state_values_.push_back(state.getVariablePosition(start_index + j));
-        dfce->state_check_indices_.push_back(dfce->state_values_.size()-1);
-      }
+      dfce->state_check_indices_.push_back(dfce->state_values_.size()-1);
+      ROS_DEBUG_STREAM("Non-group joint "<<*name_iter<<" will be checked for state changes");
+    }
+  }
+
+  if(generate_distance_field )
+  {
+    if(dfce->distance_field_)
+    {
+      ROS_WARN_STREAM("CollisionRobot skipping distance field generation, will use existing one");
     }
     else
     {
-      unsigned start_index = joint_models[i]->getFirstVariableIndex();
-      for(unsigned int j = 0; j < joint_models[i]->getVariableCount(); j++)
+      std::vector<PosedBodyPointDecompositionPtr> non_group_link_decompositions;
+      std::vector<PosedBodyPointDecompositionVectorPtr> non_group_attached_body_decompositions;
+      const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
+      for(unsigned int i = 0; i < robot_model_->getLinkModelsWithCollisionGeometry().size(); i++)
       {
-        dfce->state_values_.push_back(state.getVariablePosition(start_index + j));
-      }
-    }
-  }
+        std::string link_name = robot_model_->getLinkModelsWithCollisionGeometry()[i]->getName();
+        const moveit::core::LinkModel* link_state = dfce->state_->getLinkModel(link_name);
+        if(updated_group_map.find(link_name) != updated_group_map.end())
+        {
+          continue;
+        }
 
-  if(generate_distance_field)
-  {
-    std::vector<PosedBodyPointDecompositionPtr> non_group_link_decompositions;
-    std::vector<PosedBodyPointDecompositionVectorPtr> non_group_attached_body_decompositions;
-    const std::map<std::string, bool>& updated_group_map = in_group_update_map_.find(group_name)->second;
-    for(unsigned int i = 0; i < robot_model_->getLinkModelsWithCollisionGeometry().size(); i++)
-    {
-      std::string link_name = robot_model_->getLinkModelsWithCollisionGeometry()[i]->getName();
-      const moveit::core::LinkModel* link_state = dfce->state_->getLinkModel(link_name);
-      if(updated_group_map.find(link_name) != updated_group_map.end())
+        // populating array with link that are not part of the planning group
+        non_group_link_decompositions.push_back(getPosedLinkBodyPointDecomposition(link_state));
+        non_group_link_decompositions.back()->updatePose(dfce->state_->getFrameTransform(link_state->getName()));
+
+        std::vector<const moveit::core::AttachedBody*> attached_bodies;
+        dfce->state_->getAttachedBodies(attached_bodies, link_state);
+        for(unsigned int j = 0; j < attached_bodies.size(); j++)
+        {
+          non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[j], resolution_));
+        }
+
+      }
+      dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_.x(),
+                                                                               size_.y(),
+                                                                               size_.z(),
+                                                                               resolution_,
+                                                                               origin_.x() - 0.5*size_.x(),
+                                                                               origin_.y() - 0.5*size_.y(),
+                                                                               origin_.z() - 0.5*size_.z(),
+                                                                               max_propogation_distance_,
+                                                                               use_signed_distance_field_));
+
+      //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-before_create).toSec());
+      //TODO - deal with AllowedCollisionMatrix
+      //now we need to actually set the points
+      //TODO - deal with shifted robot
+      EigenSTL::vector_Vector3d all_points;
+      for(unsigned int i = 0; i < non_group_link_decompositions.size(); i++)
       {
-        continue;
+        all_points.insert(all_points.end(),
+                          non_group_link_decompositions[i]->getCollisionPoints().begin(),
+                          non_group_link_decompositions[i]->getCollisionPoints().end());
       }
 
-      // populating array with link that are not part of the planning group
-      non_group_link_decompositions.push_back(getPosedLinkBodyPointDecomposition(link_state));
-      non_group_link_decompositions.back()->updatePose(dfce->state_->getFrameTransform(link_state->getName()));
-
-      std::vector<const moveit::core::AttachedBody*> attached_bodies;
-      dfce->state_->getAttachedBodies(attached_bodies, link_state);
-      for(unsigned int j = 0; j < attached_bodies.size(); j++)
+      for(unsigned int i = 0; i < non_group_attached_body_decompositions.size(); i++)
       {
-        non_group_attached_body_decompositions.push_back(getAttachedBodyPointDecomposition(attached_bodies[j], resolution_));
+        all_points.insert(all_points.end(),
+                          non_group_attached_body_decompositions[i]->getCollisionPoints().begin(),
+                          non_group_attached_body_decompositions[i]->getCollisionPoints().end());
       }
 
+      dfce->distance_field_->addPointsToField(all_points);
+      ROS_DEBUG_STREAM("CollisionRobot distance field has been initialized with "<<all_points.size()<<" points.");
     }
-    dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_.x(),
-                                                                             size_.y(),
-                                                                             size_.z(),
-                                                                             resolution_,
-                                                                             origin_.x() - 0.5*size_.x(),
-                                                                             origin_.y() - 0.5*size_.y(),
-                                                                             origin_.z() - 0.5*size_.z(),
-                                                                             max_propogation_distance_,
-                                                                             use_signed_distance_field_));
-
-    //ROS_INFO_STREAM("Creation took " << (ros::WallTime::now()-before_create).toSec());
-    //TODO - deal with AllowedCollisionMatrix
-    //now we need to actually set the points
-    //TODO - deal with shifted robot
-    EigenSTL::vector_Vector3d all_points;
-    for(unsigned int i = 0; i < non_group_link_decompositions.size(); i++)
-    {
-      all_points.insert(all_points.end(),
-                        non_group_link_decompositions[i]->getCollisionPoints().begin(),
-                        non_group_link_decompositions[i]->getCollisionPoints().end());
-    }
-    for(unsigned int i = 0; i < non_group_attached_body_decompositions.size(); i++) {
-      all_points.insert(all_points.end(),
-                        non_group_attached_body_decompositions[i]->getCollisionPoints().begin(),
-                        non_group_attached_body_decompositions[i]->getCollisionPoints().end());
-    }
-
-    dfce->distance_field_->addPointsToField(all_points);
     
   }
   return dfce;
@@ -1252,16 +1246,18 @@ bool CollisionRobotDistanceField::compareCacheEntryToState(const boost::shared_p
                                                            const moveit::core::RobotState& state) const
 {
   std::vector<double> new_state_values;
-  state.copyJointGroupPositions(dfce->group_name_,new_state_values);
+  new_state_values.assign(state.getVariablePositions(),state.getVariablePositions() + state.getVariableCount());
   if(dfce->state_values_.size() != new_state_values.size())
   {
-    logError("State value size mismatch");
+    ROS_ERROR("State value size mismatch");
     return false;
   }
+
   for(unsigned int i = 0; i < dfce->state_check_indices_.size(); i++)
   {
-    if(fabs(dfce->state_values_[dfce->state_check_indices_[i]]-new_state_values[dfce->state_check_indices_[i]]) > .0001)
+    if(fabs(dfce->state_values_[dfce->state_check_indices_[i]]-new_state_values[dfce->state_check_indices_[i]]) > EPSILON)
     {
+      ROS_WARN_STREAM("State for Variable "<<state.getVariableNames()[dfce->state_check_indices_[i] ] <<" has changed");
       return false;
     }
   }
