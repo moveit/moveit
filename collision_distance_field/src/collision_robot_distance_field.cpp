@@ -45,7 +45,7 @@
 namespace collision_detection
 {
 
-const double EPSILON = 0.001;
+const double EPSILON = 0.001f;
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel)
   : CollisionRobot(kmodel)
@@ -1245,8 +1245,12 @@ void CollisionRobotDistanceField::getGroupStateRepresentation(const boost::share
 bool CollisionRobotDistanceField::compareCacheEntryToState(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
                                                            const moveit::core::RobotState& state) const
 {
-  std::vector<double> new_state_values;
-  new_state_values.assign(state.getVariablePositions(),state.getVariablePositions() + state.getVariableCount());
+  std::vector<double> new_state_values(state.getVariableCount());
+  for(unsigned int i = 0 ; i < new_state_values.size(); i++)
+  {
+    new_state_values[i] = state.getVariablePosition(i);
+  }
+
   if(dfce->state_values_.size() != new_state_values.size())
   {
     ROS_ERROR("State value size mismatch");
@@ -1255,9 +1259,11 @@ bool CollisionRobotDistanceField::compareCacheEntryToState(const boost::shared_p
 
   for(unsigned int i = 0; i < dfce->state_check_indices_.size(); i++)
   {
-    if(fabs(dfce->state_values_[dfce->state_check_indices_[i]]-new_state_values[dfce->state_check_indices_[i]]) > EPSILON)
+    double diff = fabs(dfce->state_values_[dfce->state_check_indices_[i]]-new_state_values[dfce->state_check_indices_[i]]);
+    if(diff > EPSILON)
     {
-      ROS_WARN_STREAM("State for Variable "<<state.getVariableNames()[dfce->state_check_indices_[i] ] <<" has changed");
+      ROS_WARN_STREAM("State for Variable "<<state.getVariableNames()[dfce->state_check_indices_[i] ] <<
+                      " has changed by "<<diff<<" radians");
       return false;
     }
   }
