@@ -863,7 +863,6 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   std::map<std::string, bool> updated_map;
   if(!dfce->link_names_.empty())
   {
-    //const std::vector<const moveit::core::JointModel*> &child_joint_models = dfce->state_->getLinkModel(dfce->link_names_[0])->getChildJointModels();
     const std::vector<const moveit::core::JointModel*> &child_joint_models = dfce->state_->getJointModelGroup(dfce->group_name_)->getActiveJointModels();
     for(unsigned int i = 0; i < child_joint_models.size(); i++)
     {
@@ -890,7 +889,7 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
   {
     if(dfce->distance_field_)
     {
-      ROS_WARN_STREAM("CollisionRobot skipping distance field generation, will use existing one");
+      ROS_DEBUG_STREAM("CollisionRobot skipping distance field generation, will use existing one");
     }
     else
     {
