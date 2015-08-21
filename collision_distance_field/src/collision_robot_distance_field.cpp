@@ -343,11 +343,6 @@ bool CollisionRobotDistanceField::getSelfCollisions(const collision_detection::C
       if(coll)
       {
         ROS_DEBUG("Link %s in self collision", gsr->dfce_->link_names_[i].c_str());
-        //if(is_link) {
-        //   std::cerr << "Link " << gsr->dfce_->link_names_[i] << " in self collision" << std::endl;
-        // } else {
-        //   std::cerr << "Attached body in self collision" << std::endl;
-        // }
         res.collision = true;
         return true;
       }

@@ -89,18 +89,24 @@ bool collision_detection::PosedDistanceField::getCollisionSphereGradients(const 
 
     if(dist < maximum_value)
     {
+
       if(subtract_radii)
       {
         dist -= sphere_list[i].radius_;
-      }
 
-      if(dist <= tolerance)
-      {
-        if(stop_at_first_collision)
+        if( (dist< 0) && (-dist <= tolerance) )
         {
-          return true;
+          in_collision = true;
         }
-        in_collision = true;
+
+        dist = std::abs(dist);
+      }
+      else
+      {
+        if(sphere_list[i].radius_ - dist  > tolerance)
+        {
+          in_collision = true;
+        }
       }
 
       if(dist < gradient.closest_distance)
@@ -115,6 +121,12 @@ bool collision_detection::PosedDistanceField::getCollisionSphereGradients(const 
         gradient.gradients[i] = grad;
       }
     }
+
+    if(stop_at_first_collision && in_collision)
+    {
+      return true;
+    }
+
   }
   return in_collision;
 }
@@ -146,18 +158,23 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
 
     if(dist < maximum_value)
     {
+
       if(subtract_radii)
       {
         dist -= sphere_list[i].radius_;
-      }
 
-      if(dist <= tolerance)
-      {
-        if(stop_at_first_collision)
+        if( (dist< 0) && (-dist <= tolerance) )
         {
-          return true;
-        } 
-        in_collision = true;
+          in_collision = true;
+        }
+        dist = std::abs(dist);
+      }
+      else
+      {
+        if(sphere_list[i].radius_ - dist  > tolerance)
+        {
+          in_collision = true;
+        }
       }
 
       if(dist < gradient.closest_distance)
@@ -171,6 +188,11 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
         gradient.distances[i] = dist;
         gradient.gradients[i] = grad;
       }
+    }
+
+    if(stop_at_first_collision && in_collision)
+    {
+      return true;
     }
   }
   return in_collision;
@@ -196,11 +218,8 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
       return true;
     }
 
-    if( (maximum_value > dist) && (dist - sphere_list[i].radius_ < tolerance ))
+    if( (maximum_value > dist) && (sphere_list[i].radius_ - dist > tolerance ))
     {
-      ROS_DEBUG_STREAM("Sphere with radius "<<sphere_list[i].radius_<<
-                      "is in collision at point " << p.x() << " " << p.y() << " " << p.z() << " with a penetration depth of "<<
-                      std::abs(dist - sphere_list[i].radius_));
       return true;
     }
   }
@@ -227,17 +246,21 @@ bool collision_detection::getCollisionSphereCollision(const distance_field::Dist
       ROS_DEBUG("Collision sphere point is out of bounds");
       return true;
     }
-    if(maximum_value > dist && (dist - sphere_list[i].radius_ < tolerance)) {
+    if(maximum_value > dist && (sphere_list[i].radius_ - dist > tolerance))
+    {
       if(num_coll == 0)
       {
         return true;
       }
+
       colls.push_back(i);
-      if(colls.size() >= num_coll) {
+      if(colls.size() >= num_coll)
+      {
         return true;
       }
     }
   }
+
   return colls.size() > 0;
 }
 
