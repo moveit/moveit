@@ -38,6 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <boost/lexical_cast.hpp>
 
 namespace moveit
 {
@@ -471,4 +472,20 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out
   if (include_header)
     out << headers.str() << std::endl;
   out << joints.str() << std::endl;
+}
+
+void moveit::core::streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+{
+  std::stringstream lineStream(line);
+  std::string cell;
+
+  // For each item/column
+  for (std::size_t i = 0; i < state.getVariableCount(); ++i)
+  {
+    // Get a variable
+    if(!std::getline(lineStream, cell, separator[0]))
+      logError("Missing variable %i", i);
+
+    state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());
+  }
 }
