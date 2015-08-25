@@ -51,7 +51,8 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
 {
   
 public:
-  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
 
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel, 

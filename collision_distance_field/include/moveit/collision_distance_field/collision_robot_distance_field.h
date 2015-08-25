@@ -60,6 +60,7 @@ class CollisionRobotDistanceField : public CollisionRobot
   friend class CollisionWorldDistanceField;
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel);
 

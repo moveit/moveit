@@ -54,6 +54,8 @@ struct DistanceFieldCacheEntry;
  * and can only be used with that dfce_ (DistanceFieldCacheEntry -- see below).
  * */
 struct GroupStateRepresentation {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   GroupStateRepresentation() {};
   GroupStateRepresentation(const GroupStateRepresentation& gsr)
   {
@@ -104,6 +106,8 @@ struct GroupStateRepresentation {
  * assumes the poses of joints above this group have not changed, but can be
  * used with different poses of the joints within the group. */
 struct DistanceFieldCacheEntry {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   /** for checking collisions between this group and other objects */
   std::string group_name_;
   /** RobotState that this cache entry represents */

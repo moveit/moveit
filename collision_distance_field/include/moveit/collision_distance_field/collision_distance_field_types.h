@@ -109,6 +109,8 @@ struct GradientInfo
 class PosedDistanceField: public distance_field::PropagationDistanceField
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   PosedDistanceField(const Eigen::Vector3d& size,
                      const Eigen::Vector3d& origin,
                      double resolution,
@@ -312,6 +314,7 @@ typedef boost::shared_ptr<const BodyDecomposition> BodyDecompositionConstPtr;
 class PosedBodySphereDecomposition {
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition);
   
@@ -356,6 +359,7 @@ protected:
 class PosedBodyPointDecomposition {
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 

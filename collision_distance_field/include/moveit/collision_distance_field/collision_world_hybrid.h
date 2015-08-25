@@ -48,7 +48,7 @@ class CollisionRobotHybrid;
 class CollisionWorldHybrid : public CollisionWorldFCL
 {
 public:
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   CollisionWorldHybrid(Eigen::Vector3d size = Eigen::Vector3d(3,3,4),
                        Eigen::Vector3d origin  = Eigen::Vector3d(0,0,0),
                        bool use_signed_distance_field = false,

@@ -46,7 +46,7 @@ namespace collision_detection {
 class CollisionWorldDistanceField : public CollisionWorld
 {
 public:
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   struct DistanceFieldCacheEntry {
     std::map<std::string, 
              std::vector<PosedBodyPointDecompositionPtr> > posed_body_point_decompositions_;
