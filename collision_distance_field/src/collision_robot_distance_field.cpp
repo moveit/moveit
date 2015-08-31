@@ -428,7 +428,7 @@ bool CollisionRobotDistanceField::getSelfProximityGradients(boost::shared_ptr<Gr
                                         gsr->gradients_[i],
                                         collision_detection::SELF,
                                         collision_tolerance_,
-                                        false,
+                                        true,
                                         max_propogation_distance_,
                                         false);
 
