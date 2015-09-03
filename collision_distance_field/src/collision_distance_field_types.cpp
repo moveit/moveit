@@ -40,7 +40,7 @@
 #include <moveit/distance_field/find_internal_points.h>
 #include <ros/console.h>
 
-const static double RESOLUTION_SCALE = 2.0;
+const static double RESOLUTION_SCALE = 1.0;
 const static double EPSILON = 0.0001;
 
 std::vector<collision_detection::CollisionSphere> collision_detection::determineCollisionSpheres(const bodies::Body* body, 
@@ -94,7 +94,7 @@ bool collision_detection::PosedDistanceField::getCollisionSphereGradients(const 
       {
         dist -= sphere_list[i].radius_;
 
-        if( (dist< 0) && (-dist <= tolerance) )
+        if( (dist< 0) && (-dist >= tolerance) )
         {
           in_collision = true;
         }
@@ -163,11 +163,10 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
       {
         dist -= sphere_list[i].radius_;
 
-        if( (dist< 0) && (-dist <= tolerance) )
+        if( (dist< 0) && (-dist >= tolerance) )
         {
           in_collision = true;
         }
-        dist = std::abs(dist);
       }
       else
       {
