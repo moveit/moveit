@@ -115,7 +115,7 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  ros::NodeHandle node("~");
+  ros::NodeHandle node;
   std::string host; int port;
   node.param<std::string>("warehouse_host", host, "localhost");
   node.param<int>("warehouse_port", port, 33829);
