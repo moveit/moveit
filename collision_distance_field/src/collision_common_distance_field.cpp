@@ -51,7 +51,7 @@ struct BodyDecompositionCache
   boost::mutex lock_;
 };
 
-BodyDecompositionCache& getBodyDecompositionCache() 
+BodyDecompositionCache& getBodyDecompositionCache()
 {
   static BodyDecompositionCache cache;
   return cache;
@@ -69,7 +69,7 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
     if(cache_it != cache.map_.end()) {
       return cache_it->second;
     }
-  } 
+  }
 
   BodyDecompositionConstPtr bdcp(new BodyDecomposition(shape, resolution));
   {
@@ -157,7 +157,7 @@ void getBodySphereVisualizationMarkers(boost::shared_ptr<const collision_detecti
   unsigned int id = 0;
   for(unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
   {
-    const moveit::core::LinkModel* ls = state.getJointModelGroup(gsr->dfce_->group_name_)->getLinkModel(gsr->dfce_->link_names_[i]);
+    const moveit::core::LinkModel* ls = state.getLinkModel(gsr->dfce_->link_names_[i]);
     if(gsr->dfce_->link_has_geometry_[i])
     {
       gsr->link_body_decompositions_[i]->updatePose(state.getFrameTransform(ls->getName()));
