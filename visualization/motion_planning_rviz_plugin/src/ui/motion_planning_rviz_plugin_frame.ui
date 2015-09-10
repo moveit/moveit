@@ -623,7 +623,7 @@
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
-               <string>Velocity Scaling:</string>	               
+               <string>Velocity Scaling:</string>
               </property>
              </widget>
             </item>
@@ -1564,6 +1564,80 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>planning_algorithm_combo_box</tabstop>
+  <tabstop>publish_current_scene_button</tabstop>
+  <tabstop>database_host</tabstop>
+  <tabstop>database_port</tabstop>
+  <tabstop>reset_db_button</tabstop>
+  <tabstop>database_connect_button</tabstop>
+  <tabstop>collision_aware_ik</tabstop>
+  <tabstop>approximate_ik</tabstop>
+  <tabstop>plan_button</tabstop>
+  <tabstop>execute_button</tabstop>
+  <tabstop>plan_and_execute_button</tabstop>
+  <tabstop>start_state_selection</tabstop>
+  <tabstop>use_start_state_button</tabstop>
+  <tabstop>goal_state_selection</tabstop>
+  <tabstop>use_goal_state_button</tabstop>
+  <tabstop>wcenter_x</tabstop>
+  <tabstop>wcenter_y</tabstop>
+  <tabstop>wcenter_z</tabstop>
+  <tabstop>wsize_x</tabstop>
+  <tabstop>wsize_y</tabstop>
+  <tabstop>wsize_z</tabstop>
+  <tabstop>planning_time</tabstop>
+  <tabstop>planning_attempts</tabstop>
+  <tabstop>exec_time_factor</tabstop>
+  <tabstop>allow_replanning</tabstop>
+  <tabstop>allow_looking</tabstop>
+  <tabstop>allow_external_program</tabstop>
+  <tabstop>path_constraints_combo_box</tabstop>
+  <tabstop>goal_tolerance</tabstop>
+  <tabstop>clear_octomap_button</tabstop>
+  <tabstop>detected_objects_list</tabstop>
+  <tabstop>detect_objects_button</tabstop>
+  <tabstop>support_surfaces_list</tabstop>
+  <tabstop>pick_button</tabstop>
+  <tabstop>place_button</tabstop>
+  <tabstop>roi_center_x</tabstop>
+  <tabstop>roi_center_y</tabstop>
+  <tabstop>roi_center_z</tabstop>
+  <tabstop>roi_size_x</tabstop>
+  <tabstop>roi_size_y</tabstop>
+  <tabstop>roi_size_z</tabstop>
+  <tabstop>collision_objects_list</tabstop>
+  <tabstop>import_file_button</tabstop>
+  <tabstop>import_url_button</tabstop>
+  <tabstop>remove_object_button</tabstop>
+  <tabstop>clear_scene_button</tabstop>
+  <tabstop>object_x</tabstop>
+  <tabstop>object_y</tabstop>
+  <tabstop>object_z</tabstop>
+  <tabstop>object_rx</tabstop>
+  <tabstop>object_ry</tabstop>
+  <tabstop>object_rz</tabstop>
+  <tabstop>scene_scale</tabstop>
+  <tabstop>export_scene_text_button</tabstop>
+  <tabstop>import_scene_text_button</tabstop>
+  <tabstop>planning_scene_tree</tabstop>
+  <tabstop>load_scene_button</tabstop>
+  <tabstop>load_query_button</tabstop>
+  <tabstop>delete_scene_button</tabstop>
+  <tabstop>delete_query_button</tabstop>
+  <tabstop>save_query_button</tabstop>
+  <tabstop>save_scene_button</tabstop>
+  <tabstop>list_states</tabstop>
+  <tabstop>load_state_button</tabstop>
+  <tabstop>clear_states_button</tabstop>
+  <tabstop>set_as_start_state_button</tabstop>
+  <tabstop>set_as_goal_state_button</tabstop>
+  <tabstop>remove_state_button</tabstop>
+  <tabstop>save_start_state_button</tabstop>
+  <tabstop>save_goal_state_button</tabstop>
+  <tabstop>status_text</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
