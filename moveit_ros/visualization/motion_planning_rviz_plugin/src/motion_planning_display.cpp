@@ -1267,13 +1267,23 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     rviz::Config workspace = config.mapGetChild( "MoveIt_Workspace" );
     rviz::Config ws_center = workspace.mapGetChild( "Center" );
     float val;
-    if( ws_center.mapGetFloat("X", &val)) frame_->ui_->wcenter_x->setValue(val);
-    if( ws_center.mapGetFloat("Y", &val)) frame_->ui_->wcenter_y->setValue(val);
-    if( ws_center.mapGetFloat("Z", &val)) frame_->ui_->wcenter_z->setValue(val);
+    if( ws_center.mapGetFloat("X", &val))
+      frame_->ui_->wcenter_x->setValue(val);
+    if( ws_center.mapGetFloat("Y", &val))
+      frame_->ui_->wcenter_y->setValue(val);
+    if( ws_center.mapGetFloat("Z", &val))
+      frame_->ui_->wcenter_z->setValue(val);
+
     rviz::Config ws_size = workspace.mapGetChild( "Size" );
-    if( ws_size.mapGetFloat("X", &val)) frame_->ui_->wsize_x->setValue(val);
-    if( ws_size.mapGetFloat("Y", &val)) frame_->ui_->wsize_y->setValue(val);
-    if( ws_size.mapGetFloat("Z", &val)) frame_->ui_->wsize_z->setValue(val);
+    if(ws_size.isValid())
+    {
+      if( ws_size.mapGetFloat("X", &val))
+        frame_->ui_->wsize_x->setValue(val);
+      if( ws_size.mapGetFloat("Y", &val))
+        frame_->ui_->wsize_y->setValue(val);
+      if( ws_size.mapGetFloat("Z", &val))
+        frame_->ui_->wsize_z->setValue(val);
+    }
   }
 }
 
