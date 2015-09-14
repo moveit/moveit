@@ -1284,6 +1284,18 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
       if( ws_size.mapGetFloat("Z", &val))
         frame_->ui_->wsize_z->setValue(val);
     }
+    else
+    {
+      std::string node_name = ros::names::append(getMoveGroupNS(), "move_group");
+      ros::NodeHandle nh_(node_name);
+      double val;
+      if(nh_.getParam("default_workspace_bounds", val))
+      {
+        frame_->ui_->wsize_x->setValue(val);
+        frame_->ui_->wsize_y->setValue(val);
+        frame_->ui_->wsize_z->setValue(val);
+      }
+    }
   }
 }
 
