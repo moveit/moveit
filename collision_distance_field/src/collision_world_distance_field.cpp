@@ -44,6 +44,7 @@
 namespace collision_detection
 {
 
+
 CollisionWorldDistanceField::~CollisionWorldDistanceField()
 {
   getWorld()->removeObserver(observer_handle_);
@@ -544,21 +545,43 @@ void CollisionWorldDistanceField::updateDistanceObject(const std::string& id,
                              cur_it->second[i]->getCollisionPoints().end());
     }
   }
+
   World::ObjectConstPtr object = getWorld()->getObject(id);
-  if(object) {
+  if(object)
+  {
+    ROS_DEBUG_STREAM("Updating/Adding Object '"<<object->id_<<"' with "<<object->shapes_.size()
+                     <<" shapes  to CollisionWorldDistanceField");
     std::vector<PosedBodyPointDecompositionPtr> shape_points;
-    for(unsigned int i = 0; i < object->shapes_.size(); i++) {
+    for(unsigned int i = 0; i < object->shapes_.size(); i++)
+    {
+      shapes::ShapeConstPtr shape = object->shapes_[i];
+      if(shape->type == shapes::OCTREE)
+      {
+        const shapes::OcTree* octree_shape = static_cast<const shapes::OcTree*>(shape.get());
+        boost::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
+
+        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(octree));
+      }
+      else
+      {
       
-      BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(object->shapes_[i],
-                                                                    resolution_);
-      
-      shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+        BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(shape,
+                                                                      resolution_);
+
+        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+
+      }
+
       add_points.insert(add_points.end(),
                         shape_points.back()->getCollisionPoints().begin(),
                         shape_points.back()->getCollisionPoints().end());
     }
+
     dfce->posed_body_point_decompositions_[id] = shape_points;
-  } else {
+  }
+  else
+  {
+    ROS_DEBUG_STREAM("Removing Object '"<<id<<"' from CollisionWorldDistanceField");
     dfce->posed_body_point_decompositions_.erase(id);
   }
 }

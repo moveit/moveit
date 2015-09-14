@@ -45,6 +45,7 @@
 
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/bodies.h>
+#include <octomap/OcTree.h>
 
 #include <moveit/distance_field/distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
@@ -366,11 +367,13 @@ public:
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
                               const Eigen::Affine3d& pose);
 
+  PosedBodyPointDecomposition(boost::shared_ptr<const octomap::OcTree> octree);
+
+
   const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
     return posed_collision_points_;
   }
-
   //the collision spheres, and the posed collision points
   void updatePose(const Eigen::Affine3d& linkTransform);
 
