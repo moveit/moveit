@@ -268,6 +268,10 @@ void TrajectoryVisualization::onDisable()
 
 }
 
+void TrajectoryVisualization::interruptCurrentDisplay() {
+  animating_path_ = false;
+}
+
 float TrajectoryVisualization::getStateDisplayTime()
 {
   std::string tm = state_display_time_property_->getStdString();
