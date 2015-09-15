@@ -92,6 +92,9 @@ public:
 Q_SIGNALS:
   void timeToShowNewTrail();
 
+public Q_SLOTS:
+  void interruptCurrentDisplay();
+
 private Q_SLOTS:
 
   /**
