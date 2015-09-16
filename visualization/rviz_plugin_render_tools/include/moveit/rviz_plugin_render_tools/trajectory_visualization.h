@@ -146,6 +146,7 @@ protected:
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
+  rviz::BoolProperty* interrupt_display_property_;
 
 };
 
