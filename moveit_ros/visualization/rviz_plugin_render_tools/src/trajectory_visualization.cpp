@@ -100,6 +100,10 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
                            widget,
                            SLOT(changedShowTrail()), this);
 
+  interrupt_display_property_ =
+    new rviz::BoolProperty("Interrupt Display", false, "Immediately show newly planned trajectory, interrupting the currently displayed one.",
+                           widget);
+
   connect(this, SIGNAL(timeToShowNewTrail()), this, SLOT(changedShowTrail()));
 }
 
@@ -374,6 +378,8 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
   if (!t->empty())
   {
     trajectory_message_to_display_.swap(t);
+    if (interrupt_display_property_->getBool())
+      interruptCurrentDisplay();
   }
   if (trail_display_property_->getBool())
   {
