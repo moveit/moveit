@@ -752,8 +752,8 @@ CollisionRobotDistanceField::generateDistanceFieldCacheEntry(const std::string& 
 
     if(!found)
     {
-      ROS_INFO("No link state found for link %s", dfce->link_names_[i].c_str());
-      return dfce;
+      ROS_DEBUG("No link state found for link %s", dfce->link_names_[i].c_str());
+      continue;
     }
 
     if(link_state->getShapes().size() > 0)
