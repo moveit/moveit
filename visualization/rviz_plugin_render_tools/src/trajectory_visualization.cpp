@@ -312,7 +312,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       animating_path_ = true;
       displaying_trajectory_message_ = trajectory_message_to_display_;
       changedShowTrail();
-    } else if (loop_display_property_->getBool()) { // do loop? -> start over too
+    } else if (loop_display_property_->getBool() &&
+               displaying_trajectory_message_) { // do loop? -> start over too
       animating_path_ = true;
     }
     trajectory_message_to_display_.reset();
