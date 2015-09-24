@@ -196,6 +196,7 @@ void TrajectoryVisualization::changedShowTrail()
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    r->setAlpha(robot_path_alpha_property_->getFloat());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
     r->setVisible(display_->isEnabled() && (!animating_path_ || i <= current_state_));
     trajectory_trail_[i] = r;
