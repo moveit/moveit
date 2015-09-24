@@ -116,9 +116,28 @@ void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &
   active_generic_.push_back(g);
 }
 
+static const double DEFAULT_SCALE = 0.25;
+double RobotInteraction::computeLinkMarkerSize(const std::string &group, const std::string &link)
+{
+  const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
+  if (!jmg) return DEFAULT_SCALE;
+
+  robot_state::RobotState default_state(robot_model_);
+  default_state.setToDefaultValues();
+
+  const robot_model::LinkModel *lm = default_state.getLinkModel(link);
+  if (!lm) return DEFAULT_SCALE;
+
+  const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
+  // slightly bigger than the link diameter
+  double s = 1.01 * ext.norm();
+
+  // clip scale to 5cm
+  return std::max(0.05, s);
+}
+
 double RobotInteraction::computeGroupMarkerSize(const std::string &group)
 {
-  static const double DEFAULT_SCALE = 0.25;
   if (group.empty())
     return DEFAULT_SCALE;
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
@@ -151,14 +170,11 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
     hi = hi.cwiseMax(corner2);
   }
 
-  // slightly bigger than the size of the largest end effector dimension
-  double s = std::max(std::max(hi.x() - lo.x(), hi.y() - lo.y()), hi.z() - lo.z());
-  s *= 1.73205081; // sqrt(3)
+  // slightly bigger than the end-effector diameter
+  double s = 1.01 * (hi - lo).norm();
 
-  // if the scale is less than 5cm, set it to default
-  if (s < 0.05)
-    s = DEFAULT_SCALE;
-  return s;
+  // clip scale to 5cm
+  return std::max(0.05, s);
 }
 
 void RobotInteraction::decideActiveJoints(const std::string &group)
@@ -320,7 +336,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
     // if we have a separate group for the eef, we compute the scale based on
     // it; otherwise, we use a default scale
     active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ?
-                            computeGroupMarkerSize("") :
+                            computeLinkMarkerSize(active_eef_[i].parent_group, active_eef_[i].parent_link) :
                             computeGroupMarkerSize(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction",
                     "Found active end-effector '%s', of scale %lf",

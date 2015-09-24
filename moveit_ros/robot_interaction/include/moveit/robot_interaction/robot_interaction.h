@@ -184,6 +184,8 @@ private:
   // interactive marker from other ROS nodes
   void registerMoveInteractiveMarkerTopic(
     const std::string marker_name, const std::string& name);
+  // return the diameter of the sphere that certainly can enclose the AABB of the link
+  double computeLinkMarkerSize(const std::string &group, const std::string &link);
   // return the diameter of the sphere that certainly can enclose the AABB of
   // the links in this group
   double computeGroupMarkerSize(const std::string &group);
