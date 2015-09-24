@@ -148,7 +148,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
         {
           try
           {
-            robot_state_storage_->addRobotState(msg, name);
+            robot_state_storage_->addRobotState(msg, name, planning_display_->getRobotModel()->getName());
           }
           catch (std::runtime_error &ex)
           {
