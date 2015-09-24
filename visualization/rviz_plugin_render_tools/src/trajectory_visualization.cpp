@@ -103,8 +103,6 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
   interrupt_display_property_ =
     new rviz::BoolProperty("Interrupt Display", false, "Immediately show newly planned trajectory, interrupting the currently displayed one.",
                            widget);
-
-  connect(this, SIGNAL(timeToShowNewTrail()), this, SLOT(changedShowTrail()));
 }
 
 TrajectoryVisualization::~TrajectoryVisualization()
@@ -273,7 +271,11 @@ void TrajectoryVisualization::onDisable()
 }
 
 void TrajectoryVisualization::interruptCurrentDisplay() {
-  animating_path_ = false;
+  // update() starts a new trajectory as soon as it is available
+  // interrupting may cause the newly received trajectory to interrupt
+  // hence, only interrupt when current_state_ already advanced past first
+  if (current_state_ > 0)
+    animating_path_ = false;
 }
 
 float TrajectoryVisualization::getStateDisplayTime()
@@ -301,6 +303,8 @@ float TrajectoryVisualization::getStateDisplayTime()
 void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 {
   if (!animating_path_) { // finished last animation?
+    boost::mutex::scoped_lock lock(update_trajectory_message_);
+
     // new trajectory available to display?
     if (trajectory_message_to_display_ && !trajectory_message_to_display_->empty()) {
       animating_path_ = true;
@@ -376,15 +380,10 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
 
   if (!t->empty())
   {
+    boost::mutex::scoped_lock lock(update_trajectory_message_);
     trajectory_message_to_display_.swap(t);
     if (interrupt_display_property_->getBool())
       interruptCurrentDisplay();
-  }
-  if (trail_display_property_->getBool())
-  {
-    // incomingDisplayTrajectory() can be called from a non-GUI thread, so here we
-    // use a signal/slot connection to invoke changedShowTrail() in the GUI thread.
-    Q_EMIT timeToShowNewTrail();
   }
 }
 
