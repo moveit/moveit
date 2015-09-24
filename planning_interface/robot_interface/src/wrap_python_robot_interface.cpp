@@ -60,9 +60,9 @@ public:
     current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
   }
 
-  std::string getRobotName() const
+  const char *getRobotName() const
   {
-    return robot_model_->getName();
+    return robot_model_->getName().c_str();
   }
 
   bp::list getJointNames() const

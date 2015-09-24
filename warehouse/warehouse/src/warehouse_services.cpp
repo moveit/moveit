@@ -50,7 +50,7 @@ bool storeState(moveit_msgs::SaveRobotStateToWarehouse::Request&  request,
                  moveit_warehouse::RobotStateStorage* rs)
 {
   const moveit_msgs::RobotState& state = request.state;
-  if ("" == request.name)
+  if (request.name.empty())
   {
     ROS_ERROR("You must specify a name to store a state");
     return response.success = false;
@@ -63,7 +63,7 @@ bool listStates(moveit_msgs::ListRobotStatesInWarehouse::Request&  request,
                   moveit_msgs::ListRobotStatesInWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
-  if ("" == request.regex)
+  if (request.regex.empty())
   {
     rs->getKnownRobotStates(response.states, request.robot);
   }
