@@ -56,6 +56,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
   : display_(display)
   , widget_(widget)
   , animating_path_(false)
+  , current_state_(-1)
 {
   trajectory_topic_property_ =
     new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
