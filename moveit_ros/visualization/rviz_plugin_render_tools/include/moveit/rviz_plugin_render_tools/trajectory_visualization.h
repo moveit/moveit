@@ -89,9 +89,6 @@ public:
   void onEnable();
   void onDisable();
 
-Q_SIGNALS:
-  void timeToShowNewTrail();
-
 public Q_SLOTS:
   void interruptCurrentDisplay();
 
@@ -127,6 +124,7 @@ protected:
   bool animating_path_;
   int current_state_;
   float current_state_time_;
+  boost::mutex update_trajectory_message_;
 
   robot_model::RobotModelConstPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
