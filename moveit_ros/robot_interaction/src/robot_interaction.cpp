@@ -35,7 +35,7 @@
 
 /* Author: Ioan Sucan, Adam Leeper */
 
-#include <moveit/robot_interaction/robot_interaction.h>
+#include "moveit/robot_interaction/robot_interaction.h"
 #include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
 #include <moveit/robot_interaction/kinematic_options_map.h>
@@ -117,23 +117,31 @@ void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &
 }
 
 static const double DEFAULT_SCALE = 0.25;
-double RobotInteraction::computeLinkMarkerSize(const std::string &group, const std::string &link)
+double RobotInteraction::computeLinkMarkerSize(const std::string &link)
 {
-  const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
-  if (!jmg) return DEFAULT_SCALE;
+  const robot_model::LinkModel *lm = robot_model_->getLinkModel(link);
+  double size = 0;
 
-  robot_state::RobotState default_state(robot_model_);
-  default_state.setToDefaultValues();
+  while (lm) {
+    const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
+    // compute size such that the marker sphere will cover
+    // - a spherical link geometry -> maxCoeff
+    // - a cubical link geometry -> norm
+    // average of AABB diameter (norm) and max AABB extension (maxCoeff)
+    size = (ext.norm() + ext.maxCoeff()) / 2.0;
+    if (size > 0) break; // break, if a non-empty shape was found
 
-  const robot_model::LinkModel *lm = default_state.getLinkModel(link);
-  if (!lm) return DEFAULT_SCALE;
+    // process kinematic chain upwards (but only following fixed joints)
+    // to find a link with some non-empty shape (to ignore virtual links)
+    if (lm->getParentJointModel()->getType() == robot_model::JointModel::FIXED)
+      lm = lm->getParentLinkModel();
+    else
+      lm = 0;
+  }
+  if (!lm) return DEFAULT_SCALE; // no link with non-zero shape extends found
 
-  const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
-  // slightly bigger than the link diameter
-  double s = 1.01 * ext.norm();
-
-  // clip scale to 5cm
-  return std::max(0.05, s);
+  // the marker sphere will be half the size, so double the size here
+  return 2. * size;
 }
 
 double RobotInteraction::computeGroupMarkerSize(const std::string &group)
@@ -169,12 +177,17 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
     lo = lo.cwiseMin(corner1);
     hi = hi.cwiseMax(corner2);
   }
+  const Eigen::Vector3d &ext = hi - lo;
 
-  // slightly bigger than the end-effector diameter
-  double s = 1.01 * (hi - lo).norm();
+  // average of AABB diameter (norm) and max AABB extension (maxCoeff)
+  double size = (ext.norm() + ext.maxCoeff()) / 2.0;
 
-  // clip scale to 5cm
-  return std::max(0.05, s);
+  // if size is zero, all links have empty shapes and are placed at same position
+  // in this case, fall back to link marker size
+  if (size == 0) return computeLinkMarkerSize(links[0]);
+
+  // the marker sphere will be half the size, so double the size here
+  return 2. * size;
 }
 
 void RobotInteraction::decideActiveJoints(const std::string &group)
@@ -333,10 +346,10 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
 
   for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
   {
-    // if we have a separate group for the eef, we compute the scale based on
-    // it; otherwise, we use a default scale
+    // if we have a separate group for the eef, we compute the scale based on it;
+    // otherwise, we use the size of the parent_link
     active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ?
-                            computeLinkMarkerSize(active_eef_[i].parent_group, active_eef_[i].parent_link) :
+                            computeLinkMarkerSize(active_eef_[i].parent_link) :
                             computeGroupMarkerSize(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction",
                     "Found active end-effector '%s', of scale %lf",
