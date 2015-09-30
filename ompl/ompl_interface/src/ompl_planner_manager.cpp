@@ -69,6 +69,7 @@ public:
     std::string ompl_ns = ns.empty() ? "ompl" : ns + "/ompl";
     dynamic_reconfigure_server_.reset(new dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>(ros::NodeHandle(nh_, ompl_ns)));
     dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlannerManager::dynamicReconfigureCallback, this, _1, _2));
+    config_settings_ = ompl_interface_->getPlannerConfigurations();
     return true;
   }
 
