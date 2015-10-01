@@ -1263,6 +1263,39 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     bool b;
     if (config.mapGetBool("MoveIt_Use_Constraint_Aware_IK", &b))
       frame_->ui_->collision_aware_ik->setChecked(b);
+
+    rviz::Config workspace = config.mapGetChild( "MoveIt_Workspace" );
+    rviz::Config ws_center = workspace.mapGetChild( "Center" );
+    float val;
+    if( ws_center.mapGetFloat("X", &val))
+      frame_->ui_->wcenter_x->setValue(val);
+    if( ws_center.mapGetFloat("Y", &val))
+      frame_->ui_->wcenter_y->setValue(val);
+    if( ws_center.mapGetFloat("Z", &val))
+      frame_->ui_->wcenter_z->setValue(val);
+
+    rviz::Config ws_size = workspace.mapGetChild( "Size" );
+    if(ws_size.isValid())
+    {
+      if( ws_size.mapGetFloat("X", &val))
+        frame_->ui_->wsize_x->setValue(val);
+      if( ws_size.mapGetFloat("Y", &val))
+        frame_->ui_->wsize_y->setValue(val);
+      if( ws_size.mapGetFloat("Z", &val))
+        frame_->ui_->wsize_z->setValue(val);
+    }
+    else
+    {
+      std::string node_name = ros::names::append(getMoveGroupNS(), "move_group");
+      ros::NodeHandle nh_(node_name);
+      double val;
+      if(nh_.getParam("default_workspace_bounds", val))
+      {
+        frame_->ui_->wsize_x->setValue(val);
+        frame_->ui_->wsize_y->setValue(val);
+        frame_->ui_->wsize_z->setValue(val);
+      }
+    }
   }
 }
 
@@ -1277,6 +1310,16 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Planning_Attempts", frame_->ui_->planning_attempts->value());
     config.mapSetValue("MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
+
+    rviz::Config workspace = config.mapMakeChild( "MoveIt_Workspace" );
+    rviz::Config ws_center = workspace.mapMakeChild( "Center");
+    ws_center.mapSetValue("X", frame_->ui_->wcenter_x->value());
+    ws_center.mapSetValue("Y", frame_->ui_->wcenter_y->value());
+    ws_center.mapSetValue("Z", frame_->ui_->wcenter_z->value());
+    rviz::Config ws_size = workspace.mapMakeChild( "Size");
+    ws_size.mapSetValue("X", frame_->ui_->wsize_x->value());
+    ws_size.mapSetValue("Y", frame_->ui_->wsize_y->value());
+    ws_size.mapSetValue("Z", frame_->ui_->wsize_z->value());
   }
 }
 
