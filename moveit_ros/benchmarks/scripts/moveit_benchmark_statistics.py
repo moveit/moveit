@@ -265,8 +265,6 @@ def readBenchmarkLog(dbname, filenames):
 def plotAttribute(cur, planners, attribute, typename):
     """Create a plot for a particular attribute. It will include data for
     all planners that have data for this attribute."""
-    plt.clf()
-    ax = plt.gca()
     labels = []
     measurements = []
     nanCounts = []
@@ -289,6 +287,12 @@ def plotAttribute(cur, planners, attribute, typename):
             else:
                 measurements.append(measurement)
 
+    if len(measurements)==0:
+        print('Skipping "%s": no available measurements' % attribute)
+        return
+
+    plt.clf()
+    ax = plt.gca()
     if typename == 'ENUM':
         width = .5
         measurements = np.transpose(np.vstack(measurements))
@@ -386,7 +390,10 @@ each planner."""
             # plot average with error bars
             plt.errorbar(times, means, yerr=2*stddevs, errorevery=max(1, len(times) // 20))
             ax.legend(plannerNames)
-    plt.show()
+    if len(plannerNames)>0:
+        plt.show()
+    else:
+        plt.clf()
 
 def plotStatistics(dbname, fname):
     """Create a PDF file with box plots for all attributes."""
@@ -404,9 +411,8 @@ def plotStatistics(dbname, fname):
     for col in colInfo:
         if col[2] == 'BOOLEAN' or col[2] == 'ENUM' or \
            col[2] == 'INTEGER' or col[2] == 'REAL':
-            plotAttribute(c, planners, col[1], col[2])
-            pp.savefig(plt.gcf())
-    plt.clf()
+           plotAttribute(c, planners, col[1], col[2])
+           pp.savefig(plt.gcf())
 
     c.execute('PRAGMA table_info(progress)')
     colInfo = c.fetchall()[2:]
@@ -547,3 +553,4 @@ if __name__ == "__main__":
 
     if options.mysqldb:
         saveAsMysql(options.dbname, options.mysqldb)
+
