@@ -62,9 +62,11 @@ struct KinematicOptions
     STATE_VALIDITY_CALLBACK     = 0x00000004, // state_validity_callback_
     LOCK_REDUNDANT_JOINTS       = 0x00000008, // options_.lock_redundant_joints
     RETURN_APPROXIMATE_SOLUTION = 0x00000010, // options_.return_approximate_solution
+    DISCRETIZATION_METHOD       = 0x00000020, // options_.discretization_method
 
     ALL_QUERY_OPTIONS           = LOCK_REDUNDANT_JOINTS |
-                                  RETURN_APPROXIMATE_SOLUTION,
+                                  RETURN_APPROXIMATE_SOLUTION |
+                                  DISCRETIZATION_METHOD,
     ALL                         = 0x7fffffff
   };
 
