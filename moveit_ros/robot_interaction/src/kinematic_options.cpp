@@ -90,7 +90,8 @@ void robot_interaction::KinematicOptions::setOptions(
   // kinematics::KinematicsQueryOptions
   #define QO_FIELDS(F) \
     F(bool, lock_redundant_joints, LOCK_REDUNDANT_JOINTS) \
-    F(bool, return_approximate_solution, RETURN_APPROXIMATE_SOLUTION)
+    F(bool, return_approximate_solution, RETURN_APPROXIMATE_SOLUTION) \
+    F(int, discretization_method, DISCRETIZATION_METHOD)
 
 
   // This structure should be identical to kinematics::KinematicsQueryOptions
