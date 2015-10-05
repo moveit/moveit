@@ -265,7 +265,7 @@ void TrajectoryVisualization::onDisable()
   for (std::size_t i = 0 ; i < trajectory_trail_.size() ; ++i)
     trajectory_trail_[i]->setVisible(false);
   displaying_trajectory_message_.reset();
-
+  animating_path_ = false;
 }
 
 float TrajectoryVisualization::getStateDisplayTime()
