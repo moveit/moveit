@@ -12,7 +12,7 @@ MoveIt! IKFast
 MoveIt! IKFast is a tool that generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. 
 This tutorial will step you through setting up your robot to utilize the power of IKFast. MoveIt! IKFast is tested on ROS Groovy with Catkin using OpenRave 0.8 with a 6dof and 7dof robot arm manipulator. 
 While it works in theory, currently the IKFast plugin generator tool does not work with >7 degree of freedom arms.
- 
+
 Pre-requisites
 ^^^^^^^^^^^^^^
 You should have already created a MoveIt! configuration package for your robot, by using the Setup Assistant.
@@ -23,9 +23,9 @@ Install the MoveIt! IKFast package either from debs or from source.
 
 **Binary Install** ::
 
- sudo apt-get install ros-hydro-moveit-ikfast
+ sudo apt-get install ros-indigo-moveit-ikfast
 
-**Source** 
+**Source**
 
 Inside your catkin workspace ::
 
@@ -55,7 +55,7 @@ Edit /usr/lib/python2.7/dist-packages/openravepy/__init__.py to add the followin
 Create Collada File For Use With OpenRave
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First you will need robot description file that is in `Collada or OpenRave <http://openrave.org/docs/latest_stable/collada_robot_extensions/>`_ robot format. 
+First you will need robot description file that is in `Collada or OpenRave <http://openrave.org/docs/latest_stable/collada_robot_extensions/>`_ robot format.
 
 If your robot is not in this format we recommend you create a ROS `URDF <http://www.ros.org/wiki/urdf/Tutorials/Create%20your%20own%20urdf%20file>`_ file, then convert it to a Collada .dae file using the following command::
 
@@ -100,7 +100,7 @@ Identify Link Numbers
 ---------------------
 
 You also need the link index numbers for the *base_link* and *end_link* between which the IK will be calculated. You can count the number of links by viewing a list of links in your model::
- 
+
  openrave-robot.py <myrobot_name>.dae --info links
 
 **NOTE**: use ''openrave0.8-robot.py'' if installed from packages
@@ -110,17 +110,17 @@ A typical 6-DOF manipulator should have 6 arm links + a dummy base_link as requi
 The manipulator below also has another dummy mounting_link, giving *baselink=1* and *eelink=8*.
 
 =============  ======  =======
-name           index   parents      
+name           index   parents
 =============  ======  =======
-base_link      0                  
-mounting_link  1       base_link    
+base_link      0
+mounting_link  1       base_link
 link1_rotate   2       mounting_link
 link2          3       link1_rotate
 link3          4       link2
-link4          5       link3    
-link5          6       link4    
-link6_wrist    7       link5   
-tool_link      8       link6_wrist   
+link4          5       link3
+link5          6       link4
+link6_wrist    7       link5
+tool_link      8       link6_wrist
 =============  ======  =======
 
 Generate IK Solver
