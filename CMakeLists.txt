@@ -40,6 +40,7 @@ file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
 set(THIS_PACKAGE_INCLUDE_DIRS
     ${VERSION_FILE_PATH}
     collision_distance_field/include
+    collision_fcl_detailed/include
 )
 
 catkin_package(
@@ -48,6 +49,7 @@ catkin_package(
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_collision_distance_field
+    moveit_collision_fcl_detailed
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
     geometric_shapes
@@ -81,5 +83,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
+add_subdirectory(collision_fcl_detailed)
 
 # Generate and install version.h
