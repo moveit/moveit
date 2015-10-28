@@ -22,9 +22,8 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 catkin_package(
   LIBRARIES
-  INCLUDE_DIRS
-  DEPENDS
-    moveit_core
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS moveit_core actionlib control_msgs
     )
 
 include_directories(include)
@@ -36,4 +35,7 @@ install(TARGETS moveit_simple_controller_manager LIBRARY DESTINATION ${CATKIN_PA
 
 install(FILES moveit_simple_controller_manager_plugin_description.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+       )
+install(DIRECTORY include/${PROJECT_NAME}/
+       DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
        )
