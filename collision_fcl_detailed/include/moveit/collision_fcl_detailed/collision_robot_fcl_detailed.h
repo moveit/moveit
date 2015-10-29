@@ -18,9 +18,9 @@ namespace collision_detection
 
     typedef boost::shared_ptr<CollisionRobotFCLDetailed> CollisionRobotFCLDetailedPtr;
 
-    CollisionRobotFCLDetailed(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0): CollisionRobotFCL(kmodel, padding, scale) {}
+    CollisionRobotFCLDetailed(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0, double distance_threshold = std::numeric_limits<double>::max()): CollisionRobotFCL(kmodel, padding, scale), distance_threshold_(distance_threshold) {}
 
-    CollisionRobotFCLDetailed(const CollisionRobotFCLDetailed &other): CollisionRobotFCL(other) {}
+    CollisionRobotFCLDetailed(const CollisionRobotFCLDetailed &other): CollisionRobotFCL(other), distance_threshold_(other.distance_threshold_) {}
 
     virtual ~CollisionRobotFCLDetailed() {}
 
@@ -32,7 +32,10 @@ namespace collision_detection
 
     virtual void checkSelfDetailedCollisionHelper(const collision_detection::CollisionRequest &req, collision_detection::CollisionResult &res, const robot_state::RobotState &state, const collision_detection::AllowedCollisionMatrix *acm) const;
 
+  private:
+    double distance_threshold_;
+
   };
-} //namespace collision_detection
+} //namespace constrained_ik
 #endif // COLLISION_ROBOT_FCL_DETAILED_H
 

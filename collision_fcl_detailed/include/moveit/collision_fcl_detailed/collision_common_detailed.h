@@ -18,44 +18,51 @@ namespace collision_detection
                        group_name(NULL),
                        active_components_only(NULL),
                        acm(NULL),
+                       distance_threshold(std::numeric_limits<double>::max()),
                        verbose(false) {}
 
     DistanceRequest(bool detailed,
                     bool global,
                     const std::set<const robot_model::LinkModel*> *active_components_only,
-                    const collision_detection::AllowedCollisionMatrix *acm): detailed(detailed),
-                                                                             global(global),
-                                                                             group_name(NULL),
-                                                                             active_components_only(active_components_only),
-                                                                             acm(acm),
-                                                                             verbose(false) {}
+                    const collision_detection::AllowedCollisionMatrix *acm,
+                    double distance_threshold = std::numeric_limits<double>::max()): detailed(detailed),
+                                                                                     global(global),
+                                                                                     active_components_only(active_components_only),
+                                                                                     acm(acm),
+                                                                                     distance_threshold(distance_threshold),
+                                                                                     verbose(false) {}
     DistanceRequest(bool detailed,
                     bool global,
                     const std::set<const robot_model::LinkModel*> &active_components_only,
-                    const collision_detection::AllowedCollisionMatrix &acm): detailed(detailed),
-                                                                             global(global),
-                                                                             group_name(NULL),
-                                                                             active_components_only(&active_components_only),
-                                                                             acm(&acm),
-                                                                             verbose(false) {}
+                    const collision_detection::AllowedCollisionMatrix &acm,
+                    double distance_threshold = std::numeric_limits<double>::max()): detailed(detailed),
+                                                                                     global(global),
+                                                                                     active_components_only(&active_components_only),
+                                                                                     acm(&acm),
+                                                                                     distance_threshold(distance_threshold),
+                                                                                     verbose(false) {}
     DistanceRequest(bool detailed,
                     bool global,
                     const std::string group_name,
-                    const collision_detection::AllowedCollisionMatrix *acm): detailed(detailed),
-                                                                             global(global),
-                                                                             group_name(group_name),
-                                                                             active_components_only(NULL),
-                                                                             acm(acm),
-                                                                             verbose(false) {}
+                    const collision_detection::AllowedCollisionMatrix *acm,
+                    double distance_threshold = std::numeric_limits<double>::max()): detailed(detailed),
+                                                                                     global(global),
+                                                                                     group_name(group_name),
+                                                                                     active_components_only(NULL),
+                                                                                     acm(acm),
+                                                                                     distance_threshold(distance_threshold),
+                                                                                     verbose(false) {}
     DistanceRequest(bool detailed,
                     bool global,
                     const std::string group_name,
-                    const collision_detection::AllowedCollisionMatrix &acm): detailed(detailed),
-                                                                             global(global),
-                                                                             group_name(group_name),
-                                                                             active_components_only(NULL),
-                                                                             acm(&acm),
-                                                                             verbose(false) {}
+                    const collision_detection::AllowedCollisionMatrix &acm,
+                    double distance_threshold = std::numeric_limits<double>::max()): detailed(detailed),
+                                                                                     global(global),
+                                                                                     group_name(group_name),
+                                                                                     active_components_only(NULL),
+                                                                                     acm(&acm),
+                                                                                     distance_threshold(distance_threshold),
+                                                                                     verbose(false) {}
 
     virtual ~DistanceRequest() {}
 
@@ -72,9 +79,9 @@ namespace collision_detection
 
     const collision_detection::AllowedCollisionMatrix *acm;
 
+    double distance_threshold;
+
     bool verbose;
-
-
 
   };
 

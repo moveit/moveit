@@ -4,7 +4,6 @@
 
 namespace collision_detection
 {
-  using namespace collision_detection;
 
   void CollisionWorldFCLDetailed::distanceRobot(const DistanceRequest &req, DistanceResult &res, const collision_detection::CollisionRobot &robot, const robot_state::RobotState &state) const
   {
@@ -44,7 +43,7 @@ namespace collision_detection
 
       if (req.distance)
       {
-        DistanceRequest dreq(false, true, req.group_name, acm);
+        DistanceRequest dreq(false, true, req.group_name, acm, distance_threshold_);
         DistanceResult dres;
 
         dreq.enableGroup(robot.getRobotModel());

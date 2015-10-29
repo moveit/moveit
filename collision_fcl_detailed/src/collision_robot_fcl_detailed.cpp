@@ -1,12 +1,9 @@
-
 #include <moveit/collision_fcl_detailed/collision_robot_fcl_detailed.h>
 #include <ros/ros.h>
 #include <ctime>
 
 namespace collision_detection
 {
-  using namespace collision_detection;
-
 
   void CollisionRobotFCLDetailed::distanceSelf(const DistanceRequest &req, DistanceResult &res, const robot_state::RobotState &state) const
   {
@@ -36,7 +33,7 @@ namespace collision_detection
     manager.manager_->collide(&cd, &collisionCallback);
     if (req.distance)
     {
-      DistanceRequest dreq(false, true, req.group_name, acm);
+      DistanceRequest dreq(false, true, req.group_name, acm, distance_threshold_);
       DistanceResult dres;
 
       dreq.enableGroup(getRobotModel());
@@ -45,5 +42,5 @@ namespace collision_detection
     }
   }
 
-}//namespace collision_detection
+}//namespace constrained_ik
 
