@@ -91,8 +91,7 @@ void robot_interaction::KinematicOptions::setOptions(
   #define QO_FIELDS(F) \
     F(bool, lock_redundant_joints, LOCK_REDUNDANT_JOINTS) \
     F(bool, return_approximate_solution, RETURN_APPROXIMATE_SOLUTION) \
-    F(int, discretization_method, DISCRETIZATION_METHOD)
-
+    F(::kinematics::DiscretizationMethods::DiscretizationMethod, discretization_method, DISCRETIZATION_METHOD)
 
   // This structure should be identical to kinematics::KinematicsQueryOptions
   // This is only used in the BOOST_STATIC_ASSERT below.
