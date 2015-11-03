@@ -482,6 +482,24 @@ public:
     updateMimicJoint(joint);
   }
   
+  void setJointVelocities(const JointModel *joint, const double *velocity)
+  {
+    has_velocity_ = true;
+    memcpy(velocity_ + joint->getFirstVariableIndex(), velocity, joint->getVariableCount() * sizeof(double));
+  }
+
+  void setJointEfforts(const JointModel *joint, const double *effort)
+  {
+    if (has_acceleration_)
+    {
+      logError("Unable to set joint efforts because array is being used for accelerations");
+      return;
+    }
+    has_effort_ = true;
+
+    memcpy(effort_ + joint->getFirstVariableIndex(), effort, joint->getVariableCount() * sizeof(double));
+  }
+
   const double* getJointPositions(const std::string &joint_name) const
   {
     return getJointPositions(robot_model_->getJointModel(joint_name));
