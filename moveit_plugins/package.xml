@@ -14,6 +14,7 @@
 
   <run_depend>moveit_simple_controller_manager</run_depend>
   <run_depend>moveit_fake_controller_manager</run_depend>
+  <run_depend>moveit_ros_control_interface</run_depend>
 
   <export>
     <metapackage/>
