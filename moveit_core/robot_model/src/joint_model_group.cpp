@@ -514,6 +514,19 @@ bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<const LinkMod
   return true;
 }
 
+const moveit::core::LinkModel* moveit::core::JointModelGroup::getOnlyOneEndEffectorTip() const
+{
+  std::vector<const moveit::core::LinkModel*> tips;
+  getEndEffectorTips(tips);
+  if (tips.size() == 1)
+    return tips.front();
+  else if (tips.size() > 1)
+    logError("More than one end effector tip found for joint model group, so cannot return only one");
+  else
+    logError("No end effector tips found in joint model group");
+  return NULL;
+}
+
 int moveit::core::JointModelGroup::getVariableGroupIndex(const std::string &variable) const
 {
   VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);

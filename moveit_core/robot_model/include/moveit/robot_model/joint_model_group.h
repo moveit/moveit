@@ -485,6 +485,13 @@ public:
    */
   bool getEndEffectorTips(std::vector<std::string> &tips) const;
 
+  /**
+   * \brief Get one end effector tip, throwing an error if there ends up being more in the joint model group
+   *  This is a useful helper function because most planning groups (almost all) only have one tip
+   * \return pointer to LinkModel, or NULL on failure
+   */
+  const moveit::core::LinkModel* getOnlyOneEndEffectorTip() const;
+
   /** \brief Get the bounds for all the active joints */
   const JointBoundsVector& getActiveJointModelsBounds() const
   {
