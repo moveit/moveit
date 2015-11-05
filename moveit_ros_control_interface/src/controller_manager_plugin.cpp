@@ -81,6 +81,11 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
     ControllersMap active_controllers_;
     typedef std::map<std::string, boost::shared_ptr<ControllerHandleAllocator> > AllocatorsMap;
     AllocatorsMap allocators_;
+
+    typedef std::map<std::string, moveit_controller_manager::MoveItControllerHandlePtr > HandleMap;
+    HandleMap handles_;
+
+
     ros::Time controllers_stamp_;
     boost::mutex controllers_mutex_;
 
@@ -92,7 +97,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
     static bool isActive(const controller_manager_msgs::ControllerState &s) { return s.state == std::string("running"); }
 
     /**
-     * Call list_controllers and populate managed_controllers_ and active_controllers_.
+     * Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if needed.
      * Throttled down to 1 Hz
      * controllers_mutex_ must be locked externally
      * @param force force rediscover
@@ -113,7 +118,26 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
             }
             if(loader_.isClassAvailable(c.type)){
                 managed_controllers_.insert(std::make_pair(ns_ + c.name, c)); // with namespace
+                allocate(ns_ + c.name, c);
             }
+        }
+    }
+
+    /**
+     * Allocates a MoveItControllerHandle instance for the given controller
+     * Might create allocator object first.
+     * @param name fully qualified name of the controller
+     * @param controller controller information
+     */
+    void allocate(const std::string &name, const controller_manager_msgs::ControllerState &controller){
+        if(handles_.find(name) == handles_.end()){
+            const std::string &type = controller.type;
+            AllocatorsMap::iterator alloc_it = allocators_.find(type);
+            if(alloc_it == allocators_.end()){ // create allocator is needed
+                alloc_it = allocators_.insert(std::make_pair(type, loader_.createInstance(type))).first;
+            }
+            moveit_controller_manager::MoveItControllerHandlePtr handle = alloc_it->second->alloc(name, controller.resources); // allocate handle
+            if(handle) handles_.insert(std::make_pair(name, handle));
         }
     }
 public:
@@ -134,20 +158,14 @@ public:
     }
 
     /**
-     * Allocate MoveItControllerHandle according to type of given controller.
-     * Might create allocator object first.
+     * Find and return the pre-allocated handle for the given controller.
      * @param name
      * @return
      */
     virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string &name){
-        ControllersMap::iterator it = managed_controllers_.find(name);
-        if(it != managed_controllers_.end()){ // controller is is manager by this interface
-            const std::string &type = it->second.type;
-            AllocatorsMap::iterator alloc_it = allocators_.find(type);
-            if(alloc_it == allocators_.end()){ // create allocator is needed
-                alloc_it = allocators_.insert(std::make_pair(type, loader_.createInstance(type))).first;
-            }
-            return alloc_it->second->alloc(name, it->second.resources); // allocate handler
+        HandleMap::iterator it = handles_.find(name);
+        if(it != handles_.end()){ // controller is is manager by this interface
+            return it->second;
         }
         return moveit_controller_manager::MoveItControllerHandlePtr();
     }
