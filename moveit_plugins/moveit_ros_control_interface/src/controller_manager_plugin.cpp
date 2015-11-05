@@ -163,6 +163,7 @@ public:
      * @return
      */
     virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string &name){
+        boost::mutex::scoped_lock lock(controllers_mutex_);
         HandleMap::iterator it = handles_.find(name);
         if(it != handles_.end()){ // controller is is manager by this interface
             return it->second;
