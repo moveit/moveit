@@ -119,7 +119,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
 public:
 
     /**
-     * The default constructor reads he namespace read from ~ros_control_namespace param and defaults to /
+     * The default constructor reads the namespace from ~ros_control_namespace param and defaults to /
      */
     MoveItControllerManager()
     : ns_(ros::NodeHandle("~").param("ros_control_namespace", std::string("/"))), loader_("moveit_ros_control_interface", "moveit_ros_control_interface::ControllerHandleAllocator") {
