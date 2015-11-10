@@ -106,7 +106,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
         if(!checkTimeout(controllers_stamp_, 1.0, force)) return;
 
         controller_manager_msgs::ListControllers srv;
-        if(!ros::service::call(ns_ + "controller_manager/list_controllers", srv)){
+        if(!ros::service::call(getAbsName("controller_manager/list_controllers"), srv)){
             ROS_WARN_STREAM("Failed to read controllers from " << ns_ <<  "controller_manager/list_controllers");
         }
         managed_controllers_.clear();
@@ -117,8 +117,9 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
                 active_controllers_.insert(std::make_pair(c.name, c)); // without namespace
             }
             if(loader_.isClassAvailable(c.type)){
-                managed_controllers_.insert(std::make_pair(ns_ + c.name, c)); // with namespace
-                allocate(ns_ + c.name, c);
+                std::string absname = getAbsName(c.name);
+                managed_controllers_.insert(std::make_pair(absname, c)); // with namespace
+                allocate(absname, c);
             }
         }
     }
@@ -139,6 +140,9 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
             moveit_controller_manager::MoveItControllerHandlePtr handle = alloc_it->second->alloc(name, controller.resources); // allocate handle
             if(handle) handles_.insert(std::make_pair(name, handle));
         }
+    }
+    std::string getAbsName(const std::string &name){
+        return ros::names::append(ns_, name);
     }
 public:
 
@@ -277,7 +281,7 @@ public:
         srv.request.strictness = srv.request.STRICT;
 
         if (!srv.request.start_controllers.empty() || srv.request.stop_controllers.empty()){ // something to switch?
-            if(!ros::service::call(ns_ + "controller_manager/switch_controller", srv)){
+            if(!ros::service::call(getAbsName("controller_manager/switch_controller"), srv)){
                 ROS_ERROR_STREAM("Could switch controllers at " << ns_);
             }
             discover(true);
