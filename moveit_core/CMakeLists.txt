@@ -105,6 +105,7 @@ catkin_package(
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIR}
+                           ${LIBFCL_INCLUDE_DIRS}
                            )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
