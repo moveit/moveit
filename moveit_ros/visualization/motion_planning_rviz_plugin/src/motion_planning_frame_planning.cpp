@@ -123,6 +123,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
     // Failure
     ui_->result_label->setText("Failed");
   }
+  Q_EMIT planningFinished();
 }
 
 void MotionPlanningFrame::computeExecuteButtonClicked()

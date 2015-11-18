@@ -89,8 +89,8 @@ public:
   void onEnable();
   void onDisable();
 
-Q_SIGNALS:
-  void timeToShowNewTrail();
+public Q_SLOTS:
+  void interruptCurrentDisplay();
 
 private Q_SLOTS:
 
@@ -124,6 +124,7 @@ protected:
   bool animating_path_;
   int current_state_;
   float current_state_time_;
+  boost::mutex update_trajectory_message_;
 
   robot_model::RobotModelConstPtr robot_model_;
   robot_state::RobotStatePtr robot_state_;
@@ -143,6 +144,7 @@ protected:
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
+  rviz::BoolProperty* interrupt_display_property_;
 
 };
 

@@ -127,6 +127,9 @@ protected:
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;
   RobotStateMap robot_states_;
 
+Q_SIGNALS:
+  void planningFinished();
+
 private Q_SLOTS:
 
   //Context tab
