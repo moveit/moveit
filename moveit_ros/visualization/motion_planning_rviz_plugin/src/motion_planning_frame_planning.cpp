@@ -253,7 +253,25 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
-  ui_->planning_algorithm_combo_box->setCurrentIndex(0);
+
+  std::string default_planner_config;
+  if (move_group_->getNodeHandle().getParam("default_moveit_planner_config", default_planner_config)) 
+  {
+    int index = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
+    if (index > 0) 
+    {
+      ui_->planning_algorithm_combo_box->setCurrentIndex(index);
+    } 
+    else 
+    {
+      ui_->planning_algorithm_combo_box->setCurrentIndex(0);
+    }
+  } 
+  else 
+  {
+    std::cerr << "PlannerConfig "<<  default_planner_config << " is not found, using unspecified." <<  std::endl;
+    ui_->planning_algorithm_combo_box->setCurrentIndex(0);
+  }
 }
 
 void MotionPlanningFrame::populateConstraintsList()
