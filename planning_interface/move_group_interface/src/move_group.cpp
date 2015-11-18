@@ -1075,6 +1075,11 @@ robot_model::RobotModelConstPtr moveit::planning_interface::MoveGroup::getRobotM
   return impl_->getRobotModel();
 }
 
+const ros::NodeHandle& moveit::planning_interface::MoveGroup::getNodeHandle() const
+{
+  return impl_->getOptions().node_handle_;
+}
+
 bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
 {
   return impl_->getInterfaceDescription(desc);

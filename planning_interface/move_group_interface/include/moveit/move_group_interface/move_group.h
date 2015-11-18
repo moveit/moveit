@@ -130,6 +130,9 @@ public:
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;
 
+  /** \brief Get the ROS node handle of this instance operates on */
+  const ros::NodeHandle& getNodeHandle() const;
+
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
 
