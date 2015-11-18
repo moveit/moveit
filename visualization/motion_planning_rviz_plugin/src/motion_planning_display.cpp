@@ -223,6 +223,9 @@ void MotionPlanningDisplay::onInitialize()
   resetStatusTextColor();
   addStatusText("Initialized.");
 
+  // immediately switch to next trajectory display after planning
+  connect(frame_, SIGNAL(planningFinished()), trajectory_visual_.get(), SLOT(interruptCurrentDisplay()));
+
   if (window_context)
     frame_dock_ = window_context->addPane("Motion Planning", frame_);
 
