@@ -141,9 +141,16 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
             if(handle) handles_.insert(std::make_pair(name, handle));
         }
     }
+
+    /**
+     * get fully qualified name
+     * @param name name to be resolved to an absolute name
+     * @return resolved name
+     */
     std::string getAbsName(const std::string &name){
         return ros::names::append(ns_, name);
     }
+    
 public:
 
     /**
