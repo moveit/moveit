@@ -254,24 +254,19 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
+  // retrieve default planner config from parameter server
+  int defaultIndex = 0;
   std::string default_planner_config;
-  if (move_group_->getNodeHandle().getParam("default_moveit_planner_config", default_planner_config)) 
+  std::stringstream param_name;
+  param_name << "move_group";
+  if (found_group) param_name << "/" << group;
+  param_name << "/default_planner_config";
+  if (move_group_->getNodeHandle().getParam(param_name.str(), default_planner_config))
   {
-    int index = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
-    if (index > 0) 
-    {
-      ui_->planning_algorithm_combo_box->setCurrentIndex(index);
-    } 
-    else 
-    {
-      ui_->planning_algorithm_combo_box->setCurrentIndex(0);
-    }
-  } 
-  else 
-  {
-    std::cerr << "PlannerConfig "<<  default_planner_config << " is not found, using unspecified." <<  std::endl;
-    ui_->planning_algorithm_combo_box->setCurrentIndex(0);
+    defaultIndex = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
+    if (defaultIndex < 0) defaultIndex = 0; // 0 is <unspecified> fallback
   }
+  ui_->planning_algorithm_combo_box->setCurrentIndex(defaultIndex);
 }
 
 void MotionPlanningFrame::populateConstraintsList()
