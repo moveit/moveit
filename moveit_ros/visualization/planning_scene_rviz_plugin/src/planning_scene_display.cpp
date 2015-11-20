@@ -148,7 +148,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
                              SLOT(changedSceneRobotCollisionEnabled()), this);
 
     robot_alpha_property_ =
-      new rviz::FloatProperty( "Robot Alpha", 0.5f, "Specifies the alpha for the robot links",
+      new rviz::FloatProperty( "Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
                                robot_category_,
                                SLOT( changedRobotSceneAlpha() ), this );
     robot_alpha_property_->setMin( 0.0 );
@@ -205,6 +205,8 @@ void PlanningSceneDisplay::onInitialize()
     planning_scene_robot_->setVisible(true);
     planning_scene_robot_->setVisualVisible(scene_robot_visual_enabled_property_->getBool());
     planning_scene_robot_->setCollisionVisible(scene_robot_collision_enabled_property_->getBool());
+    changedRobotSceneAlpha();
+    changedAttachedBodyColor();
   }
 }
 
