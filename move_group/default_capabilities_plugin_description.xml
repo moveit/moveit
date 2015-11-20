@@ -36,6 +36,12 @@
     </description>
   </class>
 
+  <class name="move_group/MoveGroupPlannerParamsService" type="move_group::MoveGroupPlannerParamsService" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Allow getting and setting default planner parameters via a ROS service
+    </description>
+  </class>
+
   <class name="move_group/MoveGroupStateValidationService" type="move_group::MoveGroupStateValidationService" base_class_type="move_group::MoveGroupCapability">
     <description>
       Provide a ROS service that allows for testing state validity
