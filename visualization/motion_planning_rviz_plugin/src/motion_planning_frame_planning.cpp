@@ -255,17 +255,9 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
 
   // retrieve default planner config from parameter server
-  int defaultIndex = 0;
-  std::string default_planner_config;
-  std::stringstream param_name;
-  param_name << "move_group";
-  if (found_group) param_name << "/" << group;
-  param_name << "/default_planner_config";
-  if (move_group_->getNodeHandle().getParam(param_name.str(), default_planner_config))
-  {
-    defaultIndex = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
-    if (defaultIndex < 0) defaultIndex = 0; // 0 is <unspecified> fallback
-  }
+  const std::string& default_planner_config = move_group_->getDefaultPlannerId(found_group ? group : std::string());
+  int defaultIndex = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
+  if (defaultIndex < 0) defaultIndex = 0; // 0 is <unspecified> fallback
   ui_->planning_algorithm_combo_box->setCurrentIndex(defaultIndex);
 }
 
