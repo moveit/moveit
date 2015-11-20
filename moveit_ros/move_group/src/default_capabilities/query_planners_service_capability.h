@@ -32,13 +32,15 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Robert Haschke */
 
 #ifndef MOVEIT_MOVE_GROUP_QUERY_PLANNERS_SERVICE_CAPABILITY_
 #define MOVEIT_MOVE_GROUP_QUERY_PLANNERS_SERVICE_CAPABILITY_
 
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit_msgs/QueryPlannerInterfaces.h>
+#include <moveit_msgs/GetPlannerParams.h>
+#include <moveit_msgs/SetPlannerParams.h>
 
 namespace move_group
 {
@@ -55,7 +57,14 @@ private:
 
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res);
 
+  bool getParams(moveit_msgs::GetPlannerParams::Request &req,
+                 moveit_msgs::GetPlannerParams::Response &res);
+  bool setParams(moveit_msgs::SetPlannerParams::Request &req,
+                 moveit_msgs::SetPlannerParams::Response &res);
+
   ros::ServiceServer query_service_;
+  ros::ServiceServer get_service_;
+  ros::ServiceServer set_service_;
 };
 
 }
