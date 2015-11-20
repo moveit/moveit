@@ -70,13 +70,12 @@ void MotionPlanningFrame::publishSceneButtonClicked()
 
 void MotionPlanningFrame::planningAlgorithmIndexChanged(int index)
 {
+  std::string planner_id = ui_->planning_algorithm_combo_box->itemText(index).toStdString();
+  if (index <= 0) planner_id = "";
+
+  ui_->planner_param_treeview->setPlannerId(planner_id);
   if (move_group_)
-  {
-    if (index > 0)
-      move_group_->setPlannerId(ui_->planning_algorithm_combo_box->itemText(index).toStdString());
-    else
-      move_group_->setPlannerId("");
-  }
+    move_group_->setPlannerId(planner_id);
 }
 
 void MotionPlanningFrame::resetDbButtonClicked()
