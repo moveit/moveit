@@ -148,6 +148,16 @@ public:
   /** \brief Get the description of the planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
 
+  /** \brief Get the planner parameters for given group and planner_id */
+  std::map<std::string, std::string> getPlannerParams(const std::string &planner_id,
+                                                      const std::string &group="");
+
+  /** \brief Set the planner parameters for given group and planner_id */
+  void setPlannerParams(const std::string &planner_id,
+                        const std::string &group,
+                        const std::map<std::string, std::string> &params,
+                        bool bReplace = false);
+
   /** \brief Get the default planner for a given group (or global default) */
   std::string getDefaultPlannerId(const std::string &group="") const;
 
