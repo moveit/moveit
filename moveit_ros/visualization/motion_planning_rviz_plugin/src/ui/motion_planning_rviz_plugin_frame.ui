@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>702</width>
-    <height>395</height>
+    <width>654</width>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <bool>false</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="context">
       <attribute name="title">
@@ -38,43 +38,83 @@
          <property name="title">
           <string>Planning Library</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="2,3">
           <item>
-           <widget class="QLabel" name="library_label">
-            <property name="text">
-             <string>Planning Library Name</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_13">
+            <item>
+             <widget class="QLabel" name="library_label">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Planning Library Name</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="planning_algorithm_combo_box">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="publish_current_scene_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>&amp;Publish Current Scene</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_10">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QComboBox" name="planning_algorithm_combo_box">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="publish_current_scene_button">
-            <property name="text">
-             <string>&amp;Publish Current Scene</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_14">
+            <item>
+             <widget class="QLabel" name="label_15">
+              <property name="text">
+               <string>Planner Parameters</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="moveit_rviz_plugin::MotionPlanningParamWidget" name="planner_param_treeview">
+              <property name="indentation">
+               <number>0</number>
+              </property>
+              <property name="rootIsDecorated">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -360,7 +400,7 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>205</width>
+                   <width>109</width>
                    <height>78</height>
                   </rect>
                  </property>
@@ -609,10 +649,10 @@
                </sizepolicy>
               </property>
               <property name="maximum">
-               <number>1000</number>
+               <double>1000.000000000000000</double>
               </property>
               <property name="value">
-               <number>10</number>
+               <double>10.000000000000000</double>
               </property>
              </widget>
             </item>
@@ -1564,10 +1604,17 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>moveit_rviz_plugin::MotionPlanningParamWidget</class>
+   <extends>QTreeView</extends>
+   <header location="global">moveit/motion_planning_rviz_plugin/motion_planning_param_widget.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
   <tabstop>planning_algorithm_combo_box</tabstop>
   <tabstop>publish_current_scene_button</tabstop>
+  <tabstop>planner_param_treeview</tabstop>
   <tabstop>database_host</tabstop>
   <tabstop>database_port</tabstop>
   <tabstop>reset_db_button</tabstop>

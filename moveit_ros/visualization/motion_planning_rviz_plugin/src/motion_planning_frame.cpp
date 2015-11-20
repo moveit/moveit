@@ -84,6 +84,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
   connect( ui_->allow_external_program, SIGNAL( toggled(bool) ), this, SLOT( allowExternalProgramCommunication(bool) ));
   connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
+  connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
   connect( ui_->import_file_button, SIGNAL( clicked() ), this, SLOT( importFileButtonClicked() ));
   connect( ui_->import_url_button, SIGNAL( clicked() ), this, SLOT( importUrlButtonClicked() ));
   connect( ui_->clear_scene_button, SIGNAL( clicked() ), this, SLOT( clearSceneButtonClicked() ));
@@ -273,6 +274,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
 
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
 
   if (!group.empty() && kmodel)
   {
@@ -293,6 +295,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     {
       ROS_ERROR("%s", ex.what());
     }
+    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningParamWidget::setMoveGroup, ui_->planner_param_treeview, move_group_));
     if (move_group_)
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());

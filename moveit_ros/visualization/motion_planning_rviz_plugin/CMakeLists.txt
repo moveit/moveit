@@ -3,6 +3,7 @@
 set( headers
   include/moveit/motion_planning_rviz_plugin/motion_planning_display.h
   include/moveit/motion_planning_rviz_plugin/motion_planning_frame.h
+  include/moveit/motion_planning_rviz_plugin/motion_planning_param_widget.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -24,6 +25,7 @@ set(SOURCE_FILES
   src/motion_planning_frame_states.cpp
   src/motion_planning_display.cpp
   src/motion_planning_frame_manipulation.cpp
+  src/motion_planning_param_widget.cpp
 )
 
 set(MOVEIT_LIB_NAME moveit_motion_planning_rviz_plugin)
