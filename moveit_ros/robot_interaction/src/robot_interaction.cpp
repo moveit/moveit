@@ -123,12 +123,11 @@ double RobotInteraction::computeLinkMarkerSize(const std::string &link)
   double size = 0;
 
   while (lm) {
-    const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
-    // compute size such that the marker sphere will cover
-    // - a spherical link geometry -> maxCoeff
-    // - a cubical link geometry -> norm
-    // average of AABB diameter (norm) and max AABB extension (maxCoeff)
-    size = (ext.norm() + ext.maxCoeff()) / 2.0;
+    Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
+    // drop largest extension and take norm of two remaining
+    Eigen::MatrixXd::Index maxIndex;
+    ext.maxCoeff(&maxIndex); ext[maxIndex] = 0;
+    size = 1.01 * ext.norm();
     if (size > 0) break; // break, if a non-empty shape was found
 
     // process kinematic chain upwards (but only following fixed joints)
@@ -157,30 +156,19 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
     return DEFAULT_SCALE;
 
   // compute the aabb of the links that make up the group
-  const double inf = std::numeric_limits<double>::infinity();
-  Eigen::Vector3d lo( inf,  inf,  inf);
-  Eigen::Vector3d hi(-inf, -inf, -inf);
-  robot_state::RobotState default_state(robot_model_);
-  default_state.setToDefaultValues();
-
+  double size = 0;
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
-    const robot_model::LinkModel *lm = default_state.getLinkModel(links[i]);
+    const robot_model::LinkModel *lm = robot_model_->getLinkModel(links[i]);
     if (!lm)
       continue;
-    const Eigen::Vector3d &ext = lm->getShapeExtentsAtOrigin();
+    Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
 
-    Eigen::Vector3d corner1 = ext/2.0;
-    corner1 = default_state.getGlobalLinkTransform(lm) * corner1;
-    Eigen::Vector3d corner2 = ext/-2.0;
-    corner2 = default_state.getGlobalLinkTransform(lm) * corner2;
-    lo = lo.cwiseMin(corner1);
-    hi = hi.cwiseMax(corner2);
+    // drop largest extension and take norm of two remaining
+    Eigen::MatrixXd::Index maxIndex;
+    ext.maxCoeff(&maxIndex); ext[maxIndex] = 0;
+    size = std::max(size, 1.01 * ext.norm());
   }
-  const Eigen::Vector3d &ext = hi - lo;
-
-  // average of AABB diameter (norm) and max AABB extension (maxCoeff)
-  double size = (ext.norm() + ext.maxCoeff()) / 2.0;
 
   // if size is zero, all links have empty shapes and are placed at same position
   // in this case, fall back to link marker size
@@ -356,6 +344,9 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
                     active_eef_[i].eef_group.c_str(),
                     active_eef_[i].size);
   }
+  // if there is only a single end effector marker, we can safely use a larger marker
+  if (active_eef_.size() == 1)
+    active_eef_[0].size *= 1.5;
 }
 
 void RobotInteraction::clear()
