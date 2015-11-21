@@ -227,6 +227,17 @@ public:
     return false;
   }
 
+  std::string getDefaultPlannerId(const std::string &group) const {
+    std::stringstream param_name;
+    param_name << "move_group";
+    if (!group.empty()) param_name << "/" << group;
+    param_name << "/default_planner_config";
+
+    std::string default_planner_config;
+    node_handle_.getParam(param_name.str(), default_planner_config);
+    return default_planner_config;
+  }
+
   void setPlannerId(const std::string &planner_id)
   {
     planner_id_ = planner_id;
@@ -1075,9 +1086,19 @@ robot_model::RobotModelConstPtr moveit::planning_interface::MoveGroup::getRobotM
   return impl_->getRobotModel();
 }
 
+const ros::NodeHandle& moveit::planning_interface::MoveGroup::getNodeHandle() const
+{
+  return impl_->getOptions().node_handle_;
+}
+
 bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc)
 {
   return impl_->getInterfaceDescription(desc);
+}
+
+std::string moveit::planning_interface::MoveGroup::getDefaultPlannerId(const std::string &group) const
+{
+  return impl_->getDefaultPlannerId(group);
 }
 
 void moveit::planning_interface::MoveGroup::setPlannerId(const std::string &planner_id)
