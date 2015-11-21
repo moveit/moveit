@@ -81,7 +81,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
     if (req.pose_stamped_vector.empty() || req.pose_stamped_vector.size() == 1)
     {
       geometry_msgs::PoseStamped req_pose = req.pose_stamped_vector.empty() ? req.pose_stamped : req.pose_stamped_vector[0];
-      std::string ik_link = req.pose_stamped_vector.empty() ? (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) : req.ik_link_name;
+      std::string ik_link = (!req.pose_stamped_vector.empty()) ? (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) : req.ik_link_name;
 
       if (performTransform(req_pose, default_frame))
       {
