@@ -223,6 +223,9 @@ void MotionPlanningDisplay::onInitialize()
   resetStatusTextColor();
   addStatusText("Initialized.");
 
+  // immediately switch to next trajectory display after planning
+  connect(frame_, SIGNAL(planningFinished()), trajectory_visual_.get(), SLOT(interruptCurrentDisplay()));
+
   if (window_context)
     frame_dock_ = window_context->addPane("Motion Planning", frame_);
 
@@ -868,8 +871,7 @@ void MotionPlanningDisplay::scheduleDrawQueryStartState(robot_interaction::Robot
 {
   if (!planning_scene_monitor_)
     return;
-  if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, !error_state_changed), "publishInteractiveMarkers");
   recomputeQueryStartStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryStartState, this));
   context_->queueRender();
@@ -879,8 +881,7 @@ void MotionPlanningDisplay::scheduleDrawQueryGoalState(robot_interaction::RobotI
 {
   if (!planning_scene_monitor_)
     return;
-  if (error_state_changed)
-    addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, false), "publishInteractiveMarkers");
+  addBackgroundJob(boost::bind(&MotionPlanningDisplay::publishInteractiveMarkers, this, !error_state_changed), "publishInteractiveMarkers");
   recomputeQueryGoalStateMetrics();
   addMainLoopJob(boost::bind(&MotionPlanningDisplay::drawQueryGoalState, this));
   context_->queueRender();

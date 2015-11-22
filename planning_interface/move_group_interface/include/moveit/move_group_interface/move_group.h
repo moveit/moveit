@@ -130,6 +130,9 @@ public:
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;
 
+  /** \brief Get the ROS node handle of this instance operates on */
+  const ros::NodeHandle& getNodeHandle() const;
+
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
 
@@ -144,6 +147,9 @@ public:
 
   /** \brief Get the description of the planning plugin loaded by the action server */
   bool getInterfaceDescription(moveit_msgs::PlannerInterfaceDescription &desc);
+
+  /** \brief Get the default planner for a given group (or global default) */
+  std::string getDefaultPlannerId(const std::string &group="") const;
 
   /** \brief Specify a planner to be used for further planning */
   void setPlannerId(const std::string &planner_id);
