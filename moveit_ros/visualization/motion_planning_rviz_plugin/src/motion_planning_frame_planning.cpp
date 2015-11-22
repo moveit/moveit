@@ -123,6 +123,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
     // Failure
     ui_->result_label->setText("Failed");
   }
+  Q_EMIT planningFinished();
 }
 
 void MotionPlanningFrame::computeExecuteButtonClicked()
@@ -252,7 +253,12 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
   ui_->planning_algorithm_combo_box->insertItem(0, "<unspecified>");
-  ui_->planning_algorithm_combo_box->setCurrentIndex(0);
+
+  // retrieve default planner config from parameter server
+  const std::string& default_planner_config = move_group_->getDefaultPlannerId(found_group ? group : std::string());
+  int defaultIndex = ui_->planning_algorithm_combo_box->findText(QString::fromStdString(default_planner_config));
+  if (defaultIndex < 0) defaultIndex = 0; // 0 is <unspecified> fallback
+  ui_->planning_algorithm_combo_box->setCurrentIndex(defaultIndex);
 }
 
 void MotionPlanningFrame::populateConstraintsList()

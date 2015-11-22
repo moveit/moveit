@@ -56,6 +56,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
   : display_(display)
   , widget_(widget)
   , animating_path_(false)
+  , current_state_(-1)
 {
   trajectory_topic_property_ =
     new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
@@ -100,7 +101,9 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
                            widget,
                            SLOT(changedShowTrail()), this);
 
-  connect(this, SIGNAL(timeToShowNewTrail()), this, SLOT(changedShowTrail()));
+  interrupt_display_property_ =
+    new rviz::BoolProperty("Interrupt Display", false, "Immediately show newly planned trajectory, interrupting the currently displayed one.",
+                           widget);
 }
 
 TrajectoryVisualization::~TrajectoryVisualization()
@@ -194,6 +197,7 @@ void TrajectoryVisualization::changedShowTrail()
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
+    r->setAlpha(robot_path_alpha_property_->getFloat());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
     r->setVisible(display_->isEnabled() && (!animating_path_ || i <= current_state_));
     trajectory_trail_[i] = r;
@@ -268,6 +272,14 @@ void TrajectoryVisualization::onDisable()
   animating_path_ = false;
 }
 
+void TrajectoryVisualization::interruptCurrentDisplay() {
+  // update() starts a new trajectory as soon as it is available
+  // interrupting may cause the newly received trajectory to interrupt
+  // hence, only interrupt when current_state_ already advanced past first
+  if (current_state_ > 0)
+    animating_path_ = false;
+}
+
 float TrajectoryVisualization::getStateDisplayTime()
 {
   std::string tm = state_display_time_property_->getStdString();
@@ -292,24 +304,26 @@ float TrajectoryVisualization::getStateDisplayTime()
 
 void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 {
-  // Check if starting new trajectory
-  if (!animating_path_ && !trajectory_message_to_display_ && loop_display_property_->getBool() && displaying_trajectory_message_)
-  {
-    animating_path_ = true;
-    current_state_ = -1;
-    current_state_time_ = std::numeric_limits<float>::infinity();
-    display_path_robot_->setVisible(display_->isEnabled());
-  }
+  if (!animating_path_) { // finished last animation?
+    boost::mutex::scoped_lock lock(update_trajectory_message_);
 
-  if (!animating_path_ && trajectory_message_to_display_ && !trajectory_message_to_display_->empty())
-  {
-    displaying_trajectory_message_ = trajectory_message_to_display_;
-    display_path_robot_->setVisible(display_->isEnabled());
+    // new trajectory available to display?
+    if (trajectory_message_to_display_ && !trajectory_message_to_display_->empty()) {
+      animating_path_ = true;
+      displaying_trajectory_message_ = trajectory_message_to_display_;
+      changedShowTrail();
+    } else if (loop_display_property_->getBool() &&
+               displaying_trajectory_message_) { // do loop? -> start over too
+      animating_path_ = true;
+    }
     trajectory_message_to_display_.reset();
-    animating_path_ = true;
-    current_state_ = -1;
-    current_state_time_ = std::numeric_limits<float>::infinity();
-    display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
+
+    if (animating_path_) {
+      current_state_ = -1;
+      current_state_time_ = std::numeric_limits<float>::infinity();
+      display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
+      display_path_robot_->setVisible(display_->isEnabled());
+    }
   }
 
   if (animating_path_)
@@ -328,7 +342,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       }
       else
       {
-        animating_path_ = false;
+        animating_path_ = false; // animation finished
         display_path_robot_->setVisible(loop_display_property_->getBool());
       }
       current_state_time_ = 0.0f;
@@ -369,13 +383,10 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
 
   if (!t->empty())
   {
+    boost::mutex::scoped_lock lock(update_trajectory_message_);
     trajectory_message_to_display_.swap(t);
-  }
-  if (trail_display_property_->getBool())
-  {
-    // incomingDisplayTrajectory() can be called from a non-GUI thread, so here we
-    // use a signal/slot connection to invoke changedShowTrail() in the GUI thread.
-    Q_EMIT timeToShowNewTrail();
+    if (interrupt_display_property_->getBool())
+      interruptCurrentDisplay();
   }
 }
 

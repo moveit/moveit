@@ -60,6 +60,11 @@ public:
     current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
   }
 
+  const char *getRobotName() const
+  {
+    return robot_model_->getName().c_str();
+  }
+
   bp::list getJointNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelNames());
@@ -100,12 +105,12 @@ public:
     else
       return bp::list();
   }
-  
+
   bp::list getGroupNames() const
   {
     return py_bindings_tools::listFromString(robot_model_->getJointModelGroupNames());
   }
-  
+
   bp::list getJointLimits(const std::string &name) const
   {
     bp::list result;
@@ -123,12 +128,12 @@ public:
     }
     return result;
   }
-  
+
   const char* getPlanningFrame() const
   {
     return robot_model_->getModelFrame().c_str();
   }
-  
+
   bp::list getLinkPose(const std::string &name)
   {
     bp::list l;
@@ -152,7 +157,7 @@ public:
     }
     return l;
   }
-  
+
   bp::list getCurrentJointValues(const std::string &name)
   {
     bp::list l;
@@ -167,10 +172,10 @@ public:
       for (unsigned int i = 0 ; i < sz ; ++i)
         l.append(pos[i]);
     }
-    
+
     return l;
   }
-  
+
   bool ensureCurrentState(double wait = 1.0)
   {
     if (!current_state_monitor_)
@@ -178,7 +183,7 @@ public:
       ROS_ERROR("Unable to get current robot state");
       return false;
     }
-    
+
     // if needed, start the monitor and wait up to 1 second for a full robot state
     if (!current_state_monitor_->isActive())
     {
@@ -198,14 +203,14 @@ public:
     robot_state::robotStateToRobotStateMsg(*s, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
-  
+
   bp::dict getCurrentVariableValues()
   {
     bp::dict d;
-    
+
     if (!ensureCurrentState())
       return d;
-    
+
     const std::map<std::string, double> &vars = current_state_monitor_->getCurrentStateValues();
     for (std::map<std::string, double>::const_iterator it = vars.begin() ; it != vars.end() ; ++it)
       d[it->first] = it->second;
@@ -249,6 +254,7 @@ static void wrap_robot_interface()
   RobotClass.def("get_current_joint_values",  &RobotInterfacePython::getCurrentJointValues);
   RobotClass.def("get_robot_root_link", &RobotInterfacePython::getRobotRootLink);
   RobotClass.def("has_group", &RobotInterfacePython::hasGroup);
+  RobotClass.def("get_robot_name", &RobotInterfacePython::getRobotName);
 }
 
 BOOST_PYTHON_MODULE(_moveit_robot_interface)
