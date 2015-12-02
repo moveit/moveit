@@ -45,6 +45,16 @@ bool loadFileToString(std::string& buffer, const std::string& path, const std::v
   return true;
 }
 
+class SortableDisabledCollision {
+     const srdf::Model::DisabledCollision dc_;
+     const std::string key_;
+public:
+    SortableDisabledCollision(const srdf::Model::DisabledCollision &dc)
+    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_)) {}
+    operator const srdf::Model::DisabledCollision () const { return dc_; }
+    bool operator < (const SortableDisabledCollision &other) const { return key_ < other.key_; }
+};
+
 class CollisionUpdater{
     moveit_setup_assistant::MoveItConfigData config_data;
 public:
@@ -111,6 +121,9 @@ public:
         // Create temp disabled collision
         srdf::Model::DisabledCollision dc;
 
+        std::set<SortableDisabledCollision> disabled_collisions;
+        disabled_collisions.insert(config_data.srdf_->disabled_collisions_.begin(), config_data.srdf_->disabled_collisions_.end());
+
         // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
         for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin();
                 pair_it != link_pairs.end(); ++pair_it)
@@ -122,9 +135,11 @@ public:
                 dc.link1_ = pair_it->first.first;
                 dc.link2_ = pair_it->first.second;
                 dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
-                config_data.srdf_->disabled_collisions_.push_back( dc );
+                disabled_collisions.insert(SortableDisabledCollision(dc));
             }
         }
+
+        config_data.srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
 
         // Update collision_matrix for robot pose's use
         config_data.loadAllowedCollisionMatrix();
