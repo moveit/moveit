@@ -64,6 +64,7 @@ bool jointStateToRobotState(const sensor_msgs::JointState &joint_state, RobotSta
  * @return True if successful, false if failed for any reason
  */
 bool robotStateMsgToRobotState(const Transforms &tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies = true);
+
 /**
  * @brief Convert a robot state msg (with accompanying extra transforms) to a MoveIt! robot state
  * @param robot_state The input robot state msg
@@ -89,6 +90,15 @@ void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState 
 void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState &joint_state);
 
 /**
+ * @brief Convert a joint trajectory point to a MoveIt! robot state
+ * @param joint_trajectory The input msg
+ * @param point_id The index of the trajectory point in the joint trajectory.
+ * @param state The resultant MoveIt! robot state
+ * @return True if successful, false if failed for any reason
+ */
+bool jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory &trajectory, std::size_t point_id, RobotState &state);
+
+/**
  * @brief Convert a MoveIt! robot state to common separated values (CSV) on a single line that is
  *        outputted to a stream e.g. for file saving
  * @param state - The input MoveIt! robot state object
@@ -107,7 +117,7 @@ void robotStateToStream(const RobotState& state, std::ostream &out, bool include
  * @param include_header - flag to prefix the output with a line of joint names.
  * @param separator - allows to override the comma seperator with any symbol, such as a white space
  */
-void robotStateToStream(const RobotState& state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
+void robotStateToStream(const RobotState &state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
                         bool include_header = true, const std::string& separator = ",");
 
 /**
@@ -117,7 +127,7 @@ void robotStateToStream(const RobotState& state, std::ostream &out, const std::v
  * @param separator - allows to override the comma seperator with any symbol, such as a white space
  * \return true on success
  */
-void streamToRobotState(RobotState& state, const std::string &line, const std::string& separator = ",");
+void streamToRobotState(RobotState &state, const std::string &line, const std::string &separator = ",");
 
 }
 }

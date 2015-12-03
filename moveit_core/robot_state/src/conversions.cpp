@@ -60,9 +60,9 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState &joint_state, 
              (unsigned int)joint_state.name.size(), (unsigned int)joint_state.position.size());
     return false;
   }
-  
+
   state.setVariableValues(joint_state);
-  
+
   return true;
 }
 
@@ -74,11 +74,11 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState &m
     logError("Different number of names, values or frames in MultiDOFJointState message.");
     return false;
   }
-  
+
   bool error = false;
   Eigen::Affine3d inv_t;
   bool use_inv_t = false;
-  
+
   if (nj > 0 && !Transforms::sameFrame(mjs.header.frame_id, state.getRobotModel()->getModelFrame()))
   {
     if (tf)
@@ -116,7 +116,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState &m
     // if frames do not mach, attempt to transform
     if (use_inv_t)
       transf = transf * inv_t;
-    
+
     state.setJointPositions(joint_name, transf);
   }
 
@@ -338,7 +338,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_
     for (std::size_t i = 0 ; i < robot_state.attached_collision_objects.size() ; ++i)
       _msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
   }
-  
+
   return result1 && result2;
 }
 
@@ -380,6 +380,7 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
+
   if (copy_attached_bodies)
   {
     std::vector<const AttachedBody*> attached_bodies;
@@ -394,7 +395,7 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
 {
   const std::vector<const JointModel*> &js = state.getRobotModel()->getSingleDOFJointModels();
   joint_state = sensor_msgs::JointState();
-  
+
   for (std::size_t i = 0 ; i < js.size() ; ++i)
   {
     joint_state.name.push_back(js[i]->getName());
@@ -402,7 +403,7 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
     if (state.hasVelocities())
       joint_state.velocity.push_back(state.getVariableVelocity(js[i]->getFirstVariableIndex()));
   }
-  
+
   // if inconsistent number of velocities are specified, discard them
   if (joint_state.velocity.size() != joint_state.position.size())
     joint_state.velocity.clear();
@@ -410,7 +411,31 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
-void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out, bool include_header, const std::string& separator)
+bool moveit::core::jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory &trajectory, std::size_t point_id, RobotState &state)
+{
+  if (trajectory.points.empty() || point_id > trajectory.points.size() - 1)
+  {
+    logError("Invalid point_id");
+    return false;
+  }
+  if (trajectory.joint_names.empty())
+  {
+    logError("No joint names specified");
+    return false;
+  }
+
+  state.setVariablePositions(trajectory.joint_names, trajectory.points[point_id].positions);
+  if (!trajectory.points[point_id].velocities.empty())
+    state.setVariableVelocities(trajectory.joint_names, trajectory.points[point_id].velocities);
+  if (!trajectory.points[point_id].accelerations.empty())
+    state.setVariableAccelerations(trajectory.joint_names, trajectory.points[point_id].accelerations);
+  if (!trajectory.points[point_id].effort.empty())
+    state.setVariableEffort(trajectory.joint_names, trajectory.points[point_id].effort);
+
+  return true;
+}
+
+void moveit::core::robotStateToStream(const RobotState &state, std::ostream &out, bool include_header, const std::string &separator)
 {
   // Output name of variables
   if (include_header)
@@ -438,8 +463,8 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out
   out << std::endl;
 }
 
-void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
-                                      bool include_header, const std::string& separator)
+void moveit::core::robotStateToStream(const RobotState &state, std::ostream &out, const std::vector<std::string> &joint_groups_ordering,
+                                      bool include_header, const std::string &separator)
 {
   std::stringstream headers;
   std::stringstream joints;
@@ -474,7 +499,7 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream &out
   out << joints.str() << std::endl;
 }
 
-void moveit::core::streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+void moveit::core::streamToRobotState(RobotState &state, const std::string &line, const std::string &separator)
 {
   std::stringstream lineStream(line);
   std::string cell;
