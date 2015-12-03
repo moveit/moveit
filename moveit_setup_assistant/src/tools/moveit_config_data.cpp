@@ -615,6 +615,60 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
 }
 
 // ******************************************************************************************
+// Set list of collision link pairs in SRDF; sorted; with optional filter
+// ******************************************************************************************
+
+
+class SortableDisabledCollision
+{
+public:
+  SortableDisabledCollision(const srdf::Model::DisabledCollision &dc) :
+     dc_(dc), key_( dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_) )
+  {
+  }
+  operator const srdf::Model::DisabledCollision () const
+  {
+    return dc_;
+
+  }
+  bool operator < (const SortableDisabledCollision &other) const
+  {
+    return key_ < other.key_;
+  }
+private:
+  const srdf::Model::DisabledCollision dc_;
+  const std::string key_;
+};
+
+void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask){
+  // Create temp disabled collision
+  srdf::Model::DisabledCollision dc;
+
+  std::set<SortableDisabledCollision> disabled_collisions;
+  disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
+
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
+  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin();
+        pair_it != link_pairs.end(); ++pair_it)
+  {
+    // Only copy those that are actually disabled
+    if(pair_it->second.disable_check)
+    {
+      if((1 << pair_it->second.reason) & skip_mask) continue;
+
+      dc.link1_ = pair_it->first.first;
+      dc.link2_ = pair_it->first.second;
+      dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
+
+      disabled_collisions.insert(SortableDisabledCollision(dc));
+    }
+  }
+
+  srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
+}
+
+
+// ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
 // ******************************************************************************************
 std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)

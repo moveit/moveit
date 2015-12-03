@@ -43,6 +43,7 @@
 #include <moveit/setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
+#include <moveit/setup_assistant/tools/compute_default_collisions.h> // for LinkPairMap
 
 namespace moveit_setup_assistant
 {
@@ -223,6 +224,13 @@ public:
   bool outputJointLimitsYAML( const std::string& file_path );
   bool outputFakeControllersYAML( const std::string& file_path );
   
+  /**
+   * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
+   * \param link_pairs list of collision link pairs
+   * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
+   */
+  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask = 0);
+
   /**
    * \brief Decide the best two joints to be used for the projection evaluator
    * \param planning_group name of group to use
