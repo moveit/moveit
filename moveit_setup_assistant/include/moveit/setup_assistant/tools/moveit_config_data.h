@@ -259,6 +259,12 @@ public:
    */
   bool getSetupAssistantYAMLPath( std::string& path );
 
+  /// Make the full URDF path using the loaded .setup_assistant data
+  bool createFullURDFPath();
+
+  /// Make the full SRDF path using the loaded .setup_assistant data
+  bool createFullSRDFPath( const std::string& package_path );
+
   /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
    *
