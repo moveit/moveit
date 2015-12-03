@@ -835,6 +835,22 @@ bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
 }
 
 // ******************************************************************************************
+// Resolve path to .setup_assistant file
+// ******************************************************************************************
+
+bool MoveItConfigData::getSetupAssistantYAMLPath( std::string& path )
+{
+  path = appendPaths(config_pkg_path_, ".setup_assistant");
+
+  // Check if the old package is a setup assistant package
+  return fs::is_regular_file( path );
+}
+
+  return true;
+}
+
+
+// ******************************************************************************************
 // Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
 // ******************************************************************************************
 bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )

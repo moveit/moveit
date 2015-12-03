@@ -324,25 +324,25 @@ bool StartScreenWidget::loadExistingFiles()
   if( !createFullPackagePath() )
     return false; // error occured
 
-  // Path of .setup_assistant file
-  fs::path setup_assistant_file = config_data_->config_pkg_path_;
-  setup_assistant_file /= ".setup_assistant";
+
+  std::string setup_assistant_path;
+
 
   // Check if the old package is a setup assistant package. If it is not, quit
-  if( ! fs::is_regular_file( setup_assistant_file ) )
+  if( config_data_->getSetupAssistantYAMLPath(setup_assistant_path) )
   {
     QMessageBox::warning( this, "Incorrect Directory/Package",
                           QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
-                          .append( setup_assistant_file.make_preferred().native().c_str() ) );
+                          .append( setup_assistant_path.c_str() ) );
     return false;
   }
 
   // Get setup assistant data
-  if( !config_data_->inputSetupAssistantYAML( setup_assistant_file.make_preferred().native().c_str() ) )
+  if( !config_data_->inputSetupAssistantYAML( setup_assistant_path ) )
   {
     QMessageBox::warning( this, "Setup Assistant File Error",
                           QString("Unable to correctly parse the setup assistant configuration file: " )
-                          .append( setup_assistant_file.make_preferred().native().c_str() ) );
+                          .append( setup_assistant_path.c_str() ) );
     return false;
   }
 

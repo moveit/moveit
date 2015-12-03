@@ -67,11 +67,10 @@ public:
 
         if(!config_data.setPackagePath(pkg_path))  return false;
 
-        fs::path setup_assistant_file = config_data.config_pkg_path_;
-        setup_assistant_file /= ".setup_assistant";
+        std::string setup_assistant_path;
+        if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)) return false;
 
-        if(!config_data.inputSetupAssistantYAML( setup_assistant_file.make_preferred().native().c_str() ) )
-            return false;
+        if(!config_data.inputSetupAssistantYAML(setup_assistant_path)) return false;
 
         fs::path urdf_path;
 
