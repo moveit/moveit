@@ -1,7 +1,6 @@
 #include <ros/ros.h>
 #include <ros/package.h> // for getting file path for loadng images
 
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 
 #include <boost/filesystem.hpp>  // for reading folders/files
@@ -60,16 +59,6 @@ bool loadXmlFileToString(std::string& buffer, const std::string& path, const std
         return loadFileToString(buffer, path);
     }
 }
-
-class SortableDisabledCollision {
-     const srdf::Model::DisabledCollision dc_;
-     const std::string key_;
-public:
-    SortableDisabledCollision(const srdf::Model::DisabledCollision &dc)
-    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_)) {}
-    operator const srdf::Model::DisabledCollision () const { return dc_; }
-    bool operator < (const SortableDisabledCollision &other) const { return key_ < other.key_; }
-};
 
 class CollisionUpdater{
     moveit_setup_assistant::MoveItConfigData config_data;
@@ -134,31 +123,12 @@ public:
     }
 
     void write(const moveit_setup_assistant::LinkPairMap &link_pairs, bool include_default, bool include_always, const std::string &output_path){
-        // Create temp disabled collision
-        srdf::Model::DisabledCollision dc;
 
-        std::set<SortableDisabledCollision> disabled_collisions;
-        disabled_collisions.insert(config_data.srdf_->disabled_collisions_.begin(), config_data.srdf_->disabled_collisions_.end());
+        size_t skip_mask = 0;
+        if(!include_default) skip_mask |= (1<<moveit_setup_assistant::DEFAULT);
+        if(!include_always) skip_mask |= (1<<moveit_setup_assistant::ALWAYS);
 
-        // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-        for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin();
-                pair_it != link_pairs.end(); ++pair_it)
-        {
-            // Only copy those that are actually disabled
-            if( pair_it->second.disable_check ){
-                if( pair_it->second.reason == moveit_setup_assistant::DEFAULT && !include_default) continue;
-                if( pair_it->second.reason == moveit_setup_assistant::ALWAYS && !include_always) continue;
-                dc.link1_ = pair_it->first.first;
-                dc.link2_ = pair_it->first.second;
-                dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
-                disabled_collisions.insert(SortableDisabledCollision(dc));
-            }
-        }
-
-        config_data.srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
-
-        // Update collision_matrix for robot pose's use
-        config_data.loadAllowedCollisionMatrix();
+        config_data.setCollisionLinkPairs(link_pairs, skip_mask);
 
         config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path );
 
