@@ -5,7 +5,6 @@
 
 #include <boost/filesystem.hpp>  // for reading folders/files
 #include <boost/program_options.hpp>
-#include <boost/algorithm/string/join.hpp>
 
 #include <fstream>  // for reading in urdf
 #include <streambuf>
@@ -60,69 +59,47 @@ bool loadXmlFileToString(std::string& buffer, const std::string& path, const std
     }
 }
 
-class CollisionUpdater{
-    moveit_setup_assistant::MoveItConfigData config_data;
-public:
-    bool loadSetupAssistantConfig(const std::string &pkg_path){
+bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path){
 
-        if(!config_data.setPackagePath(pkg_path))  return false;
+    if(!config_data.setPackagePath(pkg_path))  return false;
 
-        std::string setup_assistant_path;
-        if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)) return false;
+    std::string setup_assistant_path;
+    if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)) return false;
 
-        if(!config_data.inputSetupAssistantYAML(setup_assistant_path)) return false;
+    if(!config_data.inputSetupAssistantYAML(setup_assistant_path)) return false;
 
-        config_data.createFullURDFPath(); // might fail at this point
+    config_data.createFullURDFPath(); // might fail at this point
 
-        config_data.createFullSRDFPath(config_data.config_pkg_path_); // might fail at this point
+    config_data.createFullSRDFPath(config_data.config_pkg_path_); // might fail at this point
 
-        return true;
-    }
+    return true;
+}
 
-    void setURDF(const std::string &path) {
-        if(!path.empty()) config_data.urdf_path_ = path;
-    }
-    void setSRDF(const std::string &path) {
-        if(!path.empty()) config_data.srdf_path_ = path;
-    }
+bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old, const std::vector<std::string> &xacro_args) {
+    std::string urdf_string;
+    if(!loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)) return false;
+    if(!config_data.urdf_model_->initString( urdf_string))return false;
 
-    bool setup(bool keep_old, const std::vector<std::string> &xacro_args){
-        std::string urdf_string;
-        if(!loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)) return false;
-        if(!config_data.urdf_model_->initString( urdf_string))return false;
-
-        std::string srdf_string;
-        if(!loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)) return false;
-        if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)) return false;
+    std::string srdf_string;
+    if(!loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)) return false;
+    if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)) return false;
 
 
-        if(!keep_old) config_data.srdf_->disabled_collisions_.clear();
+    if(!keep_old) config_data.srdf_->disabled_collisions_.clear();
 
-        return true;
-    }
+    return true;
+}
 
-    moveit_setup_assistant::LinkPairMap compute(uint32_t trials, double min_collision_fraction,  bool verbose){
-        unsigned int collision_progress;
-        return moveit_setup_assistant::computeDefaultCollisions(config_data.getPlanningScene(),
-                                                                &collision_progress,
-                                                                trials > 0,
-                                                                trials,
-                                                                min_collision_fraction, verbose);
-    }
-
-    void write(const moveit_setup_assistant::LinkPairMap &link_pairs, bool include_default, bool include_always, const std::string &output_path){
-
-        size_t skip_mask = 0;
-        if(!include_default) skip_mask |= (1<<moveit_setup_assistant::DEFAULT);
-        if(!include_always) skip_mask |= (1<<moveit_setup_assistant::ALWAYS);
-
-        config_data.setCollisionLinkPairs(link_pairs, skip_mask);
-
-        config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path );
-
-    }
-
-};
+moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfigData &config_data,
+                                            uint32_t trials, double min_collision_fraction,  bool verbose){
+    // TODO: spin thread and print progess if verbose
+    unsigned int collision_progress;
+    return moveit_setup_assistant::computeDefaultCollisions(config_data.getPlanningScene(),
+                                                            &collision_progress,
+                                                            trials > 0,
+                                                            trials,
+                                                            min_collision_fraction, verbose);
+}
 
 int main(int argc, char * argv[]){
 
@@ -170,10 +147,10 @@ int main(int argc, char * argv[]){
         return 1;
     }
 
-    CollisionUpdater updater;
+    moveit_setup_assistant::MoveItConfigData config_data;
 
     if(!config_pkg_path.empty()){
-        if(!updater.loadSetupAssistantConfig(config_pkg_path)){
+        if(!loadSetupAssistantConfig(config_data, config_pkg_path)){
             std::cerr << "Could not load config at '" << config_pkg_path << "'" << std::endl;
             return 1;
         }
@@ -185,21 +162,27 @@ int main(int argc, char * argv[]){
         return 1;
     }
 
-    updater.setURDF(urdf_path);
-    updater.setSRDF(srdf_path);
+    // overwrite config paths if applicable
+    if(!urdf_path.empty()) config_data.urdf_path_ = urdf_path;
+    if(!srdf_path.empty()) config_data.srdf_path_ = srdf_path;
 
     std::vector<std::string> xacro_args;
     if(vm.count("xacro-args")) xacro_args = vm["xacro-args"].as<std::vector<std::string> >();
 
-    if(!updater.setup(keep_old, xacro_args)){
+    if(!setup(config_data, keep_old, xacro_args)){
         std::cerr << "Could not setup updater" << std::endl;
         return 1;
     }
 
-    moveit_setup_assistant::LinkPairMap link_pairs = updater.compute(never_trials, min_collision_fraction,verbose);
+    moveit_setup_assistant::LinkPairMap link_pairs = compute(config_data, never_trials, min_collision_fraction,verbose);
 
-    updater.write(link_pairs, include_default, include_always, output_path);
+    size_t skip_mask = 0;
+    if(!include_default) skip_mask |= (1<<moveit_setup_assistant::DEFAULT);
+    if(!include_always) skip_mask |= (1<<moveit_setup_assistant::ALWAYS);
 
+    config_data.setCollisionLinkPairs(link_pairs, skip_mask);
+
+    config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path );
 
     return 0;
 }
