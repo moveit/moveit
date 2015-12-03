@@ -805,6 +805,35 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
   return true; // file created successfully
 }
 
+
+// ******************************************************************************************
+// Set package path; try to resolve path from package name if directory does not exist
+// ******************************************************************************************
+bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
+{
+  std::string full_package_path;
+
+  // check that the folder exists
+  if( !fs::is_directory( pkg_path ) )
+  {
+    // does not exist, check if its a package
+    full_package_path = ros::package::getPath( pkg_path );
+
+    // check that the folder exists
+    if( !fs::is_directory( full_package_path ) )
+    {
+      return false;
+    }
+  }
+  else
+  {
+    // they inputted a full path
+    full_package_path = pkg_path;
+  }
+
+  config_pkg_path_ = full_package_path;
+}
+
 // ******************************************************************************************
 // Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
 // ******************************************************************************************

@@ -800,11 +800,6 @@ bool StartScreenWidget::createFullPackagePath()
 {
   // Get package path
   std::string package_path_input = stack_path_->getPath();
-  std::string full_package_path;
-
-  // Trim whitespace from user input
-  boost::trim( package_path_input );
-
   // check that input is provided
   if( package_path_input.empty() )
   {
@@ -812,30 +807,12 @@ bool StartScreenWidget::createFullPackagePath()
     return false;
   }
 
-  // Decide if this is a package name or a full path ----------------------------------------------
-
   // check that the folder exists
-  if( !fs::is_directory( package_path_input ) )
+  if( !config_data_->setPackagePath(package_path_input) )
   {
-    // does not exist, check if its a package
-    full_package_path = ros::package::getPath( package_path_input );
-
-    // check that the folder exists
-    if( !fs::is_directory( full_package_path ) )
-    {
-      // error
-      QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
-      return false;
-    }
+    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
+    return false;
   }
-  else
-  {
-    // they inputted a full path
-    full_package_path = package_path_input;
-  }
-
-  config_data_->config_pkg_path_ = full_package_path;
-
   return true;
 }
 
