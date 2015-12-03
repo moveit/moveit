@@ -72,21 +72,9 @@ public:
 
         if(!config_data.inputSetupAssistantYAML(setup_assistant_path)) return false;
 
-        fs::path urdf_path;
+        config_data.createFullURDFPath(); // might fail at this point
 
-        if( config_data.urdf_pkg_name_.empty() || config_data.urdf_pkg_name_ == "\"\"" ){
-            urdf_path = config_data.urdf_pkg_relative_path_;
-        }else{
-            fs::path robot_desc_pkg_path = ros::package::getPath( config_data.urdf_pkg_name_ );
-            if( robot_desc_pkg_path.empty() ) return false;
-
-            urdf_path = robot_desc_pkg_path / config_data.urdf_pkg_relative_path_;
-        }
-        config_data.urdf_path_ = urdf_path.make_preferred().native();
-
-        fs::path srdf_path = config_data.config_pkg_path_ ;
-        srdf_path /= config_data.srdf_pkg_relative_path_;
-        config_data.srdf_path_ = srdf_path.make_preferred().native();
+        config_data.createFullSRDFPath(config_data.config_pkg_path_); // might fail at this point
 
         return true;
     }

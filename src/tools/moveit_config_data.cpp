@@ -846,7 +846,46 @@ bool MoveItConfigData::getSetupAssistantYAMLPath( std::string& path )
   return fs::is_regular_file( path );
 }
 
-  return true;
+// ******************************************************************************************
+// Make the full URDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool MoveItConfigData::createFullURDFPath()
+{
+  boost::trim(urdf_pkg_name_);
+
+  // Check if a package name was provided
+  if( urdf_pkg_name_.empty() || urdf_pkg_name_ == "\"\"" )
+  {
+    urdf_path_ = urdf_pkg_relative_path_;
+    urdf_pkg_name_.clear();
+  }
+  else
+  {
+    // Check that ROS can find the package
+    std::string robot_desc_pkg_path = ros::package::getPath( urdf_pkg_name_ );
+
+    if( robot_desc_pkg_path.empty() )
+    {
+      urdf_path_.clear();
+      return false;
+    }
+
+    // Append the relative URDF url path
+    urdf_path_ = appendPaths(robot_desc_pkg_path, urdf_pkg_relative_path_);
+  }
+
+  // Check that this file exits -------------------------------------------------
+  return fs::is_regular_file( urdf_path_ );
+}
+
+// ******************************************************************************************
+// Make the full SRDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool MoveItConfigData::createFullSRDFPath( const std::string& package_path )
+{
+  srdf_path_ = appendPaths(package_path, srdf_pkg_relative_path_);
+
+  return fs::is_regular_file( srdf_path_ );
 }
 
 

@@ -728,45 +728,29 @@ bool StartScreenWidget::extractPackageNameFromPath()
 // ******************************************************************************************
 bool StartScreenWidget::createFullURDFPath()
 {
-  fs::path urdf_path;
-
-  // Check if a package name was provided
-  if( config_data_->urdf_pkg_name_.empty() || config_data_->urdf_pkg_name_ == "\"\"" )
+  if( !config_data_->createFullURDFPath() )
   {
-    urdf_path = config_data_->urdf_pkg_relative_path_;
-    ROS_WARN("The URDF path is absolute to the filesystem and not relative to a ROS package/stack");
-  }
-  else
-  {
-
-    // Check that ROS can find the package
-    fs::path robot_desc_pkg_path = ros::package::getPath( config_data_->urdf_pkg_name_ );
-
-    if( robot_desc_pkg_path.empty() )
+    if( config_data_->urdf_path_.empty() ) // no path could be resolved
     {
       QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
                             .append( config_data_->urdf_pkg_name_.c_str() )
                             .append("'. Verify this package is inside your ROS workspace and is a proper ROS package.") );
-      return false;
     }
-
-    // Append the relative URDF url path
-    urdf_path = robot_desc_pkg_path;
-    urdf_path /= config_data_->urdf_pkg_relative_path_;
-  }
-
-
-  // Check that this file exits -------------------------------------------------
-  if( ! fs::is_regular_file( urdf_path ) )
-  {
-    QMessageBox::warning( this, "Error Loading Files",
-                          QString( "Unable to locate the URDF file in package. File: " )
-                          .append( urdf_path.make_preferred().native().c_str() ) );
+    else
+    {
+      QMessageBox::warning( this, "Error Loading Files",
+                            QString( "Unable to locate the URDF file in package. File: " )
+                            .append( config_data_->urdf_path_.c_str() ) );
+    }
     return false;
   }
+  fs::path urdf_path;
 
-  // Remember the path
-  config_data_->urdf_path_ = urdf_path.make_preferred().native();
+  // Check if a package name was provided
+  if( config_data_->urdf_pkg_name_.empty())
+  {
+    ROS_WARN("The URDF path is absolute to the filesystem and not relative to a ROS package/stack");
+  }
 
   return true; // success
 }
@@ -776,13 +760,7 @@ bool StartScreenWidget::createFullURDFPath()
 // ******************************************************************************************
 bool StartScreenWidget::createFullSRDFPath( const std::string& package_path )
 {
-  // Append the relative SRDF url path
-  fs::path srdf_path = package_path;
-  srdf_path /= config_data_->srdf_pkg_relative_path_;
-  config_data_->srdf_path_ = srdf_path.make_preferred().native();
-
-  // Check that this file exits
-  if( ! fs::is_regular_file( config_data_->srdf_path_ ) )
+  if( ! config_data_->createFullSRDFPath(package_path) )
   {
     QMessageBox::warning( this, "Error Loading Files",
                           QString("Unable to locate the SRDF file: " )
