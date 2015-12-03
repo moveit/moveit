@@ -253,6 +253,13 @@ public:
   bool setPackagePath( const std::string& pkg_path );
 
   /**
+   * Resolve path to .setup_assistant file
+   * @param path resolved path
+   * @return bool if the path could be resolved
+   */
+  bool getSetupAssistantYAMLPath( std::string& path );
+
+  /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
    *
    * @param file_path path to .setup_assistant file
