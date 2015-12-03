@@ -246,6 +246,13 @@ public:
   bool inputKinematicsYAML( const std::string& file_path );
 
   /**
+   * Set package path; try to resolve path from package name if directory does not exist
+   * @param pkg_path path to package or package name
+   * @return bool if the path was set
+   */
+  bool setPackagePath( const std::string& pkg_path );
+
+  /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
    *
    * @param file_path path to .setup_assistant file

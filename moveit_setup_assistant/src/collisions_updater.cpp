@@ -63,8 +63,9 @@ bool loadXmlFileToString(std::string& buffer, const std::string& path, const std
 class CollisionUpdater{
     moveit_setup_assistant::MoveItConfigData config_data;
 public:
-    bool loadSetupAssistantConfig(const std::string &path){
-        config_data.config_pkg_path_ = path;
+    bool loadSetupAssistantConfig(const std::string &pkg_path){
+
+        if(!config_data.setPackagePath(pkg_path))  return false;
 
         fs::path setup_assistant_file = config_data.config_pkg_path_;
         setup_assistant_file /= ".setup_assistant";
