@@ -220,8 +220,11 @@ int main(int argc, char * argv[]){
             return 1;
         }
     }else if (urdf_path.empty() || srdf_path.empty()){
-            std::cerr << "Please provide config package or URDF and SRDF path" << std::endl;
-            return 1;
+        std::cerr << "Please provide config package or URDF and SRDF path" << std::endl;
+        return 1;
+    }else if(isXacroFile(srdf_path) && output_path.empty()){
+        std::cerr << "Please provide a different output file for SRDF xacro input file" << std::endl;
+        return 1;
     }
 
     updater.setURDF(urdf_path);
