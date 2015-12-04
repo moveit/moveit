@@ -34,8 +34,8 @@
 
 /* Author: Ryan Luna */
 
-#ifndef MOVEIT_BENCHMARK_BENCHMARK_OPTIONS_
-#define MOVEIT_BENCHMARK_BENCHMARK_OPTIONS_
+#ifndef MOVEIT_ROS_BENCHMARK_BENCHMARK_OPTIONS_
+#define MOVEIT_ROS_BENCHMARK_BENCHMARK_OPTIONS_
 
 #include <string>
 #include <map>
@@ -43,7 +43,7 @@
 #include <ros/ros.h>
 #include <moveit_msgs/WorkspaceParameters.h>
 
-namespace moveit_benchmarks
+namespace moveit_ros_benchmarks
 {
 
 class BenchmarkOptions

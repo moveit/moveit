@@ -47,9 +47,9 @@ int main(int argc, char** argv)
     spinner.start();
 
     // Read benchmark options from param server
-    moveit_benchmarks::BenchmarkOptions opts(ros::this_node::getName());
+    moveit_ros_benchmarks::BenchmarkOptions opts(ros::this_node::getName());
     // Setup benchmark server
-    moveit_benchmarks::BenchmarkExecutor server;
+    moveit_ros_benchmarks::BenchmarkExecutor server;
 
     std::vector<std::string> plugins;
     opts.getPlannerPluginList(plugins);

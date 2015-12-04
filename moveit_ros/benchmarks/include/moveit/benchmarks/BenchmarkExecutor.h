@@ -34,8 +34,8 @@
 
 /* Author: Ryan Luna */
 
-#ifndef MOVEIT_BENCHMARKS_BENCHMARK_EXECUTOR_
-#define MOVEIT_BENCHMARKS_BENCHMARK_EXECUTOR_
+#ifndef MOVEIT_ROS_BENCHMARKS_BENCHMARK_EXECUTOR_
+#define MOVEIT_ROS_BENCHMARKS_BENCHMARK_EXECUTOR_
 
 #ifdef USE_BOOST_FILESYSTEM_V2
 #define BOOST_FILESYSTEM_VERSION 2
@@ -57,7 +57,7 @@
 #include <string>
 #include <boost/function.hpp>
 
-namespace moveit_benchmarks
+namespace moveit_ros_benchmarks
 {
 
 /// A class that executes motion plan requests and aggregates data across multiple runs

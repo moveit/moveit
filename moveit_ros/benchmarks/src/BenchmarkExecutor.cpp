@@ -44,7 +44,7 @@
 #include <boost/filesystem.hpp>
 #include <unistd.h>
 
-using namespace moveit_benchmarks;
+using namespace moveit_ros_benchmarks;
 
 static std::string getHostname()
 {
