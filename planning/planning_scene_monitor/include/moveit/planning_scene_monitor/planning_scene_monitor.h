@@ -262,6 +262,11 @@ public:
     return current_state_monitor_;
   }
 
+  CurrentStateMonitorPtr& getStateMonitorNonConst()
+  {
+    return current_state_monitor_;
+  }
+
   /** @brief Update the transforms for the frames that are not part of the kinematic model using tf.
    *  Examples of these frames are the "map" and "odom_combined" transforms. This function is automatically called when data that uses transforms is received.
    *  However, this function should also be called before starting a planning request, for example.

@@ -43,7 +43,8 @@ planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_mod
   , robot_model_(robot_model)
   , robot_state_(robot_model)
   , state_monitor_started_(false)
-  , error_(std::numeric_limits<float>::epsilon())
+  , copy_dynamics_(false)
+  , error_(std::numeric_limits<double>::epsilon())
 {
   robot_state_.setToDefaultValues();
 }
@@ -324,7 +325,23 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       {
         update = true;
         robot_state_.setJointPositions(jm, &(joint_state->position[i]));
-        
+
+        // optionally copy velocities and effort
+        if (copy_dynamics_)
+        {
+          // check if velocities exist
+          if (joint_state->name.size() == joint_state->velocity.size())
+          {
+            robot_state_.setJointVelocities(jm, &(joint_state->velocity[i]));
+
+            // check if effort exist. assume they are not useful if no velocities were passed in
+            if (joint_state->name.size() == joint_state->effort.size())
+            {
+              robot_state_.setJointEfforts(jm, &(joint_state->effort[i]));
+            }
+          }
+        }
+
         // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
         if (jm->getType() == robot_model::JointModel::REVOLUTE)
           if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
