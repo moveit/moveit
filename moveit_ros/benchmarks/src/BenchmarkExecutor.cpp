@@ -569,7 +569,7 @@ bool BenchmarkExecutor::loadPlanningScene(const std::string& scene_name, moveit_
     {
         ROS_ERROR("Error loading planning scene: %s", ex.what());
     }
-
+    ROS_INFO("Loaded planning scene successfully");
     return ok;
 }
 
@@ -592,7 +592,7 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
 
     if (query_names.empty())
     {
-        ROS_DEBUG("Scene '%s' has no associated queries", scene_name.c_str());
+        ROS_ERROR("Scene '%s' has no associated queries", scene_name.c_str());
         return false;
     }
 
@@ -614,7 +614,7 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
         query.request = static_cast<moveit_msgs::MotionPlanRequest>(*planning_query);
         queries.push_back(query);
     }
-
+    ROS_INFO("Loaded queries successfully");
     return true;
 }
 
@@ -652,7 +652,7 @@ bool BenchmarkExecutor::loadStates(const std::string& regex, std::vector<StartSt
         if (start_states.empty())
             ROS_WARN("No stored states matched the provided start state regex: '%s'", regex.c_str());
     }
-
+    ROS_INFO("Loaded states successfully");
     return true;
 }
 
@@ -685,8 +685,9 @@ bool BenchmarkExecutor::loadPathConstraints(const std::string& regex, std::vecto
 
         if (constraints.empty())
             ROS_WARN("No path constraints found that match regex: '%s'", regex.c_str());
+	else
+	  ROS_INFO("Loaded path constraints successfully");
     }
-
     return true;
 }
 
@@ -719,8 +720,9 @@ bool BenchmarkExecutor::loadTrajectoryConstraints(const std::string& regex, std:
 
         if (constraints.empty())
             ROS_WARN("No trajectory constraints found that match regex: '%s'", regex.c_str());
+	else
+	  ROS_INFO("Loaded trajectory constraints successfully");	  
     }
-
     return true;
 }
 

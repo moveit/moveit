@@ -2,6 +2,22 @@ moveit_ros_benchmarks
 ---------------------
 This package provides methods to benchmark motion planning algorithms and aggregate/plot statistics.  The core of the functionality lies in the BenchmarkExecutor class.  Using the BenchmarkExecutor requires an instance of the BenchmarkOptions class, which reads benchmark parameters from the ROS parameter server.
 
+Example
+-------
+
+An example is provided in the examples folder. The launch file requires a moveit config package 
+for the Fanuc M10ia available from here: https://github.com/sachinchitta/moveit_examples
+
+To run:
+
+1. Launch the Fanuc M10ia demo.launch: roslaunch fanuc_m10ia_moveit_config demo.launch db:=true
+2. Connect to the database.
+3. Save a scene and associated query for the Fanuc M10ia. Name the scene Kitchen1 and the 
+   query Pick1.
+4. Also save a start state for the robot and name it Start1.
+5. The config file demo1.yaml refers to the scenes, queries and start states used for benchmarking. Modify them appropriately.
+6. Now, run the benchmarks: roslaunch moveit_ros_benchmarks demo_fanuc_m10ia.launch
+
 BenchmarkOptions
 ----------------
 This class reads in parameters and options for the benchmarks to run from the ROS parameter server.  The format of the parameters is assumed to be in the following form:
@@ -57,3 +73,5 @@ It is possible to customize a benchmark run by deriving a class from BenchmarkEx
     - querySwitchEvent (invoked before a new benchmark problem begin execution)
 
 Note, in the above, a benchmark is a concrete instance of a PlanningScene, start state, goal constraints / trajectory_constraints, and (optionally) path_constraints.  A run is one attempt by a specific planner to solve the benchmark.
+
+
