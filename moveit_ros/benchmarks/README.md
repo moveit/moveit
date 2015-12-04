@@ -23,10 +23,12 @@ BenchmarkOptions
 This class reads in parameters and options for the benchmarks to run from the ROS parameter server.  The format of the parameters is assumed to be in the following form:
 
 benchmark_config:
+
     warehouse:
         host: [hostname/IP address of ROS Warehouse node]                           # Default localhost
         port: [port number of ROS Warehouse node]                                   # Default 33829
         scene_name: [Name of the planning scene to use for benchmarks]              # REQUIRED
+
     parameters:
         runs: [Number of runs for each planning algorithm on each request]          # Default 10
         group: [The name of the group to plan]                                      # REQUIRED
