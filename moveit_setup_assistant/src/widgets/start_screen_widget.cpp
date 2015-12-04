@@ -329,7 +329,7 @@ bool StartScreenWidget::loadExistingFiles()
 
 
   // Check if the old package is a setup assistant package. If it is not, quit
-  if( config_data_->getSetupAssistantYAMLPath(setup_assistant_path) )
+  if( !config_data_->getSetupAssistantYAMLPath(setup_assistant_path) )
   {
     QMessageBox::warning( this, "Incorrect Directory/Package",
                           QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
