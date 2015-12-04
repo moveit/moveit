@@ -16,7 +16,7 @@ To run:
    query Pick1.
 4. Also save a start state for the robot and name it Start1.
 5. The config file demo1.yaml refers to the scenes, queries and start states used for benchmarking. Modify them appropriately.
-6. Now, run the benchmarks: roslaunch moveit_ros_benchmarks demo_fanuc_m10ia.launch
+6. Now, bring down your previous launch file and then run the benchmarks: roslaunch moveit_ros_benchmarks demo_fanuc_m10ia.launch
 
 BenchmarkOptions
 ----------------
