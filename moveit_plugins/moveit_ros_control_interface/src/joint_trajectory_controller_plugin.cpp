@@ -34,27 +34,29 @@
 
 /* Author: Mathias Lüdtke */
 
-
 #include <ros/ros.h>
 #include <moveit_ros_control_interface/ControllerHandle.h>
 #include <pluginlib/class_list_macros.h>
 #include <boost/shared_ptr.hpp>
 #include <moveit_simple_controller_manager/follow_joint_trajectory_controller_handle.h>
 
-namespace moveit_ros_control_interface {
-
+namespace moveit_ros_control_interface
+{
 /**
  * Simple allocator for moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle instances.
  */
-class JointTrajectoryControllerAllocator : public ControllerHandleAllocator {
+class JointTrajectoryControllerAllocator : public ControllerHandleAllocator
+{
 public:
-    virtual moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string &name, const std::vector<std::string> &resources){
-        return boost::make_shared<moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle>(name, "follow_joint_trajectory");
-    }
-
+  virtual moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string &name,
+                                                                     const std::vector<std::string> &resources)
+  {
+    return boost::make_shared<moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle>(
+        name, "follow_joint_trajectory");
+  }
 };
 
-} // namespace moveit_ros_control_interface
+}  // namespace moveit_ros_control_interface
 
 PLUGINLIB_EXPORT_CLASS(moveit_ros_control_interface::JointTrajectoryControllerAllocator,
                        moveit_ros_control_interface::ControllerHandleAllocator);
