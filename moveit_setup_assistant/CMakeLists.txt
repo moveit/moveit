@@ -63,6 +63,7 @@ qt4_wrap_cpp(moc_sources ${headers})
 # Tools Library
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
+  src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
   src/tools/srdf_writer.cpp
 )
@@ -110,7 +111,13 @@ target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
+add_executable(${PROJECT_NAME}_updater src/collisions_updater.cpp )
+target_link_libraries(${PROJECT_NAME}_updater ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(${PROJECT_NAME}_updater
+                      PROPERTIES OUTPUT_NAME collisions_updater
+                      PREFIX "")
+
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${PROJECT_NAME}_updater
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY include/ DESTINATION include)

@@ -43,6 +43,7 @@
 #include <moveit/setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
+#include <moveit/setup_assistant/tools/compute_default_collisions.h> // for LinkPairMap
 
 namespace moveit_setup_assistant
 {
@@ -224,6 +225,13 @@ public:
   bool outputFakeControllersYAML( const std::string& file_path );
   
   /**
+   * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
+   * \param link_pairs list of collision link pairs
+   * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
+   */
+  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask = 0);
+
+  /**
    * \brief Decide the best two joints to be used for the projection evaluator
    * \param planning_group name of group to use
    * \return string - value to insert into yaml file
@@ -236,6 +244,26 @@ public:
    * @return bool if the file was read correctly
    */
   bool inputKinematicsYAML( const std::string& file_path );
+
+  /**
+   * Set package path; try to resolve path from package name if directory does not exist
+   * @param pkg_path path to package or package name
+   * @return bool if the path was set
+   */
+  bool setPackagePath( const std::string& pkg_path );
+
+  /**
+   * Resolve path to .setup_assistant file
+   * @param path resolved path
+   * @return bool if the path could be resolved
+   */
+  bool getSetupAssistantYAMLPath( std::string& path );
+
+  /// Make the full URDF path using the loaded .setup_assistant data
+  bool createFullURDFPath();
+
+  /// Make the full SRDF path using the loaded .setup_assistant data
+  bool createFullSRDFPath( const std::string& package_path );
 
   /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant

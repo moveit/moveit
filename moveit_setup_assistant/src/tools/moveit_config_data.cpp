@@ -615,6 +615,60 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
 }
 
 // ******************************************************************************************
+// Set list of collision link pairs in SRDF; sorted; with optional filter
+// ******************************************************************************************
+
+
+class SortableDisabledCollision
+{
+public:
+  SortableDisabledCollision(const srdf::Model::DisabledCollision &dc) :
+     dc_(dc), key_( dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_) )
+  {
+  }
+  operator const srdf::Model::DisabledCollision () const
+  {
+    return dc_;
+
+  }
+  bool operator < (const SortableDisabledCollision &other) const
+  {
+    return key_ < other.key_;
+  }
+private:
+  const srdf::Model::DisabledCollision dc_;
+  const std::string key_;
+};
+
+void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask){
+  // Create temp disabled collision
+  srdf::Model::DisabledCollision dc;
+
+  std::set<SortableDisabledCollision> disabled_collisions;
+  disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
+
+  // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
+  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin();
+        pair_it != link_pairs.end(); ++pair_it)
+  {
+    // Only copy those that are actually disabled
+    if(pair_it->second.disable_check)
+    {
+      if((1 << pair_it->second.reason) & skip_mask) continue;
+
+      dc.link1_ = pair_it->first.first;
+      dc.link2_ = pair_it->first.second;
+      dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
+
+      disabled_collisions.insert(SortableDisabledCollision(dc));
+    }
+  }
+
+  srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
+}
+
+
+// ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
 // ******************************************************************************************
 std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
@@ -750,6 +804,90 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
 
   return true; // file created successfully
 }
+
+
+// ******************************************************************************************
+// Set package path; try to resolve path from package name if directory does not exist
+// ******************************************************************************************
+bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
+{
+  std::string full_package_path;
+
+  // check that the folder exists
+  if( !fs::is_directory( pkg_path ) )
+  {
+    // does not exist, check if its a package
+    full_package_path = ros::package::getPath( pkg_path );
+
+    // check that the folder exists
+    if( !fs::is_directory( full_package_path ) )
+    {
+      return false;
+    }
+  }
+  else
+  {
+    // they inputted a full path
+    full_package_path = pkg_path;
+  }
+
+  config_pkg_path_ = full_package_path;
+}
+
+// ******************************************************************************************
+// Resolve path to .setup_assistant file
+// ******************************************************************************************
+
+bool MoveItConfigData::getSetupAssistantYAMLPath( std::string& path )
+{
+  path = appendPaths(config_pkg_path_, ".setup_assistant");
+
+  // Check if the old package is a setup assistant package
+  return fs::is_regular_file( path );
+}
+
+// ******************************************************************************************
+// Make the full URDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool MoveItConfigData::createFullURDFPath()
+{
+  boost::trim(urdf_pkg_name_);
+
+  // Check if a package name was provided
+  if( urdf_pkg_name_.empty() || urdf_pkg_name_ == "\"\"" )
+  {
+    urdf_path_ = urdf_pkg_relative_path_;
+    urdf_pkg_name_.clear();
+  }
+  else
+  {
+    // Check that ROS can find the package
+    std::string robot_desc_pkg_path = ros::package::getPath( urdf_pkg_name_ );
+
+    if( robot_desc_pkg_path.empty() )
+    {
+      urdf_path_.clear();
+      return false;
+    }
+
+    // Append the relative URDF url path
+    urdf_path_ = appendPaths(robot_desc_pkg_path, urdf_pkg_relative_path_);
+  }
+
+  // Check that this file exits -------------------------------------------------
+  return fs::is_regular_file( urdf_path_ );
+}
+
+// ******************************************************************************************
+// Make the full SRDF path using the loaded .setup_assistant data
+// ******************************************************************************************
+bool MoveItConfigData::createFullSRDFPath( const std::string& package_path )
+{
+  srdf_path_ = appendPaths(package_path, srdf_pkg_relative_path_);
+
+  return fs::is_regular_file( srdf_path_ );
+}
+
 
 // ******************************************************************************************
 // Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
