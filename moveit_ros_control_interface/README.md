@@ -1,7 +1,7 @@
 # Overview
 
 This package provides plugins of base class `moveit_controller_manager::MoveItControllerManager` and a new plugin base class for `moveit_controller_manager::MoveItControllerHandle` allocators.
-The allocator class is necessary because `moveit_controller_manager::MoveItControllerHandle` needa a name passed to the constructor.
+The allocator class is necessary because `moveit_controller_manager::MoveItControllerHandle` needs a name passed to the constructor.
 Two variantes are provided, `moveit_ros_control_interface::MoveItControllerManager` for interfacing a singe ros_control node and `moveit_ros_control_interface::MoveItMultiControllerManager` for seamless integration with any number of ros_control nodes.
 
 
@@ -23,8 +23,23 @@ In your MoveIt! launch file (e.g. `ROBOT_moveit_config/launch/ROBOT_moveit_contr
 ```
 
 And make sure so set the `ros_control_namespace` parameter to the namespace (without the /contoller_manager/ part) of the ros_control-based node you like to interface.
-If you are using the `moveit_setup_assistent` you can add it to `ROBOT_moveit_config/config/ROBOT_controllers.yaml`.
-
+If you are using the `moveit_setup_assistent` you can add it to `ROBOT_moveit_config/config/ROBOT_controllers.yaml`, e.g.:
+```
+ros_control_namespace: /ROBOT
+controller_list:
+  - name: /ROBOT/position_trajectory_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - joint_a1
+      - joint_a2
+      - joint_a3
+      - joint_a4
+      - joint_a5
+      - joint_a6
+      - joint_a7
+```
 
 ### Controller switching
 MoveIt! can decide which controllers have to be started and stopped.
