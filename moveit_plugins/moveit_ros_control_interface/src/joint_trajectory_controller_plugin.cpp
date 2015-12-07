@@ -43,7 +43,7 @@
 namespace moveit_ros_control_interface
 {
 /**
- * Simple allocator for moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle instances.
+ * \brief Simple allocator for moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle instances.
  */
 class JointTrajectoryControllerAllocator : public ControllerHandleAllocator
 {

@@ -53,7 +53,7 @@
 namespace moveit_ros_control_interface
 {
 /**
- *
+ * \brief check for timeout
  * @param t timestamp to check, is update if timeout duration was passed
  * @param[in] timeout timeout duration in seconds
  * @param[in] force force timeout
@@ -71,9 +71,10 @@ bool checkTimeout(ros::Time &t, double timeout, bool force = false)
 }
 
 /**
- * moveit_controller_manager::MoveItControllerManager sub class that interfaces one ros_control controller_manager
+ * \brief moveit_controller_manager::MoveItControllerManager sub class that interfaces one ros_control
+ * controller_manager
  * instance.
- * All service call and names are relative to ns_.
+ * All services and names are relative to ns_.
  */
 class MoveItControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
@@ -92,16 +93,16 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   boost::mutex controllers_mutex_;
 
   /**
-   * Check if given controller is active
+   * \brief Check if given controller is active
    * @param s state of controller
    * @return true if controller is active
    */
   static bool isActive(const controller_manager_msgs::ControllerState &s) { return s.state == std::string("running"); }
 
   /**
-   * Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if needed.
-   * Throttled down to 1 Hz
-   * controllers_mutex_ must be locked externally
+   * \brief  Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if
+   * needed.
+   * Throttled down to 1 Hz, controllers_mutex_ must be locked externally
    * @param force force rediscover
    */
   void discover(bool force = false)
@@ -133,7 +134,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   }
 
   /**
-   * Allocates a MoveItControllerHandle instance for the given controller
+   * \brief Allocates a MoveItControllerHandle instance for the given controller
    * Might create allocator object first.
    * @param name fully qualified name of the controller
    * @param controller controller information
@@ -156,7 +157,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   }
 
   /**
-   * get fully qualified name
+   * \brief get fully qualified name
    * @param name name to be resolved to an absolute name
    * @return resolved name
    */
@@ -164,7 +165,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
 
 public:
   /**
-   * The default constructor reads the namespace from ~ros_control_namespace param and defaults to /
+   * \brief The default constructor. Reads the namespace from ~ros_control_namespace param and defaults to /
    */
   MoveItControllerManager()
     : ns_(ros::NodeHandle("~").param("ros_control_namespace", std::string("/")))
@@ -174,7 +175,7 @@ public:
   }
 
   /**
-   * Configure interface with namespace
+   * \brief Configure interface with namespace
    * @param ns namespace of ros_control node (without /controller_manager/)
    */
   MoveItControllerManager(const std::string &ns)
@@ -183,7 +184,7 @@ public:
   }
 
   /**
-   * Find and return the pre-allocated handle for the given controller.
+   * \brief Find and return the pre-allocated handle for the given controller.
    * @param name
    * @return
    */
@@ -199,7 +200,7 @@ public:
   }
 
   /**
-   * Refresh controller list and output all managed controllers
+   * \brief Refresh controller list and output all managed controllers
    * @param[out] names list of controllers (with namespace)
    */
   virtual void getControllersList(std::vector<std::string> &names)
@@ -214,7 +215,7 @@ public:
   }
 
   /**
-   * Refresh controller list and output all active, managed controllers
+   * \brief Refresh controller list and output all active, managed controllers
    * @param[out] names list of controllers (with namespace)
    */
   virtual void getActiveControllers(std::vector<std::string> &names)
@@ -230,7 +231,7 @@ public:
   }
 
   /**
-   * Read resources from cached controller states
+   * \brief Read resources from cached controller states
    * @param[in] name name of controller (with namespace)
    * @param[out] joints
    */
@@ -245,7 +246,7 @@ public:
   }
 
   /**
-   * Refresh controller state and output the state of the given one, only active_ will be set
+   * \brief Refresh controller state and output the state of the given one, only active_ will be set
    * @param[in] name name of controller (with namespace)
    * @return state
    */
@@ -264,7 +265,7 @@ public:
   }
 
   /**
-   * Filter lists for managed controller and computes switching set.
+   * \brief Filter lists for managed controller and computes switching set.
    * Stopped list might be extended by unsupported controllers that claim needed resources
    * @param activate
    * @param deactivate
@@ -334,7 +335,7 @@ public:
   typedef boost::shared_ptr<MoveItControllerManager> Ptr;
 };
 /**
- * MoveItMultiControllerManager discovers all running ros_control node and delegates member function to the
+ *  \brief MoveItMultiControllerManager discovers all running ros_control node and delegates member function to the
  * corresponding MoveItControllerManager instances
  */
 class MoveItMultiControllerManager : public moveit_controller_manager::MoveItControllerManager
@@ -345,9 +346,8 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
   boost::mutex controller_managers_mutex_;
 
   /**
-   * Poll ROS master for services and filters all controller_manager/list_controllers instances
-   * Throttled down to 1 Hz
-   * controller_managers_mutex_ must be locked externally
+   * \brief  Poll ROS master for services and filters all controller_manager/list_controllers instances
+   * Throttled down to 1 Hz, controller_managers_mutex_ must be locked externally
    */
   void discover()
   {
@@ -383,7 +383,7 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
   }
 
   /**
-   * Get namespace (including leading and trailing slashes) from controller name
+   * \brief Get namespace (including leading and trailing slashes) from controller name
    * @param name
    * @return extracted namespace or / is none is found
    */
@@ -397,7 +397,7 @@ class MoveItMultiControllerManager : public moveit_controller_manager::MoveItCon
 
 public:
   /**
-   * Find appropriate interface and delegate handle creation
+   * \brief Find appropriate interface and delegate handle creation
    * @param name
    * @return handle
    */
@@ -415,7 +415,7 @@ public:
   }
 
   /**
-   * Read all managed controllers from discovered interfaces
+   * \brief Read all managed controllers from discovered interfaces
    * @param names
    */
   virtual void getControllersList(std::vector<std::string> &names)
@@ -430,7 +430,7 @@ public:
   }
 
   /**
-   * Read all active, managed controllers from discovered interfaces
+   * \brief Read all active, managed controllers from discovered interfaces
    * @param names
    */
   virtual void getActiveControllers(std::vector<std::string> &names)
@@ -445,7 +445,7 @@ public:
   }
 
   /**
-   * Find appropriate interface and delegate joints query
+   * \brief Find appropriate interface and delegate joints query
    * @param name
    * @param joints
    */
@@ -462,7 +462,7 @@ public:
   }
 
   /**
-   * Find appropriate interface and delegate state query
+   * \brief Find appropriate interface and delegate state query
    * @param name
    * @return
    */
@@ -480,7 +480,7 @@ public:
   }
 
   /**
-   * delegates switch  to all known interfaces. Stops of first failing switch.
+   * \brief delegates switch  to all known interfaces. Stops of first failing switch.
    * @param activate
    * @param deactivate
    * @return
