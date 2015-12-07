@@ -324,25 +324,25 @@ bool StartScreenWidget::loadExistingFiles()
   if( !createFullPackagePath() )
     return false; // error occured
 
-  // Path of .setup_assistant file
-  fs::path setup_assistant_file = config_data_->config_pkg_path_;
-  setup_assistant_file /= ".setup_assistant";
+
+  std::string setup_assistant_path;
+
 
   // Check if the old package is a setup assistant package. If it is not, quit
-  if( ! fs::is_regular_file( setup_assistant_file ) )
+  if( !config_data_->getSetupAssistantYAMLPath(setup_assistant_path) )
   {
     QMessageBox::warning( this, "Incorrect Directory/Package",
                           QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
-                          .append( setup_assistant_file.make_preferred().native().c_str() ) );
+                          .append( setup_assistant_path.c_str() ) );
     return false;
   }
 
   // Get setup assistant data
-  if( !config_data_->inputSetupAssistantYAML( setup_assistant_file.make_preferred().native().c_str() ) )
+  if( !config_data_->inputSetupAssistantYAML( setup_assistant_path ) )
   {
     QMessageBox::warning( this, "Setup Assistant File Error",
                           QString("Unable to correctly parse the setup assistant configuration file: " )
-                          .append( setup_assistant_file.make_preferred().native().c_str() ) );
+                          .append( setup_assistant_path.c_str() ) );
     return false;
   }
 
@@ -728,45 +728,29 @@ bool StartScreenWidget::extractPackageNameFromPath()
 // ******************************************************************************************
 bool StartScreenWidget::createFullURDFPath()
 {
-  fs::path urdf_path;
-
-  // Check if a package name was provided
-  if( config_data_->urdf_pkg_name_.empty() || config_data_->urdf_pkg_name_ == "\"\"" )
+  if( !config_data_->createFullURDFPath() )
   {
-    urdf_path = config_data_->urdf_pkg_relative_path_;
-    ROS_WARN("The URDF path is absolute to the filesystem and not relative to a ROS package/stack");
-  }
-  else
-  {
-
-    // Check that ROS can find the package
-    fs::path robot_desc_pkg_path = ros::package::getPath( config_data_->urdf_pkg_name_ );
-
-    if( robot_desc_pkg_path.empty() )
+    if( config_data_->urdf_path_.empty() ) // no path could be resolved
     {
       QMessageBox::warning( this, "Error Loading Files", QString("ROS was unable to find the package name '")
                             .append( config_data_->urdf_pkg_name_.c_str() )
                             .append("'. Verify this package is inside your ROS workspace and is a proper ROS package.") );
-      return false;
     }
-
-    // Append the relative URDF url path
-    urdf_path = robot_desc_pkg_path;
-    urdf_path /= config_data_->urdf_pkg_relative_path_;
-  }
-
-
-  // Check that this file exits -------------------------------------------------
-  if( ! fs::is_regular_file( urdf_path ) )
-  {
-    QMessageBox::warning( this, "Error Loading Files",
-                          QString( "Unable to locate the URDF file in package. File: " )
-                          .append( urdf_path.make_preferred().native().c_str() ) );
+    else
+    {
+      QMessageBox::warning( this, "Error Loading Files",
+                            QString( "Unable to locate the URDF file in package. File: " )
+                            .append( config_data_->urdf_path_.c_str() ) );
+    }
     return false;
   }
+  fs::path urdf_path;
 
-  // Remember the path
-  config_data_->urdf_path_ = urdf_path.make_preferred().native();
+  // Check if a package name was provided
+  if( config_data_->urdf_pkg_name_.empty())
+  {
+    ROS_WARN("The URDF path is absolute to the filesystem and not relative to a ROS package/stack");
+  }
 
   return true; // success
 }
@@ -776,13 +760,7 @@ bool StartScreenWidget::createFullURDFPath()
 // ******************************************************************************************
 bool StartScreenWidget::createFullSRDFPath( const std::string& package_path )
 {
-  // Append the relative SRDF url path
-  fs::path srdf_path = package_path;
-  srdf_path /= config_data_->srdf_pkg_relative_path_;
-  config_data_->srdf_path_ = srdf_path.make_preferred().native();
-
-  // Check that this file exits
-  if( ! fs::is_regular_file( config_data_->srdf_path_ ) )
+  if( ! config_data_->createFullSRDFPath(package_path) )
   {
     QMessageBox::warning( this, "Error Loading Files",
                           QString("Unable to locate the SRDF file: " )
@@ -800,11 +778,6 @@ bool StartScreenWidget::createFullPackagePath()
 {
   // Get package path
   std::string package_path_input = stack_path_->getPath();
-  std::string full_package_path;
-
-  // Trim whitespace from user input
-  boost::trim( package_path_input );
-
   // check that input is provided
   if( package_path_input.empty() )
   {
@@ -812,30 +785,12 @@ bool StartScreenWidget::createFullPackagePath()
     return false;
   }
 
-  // Decide if this is a package name or a full path ----------------------------------------------
-
   // check that the folder exists
-  if( !fs::is_directory( package_path_input ) )
+  if( !config_data_->setPackagePath(package_path_input) )
   {
-    // does not exist, check if its a package
-    full_package_path = ros::package::getPath( package_path_input );
-
-    // check that the folder exists
-    if( !fs::is_directory( full_package_path ) )
-    {
-      // error
-      QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
-      return false;
-    }
+    QMessageBox::critical( this, "Error Loading Files", "The specified path is not a directory or is not accessable" );
+    return false;
   }
-  else
-  {
-    // they inputted a full path
-    full_package_path = package_path_input;
-  }
-
-  config_data_->config_pkg_path_ = full_package_path;
-
   return true;
 }
 
