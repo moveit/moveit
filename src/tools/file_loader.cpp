@@ -39,55 +39,67 @@
 #include <fstream>
 #include <streambuf>
 
-
 namespace moveit_setup_assistant
 {
-
-bool isXacroFile(const std::string& path) { return path.find(".xacro") != std::string::npos; } // TODO: implement case-insensitive search
-
-bool loadFileToString(std::string& buffer, const std::string& path){
-    if(path.empty()) return false;
-
-    std::ifstream stream( path.c_str() );
-    if( !stream.good()) return false;
-
-    // Load the file to a string using an efficient memory allocation technique
-    stream.seekg(0, std::ios::end);
-    buffer.reserve(stream.tellg());
-    stream.seekg(0, std::ios::beg);
-    buffer.assign( (std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>() );
-    stream.close();
-
-    return true;
+bool isXacroFile(const std::string& path)
+{
+  // TODO: implement case-insensitive search
+  return path.find(".xacro") != std::string::npos;
 }
 
-bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args){
-    if(path.empty()) return false;
+bool loadFileToString(std::string& buffer, const std::string& path)
+{
+  if (path.empty())
+    return false;
 
-    std::string cmd = "rosrun xacro xacro ";
-    for(std::vector<std::string>::const_iterator it = xacro_args.begin(); it != xacro_args.end(); ++it)
-        cmd += *it + " ";
-    cmd += path;
+  std::ifstream stream(path.c_str());
+  if (!stream.good())
+    return false;
 
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return false;
+  // Load the file to a string using an efficient memory allocation technique
+  stream.seekg(0, std::ios::end);
+  buffer.reserve(stream.tellg());
+  stream.seekg(0, std::ios::beg);
+  buffer.assign((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+  stream.close();
 
-    char pipe_buffer[128];
-    while(!feof(pipe)){
-        if(fgets(pipe_buffer, 128, pipe) != NULL)
-                buffer += pipe_buffer;
-    }
-    pclose(pipe);
-
-    return true;
+  return true;
 }
 
-bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args){
-    if(isXacroFile(path)){
-        return loadXacroFileToString(buffer, path, xacro_args);
-    }else{
-        return loadFileToString(buffer, path);
-    }
+bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+{
+  if (path.empty())
+    return false;
+
+  std::string cmd = "rosrun xacro xacro ";
+  for (std::vector<std::string>::const_iterator it = xacro_args.begin(); it != xacro_args.end(); ++it)
+    cmd += *it + " ";
+  cmd += path;
+
+  FILE* pipe = popen(cmd.c_str(), "r");
+  if (!pipe)
+    return false;
+
+  char pipe_buffer[128];
+  while (!feof(pipe))
+  {
+    if (fgets(pipe_buffer, 128, pipe) != NULL)
+      buffer += pipe_buffer;
+  }
+  pclose(pipe);
+
+  return true;
 }
 
+bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+{
+  if (isXacroFile(path))
+  {
+    return loadXacroFileToString(buffer, path, xacro_args);
+  }
+  else
+  {
+    return loadFileToString(buffer, path);
+  }
+}
 }

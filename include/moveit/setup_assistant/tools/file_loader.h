@@ -42,7 +42,6 @@
 
 namespace moveit_setup_assistant
 {
-
 /// detemine if given path points to a xacro file
 bool isXacroFile(const std::string& path);
 
@@ -50,11 +49,10 @@ bool isXacroFile(const std::string& path);
 bool loadFileToString(std::string& buffer, const std::string& path);
 
 /// run xacro with the given args on the file, return result in buffer
-bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args);
+bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args);
 
 /// helper that branches between loadFileToString() and loadXacroFileToString() based on result of isXacroFile()
-bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args);
-
+bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args);
 }
 
 #endif
