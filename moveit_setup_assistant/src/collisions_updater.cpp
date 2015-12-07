@@ -42,151 +42,171 @@
 
 namespace po = boost::program_options;
 
-bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path){
+bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path)
+{
+  if (!config_data.setPackagePath(pkg_path))
+  {
+    ROS_ERROR_STREAM("Could not set package path '" << pkg_path << "'");
+    return false;
+  }
 
-    if(!config_data.setPackagePath(pkg_path)){
-        ROS_ERROR_STREAM("Could not set package path '" << pkg_path << "'");
-        return false;
-    }
+  std::string setup_assistant_path;
+  if (!config_data.getSetupAssistantYAMLPath(setup_assistant_path))
+  {
+    ROS_ERROR_STREAM("Could not resolve path to .setup_assistant");
+    return false;
+  }
 
-    std::string setup_assistant_path;
-    if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)){
-        ROS_ERROR_STREAM("Could not resolve path to .setup_assistant");
-        return false;
-    }
+  if (!config_data.inputSetupAssistantYAML(setup_assistant_path))
+  {
+    ROS_ERROR_STREAM("Could not parse .setup_assistant file from '" << setup_assistant_path << "'");
+    return false;
+  }
 
-    if(!config_data.inputSetupAssistantYAML(setup_assistant_path)){
-        ROS_ERROR_STREAM("Could not parse .setup_assistant file from '" << setup_assistant_path << "'");
-        return false;
-    }
+  config_data.createFullURDFPath();  // might fail at this point
 
-    config_data.createFullURDFPath(); // might fail at this point
+  config_data.createFullSRDFPath(config_data.config_pkg_path_);  // might fail at this point
 
-    config_data.createFullSRDFPath(config_data.config_pkg_path_); // might fail at this point
-
-    return true;
+  return true;
 }
 
-bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old, const std::vector<std::string> &xacro_args) {
-    std::string urdf_string;
-    if(!moveit_setup_assistant::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)){
-        ROS_ERROR_STREAM("Could not load URDF from '" << config_data.urdf_path_ << "'");
-        return false;
-    }
-    if(!config_data.urdf_model_->initString( urdf_string)){
-        ROS_ERROR_STREAM("Could not parse URDF from '" << config_data.urdf_path_ << "'");
-        return false;
-    }
+bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old,
+           const std::vector<std::string> &xacro_args)
+{
+  std::string urdf_string;
+  if (!moveit_setup_assistant::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args))
+  {
+    ROS_ERROR_STREAM("Could not load URDF from '" << config_data.urdf_path_ << "'");
+    return false;
+  }
+  if (!config_data.urdf_model_->initString(urdf_string))
+  {
+    ROS_ERROR_STREAM("Could not parse URDF from '" << config_data.urdf_path_ << "'");
+    return false;
+  }
 
-    std::string srdf_string;
-    if(!moveit_setup_assistant::loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)){
-        ROS_ERROR_STREAM("Could not load SRDF from '" << config_data.srdf_path_ << "'");
-        return false;
-    }
-    if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)){
-        ROS_ERROR_STREAM("Could not parse SRDF from '" << config_data.srdf_path_ << "'");
-        return false;
-    }
+  std::string srdf_string;
+  if (!moveit_setup_assistant::loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args))
+  {
+    ROS_ERROR_STREAM("Could not load SRDF from '" << config_data.srdf_path_ << "'");
+    return false;
+  }
+  if (!config_data.srdf_->initString(*config_data.urdf_model_, srdf_string))
+  {
+    ROS_ERROR_STREAM("Could not parse SRDF from '" << config_data.srdf_path_ << "'");
+    return false;
+  }
 
+  if (!keep_old)
+    config_data.srdf_->disabled_collisions_.clear();
 
-    if(!keep_old) config_data.srdf_->disabled_collisions_.clear();
-
-    return true;
+  return true;
 }
 
-moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfigData &config_data,
-                                            uint32_t trials, double min_collision_fraction,  bool verbose){
-    // TODO: spin thread and print progess if verbose
-    unsigned int collision_progress;
-    return moveit_setup_assistant::computeDefaultCollisions(config_data.getPlanningScene(),
-                                                            &collision_progress,
-                                                            trials > 0,
-                                                            trials,
-                                                            min_collision_fraction, verbose);
+moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfigData &config_data, uint32_t trials,
+                                            double min_collision_fraction, bool verbose)
+{
+  // TODO: spin thread and print progess if verbose
+  unsigned int collision_progress;
+  return moveit_setup_assistant::computeDefaultCollisions(config_data.getPlanningScene(), &collision_progress,
+                                                          trials > 0, trials, min_collision_fraction, verbose);
 }
 
-int main(int argc, char * argv[]){
+int main(int argc, char *argv[])
+{
+  std::string config_pkg_path;
+  std::string urdf_path;
+  std::string srdf_path;
 
-    std::string config_pkg_path;
-    std::string urdf_path;
-    std::string srdf_path;
+  std::string output_path;
 
-    std::string output_path;
+  bool include_default = false, include_always = false, keep_old = false, verbose = false;
 
-    bool include_default = false, include_always = false, keep_old = false, verbose = false;
+  double min_collision_fraction = 1.0;
 
-    double min_collision_fraction = 1.0;
+  uint32_t never_trials = 0;
 
-    uint32_t never_trials = 0;
+  po::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "show help")
+    ("config-pkg", po::value(&config_pkg_path), "path to moveit config package")
+    ("urdf", po::value(&urdf_path), "path to URDF ( or xacro)")
+    ("srdf", po::value(&srdf_path), "path to SRDF ( or xacro)")
+    ("output", po::value(&output_path), "output path for SRDF")
 
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help", "show help")
-        ("config-pkg", po::value(&config_pkg_path), "path to moveit config package")
-        ("urdf", po::value(&urdf_path), "path to URDF ( or xacro)")
-        ("srdf", po::value(&srdf_path), "path to SRDF ( or xacro)")
-        ("output", po::value(&output_path), "output path for SRDF")
+    ("xacro-args", po::value<std::vector<std::string> >()->composing(), "additional arguments for xacro")
 
-        ("xacro-args", po::value<std::vector<std::string> >()->composing(), "additional arguments for xacro")
+    ("default", po::bool_switch(&include_default),  "disable default colliding pairs")
+    ("always", po::bool_switch(&include_always),  "disable always colliding pairs")
 
-        ("default", po::bool_switch(&include_default),  "disable default colliding pairs")
-        ("always", po::bool_switch(&include_always),  "disable always colliding pairs")
+    ("keep", po::bool_switch(&keep_old),  "keep disabled link from SRDF")
+    ("verbose", po::bool_switch(&verbose),  "verbose output")
 
-        ("keep", po::bool_switch(&keep_old),  "keep disabled link from SRDF")
-        ("verbose", po::bool_switch(&verbose),  "verbose output")
+    ("trials", po::value(&never_trials),  "number of trials for searching never colliding pairs")
+    ("min-collision-fraction", po::value(&min_collision_fraction),  "fraction of small sample size to determine links that are alwas colliding")
+  ;
 
-        ("trials", po::value(&never_trials),  "number of trials for searching never colliding pairs")
-        ("min-collision-fraction", po::value(&min_collision_fraction),  "fraction of small sample size to determine links that are alwas colliding")
-      ;
+  po::positional_options_description pos_desc;
+  pos_desc.add("xacro-args", -1);
 
-    po::positional_options_description pos_desc;
-    pos_desc.add("xacro-args", -1);
+  po::variables_map vm;
+  po::store(po::command_line_parser(argc, argv).options(desc).positional(pos_desc).run(), vm);
+  po::notify(vm);
 
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(pos_desc).run(), vm);
-    po::notify(vm);
+  if (vm.count("help"))
+  {
+    std::cout << desc << std::endl;
+    return 1;
+  }
 
-    if (vm.count("help")) {
-        std::cout << desc << std::endl;
-        return 1;
+  moveit_setup_assistant::MoveItConfigData config_data;
+
+  if (!config_pkg_path.empty())
+  {
+    if (!loadSetupAssistantConfig(config_data, config_pkg_path))
+    {
+      ROS_ERROR_STREAM("Could not load config at '" << config_pkg_path << "'");
+      return 1;
     }
+  }
+  else if (urdf_path.empty() || srdf_path.empty())
+  {
+    ROS_ERROR_STREAM("Please provide config package or URDF and SRDF path");
+    return 1;
+  }
+  else if (moveit_setup_assistant::isXacroFile(srdf_path) && output_path.empty())
+  {
+    ROS_ERROR_STREAM("Please provide a different output file for SRDF xacro input file");
+    return 1;
+  }
 
-    moveit_setup_assistant::MoveItConfigData config_data;
+  // overwrite config paths if applicable
+  if (!urdf_path.empty())
+    config_data.urdf_path_ = urdf_path;
+  if (!srdf_path.empty())
+    config_data.srdf_path_ = srdf_path;
 
-    if(!config_pkg_path.empty()){
-        if(!loadSetupAssistantConfig(config_data, config_pkg_path)){
-            ROS_ERROR_STREAM("Could not load config at '" << config_pkg_path << "'");
-            return 1;
-        }
-    }else if (urdf_path.empty() || srdf_path.empty()){
-        ROS_ERROR_STREAM("Please provide config package or URDF and SRDF path");
-        return 1;
-    }else if(moveit_setup_assistant::isXacroFile(srdf_path) && output_path.empty()){
-        ROS_ERROR_STREAM("Please provide a different output file for SRDF xacro input file");
-        return 1;
-    }
+  std::vector<std::string> xacro_args;
+  if (vm.count("xacro-args"))
+    xacro_args = vm["xacro-args"].as<std::vector<std::string> >();
 
-    // overwrite config paths if applicable
-    if(!urdf_path.empty()) config_data.urdf_path_ = urdf_path;
-    if(!srdf_path.empty()) config_data.srdf_path_ = srdf_path;
+  if (!setup(config_data, keep_old, xacro_args))
+  {
+    ROS_ERROR_STREAM("Could not setup updater");
+    return 1;
+  }
 
-    std::vector<std::string> xacro_args;
-    if(vm.count("xacro-args")) xacro_args = vm["xacro-args"].as<std::vector<std::string> >();
+  moveit_setup_assistant::LinkPairMap link_pairs = compute(config_data, never_trials, min_collision_fraction, verbose);
 
-    if(!setup(config_data, keep_old, xacro_args)){
-        ROS_ERROR_STREAM("Could not setup updater");
-        return 1;
-    }
+  size_t skip_mask = 0;
+  if (!include_default)
+    skip_mask |= (1 << moveit_setup_assistant::DEFAULT);
+  if (!include_always)
+    skip_mask |= (1 << moveit_setup_assistant::ALWAYS);
 
-    moveit_setup_assistant::LinkPairMap link_pairs = compute(config_data, never_trials, min_collision_fraction,verbose);
+  config_data.setCollisionLinkPairs(link_pairs, skip_mask);
 
-    size_t skip_mask = 0;
-    if(!include_default) skip_mask |= (1<<moveit_setup_assistant::DEFAULT);
-    if(!include_always) skip_mask |= (1<<moveit_setup_assistant::ALWAYS);
+  config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path);
 
-    config_data.setCollisionLinkPairs(link_pairs, skip_mask);
-
-    config_data.srdf_->writeSRDF(output_path.empty() ? config_data.srdf_path_ : output_path );
-
-    return 0;
+  return 0;
 }
