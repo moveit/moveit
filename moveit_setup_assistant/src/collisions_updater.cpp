@@ -33,66 +33,13 @@
  *********************************************************************/
 
 /* Author: Mathias Lüdtke */
-#include <ros/ros.h>
-#include <ros/package.h> // for getting file path for loadng images
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
+#include <moveit/setup_assistant/tools/file_loader.h>
 
-#include <boost/filesystem.hpp>  // for reading folders/files
 #include <boost/program_options.hpp>
 
-#include <fstream>  // for reading in urdf
-#include <streambuf>
-
-namespace fs = boost::filesystem;
 namespace po = boost::program_options;
-
-bool isXacroFile(const std::string& path) { return path.find(".xacro") != std::string::npos; } // TODO: implement case-insensitive search
-
-bool loadFileToString(std::string& buffer, const std::string& path){
-    if(path.empty()) return false;
-
-    std::ifstream stream( path.c_str() );
-    if( !stream.good()) return false;
-
-    // Load the file to a string using an efficient memory allocation technique
-    stream.seekg(0, std::ios::end);
-    buffer.reserve(stream.tellg());
-    stream.seekg(0, std::ios::beg);
-    buffer.assign( (std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>() );
-    stream.close();
-
-    return true;
-}
-
-bool loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args){
-    if(path.empty()) return false;
-
-    std::string cmd = "rosrun xacro xacro ";
-    for(std::vector<std::string>::const_iterator it = xacro_args.begin(); it != xacro_args.end(); ++it)
-        cmd += *it + " ";
-    cmd += path;
-
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return false;
-
-    char pipe_buffer[128];
-    while(!feof(pipe)){
-        if(fgets(pipe_buffer, 128, pipe) != NULL)
-                buffer += pipe_buffer;
-    }
-    pclose(pipe);
-
-    return true;
-}
-
-bool loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string> &xacro_args){
-    if(isXacroFile(path)){
-        return loadXacroFileToString(buffer, path, xacro_args);
-    }else{
-        return loadFileToString(buffer, path);
-    }
-}
 
 bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path){
 
@@ -112,11 +59,11 @@ bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_d
 
 bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old, const std::vector<std::string> &xacro_args) {
     std::string urdf_string;
-    if(!loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)) return false;
+    if(!moveit_setup_assistant::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)) return false;
     if(!config_data.urdf_model_->initString( urdf_string))return false;
 
     std::string srdf_string;
-    if(!loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)) return false;
+    if(!moveit_setup_assistant::loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)) return false;
     if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)) return false;
 
 
@@ -192,7 +139,7 @@ int main(int argc, char * argv[]){
     }else if (urdf_path.empty() || srdf_path.empty()){
         std::cerr << "Please provide config package or URDF and SRDF path" << std::endl;
         return 1;
-    }else if(isXacroFile(srdf_path) && output_path.empty()){
+    }else if(moveit_setup_assistant::isXacroFile(srdf_path) && output_path.empty()){
         std::cerr << "Please provide a different output file for SRDF xacro input file" << std::endl;
         return 1;
     }
