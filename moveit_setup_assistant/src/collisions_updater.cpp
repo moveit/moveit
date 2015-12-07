@@ -34,6 +34,7 @@
 
 /* Author: Mathias Lüdtke */
 
+#include <ros/ros.h>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #include <moveit/setup_assistant/tools/file_loader.h>
 
@@ -43,12 +44,21 @@ namespace po = boost::program_options;
 
 bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path){
 
-    if(!config_data.setPackagePath(pkg_path))  return false;
+    if(!config_data.setPackagePath(pkg_path)){
+        ROS_ERROR_STREAM("Could not set package path '" << pkg_path << "'");
+        return false;
+    }
 
     std::string setup_assistant_path;
-    if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)) return false;
+    if(!config_data.getSetupAssistantYAMLPath(setup_assistant_path)){
+        ROS_ERROR_STREAM("Could not resolve path to .setup_assistant");
+        return false;
+    }
 
-    if(!config_data.inputSetupAssistantYAML(setup_assistant_path)) return false;
+    if(!config_data.inputSetupAssistantYAML(setup_assistant_path)){
+        ROS_ERROR_STREAM("Could not parse .setup_assistant file from '" << setup_assistant_path << "'");
+        return false;
+    }
 
     config_data.createFullURDFPath(); // might fail at this point
 
@@ -59,12 +69,24 @@ bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_d
 
 bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old, const std::vector<std::string> &xacro_args) {
     std::string urdf_string;
-    if(!moveit_setup_assistant::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)) return false;
-    if(!config_data.urdf_model_->initString( urdf_string))return false;
+    if(!moveit_setup_assistant::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args)){
+        ROS_ERROR_STREAM("Could not load URDF from '" << config_data.urdf_path_ << "'");
+        return false;
+    }
+    if(!config_data.urdf_model_->initString( urdf_string)){
+        ROS_ERROR_STREAM("Could not parse URDF from '" << config_data.urdf_path_ << "'");
+        return false;
+    }
 
     std::string srdf_string;
-    if(!moveit_setup_assistant::loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)) return false;
-    if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)) return false;
+    if(!moveit_setup_assistant::loadXmlFileToString(srdf_string, config_data.srdf_path_, xacro_args)){
+        ROS_ERROR_STREAM("Could not load SRDF from '" << config_data.srdf_path_ << "'");
+        return false;
+    }
+    if(!config_data.srdf_->initString( *config_data.urdf_model_, srdf_string)){
+        ROS_ERROR_STREAM("Could not parse SRDF from '" << config_data.srdf_path_ << "'");
+        return false;
+    }
 
 
     if(!keep_old) config_data.srdf_->disabled_collisions_.clear();
@@ -133,14 +155,14 @@ int main(int argc, char * argv[]){
 
     if(!config_pkg_path.empty()){
         if(!loadSetupAssistantConfig(config_data, config_pkg_path)){
-            std::cerr << "Could not load config at '" << config_pkg_path << "'" << std::endl;
+            ROS_ERROR_STREAM("Could not load config at '" << config_pkg_path << "'");
             return 1;
         }
     }else if (urdf_path.empty() || srdf_path.empty()){
-        std::cerr << "Please provide config package or URDF and SRDF path" << std::endl;
+        ROS_ERROR_STREAM("Please provide config package or URDF and SRDF path");
         return 1;
     }else if(moveit_setup_assistant::isXacroFile(srdf_path) && output_path.empty()){
-        std::cerr << "Please provide a different output file for SRDF xacro input file" << std::endl;
+        ROS_ERROR_STREAM("Please provide a different output file for SRDF xacro input file");
         return 1;
     }
 
@@ -152,7 +174,7 @@ int main(int argc, char * argv[]){
     if(vm.count("xacro-args")) xacro_args = vm["xacro-args"].as<std::vector<std::string> >();
 
     if(!setup(config_data, keep_old, xacro_args)){
-        std::cerr << "Could not setup updater" << std::endl;
+        ROS_ERROR_STREAM("Could not setup updater");
         return 1;
     }
 
