@@ -63,6 +63,7 @@ qt4_wrap_cpp(moc_sources ${headers})
 # Tools Library
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
+  src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
   src/tools/srdf_writer.cpp
 )
