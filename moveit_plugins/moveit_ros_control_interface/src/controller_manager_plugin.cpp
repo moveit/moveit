@@ -83,7 +83,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
   typedef std::map<std::string, controller_manager_msgs::ControllerState> ControllersMap;
   ControllersMap managed_controllers_;
   ControllersMap active_controllers_;
-  typedef std::map<std::string, boost::shared_ptr<ControllerHandleAllocator>> AllocatorsMap;
+  typedef std::map<std::string, boost::shared_ptr<ControllerHandleAllocator> > AllocatorsMap;
   AllocatorsMap allocators_;
 
   typedef std::map<std::string, moveit_controller_manager::MoveItControllerHandlePtr> HandleMap;
