@@ -103,7 +103,7 @@ struct CollisionGeometryData
   {
     return type == other.type && ptr.raw == other.ptr.raw;
   }
-  
+
   BodyType type;
   int shape_index;
   union

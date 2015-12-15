@@ -126,17 +126,17 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
 {
   state = reference_state;
   state.setToRandomPositions(jmg_);
-  
+
   if (samplers_.size() >= 1)
   {
     if (!samplers_[0]->sample(state, reference_state, max_attempts))
       return false;
   }
-  
+
   for (std::size_t i = 1 ; i < samplers_.size() ; ++i)
     if (!samplers_[i]->sample(state, state, max_attempts))
       return false;
-  
+
   return true;
 }
 
