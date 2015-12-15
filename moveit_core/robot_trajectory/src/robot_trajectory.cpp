@@ -46,7 +46,7 @@ robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModel
 {
 }
 
-robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, 
+robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model,
                                                    const robot_model::JointModelGroup* group) :
   robot_model_(robot_model),
   group_(group)
@@ -286,7 +286,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
   std::size_t state_count = trajectory.points.size();
   ros::Time last_time_stamp = trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
-  
+
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     this_time_stamp = trajectory.header.stamp + trajectory.points[i].time_from_start;
@@ -309,13 +309,13 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
   clear();
-  
+
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
   ros::Time last_time_stamp = trajectory.joint_trajectory.points.empty() ?
     trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
-  
+
   for (std::size_t i = 0 ; i < state_count ; ++i)
   {
     robot_state::RobotStatePtr st(new robot_state::RobotState(copy));
@@ -340,7 +340,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
       }
       this_time_stamp = trajectory.multi_dof_joint_trajectory.header.stamp + trajectory.multi_dof_joint_trajectory.points[i].time_from_start;
     }
-    
+
     addSuffixWayPoint(st, (this_time_stamp - last_time_stamp).toSec());
     last_time_stamp = this_time_stamp;
   }
@@ -390,7 +390,7 @@ double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size
     return 0.0;
   if (index >= duration_from_previous_.size())
     index = duration_from_previous_.size() - 1;
-  
+
   double time = 0.0;
   for (std::size_t i = 0; i <= index; ++i)
     time += duration_from_previous_[i];

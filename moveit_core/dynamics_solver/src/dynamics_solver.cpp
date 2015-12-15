@@ -96,7 +96,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
     joint_model_group_ = NULL;
     return;
   }
-  
+
   base_name_ = joint->getParentLinkModel()->getName();
 
   tip_name_ = joint_model_group_->getLinkModelNames().back();
@@ -123,7 +123,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
 
   state_.reset(new robot_state::RobotState(robot_model_));
   state_->setToDefaultValues();
-  
+
   const std::vector<std::string> &joint_model_names = joint_model_group_->getJointModelNames();
   for (std::size_t i = 0; i < joint_model_names.size(); ++i)
   {
@@ -137,7 +137,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
   KDL::Vector gravity(gravity_vector.x, gravity_vector.y, gravity_vector.z); // \todo Not sure if KDL expects the negative of this (Sachin)
   gravity_ = gravity.Norm();
   logDebug("moveit.dynamics_solver: Gravity norm set to %f", gravity_);
-  
+
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
 }
 

@@ -54,7 +54,7 @@ moveit::core::PlanarJointModel::PlanarJointModel(const std::string& name)
     variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
     variable_index_map_[variable_names_.back()] = i;
   }
-  
+
   variable_bounds_.resize(3);
   variable_bounds_[0].position_bounded_ = true;
   variable_bounds_[1].position_bounded_ = true;
@@ -66,8 +66,8 @@ moveit::core::PlanarJointModel::PlanarJointModel(const std::string& name)
   variable_bounds_[1].max_position_ = std::numeric_limits<double>::infinity();
   variable_bounds_[2].min_position_ = -boost::math::constants::pi<double>();
   variable_bounds_[2].max_position_ = boost::math::constants::pi<double>();
-  
-  computeVariableBoundsMsg();  
+
+  computeVariableBoundsMsg();
 }
 
 unsigned int moveit::core::PlanarJointModel::getStateSpaceDimension() const
@@ -214,7 +214,7 @@ void moveit::core::PlanarJointModel::computeVariablePositions(const Eigen::Affin
 {
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
-  
+
   Eigen::Quaterniond q(transf.rotation());
   //taken from Bullet
   double s_squared = 1.0-(q.w()*q.w());

@@ -140,7 +140,7 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     joint_tolerance_above_ = jc.tolerance_above;
     joint_tolerance_below_ = jc.tolerance_below;
     joint_variable_index_ = robot_model_->getVariableIndex(joint_variable_name_);
-    
+
     // check if we have to wrap angles when computing distances
     joint_is_continuous_ = false;
     if (joint_model_->getType() == robot_model::JointModel::REVOLUTE)

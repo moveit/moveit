@@ -48,7 +48,7 @@ install: # Use this to install any prerequisites or dependencies necessary to ru
   # Install dependencies for source repos
   - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
-  - source /opt/ros/$ROS_DISTRO/setup.bash  
+  - source /opt/ros/$ROS_DISTRO/setup.bash
 
 script: # All commands must exit with code 0 on success. Anything else is considered failure.
 
@@ -56,7 +56,7 @@ script: # All commands must exit with code 0 on success. Anything else is consid
   # exhausting memory on Travis servers.
   - catkin_make -j2
 
-  # Tests need the package's environment 
+  # Tests need the package's environment
   - source devel/setup.bash
 
   # Go to build dir so can use straight "make"
@@ -79,7 +79,7 @@ script: # All commands must exit with code 0 on success. Anything else is consid
   - make run_tests_moveit_core_gtest_test_voxel_grid
   - make run_tests_moveit_core_gtest_test_world
   - make run_tests_moveit_core_gtest_test_world_diff
-  
+
   # Run downstream tests as well.
   # - make run_tests_moveit_ros_perception # this requires glut and therefore a video card.
   - make run_tests_pr2_moveit_tests

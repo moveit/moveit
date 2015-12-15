@@ -134,19 +134,19 @@ public:
     return robot_model_;
   }
 
-  const robot_model::JointModelGroup* getGroup() const 
+  const robot_model::JointModelGroup* getGroup() const
   {
     return joint_model_group_;
   }
-  
+
 private:
 
   boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_; // KDL chain inverse dynamics
   KDL::Chain kdl_chain_; // KDL chain
 
-  robot_model::RobotModelConstPtr robot_model_; 
-  const robot_model::JointModelGroup* joint_model_group_; 
-  
+  robot_model::RobotModelConstPtr robot_model_;
+  const robot_model::JointModelGroup* joint_model_group_;
+
   robot_state::RobotStatePtr state_; //robot state
 
   std::string base_name_, tip_name_; // base name, tip name
@@ -157,7 +157,7 @@ private:
 
 };
 
-MOVEIT_CLASS_FORWARD(DynamicsSolver); 
+MOVEIT_CLASS_FORWARD(DynamicsSolver);
 
 }
 #endif

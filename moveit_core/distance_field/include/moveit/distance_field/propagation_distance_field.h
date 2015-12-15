@@ -390,7 +390,7 @@ public:
    *
    * @return The data in the indicated cell.
    */
-  const PropDistanceFieldVoxel& getCell(int x, int y, int z) const 
+  const PropDistanceFieldVoxel& getCell(int x, int y, int z) const
   {
     return voxel_grid_->getCell(x, y, z);
   }
