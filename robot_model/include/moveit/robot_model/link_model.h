@@ -92,17 +92,17 @@ public:
   {
     link_index_ = index;
   }
-  
+
   int getFirstCollisionBodyTransformIndex() const
   {
     return first_collision_body_transform_index_;
   }
 
-  void setFirstCollisionBodyTransformIndex(int index) 
+  void setFirstCollisionBodyTransformIndex(int index)
   {
     first_collision_body_transform_index_ = index;
   }
- 
+
   /** \brief Get the joint model whose child this link is. There will always be a parent joint */
   const JointModel* getParentJointModel() const
   {
@@ -121,7 +121,7 @@ public:
   {
     parent_link_model_ = link;
   }
-  
+
   /** \brief A link may have 0 or more child joints. From those joints there will certainly be other descendant links */
   const std::vector<const JointModel*>& getChildJointModels() const
   {
@@ -132,7 +132,7 @@ public:
   {
     child_joint_models_.push_back(joint);
   }
-  
+
   /** \brief When transforms are computed for this link,
       they are usually applied to the link's origin. The
       joint origin transform acts as an offset -- it is
@@ -141,19 +141,19 @@ public:
   {
     return joint_origin_transform_;
   }
-  
+
   bool jointOriginTransformIsIdentity() const
   {
     return joint_origin_transform_is_identity_;
   }
-  
+
   bool parentJointIsFixed() const
   {
     return is_parent_joint_fixed_;
   }
-  
+
   void setJointOriginTransform(const Eigen::Affine3d &transform);
-  
+
   /** \brief In addition to the link transform, the geometry
       of a link that is used for collision checking may have
       a different offset itself, with respect to the origin */
@@ -175,7 +175,7 @@ public:
   }
 
   void setGeometry(const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &origins);
-  
+
   /** \brief Get the extents of the link's geometry (dimensions of axis-aligned bounding box around all shapes that make up the
       link, when the link is positioned at origin -- only collision origin transforms are considered) */
   const Eigen::Vector3d& getShapeExtentsAtOrigin() const
@@ -194,7 +194,7 @@ public:
   {
     associated_fixed_transforms_[link_model] = transform;
   }
-  
+
   /** \brief Get the filename of the mesh resource used for visual display of this link */
   const std::string& getVisualMeshFilename() const
   {
@@ -212,9 +212,9 @@ public:
   {
     return visual_mesh_origin_;
   }
-  
+
   void setVisualMesh(const std::string &visual_mesh, const Eigen::Affine3d &origin, const Eigen::Vector3d &scale);
-  
+
 private:
 
   /** \brief Name of the link */
@@ -225,16 +225,16 @@ private:
 
   /** \brief The parent link model (NULL for the root link) */
   const LinkModel                   *parent_link_model_;
-  
+
   /** \brief List of directly descending joints (each connects to a child link) */
   std::vector<const JointModel*>     child_joint_models_;
 
   /** \brief True if the parent joint of this link is fixed */
   bool                               is_parent_joint_fixed_;
-  
+
   /** \brief True of the joint origin transform is identity */
   bool                               joint_origin_transform_is_identity_;
-  
+
   /** \brief The constant transform applied to the link (local) */
   Eigen::Affine3d                    joint_origin_transform_;
 
@@ -243,10 +243,10 @@ private:
 
   /** \brief Flag indicating if the constant transform applied to the collision geometry of the link (local) is identity; use int instead of bool to avoid bit operations */
   std::vector<int>                   collision_origin_transform_is_identity_;
-  
+
   /** \brief The set of links that are attached to this one via fixed transforms */
   LinkTransformMap                   associated_fixed_transforms_;
-  
+
   /** \brief The collision geometry of the link */
   std::vector<shapes::ShapeConstPtr> shapes_;
 
@@ -258,7 +258,7 @@ private:
 
   /** \brief The additional origin transform for the mesh */
   Eigen::Affine3d                    visual_mesh_origin_;
-  
+
   /** \brief Scale factor associated with the visual geometry mesh of this link. */
   Eigen::Vector3d                    visual_mesh_scale_;
 

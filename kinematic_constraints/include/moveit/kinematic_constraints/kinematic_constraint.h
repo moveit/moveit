@@ -284,7 +284,7 @@ public:
   {
     return joint_variable_index_;
   }
-  
+
   /**
    * \brief Gets the desired position component of the constraint
    *
@@ -473,7 +473,7 @@ public:
   /** \brief Change this constraint to a different link, applying a specified rotation to the constraint region.
       This should be used for links that are associated to each other via fixed transforms */
   void swapLinkModel(const robot_model::LinkModel *new_link, const Eigen::Matrix3d &update);
-  
+
 protected:
 
   const robot_model::LinkModel *link_model_; /**< \brief The target link model */
@@ -638,7 +638,7 @@ public:
   /** \brief Change this constraint to a different link, applying a specified transform to the constraint region.
       This should be used for links that are associated to each other via fixed transforms */
   void swapLinkModel(const robot_model::LinkModel *new_link, const Eigen::Affine3d &update);
-  
+
 protected:
 
   Eigen::Vector3d                                   offset_; /**< \brief The target offset */

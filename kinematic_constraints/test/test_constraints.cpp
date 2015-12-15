@@ -66,7 +66,7 @@ protected:
         std::string line;
         std::getline( xml_file, line);
         xml_string += (line + "\n");
-      }     
+      }
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
@@ -470,7 +470,7 @@ TEST_F(LoadPlanningModelsPr2, PositionConstraintsMobile)
     ks.setToDefaultValues();
     robot_state::Transforms tf(kmodel->getModelFrame());
     ks.update();
-    
+
     kinematic_constraints::PositionConstraint pc(kmodel);
     moveit_msgs::PositionConstraint pcm;
 
@@ -671,7 +671,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
     ASSERT_TRUE(oc.getLinkModel());
 
     geometry_msgs::Pose p;
- 
+
     tf::poseEigenToMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()), p);
 
     ocm.orientation = p.orientation;
