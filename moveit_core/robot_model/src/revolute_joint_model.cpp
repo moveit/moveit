@@ -244,5 +244,7 @@ void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Aff
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();
-  joint_values[0] = acos(q.w())*2.0f;
+  size_t maxIdx;
+  axis_.array().abs().maxCoeff(&maxIdx);
+  joint_values[0] = 2.*atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
 }
