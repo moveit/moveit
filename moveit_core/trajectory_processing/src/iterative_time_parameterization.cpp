@@ -304,7 +304,8 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
 
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
-                                                                          std::vector<double> & time_diff) const
+                                                                          std::vector<double> & time_diff,
+                                                                          const double max_acceleration_scaling_factor) const
 {
   robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
@@ -329,6 +330,16 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
   double v2;
   double a;
 
+  double acceleration_scaling_factor = 1.0;
+
+  if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)  
+    acceleration_scaling_factor = max_acceleration_scaling_factor;
+  else
+    if (max_acceleration_scaling_factor == 0.0)
+      logDebug("A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.", acceleration_scaling_factor);
+    else
+      logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.", max_acceleration_scaling_factor, acceleration_scaling_factor);
+  
   do
   {
     num_updates = 0;
@@ -357,7 +368,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
           double a_max = 1.0;
           const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
           if (b.acceleration_bounded_)
-            a_max = std::min(fabs(b.max_acceleration_), fabs(b.min_acceleration_));
+            a_max = std::min(fabs(b.max_acceleration_*acceleration_scaling_factor), fabs(b.min_acceleration_*acceleration_scaling_factor));
 
           if (index == 0)
           {
@@ -449,7 +460,8 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(robot_
 }
 
 bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
-                                                               const double max_velocity_scaling_factor) const
+                                                               const double max_velocity_scaling_factor,
+                                                               const double max_acceleration_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -468,7 +480,7 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   std::vector<double> time_diff(num_points-1, 0.0);       // the time difference between adjacent points
 
   applyVelocityConstraints(trajectory, time_diff, max_velocity_scaling_factor);
-  applyAccelerationConstraints(trajectory, time_diff);
+  applyAccelerationConstraints(trajectory, time_diff, max_acceleration_scaling_factor);
 
   updateTrajectory(trajectory, time_diff);
   return true;
