@@ -68,7 +68,7 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
         if (vc == jmg->getVariableCount() && vc == bc)
           ik = true;
       }
-    
+
     if (ik)
     {
       // if we have path constraints, we prefer interpolating in pose space

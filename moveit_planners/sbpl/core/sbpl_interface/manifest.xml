@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/sbpl_interface</url>
 
-  <rosdep name="sbpl" /> 
+  <rosdep name="sbpl" />
 
   <depend package="planning_models"/>
   <depend package="collision_distance_field"/>
