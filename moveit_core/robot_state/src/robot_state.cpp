@@ -53,7 +53,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr &robot_model)
   , rng_(NULL)
 {
   allocMemory();
-  
+
   // all transforms are dirty initially
   const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
   memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
@@ -105,7 +105,7 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
   has_velocity_ = other.has_velocity_;
   has_acceleration_ = other.has_acceleration_;
   has_effort_ = other.has_effort_;
-  
+
   dirty_collision_body_transforms_ = other.dirty_collision_body_transforms_;
   dirty_link_transforms_ = other.dirty_link_transforms_;
 
@@ -114,7 +114,7 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
     // everything is dirty; no point in copying transforms; copy positions, potentially velocity & acceleration
     memcpy(position_, other.position_, robot_model_->getVariableCount() * sizeof(double) *
            (1 + ((has_velocity_ || has_acceleration_ || has_effort_) ? 1 : 0) + ((has_acceleration_ || has_effort_) ? 1 : 0)));
-    
+
     // mark all transforms as dirty
     const int nr_doubles_for_dirty_joint_transforms = 1 + robot_model_->getJointModelCount() / (sizeof(double)/sizeof(unsigned char));
     memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
@@ -128,7 +128,7 @@ void moveit::core::RobotState::copyFrom(const RobotState &other)
                                                               ((has_acceleration_ || has_effort_ ) ? 1 : 0)) + nr_doubles_for_dirty_joint_transforms);
     memcpy(variable_joint_transforms_, other.variable_joint_transforms_, bytes);
   }
-  
+
   // copy attached bodies
   clearAttachedBodies();
   for (std::map<std::string, AttachedBody*>::const_iterator it = other.attached_body_map_.begin() ; it != other.attached_body_map_.end() ; ++it)
@@ -272,9 +272,9 @@ void moveit::core::RobotState::setVariablePositions(const double *position)
 {
   // assume everything is in order in terms of array lengths (for efficiency reasons)
   memcpy(position_, position, robot_model_->getVariableCount() * sizeof(double));
-  
+
   // the full state includes mimic joint values, so no need to update mimic here
-  
+
   // Since all joint values have potentially changed, we will need to recompute all transforms
   memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
   dirty_link_transforms_ = robot_model_->getRootJoint();
@@ -311,9 +311,9 @@ void moveit::core::RobotState::setVariablePositions(const std::map<std::string, 
 void moveit::core::RobotState::setVariablePositions(const std::vector<std::string>& variable_names, const std::vector<double>& variable_position)
 {
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
-  { 
+  {
     const int index = robot_model_->getVariableIndex(variable_names[i]);
-    position_[index] = variable_position[i];  
+    position_[index] = variable_position[i];
     const JointModel *jm = robot_model_->getJointOfVariable(index);
     markDirtyJointTransforms(jm);
     updateMimicJoint(jm);
@@ -335,10 +335,10 @@ void moveit::core::RobotState::setVariableVelocities(const std::map<std::string,
 
 void moveit::core::RobotState::setVariableVelocities(const std::vector<std::string>& variable_names, const std::vector<double>& variable_velocity)
 {
-  markVelocity();  
+  markVelocity();
   assert(variable_names.size() == variable_velocity.size());
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
-    velocity_[robot_model_->getVariableIndex(variable_names[i])] = variable_velocity[i];  
+    velocity_[robot_model_->getVariableIndex(variable_names[i])] = variable_velocity[i];
 }
 
 void moveit::core::RobotState::setVariableAccelerations(const std::map<std::string, double> &variable_map)
@@ -359,7 +359,7 @@ void moveit::core::RobotState::setVariableAccelerations(const std::vector<std::s
   markAcceleration();
   assert(variable_names.size() == variable_acceleration.size());
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
-    acceleration_[robot_model_->getVariableIndex(variable_names[i])] = variable_acceleration[i];  
+    acceleration_[robot_model_->getVariableIndex(variable_names[i])] = variable_acceleration[i];
 }
 
 void moveit::core::RobotState::setVariableEffort(const std::map<std::string, double> &variable_map)
@@ -380,7 +380,7 @@ void moveit::core::RobotState::setVariableEffort(const std::vector<std::string>&
   markEffort();
   assert(variable_names.size() == variable_effort.size());
   for (std::size_t i = 0 ; i < variable_names.size() ; ++i)
-    effort_[robot_model_->getVariableIndex(variable_names[i])] = variable_effort[i];  
+    effort_[robot_model_->getVariableIndex(variable_names[i])] = variable_effort[i];
 }
 
 void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup *group, const double *gstate)
@@ -401,7 +401,7 @@ void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup *gro
 {
   const std::vector<int> &il = group->getVariableIndexList();
   for (std::size_t i = 0 ; i < il.size() ; ++i)
-    position_[il[i]] = values(i); 
+    position_[il[i]] = values(i);
   updateMimicJoint(group->getMimicJointModels());
   markDirtyJointTransforms(group);
 }
@@ -421,8 +421,8 @@ void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup *gr
   const std::vector<int> &il = group->getVariableIndexList();
   values.resize(il.size());
   for (std::size_t i = 0 ; i < il.size() ; ++i)
-    values(i) = position_[il[i]];  
-} 
+    values(i) = position_[il[i]];
+}
 
 void moveit::core::RobotState::update(bool force)
 {
@@ -432,7 +432,7 @@ void moveit::core::RobotState::update(bool force)
     memset(dirty_joint_transforms_, 1, robot_model_->getJointModelCount() * sizeof(unsigned char));
     dirty_link_transforms_ = robot_model_->getRootJoint();
   }
-  
+
   // this actually triggers all needed updates
   updateCollisionBodyTransforms();
 }
@@ -441,11 +441,11 @@ void moveit::core::RobotState::updateCollisionBodyTransforms()
 {
   if (dirty_link_transforms_ != NULL)
     updateLinkTransforms();
-  
+
   if (dirty_collision_body_transforms_ != NULL)
   {
     const std::vector<const LinkModel*> &links = dirty_collision_body_transforms_->getDescendantLinkModels();
-    dirty_collision_body_transforms_ = NULL; 
+    dirty_collision_body_transforms_ = NULL;
 
     for (std::size_t i = 0 ; i < links.size() ; ++i)
     {
@@ -473,15 +473,15 @@ void moveit::core::RobotState::updateLinkTransforms()
 }
 
 void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *start)
-{  
+{
   const std::vector<const LinkModel*> &links = start->getDescendantLinkModels();
   if (!links.empty())
-  { 
+  {
     const LinkModel *parent = links[0]->getParentLinkModel();
     if (parent)
     {
       if (links[0]->parentJointIsFixed())
-        global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = 
+        global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() =
           global_link_transforms_[parent->getLinkIndex()].matrix() * links[0]->getJointOriginTransform().matrix();
       else
       {
@@ -489,7 +489,7 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
           global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() =
             global_link_transforms_[parent->getLinkIndex()].matrix() * getJointTransform(links[0]->getParentJointModel()).matrix();
         else
-          global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = 
+          global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() =
             global_link_transforms_[parent->getLinkIndex()].matrix()
             * links[0]->getJointOriginTransform().matrix()
             * getJointTransform(links[0]->getParentJointModel()).matrix();
@@ -502,12 +502,12 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
       else
         global_link_transforms_[links[0]->getLinkIndex()].matrix().noalias() = links[0]->getJointOriginTransform().matrix() * getJointTransform(links[0]->getParentJointModel()).matrix();
     }
-    
+
     // we know the rest of the links have parents
     for (std::size_t i = 1 ; i < links.size() ; ++i)
     {
       if (links[i]->parentJointIsFixed())
-        global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() = 
+        global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() =
           global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()].matrix()
           * links[i]->getJointOriginTransform().matrix();
       else
@@ -517,14 +517,14 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
             global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()].matrix()
             * getJointTransform(links[i]->getParentJointModel()).matrix();
         else
-          global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() = 
+          global_link_transforms_[links[i]->getLinkIndex()].matrix().noalias() =
             global_link_transforms_[links[i]->getParentLinkModel()->getLinkIndex()] .matrix()
             * links[i]->getJointOriginTransform().matrix()
             * getJointTransform(links[i]->getParentJointModel()).matrix();
       }
     }
   }
-  
+
   // update attached bodies tf; these are usually very few, so we update them all
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
     it->second->computeTransform(global_link_transforms_[it->second->getAttachedLink()->getLinkIndex()]);
@@ -533,20 +533,20 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel *st
 void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel *link, const Eigen::Affine3d& transform, bool backward)
 {
   updateLinkTransforms(); // no link transforms must be dirty, otherwise the transform we set will be overwritten
-  
+
   // update the fact that collision body transforms are out of date
   if (dirty_collision_body_transforms_)
     dirty_collision_body_transforms_ = robot_model_->getCommonRoot(dirty_collision_body_transforms_, link->getParentJointModel());
   else
     dirty_collision_body_transforms_ = link->getParentJointModel();
-  
+
   global_link_transforms_[link->getLinkIndex()] = transform;
 
   // update link transforms for descendant links only (leaving the transform for the current link untouched)
   const std::vector<const JointModel*> &cj = link->getChildJointModels();
   for (std::size_t i = 0 ; i < cj.size() ; ++i)
     updateLinkTransformsInternal(cj[i]);
-  
+
   // if we also need to go backward
   if (backward)
   {
@@ -573,7 +573,7 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel *link, cons
     //    parent_link->getParentJointModel()->computeVariableValues(global_link_transforms_[parent_link->getLinkIndex()],
     //                                                              position_ + parent_link->getParentJointModel()->getFirstVariableIndex());
   }
-  
+
   // update attached bodies tf; these are usually very few, so we update them all
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin() ; it != attached_body_map_.end() ; ++it)
     it->second->computeTransform(global_link_transforms_[it->second->getAttachedLink()->getLinkIndex()]);
@@ -594,7 +594,7 @@ bool moveit::core::RobotState::satisfiesBounds(const JointModelGroup *group, dou
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
     if (!satisfiesBounds(jm[i], margin))
       return false;
-  return true;  
+  return true;
 }
 
 void moveit::core::RobotState::enforceBounds()
@@ -632,7 +632,7 @@ std::pair<double, const moveit::core::JointModel*> moveit::core::RobotState::get
     if (joints[i]->getType() == JointModel::REVOLUTE)
       if (static_cast<const RevoluteJointModel*>(joints[i])->isContinuous())
         continue;
-    
+
     const double* joint_values = getJointPositions(joints[i]);
     const JointModel::Bounds& bounds = joints[i]->getVariableBounds();
     std::vector<double> lower_bounds(bounds.size()), upper_bounds(bounds.size());
@@ -666,13 +666,13 @@ double moveit::core::RobotState::distance(const RobotState &other, const JointMo
     const int idx = jm[i]->getFirstVariableIndex();
     d += jm[i]->getDistanceFactor() * jm[i]->distance(position_ + idx, other.position_ + idx);
   }
-  return d;  
+  return d;
 }
 
 void moveit::core::RobotState::interpolate(const RobotState &to, double t, RobotState &state) const
 {
   robot_model_->interpolate(getVariablePositions(), to.getVariablePositions(), t, state.getVariablePositions());
-  
+
   memset(state.dirty_joint_transforms_, 1, state.robot_model_->getJointModelCount() * sizeof(unsigned char));
   state.dirty_link_transforms_ = state.robot_model_->getRootJoint();
 }
@@ -829,9 +829,9 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string &id) const
 {
   if (!id.empty() && id[0] == '/')
-    return getFrameTransform(id.substr(1)); 
+    return getFrameTransform(id.substr(1));
   BOOST_VERIFY(checkLinkTransforms());
-  
+
   static const Eigen::Affine3d identity_transform = Eigen::Affine3d::Identity();
   if (id.size() + 1 == robot_model_->getModelFrame().size() && '/' + id == robot_model_->getModelFrame())
     return identity_transform;
@@ -915,7 +915,7 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
             }
           }
         }
-    
+
     if (lm->getShapes().empty())
       continue;
 
@@ -924,7 +924,7 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
       visualization_msgs::Marker mark;
       mark.header.frame_id = robot_model_->getModelFrame();
       mark.header.stamp = tm;
-      
+
       // we prefer using the visual mesh, if a mesh is available and we have one body to render
       const std::string& mesh_resource = lm->getVisualMeshFilename();
       if (mesh_resource.empty() || lm->getShapes().size() > 1)
@@ -933,7 +933,7 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
           continue;
         // if the object is invisible (0 volume) we skip it
         if (fabs(mark.scale.x * mark.scale.y * mark.scale.z) < std::numeric_limits<float>::epsilon())
-          continue;  
+          continue;
         tf::poseEigenToMsg(global_collision_body_transforms_[lm->getFirstCollisionBodyTransformIndex() + j], mark.pose);
       }
       else
@@ -942,10 +942,10 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
         mark.mesh_use_embedded_materials = false;
         mark.mesh_resource = mesh_resource;
         const Eigen::Vector3d &mesh_scale = lm->getVisualMeshScale();
-        
+
         mark.scale.x = mesh_scale[0];
         mark.scale.y = mesh_scale[1];
-        mark.scale.z = mesh_scale[2]; 
+        mark.scale.z = mesh_scale[2];
         tf::poseEigenToMsg(global_link_transforms_[lm->getLinkIndex()] * lm->getVisualMeshOrigin(), mark.pose);
       }
 
@@ -966,7 +966,7 @@ bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const L
                                            Eigen::MatrixXd& jacobian, bool use_quaternion_representation) const
 {
   BOOST_VERIFY(checkLinkTransforms());
-  
+
   if (!group->isChain())
   {
     logError("The group '%s' is not a chain. Cannot compute Jacobian.", group->getName().c_str());
@@ -1045,7 +1045,7 @@ bool moveit::core::RobotState::getJacobian(const JointModelGroup *group, const L
       break;
     link = pjm->getParentLinkModel();
   }
-  if (use_quaternion_representation) 
+  if (use_quaternion_representation)
   { // Quaternion representation
     // From "Advanced Dynamics and Motion Simulation" by Paul Mitiguy
     // d/dt ( [w] ) = 1/2 * [ -x -y -z ]  * [ omega_1 ]
@@ -1087,7 +1087,7 @@ void moveit::core::RobotState::computeVariableVelocity(const JointModelGroup *jm
   Eigen::MatrixXd J(6, jmg->getVariableCount());
   Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
   getJacobian(jmg, tip, reference_point, J, false);
-  
+
   //Rotate the jacobian to the end-effector frame
   Eigen::Affine3d eMb = getGlobalLinkTransform(tip).inverse();
   Eigen::MatrixXd eWb = Eigen::ArrayXXd::Zero(6, 6);
@@ -1100,7 +1100,7 @@ void moveit::core::RobotState::computeVariableVelocity(const JointModelGroup *jm
   const Eigen::MatrixXd U = svdOfJ.matrixU();
   const Eigen::MatrixXd V = svdOfJ.matrixV();
   const Eigen::VectorXd S = svdOfJ.singularValues();
-  
+
   Eigen::VectorXd Sinv = S;
   static const double pinvtoler = std::numeric_limits<float>::epsilon();
   double maxsv = 0.0 ;
@@ -1114,7 +1114,7 @@ void moveit::core::RobotState::computeVariableVelocity(const JointModelGroup *jm
     else Sinv(i) = 0.0;
   }
   Eigen::MatrixXd Jinv = (V * Sinv.asDiagonal() * U.transpose());
-  
+
   // Compute joint velocity
   qdot = Jinv * twist;
 }
@@ -1127,7 +1127,7 @@ bool moveit::core::RobotState::integrateVariableVelocity(const JointModelGroup *
   q = q + dt * qdot;
   setJointGroupPositions(jmg, q);
   enforceBounds(jmg);
-  
+
   if (constraint)
   {
     std::vector<double> values;
@@ -1480,7 +1480,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
       jmg->getVariableRandomPositions(rng, random_values);
       for (std::size_t i = 0 ; i < bij.size() ; ++i)
         seed[i] = random_values[bij[i]];
-      
+
       if (options.lock_redundant_joints)
       {
         std::vector<unsigned int> red_joints;
@@ -1490,7 +1490,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
           seed[red_joints[i]] = initial_values[bij[red_joints[i]]];
       }
     }
-    
+
     // compute the IK solution
     std::vector<double> ik_sol;
     moveit_msgs::MoveItErrorCodes error;
@@ -1507,7 +1507,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   return false;
 }
 
-bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in, 
+bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, const EigenSTL::vector_Affine3d &poses_in,
                                                   const std::vector<std::string> &tips_in,
                                                   const std::vector<std::vector<double> > &consistency_limits,
                                                   unsigned int attempts, double timeout,
@@ -1537,7 +1537,7 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
     logError("Number of consistency limit vectors must be the same as number of sub-groups");
     return false;
   }
-  
+
   for (std::size_t i = 0 ; i < consistency_limits.size() ; ++i)
   {
     if (consistency_limits[i].size() != sub_groups[i]->getVariableCount())
@@ -1559,7 +1559,7 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
     }
     solvers.push_back(solver);
   }
-  
+
   // Make non-const versions
   EigenSTL::vector_Affine3d transformed_poses = poses_in;
   std::vector<std::string> tip_names = tips_in;
@@ -1709,7 +1709,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
 {
   //this is the Cartesian pose we start from, and have to move in the direction indicated
   const Eigen::Affine3d &start_pose = getGlobalLinkTransform(link);
-  
+
   //the direction can be in the local reference frame (in which case we rotate it)
   const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
 
@@ -1736,19 +1736,19 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
 
   // the target can be in the local reference frame (in which case we rotate it)
   Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
-  
+
   bool test_joint_space_jump = jump_threshold > 0.0;
-  
+
   // decide how many steps we will need for this trajectory
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
   unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
-  
+
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
-  
+
   std::vector<double> dist_vector;
   double total_dist = 0.0;
-  
+
   double last_valid_percentage = 0.0;
   Eigen::Quaterniond start_quaternion(start_pose.rotation());
   Eigen::Quaterniond target_quaternion(rotated_target.rotation());
@@ -1821,7 +1821,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup *gro
       break;
     }
   }
-  
+
   return percentage_solved;
 }
 
@@ -1864,7 +1864,7 @@ static inline void updateAABB(const Eigen::Affine3d &t, const Eigen::Vector3d &e
 void robot_state::RobotState::computeAABB(std::vector<double> &aabb) const
 {
   BOOST_VERIFY(checkLinkTransforms());
-  
+
   aabb.clear();
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0 ; i < links.size() ; ++i)
@@ -1908,7 +1908,7 @@ void moveit::core::RobotState::printDirtyInfo(std::ostream &out) const
 void moveit::core::RobotState::printStateInfo(std::ostream &out) const
 {
   out << "Robot State @" << this << std::endl;
-  
+
   std::size_t n = robot_model_->getVariableCount();
   if (position_)
   {
@@ -1919,7 +1919,7 @@ void moveit::core::RobotState::printStateInfo(std::ostream &out) const
   }
   else
     out << "  * Position: NULL" << std::endl;
-  
+
   if (velocity_)
   {
     out << "  * Velocity: ";
@@ -1939,16 +1939,16 @@ void moveit::core::RobotState::printStateInfo(std::ostream &out) const
   }
   else
     out << "  * Acceleration: NULL" << std::endl;
-  
+
   out << "  * Dirty Link Transforms: " << (dirty_link_transforms_ ? dirty_link_transforms_->getName() : "NULL") << std::endl;
   out << "  * Dirty Collision Body Transforms: " << (dirty_collision_body_transforms_ ? dirty_collision_body_transforms_->getName() : "NULL") << std::endl;
-  
+
   printTransforms(out);
 }
 
 void moveit::core::RobotState::printTransform(const Eigen::Affine3d &transform, std::ostream &out) const
 {
-  Eigen::Quaterniond q(transform.rotation());  
+  Eigen::Quaterniond q(transform.rotation());
   out << "T.xyz = [" << transform.translation().x() << ", " << transform.translation().y() << ", " << transform.translation().z() << "], Q.xyzw = ["
       << q.x() << ", " << q.y() << ", " << q.z() << ", " << q.w() << "]" << std::endl;
 }
@@ -1960,7 +1960,7 @@ void moveit::core::RobotState::printTransforms(std::ostream &out) const
     out << "No transforms computed" << std::endl;
     return;
   }
-  
+
   out << "Joint transforms:" << std::endl;
   const std::vector<const JointModel*> &jm = robot_model_->getJointModels();
   for (std::size_t i = 0 ; i < jm.size() ; ++i)
@@ -1972,7 +1972,7 @@ void moveit::core::RobotState::printTransforms(std::ostream &out) const
     out << ": ";
     printTransform(variable_joint_transforms_[idx], out);
   }
-  
+
   out << "Link poses:" << std::endl;
   const std::vector<const LinkModel*> &lm = robot_model_->getLinkModels();
   for (std::size_t i = 0 ; i < lm.size() ; ++i)
@@ -2010,7 +2010,7 @@ void getPoseString(std::ostream& ss, const Eigen::Affine3d& pose, const std::str
 void moveit::core::RobotState::getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const
 {
   std::string pfx = pfx0 + "+--";
-  
+
   ss << pfx << "Joint: " << jm->getName() << std::endl;
 
   pfx = pfx0 + (last ? "   " : "|  ");
@@ -2030,7 +2030,7 @@ void moveit::core::RobotState::getStateTreeJointString(std::ostream& ss, const J
     getPoseString(ss, variable_joint_transforms_[jm->getJointIndex()], pfx + "joint_variable:");
     getPoseString(ss, global_link_transforms_[lm->getLinkIndex()], pfx + "link_global:");
   }
-  
+
   for (std::vector<const JointModel*>::const_iterator it = lm->getChildJointModels().begin() ; it != lm->getChildJointModels().end() ; ++it)
     getStateTreeJointString(ss, *it, pfx, it + 1 == lm->getChildJointModels().end());
 }
@@ -2039,5 +2039,5 @@ void moveit::core::RobotState::getStateTreeJointString(std::ostream& ss, const J
 std::ostream& moveit::core::operator<<(std::ostream &out, const RobotState &s)
 {
   s.printStateInfo(out);
-  return out;  
+  return out;
 }

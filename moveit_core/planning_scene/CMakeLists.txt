@@ -2,13 +2,13 @@ set(MOVEIT_LIB_NAME moveit_planning_scene)
 
 add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp)
 
-target_link_libraries(${MOVEIT_LIB_NAME} 
+target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_model
   moveit_robot_state
   moveit_exceptions
   moveit_transforms
   moveit_collision_detection_fcl
-  moveit_kinematic_constraints 
+  moveit_kinematic_constraints
   moveit_robot_trajectory
   moveit_trajectory_processing
   ${LIBOCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})

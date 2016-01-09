@@ -36,7 +36,7 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale) 
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
@@ -72,7 +72,7 @@ void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_
 void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState &state, FCLObject &fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(geoms_.size());
-  
+
   for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
@@ -81,7 +81,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
       fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
       // the CollisionGeometryData is already stored in the class member geoms_, so we need not copy it
     }
-  
+
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
   for (std::size_t j = 0 ; j < ab.size() ; ++j)

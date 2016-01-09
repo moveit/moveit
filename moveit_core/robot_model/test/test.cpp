@@ -45,7 +45,7 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-  
+
   virtual void SetUp()
   {
     srdf_model.reset(new srdf::Model());
@@ -71,13 +71,13 @@ protected:
     srdf_model->initFile(*urdf_model, (boost::filesystem::path(resource_dir) / "test/srdf/robot.xml").string());
     robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   };
-  
+
   virtual void TearDown()
   {
   }
-  
+
 protected:
-  
+
   boost::shared_ptr<urdf::ModelInterface> urdf_model;
   boost::shared_ptr<srdf::Model> srdf_model;
   moveit::core::RobotModelConstPtr robot_model;
@@ -92,7 +92,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 TEST_F(LoadPlanningModelsPr2, Model)
 {
   robot_model->printModelInfo(std::cout);
-  
+
   const std::vector<const moveit::core::JointModel*> &joints = robot_model->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
   {
@@ -104,10 +104,10 @@ TEST_F(LoadPlanningModelsPr2, Model)
   {
     ASSERT_EQ(links[i]->getLinkIndex(), i);
     //    std::cout << joints[i]->getName() << std::endl;
-    
+
   }
   moveit::tools::Profiler::Status();
-  
+
 }
 
 

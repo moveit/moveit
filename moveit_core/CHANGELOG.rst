@@ -286,7 +286,7 @@ Changelog for package moveit_core
 * attempt to fix `#241 <https://github.com/ros-planning/moveit_core/issues/241>`_ from moveit_ros
 * update paths so that files are found in the globally installed moveit_resources package
 * remove magical 0.2 and use of velocity_map
-* Work on issue `#35 <https://github.com/ros-planning/moveit_core/issues/35>`_. 
+* Work on issue `#35 <https://github.com/ros-planning/moveit_core/issues/35>`_.
 
 0.3.19 (2013-05-02)
 -------------------
@@ -329,7 +329,7 @@ Changelog for package moveit_core
 * include velocities in conversions
 * Added more general computeCartesianPath, takes vector of waypoints
 * efficiency improvements
-  
+
 0.3.14 (2013-02-05)
 -------------------
 * initialize controller state by default
@@ -481,7 +481,7 @@ Changelog for package moveit_core
 ------------------
 * add processPlanningSceneWorldMsg()
 * Adding and fixing tests
-* Adding docs 
+* Adding docs
 * moves refineNormals to new file in collision_detection
 * Fixed bugs in PositionConstraint, documented Position and Orientation constraint, extended tests for Position and OrientationConstraint and started working on tests for VisibilityConstraint
 * more robust checking of joint names in joint constraints

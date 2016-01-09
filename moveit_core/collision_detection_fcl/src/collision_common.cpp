@@ -54,7 +54,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
   // do not collision check geoms part of the same object / link / attached body
   if (cd1->sameObject(*cd2))
     return false;
-  
+
   // If active components are specified
   if (cdata->active_components_only_)
   {
@@ -668,7 +668,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_model::LinkModel *link, 
+                                            const robot_model::LinkModel *link,
                                             int shape_index)
 {
   return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, link, shape_index);

@@ -11,7 +11,7 @@
   <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
 
-  <license>BSD</license>  
+  <license>BSD</license>
   <url type="website">http://moveit.ros.org</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit_core/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit_core</url>
@@ -26,7 +26,7 @@
   <build_depend>liburdfdom-dev</build_depend>
   <build_depend>liburdfdom-headers-dev</build_depend>
   <build_depend>random_numbers</build_depend>
-  <build_depend>octomap_msgs</build_depend>  
+  <build_depend>octomap_msgs</build_depend>
   <build_depend>moveit_msgs</build_depend>
   <build_depend>actionlib_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
@@ -34,14 +34,14 @@
   <build_depend>shape_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>trajectory_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>   
+  <build_depend>visualization_msgs</build_depend>
   <build_depend>octomap</build_depend>
   <build_depend>srdfdom</build_depend>
   <build_depend>kdl_parser</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>boost</build_depend>
   <build_depend>assimp</build_depend>
-  <build_depend>fcl</build_depend> 
+  <build_depend>fcl</build_depend>
   <build_depend>eigen_stl_containers</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend version_gte="0.3.4">geometric_shapes</build_depend>
@@ -56,17 +56,17 @@
   <run_depend>liburdfdom-headers-dev</run_depend>
   <run_depend>random_numbers</run_depend>
   <run_depend>octomap</run_depend>
-  <run_depend>srdfdom</run_depend> 
+  <run_depend>srdfdom</run_depend>
   <run_depend>kdl_parser</run_depend>
   <run_depend>eigen</run_depend>
   <run_depend>boost</run_depend>
   <run_depend>assimp</run_depend>
   <run_depend>fcl</run_depend>
-  <run_depend>eigen_stl_containers</run_depend>  
+  <run_depend>eigen_stl_containers</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend version_gte="0.3.4">geometric_shapes</run_depend>
   <run_depend>rostime</run_depend>
-  <run_depend>octomap_msgs</run_depend>  
+  <run_depend>octomap_msgs</run_depend>
   <run_depend>moveit_msgs</run_depend>
   <run_depend>actionlib_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
@@ -74,6 +74,6 @@
   <run_depend>shape_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>trajectory_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>  
+  <run_depend>visualization_msgs</run_depend>
 
 </package>

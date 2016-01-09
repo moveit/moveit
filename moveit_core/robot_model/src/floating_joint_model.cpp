@@ -58,9 +58,9 @@ moveit::core::FloatingJointModel::FloatingJointModel(const std::string& name)
     variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
     variable_index_map_[variable_names_.back()] = i;
   }
-  
+
   variable_bounds_.resize(7);
-  
+
   variable_bounds_[0].position_bounded_ = true;
   variable_bounds_[1].position_bounded_ = true;
   variable_bounds_[2].position_bounded_ = true;
@@ -123,7 +123,7 @@ void moveit::core::FloatingJointModel::interpolate(const double *from, const dou
   state[0] = from[0] + (to[0] - from[0]) * t;
   state[1] = from[1] + (to[1] - from[1]) * t;
   state[2] = from[2] + (to[2] - from[2]) * t;
-  
+
   double dq = fabs(from[3] * to[3] + from[4] * to[4] + from[5] * to[5] + from[6] * to[6]);
   double theta = (dq + std::numeric_limits<double>::epsilon() >= 1.0) ? 0.0 : acos(dq);
   if (theta > std::numeric_limits<double>::epsilon())
@@ -242,7 +242,7 @@ void moveit::core::FloatingJointModel::getVariableDefaultPositions(double *value
     else
       values[i] = (bounds[i].min_position_ + bounds[i].max_position_)/2.0;
   }
-  
+
   values[3] = 0.0;
   values[4] = 0.0;
   values[5] = 0.0;
@@ -263,7 +263,7 @@ void moveit::core::FloatingJointModel::getVariableRandomPositions(random_numbers
     values[2] = 0.0;
   else
     values[2] = rng.uniformReal(bounds[2].min_position_, bounds[2].max_position_);
-  
+
   double q[4]; rng.quaternion(q);
   values[3] = q[0];
   values[4] = q[1];
@@ -289,7 +289,7 @@ void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_n
   else
     values[2] = rng.uniformReal(std::max(bounds[2].min_position_, near[2] - distance),
                                 std::min(bounds[2].max_position_, near[2] + distance));
-  
+
   double da = angular_distance_weight_ * distance;
   if (da >= .25 * boost::math::constants::pi<double>())
   {

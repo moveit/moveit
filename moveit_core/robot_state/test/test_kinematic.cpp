@@ -174,7 +174,7 @@ TEST(LoadingAndFK, SimpleRobot)
     ASSERT_EQ(missing_states.size(), 1);
     EXPECT_EQ(missing_states[0], std::string("base_joint/theta"));
     joint_values["base_joint/theta"] = 0.1;
-    
+
     state.setVariablePositions(joint_values, missing_states);
     ASSERT_EQ(missing_states.size(), 0);
 
@@ -190,7 +190,7 @@ TEST(LoadingAndFK, SimpleRobot)
     EXPECT_NEAR(8.0, new_state->getGlobalLinkTransform("base_link").translation().y(), 1e-5);
     EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);
     delete new_state;
-    
+
     std::vector<double> jv(state.getVariableCount(), 0.0);
     jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 10.0;
     jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 8.0;
@@ -379,7 +379,7 @@ TEST(FK, OneRobot)
     srdfModel->initString(*urdfModel, SMODEL2);
 
     moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
-    
+
     //testing that the two planning groups are the same
     const moveit::core::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
     const moveit::core::JointModelGroup* g_two = model->getJointModelGroup("base_from_base_to_tip");
@@ -456,7 +456,7 @@ TEST(FK, OneRobot)
     joint_values["joint_a"] = -0.5;
     joint_values["joint_c"] = 0.08;
     state.setVariablePositions(joint_values);
-    
+
     EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
     EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
@@ -464,7 +464,7 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).y(), 1e-5);
     EXPECT_NEAR(0.247404, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).z(), 1e-5);
     EXPECT_NEAR(0.968912, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).w(), 1e-5);
-    
+
     EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().x(), 1e-5);
     EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_a").translation().z(), 1e-5);
@@ -472,7 +472,7 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).y(), 1e-5);
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).z(), 1e-5);
     EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).w(), 1e-5);
-    
+
     EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_b").translation().x(), 1e-5);
     EXPECT_NEAR(1.5, state.getGlobalLinkTransform("link_b").translation().y(), 1e-5);
     EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_b").translation().z(), 1e-5);
@@ -488,7 +488,7 @@ TEST(FK, OneRobot)
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).y(), 1e-5);
     EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).z(), 1e-5);
     EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).w(), 1e-5);
-    
+
     EXPECT_TRUE(state.satisfiesBounds());
 
     std::map<std::string, double> upd_a;
