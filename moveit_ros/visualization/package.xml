@@ -3,7 +3,7 @@
   <version>0.6.5</version>
   <description>Components of MoveIt that offer visualization</description>
 
-  <author email="isucan@google.com">Ioan Sucan</author> 
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="davetcoleman@gmail.com">Dave Coleman</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
@@ -16,7 +16,7 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit_ros</url>
 
-  <buildtool_depend>catkin</buildtool_depend> 
+  <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
@@ -24,7 +24,7 @@
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
   <build_depend>moveit_ros_robot_interaction</build_depend>
-  <build_depend>pluginlib</build_depend> 
+  <build_depend>pluginlib</build_depend>
   <build_depend>interactive_markers</build_depend>
   <build_depend>geometric_shapes</build_depend>
   <build_depend>object_recognition_msgs</build_depend>
@@ -36,7 +36,7 @@
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>
   <run_depend>moveit_ros_robot_interaction</run_depend>
-  <run_depend>pluginlib</run_depend> 
+  <run_depend>pluginlib</run_depend>
   <run_depend>interactive_markers</run_depend>
   <run_depend>geometric_shapes</run_depend>
   <run_depend>object_recognition_msgs</run_depend>

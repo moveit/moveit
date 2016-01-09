@@ -74,12 +74,12 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     return;
 
   clear();
-  
+
   if (scene_robot_)
   {
     robot_state::RobotState *rs = new robot_state::RobotState(scene->getCurrentState());
     rs->update();
-    
+
     std_msgs::ColorRGBA color;
     color.r = default_attached_color.r_;
     color.g = default_attached_color.g_;

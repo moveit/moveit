@@ -506,7 +506,7 @@ class MoveitJoy:
             if self.history.all(lambda s: s.L1):
                 yaw = yaw + DTHETA * 2
             else:
-                yaw = yaw + DTHETA 
+                yaw = yaw + DTHETA
         elif status.R1:
             if self.history.all(lambda s: s.R1):
                 yaw = yaw - DTHETA * 2

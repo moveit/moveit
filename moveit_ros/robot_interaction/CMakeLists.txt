@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 set(MOVEIT_LIB_NAME moveit_robot_interaction)
 
 catkin_package(
-  LIBRARIES  
+  LIBRARIES
     ${MOVEIT_LIB_NAME}
   INCLUDE_DIRS
     include

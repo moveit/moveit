@@ -10,7 +10,7 @@ qt4_wrap_cpp(MOC_SOURCES ${headers})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(${MOVEIT_LIB_NAME} 
+add_library(${MOVEIT_LIB_NAME}
   src/render_shapes.cpp
   src/robot_state_visualization.cpp
   src/planning_scene_render.cpp
@@ -20,15 +20,15 @@ add_library(${MOVEIT_LIB_NAME}
   ${MOC_SOURCES}
 )
 
-target_link_libraries(${MOVEIT_LIB_NAME} 
-  ${catkin_LIBRARIES} 
-  ${OGRE_LIBRARIES} 
+target_link_libraries(${MOVEIT_LIB_NAME}
+  ${catkin_LIBRARIES}
+  ${OGRE_LIBRARIES}
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
 
 install(DIRECTORY include/ DESTINATION include)
 
-install(TARGETS ${MOVEIT_LIB_NAME} 
+install(TARGETS ${MOVEIT_LIB_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})

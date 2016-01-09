@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         state.update();
         moveit::tools::Profiler::End("FK Default");
       }
-      
+
       printf("Evaluating FK Random ...\n");
       for (int i = 0 ; i < N ; ++i)
       {
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
       {
         printf("\n");
         const robot_model::JointModelGroup *jmg = robot_model->getJointModelGroup(groups[j]);
-        
+
         printf("%s: Evaluating FK Random ...\n", groups[j].c_str());
         std::string pname = groups[j] + ":FK Random";
         for (int i = 0 ; i < N ; ++i)
