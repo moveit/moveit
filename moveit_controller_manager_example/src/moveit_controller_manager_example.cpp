@@ -49,25 +49,25 @@ public:
   ExampleControllerHandle(const std::string &name) : moveit_controller_manager::MoveItControllerHandle(name)
   {
   }
-  
+
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t)
   {
     // do whatever is needed to actually execute this trajectory
     return true;
   }
-  
+
   virtual bool cancelExecution()
-  {   
-    // do whatever is needed to cancel execution 
+  {
+    // do whatever is needed to cancel execution
     return true;
   }
-  
+
   virtual bool waitForExecution(const ros::Duration &)
   {
     // wait for the current execution to finish
     return true;
   }
-  
+
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus()
   {
     return moveit_controller_manager::ExecutionStatus(moveit_controller_manager::ExecutionStatus::SUCCEEDED);
@@ -82,7 +82,7 @@ public:
   MoveItControllerManagerExample()
   {
   }
-  
+
   virtual ~MoveItControllerManagerExample()
   {
   }
@@ -91,7 +91,7 @@ public:
   {
     return moveit_controller_manager::MoveItControllerHandlePtr(new ExampleControllerHandle(name));
   }
-  
+
   /*
    * Get the list of controller names.
    */
@@ -130,7 +130,7 @@ public:
       joints.push_back("joint2");
       joints.push_back("joint3");
       joints.push_back("joint4");
-      // ... 
+      // ...
     }
   }
 
