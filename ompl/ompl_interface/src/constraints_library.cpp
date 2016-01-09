@@ -153,19 +153,19 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage *sta
 
   if (tag_from < 0 || tag_to < 0)
     return false;
-  
+
   if (tag_from == tag_to)
     state_storage->getStateSpace()->copyState(state, to);
   else
   {
     const ConstrainedStateMetadata &md = state_storage->getMetadata(tag_from);
-    
+
     std::map<std::size_t, std::pair<std::size_t, std::size_t> >::const_iterator it = md.second.find(tag_to);
     if (it == md.second.end())
       return false;
     const std::pair<std::size_t, std::size_t> &istates = it->second;
     std::size_t index = (std::size_t)((istates.second - istates.first + 2) * t + 0.5);
-    
+
     if (index == 0)
       state_storage->getStateSpace()->copyState(state, from);
     else
@@ -498,17 +498,17 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   if (options.edges_per_sample > 0)
   {
     logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
-    
+
     // construct connexions
     const ob::StateSpacePtr &space = pcontext->getOMPLSimpleSetup()->getStateSpace();
     unsigned int milestones = sstor->size();
     std::vector<ob::State*> int_states(options.max_explicit_points, NULL);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->allocStates(int_states);
-    
+
     ompl::time::point start = ompl::time::now();
     int good = 0;
     int done = -1;
-    
+
     for (std::size_t j = 0 ; j < milestones ; ++j)
     {
       int done_now = 100 * j / milestones;
@@ -519,9 +519,9 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       }
       if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
         continue;
-      
+
       const ob::State *sj = sstor->getState(j);
-      
+
       for (std::size_t i = j + 1 ; i < milestones ; ++i)
       {
         if (cass->getMetadata(i).first.size() >= options.edges_per_sample)
@@ -545,12 +545,12 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
             break;
           }
         }
-        
+
         if (ok)
         {
           cass->getMetadata(i).first.push_back(j);
           cass->getMetadata(j).first.push_back(i);
-          
+
           if (options.explicit_motions)
           {
             cass->getMetadata(i).second[j].first = sstor->size();
@@ -562,18 +562,18 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
             cass->getMetadata(i).second[j].second = sstor->size();
             cass->getMetadata(j).second[i] = cass->getMetadata(i).second[j];
           }
-          
+
           good++;
           if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
             break;
         }
       }
     }
-    
+
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
     logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->freeStates(int_states);
-    
+
     return sstor;
   }
 }

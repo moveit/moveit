@@ -48,7 +48,7 @@ ompl_interface::StateValidityChecker::StateValidityChecker(const ModelBasedPlann
 {
   specs_.clearanceComputationType = ompl::base::StateValidityCheckerSpecs::APPROXIMATE;
   specs_.hasValidDirectionComputation = false;
-  
+
   collision_request_with_distance_.distance = true;
   collision_request_with_cost_.cost = true;
 
@@ -83,14 +83,14 @@ bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *stat
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
 {
   double cost = 0.0;
-  
+
   robot_state::RobotState *kstate = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*kstate, state);
 
   // Calculates cost from a summation of distance to obstacles times the size of the obstacle
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
-  
+
   for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
     cost += it->cost * it->getVolume();
 
