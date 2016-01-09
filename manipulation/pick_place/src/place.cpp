@@ -49,7 +49,7 @@ PlacePlan::PlacePlan(const PickPlaceConstPtr &pick_place) : PickPlacePlanBase(pi
 {
 }
 
-namespace 
+namespace
 {
 bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose,
                                 const robot_state::AttachedBody* attached_body,
@@ -57,8 +57,8 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped &goal_pose,
 {
   const EigenSTL::vector_Affine3d& fixed_transforms = attached_body->getFixedTransforms();
   if (fixed_transforms.empty())
-    return false; 
-  
+    return false;
+
   Eigen::Affine3d end_effector_transform;
   tf::poseMsgToEigen(goal_pose.pose, end_effector_transform);
   end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
@@ -100,7 +100,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     if (jmg)
     {
       // we also try to find the corresponding eef
-      const std::vector<std::string> &eef_names = jmg->getAttachedEndEffectorNames();  
+      const std::vector<std::string> &eef_names = jmg->getAttachedEndEffectorNames();
       if (eef_names.empty())
       {
         ROS_ERROR_STREAM_NAMED("manipulation", "There are no end-effectors specified for group '" << goal.group_name << "'");
@@ -109,7 +109,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
       }
       else
         // check to see if there is an end effector that has attached objects associaded, so we can complete the place
-        for (std::size_t i = 0 ; i < eef_names.size() ; ++i) 
+        for (std::size_t i = 0 ; i < eef_names.size() ; ++i)
         {
           std::vector<const robot_state::AttachedBody*> attached_bodies;
           const robot_model::JointModelGroup *eg = planning_scene->getRobotModel()->getEndEffector(eef_names[i]);
@@ -117,7 +117,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
           {
             // see if there are objects attached to links in the eef
             planning_scene->getCurrentState().getAttachedBodies(attached_bodies, eg);
-            
+
             // is is often possible that the objects are attached to the same link that the eef itself is attached,
             // so we check for attached bodies there as well
             const robot_model::LinkModel *attached_link_model = planning_scene->getRobotModel()->getLinkModel(eg->getEndEffectorParentGroup().second);
@@ -128,7 +128,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
               attached_bodies.insert(attached_bodies.end(), attached_bodies2.begin(), attached_bodies2.end());
             }
           }
-          
+
           // if this end effector has attached objects, we go on
           if (!attached_bodies.empty())
           {
@@ -148,7 +148,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
               if (!found)
                 continue;
             }
-            
+
             // if we previoulsy have set the eef it means we have more options we could use, so things are ambiguous
             if (eef)
             {
@@ -163,7 +163,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
         }
     }
   }
-  
+
   // if we know the attached object, but not the eef, we can try to identify that
   if (!attached_object_name.empty() && !eef)
   {
@@ -201,13 +201,13 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
         jmg = planning_scene->getRobotModel()->getJointModelGroup(eef_parent);
     }
   }
-  
+
   if (!jmg || !eef)
-  { 
+  {
     error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return false;
   }
-  
+
   // try to infer attached body name if possible
   int loop_count = 0;
   while (attached_object_name.empty() && loop_count < 2)
@@ -216,7 +216,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
     // otherwise, look for attached bodies in the planning group itself
     std::vector<const robot_state::AttachedBody*> attached_bodies;
     planning_scene->getCurrentState().getAttachedBodies(attached_bodies, loop_count == 0 ? eef : jmg);
-    
+
     loop_count++;
     if (attached_bodies.size() > 1)
     {
@@ -244,7 +244,7 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   plan_data->planning_group_ = jmg;
   plan_data->end_effector_group_ = eef;
   plan_data->ik_link_ = planning_scene->getRobotModel()->getLinkModel(eef->getEndEffectorParentGroup().second);
-  
+
   plan_data->timeout_ = endtime;
   plan_data->path_constraints_ = goal.path_constraints;
   plan_data->planner_id_ = goal.planner_id;
@@ -294,18 +294,18 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   {
     ManipulationPlanPtr p(new ManipulationPlan(const_plan_data));
     const moveit_msgs::PlaceLocation &pl = goal.place_locations[i];
-    
+
     if (goal.place_eef)
       p->goal_pose_ = pl.place_pose;
     else
       // The goals are specified for the attached body
       // but we want to transform them into goals for the end-effector instead
       if (!transformToEndEffectorGoal(pl.place_pose, attached_body, p->goal_pose_))
-      {    
+      {
         p->goal_pose_ = pl.place_pose;
         ROS_ERROR_NAMED("manipulation", "Unable to transform the desired pose of the object to the pose of the end-effector");
       }
-    
+
     p->approach_ = pl.pre_place_approach;
     p->retreat_ = pl.post_place_retreat;
     p->retreat_posture_ = pl.post_place_posture;

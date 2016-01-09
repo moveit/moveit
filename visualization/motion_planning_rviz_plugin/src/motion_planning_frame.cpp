@@ -137,7 +137,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
 
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
- 
+
   //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
   object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
   object_recognition_subscriber_ = nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
@@ -146,15 +146,15 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   {
     try
     {
-      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
+      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
     catch(std::runtime_error &ex)
     {
-      //      ROS_ERROR("Object recognition action: %s", ex.what());      
-      object_recognition_client_.reset();      
-    }          
-  }  
-  try  
+      //      ROS_ERROR("Object recognition action: %s", ex.what());
+      object_recognition_client_.reset();
+    }
+  }
+  try
   {
     planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   }
@@ -171,12 +171,12 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
     }
     else
-      semantic_world_.reset();    
+      semantic_world_.reset();
     if(semantic_world_)
     {
-      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
-    }  
-  } 
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
+    }
+  }
   catch(std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
@@ -221,7 +221,7 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     update_goal_state_subscriber_.shutdown();
   }
 }
-  
+
 void MotionPlanningFrame::fillStateSelectionOptions()
 {
   ui_->start_state_selection->clear();
@@ -281,7 +281,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     ROS_INFO("Constructing new MoveGroup connection for group '%s' in namespace '%s'", group.c_str(), planning_display_->getMoveGroupNS().c_str());
     moveit::planning_interface::MoveGroup::Options opt(group);
     opt.robot_model_ = kmodel;
-    opt.robot_description_.clear(); 
+    opt.robot_description_.clear();
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
@@ -458,5 +458,5 @@ void MotionPlanningFrame::updateExternalCommunication()
   }
 }
 
-  
+
 } // namespace

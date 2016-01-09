@@ -21,7 +21,7 @@ add_executable(moveit_publish_scene_from_text src/publish_scene_from_text.cpp)
 target_link_libraries(moveit_publish_scene_from_text moveit_planning_scene_monitor moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS
-  moveit_print_planning_model_info 
+  moveit_print_planning_model_info
   moveit_display_random_state
   moveit_visualize_robot_collision_volume
   moveit_evaluate_collision_checking_speed

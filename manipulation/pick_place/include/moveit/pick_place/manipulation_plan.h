@@ -54,7 +54,7 @@ namespace pick_place
 
 struct ManipulationPlanSharedData
 {
-  ManipulationPlanSharedData() 
+  ManipulationPlanSharedData()
     : planning_group_(NULL)
     , end_effector_group_(NULL)
     , ik_link_(NULL)
@@ -62,7 +62,7 @@ struct ManipulationPlanSharedData
     , minimize_object_distance_(false)
   {
   }
-  
+
   const robot_model::JointModelGroup *planning_group_;
   const robot_model::JointModelGroup *end_effector_group_;
   const robot_model::LinkModel *ik_link_;

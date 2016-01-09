@@ -15,7 +15,7 @@ qt4_wrap_ui(UIC_FILES
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Plugin Source
-set(SOURCE_FILES 
+set(SOURCE_FILES
   src/motion_planning_frame.cpp
   src/motion_planning_frame_context.cpp
   src/motion_planning_frame_planning.cpp

@@ -2,7 +2,7 @@
 
 @b MoveIt! includes a library for managing controllers and the execution of trajectories. This code exists in the trajectory_execution_manager namespace.
 
-The trajectory_execution_manager::TrajectoryExecutionManager class allows two main operations: 
+The trajectory_execution_manager::TrajectoryExecutionManager class allows two main operations:
  - trajectory_execution_manager::TrajectoryExecutionManager::push() adds trajectories specified as a moveit_msgs::RobotTrajectory message type to a queue of trajectories to be executed in sequence. Each trajectory can be specified for any set of joints in the robot. Because controllers may only be available for certain groups of joints, this function may decide to split one trajectory into multiple ones and pass them to corresponding controllers (this time in parallel, using the same time stamp for the trajectory points). This approach assumes that controllers respect the time stamps specified for the waypoints.
  - trajectory_execution_manager::TrajectoryExecutionManager::execute() passes the appropriate trajectories to different controllers, monitors execution, optionally waits for completion of the execution and, very importantly, switches active controllers as needed (optionally) to be able to execute the specified trajectories.
 

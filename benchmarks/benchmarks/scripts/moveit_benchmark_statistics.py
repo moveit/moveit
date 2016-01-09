@@ -65,7 +65,7 @@ def read_benchmark_log(dbname, filenames):
         hostname = logfile.readline().split()[-1]
         date = " ".join(logfile.readline().split()[2:])
         goal_name = logfile.readline().split()[-1]
-        
+
         # disabled the planning request part
         #logfile.readline() # skip <<<|
         #expsetup = ""
@@ -141,7 +141,7 @@ def read_benchmark_log(dbname, filenames):
                     c.execute('ALTER TABLE `' + planner_table + '` ADD ' + col + ' ' + properties[col] + ';')
 
             # add measurements
-            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + len(basePropNames))) + ')'  
+            insert_fmt_str = 'INSERT INTO `' + planner_table + '` (' + ','.join(propNames) + ') VALUES (' + ','.join('?'*(num_properties + len(basePropNames))) + ')'
 
             num_runs = int(logfile.readline().split()[0])
             for j in range(num_runs):
@@ -320,10 +320,10 @@ def save_as_mysql(dbname, mysqldump):
 def generate_csv(dbname, fname):
     """Create a csv file with all experiments combined into one list."""
     print("Generating CSV output...")
-    
+
     # Open CSV File
     csv = open(fname, 'w')
-    
+
     # Connect to database
     conn = sqlite3.connect(dbname)
     cursor = conn.cursor()
@@ -427,7 +427,7 @@ if __name__ == "__main__":
             except OSError:
                 pass
         read_benchmark_log(options.dbname, args)
-    
+
     if options.plot:
         plot_statistics(options.dbname, options.plot)
 

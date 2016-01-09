@@ -68,7 +68,7 @@ RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_
 {
   topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(topic_);
-  
+
   // spin a thread that will process feedback events
   run_processing_thread_ = true;
   processing_thread_.reset(new boost::thread(boost::bind(&RobotInteraction::processingThread, this)));
@@ -474,7 +474,7 @@ void RobotInteraction::addInteractiveMarkers(
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
     robot_state::RobotStateConstPtr s = handler->getState();
-    
+
     for (std::size_t i = 0 ; i < active_generic_.size() ; ++i)
     {
       visualization_msgs::InteractiveMarker im;
@@ -490,10 +490,10 @@ void RobotInteraction::addInteractiveMarkers(
       }
     }
     ros::NodeHandle nh;
-    
+
     for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
-      
+
       geometry_msgs::PoseStamped pose;
       geometry_msgs::Pose control_to_eef_tf;
       pose.header.frame_id = robot_model_->getModelFrame();
@@ -627,7 +627,7 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
     int_marker_move_subscribers_.clear();
   }
 }
-  
+
 void RobotInteraction::computeMarkerPose(
       const ::robot_interaction::InteractionHandlerPtr &handler,
       const EndEffectorInteraction &eef,

@@ -18,4 +18,4 @@
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lmoveit_warehouse"/>
   </export>
 
-</package>  
+</package>

@@ -38,11 +38,11 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "publish_planning_scene", ros::init_options::AnonymousName);  
+  ros::init(argc, argv, "publish_planning_scene", ros::init_options::AnonymousName);
 
   // decide whether to publish the full scene
   bool full_scene = false;
-  
+
   // the index of the argument with the filename
   int filename_index = 1;
   if (argc > 2)
@@ -51,25 +51,25 @@ int main(int argc, char **argv)
       full_scene = true;
       filename_index = 2;
     }
-  
+
   if (argc > 1)
   {
     ros::AsyncSpinner spinner(1);
     spinner.start();
-    
+
     ros::NodeHandle nh;
     ros::Publisher pub_scene;
     if (full_scene)
       pub_scene = nh.advertise<moveit_msgs::PlanningScene>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC, 1);
     else
       pub_scene = nh.advertise<moveit_msgs::PlanningSceneWorld>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC, 1);
-    
+
     robot_model_loader::RobotModelLoader::Options opt;
     opt.robot_description_ = "robot_description";
     opt.load_kinematics_solvers_ = false;
     robot_model_loader::RobotModelLoaderPtr rml(new robot_model_loader::RobotModelLoader(opt));
     planning_scene::PlanningScene ps(rml->getModel());
-    
+
     std::ifstream f(argv[filename_index]);
     if (f.good() && !f.eof())
     {
@@ -78,12 +78,12 @@ int main(int argc, char **argv)
       moveit_msgs::PlanningScene ps_msg;
       ps.getPlanningSceneMsg(ps_msg);
       ps_msg.is_diff = true;
-      
+
       ros::WallDuration dt(0.5);
       unsigned int attempts = 0;
       while (pub_scene.getNumSubscribers() < 1 && ++attempts < 100)
         dt.sleep();
-      
+
       if (full_scene)
         pub_scene.publish(ps_msg);
       else
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
   }
   else
     ROS_WARN("A filename was expected as argument. That file should be a text representation of the geometry in a planning scene.");
-  
+
   ros::shutdown();
   return 0;
 }

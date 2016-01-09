@@ -644,13 +644,13 @@ void MotionPlanningFrame::computeLoadQueryButtonClicked()
         {
           ROS_ERROR("%s", ex.what());
         }
-        
+
         if (got_q)
         {
           robot_state::RobotStatePtr start_state(new robot_state::RobotState(*planning_display_->getQueryStartState()));
           robot_state::robotStateMsgToRobotState(planning_display_->getPlanningSceneRO()->getTransforms(), mp->start_state, *start_state);
           planning_display_->setQueryStartState(*start_state);
-          
+
           robot_state::RobotStatePtr goal_state(new robot_state::RobotState(*planning_display_->getQueryGoalState()));
           for (std::size_t i = 0 ; i < mp->goal_constraints.size() ; ++i)
             if (mp->goal_constraints[i].joint_constraints.size() > 0)
