@@ -63,25 +63,23 @@ void TrajectoryDisplay::onInitialize()
   Display::onInitialize();
 
   trajectory_visual_->onInitialize(scene_node_, context_, update_nh_);
-
-  loadRobotModel();
-
-  trajectory_visual_->onRobotModelLoaded(robot_model_);
 }
 
 void TrajectoryDisplay::loadRobotModel()
 {
-  if (!rdf_loader_)
-    rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
+  rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (!rdf_loader_->getURDF())
   {
-    ROS_ERROR_STREAM_NAMED("trajectory_display","Unable to load robot model");
+    ROS_DEBUG_STREAM_NAMED("trajectory_display","Unable to load robot model from parameter " << robot_description_property_->getStdString());
     return;
   }
 
   const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
   robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
+
+  // Send to child class
+  trajectory_visual_->onRobotModelLoaded(robot_model_);
 }
 
 void TrajectoryDisplay::reset()
