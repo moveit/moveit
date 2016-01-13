@@ -643,9 +643,9 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <layout class="QHBoxLayout" name="horizontalLayout_20">
             <item>
-             <widget class="QLabel" name="label_11">
+             <widget class="QLabel" name="label_20">
               <property name="text">
                <string>Acceleration Scaling:</string>
               </property>
@@ -1613,7 +1613,8 @@
   <tabstop>wsize_z</tabstop>
   <tabstop>planning_time</tabstop>
   <tabstop>planning_attempts</tabstop>
-  <tabstop>exec_time_factor</tabstop>
+  <tabstop>velocity_scaling_factor</tabstop>
+  <tabstop>acceleration_scaling_factor</tabstop>
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
   <tabstop>allow_external_program</tabstop>
