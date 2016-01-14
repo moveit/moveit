@@ -41,7 +41,7 @@
 
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
                                                                const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                                                               const constraint_samplers::ConstraintSamplerPtr &cs) 
+                                                               const constraint_samplers::ConstraintSamplerPtr &cs)
   : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
                         boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
@@ -66,7 +66,7 @@ bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* new_g
   return static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(new_goal, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* new_goal, 
+bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* new_goal,
                                                                    robot_state::RobotState const* state,
                                                                    const robot_model::JointModelGroup* jmg,
                                                                    const double* jpos,
@@ -82,18 +82,18 @@ bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* ne
 bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *new_goal)
 {
   //  moveit::Profiler::ScopedBlock sblock("ConstrainedGoalSampler::sampleUsingConstraintSampler");
-  
+
   unsigned int max_attempts = planning_context_->getMaximumGoalSamplingAttempts();
   unsigned int attempts_so_far = gls->samplingAttemptsCount();
-  
+
   // terminate after too many attempts
   if (attempts_so_far >= max_attempts)
     return false;
-  
+
   // terminate after a maximum number of samples
   if (gls->getStateCount() >= planning_context_->getMaximumGoalSamples())
     return false;
-  
+
   // terminate the sampling thread when a solution has been found
   if (planning_context_->getOMPLSimpleSetup()->getProblemDefinition()->hasSolution())
     return false;
@@ -108,14 +108,14 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
         verbose = true;
         verbose_display_++;
       }
-    
+
     if (constraint_sampler_)
     {
       // makes the constraint sampler also perform a validity callback
       robot_state::GroupStateValidityCallbackFn gsvcf = boost::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback,
                                                                     this,
-                                                                    new_goal, 
-                                                                    _1,  // pointer to state 
+                                                                    new_goal,
+                                                                    _1,  // pointer to state
                                                                     _2,  // const* joint model group
                                                                     _3,  // double* of joint positions
                                                                     verbose);

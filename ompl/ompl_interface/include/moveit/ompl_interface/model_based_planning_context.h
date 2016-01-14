@@ -317,7 +317,7 @@ protected:
 
   void startSampling();
   void stopSampling();
-  
+
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
   virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
   virtual void useConfig();
