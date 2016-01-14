@@ -43,7 +43,7 @@ const std::string ompl_interface::PoseModelStateSpace::PARAMETERIZATION_TYPE = "
 ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec) : ModelBasedStateSpace(spec)
 {
   jump_factor_ = 3; // \todo make this a param
-  
+
   if (spec.joint_model_group_->getGroupKinematics().first)
     poses_.push_back(PoseComponent(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first));
   else
@@ -102,10 +102,10 @@ void ompl_interface::PoseModelStateSpace::copyState(ompl::base::State *destinati
 {
   // copy the state data
   ModelBasedStateSpace::copyState(destination, source);
-  
+
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     poses_[i].state_space_->copyState(destination->as<StateType>()->poses[i], source->as<StateType>()->poses[i]);
-  
+
   // compute additional stuff if needed
   computeStateK(destination);
 }
@@ -128,7 +128,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   // interpolate SE3 components
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     poses_[i].state_space_->interpolate(from->as<StateType>()->poses[i], to->as<StateType>()->poses[i], t, state->as<StateType>()->poses[i]);
-  
+
   // the call above may reset all flags for state; but we know the pose we want flag should be set
   state->as<StateType>()->setPoseComputed(true);
 
@@ -139,7 +139,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
   printState(state, std::cout);
   std::cout << "\n\n";
   */
-  
+
   // after interpolation we cannot be sure about the joint values (we use them as seed only)
   // so we recompute IK if needed
   if (computeStateIK(state))
@@ -147,7 +147,7 @@ void ompl_interface::PoseModelStateSpace::interpolate(const ompl::base::State *f
     double dj = jump_factor_ * ModelBasedStateSpace::distance(from, to);
     double d_from = ModelBasedStateSpace::distance(from, state);
     double d_to = ModelBasedStateSpace::distance(state, to);
-    
+
     // if the joint value jumped too much
     if (d_from + d_to > std::max(0.2, dj)) // \todo make 0.2 a param
       state->as<StateType>()->markInvalid();
@@ -183,12 +183,12 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateFK(StateTyp
   std::vector<double> values(bijection_.size());
   for (unsigned int i = 0 ; i < bijection_.size() ; ++i)
     values[i] = full_state->values[bijection_[i]];
-  
+
   // compute forward kinematics for the link of interest
   std::vector<geometry_msgs::Pose> poses;
   if (!kinematics_solver_->getPositionFK(fk_link_, values, poses))
     return false;
-  
+
   // copy the resulting data to the desired location in the state
   ompl::base::SE3StateSpace::StateType *se3_state = full_state->poses[idx];
   se3_state->setXYZ(poses[0].position.x, poses[0].position.y, poses[0].position.z);
@@ -197,7 +197,7 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateFK(StateTyp
   so3_state.y = poses[0].orientation.y;
   so3_state.z = poses[0].orientation.z;
   so3_state.w = poses[0].orientation.w;
-  
+
   return true;
 }
 
@@ -236,10 +236,10 @@ bool ompl_interface::PoseModelStateSpace::PoseComponent::computeStateIK(StateTyp
         !kinematics_solver_->searchPositionIK(pose, seed_values, kinematics_solver_->getDefaultTimeout() * 2.0, solution, err_code))
       return false;
   }
-  
+
   for (std::size_t i = 0 ; i < bijection_.size() ; ++i)
     full_state->values[bijection_[i]] = solution[i];
-  
+
   return true;
 }
 
@@ -289,24 +289,24 @@ ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocDefaultSta
   {
   public:
     PoseModelStateSampler(const ompl::base::StateSpace *space,
-                          const ompl::base::StateSamplerPtr &sampler) 
+                          const ompl::base::StateSamplerPtr &sampler)
       : ompl::base::StateSampler(space)
       , sampler_(sampler)
     {
     }
-    
+
     virtual void sampleUniform(ompl::base::State *state)
     {
       sampler_->sampleUniform(state);
       afterStateSample(state);
     }
-    
+
     virtual void sampleUniformNear(ompl::base::State *state, const ompl::base::State *near, const double distance)
     {
       sampler_->sampleUniformNear(state, near, distance);
       afterStateSample(state);
     }
-    
+
     virtual void sampleGaussian(ompl::base::State *state, const ompl::base::State *mean, const double stdDev)
     {
       sampler_->sampleGaussian(state, mean, stdDev);
@@ -321,10 +321,10 @@ ompl::base::StateSamplerPtr ompl_interface::PoseModelStateSpace::allocDefaultSta
       sample->as<StateType>()->setPoseComputed(false);
       space_->as<PoseModelStateSpace>()->computeStateFK(sample);
     }
-    
+
     ompl::base::StateSamplerPtr sampler_;
   };
-  
+
   return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>
                                      (new PoseModelStateSampler(this, ModelBasedStateSpace::allocDefaultStateSampler())));
 }
