@@ -42,7 +42,7 @@
 
 namespace pick_place
 {
-  
+
 ApproachAndTranslateStage::ApproachAndTranslateStage(const planning_scene::PlanningSceneConstPtr &scene,
                                                      const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix) :
   ManipulationStage("approach & translate"),
@@ -67,11 +67,11 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
                           const double *joint_group_variable_values)
 {
   state->setJointGroupPositions(group, joint_group_variable_values);
-  
+
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
   req.group_name = group->getName();
-  
+
   if (grasp_posture->joint_names.size() > 0)
   {
     // apply the grasp posture for the end effector (we always apply it here since it could be the case the sampler changes this posture)

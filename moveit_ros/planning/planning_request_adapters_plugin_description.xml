@@ -23,7 +23,7 @@
   <class name="default_planner_request_adapters/FixStartStateCollision" type="default_planner_request_adapters::FixStartStateCollision" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>
     </description>
-  </class> 
+  </class>
 
   <class name="default_planner_request_adapters/AddTimeParameterization" type="default_planner_request_adapters::AddTimeParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
     <description>

@@ -352,7 +352,7 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
             excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
             excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
           }
-          if (is_full) 
+          if (is_full)
           {
             occupancy_map_monitor::OccMapTree::ReadLock lock;
             if (octomap_monitor_) lock = octomap_monitor_->getOcTreePtr()->reading();
@@ -430,7 +430,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState(con
   // use global namespace for service
   ros::ServiceClient client = ros::NodeHandle().serviceClient<moveit_msgs::GetPlanningScene>(service_name);
   moveit_msgs::GetPlanningScene srv;
-  srv.request.components.components = 
+  srv.request.components.components =
       srv.request.components.SCENE_SETTINGS |
       srv.request.components.ROBOT_STATE |
       srv.request.components.ROBOT_STATE_ATTACHED_OBJECTS |
@@ -625,7 +625,7 @@ void planning_scene_monitor::PlanningSceneMonitor::excludeRobotLinksFromOctree()
         m->mergeVertices(1e-4);
         shapes[j].reset(m);
       }
-      
+
       occupancy_map_monitor::ShapeHandle h = octomap_monitor_->excludeShape(shapes[j]);
       if (h)
         link_shape_handles_[links[i]].push_back(std::make_pair(h, j));
@@ -1100,7 +1100,7 @@ void planning_scene_monitor::PlanningSceneMonitor::setStateUpdateFrequency(doubl
   else
   {
     // stop must be called with state_pending_mutex_ unlocked to avoid deadlock
-    state_update_timer_.stop(); 
+    state_update_timer_.stop();
     boost::mutex::scoped_lock lock(state_pending_mutex_);
     dt_state_update_ = ros::WallDuration(0,0);
     if (state_update_pending_)
@@ -1127,7 +1127,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       last_update_time_ = ros::Time::now();
-      scene_->getCurrentStateNonConst().update(); // compute all transforms 
+      scene_->getCurrentStateNonConst().update(); // compute all transforms
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
   }

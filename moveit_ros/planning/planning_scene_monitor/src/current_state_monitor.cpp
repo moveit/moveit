@@ -303,8 +303,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
     return;
   }
   bool update = false;
-  
-  {    
+
+  {
     boost::mutex::scoped_lock _(state_update_lock_);
     // read the received values, and update their time stamps
     std::size_t n = joint_state->name.size();
@@ -324,14 +324,14 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       {
         update = true;
         robot_state_.setJointPositions(jm, &(joint_state->position[i]));
-        
+
         // continuous joints wrap, so we don't modify them (even if they are outside bounds!)
         if (jm->getType() == robot_model::JointModel::REVOLUTE)
           if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
             continue;
-        
+
         const robot_model::VariableBounds &b = jm->getVariableBounds()[0]; // only one variable in the joint, so we get its bounds
-        
+
         // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
         if (joint_state->position[i] < b.min_position_ && joint_state->position[i] >= b.min_position_ - error_)
           robot_state_.setJointPositions(jm, &b.min_position_);
@@ -340,14 +340,14 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
             robot_state_.setJointPositions(jm, &b.max_position_);
       }
     }
-    
+
     // read root transform, if needed
     if (tf_ && (robot_model_->getRootJoint()->getType() == robot_model::JointModel::PLANAR ||
                 robot_model_->getRootJoint()->getType() == robot_model::JointModel::FLOATING))
     {
       const std::string &child_frame = robot_model_->getRootLink()->getName();
       const std::string &parent_frame = robot_model_->getModelFrame();
-      
+
       std::string err;
       ros::Time tm;
       tf::StampedTransform transf;
@@ -375,11 +375,11 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
           joint_time_[vars[j]] = tm;
         Eigen::Affine3d eigen_transf;
         tf::transformTFToEigen(transf, eigen_transf);
-        robot_state_.setJointPositions(robot_model_->getRootJoint(), eigen_transf);        
+        robot_state_.setJointPositions(robot_model_->getRootJoint(), eigen_transf);
       }
     }
   }
-  
+
   // callbacks, if needed
   if (update)
     for (std::size_t i = 0 ; i < update_callbacks_.size() ; ++i)

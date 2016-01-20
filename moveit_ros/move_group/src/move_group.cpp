@@ -112,7 +112,7 @@ private:
       {
         std::string plugin = *beg;
         try
-        {  
+        {
           printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin.c_str());
           MoveGroupCapability *cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
           cap->setContext(context_);
@@ -127,7 +127,7 @@ private:
       }
     }
     std::stringstream ss;
-    ss << std::endl;  
+    ss << std::endl;
     ss << std::endl;
     ss << "********************************************************" << std::endl;
     ss << "* MoveGroup using: " << std::endl;

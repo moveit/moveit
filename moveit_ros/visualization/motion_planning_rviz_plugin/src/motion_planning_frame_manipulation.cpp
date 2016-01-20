@@ -55,35 +55,35 @@ void MotionPlanningFrame::detectObjectsButtonClicked()
     if(ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
-    }  
+    }
     if(semantic_world_)
     {
-      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));    
-    }  
-  }  
+      semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
+    }
+  }
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect objects");
 }
 
 void MotionPlanningFrame::processDetectedObjects()
-{  
-  pick_object_name_.clear();  
-  
-  std::vector<std::string> objects, object_ids;  
+{
+  pick_object_name_.clear();
+
+  std::vector<std::string> objects, object_ids;
   double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
   double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
   double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
-  
+
   double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
   double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
   double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
 
-  ros::Time start_time = ros::Time::now();  
+  ros::Time start_time = ros::Time::now();
   while(object_ids.empty() && ros::Time::now() - start_time <= ros::Duration(3.0))
   {
     object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
-    ros::Duration(0.5).sleep();    
+    ros::Duration(0.5).sleep();
   }
-  
+
   ROS_DEBUG("Found %d objects", (int) object_ids.size());
   updateDetectedObjectsList(object_ids, objects);
 }
@@ -107,7 +107,7 @@ void MotionPlanningFrame::selectedDetectedObjectChanged()
   {
     if(!selected_object_name_.empty())
       ps->removeObjectColor(selected_object_name_);
-    selected_object_name_ = sel[0]->text().toStdString();  
+    selected_object_name_ = sel[0]->text().toStdString();
     ps->setObjectColor(selected_object_name_, pick_object_color);
   }
 }
@@ -123,14 +123,14 @@ void MotionPlanningFrame::triggerObjectDetection()
     object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
     try
     {
-      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION); 
+      waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
     catch(std::runtime_error &ex)
     {
-      ROS_ERROR("Object recognition action: %s", ex.what());      
-      return;    
-    }          
-  }  
+      ROS_ERROR("Object recognition action: %s", ex.what());
+      return;
+    }
+  }
   object_recognition_msgs::ObjectRecognitionGoal goal;
   object_recognition_client_->sendGoal(goal);
   if (!object_recognition_client_->waitForResult())
@@ -145,8 +145,8 @@ void MotionPlanningFrame::triggerObjectDetection()
 
 void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg)
 {
-  ros::Duration(1.0).sleep();  
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));  
+  ros::Duration(1.0).sleep();
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));
 }
 
 void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids,
@@ -175,15 +175,15 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
 
 /////////////////////// Support Surfaces ///////////////////////
 void MotionPlanningFrame::updateTables()
-{  
-  ROS_DEBUG("Update table callback");  
+{
+  ROS_DEBUG("Update table callback");
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::publishTables, this), "publish tables");
 }
 
 void MotionPlanningFrame::publishTables()
 {
-  semantic_world_->addTablesToCollisionWorld();    
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateSupportSurfacesList, this));  
+  semantic_world_->addTablesToCollisionWorld();
+  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::updateSupportSurfacesList, this));
 }
 
 void MotionPlanningFrame::selectedSupportSurfaceChanged()
@@ -205,7 +205,7 @@ void MotionPlanningFrame::selectedSupportSurfaceChanged()
   {
     if(!selected_support_surface_name_.empty())
       ps->removeObjectColor(selected_support_surface_name_);
-    selected_support_surface_name_ = sel[0]->text().toStdString();  
+    selected_support_surface_name_ = sel[0]->text().toStdString();
     ps->setObjectColor(selected_support_surface_name_, selected_support_surface_color);
   }
 }
@@ -215,12 +215,12 @@ void MotionPlanningFrame::updateSupportSurfacesList()
   double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
   double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
   double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
-  
+
   double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
   double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
   double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
-  std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);  
-  ROS_INFO("%d Tables in collision world", (int) support_ids.size());    
+  std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);
+  ROS_INFO("%d Tables in collision world", (int) support_ids.size());
 
   ui_->support_surfaces_list->setUpdatesEnabled(false);
   bool oldState = ui_->support_surfaces_list->blockSignals(true);
@@ -266,12 +266,12 @@ void MotionPlanningFrame::pickObjectButtonClicked()
       std::map<std::string, geometry_msgs::Pose> object_poses = planning_scene_interface_->getObjectPoses(object_names);
       if(object_poses.find(pick_object_name_[group_name]) != object_poses.end())
       {
-        ROS_DEBUG("Finding current table for object: %s", pick_object_name_[group_name].c_str());        
+        ROS_DEBUG("Finding current table for object: %s", pick_object_name_[group_name].c_str());
         support_surface_name_ = semantic_world_->findObjectTable(object_poses[pick_object_name_[group_name]]);
-      }      
+      }
       else
-        support_surface_name_.clear();      
-    }    
+        support_surface_name_.clear();
+    }
     else
       support_surface_name_.clear();
   }
@@ -291,7 +291,7 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   else
   {
     support_surface_name_.clear();
-    ROS_ERROR("Need to specify table to place object on");    
+    ROS_ERROR("Need to specify table to place object on");
     return;
   }
 
@@ -308,7 +308,7 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   const robot_model::JointModelGroup *jmg = ps->getCurrentState().getJointModelGroup(group_name);
   if (jmg)
     ps->getCurrentState().getAttachedBodies(attached_bodies, jmg);
-  
+
   if (attached_bodies.empty())
   {
     ROS_ERROR("No bodies to place");

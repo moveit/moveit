@@ -240,7 +240,7 @@ TEST(LockedRobotState, load)
   moveit::core::RobotState state2(model);
   state2.setToDefaultValues();
   robot_interaction::LockedRobotState ls2(state2);
-  
+
   robot_interaction::LockedRobotStatePtr ls4(
                     new robot_interaction::LockedRobotState(model));
 }
@@ -346,7 +346,7 @@ private:
 void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
 {
   robot_state::RobotStateConstPtr s = locked_state.getState();
-  
+
   robot_state::RobotState cp1(*s);
 
   // take some time
@@ -369,9 +369,9 @@ void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
   int cnt = cp1.getVariableCount();
   for (int i = 0 ; i < cnt ; ++i)
   {
-    EXPECT_EQ(cp1.getVariablePositions()[i], 
+    EXPECT_EQ(cp1.getVariablePositions()[i],
               cp2.getVariablePositions()[i]);
-    EXPECT_EQ(cp1.getVariablePositions()[i], 
+    EXPECT_EQ(cp1.getVariablePositions()[i],
               s->getVariablePositions()[i]);
   }
 
@@ -414,7 +414,7 @@ void MyInfo::setThreadFunc(
     {
       val += 0.0001;
       robot_state::RobotState cp1(*locked_state->getState());
-      
+
       cp1.setVariablePosition(JOINT_A, val + 0.00001);
       cp1.setVariablePosition(JOINT_C, val + 0.00002);
       cp1.setVariablePosition(JOINT_F, val + 0.00003);

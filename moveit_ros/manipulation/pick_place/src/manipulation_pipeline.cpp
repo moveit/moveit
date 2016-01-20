@@ -168,7 +168,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
         empty_queue_threads_--;
         inc_queue = false;
       }
-      
+
       queue_access_lock_.unlock();
       try
       {

@@ -88,10 +88,10 @@ bool ChainIkSolverVel_pinv_mimic::setRedundantJointsMapIndex(const std::vector<u
 {
   if(redundant_joints_map_index.size() != chain.getNrOfJoints()-num_mimic_joints-num_redundant_joints)
   {
-    ROS_ERROR("Map index size: %d does not match expected size. No. of joints: %d, num_mimic_joints: %d, num_redundant_joints: %d", 
+    ROS_ERROR("Map index size: %d does not match expected size. No. of joints: %d, num_mimic_joints: %d, num_redundant_joints: %d",
 	      (int) redundant_joints_map_index.size(),
-	      (int) chain.getNrOfJoints(), 
-	      (int) num_mimic_joints, 
+	      (int) chain.getNrOfJoints(),
+	      (int) num_mimic_joints,
 	      (int) num_redundant_joints);
     return false;
   }

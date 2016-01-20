@@ -98,7 +98,7 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
       }
       planning_group = jmg->getEndEffectorParentGroup().first;
       if (planning_group.empty())
-      {   
+      {
         ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
         error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
         return false;

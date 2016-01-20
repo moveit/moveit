@@ -55,7 +55,7 @@ public:
   virtual bool evaluate(const ManipulationPlanPtr &plan) const;
 
 private:
-  
+
   bool isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;

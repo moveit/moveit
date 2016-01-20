@@ -87,7 +87,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
     bool no_transform = req.header.frame_id.empty() || robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) ||
       robot_state::Transforms::sameFrame(req.header.frame_id, link_name);
-    
+
     for (std::size_t i = 0 ; i < req.waypoints.size() ; ++i)
     {
       if (no_transform)
@@ -107,7 +107,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
         }
       }
     }
-    
+
     if (ok)
     {
       if (req.max_step < std::numeric_limits<double>::epsilon())
@@ -135,7 +135,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
           std::vector<robot_state::RobotStatePtr> traj;
           res.fraction = start_state.computeCartesianPath(jmg, traj, start_state.getLinkModel(link_name), waypoints, global_frame, req.max_step, req.jump_threshold, constraint_fn);
           robot_state::robotStateToRobotStateMsg(start_state, res.start_state);
-          
+
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
           for (std::size_t i = 0 ; i < traj.size() ; ++i)
             rt.addSuffixWayPoint(traj[i], 0.2); // \todo make 0.2 a param; better: compute time stemps based on eef distance and param m/s speed for eef;
@@ -158,7 +158,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
   }
   else
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-  
+
   return true;
 }
 
