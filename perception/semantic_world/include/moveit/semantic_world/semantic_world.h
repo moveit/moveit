@@ -70,13 +70,13 @@ public:
   /**
    * @brief Get all the tables within a region of interest
    */
-  object_recognition_msgs::TableArray getTablesInROI(double minx, double miny, double minz, 
+  object_recognition_msgs::TableArray getTablesInROI(double minx, double miny, double minz,
                                                      double maxx, double maxy, double maxz) const;
 
   /**
    * @brief Get all the tables within a region of interest
    */
-  std::vector<std::string> getTableNamesInROI(double minx, double miny, double minz, 
+  std::vector<std::string> getTableNamesInROI(double minx, double miny, double minz,
                                               double maxx, double maxy, double maxz) const;
 
   /**
@@ -116,7 +116,7 @@ public:
                                                              unsigned int num_heights = 2,
                                                              double min_distance_from_edge = 0.10) const;
 
-  
+
   void clear();
 
   bool addTablesToCollisionWorld();
@@ -126,24 +126,24 @@ public:
   void addTableCallback(const TableCallbackFn &table_callback)
   {
     table_callback_ = table_callback;
-  }  
+  }
 
   std::string findObjectTable(const geometry_msgs::Pose &pose,
                               double min_distance_from_edge = 0.0,
-                              double min_vertical_offset = 0.0) const;  
-  
+                              double min_vertical_offset = 0.0) const;
+
   bool isInsideTableContour(const geometry_msgs::Pose &pose,
                             const object_recognition_msgs::Table &table,
                             double min_distance_from_edge = 0.0,
                             double min_vertical_offset = 0.0) const;
-  
+
 private:
 
   shapes::Mesh* createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness) const;
 
   shapes::Mesh* orientPlanarPolygon (const shapes::Mesh& polygon) const;
-  
-  void tableCallback(const object_recognition_msgs::TableArrayPtr &msg);  
+
+  void tableCallback(const object_recognition_msgs::TableArrayPtr &msg);
 
   void transformTableArray(object_recognition_msgs::TableArray &table_array) const;
 
@@ -156,17 +156,17 @@ private:
   std::vector<geometry_msgs::PoseStamped> place_poses_;
 
   std::map<std::string, object_recognition_msgs::Table> current_tables_in_collision_world_;
-  
+
   //  boost::mutex table_lock_;
 
   ros::Subscriber table_subscriber_;
 
-  ros::Publisher visualization_publisher_, collision_object_publisher_;  
-  
+  ros::Publisher visualization_publisher_, collision_object_publisher_;
+
   TableCallbackFn table_callback_;
 
-  ros::Publisher planning_scene_diff_publisher_;  
-  
+  ros::Publisher planning_scene_diff_publisher_;
+
 };
 
 }

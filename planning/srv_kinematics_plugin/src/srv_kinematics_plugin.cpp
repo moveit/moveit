@@ -55,7 +55,7 @@ namespace srv_kinematics_plugin
 {
 
 SrvKinematicsPlugin::SrvKinematicsPlugin()
- : active_(false) 
+ : active_(false)
 {}
 
 bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
@@ -96,7 +96,7 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
   }
 
   // Get the dimension of the planning group
-  dimension_ = joint_model_group_->getVariableCount(); 
+  dimension_ = joint_model_group_->getVariableCount();
   ROS_INFO_STREAM_NAMED("srv","Dimension planning group '" << group_name << "': " << dimension_
     << ". Active Joints Models: " << joint_model_group_->getActiveJointModels().size()
     << ". Mimic Joint Models: " << joint_model_group_->getMimicJointModels().size());

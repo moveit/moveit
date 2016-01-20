@@ -141,7 +141,7 @@ public:
     }
 
     for(std::size_t i=0; i < object_ids.size(); ++i)
-    {      
+    {
       for (std::size_t j=0; j < response.scene.world.collision_objects.size() ; ++j)
       {
         if(response.scene.world.collision_objects[j].id == object_ids[i])
@@ -154,7 +154,7 @@ public:
           else
             result[response.scene.world.collision_objects[j].id] = response.scene.world.collision_objects[j].primitive_poses[0];
         }
-      }      
+      }
     }
     return result;
   }
@@ -164,7 +164,7 @@ public:
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.is_diff = true;
-    planning_scene_diff_publisher_.publish(planning_scene);    
+    planning_scene_diff_publisher_.publish(planning_scene);
   }
 
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const
@@ -173,19 +173,19 @@ public:
     moveit_msgs::CollisionObject object;
     for(std::size_t i=0; i < object_ids.size(); ++i)
     {
-      object.id = object_ids[i];      
-      object.operation = object.REMOVE;      
-      planning_scene.world.collision_objects.push_back(object);      
+      object.id = object_ids[i];
+      object.operation = object.REMOVE;
+      planning_scene.world.collision_objects.push_back(object);
     }
     planning_scene.is_diff = true;
-    planning_scene_diff_publisher_.publish(planning_scene);    
+    planning_scene_diff_publisher_.publish(planning_scene);
   }
-  
+
 private:
 
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
-  ros::Publisher planning_scene_diff_publisher_;  
+  ros::Publisher planning_scene_diff_publisher_;
   robot_model::RobotModelConstPtr robot_model_;
 };
 

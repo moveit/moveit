@@ -1,12 +1,12 @@
 /**\page py_bindings_roscpp Creating Python bindings for C++ classes
-   
+
    \par Problem
    When creating Python bindings of C++ classes it may be
    necessary to have roscpp initialized (ros::init() called) when the
-   instance of a particular C++ class is created. 
+   instance of a particular C++ class is created.
    \par Example
    For example, say we need python bindings for class Foo;
-   A common approach to define functionality specific for the wrappers is to 
+   A common approach to define functionality specific for the wrappers is to
    define:
    \code
    class FooWrapper : public Foo
@@ -44,5 +44,5 @@
    have been passed to the Python program, they are not forwarded to roscpp.
    But to forward these parameters an explicit function call needs to be made.
    For that we provide a function call
-   
+
 */

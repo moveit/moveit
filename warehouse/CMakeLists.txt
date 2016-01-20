@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  LIBRARIES  
+  LIBRARIES
     moveit_warehouse
   INCLUDE_DIRS
     warehouse/include

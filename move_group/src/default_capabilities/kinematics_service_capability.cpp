@@ -55,8 +55,8 @@ namespace
 {
 bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
                        const kinematic_constraints::KinematicConstraintSet *constraint_set,
-                       robot_state::RobotState *state, 
-                       const robot_model::JointModelGroup *jmg, 
+                       robot_state::RobotState *state,
+                       const robot_model::JointModelGroup *jmg,
                        const double *ik_solution)
 {
   state->setJointGroupPositions(jmg, ik_solution);
@@ -160,7 +160,7 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
     robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
     computeIK(req.ik_request, res.solution, res.error_code, rs);
   }
-  
+
   return true;
 }
 
