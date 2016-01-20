@@ -39,6 +39,7 @@
 
 import xml.dom.minidom
 from operator import add
+import sys
 import threading
 from moveit_ros_planning_interface._moveit_robot_interface import RobotInterface
 
@@ -395,7 +396,13 @@ class MoveitJoy:
             self.current_planning_group_index = len(self.planning_groups_keys) - 1
         else:
             self.current_planning_group_index = next_index
-        next_planning_group = self.planning_groups_keys[self.current_planning_group_index]
+        next_planning_group = None
+        try:
+            next_planning_group = self.planning_groups_keys[self.current_planning_group_index]
+        except IndexError:
+            msg = 'Check if you started movegroups. Exiting.'
+            rospy.logfatal(msg)
+            raise rospy.ROSInitException(msg)
         rospy.loginfo("Changed planning group to " + next_planning_group)
         self.plan_group_pub.publish(next_planning_group)
     def updatePoseTopic(self, next_index, wait=True):
