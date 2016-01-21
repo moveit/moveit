@@ -37,41 +37,49 @@ from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
 import conversions
 
+
 class RobotCommander(object):
 
     class Joint(object):
         def __init__(self, robot, name):
             self._robot = robot
             self._name = name
+
         def name(self):
             return self._name
+
         def variable_count(self):
             return len(self.__get_joint_limits())
+
         def bounds(self):
             l = self.__get_joint_limits()
             if len(l) == 1:
                 return l[0]
             else:
                 return l
+
         def min_bound(self):
             limits = self.__get_joint_limits()
             if len(limits) == 1:
                 return limits[0][0]
             else:
                 return [l[0] for l in limits]
+
         def max_bound(self):
             limits = self.__get_joint_limits()
             if len(limits) == 1:
                 return limits[0][1]
             else:
                 return [l[1] for l in limits]
+
         def value(self):
             vals = self._robot._r.get_current_joint_values(self._name)
             if len(vals) == 1:
                 return vals[0]
             else:
                 return vals
-        def move(self, position, wait = True):
+
+        def move(self, position, wait=True):
             group = self._robot.get_default_owner_group()
             if group is None:
                 raise MoveItCommanderException("There is no known group containing joint %s. Cannot move." % self._name)
@@ -81,6 +89,7 @@ class RobotCommander(object):
                 gc.set_joint_value_target(self._name, position)
                 return gc.go(wait)
             return False
+
         def __get_joint_limits(self):
             return self._robot._r.get_joint_limits(self._name)
 
@@ -88,8 +97,10 @@ class RobotCommander(object):
         def __init__(self, robot, name):
             self._robot = robot
             self._name = name
+
         def name(self):
             return self._name
+
         def pose(self):
             return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
 
@@ -99,15 +110,23 @@ class RobotCommander(object):
         self._joint_owner_group = {}
 
     def get_planning_frame(self):
-        """Get the frame of reference in which planning is done (and environment is maintained)"""
+        """
+        Get the frame of reference in which planning is done (and environment
+        is maintained)
+        """
         return self._r.get_planning_frame()
 
     def get_root_link(self):
         """Get the name of the root link of the robot model """
         return self._r.get_robot_root_link()
 
-    def get_joint_names(self, group = None):
-        """Get the names of all the movable joints that make up a group (mimic joints and fixed joints are excluded). If no group name is specified, all joints in the robot model are returned, including fixed and mimic joints """
+    def get_joint_names(self, group=None):
+        """
+        Get the names of all the movable joints that make up a group
+        (mimic joints and fixed joints are excluded). If no group name is
+        specified, all joints in the robot model are returned, including
+        fixed and mimic joints.
+        """
         if group is not None:
             if self.has_group(group):
                 return self._r.get_group_joint_names(group)
@@ -116,8 +135,11 @@ class RobotCommander(object):
         else:
             return self._r.get_joint_names()
 
-    def get_link_names(self, group = None):
-        """Get the links that make up a group. If no group name is specified, all the links in the robot model are returned. """
+    def get_link_names(self, group=None):
+        """
+        Get the links that make up a group. If no group name is specified,
+        all the links in the robot model are returned.
+        """
         if group is not None:
             if self.has_group(group):
                 return self._r.get_group_link_names(group)
@@ -137,7 +159,10 @@ class RobotCommander(object):
         return s
 
     def get_current_variable_values(self):
-        """Get a dictionary mapping variable names to values. Note that a joint may consist of one or more variables """
+        """
+        Get a dictionary mapping variable names to values.
+        Note that a joint may consist of one or more variables.
+        """
         return self._r.get_current_variable_values()
 
     def get_joint(self, name):
@@ -153,7 +178,7 @@ class RobotCommander(object):
             raise MoveItCommanderException("There is no link named %s" % name)
 
     def get_group(self, name):
-        if not self._groups.has_key(name): 
+        if not self._groups.has_key(name):
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
             self._groups[name] = MoveGroupCommander(name)
@@ -163,7 +188,10 @@ class RobotCommander(object):
         return self._r.has_group(name)
 
     def get_default_owner_group(self, joint_name):
-        """Get the name of the smallest group (fewest joints) that includes the joint name specified as argument"""
+        """
+        Get the name of the smallest group (fewest joints) that includes
+        the joint name specified as argument.
+        """
         if not self._joint_owner_groups.has_key(joint_name):
             group = None
             for g in self.get_group_names():
@@ -177,12 +205,15 @@ class RobotCommander(object):
         return self._joint_owner_groups[joint_name]
 
     def __getattr__(self, name):
-        """ We catch the names of groups, joints and links to allow easy access to their properties """
+        """
+        We catch the names of groups, joints and links to allow easy access
+        to their properties.
+        """
         if name in self.get_group_names():
             return self.get_group(name)
         elif name in self.get_joint_names():
-            return self.Joint(self,name)
+            return self.Joint(self, name)
         elif name in self.get_link_names():
-            return self.Link(self,name)
+            return self.Link(self, name)
         else:
             return object.__getattribute__(self, name)
