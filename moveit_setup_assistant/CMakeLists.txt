@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(moveit_setup_assistant)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -23,10 +23,19 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 # Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+option(UseQt5 "UseQt5" OFF)
+if (UseQt5)
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Core REQUIRED)
+  find_package(Qt5OpenGL REQUIRED)
+
+else (UseQt5)
+  find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
+  include(${QT_USE_FILE})
+endif(UseQt5)
+
 add_definitions(-DQT_NO_KEYWORDS)
-include_directories(${QT_INCLUDE_DIR})
+include_directories(${QT_INCLUDE_DIR} ${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${CMAKE_BINARY_DIR})
 
 # Support new yaml-cpp API.
@@ -57,8 +66,10 @@ set( headers
   src/widgets/setup_screen_widget.h
 )
 
+# Instruct CMake to run moc automatically when needed.
+set(CMAKE_AUTOMOC ON)
 # Convert the Qt Signals and Slots for QWidget events
-qt4_wrap_cpp(moc_sources ${headers})
+#qt4_wrap_cpp(moc_sources ${headers})
 
 # Tools Library
 add_library(${PROJECT_NAME}_tools
@@ -86,7 +97,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
-  ${moc_sources}
+  ${headers}
 )
 target_link_libraries(${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
@@ -111,8 +122,15 @@ target_link_libraries(${PROJECT_NAME}
   ${PROJECT_NAME}_widgets ${PROJECT_NAME}_tools
   ${QT_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} log4cxx)
 
+if (UseQt5)
+  target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
+endif (UseQt5)
+
 add_executable(${PROJECT_NAME}_updater src/collisions_updater.cpp )
 target_link_libraries(${PROJECT_NAME}_updater ${PROJECT_NAME}_tools ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+if (UseQt5)
+  target_link_libraries(${PROJECT_NAME}_updater Qt5::Widgets)
+endif (UseQt5)
 set_target_properties(${PROJECT_NAME}_updater
                       PROPERTIES OUTPUT_NAME collisions_updater
                       PREFIX "")
