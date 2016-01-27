@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.11)
 project(moveit_setup_assistant)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -28,6 +28,11 @@ if (UseQt5)
   find_package(Qt5Widgets REQUIRED)
   find_package(Qt5Core REQUIRED)
   find_package(Qt5OpenGL REQUIRED)
+
+  # this can be removed once CMAKE 2.8.12 is available (jade)
+  # it is due to a change in Qts use of -fPIE and -fPIC
+  # http://code.qt.io/cgit/qt/qtbase.git/tree/dist/changes-5.4.2
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
 else (UseQt5)
   find_package(Qt4 REQUIRED COMPONENTS QtCore QtGui QtOpenGL)
