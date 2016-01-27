@@ -253,16 +253,12 @@ public:
   {
     max_velocity_scaling_factor_ = max_velocity_scaling_factor;
   }
-<<<<<<< HEAD
 
-=======
-  
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
   {
     max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
   }
-  
->>>>>>> Adding acceleration scaling factor
+
   robot_state::RobotState& getJointStateTarget()
   {
     return *joint_state_target_;
