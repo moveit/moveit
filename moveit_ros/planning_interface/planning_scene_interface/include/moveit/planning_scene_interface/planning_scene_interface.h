@@ -72,15 +72,15 @@ public:
     return getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, empty_vector_string);
   };
 
-  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);  
+  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);
 
-  /** \brief Add collision objects to the world 
+  /** \brief Add collision objects to the world
       Make sure object.operation is set to object.ADD*/
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;  
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
 
   /** \brief Remove collision objects from the world*/
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
-  
+
   /**@}*/
 
 private:

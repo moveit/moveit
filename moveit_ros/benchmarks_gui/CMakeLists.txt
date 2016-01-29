@@ -68,9 +68,9 @@ set(SOURCES
 
 add_executable(moveit_benchmark_gui ${SOURCES} ${MOC_FILES} ${UIC_FILES})
 
-target_link_libraries(moveit_benchmark_gui 
-  ${catkin_LIBRARIES} 
-  ${OGRE_LIBRARIES} 
+target_link_libraries(moveit_benchmark_gui
+  ${catkin_LIBRARIES}
+  ${OGRE_LIBRARIES}
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )

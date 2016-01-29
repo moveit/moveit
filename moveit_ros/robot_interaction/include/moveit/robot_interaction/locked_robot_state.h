@@ -78,7 +78,7 @@ public:
 
   // This is a function that can modify the maintained state.
   typedef boost::function<void (robot_state::RobotState*)> ModifyStateFunction;
-  
+
   // Modify the state.
   //
   // This modifies the state by calling \e modify on it.

@@ -214,7 +214,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
   if (publish_received_requests_)
     received_request_publisher_.publish(req);
   adapter_added_state_index.clear();
-  
+
   if (!planner_instance_)
   {
     ROS_ERROR("No planning plugin loaded. Cannot plan.");
@@ -300,7 +300,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               // check validity with verbose on
               const robot_state::RobotState &kstate = res.trajectory_->getWayPoint(index[i]);
               planning_scene->isStateValid(kstate, req.path_constraints, req.group_name, true);
-              
+
               // compute the contacts if any
               collision_detection::CollisionRequest c_req;
               collision_detection::CollisionResult c_res;

@@ -49,7 +49,7 @@ namespace pick_place
     double max_step_;
     double jump_factor_;
   };
-  
+
   // Get access to a global variable that contains the pick & place params.
   const PickPlaceParams& GetGlobalPickPlaceParams();
 }

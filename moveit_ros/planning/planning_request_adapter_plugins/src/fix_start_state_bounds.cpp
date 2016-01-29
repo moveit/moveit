@@ -87,9 +87,9 @@ public:
 
     const std::vector<const robot_model::JointModel*> &jmodels =
       planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
-      planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() : 
+      planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
       planning_scene->getRobotModel()->getJointModels();
-    
+
     bool change_req = false;
     for (std::size_t i = 0 ; i < jmodels.size() ; ++i)
     {

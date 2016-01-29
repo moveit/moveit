@@ -301,7 +301,7 @@ void MotionPlanningFrame::configureWorkspace()
 {
   robot_model::VariableBounds bx, by, bz;
   bx.position_bounded_ = by.position_bounded_ = bz.position_bounded_ = true;
-  
+
   robot_model::JointModel::Bounds b(3);
   bx.min_position_ = ui_->wcenter_x->value() - ui_->wsize_x->value() / 2.0;
   bx.max_position_ = ui_->wcenter_x->value() + ui_->wsize_x->value() / 2.0;
@@ -309,7 +309,7 @@ void MotionPlanningFrame::configureWorkspace()
   by.max_position_ = ui_->wcenter_y->value() + ui_->wsize_y->value() / 2.0;
   bz.min_position_ = ui_->wcenter_z->value() - ui_->wsize_z->value() / 2.0;
   bz.max_position_ = ui_->wcenter_z->value() + ui_->wsize_z->value() / 2.0;
-  
+
   if (move_group_)
     move_group_->setWorkspace(bx.min_position_, by.min_position_, bz.min_position_,
                               bx.max_position_, by.max_position_, bz.max_position_);
@@ -383,5 +383,5 @@ void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyCon
   }
 }
 
-  
+
 }
