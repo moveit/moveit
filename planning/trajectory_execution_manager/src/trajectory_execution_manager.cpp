@@ -1324,7 +1324,7 @@ bool TrajectoryExecutionManager::ensureActiveControllersForJoints(const std::vec
       jset.insert(joints[i]);
     }
   }
-  
+
   if (selectControllers(jset, all_controller_names, selected_controllers))
     return ensureActiveControllers(selected_controllers);
   else

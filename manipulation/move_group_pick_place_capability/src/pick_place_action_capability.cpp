@@ -288,7 +288,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanAndExecute(
   convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.trajectory_stages);
   action_res.trajectory_descriptions.resize(plan.plan_components_.size());
   for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
-    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_; 
+    action_res.trajectory_descriptions[i] = plan.plan_components_[i].description_;
   action_res.error_code = plan.error_code_;
 }
 

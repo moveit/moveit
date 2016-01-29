@@ -143,7 +143,7 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
   void resetStatusTextColor();
 
   void toggleSelectPlanningGroupSubscription(bool enable);
-  
+
 private Q_SLOTS:
 
   // ******************************************************************************************

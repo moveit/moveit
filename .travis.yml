@@ -45,7 +45,7 @@ install: # Use this to install any prerequisites or dependencies necessary to ru
   # Install dependencies for source repos
   - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
-  - source /opt/ros/$ROS_DISTRO/setup.bash  
+  - source /opt/ros/$ROS_DISTRO/setup.bash
 script: # All commands must exit with code 0 on success. Anything else is considered failure.
   - catkin_make -j2
 

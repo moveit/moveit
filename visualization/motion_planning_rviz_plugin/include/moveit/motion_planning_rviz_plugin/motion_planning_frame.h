@@ -107,7 +107,7 @@ protected:
   void updateSceneMarkers(float wall_dt, float ros_dt);
 
   void updateExternalCommunication();
-  
+
   MotionPlanningDisplay *planning_display_;
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
@@ -192,7 +192,7 @@ private Q_SLOTS:
   void placeObjectButtonClicked();
   void selectedDetectedObjectChanged();
   void detectedObjectChanged(QListWidgetItem *item);
-  void selectedSupportSurfaceChanged();  
+  void selectedSupportSurfaceChanged();
 
   //General
   void tabChanged(int index);
@@ -245,10 +245,10 @@ private:
   void populateRobotStatesList();
 
   //Pick and place
-  void processDetectedObjects();  
+  void processDetectedObjects();
   void updateDetectedObjectsList(const std::vector<std::string> &object_ids,
                                  const std::vector<std::string> &objects);
-  void publishTables();  
+  void publishTables();
   void updateSupportSurfacesList();
   ros::Publisher object_recognition_trigger_publisher_;
   std::map<std::string, std::string> pick_object_name_;
@@ -256,19 +256,19 @@ private:
   std::vector<geometry_msgs::PoseStamped> place_poses_;
   void pickObject();
   void placeObject();
-  void triggerObjectDetection();  
-  void updateTables();  
+  void triggerObjectDetection();
+  void updateTables();
   std::string support_surface_name_;
   // For coloring
   std::string selected_object_name_;
-  std::string selected_support_surface_name_;  
-  
-  boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;  
+  std::string selected_support_surface_name_;
+
+  boost::scoped_ptr<actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction> > object_recognition_client_;
   template<typename T>
   void waitForAction(const T &action, const ros::NodeHandle &node_handle, const ros::Duration &wait_for_server, const std::string &name);
-  void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg);  
-  ros::Subscriber object_recognition_subscriber_;  
-  
+  void listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg);
+  ros::Subscriber object_recognition_subscriber_;
+
   ros::Subscriber plan_subscriber_;
   ros::Subscriber execute_subscriber_;
   ros::Subscriber update_start_state_subscriber_;
@@ -285,7 +285,7 @@ private:
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  
+
   ros::NodeHandle nh_;
   ros::Publisher planning_scene_publisher_;
   ros::Publisher planning_scene_world_publisher_;
@@ -305,7 +305,7 @@ void MotionPlanningFrame::waitForAction(const T &action, const ros::NodeHandle &
 {
   ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
 
-  // in case ROS time is published, wait for the time data to arrive                                    
+  // in case ROS time is published, wait for the time data to arrive
   ros::Time start_time = ros::Time::now();
   while (start_time == ros::Time::now())
   {
@@ -313,7 +313,7 @@ void MotionPlanningFrame::waitForAction(const T &action, const ros::NodeHandle &
     ros::spinOnce();
   }
 
-  // wait for the server (and spin as needed)                                                           
+  // wait for the server (and spin as needed)
   if (wait_for_server == ros::Duration(0, 0))
   {
     // wait forever until action server connects

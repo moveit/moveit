@@ -119,12 +119,12 @@ public:
 
       robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
       random_numbers::RandomNumberGenerator &rng = prefix_state->getRandomNumberGenerator();
-      
+
       const std::vector<const robot_model::JointModel*> &jmodels =
         planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
         planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
         planning_scene->getRobotModel()->getJointModels();
-      
+
       bool found = false;
       for (int c = 0 ; !found && c < sampling_attempts_ ; ++c)
       {

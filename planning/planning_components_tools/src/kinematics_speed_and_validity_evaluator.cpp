@@ -44,10 +44,10 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "inverse_kinematics_test");
-  
+
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  
+
   if (argc <= 1)
     ROS_ERROR("An argument specifying the group name is needed");
   else
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
     std::string group = argv[1];
     ROS_INFO_STREAM("Evaluating IK for " << group);
-    
+
     const robot_model::JointModelGroup *jmg = rml.getModel()->getJointModelGroup(group);
     if (jmg)
     {
@@ -65,12 +65,12 @@ int main(int argc, char **argv)
         const std::string &tip = solver->getTipFrame();
         robot_state::RobotState state(rml.getModel());
         state.setToDefaultValues();
-        
+
         ROS_INFO_STREAM("Tip Frame:  " << solver->getTipFrame());
         ROS_INFO_STREAM("Base Frame: " << solver->getBaseFrame());
         ROS_INFO_STREAM("IK Timeout: " << solver->getDefaultTimeout());
         ROS_INFO_STREAM("Search res: " << solver->getSearchDiscretization());
-        
+
         unsigned int test_count = 1000;
         if (argc > 2)
           try
@@ -80,9 +80,9 @@ int main(int argc, char **argv)
           catch(...)
           {
           }
-        
+
         ROS_INFO("Running %u tests", test_count);
-        
+
         moveit::tools::Profiler::Start();
         for (unsigned int i = 0 ; i < test_count ; ++i)
         {
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
         ROS_ERROR_STREAM("No kinematics solver specified for group " << group);
     }
   }
-  
+
   ros::shutdown();
   return 0;
 }

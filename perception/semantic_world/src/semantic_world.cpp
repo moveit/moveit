@@ -95,20 +95,20 @@ bool SemanticWorld::addTablesToCollisionWorld()
   moveit_msgs::PlanningScene planning_scene;
   planning_scene.is_diff = true;
 
-  // Remove the existing tables  
-  std::map<std::string, object_recognition_msgs::Table>::iterator it;  
+  // Remove the existing tables
+  std::map<std::string, object_recognition_msgs::Table>::iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
     moveit_msgs::CollisionObject co;
     co.id = it->first;
     co.operation = moveit_msgs::CollisionObject::REMOVE;
-    planning_scene.world.collision_objects.push_back(co);    
+    planning_scene.world.collision_objects.push_back(co);
     //    collision_object_publisher_.publish(co);
   }
-  
+
   planning_scene_diff_publisher_.publish(planning_scene);
-  planning_scene.world.collision_objects.clear();  
-  current_tables_in_collision_world_.clear();  
+  planning_scene.world.collision_objects.clear();
+  current_tables_in_collision_world_.clear();
   // Add the new tables
   for(std::size_t i=0; i < table_array_.tables.size(); ++i)
   {
@@ -158,7 +158,7 @@ bool SemanticWorld::addTablesToCollisionWorld()
     co.meshes.push_back(table_shape_msg_mesh);
     co.mesh_poses.push_back(table_array_.tables[i].pose);
     co.header = table_array_.tables[i].header;
-    planning_scene.world.collision_objects.push_back(co);    
+    planning_scene.world.collision_objects.push_back(co);
     //    collision_object_publisher_.publish(co);
     delete table_shape;
     delete table_mesh_solid;
@@ -167,7 +167,7 @@ bool SemanticWorld::addTablesToCollisionWorld()
   return true;
 }
 
-object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, double miny, double minz, 
+object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, double miny, double minz,
                                                                   double maxx, double maxy, double maxz) const
 {
   object_recognition_msgs::TableArray tables_in_roi;
@@ -187,7 +187,7 @@ object_recognition_msgs::TableArray SemanticWorld::getTablesInROI(double minx, d
   return tables_in_roi;
 }
 
-std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double miny, double minz, 
+std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double miny, double minz,
                                                            double maxx, double maxy, double maxz) const
 {
   std::vector<std::string> result;
@@ -209,8 +209,8 @@ std::vector<std::string> SemanticWorld::getTableNamesInROI(double minx, double m
 
 void SemanticWorld::clear()
 {
-  table_array_.tables.clear(); 
-  current_tables_in_collision_world_.clear();  
+  table_array_.tables.clear();
+  current_tables_in_collision_world_.clear();
 }
 
 std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const std::string &table_name,
@@ -220,7 +220,7 @@ std::vector<geometry_msgs::PoseStamped> SemanticWorld::generatePlacePoses(const 
                                                                           double delta_height,
                                                                           unsigned int num_heights) const
 {
-  object_recognition_msgs::Table chosen_table;  
+  object_recognition_msgs::Table chosen_table;
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it = current_tables_in_collision_world_.find(table_name);
 
   if(it != current_tables_in_collision_world_.end())
@@ -451,20 +451,20 @@ bool SemanticWorld::isInsideTableContour(const geometry_msgs::Pose &pose,
   //Assuming Z axis points upwards for the table
   if(point.z() < -fabs(min_vertical_offset))
   {
-    ROS_ERROR("Object is not above table");    
-    return false;  
-  }  
+    ROS_ERROR("Object is not above table");
+    return false;
+  }
 
   int point_x = (point.x() -x_min) * scale_factor;
   int point_y = (point.y() -y_min) * scale_factor;
   cv::Point2f point2f(point_x, point_y);
   double result = cv::pointPolygonTest(contours[0], point2f, true);
   ROS_DEBUG("table distance: %f", result);
-  
+
   if((int) result >= (int) (min_distance_from_edge*scale_factor))
     return true;
 
-  return false;  
+  return false;
 }
 
 std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose &pose,
@@ -474,11 +474,11 @@ std::string SemanticWorld::findObjectTable(const geometry_msgs::Pose &pose,
   std::map<std::string, object_recognition_msgs::Table>::const_iterator it;
   for(it = current_tables_in_collision_world_.begin(); it != current_tables_in_collision_world_.end(); ++it)
   {
-    ROS_DEBUG("Testing table: %s", it->first.c_str());    
+    ROS_DEBUG("Testing table: %s", it->first.c_str());
     if(isInsideTableContour(pose, it->second, min_distance_from_edge, min_vertical_offset))
-      return it->first;    
-  }  
-  return std::string();  
+      return it->first;
+  }
+  return std::string();
 }
 
 
@@ -490,9 +490,9 @@ void SemanticWorld::tableCallback(const object_recognition_msgs::TableArrayPtr &
   // Callback on an update
   if(table_callback_)
   {
-    ROS_INFO("Calling table callback");    
-    table_callback_();  
-  }  
+    ROS_INFO("Calling table callback");
+    table_callback_();
+  }
 }
 
 void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &table_array) const
@@ -512,7 +512,7 @@ void SemanticWorld::transformTableArray(object_recognition_msgs::TableArray &tab
     original_pose = original_transform * original_pose;
     tf::poseEigenToMsg(original_pose, table_array.tables[i].pose);
     table_array.tables[i].header.frame_id = planning_scene_->getTransforms().getTargetFrame();
-    ROS_INFO_STREAM("Successfully transformed table array from " << original_frame << 
+    ROS_INFO_STREAM("Successfully transformed table array from " << original_frame <<
                     "to " << table_array.tables[i].header.frame_id);
     ROS_INFO_STREAM("Transformed pose: " << table_array.tables[i].pose.position.x << ","
                      << table_array.tables[i].pose.position.y << ","

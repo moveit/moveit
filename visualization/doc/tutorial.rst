@@ -29,7 +29,7 @@ Start
 
 STEP 1: Launch the demo and Configure the Plugin
 ------------------------------------------------
- 
+
 * Launch the demo::
 
    roslaunch pr2_moveit_config demo.launch
@@ -67,7 +67,7 @@ There are four different visualizations active here currently:
 
 #. The goal state for motion planning (the planned group is represented in orange).
 
-#. The robot's configuration in the planning scene/ planning environment 
+#. The robot's configuration in the planning scene/ planning environment
 
 #. The planned path for the robot,
 
@@ -138,7 +138,7 @@ appear).
 STEP 4: Use Motion Planning with the PR2
 ----------------------------------------
 
-* Now, you can start motion planning with the PR2 in the MoveIt! Rviz Plugin. 
+* Now, you can start motion planning with the PR2 in the MoveIt! Rviz Plugin.
 
   * Move the Start State to a desired location.
 

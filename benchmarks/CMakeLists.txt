@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   INCLUDE_DIRS
-    benchmarks/include  
+    benchmarks/include
   LIBRARIES
     moveit_benchmark_execution
   CATKIN_DEPENDS
