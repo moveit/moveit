@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2016-01-30)
+------------------
 * Merge pull request #38  from 130s/doc/python_if
   [RobotCommander] Fill in in-code document where missing.
 * [moveit_commander/robot.py] Code cleaning; semi-PEP8.
