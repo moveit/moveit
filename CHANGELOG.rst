@@ -2,6 +2,29 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request #38  from 130s/doc/python_if
+  [RobotCommander] Fill in in-code document where missing.
+* [moveit_commander/robot.py] Code cleaning; semi-PEP8.
+* Merge pull request #35  from MichaelStevens/set_num_planning_attempts
+  adding set_num_planning_attempts to commander interface
+* Merge pull request #30 from ymollard/indigo-devel
+  Planning scene improvements +  added python wrapper for MoveGroup.asyncExecute()
+* Added python wrapper for MoveGroup.asyncExecute()
+* Allow to clean all objects in a row
+* Allow to attash an existing object without recreating the whole CollisionObject
+* Merge pull request #24  from ymollard/hydro-devel
+  Allowed user to change the scale of a mesh
+* Merge pull request #23  from HumaRobotics/hydro-devel
+  Fixed arguments removal in python roscpp_initializer
+* Merge pull request #26  from corot/hydro-devel
+  Add missing variants of place (PlaceLocation, place anywhere)
+* Added a way to change the size of a mesh when grasping
+* Allowed user to change the scale of a mesh
+* Fixed arguments removal in python roscpp_initializer
+* Contributors: Dave Coleman, Ioan A Sucan, Isaac I.Y. Saito, Michael Stevens, Philippe Capdepuy, Yoan Mollard, corot
+
 0.5.7 (2014-07-05)
 ------------------
 * Merge pull request `#21 <https://github.com/ros-planning/moveit_commander/issues/21>` from pirobot/hydro-devel
