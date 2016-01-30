@@ -2,6 +2,18 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* Fixed include directory order to make ros package shadowing work.
+* fixing internal storing of config settings
+* Make sure an overlayed OMPL is used instead of the ROS one.
+* fix simplifySolutions(bool) setter
+  The method simplifySolutions(bool) always set the simplify_solutions member to true and the input variable "flag" was ignored.
+  The method is fixed by setting the simplify_solutions member to the value of the input variable "flag".
+* changed location of getDefaultPlanner
+* Contributors: Bastian Gaspers, Christian Dornhege, Dave Coleman, Dave Hershberger, Sachin Chitta
+
 0.6.7 (2014-10-28)
 ------------------
 * Changed OMPL SimpleSetup member variable to shared pointer, passed MotionPlanningRequest to child function
