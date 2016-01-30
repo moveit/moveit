@@ -2,6 +2,64 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* new method MoveGroup::getDefaultPlannerId(const std::string &group)
+  ... to retrieve default planner config from param server
+  moved corresponding code from rviz plugin to MoveGroup interface
+  to facilitate re-use
+* correctly initialize scene robot's parameters after initialization
+  - loaded parameters were ignored
+  - changed default alpha value to 1 to maintain previous behaviour
+* load default_planner_config from default location
+  instead of loading from `/<ns>/default_planner_config`, use
+  `/<ns>/move_group/<group>/default_planner_config`, which is the default
+  location for `planner_configs` too
+* Merge pull request #610 : correctly update all markers after robot motion
+* fixing conflicts, renaming variable
+* Merge pull request #612 from ubi-agni/interrupt-traj-vis
+  interrupt trajectory visualization on arrival of new display trajectory
+* fixup! cleanup TrajectoryVisualization::update
+  only enter visualization loop when displaying_trajectory_message is defined
+* added missing initialization
+* correctly setAlpha for new trail
+* fixed race condition for trajectory-display interruption
+  - TrajectoryVisualization::update() switches to new trajectory
+  automatically when it has finished displaying the old one
+  - TrajectoryVisualization::interruptCurrentDisplay() might interrupt
+  this newly started trajectory
+  consequences:
+  - protect switching of trajectory with mutex
+  - interrupt only if trajectory display progressed past first waypoint
+  - removed obsolete signal timeToShowNewTrail:
+  update() automatically switches and updates trail in sync
+* cleanup TrajectoryVisualization::update
+  simplified code to switch to new trajectory / start over animation in loop mode
+* new GUI property to allow immediate interruption of displayed trajectory
+* immediately show trajectory after planning (interrupting current display)
+* fix segfault when disabling and re-enabling TrajectoryVisualization
+  animating_path was still true causing update() to access
+  displaying_trajectory_message, which was reset onDisable().
+* update pose of all markers when any marker moved
+  Having several end-effector markers attached to a group (e.g. a multi-
+  fingered hand having an end-effector per fingertip and an end-effector
+  for the hand base), all markers need to update their pose on any motion
+  of any marker. In the example: if the hand base is moved, the fingertip
+  markers should be moved too.
+* use move_group/default_workspace_bounds as a fallback for workspace bounds
+* code style cleanup
+* fixed tab order of rviz plugin widgets
+* load / save rviz' workspace config
+* saves robot name to db from moveit. also robot name accessible through robot interface python wrapper
+* Added install rule to install moveit_joy.py.
+* motion_planning_frame_planning: use /default_planner_config parma to specify default planning algorithm
+* Avoid adding a slash if getMoveGroupNS() is empty.
+  If the getMoveGroupNS() returns an empty string, ros::names::append() inserts a slash in front of 'right', which changes it to a global name.
+  Checking getMoveGroupNS() before calling append removes the issue.
+  append() behaviour will not be changed in ros/ros_comm.
+* Contributors: Dave Coleman, Jochen Welle, Kei Okada, Robert Haschke, Sachin Chitta, TheDash, dg
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

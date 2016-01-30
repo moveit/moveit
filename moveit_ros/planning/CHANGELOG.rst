@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* fixed segfault on shutdown
+  use of pluginlib's createUnmanagedInstance() is strongly discouraged:
+  http://wiki.ros.org/class_loader#Understanding_Loading_and_Unloading
+  here, the kinematics plugin libs were unloaded before destruction of corresponding pointers
+* Deprecate shape_tools
+* CurrentStateMonitor no longer requires hearing mimic joint state values.
+* Fix crash due to robot state not getting updated (moveit_ros #559)
+* Contributors: Dave Coleman, Dave Hershberger, Robert Haschke, kohlbrecher
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

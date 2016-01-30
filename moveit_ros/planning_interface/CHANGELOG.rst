@@ -2,6 +2,23 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* new method MoveGroup::getDefaultPlannerId(const std::string &group)
+  ... to retrieve default planner config from param server
+  moved corresponding code from rviz plugin to MoveGroup interface
+  to facilitate re-use
+* adding set_num_planning_attempts to python interface
+* Added python wrapper for setMaxVelocityScalingFactor
+* saves robot name to db from moveit. also robot name accessible through robot interface python wrapper
+* adding set_num_planning_attempts to python interface
+* Added python wrapper for MoveGroup.asyncExecute()
+* Add retime_trajectory to moveit python wrapper
+* add getHandle to move_group_interface
+* Updated documentation on move() to inform the user that an asynchronus spinner is required. Commonly new users don't do this and move() blocks permanently
+* Contributors: Dave Coleman, Dave Hershberger, Kei Okada, Michael Stevens, Robert Haschke, Sachin Chitta, Scott, Yoan Mollard, dg, ferherranz
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

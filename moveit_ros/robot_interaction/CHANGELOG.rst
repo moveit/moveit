@@ -2,6 +2,33 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* further adapted marker size computation
+  - drop largest extension dimension (-> use cross-section size of elongated link)
+  - for an end-effector group, consider the sizes of individual links
+  instead of the overall size of all links (which becomes huge very fast)
+  - enlarge marker size by factor of 1.5 when there is only a single eef marker
+* reworked computeLinkMarkerSize()
+  compute size such that the marker sphere will cover
+  - a spherical link geometry -> AABB.maxCoeff
+  - a cubical link geometry -> AABB.norm
+  -> use average of both values
+  Virtual links (without any shape) will have a size of AABB of zero dims.
+  In this case use the dimensions of the closest parent link instead.
+* improved computation of interactive marker size
+  - use parent_link if group == parent_group
+  - scale smaller than 5cm is clipped to 5cm instead of using default
+  - clarified size computation, using diameter of AABB
+* fixing error caused by BOOST_STATIC_ASSERT
+* Fixed compile error caused by BOOST_STATIC_ASSERT in kinematic_options.cpp
+  Added kinematics::DiscretizationMethods::DiscretizationMethod to QO_FIELDS in kinematic_options.cpp.
+  At pull request #581, type of discretization_method was set to int. Changed it to proper type.
+* reinstated changes related to the updates in the  moveit_core::KinematicsBase interface
+* adds the 'returns_approximate_solution' entry so that it is compatible with the changes in kinematics::KinematicsBase class in the moveit_core repo
+* Contributors: Daichi Yoshikawa, Dave Coleman, Robert Haschke, Sachin Chitta, jrgnicho
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

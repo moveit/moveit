@@ -2,6 +2,18 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* changed to global node handle so warehouse connection params work correctly
+* removed extraneous includes
+* added delete and rename
+* now takes port + host from param server
+* removed defunct code
+* checks db connection is good
+* services advertised
+* Contributors: Dave Coleman, dg
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

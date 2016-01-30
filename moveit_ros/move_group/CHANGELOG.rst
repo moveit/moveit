@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed trailing whitespace from entire repository
+* Fixed bug(?) in move_group::MoveGroupKinematicsService::computeIK link name selection.
+* Contributors: Dave Coleman, Mihai Pomarlan
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers
