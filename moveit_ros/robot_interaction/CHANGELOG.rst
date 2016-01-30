@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2016-01-30)
+------------------
 * Removed trailing whitespace from entire repository
 * further adapted marker size computation
   - drop largest extension dimension (-> use cross-section size of elongated link)

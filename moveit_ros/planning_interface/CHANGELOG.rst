@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2016-01-30)
+------------------
 * Removed trailing whitespace from entire repository
 * new method MoveGroup::getDefaultPlannerId(const std::string &group)
   ... to retrieve default planner config from param server
