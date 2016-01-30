@@ -2,6 +2,40 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request from ipa-mdl/indigo-devel
+  Added command-line SRDF updater
+* renamed target output to collisions_updater
+* formatted code to roscpp style
+* More verbose error descriptions, use ROS_ERROR_STREAM
+* moved file loader helpers into tools
+* added licence header
+* Missed a negation sign
+* CollisionUpdater class was not really needed
+* factored out createFullURDFPath and createFullSRDFPath
+* factored out MoveItConfigData::getSetupAssistantYAMLPath
+* factored out MoveItConfigData::setPackagePath
+* factored out setCollisionLinkPairs into MoveItConfigData
+* require output path to be set if SRDF path is overwritten by a xacro file path
+* separated xacro parsing from loadFileToString
+* make disabled_collisions entries unique
+* Added command-line SRDF updater
+* Merge pull request from 130s/fix/windowsize
+  Shrink window height
+* Add scrollbar to the text area that could be squashed.
+* Better minimum window size.
+* Merge pull request #103  from gavanderhoorn/issue102_cfgrble_db_path
+  Fix for issue #102 : allow user to set mongodb db location
+* Update warehouse launch file to accept non-standard db location. Fix #102.
+  Also update generated demo.launch accordingly.
+  The default directory could be located on a non-writable file system, leading
+  to crashes of the mongodb wrapper script. This change allows the user to specify
+  an alternative location using the 'db_path' argument.
+* Update configuration_files_widget.cpp
+  Fix link
+* Contributors: Dave Coleman, Ioan A Sucan, Isaac IY Saito, Mathias Lüdtke, Nathan Bellowe, Sachin Chitta, gavanderhoorn, hersh
+
 0.6.0 (2014-12-01)
 ------------------
 * Values are now read from kinematics.yaml correctly.
