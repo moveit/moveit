@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2016-01-30)
+------------------
 * Removed trailing whitespace from entire repository
 * Fixed include directory order to make ros package shadowing work.
 * fixing internal storing of config settings
