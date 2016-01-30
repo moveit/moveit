@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.7 (2016-01-30)
+------------------
 * C++03 conforming nested templates
 * fixed typo, added example config
 * added brief decription tags
