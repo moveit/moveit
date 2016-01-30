@@ -2,6 +2,43 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove all trailing whitespace in moveit_core
+* Indigo: setJointVelocity and setJointEffort functions
+* New getOnlyOneEndEffectorTip() function
+* Added file and trajectory_msg to RobotState conversion functions
+* Fix issue #258 
+* Kinematic base updates
+* Indigo devel robot state conversions
+* Switched to boost::lexical_cast for reading in robot states from file
+* API Change of shape_tools
+* Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints.
+* Install static libs
+* Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints.
+* Prevent divide by zero
+* Allow a RobotTrajectory to be initialized with a pointer joint model group
+* Better documentation and formatting
+* New text file/stream to robot state conversion
+* added an ik_seed_state argument to the new getPositionIK(...) method
+* removed the 'f' float specifiers and corrected misspelled method name
+* fixed typo MULTIPLE_TIPS_NO_SUPPORTED -> MULTIPLE_TIPS_NOT_SUPPORTED
+* minor corrections in the getPositionIK(...) method description
+* This commit makes the following changes:/
+  - Added doxygen style documentation to new enumerations and KinematicResult struct
+  - Deprecated existing discretization member and it now uses a map that stores discretization values of each redundant joint
+  - Added support for multiple input poses in the getPositionIK(..) method that returns multiple joint solutions.
+* added new interface method for computing multiple ik solutions for a single pose
+* renamed enumeration namespace
+* fix_type_qualifiers_compiler_warnings
+  The gcc-compiler warns that the "const" qualifier is ignored when
+  returning by value. This patch removes unnecessary qualifiers and
+  compiler warnings emerging from them. It does not have any effect on the
+  functionality of the code.
+* Documented ordering of poses passed in
+* Fix build with  -DCATKIN_ENABLE_TESTING=OFF
+* Contributors: Alexis Ballier, Bastian Gaspers, Dave Coleman, Gary Servin, Ioan A Sucan, Levi Armstrong, Michael Ferguson, Mihai Pomarlan, Sachin Chitta, jrgnicho, ros-devel
+
 0.6.15 (2015-01-20)
 -------------------
 * add ptr/const ptr types for distance field
