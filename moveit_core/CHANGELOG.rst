@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2016-01-30)
+------------------
 * Remove all trailing whitespace in moveit_core
 * Indigo: setJointVelocity and setJointEffort functions
 * New getOnlyOneEndEffectorTip() function
