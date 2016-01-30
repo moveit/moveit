@@ -2,8 +2,8 @@
 Changelog for package moveit_resources
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2016-01-30)
+------------------
 * Don't make include dir into build
 * Place include folder in the devel space instead of the build space
   fixes #5 .
