@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2016-01-30)
+------------------
 * Merge pull request from ipa-mdl/indigo-devel
   Added command-line SRDF updater
 * renamed target output to collisions_updater
