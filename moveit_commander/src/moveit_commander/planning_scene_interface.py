@@ -33,8 +33,11 @@
 # Author: Ioan Sucan, Felix Messmer
 
 import rospy
+import conversions
+
 from moveit_msgs.msg import CollisionObject, AttachedCollisionObject
-from geometry_msgs.msg import PoseStamped, Point
+from moveit_ros_planning_interface import _moveit_planning_scene_interface
+from geometry_msgs.msg import PoseStamped, Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from exception import MoveItCommanderException
 from pyassimp import pyassimp
@@ -46,6 +49,9 @@ class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
     def __init__(self):
+        """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
+        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface()
+
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject)
 
@@ -184,3 +190,51 @@ class PlanningSceneInterface(object):
             aco.object.id = name
         self._pub_aco.publish(aco)
 
+    def get_known_object_names(self, with_type = False):
+        """
+        Get the names of all known objects in the world. If with_type is set to true, only return objects that have a known type.
+        """
+        return self._psi.get_known_object_names(with_type)
+
+    def get_known_object_names_in_roi(self, minx, miny, minz, maxx, maxy, maxz, with_type = False):
+        """
+        Get the names of known objects in the world that are located within a bounding region (specified in the frame reported by
+        get_planning_frame()). If with_type is set to true, only return objects that have a known type.
+        """
+        return self._psi.get_known_object_names_in_roi(minx, miny, minz, maxx, maxy, maxz, with_type)
+
+    def get_object_poses(self, object_ids):
+        """
+        Get the poses from the objects identified by the given object ids list.
+        """
+        ser_ops = self._psi.get_object_poses(object_ids)
+        ops = dict()
+        for key in ser_ops:
+            msg = Pose()
+            conversions.msg_from_string(msg, ser_ops[key])
+            ops[key] = msg
+        return ops 
+
+    def get_objects(self, object_ids = []):
+        """
+        Get the objects identified by the given object ids list. If no ids are provided, return all the known objects.
+        """
+        ser_objs = self._psi.get_objects(object_ids)
+        objs = dict()
+        for key in ser_objs:
+            msg = CollisionObject()
+            conversions.msg_from_string(msg, ser_objs[key])
+            objs[key] = msg
+        return objs 
+
+    def get_attached_objects(self, object_ids = []):
+        """
+        Get the attached objects identified by the given object ids list. If no ids are provided, return all the attached objects.
+        """
+        ser_aobjs = self._psi.get_attached_objects(object_ids)
+        aobjs = dict()
+        for key in ser_aobjs:
+            msg = AttachedCollisionObject()
+            conversions.msg_from_string(msg, ser_aobjs[key])
+            aops[key] = msg
+        return aobjs 
