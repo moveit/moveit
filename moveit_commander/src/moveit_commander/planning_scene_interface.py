@@ -236,5 +236,5 @@ class PlanningSceneInterface(object):
         for key in ser_aobjs:
             msg = AttachedCollisionObject()
             conversions.msg_from_string(msg, ser_aobjs[key])
-            aops[key] = msg
+            aobjs[key] = msg
         return aobjs 
