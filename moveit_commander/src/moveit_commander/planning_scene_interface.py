@@ -49,7 +49,7 @@ class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
     def __init__(self):
-        """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
+        """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
         self._psi = _moveit_planning_scene_interface.PlanningSceneInterface()
 
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject)
