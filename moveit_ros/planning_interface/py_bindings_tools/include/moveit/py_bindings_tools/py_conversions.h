@@ -40,6 +40,7 @@
 #include <boost/python.hpp>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace moveit
 {
@@ -63,6 +64,15 @@ boost::python::list listFromType(const std::vector<T>& v)
   for (std::size_t i = 0 ; i < v.size() ; ++i)
     l.append(v[i]);
   return l;
+}
+
+template<typename T>
+boost::python::dict dictFromType(const std::map<std::string, T>& v)
+{
+  boost::python::dict d;
+  for (typename std::map<std::string, T>::const_iterator it = v.begin(); it != v.end(); ++it)
+    d[it->first] = it->second;
+  return d;
 }
 
 std::vector<double> doubleFromList(const boost::python::list &values)
