@@ -38,6 +38,7 @@
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
 
 #include <moveit/robot_state/robot_state.h>
+#include <moveit_msgs/ObjectColor.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 
@@ -72,13 +73,21 @@ public:
     return getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, empty_vector_string);
   };
 
+  /** \brief Get the poses from the objects identified by the given object ids list. */
   std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);
 
-  /** \brief Add collision objects to the world
-      Make sure object.operation is set to object.ADD*/
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
+  /** \brief Get the objects identified by the given object ids list. If no ids are provided, return all the known objects. */
+  std::map<std::string, moveit_msgs::CollisionObject> getObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
 
-  /** \brief Remove collision objects from the world*/
+  /** \brief Get the attached objects identified by the given object ids list. If no ids are provided, return all the attached objects. */
+  std::map<std::string, moveit_msgs::AttachedCollisionObject> getAttachedObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
+
+  /** \brief Add collision objects to the world.
+      Make sure object.operation is set to object.ADD. */
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
+                           const std::vector<moveit_msgs::ObjectColor> &object_colors = std::vector<moveit_msgs::ObjectColor>()) const;
+
+  /** \brief Remove collision objects from the world */
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
 
   /**@}*/
