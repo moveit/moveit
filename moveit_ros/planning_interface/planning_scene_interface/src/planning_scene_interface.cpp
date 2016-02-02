@@ -38,6 +38,7 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
 #include <ros/ros.h>
+#include <algorithm>
 
 namespace moveit
 {
@@ -140,29 +141,73 @@ public:
       return result;
     }
 
-    for(std::size_t i=0; i < object_ids.size(); ++i)
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
     {
-      for (std::size_t j=0; j < response.scene.world.collision_objects.size() ; ++j)
+      if (std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) != object_ids.end())
       {
-        if(response.scene.world.collision_objects[j].id == object_ids[i])
-        {
-          if (response.scene.world.collision_objects[j].mesh_poses.empty() &&
-              response.scene.world.collision_objects[j].primitive_poses.empty())
-            continue;
-          if(!response.scene.world.collision_objects[j].mesh_poses.empty())
-            result[response.scene.world.collision_objects[j].id] = response.scene.world.collision_objects[j].mesh_poses[0];
-          else
-            result[response.scene.world.collision_objects[j].id] = response.scene.world.collision_objects[j].primitive_poses[0];
-        }
+        if (response.scene.world.collision_objects[i].mesh_poses.empty() &&
+            response.scene.world.collision_objects[i].primitive_poses.empty())
+          continue;
+        if(!response.scene.world.collision_objects[i].mesh_poses.empty())
+          result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].mesh_poses[0];
+        else
+          result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].primitive_poses[0];
       }
     }
     return result;
   }
 
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+  std::map<std::string, moveit_msgs::CollisionObject> getObjects(const std::vector<std::string> &object_ids)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::map<std::string, moveit_msgs::CollisionObject> result;
+    request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("Could not call planning scene service to get object geometries");
+      return result;
+    }
+
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
+    {
+      if (object_ids.empty() || std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) != object_ids.end())
+      {
+        result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i];
+      }
+    }
+    return result;
+  }
+
+  std::map<std::string, moveit_msgs::AttachedCollisionObject> getAttachedObjects(const std::vector<std::string> &object_ids)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::map<std::string, moveit_msgs::AttachedCollisionObject> result;
+    request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("Could not call planning scene service to get attached object geometries");
+      return result;
+    }
+
+    for (std::size_t i = 0; i < response.scene.robot_state.attached_collision_objects.size(); ++i)
+    {
+      if (object_ids.empty() ||
+          std::find(object_ids.begin(), object_ids.end(), response.scene.robot_state.attached_collision_objects[i].object.id) != object_ids.end())
+      {
+        result[response.scene.robot_state.attached_collision_objects[i].object.id] = response.scene.robot_state.attached_collision_objects[i];
+      }
+    }
+    return result;
+  }
+
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
+                           const std::vector<moveit_msgs::ObjectColor> &object_colors) const
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
+    planning_scene.object_colors = object_colors;
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
   }
@@ -214,9 +259,20 @@ std::map<std::string, geometry_msgs::Pose> PlanningSceneInterface::getObjectPose
   return impl_->getObjectPoses(object_ids);
 }
 
-void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+std::map<std::string, moveit_msgs::CollisionObject> PlanningSceneInterface::getObjects(const std::vector<std::string> &object_ids)
 {
-  return impl_->addCollisionObjects(collision_objects);
+  return impl_->getObjects(object_ids);
+}
+
+std::map<std::string, moveit_msgs::AttachedCollisionObject> PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
+{
+  return impl_->getAttachedObjects(object_ids);
+}
+
+void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
+                                                 const std::vector<moveit_msgs::ObjectColor> &object_colors) const
+{
+  return impl_->addCollisionObjects(collision_objects, object_colors);
 }
 
 void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string> &object_ids) const
