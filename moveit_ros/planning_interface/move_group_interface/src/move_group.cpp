@@ -184,9 +184,14 @@ public:
     }
 
     if (!action->isServerConnected())
-      throw std::runtime_error("Unable to connect to move_group action server within allotted time (2)");
+    {
+      std::string error = "Unable to connect to move_group action server '" + name + "' within allotted time (2)";
+      throw std::runtime_error(error);
+    }
     else
+    {
       ROS_DEBUG("Connected to '%s'", name.c_str());
+    }
   }
 
   ~MoveGroupImpl()
