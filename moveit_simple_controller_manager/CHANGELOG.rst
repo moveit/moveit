@@ -2,6 +2,13 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2016-01-30)
+------------------
+* expose headers of moveit_simple_controller_manager
+* Removed redundant logging information
+* More informative warning message about multi-dof trajectories.
+* Contributors: Dave Coleman, Dave Hershberger, Mathias Lüdtke
+
 0.5.6 (2014-03-23)
 ------------------
 * Allow simple controller manager to ignore virtual joints without failing
