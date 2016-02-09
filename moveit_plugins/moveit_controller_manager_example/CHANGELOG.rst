@@ -2,6 +2,9 @@
 Changelog for package moveit_controller_manager_example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2016-01-30)
+------------------
+
 0.5.6 (2014-03-23)
 ------------------
 * add one more demo for moveit controllers
