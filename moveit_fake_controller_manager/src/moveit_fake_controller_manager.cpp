@@ -67,6 +67,9 @@ public:
     ss << "]";
     ROS_INFO("%s", ss.str().c_str());
 
+    // Load the loader
+    robot_model_loader_.reset(new robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION));
+
     // Load joint state publisher
     pub_ = nh_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
 
@@ -98,10 +101,8 @@ public:
   {
     // Note: the js_ vector should already be populated with zeros
 
-    // Load the robot loader
-    robot_model_loader::RobotModelLoader robot_model_loader(ROBOT_DESCRIPTION);
     // Load the robot model
-    robot_model::RobotModelPtr robot_model = robot_model_loader.getModel(); // Get a shared pointer to the robot
+    robot_model::RobotModelPtr robot_model = robot_model_loader_->getModel(); // Get a shared pointer to the robot
 
     if (robot_model->hasJointModelGroup(JOINT_MODEL_GROUP))
     {
@@ -196,6 +197,7 @@ private:
   double loop_hz_;
   ros::Timer non_realtime_loop_;
   moveit_msgs::RobotTrajectory commanded_; // store the goal positions
+  robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
 };
 
 
