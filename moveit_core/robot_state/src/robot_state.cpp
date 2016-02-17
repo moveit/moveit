@@ -69,6 +69,7 @@ moveit::core::RobotState::RobotState(const RobotState &other)
 
 moveit::core::RobotState::~RobotState()
 {
+  clearAttachedBodies();
   free(memory_);
   if (rng_)
     delete rng_;
