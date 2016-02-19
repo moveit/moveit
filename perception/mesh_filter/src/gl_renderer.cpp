@@ -360,6 +360,10 @@ map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context
 boost::mutex mesh_filter::GLRenderer::context_lock_;
 bool mesh_filter::GLRenderer::glutInitialized_ = false;
 
+namespace {
+  void nullDisplayFunction(){};
+}
+
 void mesh_filter::GLRenderer::createGLContext ()
 {
   boost::mutex::scoped_lock _(context_lock_);
@@ -386,6 +390,7 @@ void mesh_filter::GLRenderer::createGLContext ()
     glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
     glutInitWindowSize(1, 1);
     GLuint window_id = glutCreateWindow( "mesh_filter" );
+    glutDisplayFunc(nullDisplayFunction);
 
     GLenum err = glewInit();
     if (GLEW_OK != err)
