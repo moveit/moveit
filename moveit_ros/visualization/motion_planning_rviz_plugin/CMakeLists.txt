@@ -31,7 +31,7 @@ add_library(${MOVEIT_LIB_NAME}_core ${SOURCE_FILES} ${MOC_SOURCES} ${UIC_FILES})
 target_link_libraries(${MOVEIT_LIB_NAME}_core
   moveit_rviz_plugin_render_tools
   moveit_planning_scene_rviz_plugin_core
-  ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES})
+  ${catkin_LIBRARIES} ${rviz_DEFAULT_PLUGIN_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES})
 
 add_library(${MOVEIT_LIB_NAME} src/plugin_init.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${Boost_LIBRARIES})
