@@ -399,7 +399,8 @@ double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size
 
 bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration, robot_state::RobotStatePtr& output_state) const
 {
-  if (!getWayPointCount())
+  // If there are no waypoints we can't do anything
+  if (getWayPointCount())
     return false;
 
   int before = 0, after = 0;
