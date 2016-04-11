@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [feat] Adding acceleration scaling factor
+* [fix] widget naming issues
+* [sys] explicitly link rviz' default_plugin library. The library is not exported anymore and now is provided separately from rviz_LIBRARIES. See https://github.com/ros-visualization/rviz/pull/979 for details.
+* Contributors: hemes, v4hn
+
 0.7.0 (2016-01-30)
 ------------------
 * Removed trailing whitespace from entire repository
