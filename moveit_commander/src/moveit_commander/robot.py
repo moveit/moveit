@@ -144,8 +144,8 @@ class RobotCommander(object):
             """
             return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
 
-    def __init__(self):
-        self._r = _moveit_robot_interface.RobotInterface("robot_description")
+    def __init__(self, robot_description="robot_description"):
+        self._r = _moveit_robot_interface.RobotInterface(robot_description)
         self._groups = {}
         self._joint_owner_group = {}
 
