@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.1 (2016-04-14)
+------------------
 * [fix] getStateAtDurationFromStart would never execute as the check for number of waypoints was inverted `#281 <https://github.com/ros-planning/moveit_core/issues/281>`_
 * [feat] Added maximum acceleration scaling factor `#273 <https://github.com/ros-planning/moveit_core/issues/273>`_
 * Contributors: Dave Coleman, Sam Pfeiffer, hemes
