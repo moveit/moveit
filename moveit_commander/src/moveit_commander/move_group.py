@@ -394,7 +394,7 @@ class MoveGroupCommander(object):
         if value > 0 and value <= 1:
             self._g.set_max_velocity_scaling_factor(value)
         else:
-            raise MoveItCommanderException("Expexted value in the range from 0 to 1 for scaling factor" )
+            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor" )
 
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
