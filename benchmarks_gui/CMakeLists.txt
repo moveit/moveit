@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_benchmarks_gui)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -12,8 +12,18 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(OGRE OGRE)
 link_directories(${OGRE_LIBRARY_DIRS})
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+option(UseQt5 "UseQt5" OFF)
+if(UseQt5)
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Core REQUIRED)
+else()
+  find_package(Qt4 REQUIRED)
+  include(${QT_USE_FILE})
+endif()
+
 add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -41,13 +51,17 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-qt4_wrap_cpp(MOC_FILES include/main_window.h include/trajectory.h include/benchmark_processing_thread.h)
-qt4_wrap_ui(UIC_FILES
-  src/ui/main_window.ui
+set(MOC_FILES include/main_window.h include/trajectory.h include/benchmark_processing_thread.h)
+set(UI_FILES src/ui/main_window.ui
   src/ui/run_benchmark_dialog.ui
   src/ui/robot_loader.ui
   src/ui/bounding_box_goals.ui
 )
+if(UseQt5)
+  qt5_wrap_ui(UIC_FILES ${UI_FILES})
+else()
+  qt4_wrap_ui(UIC_FILES ${UI_FILES})
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(SYSTEM
@@ -75,6 +89,9 @@ target_link_libraries(moveit_benchmark_gui
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
+if(UseQt5)
+  target_link_libraries(moveit_benchmark_gui Qt5::Widgets)
+endif()
 
 install(
   TARGETS
