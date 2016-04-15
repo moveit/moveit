@@ -5,9 +5,6 @@ set( headers
   include/moveit/rviz_plugin_render_tools/trajectory_visualization.h
 )
 
-# Convert the Qt Signals and Slots for QWidget events
-qt4_wrap_cpp(MOC_SOURCES ${headers})
-
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${MOVEIT_LIB_NAME}
@@ -17,7 +14,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_link_updater.cpp
   src/octomap_render.cpp
   src/trajectory_visualization.cpp
-  ${MOC_SOURCES}
+  ${headers}
 )
 
 target_link_libraries(${MOVEIT_LIB_NAME}
@@ -26,6 +23,9 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
+if(UseQt5)
+  target_link_libraries(${MOVEIT_LIB_NAME} Qt5::Widgets)
+endif()
 
 install(DIRECTORY include/ DESTINATION include)
 

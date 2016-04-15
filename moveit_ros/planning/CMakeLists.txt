@@ -22,9 +22,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 find_package(Eigen REQUIRED)
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-
-include(${QT_USE_FILE})
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"

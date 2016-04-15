@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_visualization)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -14,8 +14,19 @@ pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
 
 # Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+option(UseQt5 "UseQt5" OFF)
+if(UseQt5)
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Core REQUIRED)
+else()
+  find_package(Qt4 REQUIRED)
+  include(${QT_USE_FILE})
+endif()
+
 add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED COMPONENTS
