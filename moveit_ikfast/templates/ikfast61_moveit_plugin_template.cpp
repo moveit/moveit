@@ -1143,7 +1143,6 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
 
   ROS_DEBUG_STREAM_NAMED("ikfast","Found " << numsol << " solutions from IKFast");
   bool solutions_found = false;
-  std::stringstream ss;
   if( numsol > 0 )
   {
     for(unsigned int r = 0; r < solution_set.size() ; r++)
@@ -1155,14 +1154,6 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
       {
         std::vector<double> sol;
         getSolution(ik_solutions,s,sol);
-        ss.str("");
-        ss<<"[";
-        for(unsigned int i = 0 ; i < sol.size() ; i++)
-        {
-          ss<<sol[i]<<" ";
-        }
-        ss<<"]";
-        ROS_DEBUG_NAMED("ikfast","Sol %d: %s", s, ss.str().c_str());
 
         bool obeys_limits = true;
         for(unsigned int i = 0; i < sol.size(); i++)
