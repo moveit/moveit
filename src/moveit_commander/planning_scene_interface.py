@@ -37,7 +37,12 @@ from moveit_msgs.msg import CollisionObject, AttachedCollisionObject
 from geometry_msgs.msg import PoseStamped, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from exception import MoveItCommanderException
-from pyassimp import pyassimp
+
+try:
+    from pyassimp import pyassimp
+except:
+    # support pyassimp > 3.0
+    import pyassimp
 
 # This is going to have more functionality; (feel free to add some!)
 # This class will include simple Python code for publishing messages for a planning scene
