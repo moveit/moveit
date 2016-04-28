@@ -1,6 +1,6 @@
 <package>
   <name>moveit_plugins</name>
-  <version>0.5.6</version>
+  <version>0.5.7</version>
   <description>Metapackage for moveit plugins.</description>
   <author email="fergs@unboundedrobotics.com">Michael Ferguson</author>
   <author email="isucan@gmail.com">Ioan Sucan</author>
@@ -14,6 +14,7 @@
 
   <run_depend>moveit_simple_controller_manager</run_depend>
   <run_depend>moveit_fake_controller_manager</run_depend>
+  <run_depend>moveit_ros_control_interface</run_depend>
 
   <export>
     <metapackage/>

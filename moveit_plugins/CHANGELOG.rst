@@ -2,6 +2,11 @@
 Changelog for package moveit_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.7 (2016-01-30)
+------------------
+* added moveit_ros_control_interface to meta-package
+* Contributors: Mathias Lüdtke
+
 0.5.6 (2014-03-23)
 ------------------
 
