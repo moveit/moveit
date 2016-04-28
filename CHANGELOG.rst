@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2016-04-28)
+------------------
 * [feat] Add the possibility to choose description file `#43 <https://github.com/ros-planning/moveit_commander/issues/43>`_
 * [improve] support pyassimp 3.2. Looks like they changed their import path. robot_description should not be hardcoded to allow changing the name of the description file. This is usefull when working with several robots that do not share the same description file. `#45 <https://github.com/ros-planning/moveit_commander/issues/45>`_
 * [improve] add queue_size option in planning_scene_interface.py `#41 <https://github.com/ros-planning/moveit_commander/issues/41>`_
