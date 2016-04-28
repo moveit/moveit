@@ -35,7 +35,7 @@ install:
   - if [[ ${PRERELEASE} == true ]]; then sudo -E apt-get update && sudo -E apt-get install python3 python3-pip python-ros-buildfarm; fi
   - if [[ ${PRERELEASE} == true ]]; then sudo python3 -m pip install -U EmPy; fi
 script:
-  - if [[ ${PRERELEASE} == true ]]; then mkdir -p /tmp/prerelease_job; cd /tmp/prerelease_job; generate_prerelease_script.py https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml jade default ubuntu trusty amd64 moveit_core --level 1 --output-dir ./; fi
+  - if [[ ${PRERELEASE} == true ]]; then mkdir -p /tmp/prerelease_job; cd /tmp/prerelease_job; generate_prerelease_script.py https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml jade default ubuntu trusty amd64 moveit_core --level 0 --output-dir ./; fi
   - if [[ ${PRERELEASE} == true ]]; then ./prerelease.sh; fi
   - if [[ ${PRERELEASE} != true ]]; then git clone https://github.com/ros-industrial/industrial_ci.git .ci_config && source .ci_config/travis.sh; fi
 #  - source ./travis.sh  # Enable this when you have a package-local script 
