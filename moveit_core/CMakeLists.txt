@@ -22,7 +22,10 @@ COMPONENTS
   cmake_modules
 )
 find_package(console_bridge REQUIRED)
-find_package(Eigen3 REQUIRED)
+# Eigen3 hack for Jade http://wiki.ros.org/jade/Migration#Eigen_CMake_Module_in_cmake_modules
+find_package(Eigen3)
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
@@ -64,6 +67,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 
 catkin_package(
   INCLUDE_DIRS
+    ${EIGEN3_INCLUDE_DIRS}
     ${THIS_PACKAGE_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
