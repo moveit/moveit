@@ -628,6 +628,7 @@ void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
   if (current_scene_time_ > scene_display_time_property_->getFloat())
   {
     renderPlanningScene();
+    calculateOffsetPosition();
     current_scene_time_ = 0.0f;
   }
 }
@@ -650,30 +651,11 @@ void PlanningSceneDisplay::calculateOffsetPosition()
   if (!getRobotModel())
     return;
 
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), ros::Time(0), getRobotModel()->getModelFrame());
-  static const unsigned int max_attempts = 10;
-  unsigned int attempts = 0;
-  while (!context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), ros::Time(0)) && attempts < max_attempts)
-  {
-    ros::Duration(0.1).sleep();
-    attempts++;
-  }
+  Ogre::Vector3 position;
+  Ogre::Quaternion orientation;
 
-  if (attempts < max_attempts)
-  {
-    try
-    {
-      context_->getTFClient()->transformPose(fixed_frame_.toStdString(), pose, pose);
-    }
-    catch (tf::TransformException& e)
-    {
-      ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", pose.frame_id_.c_str(), fixed_frame_.toStdString().c_str() );
-    }
-  }
+  context_->getFrameManager()->getTransform(getRobotModel()->getModelFrame(), ros::Time(0), position, orientation);
 
-  Ogre::Vector3 position(pose.getOrigin().x(), pose.getOrigin().y(), pose.getOrigin().z());
-  const tf::Quaternion &q = pose.getRotation();
-  Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
   planning_scene_node_->setPosition(position);
   planning_scene_node_->setOrientation(orientation);
 }
