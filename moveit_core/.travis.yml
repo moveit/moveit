@@ -18,24 +18,14 @@ env:
   matrix:
     - ROS_DISTRO="jade"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu  USE_DEB=true
     - ROS_DISTRO="jade"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu  USE_DEB=true
-    - ROS_DISTRO="jade"   PRERELEASE=true
+    - ROS_DISTRO="jade"   PRERELEASE=true PRERELEASE_DOWNSTREAM_DEPTH=0
     - ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu  USE_DEB=true
     - ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu  USE_DEB=true
 matrix:
   allow_failures:
-    - env: ROS_DISTRO="jade"   PRERELEASE=true  # Run docker-based ROS prerelease test http://wiki.ros.org/bloom/Tutorials/PrereleaseTest Because we might not want to run prerelease test for all PRs, it's omitted from pass-fail criteria.
+    - env: ROS_DISTRO="jade"   PRERELEASE=true PRERELEASE_DOWNSTREAM_DEPTH=0  # Run docker-based ROS prerelease test http://wiki.ros.org/bloom/Tutorials/PrereleaseTest Because we might not want to run prerelease test for all PRs, it's omitted from pass-fail criteria.
     - env: ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu  USE_DEB=true
     - env: ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu  USE_DEB=true
 install:
-  - if [[ ${PRERELEASE} == true ]]; then sudo usermod -aG docker ubuntu; fi
-  # ROS Buildfarm for prerelease http://wiki.ros.org/regression_tests#How_do_I_setup_my_system_to_run_a_prerelease.3F
-  - if [[ ${PRERELEASE} == true ]]; then sudo -E sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'; fi
-  - if [[ ${PRERELEASE} == true ]]; then sudo -E apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key 0xB01FA116; fi
-  # Buildfarm workaround for Python3 http://wiki.ros.org/regression_tests#How_do_I_setup_my_system_to_run_a_prerelease.3F
-  - if [[ ${PRERELEASE} == true ]]; then sudo -E apt-get update && sudo -E apt-get install python3 python3-pip python-ros-buildfarm; fi
-  - if [[ ${PRERELEASE} == true ]]; then sudo python3 -m pip install -U EmPy; fi
-script:
-  - if [[ ${PRERELEASE} == true ]]; then mkdir -p /tmp/prerelease_job; cd /tmp/prerelease_job; generate_prerelease_script.py https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml jade default ubuntu trusty amd64 moveit_core --level 0 --output-dir ./; fi
-  - if [[ ${PRERELEASE} == true ]]; then ./prerelease.sh; fi
-  - if [[ ${PRERELEASE} != true ]]; then git clone https://github.com/ros-industrial/industrial_ci.git .ci_config && source .ci_config/travis.sh; fi
+  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config && source .ci_config/travis.sh
 #  - source ./travis.sh  # Enable this when you have a package-local script 
