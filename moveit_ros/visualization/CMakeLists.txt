@@ -13,22 +13,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
 
-# Qt Stuff
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-option(UseQt5 "UseQt5" OFF)
-if(UseQt5)
-  find_package(Qt5Widgets REQUIRED)
-  find_package(Qt5Core REQUIRED)
-else()
-  find_package(Qt4 REQUIRED)
-  include(${QT_USE_FILE})
-endif()
-
-add_definitions(-DQT_NO_KEYWORDS)
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   moveit_ros_robot_interaction
@@ -46,6 +30,27 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
 )
 find_package(Eigen REQUIRED)
+
+# Qt Stuff
+if(rviz_QT_VERSION VERSION_LESS "5")
+	find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+	include(${QT_USE_FILE})
+  macro(qt_wrap_ui)
+    qt4_wrap_ui(${ARGN})
+  endmacro()
+else()
+	find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+	set(QT_LIBRARIES Qt5::Widgets)
+  macro(qt_wrap_ui)
+    qt5_wrap_ui(${ARGN})
+  endmacro()
+endif()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+add_definitions(-DQT_NO_KEYWORDS)
+
+
 catkin_python_setup()
 catkin_package(
   LIBRARIES

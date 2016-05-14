@@ -1,7 +1,11 @@
 set(MOVEIT_LIB_NAME moveit_rviz_plugin_render_tools)
 
-# Header files that need Qt Moc pre-processing for use with Qt signals, etc:
-set( headers
+set(HEADERS
+  include/moveit/rviz_plugin_render_tools/octomap_render.h
+  include/moveit/rviz_plugin_render_tools/planning_link_updater.h
+  include/moveit/rviz_plugin_render_tools/planning_scene_render.h
+  include/moveit/rviz_plugin_render_tools/render_shapes.h
+  include/moveit/rviz_plugin_render_tools/robot_state_visualization.h
   include/moveit/rviz_plugin_render_tools/trajectory_visualization.h
 )
 
@@ -14,7 +18,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_link_updater.cpp
   src/octomap_render.cpp
   src/trajectory_visualization.cpp
-  ${headers}
+  ${HEADERS}
 )
 
 target_link_libraries(${MOVEIT_LIB_NAME}
@@ -23,9 +27,6 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
-if(UseQt5)
-  target_link_libraries(${MOVEIT_LIB_NAME} Qt5::Widgets)
-endif()
 
 install(DIRECTORY include/ DESTINATION include)
 

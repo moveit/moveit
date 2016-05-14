@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_trajectory_rviz_plugin)
 
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
-set( headers
+set(HEADERS
   include/moveit/trajectory_rviz_plugin/trajectory_display.h
 )
 
@@ -10,16 +10,13 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 # Trajectory Display
 add_library(${MOVEIT_LIB_NAME}_core
   src/trajectory_display.cpp
-  ${headers}
+  ${HEADERS}
 )
 target_link_libraries(${MOVEIT_LIB_NAME}_core
   moveit_rviz_plugin_render_tools
   moveit_planning_scene_rviz_plugin_core
   ${catkin_LIBRARIES} ${OGRE_LIBRARIES} ${QT_LIBRARIES} ${Boost_LIBRARIES}
 )
-if(UseQt5)
-  target_link_libraries(${MOVEIT_LIB_NAME}_core Qt5::Widgets)
-endif()
 
 # Plugin Initializer
 add_library(${MOVEIT_LIB_NAME} src/plugin_init.cpp)

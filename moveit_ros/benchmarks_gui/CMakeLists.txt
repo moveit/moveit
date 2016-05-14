@@ -12,20 +12,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(OGRE OGRE)
 link_directories(${OGRE_LIBRARY_DIRS})
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-option(UseQt5 "UseQt5" OFF)
-if(UseQt5)
-  find_package(Qt5Widgets REQUIRED)
-  find_package(Qt5Core REQUIRED)
-else()
-  find_package(Qt4 REQUIRED)
-  include(${QT_USE_FILE})
-endif()
-
-add_definitions(-DQT_NO_KEYWORDS)
-
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
@@ -41,6 +27,24 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
+if(rviz_QT_VERSION VERSION_LESS "5")
+  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+  include(${QT_USE_FILE})
+  macro(qt_wrap_ui)
+    qt4_wrap_ui(${ARGN})
+  endmacro()
+else()
+  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  set(QT_LIBRARIES Qt5::Widgets)
+  macro(qt_wrap_ui)
+    qt5_wrap_ui(${ARGN})
+  endmacro()
+endif()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+add_definitions(-DQT_NO_KEYWORDS)
+
 catkin_package()
 
 include_directories(include)
@@ -51,17 +55,20 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
-set(MOC_FILES include/main_window.h include/trajectory.h include/benchmark_processing_thread.h)
-set(UI_FILES src/ui/main_window.ui
+set(HEADERS
+  include/benchmark_processing_thread.h
+  include/frame_marker.h
+  include/job_processing.h
+  include/main_window.h
+  include/trajectory.h
+  include/ui_utils.h
+)
+qt_wrap_ui(UIC_FILES
+  src/ui/main_window.ui
   src/ui/run_benchmark_dialog.ui
   src/ui/robot_loader.ui
   src/ui/bounding_box_goals.ui
 )
-if(UseQt5)
-  qt5_wrap_ui(UIC_FILES ${UI_FILES})
-else()
-  qt4_wrap_ui(UIC_FILES ${UI_FILES})
-endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(SYSTEM
@@ -80,7 +87,7 @@ set(SOURCES
   src/tab_trajectories.cpp
 )
 
-add_executable(moveit_benchmark_gui ${SOURCES} ${MOC_FILES} ${UIC_FILES})
+add_executable(moveit_benchmark_gui ${SOURCES} ${HEADERS} ${UIC_FILES})
 
 target_link_libraries(moveit_benchmark_gui
   ${catkin_LIBRARIES}
@@ -89,9 +96,6 @@ target_link_libraries(moveit_benchmark_gui
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
 )
-if(UseQt5)
-  target_link_libraries(moveit_benchmark_gui Qt5::Widgets)
-endif()
 
 install(
   TARGETS
