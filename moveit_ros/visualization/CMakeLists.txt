@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_visualization)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -12,11 +12,6 @@ find_package(PkgConfig REQUIRED)
 # Ogre
 pkg_check_modules(OGRE OGRE)
 link_directories( ${OGRE_LIBRARY_DIRS} )
-
-# Qt Stuff
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-add_definitions(-DQT_NO_KEYWORDS)
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
@@ -35,6 +30,27 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
 )
 find_package(Eigen REQUIRED)
+
+# Qt Stuff
+if(rviz_QT_VERSION VERSION_LESS "5")
+	find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+	include(${QT_USE_FILE})
+  macro(qt_wrap_ui)
+    qt4_wrap_ui(${ARGN})
+  endmacro()
+else()
+	find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+	set(QT_LIBRARIES Qt5::Widgets)
+  macro(qt_wrap_ui)
+    qt5_wrap_ui(${ARGN})
+  endmacro()
+endif()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+add_definitions(-DQT_NO_KEYWORDS)
+
+
 catkin_python_setup()
 catkin_package(
   LIBRARIES
