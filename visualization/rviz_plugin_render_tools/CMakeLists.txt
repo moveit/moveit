@@ -1,12 +1,13 @@
 set(MOVEIT_LIB_NAME moveit_rviz_plugin_render_tools)
 
-# Header files that need Qt Moc pre-processing for use with Qt signals, etc:
-set( headers
+set(HEADERS
+  include/moveit/rviz_plugin_render_tools/octomap_render.h
+  include/moveit/rviz_plugin_render_tools/planning_link_updater.h
+  include/moveit/rviz_plugin_render_tools/planning_scene_render.h
+  include/moveit/rviz_plugin_render_tools/render_shapes.h
+  include/moveit/rviz_plugin_render_tools/robot_state_visualization.h
   include/moveit/rviz_plugin_render_tools/trajectory_visualization.h
 )
-
-# Convert the Qt Signals and Slots for QWidget events
-qt4_wrap_cpp(MOC_SOURCES ${headers})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -17,7 +18,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_link_updater.cpp
   src/octomap_render.cpp
   src/trajectory_visualization.cpp
-  ${MOC_SOURCES}
+  ${HEADERS}
 )
 
 target_link_libraries(${MOVEIT_LIB_NAME}
