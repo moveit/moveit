@@ -200,7 +200,7 @@ void MotionPlanningDisplay::onInitialize()
   PlanningSceneDisplay::onInitialize();
 
   // Planned Path Display
-  trajectory_visual_->onInitialize(scene_node_, context_, update_nh_);
+  trajectory_visual_->onInitialize(planning_scene_node_, context_, update_nh_);
 
   query_robot_start_.reset(new RobotStateVisualization(planning_scene_node_, context_, "Planning Request Start", NULL));
   query_robot_start_->setCollisionVisible(false);
