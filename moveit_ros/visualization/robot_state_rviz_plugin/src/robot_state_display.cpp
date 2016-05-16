@@ -404,6 +404,7 @@ void RobotStateDisplay::onDisable()
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
+  calculateOffsetPosition();
   if (robot_ && update_state_)
   {
     update_state_ = false;
@@ -420,28 +421,11 @@ void RobotStateDisplay::calculateOffsetPosition()
   if (!getRobotModel())
     return;
 
-  ros::Time stamp;
-  std::string err_string;
-  if (context_->getTFClient()->getLatestCommonTime(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp, &err_string) != tf::NO_ERROR)
-    return;
+  Ogre::Vector3 position;
+  Ogre::Quaternion orientation;
 
-  tf::Stamped<tf::Pose> pose(tf::Pose::getIdentity(), stamp, getRobotModel()->getModelFrame());
+  context_->getFrameManager()->getTransform(getRobotModel()->getModelFrame(), ros::Time(0), position, orientation);
 
-  if (context_->getTFClient()->canTransform(fixed_frame_.toStdString(), getRobotModel()->getModelFrame(), stamp))
-  {
-    try
-    {
-      context_->getTFClient()->transformPose(fixed_frame_.toStdString(), pose, pose);
-    }
-    catch (tf::TransformException& e)
-    {
-      ROS_ERROR( "Error transforming from frame '%s' to frame '%s'", pose.frame_id_.c_str(), fixed_frame_.toStdString().c_str() );
-    }
-  }
-
-  Ogre::Vector3 position(pose.getOrigin().x(), pose.getOrigin().y(), pose.getOrigin().z());
-  const tf::Quaternion &q = pose.getRotation();
-  Ogre::Quaternion orientation( q.getW(), q.getX(), q.getY(), q.getZ() );
   scene_node_->setPosition(position);
   scene_node_->setOrientation(orientation);
 }
