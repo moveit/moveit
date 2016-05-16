@@ -15,6 +15,9 @@ find_package(GLUT REQUIRED)
 if (OPENGL_FOUND)
   set(gl_LIBS ${gl_LIBS} ${OPENGL_LIBRARIES})
 endif(OPENGL_FOUND)
+if(APPLE)
+  find_package(X11 REQUIRED)
+endif(APPLE)
 
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
@@ -74,10 +77,12 @@ include_directories(SYSTEM
                     ${Boost_INCLUDE_DIRS}
                     ${GLEW_INCLUDE_DIR}
                     ${GLUT_INCLUDE_DIR}
+                    ${X11_INCLUDE_DIR}
                     )
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
+link_directories(${X11_LIBRARY_DIR})
 
 add_subdirectory(lazy_free_space_updater)
 add_subdirectory(point_containment_filter)
