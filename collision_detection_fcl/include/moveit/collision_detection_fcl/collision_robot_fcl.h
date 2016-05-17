@@ -92,6 +92,7 @@ namespace collision_detection
                                const robot_state::RobotState &other_state, const AllowedCollisionMatrix *acm) const;
 
     std::vector<FCLGeometryConstPtr> geoms_;
+    std::vector<FCLCollisionObjectConstPtr> fcl_objs_;
   };
 
 }
