@@ -19,18 +19,14 @@ COMPONENTS
   visualization_msgs
   roslib
   rostime
-  cmake_modules
 )
 find_package(console_bridge REQUIRED)
-# Eigen3 hack for Jade http://wiki.ros.org/jade/Migration#Eigen_CMake_Module_in_cmake_modules
-find_package(Eigen3)
-find_package(PkgConfig)
-pkg_search_module(Eigen3 REQUIRED eigen3)
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
 find_package(PkgConfig REQUIRED)
+pkg_search_module(EIGEN3 REQUIRED eigen3)
 pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
@@ -101,7 +97,6 @@ catkin_package(
     srdfdom
   DEPENDS
     Boost
-    Eigen3
     urdfdom
     urdfdom_headers
     console_bridge
