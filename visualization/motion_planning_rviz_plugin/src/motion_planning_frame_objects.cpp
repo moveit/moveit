@@ -271,15 +271,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
         }
         if (update_scene_marker)
         {
-          if (!scene_marker_)
-            createSceneInteractiveMarker();
-          if (scene_marker_)
-          {
-            Eigen::Quaterniond eq(obj_pose.rotation());
-            // Update the IM pose to match the current selected object
-            scene_marker_->setPose(Ogre::Vector3(obj_pose.translation()[0], obj_pose.translation()[1], obj_pose.translation()[2]),
-                                   Ogre::Quaternion(eq.w(), eq.x(), eq.y(), eq.z()), "");
-          }
+          createSceneInteractiveMarker();
         }
       }
       else
@@ -694,7 +686,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
     return;
 
   const collision_detection::CollisionWorld::ObjectConstPtr &obj = ps->getWorld()->getObject(sel[0]->text().toStdString());
-  if (!scene_marker_ && obj && obj->shapes_.size() == 1)
+  if (obj && obj->shapes_.size() == 1)
   {
     Eigen::Quaterniond eq(obj->shape_poses_[0].rotation());
     geometry_msgs::PoseStamped shape_pose;
@@ -708,7 +700,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
 
     // create an interactive marker for moving the shape in the world
     visualization_msgs::InteractiveMarker int_marker = robot_interaction::make6DOFMarker(std::string("marker_") + sel[0]->text().toStdString(), shape_pose, 1.0);
-    int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
+    int_marker.header.frame_id = planning_display_->getRobotModel()->getModelFrame();
     int_marker.description = sel[0]->text().toStdString();
 
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
@@ -720,6 +712,8 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
     // Connect signals
     connect( imarker, SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), this,
              SLOT( imProcessFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  } else {
+    scene_marker_.reset();
   }
 }
 
