@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.0 (2016-05-18)
+------------------
 * [feat] Added file and trajectory_msg to RobotState conversion functions `#267 <https://github.com/ros-planning/moveit_core/issues/267>`_
 * [feat] Added setJointVelocity and setJointEffort functions `#261 <https://github.com/ros-planning/moveit_core/issues/261>`_
 * [feat] KinematicsBase changes `#248 <https://github.com/ros-planning/moveit_core/issues/248>`_
