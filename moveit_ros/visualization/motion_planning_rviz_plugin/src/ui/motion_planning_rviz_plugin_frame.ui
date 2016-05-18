@@ -65,19 +65,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="publish_current_scene_button">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>&amp;Publish Current Scene</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <spacer name="verticalSpacer_10">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1140,6 +1127,19 @@
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_14">
           <item>
+           <widget class="QPushButton" name="publish_current_scene_button">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>&amp;Publish Scene</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -1613,7 +1613,6 @@
  </customwidgets>
  <tabstops>
   <tabstop>planning_algorithm_combo_box</tabstop>
-  <tabstop>publish_current_scene_button</tabstop>
   <tabstop>planner_param_treeview</tabstop>
   <tabstop>database_host</tabstop>
   <tabstop>database_port</tabstop>
@@ -1666,6 +1665,7 @@
   <tabstop>object_ry</tabstop>
   <tabstop>object_rz</tabstop>
   <tabstop>scene_scale</tabstop>
+  <tabstop>publish_current_scene_button</tabstop>
   <tabstop>export_scene_text_button</tabstop>
   <tabstop>import_scene_text_button</tabstop>
   <tabstop>planning_scene_tree</tabstop>
