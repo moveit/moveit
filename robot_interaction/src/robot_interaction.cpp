@@ -669,7 +669,7 @@ void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::Inter
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
     robot_state::RobotStateConstPtr s = handler->getState();
-    root_link = s->getRobotModel()->getRootLinkName();
+    root_link = s->getRobotModel()->getModelFrame();
 
     for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
