@@ -708,7 +708,7 @@ void MotionPlanningFrame::createSceneInteractiveMarker()
 
     // create an interactive marker for moving the shape in the world
     visualization_msgs::InteractiveMarker int_marker = robot_interaction::make6DOFMarker(std::string("marker_") + sel[0]->text().toStdString(), shape_pose, 1.0);
-    int_marker.header.frame_id = context_->getFrameManager()->getFixedFrame();
+    int_marker.header.frame_id = planning_display_->getRobotModel()->getModelFrame();
     int_marker.description = sel[0]->text().toStdString();
 
     rviz::InteractiveMarker* imarker = new rviz::InteractiveMarker(planning_display_->getSceneNode(), context_ );
