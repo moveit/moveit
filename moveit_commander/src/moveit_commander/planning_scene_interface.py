@@ -51,8 +51,8 @@ class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
     def __init__(self):
-        self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=1)
-        self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=1)
+        self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
+        self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
 
     def __make_sphere(self, name, pose, radius):
         co = CollisionObject()
