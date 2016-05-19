@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Corrected check in getStateAtDurationFromStart (cherry-picking `#291 <https://github.com/ros-planning/moveit_core/issues/291>`_ from indigo-devel)
+* Contributors: Hamal Marino
+
 0.8.0 (2016-05-18)
 ------------------
 * [feat] Added file and trajectory_msg to RobotState conversion functions `#267 <https://github.com/ros-planning/moveit_core/issues/267>`_
