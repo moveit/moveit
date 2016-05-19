@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.1 (2016-05-19)
+------------------
 * Corrected check in getStateAtDurationFromStart (cherry-picking `#291 <https://github.com/ros-planning/moveit_core/issues/291>`_ from indigo-devel)
 * Contributors: Hamal Marino
 
