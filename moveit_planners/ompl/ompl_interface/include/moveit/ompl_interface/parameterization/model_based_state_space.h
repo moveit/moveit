@@ -42,6 +42,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
+#include "../detail/same_shared_ptr.hpp"
 
 namespace ompl_interface
 {
@@ -277,7 +278,7 @@ protected:
 
 };
 
-typedef boost::shared_ptr<ModelBasedStateSpace> ModelBasedStateSpacePtr;
+typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
 
 }
 
