@@ -62,7 +62,7 @@ void planning_scene_monitor::TrajectoryMonitor::setSamplingFrequency(double samp
 
 bool planning_scene_monitor::TrajectoryMonitor::isActive() const
 {
-  return record_states_thread_;
+  return static_cast<bool>(record_states_thread_);
 }
 
 void planning_scene_monitor::TrajectoryMonitor::startTrajectoryMonitor()
