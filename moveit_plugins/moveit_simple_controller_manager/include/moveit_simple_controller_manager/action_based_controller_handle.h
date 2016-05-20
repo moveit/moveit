@@ -92,7 +92,7 @@ public:
 
   bool isConnected() const
   {
-    return controller_action_client_;
+    return static_cast<bool>(controller_action_client_);
   }
 
   virtual bool cancelExecution()
