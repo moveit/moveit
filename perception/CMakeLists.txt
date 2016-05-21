@@ -30,7 +30,6 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   image_transport
   object_recognition_msgs
-  cmake_modules
   sensor_msgs
   moveit_msgs
 )
