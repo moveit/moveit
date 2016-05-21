@@ -29,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   object_recognition_msgs
 )
-find_package(Eigen REQUIRED)
+pkg_search_module(EIGEN3 REQUIRED eigen3)
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
@@ -65,6 +65,7 @@ catkin_package(
     planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include
     trajectory_rviz_plugin/include
+    ${EIGEN3_INCLUDE_DIRS}
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
@@ -78,6 +79,7 @@ include_directories(rviz_plugin_render_tools/include
 		    ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
+                    ${EIGEN3_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
                     ${QT_INCLUDE_DIR}
                     ${OGRE_INCLUDE_DIRS})
