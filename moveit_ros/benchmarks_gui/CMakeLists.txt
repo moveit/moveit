@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_warehouse
   moveit_ros_benchmarks
   moveit_ros_visualization
-  cmake_modules
   eigen_conversions
   interactive_markers
   rviz
@@ -25,7 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
 )
-find_package(Eigen REQUIRED)
+
+pkg_search_module(EIGEN3 REQUIRED eigen3) 
 
 if(rviz_QT_VERSION VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
@@ -45,13 +45,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
 
-catkin_package()
+catkin_package(
+    INCLUDE_DIRS 
+        ${EIGEN3_INCLUDE_DIRS} 
+)
 
 include_directories(include)
 
 include_directories(${catkin_INCLUDE_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
