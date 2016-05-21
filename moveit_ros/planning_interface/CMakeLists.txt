@@ -26,7 +26,6 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   rospy
   rosconsole
-  cmake_modules
 )
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)

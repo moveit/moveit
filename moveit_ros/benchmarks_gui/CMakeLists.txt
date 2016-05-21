@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_warehouse
   moveit_ros_benchmarks
   moveit_ros_visualization
-  cmake_modules
   eigen_conversions
   interactive_markers
   rviz

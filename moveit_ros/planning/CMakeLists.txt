@@ -9,7 +9,6 @@ find_package(Boost REQUIRED system filesystem date_time program_options signals 
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_perception
-  cmake_modules
   pluginlib
   actionlib
   roscpp
