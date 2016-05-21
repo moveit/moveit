@@ -244,7 +244,7 @@ bool MainWindow::waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDi
     scene_display->update(0.1, 0.1);
   }
 
-  return scene_display->getPlanningSceneMonitor();
+  return static_cast<bool>(scene_display->getPlanningSceneMonitor());
 }
 
 void MainWindow::exitActionTriggered(bool)
