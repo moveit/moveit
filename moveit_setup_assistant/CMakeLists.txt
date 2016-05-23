@@ -24,10 +24,10 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
-  find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+  find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
   include(${QT_USE_FILE})
 else()
-  find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+  find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
   set(QT_LIBRARIES Qt5::Widgets)
 endif()
 # Instruct CMake to run moc automatically when needed.
