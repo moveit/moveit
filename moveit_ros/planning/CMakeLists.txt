@@ -56,6 +56,7 @@ catkin_package(
     moveit_trajectory_execution_manager
     moveit_plan_execution
     moveit_planning_scene_monitor
+    moveit_collision_plugin_loader
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
