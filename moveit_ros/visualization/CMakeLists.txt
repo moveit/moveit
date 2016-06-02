@@ -33,6 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
   object_recognition_msgs
+  rostest
 )
 find_package(Eigen REQUIRED)
 catkin_python_setup()
