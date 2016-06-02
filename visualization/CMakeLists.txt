@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
   object_recognition_msgs
+  rostest
 )
 pkg_search_module(EIGEN3 REQUIRED eigen3)
 
