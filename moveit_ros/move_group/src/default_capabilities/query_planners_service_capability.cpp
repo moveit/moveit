@@ -81,11 +81,13 @@ bool move_group::MoveGroupQueryPlannersService::getParams(moveit_msgs::GetPlanne
 
     planning_interface::PlannerConfigurationMap::const_iterator
         it = configs.find(req.planner_config); // fetch default params first
-    config.insert(it->second.config.begin(), it->second.config.end());
+    if (it != configs.end())
+      config.insert(it->second.config.begin(), it->second.config.end());
 
     if (!req.group.empty()) { // merge in group-specific params
       it = configs.find(req.group + "[" + req.planner_config + "]");
-      config.insert(it->second.config.begin(), it->second.config.end());
+      if (it != configs.end())
+        config.insert(it->second.config.begin(), it->second.config.end());
     }
 
     for (std::map<std::string, std::string>::const_iterator
