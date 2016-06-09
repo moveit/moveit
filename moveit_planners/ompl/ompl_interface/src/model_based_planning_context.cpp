@@ -51,6 +51,13 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
 
+
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
+#include "ompl/base/objectives/MinimaxObjective.h"
+#include "ompl/base/objectives/StateCostIntegralObjective.h"
+#include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
+
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
   planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName()),
   spec_(spec),
@@ -216,6 +223,40 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
   if (cfg.empty())
     return;
+
+
+  ompl::base::OptimizationObjectivePtr objective;
+  it = cfg.find("optimization");
+  if (it == cfg.end())
+  {
+	  logInform("%s: No optimization objective specified, defaulting to PathLengthOptimizationObjective");
+	  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+  else
+  {
+	  int selector = atoi(it->second.c_str());
+	  switch(selector){
+	  case 1:
+		  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  case 2:
+		  objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  case 3:
+		  objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  case 4:
+		  objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  case 5:
+		  objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  default:
+		  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+		  break;
+	  }
+  }
+  ompl_simple_setup_->setOptimizationObjective(objective);
 
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
