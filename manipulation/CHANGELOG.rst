@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* Removed trailing whitespace from entire repository
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Robert Haschke
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

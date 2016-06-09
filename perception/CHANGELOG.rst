@@ -2,6 +2,26 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* remove unknown dependency sensor_msgs_generate_cpp
+  dependencies are pulled in via ${catkin_LIBRARIES}
+* Find X11 for build on OS X 10.11
+* set empty display function for glut window
+  With freeglut 3.0 moveit aborts over here, printing
+  > ERROR: No display callback registered for window 1
+  According to https://sourceforge.net/p/freeglut/bugs/229/
+  and https://www.opengl.org/resources/libraries/glut/spec3/node46.html
+  a callback *must* be registered for each window.
+  With this patch moveit starts up as expected.
+* Remove OpenMP parallelization, fixes `#563 <https://github.com/ros-planning/moveit_ros/issues/563>`_
+* Removed trailing whitespace from entire repository
+* last comment
+* Added missing dependency on moveit_msgs package
+* Contributors: Andriy Petlovanyy, Dave Coleman, Isaac I.Y. Saito, Kentaro Wada, Robert Haschke, Stefan Kohlbrecher, dg, v4hn
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

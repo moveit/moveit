@@ -2,6 +2,26 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* relax Qt-version requirement
+  Minor Qt version updates are ABI-compatible with each other:
+  https://wiki.qt.io/Qt-Version-Compatibility
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* benchmark_gui: Fix conversion of shared_ptr to bool for C++11
+* unify Qt4 / Qt5 usage across cmake files
+  - fetch Qt version from rviz
+  - define variables/macros commonly used for Qt4 and Qt5
+  - QT_LIBRARIES
+  - qt_wrap_ui()
+* Enable optional build against Qt5, use -DUseQt5=On to enable it
+* explicitly link rviz' default_plugin library
+  The library is not exported anymore and now is provided separately from rviz_LIBRARIES.
+  See https://github.com/ros-visualization/rviz/pull/979 for details.
+* Removed trailing whitespace from entire repository
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Maarten de Vries, Robert Haschke, Simon Schmeisser (isys vision), v4hn
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

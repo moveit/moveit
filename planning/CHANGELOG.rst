@@ -2,6 +2,27 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add library moveit_collision_plugin_loader as an exported catkin library (`#678 <https://github.com/ros-planning/moveit_ros/issues/678>`_)
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* Fix compilation with C++11.
+* Enable optional build against Qt5, use -DUseQt5=On to enable it
+* merge indigo-devel changes (PR `#633 <https://github.com/ros-planning/moveit_ros/issues/633>`_ trailing whitespace) into jade-devel
+* Removed trailing whitespace from entire repository
+* Optional ability to copy velocity and effort to RobotState
+* cherry-picked PR `#614 <https://github.com/ros-planning/moveit_ros/issues/614>`_
+  fixed segfault on shutdown
+* fixed segfault on shutdown
+  use of pluginlib's createUnmanagedInstance() is strongly discouraged:
+  http://wiki.ros.org/class_loader#Understanding_Loading_and_Unloading
+  here, the kinematics plugin libs were unloaded before destruction of corresponding pointers
+* Deprecate shape_tools
+* CurrentStateMonitor no longer requires hearing mimic joint state values.
+* Fix crash due to robot state not getting updated (moveit_ros `#559 <https://github.com/ros-planning/moveit_ros/issues/559>`_)
+* Contributors: Dave Coleman, Dave Hershberger, Isaac I.Y. Saito, Levi Armstrong, Maarten de Vries, Robert Haschke, Simon Schmeisser (isys vision), kohlbrecher
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers

@@ -2,6 +2,32 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* merge indigo-devel changes (PR `#633 <https://github.com/ros-planning/moveit_ros/issues/633>`_ trailing whitespace) into jade-devel
+* Removed trailing whitespace from entire repository
+* planning_interface::MoveGroup::get/setPlannerParams
+* new method MoveGroup::getDefaultPlannerId(const std::string &group)
+  ... to retrieve default planner config from param server
+  moved corresponding code from rviz plugin to MoveGroup interface
+  to facilitate re-use
+* fixing conflicts, renaming variable
+* Merge pull request `#589 <https://github.com/ros-planning/moveit_ros/issues/589>`_ from MichaelStevens/set_num_planning_attempts
+  adding set_num_planning_attempts to python interface
+* comments addressed
+* Added python wrapper for setMaxVelocityScalingFactor
+* saves robot name to db from moveit. also robot name accessible through robot interface python wrapper
+* adding set_num_planning_attempts to python interface
+* Merge pull request `#571 <https://github.com/ros-planning/moveit_ros/issues/571>`_ from ymollard/indigo-devel
+  Added python wrapper for MoveGroup.asyncExecute()
+* Added python wrapper for MoveGroup.asyncExecute()
+* Add retime_trajectory to moveit python wrapper
+* add getHandle to move_group_interface
+* Updated documentation on move() to inform the user that an asynchronus spinner is required. Commonly new users don't do this and move() blocks permanently
+* Contributors: Dave Coleman, Dave Hershberger, Isaac I.Y. Saito, Kei Okada, Michael Stevens, Robert Haschke, Sachin Chitta, Scott, Yoan Mollard, dg, ferherranz
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers
