@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-06-08)
+------------------
 * Removed trailing whitespace from entire repository
 * comments addressed
 * changed to global node handle so warehouse connection params work correctly

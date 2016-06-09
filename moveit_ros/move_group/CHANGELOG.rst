@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-06-08)
+------------------
 * added missing validity check
   iterator found with `configs.find()` needs to be validated before use...
 * Removed trailing whitespace from entire repository
