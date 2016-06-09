@@ -2,6 +2,118 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* cleanup cmake tests, fix empty output
+* added missing rostest dependency (`#680 <https://github.com/ros-planning/moveit_ros/issues/680>`_), fixes c6d0ede (`#639 <https://github.com/ros-planning/moveit_ros/issues/639>`_)
+* [moveit joy] Add friendlier error message
+* relax Qt-version requirement
+  Minor Qt version updates are ABI-compatible with each other:
+  https://wiki.qt.io/Qt-Version-Compatibility
+* replaced cmake_modules dependency with eigen
+* [jade] eigen3 adjustment
+* always (re)create collision object marker
+  other properties than pose (such as name of the marker) need to be adapted too
+* use getModelFrame() as reference frame for markers
+* moved "Publish Scene" button to "Scene Objects" tab
+  previous location on "Context" tab was weird
+* cherry-pick PR `#635 <https://github.com/ros-planning/moveit_ros/issues/635>`_ from indigo-devel
+* unify Qt4 / Qt5 usage across cmake files
+  - fetch Qt version from rviz
+  - define variables/macros commonly used for Qt4 and Qt5
+  - QT_LIBRARIES
+  - qt_wrap_ui()
+* leave frame transforms to rviz
+  The old code
+  (1.) reimplemented frame transforms in rviz
+  although it could simply utilize rviz' FrameManager
+  (2.) assumed the transform between the model-frame
+  and the fixed_frame was constant and only needed to be updated
+  if the frame changes (ever tried to make the endeffector
+  your fixed frame?)
+  (3.) was broken because on startup calculateOffsetPosition was called
+  *before* the robot model is loaded, so the first (and usually only)
+  call to calculateOffsetPosition failed.
+  Disabling/Enabling the display could be used to work around this...
+  This fixes all three issues.
+* display planned path in correct rviz context
+  This was likely a typo.
+* Solved parse error with Boost 1.58. Fixes `#653 <https://github.com/ros-planning/moveit_ros/issues/653>`_
+* Enable optional build against Qt5, use -DUseQt5=On to enable it
+* explicitly link rviz' default_plugin library
+  The library is not exported anymore and now is provided separately from rviz_LIBRARIES.
+  See https://github.com/ros-visualization/rviz/pull/979 for details.
+* merge indigo-devel changes (PR `#633 <https://github.com/ros-planning/moveit_ros/issues/633>`_ trailing whitespace) into jade-devel
+* Removed trailing whitespace from entire repository
+* correctly handle int and float parameters
+  Try to parse parameter as int and float (in that series)
+  and use IntProperty or FloatProperty on success to have
+  input checking.
+  Floats formatted without decimal dot, e.g. "0", will be
+  considered as int!
+  All other parameters will be handled as string.
+* access planner params in rviz' MotionPlanningFrame
+* new method MoveGroup::getDefaultPlannerId(const std::string &group)
+  ... to retrieve default planner config from param server
+  moved corresponding code from rviz plugin to MoveGroup interface
+  to facilitate re-use
+* correctly initialize scene robot's parameters after initialization
+  - loaded parameters were ignored
+  - changed default alpha value to 1 to maintain previous behaviour
+* load default_planner_config from default location
+  instead of loading from `/<ns>/default_planner_config`, use
+  `/<ns>/move_group/<group>/default_planner_config`, which is the default
+  location for `planner_configs` too
+* Merge pull request `#610 <https://github.com/ros-planning/moveit_ros/issues/610>`_: correctly update all markers after robot motion
+* fixing conflicts, renaming variable
+* Merge pull request `#612 <https://github.com/ros-planning/moveit_ros/issues/612>`_ from ubi-agni/interrupt-traj-vis
+  interrupt trajectory visualization on arrival of new display trajectory
+* cherry-picked PR `#611 <https://github.com/ros-planning/moveit_ros/issues/611>`_
+  fix segfault when disabling and re-enabling TrajectoryVisualization
+* cherry-picked PR `#609 <https://github.com/ros-planning/moveit_ros/issues/609>`_
+  load / save rviz' workspace config
+  fixed tab order of rviz plugin widgets
+  use move_group/default_workspace_bounds as a fallback for workspace bounds
+* fixup! cleanup TrajectoryVisualization::update
+  only enter visualization loop when displaying_trajectory_message_ is defined
+* added missing initialization
+* correctly setAlpha for new trail
+* fixed race condition for trajectory-display interruption
+  - TrajectoryVisualization::update() switches to new trajectory
+  automatically when it has finished displaying the old one
+  - TrajectoryVisualization::interruptCurrentDisplay() might interrupt
+  this newly started trajectory
+  consequences:
+  - protect switching of trajectory with mutex
+  - interrupt only if trajectory display progressed past first waypoint
+  - removed obsolete signal timeToShowNewTrail:
+  update() automatically switches and updates trail in sync
+* cleanup TrajectoryVisualization::update
+  simplified code to switch to new trajectory / start over animation in loop mode
+* new GUI property to allow immediate interruption of displayed trajectory
+* immediately show trajectory after planning (interrupting current display)
+* fix segfault when disabling and re-enabling TrajectoryVisualization
+  animating_path_ was still true causing update() to access
+  displaying_trajectory_message_, which was reset onDisable().
+* update pose of all markers when any marker moved
+  Having several end-effector markers attached to a group (e.g. a multi-
+  fingered hand having an end-effector per fingertip and an end-effector
+  for the hand base), all markers need to update their pose on any motion
+  of any marker. In the example: if the hand base is moved, the fingertip
+  markers should be moved too.
+* use move_group/default_workspace_bounds as a fallback for workspace bounds
+* code style cleanup
+* fixed tab order of rviz plugin widgets
+* load / save rviz' workspace config
+* saves robot name to db from moveit. also robot name accessible through robot interface python wrapper
+* Added install rule to install moveit_joy.py.
+* motion_planning_frame_planning: use /default_planner_config parma to specify default planning algorithm
+* Avoid adding a slash if getMoveGroupNS() is empty.
+  If the getMoveGroupNS() returns an empty string, ros::names::append() inserts a slash in front of 'right', which changes it to a global name.
+  Checking getMoveGroupNS() before calling append removes the issue.
+  append() behaviour will not be changed in ros/ros_comm.
+* Contributors: Ammar Najjar, Dave Coleman, Isaac I.Y. Saito, Jochen Welle, Kei Okada, Michael Ferguson, Michael Görner, Robert Haschke, Sachin Chitta, Simon Schmeisser (isys vision), TheDash, Thomas Burghout, dg, v4hn
+
 0.6.5 (2015-01-24)
 ------------------
 * update maintainers
