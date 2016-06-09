@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-06-08)
+------------------
 * replaced cmake_modules dependency with eigen
 * [jade] eigen3 adjustment
 * remove unknown dependency sensor_msgs_generate_cpp

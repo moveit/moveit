@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2016-06-08)
+------------------
 * relax Qt-version requirement
   Minor Qt version updates are ABI-compatible with each other:
   https://wiki.qt.io/Qt-Version-Compatibility
