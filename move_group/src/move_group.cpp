@@ -78,9 +78,9 @@ public:
       if (context_->status())
       {
         if (capabilities_.empty())
-          printf(MOVEIT_CONSOLE_COLOR_BLUE "\nAll is well but no capabilities are loaded. There will be no party :(\n\n" MOVEIT_CONSOLE_COLOR_RESET);
+          printf(MOVEIT_CONSOLE_COLOR_BLUE "\nmove_group is running but no capabilities are loaded.\n\n" MOVEIT_CONSOLE_COLOR_RESET);
         else
-          printf(MOVEIT_CONSOLE_COLOR_GREEN "\nAll is well! Everyone is happy! You can start planning now!\n\n" MOVEIT_CONSOLE_COLOR_RESET);
+          printf(MOVEIT_CONSOLE_COLOR_GREEN "\nYou can start planning now!\n\n" MOVEIT_CONSOLE_COLOR_RESET);
         fflush(stdout);
       }
     }
