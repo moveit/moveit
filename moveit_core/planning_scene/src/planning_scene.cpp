@@ -1249,7 +1249,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.id != "OcTree")
   {
-    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
     return;
   }
 
@@ -1283,7 +1283,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.octomap.id != "OcTree")
   {
-    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
     return;
   }
 
