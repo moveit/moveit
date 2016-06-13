@@ -38,7 +38,7 @@
 #include <moveit/move_group/capability_names.h>
 
 move_group::ClearOctomapService::ClearOctomapService():
-  MoveGroupCapability("ExecutePathService")
+  MoveGroupCapability("ClearOctomapService")
 {
 }
 
