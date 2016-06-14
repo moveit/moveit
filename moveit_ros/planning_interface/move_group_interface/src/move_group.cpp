@@ -693,6 +693,9 @@ public:
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
+    else
+      req.start_state.is_diff = true;
+
     req.group_name = opt_.group_name_;
     req.header.frame_id = getPoseReferenceFrame();
     req.header.stamp = ros::Time::now();
@@ -856,6 +859,8 @@ public:
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
+    else
+      goal.request.start_state.is_diff = true;
 
     if (active_target_ == JOINT)
     {
