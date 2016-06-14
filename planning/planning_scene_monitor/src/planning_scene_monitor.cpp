@@ -476,10 +476,12 @@ void planning_scene_monitor::PlanningSceneMonitor::clearOctomap()
   octomap_monitor_->getOcTreePtr()->unlockWrite();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
+bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
 {
   if (!scene_)
-    return;
+    return false;
+
+  bool result;
 
   SceneUpdateType upd = UPDATE_SCENE;
   std::string old_scene_name;
@@ -490,7 +492,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
 
     last_update_time_ = ros::Time::now();
     old_scene_name = scene_->getName();
-    scene_->usePlanningSceneMsg(scene);
+    result = scene_->usePlanningSceneMsg(scene);
     if (octomap_monitor_)
     {
       if (!scene.is_diff && scene.world.octomap.octomap.data.empty())
@@ -544,6 +546,7 @@ void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
     }
   }
   triggerSceneUpdateEvent(upd);
+  return result;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world)
