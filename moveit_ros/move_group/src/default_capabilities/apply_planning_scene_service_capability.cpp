@@ -55,7 +55,7 @@ bool move_group::ApplyPlanningSceneService::applyScene(moveit_msgs::ApplyPlannin
     return true;
   }
   context_->planning_scene_monitor_->updateFrameTransforms();
-  context_->planning_scene_monitor_->newPlanningSceneMessage(req.scene);
+  res.success = context_->planning_scene_monitor_->newPlanningSceneMessage(req.scene);
   return true;
 }
 

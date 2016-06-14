@@ -351,7 +351,7 @@ public:
   void clearOctomap();
 
   // Called to update the planning scene with a new message.
-  void newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
+  bool newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
 
 protected:
 
