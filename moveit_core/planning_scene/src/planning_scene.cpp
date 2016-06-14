@@ -1133,8 +1133,10 @@ void planning_scene::PlanningScene::decoupleParent()
   parent_.reset();
 }
 
-void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
+  bool result = true;
+
   logDebug("moveit.planning_scene: Adding planning scene diff");
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
@@ -1185,14 +1187,16 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
   // process collision object updates
   for (std::size_t i = 0 ; i < scene_msg.world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
+    result &= processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
 
   // if an octomap was specified, replace the one we have with that one
   if (!scene_msg.world.octomap.octomap.data.empty())
     processOctomapMsg(scene_msg.world.octomap);
+
+  return result;
 }
 
-void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
   logDebug("moveit.planning_scene: Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
@@ -1221,22 +1225,24 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   for (std::size_t i = 0 ; i < scene_msg.object_colors.size() ; ++i)
     setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
   world_->clearObjects();
-  processPlanningSceneWorldMsg(scene_msg.world);
+  return processPlanningSceneWorldMsg(scene_msg.world);
 }
 
-void planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world)
+bool planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world)
 {
+  bool result = true;
   for (std::size_t i = 0 ; i < world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(world.collision_objects[i]);
+    result &= processCollisionObjectMsg(world.collision_objects[i]);
   processOctomapMsg(world.octomap);
+  return result;
 }
 
-void planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
   if (scene_msg.is_diff)
-    setPlanningSceneDiffMsg(scene_msg);
+    return setPlanningSceneDiffMsg(scene_msg);
   else
-    setPlanningSceneMsg(scene_msg);
+    return setPlanningSceneMsg(scene_msg);
 }
 
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octomap &map)
