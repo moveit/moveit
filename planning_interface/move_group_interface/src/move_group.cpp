@@ -878,6 +878,8 @@ public:
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
+    else
+      goal.request.start_state.is_diff = true;
 
     if (active_target_ == JOINT)
     {
