@@ -30,11 +30,8 @@ include_directories(include)
 add_library(moveit_controller_manager_example src/moveit_controller_manager_example.cpp)
 target_link_libraries(moveit_controller_manager_example ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-# This is not a working controller, so we do not install it. However, the lines below
-# should be enabled for functional controllers
+install(TARGETS moveit_controller_manager_example LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
-#install(TARGETS moveit_controller_manager_example LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-
-#install(FILES moveit_controller_manager_example_plugin_description.xml
-#        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-#       )
+install(FILES moveit_controller_manager_example_plugin_description.xml
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+       )
