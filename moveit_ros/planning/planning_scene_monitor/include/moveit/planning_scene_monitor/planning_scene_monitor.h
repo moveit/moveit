@@ -350,6 +350,9 @@ public:
 
   void clearOctomap();
 
+  // Called to update the planning scene with a new message.
+  bool newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
+
 protected:
 
   /** @brief Initialize the planning scene monitor
@@ -477,9 +480,6 @@ private:
 
   // Callback for a new planning scene msg
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
-
-  // Called to update the planning scene with a new message.
-  void newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene);
 
 
   // Lock for state_update_pending_ and dt_state_update_

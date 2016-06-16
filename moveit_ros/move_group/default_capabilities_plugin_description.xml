@@ -48,6 +48,12 @@
     </description>
   </class>
 
+  <class name="move_group/ApplyPlanningSceneService" type="move_group::ApplyPlanningSceneService" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Provide a ROS service for blocking updates to the planning scene
+    </description>
+  </class>
+
   <class name="move_group/ClearOctomapService" type="move_group::ClearOctomapService" base_class_type="move_group::MoveGroupCapability">
     <description>
       Provide a ROS service that allows for clearing the octomap

@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2016, Michael 'v4hn' Goerner
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,32 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Michael Goerner */
 
-#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#include "apply_planning_scene_service_capability.h"
+#include <moveit/move_group/capability_names.h>
 
-#include <string>
-
-namespace move_group
+move_group::ApplyPlanningSceneService::ApplyPlanningSceneService():
+  MoveGroupCapability("ApplyPlanningSceneService")
 {
-
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
-static const std::string APPLY_PLANNING_SCENE_SERVICE_NAME = "apply_planning_scene"; // name of the service that applies a given planning scene
-static const std::string CLEAR_OCTOMAP_SERVICE_NAME = "clear_octomap"; // name of the service that can be used to clear the octomap
-
 }
 
-#endif
+void move_group::ApplyPlanningSceneService::initialize()
+{
+  service_ = root_node_handle_.advertiseService(APPLY_PLANNING_SCENE_SERVICE_NAME, &ApplyPlanningSceneService::applyScene, this);
+}
+
+bool move_group::ApplyPlanningSceneService::applyScene(moveit_msgs::ApplyPlanningScene::Request &req, moveit_msgs::ApplyPlanningScene::Response &res)
+{
+  if (!context_->planning_scene_monitor_)
+  {
+    ROS_ERROR("Cannot apply PlanningScene as no scene is monitored.");
+    return true;
+  }
+  context_->planning_scene_monitor_->updateFrameTransforms();
+  res.success = context_->planning_scene_monitor_->newPlanningSceneMessage(req.scene);
+  return true;
+}
+
+#include <class_loader/class_loader.h>
+CLASS_LOADER_REGISTER_CLASS(move_group::ApplyPlanningSceneService, move_group::MoveGroupCapability)
