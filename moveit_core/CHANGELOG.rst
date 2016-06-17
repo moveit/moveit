@@ -2,6 +2,16 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [feat] planning_scene updates: expose success state to caller. This is required to get the information back for the ApplyPlanningSceneService. `#297 <https://github.com/ros-planning/moveit_core/issues/297>`_
+* [fix] RevoluteJointModel::computeVariablePositions
+  correctly consider full joint angle range
+  - 2.*acos(theta/2) only covers half range
+  - need to consider sign of quaternion axis w.r.t. rotation axis
+* [sys] re-use travis config from jade-devel
+* Contributors: Dave Coleman, Robert Haschke, hamalMarino, Michael Gè´”rner
+
 0.7.1 (2016-04-14)
 ------------------
 * [fix] getStateAtDurationFromStart would never execute as the check for number of waypoints was inverted `#281 <https://github.com/ros-planning/moveit_core/issues/281>`_
