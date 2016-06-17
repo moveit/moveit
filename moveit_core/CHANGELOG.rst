@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [feat] planning_scene updates: expose success state to caller. This is required to get the information back for the ApplyPlanningSceneService. `#296 <https://github.com/ros-planning/moveit_core/issues/297>`_
+* [sys] replaced cmake_modules dependency with eigen
+* Contributors: Michael Ferguson, Robert Haschke, Michael Gè´”rner, Isaac I. Y. Saito
+
 0.8.1 (2016-05-19)
 ------------------
 * Corrected check in getStateAtDurationFromStart (cherry-picking `#291 <https://github.com/ros-planning/moveit_core/issues/291>`_ from indigo-devel)
