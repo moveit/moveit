@@ -202,12 +202,10 @@ public:
     return result;
   }
 
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
-                           const std::vector<moveit_msgs::ObjectColor> &object_colors) const
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
-    planning_scene.object_colors = object_colors;
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
   }
@@ -269,10 +267,9 @@ std::map<std::string, moveit_msgs::AttachedCollisionObject> PlanningSceneInterfa
   return impl_->getAttachedObjects(object_ids);
 }
 
-void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
-                                                 const std::vector<moveit_msgs::ObjectColor> &object_colors) const
+void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
 {
-  return impl_->addCollisionObjects(collision_objects, object_colors);
+  return impl_->addCollisionObjects(collision_objects);
 }
 
 void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string> &object_ids) const
