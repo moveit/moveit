@@ -38,7 +38,6 @@
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
 
 #include <moveit/robot_state/robot_state.h>
-#include <moveit_msgs/ObjectColor.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 
@@ -84,10 +83,9 @@ public:
 
   /** \brief Add collision objects to the world.
       Make sure object.operation is set to object.ADD. */
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects,
-                           const std::vector<moveit_msgs::ObjectColor> &object_colors = std::vector<moveit_msgs::ObjectColor>()) const;
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
 
-  /** \brief Remove collision objects from the world */
+  /** \brief Remove collision objects from the world. */
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
 
   /**@}*/
