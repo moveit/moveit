@@ -476,73 +476,77 @@ void planning_scene_monitor::PlanningSceneMonitor::clearOctomap()
   octomap_monitor_->getOcTreePtr()->unlockWrite();
 }
 
-void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
+bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const moveit_msgs::PlanningScene& scene)
 {
-  if (scene_)
+  if (!scene_)
+    return false;
+
+  bool result;
+
+  SceneUpdateType upd = UPDATE_SCENE;
+  std::string old_scene_name;
   {
-    SceneUpdateType upd = UPDATE_SCENE;
-    std::string old_scene_name;
+    boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
+    // we don't want the transform cache to update while we are potentially changing attached bodies
+    boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_);
+
+    last_update_time_ = ros::Time::now();
+    old_scene_name = scene_->getName();
+    result = scene_->usePlanningSceneMsg(scene);
+    if (octomap_monitor_)
     {
-      boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
-      boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_); // we don't want the transform cache to update while we are potentially changing attached bodies
-
-      last_update_time_ = ros::Time::now();
-      old_scene_name = scene_->getName();
-      scene_->usePlanningSceneMsg(scene);
-      if (octomap_monitor_)
+      if (!scene.is_diff && scene.world.octomap.octomap.data.empty())
       {
-        if (!scene.is_diff && scene.world.octomap.octomap.data.empty())
-        {
-          octomap_monitor_->getOcTreePtr()->lockWrite();
-          octomap_monitor_->getOcTreePtr()->clear();
-          octomap_monitor_->getOcTreePtr()->unlockWrite();
-        }
-      }
-      robot_model_ = scene_->getRobotModel();
-
-      // if we just reset the scene completely but we were maintaining diffs, we need to fix that
-      if (!scene.is_diff && parent_scene_)
-      {
-        // the scene is now decoupled from the parent, since we just reset it
-        scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
-        scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
-        parent_scene_ = scene_;
-        scene_ = parent_scene_->diff();
-        scene_const_ = scene_;
-        scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
-        scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
-      }
-      if (octomap_monitor_)
-      {
-        excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
-        excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+        octomap_monitor_->getOcTreePtr()->lockWrite();
+        octomap_monitor_->getOcTreePtr()->clear();
+        octomap_monitor_->getOcTreePtr()->unlockWrite();
       }
     }
+    robot_model_ = scene_->getRobotModel();
 
-    // if we have a diff, try to more accuratelly determine the update type
-    if (scene.is_diff)
+    // if we just reset the scene completely but we were maintaining diffs, we need to fix that
+    if (!scene.is_diff && parent_scene_)
     {
-      bool no_other_scene_upd = (scene.name.empty() || scene.name == old_scene_name) &&
-        scene.allowed_collision_matrix.entry_names.empty() && scene.link_padding.empty() && scene.link_scale.empty();
-      if (no_other_scene_upd)
-      {
-        upd = UPDATE_NONE;
-        if (!planning_scene::PlanningScene::isEmpty(scene.world))
-          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
-
-        if (!scene.fixed_frame_transforms.empty())
-          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_TRANSFORMS);
-
-        if (!planning_scene::PlanningScene::isEmpty(scene.robot_state))
-        {
-          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
-          if (!scene.robot_state.attached_collision_objects.empty() || scene.robot_state.is_diff == false)
-            upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
-        }
-      }
+      // the scene is now decoupled from the parent, since we just reset it
+      scene_->setAttachedBodyUpdateCallback(robot_state::AttachedBodyCallback());
+      scene_->setCollisionObjectUpdateCallback(collision_detection::World::ObserverCallbackFn());
+      parent_scene_ = scene_;
+      scene_ = parent_scene_->diff();
+      scene_const_ = scene_;
+      scene_->setAttachedBodyUpdateCallback(boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
+      scene_->setCollisionObjectUpdateCallback(boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
     }
-    triggerSceneUpdateEvent(upd);
+    if (octomap_monitor_)
+    {
+      excludeAttachedBodiesFromOctree(); // in case updates have happened to the attached bodies, put them in
+      excludeWorldObjectsFromOctree(); // in case updates have happened to the attached bodies, put them in
+    }
   }
+
+  // if we have a diff, try to more accuratelly determine the update type
+  if (scene.is_diff)
+  {
+    bool no_other_scene_upd = (scene.name.empty() || scene.name == old_scene_name) &&
+      scene.allowed_collision_matrix.entry_names.empty() && scene.link_padding.empty() && scene.link_scale.empty();
+    if (no_other_scene_upd)
+    {
+      upd = UPDATE_NONE;
+      if (!planning_scene::PlanningScene::isEmpty(scene.world))
+        upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
+
+      if (!scene.fixed_frame_transforms.empty())
+        upd = (SceneUpdateType) ((int)upd | (int)UPDATE_TRANSFORMS);
+
+      if (!planning_scene::PlanningScene::isEmpty(scene.robot_state))
+      {
+        upd = (SceneUpdateType) ((int)upd | (int)UPDATE_STATE);
+        if (!scene.robot_state.attached_collision_objects.empty() || scene.robot_state.is_diff == false)
+          upd = (SceneUpdateType) ((int)upd | (int)UPDATE_GEOMETRY);
+      }
+    }
+  }
+  triggerSceneUpdateEvent(upd);
+  return result;
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneWorldCallback(const moveit_msgs::PlanningSceneWorldConstPtr &world)

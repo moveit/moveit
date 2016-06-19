@@ -33,6 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rosconsole
   object_recognition_msgs
+  rostest
 )
 find_package(Eigen REQUIRED)
 catkin_python_setup()
@@ -85,3 +86,5 @@ install(FILES
 install(FILES python/moveit_ros_visualization/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+add_rostest(test/moveit_joy.test)

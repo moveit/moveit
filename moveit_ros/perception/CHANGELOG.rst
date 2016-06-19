@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2016-04-11)
+------------------
+* [fix] Remove OpenMP parallelization (fixes `#563 <https://github.com/ros-planning/moveit_ros/issues/563>`_)
+* Contributors: Stefan Kohlbrecher
+
 0.7.0 (2016-01-30)
 ------------------
 * Removed trailing whitespace from entire repository

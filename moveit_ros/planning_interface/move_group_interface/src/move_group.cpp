@@ -117,6 +117,7 @@ public:
     planning_time_ = 5.0;
     num_planning_attempts_ = 1;
     max_velocity_scaling_factor_ = 1.0;
+    max_acceleration_scaling_factor_ = 1.0;
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -183,9 +184,14 @@ public:
     }
 
     if (!action->isServerConnected())
-      throw std::runtime_error("Unable to connect to move_group action server within allotted time (2)");
+    {
+      std::string error = "Unable to connect to move_group action server '" + name + "' within allotted time (2)";
+      throw std::runtime_error(error);
+    }
     else
+    {
       ROS_DEBUG("Connected to '%s'", name.c_str());
+    }
   }
 
   ~MoveGroupImpl()
@@ -251,6 +257,11 @@ public:
   void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
   {
     max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+  }
+
+  void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+  {
+    max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
   }
 
   robot_state::RobotState& getJointStateTarget()
@@ -682,6 +693,9 @@ public:
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, req.start_state);
+    else
+      req.start_state.is_diff = true;
+
     req.group_name = opt_.group_name_;
     req.header.frame_id = getPoseReferenceFrame();
     req.header.stamp = ros::Time::now();
@@ -838,12 +852,15 @@ public:
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = num_planning_attempts_;
     goal.request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
+    goal.request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
     goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
 
     if (considered_start_state_)
       robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
+    else
+      goal.request.start_state.is_diff = true;
 
     if (active_target_ == JOINT)
     {
@@ -1024,6 +1041,7 @@ private:
   std::string planner_id_;
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
+  double max_acceleration_scaling_factor_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1116,6 +1134,10 @@ void moveit::planning_interface::MoveGroup::setMaxVelocityScalingFactor(double m
   impl_->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
 }
 
+void moveit::planning_interface::MoveGroup::setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+{
+  impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
+}
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::asyncMove()
 {

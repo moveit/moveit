@@ -1,9 +1,9 @@
 # Generic MoveIt Travis Continuous Integration Configuration File
 # Works with all MoveIt! repositories/branches
-# Author: Dave Coleman, Jonathan Bohren
-language:
-  - cpp
-  - python
+# Author: Dave Coleman, Jonathan Bohren, Robert Haschke
+sudo: required
+dist: trusty
+language: generic
 python:
   - "2.7"
 compiler:
@@ -14,38 +14,61 @@ notifications:
     #  - davetcoleman@gmail.com
     on_success: change #[always|never|change] # default: change
     on_failure: change #[always|never|change] # default: always
+
+env:
+  global:
+    # Specify which repositories to build too
+    - MOVEIT_REPOS="moveit_core moveit_planners moveit_msgs moveit_plugins moveit_ros"
+  matrix:
+    - ROS_DISTRO="indigo"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+
 before_install: # Use this to prepare the system to install prerequisites or dependencies
   # Define some config vars
-  - export ROS_DISTRO=hydro
   - export CI_SOURCE_PATH=$(pwd)
   - export REPOSITORY_NAME=${PWD##*/}
-  - echo "Testing branch $TRAVIS_BRANCH of $REPOSITORY_NAME"
-  - sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+  - echo "Testing branch $TRAVIS_BRANCH of $REPOSITORY_NAME on $ROS_DISTRO"
+  - sudo -E sh -c 'echo "deb $ROS_REPOSITORY_PATH `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
   - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
   - sudo apt-get update -qq
-  - sudo apt-get install -qq -y python-catkin-pkg python-rosdep python-wstool ros-$ROS_DISTRO-catkin ros-$ROS_DISTRO-ros
+  - sudo apt-get install -qq -y python-rosdep python-wstool python-catkin-tools
   # MongoDB hack - I don't fully understand this but its for moveit_warehouse
-  - sudo apt-get remove -y mongodb mongodb-10gen
-  - sudo apt-get install -y mongodb-clients mongodb-server -o Dpkg::Options::="--force-confdef" # default actions
+#  - sudo apt-get remove -y mongodb mongodb-10gen || true
+#  - sudo apt-get install -y mongodb-clients mongodb-server -o Dpkg::Options::="--force-confdef" # default actions
   # Setup rosdep
   - sudo rosdep init
   - rosdep update
+
 install: # Use this to install any prerequisites or dependencies necessary to run your build
   # Create workspace
   - mkdir -p ~/ros/ws_moveit/src
   - cd ~/ros/ws_moveit/src
-  - wstool init .
-  # Download non-debian stuff
-  - wstool merge https://raw.github.com/ros-planning/moveit_docs/hydro-devel/moveit.rosinstall
+  - wget https://raw.github.com/ros-planning/moveit_docs/${ROS_DISTRO}-devel/moveit.rosinstall
+  # filter for $MOVEIT_REPOS
+  - PKGS_FILTER=$(echo $MOVEIT_REPOS | tr ' ' '|')
+  - if [ -n "$PKGS_FILTER" ]; then egrep "$PKGS_FILTER" moveit.rosinstall > .rosinstall; else cp moveit.rosinstall .rosinstall; fi
+  - rm -f moveit.rosinstall
+  # download moveit repos, except $REPOSITORY_NAME
+  - wstool rm $REPOSITORY_NAME || true
   - wstool update
-  # Delete the moveit.rosinstall version of this repo and use the one of the branch we are testing
-  - rm -rf $REPOSITORY_NAME
-  - ln -s $CI_SOURCE_PATH . # Link the repo we are testing to the new workspace
+  # link in the repo we are testing
+  - ln -s $TRAVIS_BUILD_DIR $REPOSITORY_NAME
   - cd ../
-  # Install dependencies for source repos
-  - rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
-before_script: # Use this to prepare your build for testing e.g. copy database configurations, environment variables, etc.
-  - source /opt/ros/$ROS_DISTRO/setup.bash
-script: # All commands must exit with code 0 on success. Anything else is considered failure.
-  - catkin_make -j2
+  # use rosdep to install all dependencies (including ROS itself)
+  - rosdep install --from-paths ./ -i -y --rosdistro $ROS_DISTRO
 
+before_script: # Build the workspace
+  - catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release
+  - catkin build --no-status --summarize
+  # determine list of packages to test
+  - source install/setup.bash
+  - TEST_PKGS=$(catkin_topological_order $TRAVIS_BUILD_DIR --only-names)
+  - if [ -n "$TEST_PKGS" ]; then TEST_PKGS="--no-deps $TEST_PKGS"; fi
+  - if [ "$ALLOW_TEST_FAILURE" != "true" ]; then ALLOW_TEST_FAILURE=false; fi
+
+script: # run tests
+  - catkin build --no-status --summarize --make-args tests -- $TEST_PKGS
+  # Run tests
+  - catkin run_tests --no-status --summarize $TEST_PKGS
+  # catkin run_tests always returns 0, use catkin_test_results to check for errors
+  # https://github.com/catkin/catkin_tools/issues/245
+  - catkin_test_results || $ALLOW_TEST_FAILURE

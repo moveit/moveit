@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_benchmarks_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2016-04-11)
+------------------
+* explicitly link rviz' default_plugin library
+  The library is not exported anymore and now is provided separately from rviz_LIBRARIES.
+  See https://github.com/ros-visualization/rviz/pull/979 for details.
+* Contributors: v4hn
+
 0.7.0 (2016-01-30)
 ------------------
 * Removed trailing whitespace from entire repository

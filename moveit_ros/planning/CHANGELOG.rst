@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2016-04-11)
+------------------
+* Adding acceleration scaling factor
+* Contributors: hemes
+
 0.7.0 (2016-01-30)
 ------------------
 * Removed trailing whitespace from entire repository

@@ -663,11 +663,14 @@ void RobotInteraction::computeMarkerPose(
 void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr &handler)
 {
   handler->setRobotInteraction(this);
+  std::string root_link;
   std::map<std::string, geometry_msgs::Pose> pose_updates;
   {
     boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
 
     robot_state::RobotStateConstPtr s = handler->getState();
+    root_link = s->getRobotModel()->getModelFrame();
+
     for (std::size_t i = 0 ; i < active_eef_.size() ; ++i)
     {
       std::string marker_name = getMarkerName(handler, active_eef_[i]);
@@ -689,10 +692,12 @@ void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::Inter
         pose_updates[marker_name] = pose;
     }
   }
+
+  std_msgs::Header header; header.frame_id = root_link; // marker poses are give w.r.t. root frame
   for (std::map<std::string, geometry_msgs::Pose>::const_iterator it = pose_updates.begin() ;
        it != pose_updates.end() ;
        ++it)
-    int_marker_server_->setPose(it->first, it->second);
+    int_marker_server_->setPose(it->first, it->second, header);
   int_marker_server_->applyChanges();
 }
 

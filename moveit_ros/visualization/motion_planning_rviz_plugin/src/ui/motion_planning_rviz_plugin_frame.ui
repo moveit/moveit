@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>395</height>
+    <height>413</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -628,7 +628,31 @@
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="exec_time_factor">
+             <widget class="QDoubleSpinBox" name="velocity_scaling_factor">
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_20">
+            <item>
+             <widget class="QLabel" name="label_20">
+              <property name="text">
+               <string>Acceleration Scaling:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDoubleSpinBox" name="acceleration_scaling_factor">
               <property name="maximum">
                <double>1.000000000000000</double>
               </property>
@@ -1589,7 +1613,8 @@
   <tabstop>wsize_z</tabstop>
   <tabstop>planning_time</tabstop>
   <tabstop>planning_attempts</tabstop>
-  <tabstop>exec_time_factor</tabstop>
+  <tabstop>velocity_scaling_factor</tabstop>
+  <tabstop>acceleration_scaling_factor</tabstop>
   <tabstop>allow_replanning</tabstop>
   <tabstop>allow_looking</tabstop>
   <tabstop>allow_external_program</tabstop>
