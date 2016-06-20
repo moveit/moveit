@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.2 (2016-06-20)
+------------------
 * set empty display function for glut window
   With freeglut 3.0 moveit aborts over here, printing
   > ERROR: No display callback registered for window 1

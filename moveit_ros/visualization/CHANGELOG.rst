@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.2 (2016-06-20)
+------------------
 * [fix][joy.py] Installed python file might not be executable. (`#691 <https://github.com/ros-planning/moveit_ros/issues/691>`_)
 * [fix] rostest dependency (`#680 <https://github.com/ros-planning/moveit_ros/issues/680>`_), fixes c6d0ede (`#639 <https://github.com/ros-planning/moveit_ros/issues/639>`_)
 * [fix] always (re)create collision object marker

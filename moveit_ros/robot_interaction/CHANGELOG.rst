@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.2 (2016-06-20)
+------------------
 * cherry-pick 04e158aca from jade-devel
   - use getModelFrame() as reference frame for markers
   - always (re)create collision object marker
