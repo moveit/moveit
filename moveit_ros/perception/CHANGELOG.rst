@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* set empty display function for glut window
+  With freeglut 3.0 moveit aborts over here, printing
+  > ERROR: No display callback registered for window 1
+  According to https://sourceforge.net/p/freeglut/bugs/229/
+  and https://www.opengl.org/resources/libraries/glut/spec3/node46.html
+  a callback *must* be registered for each window.
+  With this patch moveit starts up as expected.
+* Contributors: v4hn
+
 0.7.1 (2016-04-11)
 ------------------
 * [fix] Remove OpenMP parallelization (fixes `#563 <https://github.com/ros-planning/moveit_ros/issues/563>`_)

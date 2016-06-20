@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* apply planning scene: use newly exposed success value of newPlanningSceneMessage
+* simplify newPlanningSceneMessage
+* monitor: make newPlanningSceneMessage public
+  This is required for capabilities to update the planning scene.
+  ABI-compatible.
+* Add library moveit_collision_plugin_loader as an exported catkin library (`#677 <https://github.com/ros-planning/moveit_ros/issues/677>`_)
+* Contributors: Levi Armstrong, v4hn
+
 0.7.1 (2016-04-11)
 ------------------
 * Adding acceleration scaling factor

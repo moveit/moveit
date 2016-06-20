@@ -2,6 +2,28 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Issue `#630 <https://github.com/ros-planning/moveit_ros/issues/630>`_: remove color information from addCollisionObjects method
+* attachment to the commit: fab50d487d86aa4011fb05e41e694b837eca92df
+  For more information see the specified commit.
+* planning_interface: Set is_diff true for empty start state
+  Executing a motion without setting the start state of the robot like
+  this:
+  ```
+  group_arm.setNamedTarget("start_grab_pose");
+  success = group_arm.move();
+  ```
+  throws the error: Execution of motions should always start at the robot's
+  current state. Ignoring the state supplied as start state in the motion
+  planning request.
+  The problem is, when considered_start_state\_ is null, every data field of the start_state
+  in the submitted MotionPlanRequest is 0 or false. But we need is_diff to be
+  true, because otherwise move_group will not consider its current state as
+  actual start state without complaining.
+* Implement issue `#630 <https://github.com/ros-planning/moveit_ros/issues/630>`_
+* Contributors: Yannick Jonetzko, corot
+
 0.7.1 (2016-04-11)
 ------------------
 * [feat] Adding acceleration scaling factor

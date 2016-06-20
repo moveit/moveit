@@ -2,6 +2,32 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* apply planning scene: use newly exposed success value of newPlanningSceneMessage
+* add apply_planning_scene capability
+  This new capability allows to apply changes to a monitored planning
+  scene and *blocks* until the changes are applied. This is meant to
+  replace the quasi-standard pattern:
+  ```
+  planning_scene_interface.addCollisionObjects(...)
+  sleep(2.0)
+  group.pick("object")
+  ```
+  by
+  ```
+  ros::ServiceClient client = n.serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+  client.call(...)
+  group.pick("object")
+  ```
+  This makes it much more convenient to add&interact with objects
+  without useless and arbitrarily long sleeps to ensure planning scene
+  updates succeeded.
+* clear_octomap_service: fix runtime name (`#685 <https://github.com/ros-planning/moveit_ros/issues/685>`_)
+  Looks like the author copy&pasted from a different capability
+  and forgot to change the name.
+* Contributors: v4hn
+
 0.7.1 (2016-04-11)
 ------------------
 

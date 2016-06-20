@@ -2,6 +2,19 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][joy.py] Installed python file might not be executable. (`#691 <https://github.com/ros-planning/moveit_ros/issues/691>`_)
+* [fix] rostest dependency (`#680 <https://github.com/ros-planning/moveit_ros/issues/680>`_), fixes c6d0ede (`#639 <https://github.com/ros-planning/moveit_ros/issues/639>`_)
+* [fix] always (re)create collision object marker
+  (other properties than pose (such as name of the marker) need to be adapted too)
+* [fix] correctly update planning_scene_node on changes of model-frame w.r.t. fixed frame
+* [fix] Traj Rviz Plugin to properly change robot description parameter
+* [feat] display planned path in correct rviz context
+* [feat] leave frame transforms to rviz
+* [enhance] use getModelFrame() as reference frame for markers
+* Contributors: Ammar Najjar, Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Michael Gè´”rner
+
 0.7.1 (2016-04-11)
 ------------------
 * [feat] Adding acceleration scaling factor
