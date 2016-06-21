@@ -56,7 +56,7 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::Rob
         // Need to store the FCL object so the AABB does not get recreated every time.
         // Every time this object is created, g->computeLocalAABB() is called  which is
         // very expensive and should only be calculated once. To update the AABB, use the
-        // collObj->setTsetTransform and then call collObj->computeAABB() to transform the AABB.
+        // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
         fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObject(g->collision_geometry_));
       }
       else
@@ -84,14 +84,14 @@ void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_
 void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState &state, FCLObject &fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(geoms_.size());
-  fcl::Transform3f tf;
+  fcl::Transform3f fcl_tf;
 
   for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
-      transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link, geoms_[i]->collision_geometry_data_->shape_index), tf);
+      transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link, geoms_[i]->collision_geometry_data_->shape_index), fcl_tf);
       fcl::CollisionObject *collObj = new fcl::CollisionObject(*fcl_objs_[i]);
-      collObj->setTransform(tf);
+      collObj->setTransform(fcl_tf);
       collObj->computeAABB();
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
     }
@@ -107,8 +107,8 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
     for (std::size_t k = 0 ; k < objs.size() ; ++k)
       if (objs[k]->collision_geometry_)
       {
-        transform2fcl(ab_t[k], tf);
-        fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(new fcl::CollisionObject(objs[k]->collision_geometry_, tf)));
+        transform2fcl(ab_t[k], fcl_tf);
+        fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(new fcl::CollisionObject(objs[k]->collision_geometry_, fcl_tf)));
         // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
         // and would be destroyed when objs goes out of scope.
         fcl_obj.collision_geometry_.push_back(objs[k]);
