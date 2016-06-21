@@ -39,7 +39,7 @@
 
 #include <iostream>
 #include <Eigen/Core>
-#include <planning_scene/planning_scene.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace chomp
 {
@@ -53,13 +53,13 @@ static const double DIFF_RULES[3][DIFF_RULE_LENGTH] = {
     {0, 1/12.0, -17/12.0, 46/12.0, -46/12.0, 17/12.0, -1/12.0}  // jerk
 };
 
-static inline void jointStateToArray(const planning_models::RobotModelConstPtr& kmodel,
+static inline void jointStateToArray(const moveit::core::RobotModelConstPtr& kmodel,
                               const sensor_msgs::JointState &joint_state,
                               const std::string& planning_group_name,
                               Eigen::MatrixXd::RowXpr joint_array)
 {
-  const planning_models::RobotModel::JointModelGroup* group = kmodel->getJointModelGroup(planning_group_name);
-  std::vector<const planning_models::RobotModel::JointModel*> models = group->getJointModels();
+  const moveit::core::JointModelGroup* group = kmodel->getJointModelGroup(planning_group_name);
+  std::vector<const moveit::core::JointModel*> models = group->getJointModels();
 
   for(unsigned int i=0; i < joint_state.position.size(); i++)
   {

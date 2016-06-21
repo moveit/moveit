@@ -41,7 +41,7 @@
 namespace chomp
 {
 
-ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
                                  double duration,
                                  double discretization,
                                  std::string group_name):
@@ -52,13 +52,12 @@ ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robo
   start_index_(1),
   end_index_(num_points_-2)
 {
-  std::map<std::string, planning_models::RobotModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
-  const planning_models::RobotModel::JointModelGroup* modelGroup = group_map[planning_group_name_];
-  num_joints_ = modelGroup->getJointModels().size();
+  const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
+  num_joints_ = model_group->getJointModels().size();
   init();
 }
 
-ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
                                  int num_points,
                                  double discretization,
                                  std::string group_name):
@@ -69,9 +68,8 @@ ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robo
   start_index_(1),
   end_index_(num_points_-2)
 {
-  std::map<std::string, planning_models::RobotModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
-  const planning_models::RobotModel::JointModelGroup* modelGroup = group_map[planning_group_name_];
-  num_joints_ = modelGroup->getJointModels().size();
+  const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
+  num_joints_ = model_group->getJointModels().size();
   init();
 }
 
@@ -112,13 +110,12 @@ ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::
   }
 }
 
-ChompTrajectory::ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
                                  const std::string& planning_group,
                                  const trajectory_msgs::JointTrajectory& traj) :
   planning_group_name_(planning_group)
 {
-  std::map<std::string, planning_models::RobotModel::JointModelGroup*> group_map = robot_model->getJointModelGroupMap();
-  const planning_models::RobotModel::JointModelGroup* model_group = group_map[planning_group_name_];
+  const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getJointModels().size();
   double discretization = (traj.points[1].time_from_start-traj.points[0].time_from_start).toSec();
 

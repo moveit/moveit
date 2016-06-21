@@ -38,7 +38,9 @@
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <chomp_motion_planner/chomp_utils.h>
-#include <planning_models/robot_model.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit/planning_scene/planning_scene.h>
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/Core>
 
@@ -53,7 +55,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
                                const planning_scene::PlanningSceneConstPtr& planning_scene,
                                const std::string& planning_group,
                                const ChompParameters *parameters,
-                               const planning_models::RobotState& start_state) :
+                               const moveit::core::RobotState& start_state) :
   full_trajectory_(trajectory),
   kmodel_(planning_scene->getRobotModel()),
   planning_group_(planning_group),
@@ -114,10 +116,10 @@ void ChompOptimizer::initialize()
 
   joint_model_group_ = planning_scene_->getRobotModel()->getJointModelGroup(planning_group_);
 
-  const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t i = 0; i < joint_models.size(); i++)
   {
-    const planning_models::RobotModel::JointModel* model = joint_models[i];
+    const moveit::core::JointModel* model = joint_models[i];
     double joint_cost = 1.0;
     std::string joint_name = model->getName();
     //nh.param("joint_costs/" + joint_name, joint_cost, 1.0);
@@ -193,7 +195,7 @@ void ChompOptimizer::initialize()
 
   for(size_t i = 0; i < joint_model_group_->getFixedJointModels().size(); i ++)
   {
-    const planning_models::RobotModel::JointModel* model = joint_model_group_->getFixedJointModels()[i];
+    const moveit::core::JointModel* model = joint_model_group_->getFixedJointModels()[i];
     fixed_link_resolution_map[model->getName()] = model->getParentLinkModel()->getParentJointModel()->getName();
   }
 
@@ -202,7 +204,7 @@ void ChompOptimizer::initialize()
   {
     if(fixed_link_resolution_map.find(joint_model_group_->getUpdatedLinkModels()[i]->getParentJointModel()->getName()) == fixed_link_resolution_map.end())
     {
-      const planning_models::RobotModel::JointModel* parent_model = NULL;
+      const moveit::core::JointModel* parent_model = NULL;
       bool found_root = false;
 
       while(!found_root)
@@ -271,12 +273,12 @@ ChompOptimizer::~ChompOptimizer()
   destroy();
 }
 
-void ChompOptimizer::registerParents(const planning_models::RobotModel::JointModel* model)
+void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
 {
-  const planning_models::RobotModel::JointModel* parent_model = NULL;
+  const moveit::core::JointModel* parent_model = NULL;
   bool found_root = false;
 
-  if(model == kmodel_->getRoot()) return;
+  if(model == kmodel_->getRootJoint()) return;
 
   while(!found_root)
   {
@@ -292,7 +294,7 @@ void ChompOptimizer::registerParents(const planning_models::RobotModel::JointMod
       parent_model = model->getParentLinkModel()->getParentJointModel();
     } else
     {
-      if(parent_model == kmodel_->getRoot())
+      if(parent_model == kmodel_->getRootJoint())
       {
         found_root = true;
       } else {
@@ -542,7 +544,9 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
     }
     traj.joint_trajectory.points.push_back(point);
   }
-  return planning_scene_->isPathValid(start_state_,
+  moveit_msgs::RobotState start_state_msg;
+  moveit::core::robotStateToRobotStateMsg(start_state_, start_state_msg);
+  return planning_scene_->isPathValid(start_state_msg,
                                       traj);
 }
 
@@ -683,7 +687,7 @@ void ChompOptimizer::calculateTotalIncrements()
 
 void ChompOptimizer::addIncrementsToTrajectory()
 {
-  const std::vector<const planning_models::RobotModel::JointModel*>& joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group_->getJointModels();
   for(size_t i = 0; i < joint_models.size(); i++)
   {
     double scale = 1.0;
@@ -760,19 +764,18 @@ void ChompOptimizer::computeJointProperties(int trajectory_point)
   //tf::Transform inverseWorldTransform = collision_space_->getInverseWorldTransform(*state_);
   for(int j = 0; j < num_joints_; j++)
   {
-    const planning_models::RobotState *::JointState* joint_state = state_.getJointState(joint_names_[j]);
-    const planning_models::RobotModel::JointModel* joint_model = joint_state->getJointModel();
-    const planning_models::RobotModel::RevoluteJointModel* revolute_joint
-      = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
-    const planning_models::RobotModel::PrismaticJointModel* prismatic_joint
-      = dynamic_cast<const planning_models::RobotModel::PrismaticJointModel*>(joint_model);
+    const moveit::core::JointModel* joint_model = state_.getJointModel(joint_names_[j]);
+    const moveit::core::RevoluteJointModel* revolute_joint
+      = dynamic_cast<const moveit::core::RevoluteJointModel*>(joint_model);
+    const moveit::core::PrismaticJointModel* prismatic_joint
+      = dynamic_cast<const moveit::core::PrismaticJointModel*>(joint_model);
 
     std::string parent_link_name = joint_model->getParentLinkModel()->getName();
     std::string child_link_name = joint_model->getChildLinkModel()->getName();
     Eigen::Affine3d joint_transform =
-      state_.getLinkState(parent_link_name)->getGlobalLinkTransform()
+      state_.getGlobalLinkTransform(parent_link_name)
       * (kmodel_->getLinkModel(child_link_name)->getJointOriginTransform()
-         * (state_.getJointState(joint_model->getName())->getVariableTransform()));
+         * (state_.getJointTransform(joint_model)));
 
 
     //joint_transform = inverseWorldTransform * jointTransform;
@@ -826,32 +829,32 @@ void ChompOptimizer::getJacobian(int trajectory_point,
 
 void ChompOptimizer::handleJointLimits()
 {
-  const std::vector<const planning_models::RobotModel::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getJointModels();
   for(size_t joint_i = 0; joint_i < joint_models.size(); joint_i++) {
-    const planning_models::RobotModel::JointModel* joint_model = joint_models[joint_i];
-    const planning_models::RobotModel::RevoluteJointModel* revolute_joint
-      = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(joint_model);
+    const moveit::core::JointModel* joint_model = joint_models[joint_i];
+    const moveit::core::RevoluteJointModel* revolute_joint
+      = dynamic_cast<const moveit::core::RevoluteJointModel*>(joint_model);
 
     if(revolute_joint->isContinuous())
     {
       continue;
     }
 
-    const planning_models::RobotModel::JointModel::Bounds& bounds = joint_model->getVariableBounds();
+    const moveit::core::JointModel::Bounds& bounds = joint_model->getVariableBounds();
 
     double joint_max = -DBL_MAX;
     double joint_min = DBL_MAX;
 
-    for(planning_models::RobotModel::JointModel::Bounds::const_iterator it = bounds.begin(); it != bounds.end(); it ++)
+    for(moveit::core::JointModel::Bounds::const_iterator it = bounds.begin(); it != bounds.end(); it ++)
     {
-      if((*it).first < joint_min)
+      if(it->min_position_ < joint_min)
       {
-        joint_min = (*it).first;
+        joint_min = it->min_position_;
       }
 
-      if((*it).second > joint_max)
+      if(it->max_position_ > joint_max)
       {
-        joint_max = (*it).second;
+        joint_max = it->max_position_;
       }
     }
 
@@ -1012,8 +1015,9 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   }
 
   //ros::WallTime timer = ros::WallTime::now();
-  planning_models::RobotState *::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
-  group->setStateValues(joint_states);
+  //moveit::core::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
+  //group->setStateValues(joint_states);
+  state_.setJointGroupPositions(planning_group_, joint_states);
   //timer = ros::WallTime::now();
 }
 
@@ -1023,10 +1027,11 @@ void ChompOptimizer::perturbTrajectory()
   if(worst_collision_cost_state_ < 0)
     return;
   int mid_point = worst_collision_cost_state_;
-  planning_models::RobotState *random_state(state_);
-  random_state.getJointStateGroup(planning_group_)->setToRandomValues();
+  moveit::core::RobotState random_state = state_;
+  const moveit::core::JointModelGroup *planning_group = state_.getJointModelGroup(planning_group_);
+  random_state.setToRandomPositions(planning_group);
   std::vector<double> vals;
-  random_state.getJointStateGroup(planning_group_)->getGroupStateValues(vals);
+  random_state.copyJointGroupPositions(planning_group_, vals);
   double* ptr = &vals[0];
   Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size());
   //Eigen::VectorXd random_matrix = vals;
@@ -1058,8 +1063,8 @@ void ChompOptimizer::perturbTrajectory()
 //     bool continuous = false;
 
 //     RobotState *::JointState* jointState = jointStates[i];
-//     const RobotModel::RevoluteJointModel* revolute_joint
-//       = dynamic_cast<const RobotModel::RevoluteJointModel*>(jointState->getJointModel());
+//     const RevoluteJointModel* revolute_joint
+//       = dynamic_cast<const RevoluteJointModel*>(jointState->getJointModel());
 //     if(revolute_joint && revolute_joint->continuous_) {
 //       continuous = true;
 //     }

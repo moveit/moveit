@@ -39,14 +39,14 @@
 
 #include <chomp_motion_planner/chomp_parameters.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <planning_scene/planning_scene.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace chomp {
 
 class ChompPlanner
 {
 public:
-  ChompPlanner(const planning_models::RobotModelConstPtr& kmodel);
+  ChompPlanner(const moveit::core::RobotModelConstPtr& kmodel);
   virtual ~ChompPlanner(){};
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,

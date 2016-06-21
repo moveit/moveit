@@ -38,11 +38,12 @@
 #include <chomp_motion_planner/chomp_planner.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <chomp_motion_planner/chomp_optimizer.h>
-#include <planning_models/conversions.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/GetMotionPlan.h>
 
 namespace chomp {
 
-ChompPlanner::ChompPlanner(const planning_models::RobotModelConstPtr& kmodel)
+ChompPlanner::ChompPlanner(const moveit::core::RobotModelConstPtr& kmodel)
 {
 }
 
@@ -74,13 +75,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                     js,
                     req.motion_plan_request.group_name,
                     trajectory.getTrajectoryPoint(goal_index));
-  const planning_models::RobotModel::JointModelGroup* model_group =
+  const moveit::core::JointModelGroup* model_group =
     planning_scene->getRobotModel()->getJointModelGroup(req.motion_plan_request.group_name);
   // fix the goal to move the shortest angular distance for wrap-around joints:
   for (size_t i = 0; i < model_group->getJointModels().size(); i++)
   {
-    const planning_models::RobotModel::JointModel* model = model_group->getJointModels()[i];
-    const planning_models::RobotModel::RevoluteJointModel* revolute_joint = dynamic_cast<const planning_models::RobotModel::RevoluteJointModel*>(model);
+    const moveit::core::JointModel* model = model_group->getJointModels()[i];
+    const moveit::core::RevoluteJointModel* revolute_joint = dynamic_cast<const moveit::core::RevoluteJointModel*>(model);
 
     if (revolute_joint != NULL)
     {
@@ -98,8 +99,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   trajectory.fillInMinJerk();
 
   // optimize!
-  planning_models::RobotState *start_state(planning_scene->getCurrentState());
-  planning_models::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state, start_state);
+  moveit::core::RobotState start_state(planning_scene->getCurrentState());
+  moveit::core::robotStateMsgToRobotState(req.motion_plan_request.start_state, start_state);
 
   ros::WallTime create_time = ros::WallTime::now();
   ChompOptimizer optimizer(&trajectory,
@@ -109,7 +110,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                            start_state);
   if(!optimizer.isInitialized()) {
     ROS_WARN_STREAM("Could not initialize optimizer");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
   ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
@@ -122,35 +123,35 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ROS_INFO("Output trajectory has %d joints", trajectory.getNumJoints());
 
   // fill in joint names:
-  res.trajectory.joint_trajectory.joint_names.resize(trajectory.getNumJoints());
+  res.motion_plan_response.trajectory.joint_trajectory.joint_names.resize(trajectory.getNumJoints());
   for (size_t i = 0; i < model_group->getJointModels().size(); i++)
   {
-    res.trajectory.joint_trajectory.joint_names[i] = model_group->getJointModels()[i]->getName();
+    res.motion_plan_response.trajectory.joint_trajectory.joint_names[i] = model_group->getJointModels()[i]->getName();
   }
 
-  res.trajectory.joint_trajectory.header = req.motion_plan_request.start_state.joint_state.header; // @TODO this is probably a hack
+  res.motion_plan_response.trajectory.joint_trajectory.header = req.motion_plan_request.start_state.joint_state.header; // @TODO this is probably a hack
 
   // fill in the entire trajectory
-  res.trajectory.joint_trajectory.points.resize(trajectory.getNumPoints());
+  res.motion_plan_response.trajectory.joint_trajectory.points.resize(trajectory.getNumPoints());
   for (int i=0; i < trajectory.getNumPoints(); i++)
   {
-    res.trajectory.joint_trajectory.points[i].positions.resize(trajectory.getNumJoints());
-    for (size_t j=0; j < res.trajectory.joint_trajectory.points[i].positions.size(); j++)
+    res.motion_plan_response.trajectory.joint_trajectory.points[i].positions.resize(trajectory.getNumJoints());
+    for (size_t j=0; j < res.motion_plan_response.trajectory.joint_trajectory.points[i].positions.size(); j++)
     {
-      res.trajectory.joint_trajectory.points[i].positions[j] = trajectory.getTrajectoryPoint(i)(j);
+      res.motion_plan_response.trajectory.joint_trajectory.points[i].positions[j] = trajectory.getTrajectoryPoint(i)(j);
       if(i == trajectory.getNumPoints()-1) {
-        ROS_INFO_STREAM("Joint " << j << " " << res.trajectory.joint_trajectory.points[i].positions[j]);
+        ROS_INFO_STREAM("Joint " << j << " " << res.motion_plan_response.trajectory.joint_trajectory.points[i].positions[j]);
       }
     }
     // Setting invalid timestamps.
     // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
-    res.trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
+    res.motion_plan_response.trajectory.joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
   }
 
   ROS_INFO("Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
-  ROS_INFO("Serviced planning request in %f wall-seconds, trajectory duration is %f", (ros::WallTime::now() - start_time).toSec(), res.trajectory.joint_trajectory.points[goal_index].time_from_start.toSec());
-  res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-  res.planning_time = ros::Duration((ros::WallTime::now() - start_time).toSec());
+  ROS_INFO("Serviced planning request in %f wall-seconds, trajectory duration is %f", (ros::WallTime::now() - start_time).toSec(), res.motion_plan_response.trajectory.joint_trajectory.points[goal_index].time_from_start.toSec());
+  res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  res.motion_plan_response.planning_time = (ros::WallTime::now() - start_time).toSec();
   return true;
 }
 
