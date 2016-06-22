@@ -299,6 +299,12 @@ private:
   void fillFreeParams(int count, int *array);
   bool getCount(int &count, const int &max_count, const int &min_count) const;
 
+  /**
+  * @brief samples the designated redundant joint using the chosen discretization method
+  * @param  method              An enumeration flag indicating the discretization method to be used
+  * @param  sampled_joint_vals  Sampled joint values for the redundant joint
+  * @return True if sampling succeeded.   
+  */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
 }; // end class
@@ -1145,6 +1151,9 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   bool solutions_found = false;
   if( numsol > 0 )
   {
+    /*
+      Iterating through all solution sets and storing those that do not exceed joint limits.
+    */
     for(unsigned int r = 0; r < solution_set.size() ; r++)
     {
 
