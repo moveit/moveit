@@ -902,6 +902,9 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     deps << "  <run_depend>" << config_data_->urdf_pkg_name_ << "</run_depend>\n";
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str()); // not relative to a ROS package
   }
+
+  addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
+  addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);
 }
 
 // ******************************************************************************************
