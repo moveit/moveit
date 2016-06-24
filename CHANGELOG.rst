@@ -2,6 +2,17 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [sys] Qt adjustment. 
+  * relax Qt-version requirement.  Minor Qt version updates are ABI-compatible with each other:  https://wiki.qt.io/Qt-Version-Compatibility
+  * auto-select Qt version matching the one from rviz `#114 <https://github.com/ros-planning/moveit_setup_assistant/issues/114>`_
+  * Allow to conditionally compile against Qt5 by setting -DUseQt5=On
+* [sys] Add line for supporting CMake 2.8.11 as required for Indigo
+* [sys][travis] Update CI conf for ROS Jade (and optionally added Kinetic) `#116 <https://github.com/ros-planning/moveit_setup_assistant/issues/116>`_
+* [feat] add ApplyPlanningScene capability to template
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Simon Schmeisser (isys vision), v4hn
+
 0.7.0 (2016-01-30)
 ------------------
 * Merge pull request from ipa-mdl/indigo-devel
