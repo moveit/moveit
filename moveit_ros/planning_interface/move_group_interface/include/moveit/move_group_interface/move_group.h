@@ -127,6 +127,9 @@ public:
   /** \brief Get the name of the group this instance operates on */
   const std::string& getName() const;
 
+  /** \brief Get the names of the named robot states available as targets, both either remembered states or default states from srdf */
+  const std::vector<std::string> getNamedTargets();
+
   /** \brief Get the RobotModel object. */
   robot_model::RobotModelConstPtr getRobotModel() const;
 
@@ -135,6 +138,12 @@ public:
 
   /** \brief Get the name of the frame in which the robot is planning */
   const std::string& getPlanningFrame() const;
+
+  /** \brief Get vector of names of joints available in move group */
+  const std::vector<std::string>& getJointNames();
+
+  /** \brief Get the joint angles for targets specified by name */
+  std::map<std::string,double> getNamedTargetValues(const std::string& name);
 
   /** \brief Get only the active (actuated) joints this instance operates on */
   const std::vector<std::string>& getActiveJoints() const;

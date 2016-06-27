@@ -1248,10 +1248,17 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
   if (frame_)
   {
     QString host;
+    ros::NodeHandle nh;
+    std::string host_param;
     if (config.mapGetString("MoveIt_Warehouse_Host", &host))
       frame_->ui_->database_host->setText(host);
+    else if (nh.getParam("warehouse_host", host_param))
+    {
+      host = QString::fromStdString(host_param);
+      frame_->ui_->database_host->setText(host);
+    }
     int port;
-    if (config.mapGetInt("MoveIt_Warehouse_Port", &port))
+    if (config.mapGetInt("MoveIt_Warehouse_Port", &port) || nh.getParam("warehouse_port", port))
       frame_->ui_->database_port->setValue(port);
     float d;
     if (config.mapGetFloat("MoveIt_Planning_Time", &d))
