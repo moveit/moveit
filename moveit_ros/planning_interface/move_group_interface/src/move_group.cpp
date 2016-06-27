@@ -103,6 +103,7 @@ public:
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
+
     joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
 
     joint_state_target_.reset(new robot_state::RobotState(getRobotModel()));
@@ -1099,6 +1100,21 @@ const std::string& moveit::planning_interface::MoveGroup::getName() const
   return impl_->getOptions().group_name_;
 }
 
+const std::vector<std::string> moveit::planning_interface::MoveGroup::getNamedTargets()
+{
+  const robot_model::RobotModelConstPtr& robot = getRobotModel();
+  const std::string& group = getName();
+  const robot_model::JointModelGroup* joint_group = robot->getJointModelGroup(group);
+
+  if (joint_group)
+  {
+    return joint_group->getDefaultStateNames();
+  }
+
+  std::vector<std::string> empty;
+  return empty;
+}
+
 robot_model::RobotModelConstPtr moveit::planning_interface::MoveGroup::getRobotModel() const
 {
   return impl_->getRobotModel();
@@ -1241,6 +1257,31 @@ void moveit::planning_interface::MoveGroup::setRandomTarget()
 {
   impl_->getJointStateTarget().setToRandomPositions();
   impl_->setTargetType(JOINT);
+}
+
+const std::vector<std::string>& moveit::planning_interface::MoveGroup::getJointNames()
+{
+  return impl_->getJointModelGroup()->getVariableNames();
+}
+
+std::map<std::string, double> moveit::planning_interface::MoveGroup::getNamedTargetValues(const std::string& name)
+{
+  std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
+  std::map<std::string,double> positions;
+
+  if (it != remembered_joint_values_.end())
+  {
+    std::vector<std::string> names = impl_->getJointModelGroup()->getVariableNames();
+    for (size_t x = 0; x < names.size(); ++x)
+    {
+      positions[names[x]] = it->second[x];
+    }
+  }
+  else
+  {
+    impl_->getJointModelGroup()->getVariableDefaultPositions(name, positions);
+  }
+  return positions;
 }
 
 bool moveit::planning_interface::MoveGroup::setNamedTarget(const std::string &name)
