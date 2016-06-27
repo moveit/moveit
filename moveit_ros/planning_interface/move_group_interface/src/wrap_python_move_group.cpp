@@ -270,6 +270,18 @@ public:
     }
   }
 
+  bp::dict getCurrentStateBoundedPython()
+  {
+    robot_state::RobotStatePtr current = getCurrentState();
+    current->enforceBounds();
+    moveit_msgs::RobotState rsmv;
+    robot_state::robotStateToRobotStateMsg(*current, rsmv);
+    bp::dict output;
+    for (size_t x = 0; x < rsmv.joint_state.name.size(); ++x)
+      output[rsmv.joint_state.name[x]] = rsmv.joint_state.position[x];
+    return output;
+  }  
+
   void setStartStatePython(const std::string &msg_str)
   {
     moveit_msgs::RobotState msg;
@@ -322,6 +334,22 @@ public:
   const char* getNameCStr() const
   {
     return getName().c_str();
+  }
+
+  bp::dict getNamedTargetValuesPython(const std::string& name)
+  {
+    bp::dict output;
+    std::map<std::string,double> positions = getNamedTargetValues(name);
+    std::map<std::string,double>::iterator iterator;
+
+    for (iterator = positions.begin(); iterator != positions.end(); iterator++)
+      output[iterator->first] = iterator->second;
+    return output;
+  }
+
+  bp::list getNamedTargetsPython()
+  {
+    return py_bindings_tools::listFromString(getNamedTargets());
   }
 
   bool movePython()
@@ -541,6 +569,9 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("attach_object", &MoveGroupWrapper::attachObjectPython);
   MoveGroupClass.def("detach_object", &MoveGroupWrapper::detachObject);
   MoveGroupClass.def("retime_trajectory", &MoveGroupWrapper::retimeTrajectory);
+  MoveGroupClass.def("get_named_targets", &MoveGroupWrapper::getNamedTargetsPython);
+  MoveGroupClass.def("get_named_target_values", &MoveGroupWrapper::getNamedTargetValuesPython);
+  MoveGroupClass.def("get_current_state_bounded", &MoveGroupWrapper::getCurrentStateBoundedPython);
 }
 
 }
