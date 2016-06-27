@@ -86,6 +86,13 @@ bool getState(moveit_msgs::GetRobotStateFromWarehouse::Request&  request,
                moveit_msgs::GetRobotStateFromWarehouse::Response& response,
                moveit_warehouse::RobotStateStorage* rs)
 {
+  if (!rs->hasRobotState(request.name, request.robot))
+  {
+    ROS_ERROR_STREAM("No state called '" << request.name << "' for robot '" << request.robot << "'.");
+    moveit_msgs::RobotState dummy;
+    response.state = dummy;
+    return false;
+  }
   moveit_warehouse::RobotStateWithMetadata state_buffer;
   rs->getRobotState(state_buffer, request.name, request.robot);
   response.state = static_cast<const moveit_msgs::RobotState&>(*state_buffer);
@@ -96,6 +103,11 @@ bool renameState(moveit_msgs::RenameRobotStateInWarehouse::Request&  request,
                   moveit_msgs::RenameRobotStateInWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
+  if (!rs->hasRobotState(request.old_name, request.robot))
+  {
+    ROS_ERROR_STREAM("No state called '" << request.old_name << "' for robot '" << request.robot << "'.");
+    return false;
+  }
   rs->renameRobotState(request.old_name, request.new_name, request.robot);
   return true;
 }
@@ -104,6 +116,11 @@ bool deleteState(moveit_msgs::DeleteRobotStateFromWarehouse::Request&  request,
                   moveit_msgs::DeleteRobotStateFromWarehouse::Response& response,
                   moveit_warehouse::RobotStateStorage* rs)
 {
+  if (!rs->hasRobotState(request.name, request.robot))
+  {
+    ROS_ERROR_STREAM("No state called '" << request.name << "' for robot '" << request.robot << "'.");
+    return false;
+  }
   rs->removeRobotState(request.name, request.robot);
   return true;
 }
