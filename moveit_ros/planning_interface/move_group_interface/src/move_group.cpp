@@ -105,6 +105,7 @@ public:
       ROS_FATAL_STREAM(error);
       throw std::runtime_error(error);
     }
+
     joint_model_group_ = getRobotModel()->getJointModelGroup(opt.group_name_);
 
     joint_state_target_.reset(new robot_state::RobotState(getRobotModel()));
@@ -119,6 +120,7 @@ public:
     planning_time_ = 5.0;
     num_planning_attempts_ = 1;
     max_velocity_scaling_factor_ = 1.0;
+    max_acceleration_scaling_factor_ = 1.0;
     initializing_constraints_ = false;
 
     if (joint_model_group_->isChain())
@@ -188,9 +190,14 @@ public:
     }
 
     if (!action->isServerConnected())
-      throw std::runtime_error("Unable to connect to move_group action server within allotted time (2)");
+    {
+      std::string error = "Unable to connect to move_group action server '" + name + "' within allotted time (2)";
+      throw std::runtime_error(error);
+    }
     else
+    {
       ROS_DEBUG("Connected to '%s'", name.c_str());
+    }
   }
 
   ~MoveGroupImpl()
@@ -285,6 +292,11 @@ public:
   void setMaxVelocityScalingFactor(double max_velocity_scaling_factor)
   {
     max_velocity_scaling_factor_ = max_velocity_scaling_factor;
+  }
+
+  void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+  {
+    max_acceleration_scaling_factor_ = max_acceleration_scaling_factor;
   }
 
   robot_state::RobotState& getJointStateTarget()
@@ -875,6 +887,7 @@ public:
     goal.request.group_name = opt_.group_name_;
     goal.request.num_planning_attempts = num_planning_attempts_;
     goal.request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
+    goal.request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
     goal.request.allowed_planning_time = planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
@@ -1063,6 +1076,7 @@ private:
   std::string planner_id_;
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
+  double max_acceleration_scaling_factor_;
   double goal_joint_tolerance_;
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
@@ -1122,6 +1136,21 @@ const std::string& moveit::planning_interface::MoveGroup::getName() const
   return impl_->getOptions().group_name_;
 }
 
+const std::vector<std::string> moveit::planning_interface::MoveGroup::getNamedTargets()
+{
+  const robot_model::RobotModelConstPtr& robot = getRobotModel();
+  const std::string& group = getName();
+  const robot_model::JointModelGroup* joint_group = robot->getJointModelGroup(group);
+
+  if (joint_group)
+  {
+    return joint_group->getDefaultStateNames();
+  }
+
+  std::vector<std::string> empty;
+  return empty;
+}
+
 robot_model::RobotModelConstPtr moveit::planning_interface::MoveGroup::getRobotModel() const
 {
   return impl_->getRobotModel();
@@ -1171,6 +1200,10 @@ void moveit::planning_interface::MoveGroup::setMaxVelocityScalingFactor(double m
   impl_->setMaxVelocityScalingFactor(max_velocity_scaling_factor);
 }
 
+void moveit::planning_interface::MoveGroup::setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor)
+{
+  impl_->setMaxAccelerationScalingFactor(max_acceleration_scaling_factor);
+}
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::asyncMove()
 {
@@ -1274,6 +1307,31 @@ void moveit::planning_interface::MoveGroup::setRandomTarget()
 {
   impl_->getJointStateTarget().setToRandomPositions();
   impl_->setTargetType(JOINT);
+}
+
+const std::vector<std::string>& moveit::planning_interface::MoveGroup::getJointNames()
+{
+  return impl_->getJointModelGroup()->getVariableNames();
+}
+
+std::map<std::string, double> moveit::planning_interface::MoveGroup::getNamedTargetValues(const std::string& name)
+{
+  std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
+  std::map<std::string,double> positions;
+
+  if (it != remembered_joint_values_.end())
+  {
+    std::vector<std::string> names = impl_->getJointModelGroup()->getVariableNames();
+    for (size_t x = 0; x < names.size(); ++x)
+    {
+      positions[names[x]] = it->second[x];
+    }
+  }
+  else
+  {
+    impl_->getJointModelGroup()->getVariableDefaultPositions(name, positions);
+  }
+  return positions;
 }
 
 bool moveit::planning_interface::MoveGroup::setNamedTarget(const std::string &name)
