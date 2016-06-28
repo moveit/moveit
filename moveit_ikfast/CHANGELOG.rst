@@ -2,6 +2,18 @@
 Changelog for package moveit_ikfast
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [feat] added ik_seed_state argument to the getPositionIK method. added support for redundancy sampling
+* [feat] Random Sampling uses the joint discretization to determine how many samples to generate
+* [feat] Allow hex version number of ikFast as used since 2014-10-08. the current git version of openRAVE uses hex version number since 2014-10-08 `#48 <https://github.com/ros-planning/moveit_ikfast/issues/48>`_ 
+* [enhance] Kinematics base update `#57 <https://github.com/ros-planning/moveit_ikfast/issues/57>`_
+* [enhance] updates the template for generating the ikfast KinematicsBase plugin
+* [sys][CI] Update Travis config to run on Ubuntu 14.04. `#64 <https://github.com/ros-planning/moveit_ikfast/issues/64>`_
+* [enhance] Reduce INFO output at initialization `#44 <https://github.com/ros-planning/moveit_ikfast/issues/44>`_
+* [doc] Updated README
+* Contributors: Dave Coleman, G.A. vd. Hoorn, Isaac I.Y. Saito, Jonathan Meyer, Martin Guenther, gavanderhoorn, jrgnicho, simonschmeisser
+
 3.1.0 (2014-10-07)
 ------------------
 * Search for cheapest IK solution
