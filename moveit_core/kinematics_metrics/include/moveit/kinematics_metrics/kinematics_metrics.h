@@ -168,7 +168,7 @@ private:
 
 };
 
-MOVEIT_CLASS_FORWARD(KinematicsMetrics); 
+MOVEIT_CLASS_FORWARD(KinematicsMetrics);
 
 }
 

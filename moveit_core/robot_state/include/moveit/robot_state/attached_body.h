@@ -57,7 +57,7 @@ typedef boost::function<void(AttachedBody *body, bool attached)> AttachedBodyCal
 class AttachedBody
 {
 public:
-  
+
   /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e shapes that
       attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this object is specified by \e touch_links. */
   AttachedBody(const LinkModel *link, const std::string &id,
@@ -65,9 +65,9 @@ public:
                const EigenSTL::vector_Affine3d &attach_trans,
                const std::set<std::string> &touch_links,
                const trajectory_msgs::JointTrajectory &attach_posture);
-  
+
   ~AttachedBody();
-  
+
   /** \brief Get the name of the attached body */
   const std::string& getName() const
   {
@@ -130,7 +130,7 @@ public:
     for (std::size_t i = 0; i < global_collision_body_transforms_.size() ; ++i)
       global_collision_body_transforms_[i] = parent_link_global_transform * attach_trans_[i];
   }
-  
+
 private:
 
   /** \brief The link that owns this attached body */
@@ -151,7 +151,7 @@ private:
   /** \brief Posture of links for releasing the object (if any). This is useful for example when storing
       the configuration of a gripper holding an object */
   trajectory_msgs::JointTrajectory   detach_posture_;
-  
+
   /** \brief The global transforms for these attached bodies (computed by forward kinematics) */
   EigenSTL::vector_Affine3d          global_collision_body_transforms_;
 };

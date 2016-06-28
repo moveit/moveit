@@ -472,7 +472,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   for (int z=1; z<df.getZNumCells()-1; z++) {
     for (int x=1; x<df.getXNumCells()-1; x++) {
       for (int y=1; y<df.getYNumCells()-1; y++) {
-        
+
         double dist = gradient_df.getDistance(x,y,z);
         double ncell_dist;
         Eigen::Vector3i ncell_pos;
