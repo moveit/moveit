@@ -2,8 +2,8 @@
 Changelog for package moveit_ikfast
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.1 (2016-06-28)
+------------------
 * [feat] added ik_seed_state argument to the getPositionIK method. added support for redundancy sampling
 * [feat] Random Sampling uses the joint discretization to determine how many samples to generate
 * [feat] Allow hex version number of ikFast as used since 2014-10-08. the current git version of openRAVE uses hex version number since 2014-10-08 `#48 <https://github.com/ros-planning/moveit_ikfast/issues/48>`_ 
