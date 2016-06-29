@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_move_group
   dynamic_reconfigure
+  manipulation_msgs
   roscpp
   rosconsole
   tf
