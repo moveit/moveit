@@ -24,6 +24,7 @@
   <build_depend>moveit_ros_move_group</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_msgs</build_depend>
+  <build_depend>manipulation_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
   <build_depend>tf</build_depend>
