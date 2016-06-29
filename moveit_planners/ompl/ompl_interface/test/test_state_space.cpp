@@ -43,6 +43,8 @@
 #include <moveit/robot_state/conversions.h>
 #include <gtest/gtest.h>
 #include <fstream>
+#include <boost/filesystem/path.hpp>
+#include <ros/package.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -50,28 +52,30 @@ protected:
 
   virtual void SetUp()
   {
-    srdf_model_.reset(new srdf::Model());
+    std::string resource_dir = ros::package::getPath("moveit_resources");
+    if(resource_dir == "")
+    {
+      FAIL() << "Failed to find package moveit_resources.";
+      return;
+    }
+    boost::filesystem::path res_path(resource_dir);
 
+    srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file("../kinematic_state/test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
-      while ( xml_file.good() )
+      while (xml_file.good())
       {
         std::string line;
-        std::getline( xml_file, line);
+        std::getline(xml_file, line);
         xml_string += (line + "\n");
       }
       xml_file.close();
       urdf_model_ = urdf::parseURDF(xml_string);
-      urdf_ok_ = urdf_model_;
     }
-    else
-      urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "../kinematic_state/test/srdf/robot.xml");
-
-    if (urdf_ok_ && srdf_ok_)
-      kmodel_.reset(new robot_model::RobotModel(urdf_model_, srdf_model_));
+    srdf_model_->initFile(*urdf_model_, (res_path / "test/srdf/robot.xml").string());
+    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
   };
 
   virtual void TearDown()
@@ -79,7 +83,7 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr kmodel_;
+  robot_model::RobotModelPtr robot_model_;
   boost::shared_ptr<urdf::ModelInterface> urdf_model_;
   boost::shared_ptr<srdf::Model>     srdf_model_;
   bool                               urdf_ok_;
@@ -89,7 +93,7 @@ protected:
 
 TEST_F(LoadPlanningModelsPr2, StateSpace)
 {
-  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "whole_body");
+  ompl_interface::ModelBasedStateSpaceSpecification spec(robot_model_, "whole_body");
   ompl_interface::JointModelStateSpace ss(spec);
   ss.setPlanningVolume(-1, 1, -1, 1, -1, 1);
   ss.setup();
@@ -110,19 +114,19 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
 
 TEST_F(LoadPlanningModelsPr2, StateSpaces)
 {
-  ompl_interface::ModelBasedStateSpaceSpecification spec1(kmodel_, "right_arm");
+  ompl_interface::ModelBasedStateSpaceSpecification spec1(robot_model_, "right_arm");
   ompl_interface::ModelBasedStateSpace ss1(spec1);
   ss1.setup();
 
-  ompl_interface::ModelBasedStateSpaceSpecification spec2(kmodel_, "left_arm");
+  ompl_interface::ModelBasedStateSpaceSpecification spec2(robot_model_, "left_arm");
   ompl_interface::ModelBasedStateSpace ss2(spec2);
   ss2.setup();
 
-  ompl_interface::ModelBasedStateSpaceSpecification spec3(kmodel_, "whole_body");
+  ompl_interface::ModelBasedStateSpaceSpecification spec3(robot_model_, "whole_body");
   ompl_interface::ModelBasedStateSpace ss3(spec3);
   ss3.setup();
 
-  ompl_interface::ModelBasedStateSpaceSpecification spec4(kmodel_, "arms");
+  ompl_interface::ModelBasedStateSpaceSpecification spec4(robot_model_, "arms");
   ompl_interface::ModelBasedStateSpace ss4(spec4);
   ss4.setup();
 
@@ -132,7 +136,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaces)
 
 TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 {
-  ompl_interface::ModelBasedStateSpaceSpecification spec(kmodel_, "right_arm");
+  ompl_interface::ModelBasedStateSpaceSpecification spec(robot_model_, "right_arm");
   ompl_interface::JointModelStateSpace ss(spec);
   ss.setPlanningVolume(-1, 1, -1, 1, -1, 1);
   ss.setup();
@@ -150,7 +154,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   EXPECT_TRUE(passed);
 
-  robot_state::RobotState kstate(kmodel_);
+  robot_state::RobotState kstate(robot_model_);
   kstate.setToRandomPositions();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
   ompl::base::State *state = ss.allocState();
