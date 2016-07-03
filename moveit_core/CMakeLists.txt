@@ -26,14 +26,18 @@ COMPONENTS
   eigen_conversions
   eigen_stl_containers
   geometric_shapes
+  geometry_msgs
   kdl_parser
   moveit_msgs
+  octomap_msgs
   random_numbers
-  resource_retriever
   roslib
   rostime
+  sensor_msgs
+  shape_msgs
   srdfdom
   std_msgs
+  trajectory_msgs
   visualization_msgs
 )
 
@@ -97,11 +101,16 @@ catkin_package(
     eigen_conversions
     eigen_stl_containers
     geometric_shapes
+    geometry_msgs
     kdl_parser
     moveit_msgs
+    octomap_msgs
     random_numbers
+    sensor_msgs
     srdfdom
     std_msgs
+    trajectory_msgs
+    visualization_msgs
   DEPENDS
     Boost
     EIGEN3

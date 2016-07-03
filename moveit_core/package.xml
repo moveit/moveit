@@ -19,7 +19,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
 
-  <build_depend>actionlib_msgs</build_depend>
   <build_depend>assimp</build_depend>
   <build_depend>boost</build_depend>
   <build_depend>eigen</build_depend>
@@ -45,7 +44,6 @@
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
 
-  <run_depend>actionlib_msgs</run_depend>
   <run_depend>assimp</run_depend>
   <run_depend>boost</run_depend>
   <run_depend>eigen</run_depend>
@@ -64,7 +62,6 @@
   <run_depend>random_numbers</run_depend>
   <run_depend>rostime</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>shape_msgs</run_depend>
   <run_depend>srdfdom</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>trajectory_msgs</run_depend>
@@ -73,5 +70,6 @@
   <test_depend>angles</test_depend>
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
+  <test_depend>rosunit</test_depend>
   <test_depend>tf_conversions</test_depend>
 </package>
