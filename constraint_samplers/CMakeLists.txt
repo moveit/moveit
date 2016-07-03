@@ -24,11 +24,11 @@ install(DIRECTORY include/
   DESTINATION include)
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(orocos_kdl)
-  find_package(angles)
-  find_package(tf_conversions)
+  find_package(orocos_kdl REQUIRED)
+  find_package(angles REQUIRED)
+  find_package(tf_conversions REQUIRED)
 
-  include_directories(${angles_INCLUDE_DIRS} ${tf_conversions_INCLUDE_DIRS})
+  include_directories(${orocos_kdl_INCLUDE_DIRS} ${angles_INCLUDE_DIRS} ${tf_conversions_INCLUDE_DIRS})
 
   catkin_add_gtest(test_constraint_samplers
     test/test_constraint_samplers.cpp
@@ -37,9 +37,12 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(test_constraint_samplers
     ${MOVEIT_LIB_NAME}
-    ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES}
-    ${orocos_kdl_LIBRARIES}
+    ${catkin_LIBRARIES}
     ${angles_LIBRARIES}
+    ${console_bridge_LIBRARIES}
+    ${orocos_kdl_LIBRARIES}
     ${tf_conversions_LIBRARIES}
+    ${urdfdom_LIBRARIES}
+    ${urdfdom_headers_LIBRARIES}
   )
 endif()
