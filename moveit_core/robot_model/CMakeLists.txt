@@ -1,14 +1,14 @@
 set(MOVEIT_LIB_NAME moveit_robot_model)
 
 add_library(${MOVEIT_LIB_NAME}
-  src/link_model.cpp
-  src/joint_model.cpp
   src/fixed_joint_model.cpp
-  src/revolute_joint_model.cpp
-  src/prismatic_joint_model.cpp
-  src/planar_joint_model.cpp
   src/floating_joint_model.cpp
+  src/joint_model.cpp
   src/joint_model_group.cpp
+  src/link_model.cpp
+  src/planar_joint_model.cpp
+  src/prismatic_joint_model.cpp
+  src/revolute_joint_model.cpp
   src/robot_model.cpp
   )
 
