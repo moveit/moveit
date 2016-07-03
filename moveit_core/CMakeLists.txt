@@ -32,6 +32,7 @@ COMPONENTS
   roslib
   rostime
   srdfdom
+  std_msgs
   visualization_msgs
 )
 
@@ -100,6 +101,7 @@ catkin_package(
     moveit_msgs
     random_numbers
     srdfdom
+    std_msgs
   DEPENDS
     Boost
     Eigen
