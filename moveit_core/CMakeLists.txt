@@ -132,9 +132,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 # Generate and install version.h
 string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${moveit_core_VERSION}")
 string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${moveit_core_VERSION}")
