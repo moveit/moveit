@@ -75,7 +75,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_exceptions
     moveit_background_processing
@@ -114,6 +113,7 @@ catkin_package(
   DEPENDS
     Boost
     Eigen
+    OCTOMAP
     console_bridge
     urdfdom
     urdfdom_headers
