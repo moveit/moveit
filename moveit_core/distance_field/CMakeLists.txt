@@ -2,8 +2,8 @@ set(MOVEIT_LIB_NAME moveit_distance_field)
 
 add_library(${MOVEIT_LIB_NAME}
   src/distance_field.cpp
-  src/propagation_distance_field.cpp
   src/find_internal_points.cpp
+  src/propagation_distance_field.cpp
   )
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
