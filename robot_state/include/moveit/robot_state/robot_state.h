@@ -42,6 +42,7 @@
 #include <moveit/robot_state/attached_body.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <std_msgs/ColorRGBA.h>
 #include <geometry_msgs/Twist.h>
 #include <cassert>
 
