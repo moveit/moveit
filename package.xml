@@ -12,33 +12,18 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit_commander/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit_commander</url>
 
-  <buildtool_depend>catkin</buildtool_depend> 
+  <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-catkin-pkg</buildtool_depend>
 
-  <build_depend>moveit_ros_planning</build_depend>
-  <build_depend>moveit_ros_planning_interface</build_depend>
-  <build_depend>moveit_ros_warehouse</build_depend>
-  <build_depend>moveit_ros_manipulation</build_depend>
-  <build_depend>roscpp</build_depend> 
-  <build_depend>rospy</build_depend>
-  <build_depend>rosconsole</build_depend>
-  <build_depend>actionlib</build_depend> 
-  <build_depend>tf</build_depend>
-  <build_depend>eigen_conversions</build_depend>
   <build_depend>python</build_depend>
-  <build_depend>python-pyassimp</build_depend>
 
-  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>moveit_msgs</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>moveit_ros_warehouse</run_depend>
-  <run_depend>moveit_ros_manipulation</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rosconsole</run_depend>
-  <run_depend>actionlib</run_depend> 
-  <run_depend>tf</run_depend>
-  <run_depend>eigen_conversions</run_depend>
   <run_depend>python</run_depend>
   <run_depend>python-pyassimp</run_depend>
-
+  <run_depend>rospy</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>shape_msgs</run_depend>
+  <run_depend>tf</run_depend>
 </package>
