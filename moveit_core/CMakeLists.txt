@@ -10,6 +10,10 @@ find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 
 find_package(console_bridge REQUIRED)
 
+# required to find 'Eigen' in indigo
+find_package(cmake_modules REQUIRED)
+find_package(Eigen REQUIRED)
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
@@ -22,7 +26,6 @@ find_package(urdfdom_headers REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
-  cmake_modules
   eigen_conversions
   eigen_stl_containers
   geometric_shapes
@@ -40,8 +43,6 @@ COMPONENTS
   trajectory_msgs
   visualization_msgs
 )
-
-find_package(Eigen REQUIRED)
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
