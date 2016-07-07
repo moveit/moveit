@@ -49,9 +49,29 @@ boost::shared_ptr<tf::Transformer> getSharedTF();
 
 robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_description);
 
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
+/**
+  @brief getSharedStateMonitor is a simpler version of getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf,
+    ros::NodeHandle nh = ros::NodeHandle() ). It calls this function using the default constructed ros::NodeHandle
 
-}
-}
+  @param kmodel
+  @param tf
+  @return
+ */
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf );
 
-#endif
+/**
+  @brief getSharedStateMonitor
+
+  @param kmodel
+  @param tf
+  @param nh A ros::NodeHandle to pass node specific configurations, such as callbacks queues.
+  @return
+ */
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf,
+    ros::NodeHandle nh );
+
+
+} // namespace planning interface
+} // namespace moveit
+
+#endif // end of MOVEIT_PLANNING_INTERFACE_COMMON_OBJECTS_
