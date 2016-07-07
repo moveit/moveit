@@ -38,8 +38,15 @@
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 
-planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf)
-  : tf_(tf)
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf )
+  : CurrentStateMonitor( robot_model, tf, ros::NodeHandle() )
+{
+}
+
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf,
+                                                                 ros::NodeHandle nh )
+  : nh_( nh )
+  , tf_(tf)
   , robot_model_(robot_model)
   , robot_state_(robot_model)
   , state_monitor_started_(false)

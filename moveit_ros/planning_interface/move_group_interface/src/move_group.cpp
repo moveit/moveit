@@ -128,7 +128,7 @@ public:
     trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
 
-    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_);
+    current_state_monitor_ = getSharedStateMonitor( robot_model_, tf_, node_handle_ );
 
     move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(node_handle_,
                                                                                               move_group::MOVE_ACTION,
@@ -161,8 +161,9 @@ public:
     ros::Time start_time = ros::Time::now();
     while (start_time == ros::Time::now())
     {
-      ros::WallDuration(0.01).sleep();
-      ros::spinOnce();
+      ros::WallDuration(0.001).sleep();
+      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
     }
 
     // wait for the server (and spin as needed)
@@ -170,8 +171,9 @@ public:
     {
       while (node_handle_.ok() && !action->isServerConnected())
       {
-        ros::WallDuration(0.02).sleep();
-        ros::spinOnce();
+        ros::WallDuration(0.001).sleep();
+        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+        ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
     }
     else
@@ -179,8 +181,9 @@ public:
       ros::Time final_time = ros::Time::now() + wait_for_server;
       while (node_handle_.ok() && !action->isServerConnected() && final_time > ros::Time::now())
       {
-        ros::WallDuration(0.02).sleep();
-        ros::spinOnce();
+        ros::WallDuration(0.001).sleep();
+        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+        ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
     }
 
