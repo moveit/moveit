@@ -97,6 +97,8 @@ public:
 
   RobotModelLoader(const std::string &robot_description, bool load_kinematics_solvers = true);
 
+  ~RobotModelLoader();
+
   /** @brief Get the constructed planning_models::RobotModel */
   const robot_model::RobotModelPtr& getModel() const
   {
