@@ -466,7 +466,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   tf::poseMsgToEigen(p, p_eigen);
 
   gradient_df.addShapeToField(&sphere, p_eigen);
-  printBoth(gradient_df, numX, numY, numZ);
+  //printBoth(gradient_df, numX, numY, numZ);
   EXPECT_GT(gradient_df.getCell(5,5,5).negative_distance_square_, 1);
   //all negative cells should have gradients that point towards cells with distance 1
   for (int z=1; z<df.getZNumCells()-1; z++) {
