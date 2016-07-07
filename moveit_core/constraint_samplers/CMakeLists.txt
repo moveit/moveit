@@ -2,10 +2,10 @@ set(MOVEIT_LIB_NAME moveit_constraint_samplers)
 
 add_library(${MOVEIT_LIB_NAME}
   src/constraint_sampler.cpp
-  src/default_constraint_samplers.cpp
-  src/union_constraint_sampler.cpp
   src/constraint_sampler_manager.cpp
   src/constraint_sampler_tools.cpp
+  src/default_constraint_samplers.cpp
+  src/union_constraint_sampler.cpp
 )
 
 target_link_libraries(${MOVEIT_LIB_NAME}
@@ -17,18 +17,17 @@ target_link_libraries(${MOVEIT_LIB_NAME}
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
-install(DIRECTORY include/
-  DESTINATION include)
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(orocos_kdl)
-  find_package(angles)
-  find_package(tf_conversions)
+  find_package(orocos_kdl REQUIRED)
+  find_package(angles REQUIRED)
+  find_package(tf_conversions REQUIRED)
 
-  include_directories(${angles_INCLUDE_DIRS} ${tf_conversions_INCLUDE_DIRS})
+  include_directories(${orocos_kdl_INCLUDE_DIRS} ${angles_INCLUDE_DIRS} ${tf_conversions_INCLUDE_DIRS})
 
   catkin_add_gtest(test_constraint_samplers
     test/test_constraint_samplers.cpp
@@ -37,9 +36,12 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(test_constraint_samplers
     ${MOVEIT_LIB_NAME}
-    ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES}
-    ${orocos_kdl_LIBRARIES}
+    ${catkin_LIBRARIES}
     ${angles_LIBRARIES}
+    ${console_bridge_LIBRARIES}
+    ${orocos_kdl_LIBRARIES}
     ${tf_conversions_LIBRARIES}
+    ${urdfdom_LIBRARIES}
+    ${urdfdom_headers_LIBRARIES}
   )
 endif()

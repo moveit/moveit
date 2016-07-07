@@ -2,35 +2,47 @@ cmake_minimum_required(VERSION 2.8.3)
 project(moveit_core)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+  message("${PROJECT_NAME}: You did not request a specific build type: Choosing 'Release' for maximum performance")
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
-find_package(catkin REQUIRED
-COMPONENTS
-  moveit_msgs
-  resource_retriever
-  srdfdom
-  kdl_parser
-  geometric_shapes
-  eigen_stl_containers
-  eigen_conversions
-  random_numbers
-  visualization_msgs
-  roslib
-  rostime
-  cmake_modules
-)
+
 find_package(console_bridge REQUIRED)
+
+# required to find 'Eigen' in indigo
+find_package(cmake_modules REQUIRED)
 find_package(Eigen REQUIRED)
-find_package(octomap REQUIRED)
-find_package(urdfdom REQUIRED)
-find_package(urdfdom_headers REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBFCL REQUIRED fcl)
 find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
 set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
+
+find_package(octomap REQUIRED)
+
+find_package(urdfdom REQUIRED)
+find_package(urdfdom_headers REQUIRED)
+
+find_package(catkin REQUIRED
+COMPONENTS
+  eigen_conversions
+  eigen_stl_containers
+  geometric_shapes
+  geometry_msgs
+  kdl_parser
+  moveit_msgs
+  octomap_msgs
+  random_numbers
+  roslib
+  rostime
+  sensor_msgs
+  shape_msgs
+  srdfdom
+  std_msgs
+  trajectory_msgs
+  visualization_msgs
+)
 
 set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
@@ -65,7 +77,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
-    ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_exceptions
     moveit_background_processing
@@ -88,19 +99,26 @@ catkin_package(
     moveit_dynamics_solver
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
-    geometric_shapes
-    eigen_stl_containers
     eigen_conversions
-    random_numbers
-    moveit_msgs
+    eigen_stl_containers
+    geometric_shapes
+    geometry_msgs
     kdl_parser
+    moveit_msgs
+    octomap_msgs
+    random_numbers
+    sensor_msgs
     srdfdom
+    std_msgs
+    trajectory_msgs
+    visualization_msgs
   DEPENDS
     Boost
     Eigen
+    OCTOMAP
+    console_bridge
     urdfdom
     urdfdom_headers
-    console_bridge
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
@@ -115,13 +133,10 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 
-link_directories(${Boost_LIBRARY_DIRS})
-link_directories(${catkin_LIBRARY_DIRS})
-
 # Generate and install version.h
-string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${moveit_core_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${moveit_core_VERSION}")
-string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${moveit_core_VERSION}")
+string(REGEX REPLACE "^([0-9]+)\\..*" "\\1" MOVEIT_VERSION_MAJOR "${${PROJECT_NAME}_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_MINOR "${${PROJECT_NAME}_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH "${${PROJECT_NAME}_VERSION}")
 set(MOVEIT_VERSION_EXTRA "Alpha")
 set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
