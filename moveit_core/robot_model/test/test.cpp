@@ -91,7 +91,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
 TEST_F(LoadPlanningModelsPr2, Model)
 {
-  robot_model->printModelInfo(std::cout);
+  //robot_model->printModelInfo(std::cout);
 
   const std::vector<const moveit::core::JointModel*> &joints = robot_model->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
