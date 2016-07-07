@@ -105,11 +105,13 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
                               const KDL::Frame& p_in,
                               KDL::JntArray &q_out)
 {
+  const bool verbose = false;
   Eigen::Matrix4f b = KDLToEigenMatrix(p_in);
   std::vector<std::vector<double> > solution_ik;
   if(free_angle_ == 0)
   {
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solving with %f",q_init(0));
+    if (verbose)
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solving with %f",q_init(0));
     pr2_arm_ik_.computeIKShoulderPan(b,q_init(0),solution_ik);
   }
   else
@@ -125,15 +127,17 @@ int PR2ArmIKSolver::CartToJnt(const KDL::JntArray& q_init,
 
   for(int i=0; i< (int) solution_ik.size(); i++)
   {
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solution : %d",(int)solution_ik.size());
-
-    for(int j=0; j < (int)solution_ik[i].size(); j++)
+    if (verbose)
     {
-      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d: %f",j,solution_ik[i][j]);
-    }
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","Solution : %d",(int)solution_ik.size());
 
+      for(int j=0; j < (int)solution_ik[i].size(); j++)
+      {
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d: %f",j,solution_ik[i][j]);
+      }
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin"," ");
+    }
     double tmp_distance = computeEuclideanDistance(solution_ik[i],q_init);
     if(tmp_distance < min_distance)
     {
@@ -160,6 +164,7 @@ int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
                                     KDL::JntArray &q_out,
                                     const double &timeout)
 {
+  const bool verbose = false;
   KDL::JntArray q_init = q_in;
   double initial_guess = q_init(free_angle_);
 
@@ -169,7 +174,8 @@ int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
 
   int num_positive_increments = (int)((pr2_arm_ik_.solver_info_.limits[free_angle_].max_position-initial_guess)/search_discretization_angle_);
   int num_negative_increments = (int)((initial_guess-pr2_arm_ik_.solver_info_.limits[free_angle_].min_position)/search_discretization_angle_);
-  ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%f %f %f %d %d \n\n",initial_guess,pr2_arm_ik_.solver_info_.limits[free_angle_].max_position,pr2_arm_ik_.solver_info_.limits[free_angle_].min_position,num_positive_increments,num_negative_increments);
+  if (verbose)
+    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%f %f %f %d %d \n\n",initial_guess,pr2_arm_ik_.solver_info_.limits[free_angle_].max_position,pr2_arm_ik_.solver_info_.limits[free_angle_].min_position,num_positive_increments,num_negative_increments);
   while(loop_time < timeout)
   {
     if(CartToJnt(q_init,p_in,q_out) > 0)
@@ -177,7 +183,8 @@ int PR2ArmIKSolver::CartToJntSearch(const KDL::JntArray& q_in,
     if(!getCount(count,num_positive_increments,-num_negative_increments))
       return -1;
     q_init(free_angle_) = initial_guess + search_discretization_angle_ * count;
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d, %f",count,q_init(free_angle_));
+    if (verbose)
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","%d, %f",count,q_init(free_angle_));
     loop_time = (ros::Time::now()-start_time).toSec();
   }
   if(loop_time >= timeout)
@@ -266,7 +273,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description,
                                         double search_discretization)
 {
   setValues(robot_description, group_name, base_name, tip_name,search_discretization);
-
+  const bool verbose = false;
   std::string xml_string;
   dimension_ = 7;
 
@@ -291,19 +298,22 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description,
     pr2_arm_kinematics::getKDLChainInfo(kdl_chain_,fk_solver_info_);
     fk_solver_info_.joint_names = ik_solver_info_.joint_names;
 
-    for(unsigned int i=0; i < ik_solver_info_.joint_names.size(); i++)
+    if (verbose)
     {
-      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics:: joint name: %s",ik_solver_info_.joint_names[i].c_str());
+      for(unsigned int i=0; i < ik_solver_info_.joint_names.size(); i++)
+      {
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics:: joint name: %s",ik_solver_info_.joint_names[i].c_str());
+      }
+      for(unsigned int i=0; i < ik_solver_info_.link_names.size(); i++)
+      {
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve IK for %s",ik_solver_info_.link_names[i].c_str());
+      }
+      for(unsigned int i=0; i < fk_solver_info_.link_names.size(); i++)
+      {
+        ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve FK for %s",fk_solver_info_.link_names[i].c_str());
+      }
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2KinematicsPlugin::active for %s",group_name.c_str());
     }
-    for(unsigned int i=0; i < ik_solver_info_.link_names.size(); i++)
-    {
-      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve IK for %s",ik_solver_info_.link_names[i].c_str());
-    }
-    for(unsigned int i=0; i < fk_solver_info_.link_names.size(); i++)
-    {
-      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2Kinematics can solve FK for %s",fk_solver_info_.link_names[i].c_str());
-    }
-    ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin","PR2KinematicsPlugin::active for %s",group_name.c_str());
     active_ = true;
   }
   return active_;
