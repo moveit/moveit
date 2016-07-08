@@ -226,35 +226,33 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
 
   ompl::base::OptimizationObjectivePtr objective;
-  it = cfg.find("optimization");
+  it = cfg.find("optimization_objective");
   if (it == cfg.end())
   {
-	  logInform("%s: No optimization objective specified, defaulting to PathLengthOptimizationObjective");
-	  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    logInform("%s: No optimization objective specified, defaulting to PathLengthOptimizationObjective");
+    objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
   }
   else
   {
-	  int selector = atoi(it->second.c_str());
-	  switch(selector){
-	  case 1:
-		  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  case 2:
-		  objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  case 3:
-		  objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  case 4:
-		  objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  case 5:
-		  objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  default:
-		  objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-		  break;
-	  }
+    std::string optimizer = it->second.c_str();
+    if (optimizer == "PathLengthOptimizationObjective"){
+      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+     }
+    else if (optimizer == "MinimaxObjective"){
+      objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "StateCostIntegralObjective"){
+      objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "MechanicalWorkOptimizationObjective"){
+      objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else if (optimizer == "MaximizeMinClearanceObjective"){
+      objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
+    else {
+      objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+    }
   }
   ompl_simple_setup_->setOptimizationObjective(objective);
 
