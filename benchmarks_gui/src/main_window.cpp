@@ -611,20 +611,27 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
       JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : green }"));
       try
       {
-        planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(database_host_,
-                                                                                 database_port_, 5.0));
-        robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(database_host_,
-                                                                           database_port_, 5.0));
-        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(database_host_,
-                                                                            database_port_, 5.0));
-        trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(database_host_,
-                                                                                                 database_port_, 5.0));
-        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
+        warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+        conn->setParams(database_host_, database_port_, 5.0);
+        if (conn->connect())
+        {
+          planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(conn));
+          robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(conn));
+          constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
+          trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(conn));
+          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
 
-        //Get all the scenes
-        populatePlanningSceneList();
+          //Get all the scenes
+          populatePlanningSceneList();
 
-        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
+          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
+        }
+        else
+        {
+          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
+          JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Unable to connect to Database"));
+          return;
+        }
       }
       catch(std::runtime_error &ex)
       {

@@ -1051,14 +1051,19 @@ private:
 
   void initializeConstraintsStorageThread(const std::string &host, unsigned int port)
   {
+    // Set up db
     try
     {
-      constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(host, port));
-      ROS_DEBUG("Connected to constraints database");
+      warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+      conn->setParams(host, port);
+      if (conn->connect())
+      {
+        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
+      }
     }
     catch(std::runtime_error &ex)
     {
-      ROS_DEBUG("%s", ex.what());
+      ROS_ERROR("%s", ex.what());
     }
     initializing_constraints_ = false;
   }

@@ -93,12 +93,13 @@ void checkHeader(moveit_msgs::Constraints &c, const std::string &header_frame)
 }
 }
 
-moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, const std::string &host, std::size_t port) :
+moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, warehouse_ros::DatabaseConnection::Ptr conn) :
   planning_scene_(scene),
-  pss_(host, port),
-  psws_(host, port),
-  cs_(host, port),
-  rs_(host, port)
+  pss_(conn),
+  psws_(conn),
+  cs_(conn),
+  tcs_(conn),
+  rs_(conn)
 {
   // load the pluginlib class loader
   try

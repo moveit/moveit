@@ -1079,9 +1079,17 @@ void MainWindow::runBenchmarkButtonClicked(void)
   {
     case QMessageBox::Yes:
     {
+      // Set up db
+      warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+      conn->setParams(database_host_, database_port_, 10.0);
+      if (!conn->connect())
+      {
+        QMessageBox::warning(this, "Error", QString("Unable to connect to Database"));
+        break;
+      }
       QString outfilename =  run_benchmark_ui_.benchmark_output_folder_text->text().append("/config.cfg");
       moveit_benchmarks::BenchmarkType btype = 0;
-      moveit_benchmarks::BenchmarkExecution be(scene_display_->getPlanningSceneMonitor()->getPlanningScene(), database_host_, database_port_);
+      moveit_benchmarks::BenchmarkExecution be(scene_display_->getPlanningSceneMonitor()->getPlanningScene(), conn);
       if (run_benchmark_ui_.benchmark_include_planners_checkbox->isChecked())
         btype += moveit_benchmarks::BENCHMARK_PLANNERS;
       if (run_benchmark_ui_.benchmark_check_reachability_checkbox->isChecked())

@@ -41,22 +41,24 @@ const std::string moveit_warehouse::RobotStateStorage::DATABASE_NAME = "moveit_r
 const std::string moveit_warehouse::RobotStateStorage::STATE_NAME = "state_id";
 const std::string moveit_warehouse::RobotStateStorage::ROBOT_NAME = "robot_id";
 
-moveit_warehouse::RobotStateStorage::RobotStateStorage(const std::string &host, const unsigned int port, double wait_seconds) :
-  MoveItMessageStorage(host, port, wait_seconds)
+using warehouse_ros::Metadata;
+using warehouse_ros::Query;
+
+moveit_warehouse::RobotStateStorage::RobotStateStorage(warehouse_ros::DatabaseConnection::Ptr conn) :
+  MoveItMessageStorage(conn)
 {
   createCollections();
-  ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
 }
 
 void moveit_warehouse::RobotStateStorage::createCollections()
 {
-  state_collection_.reset(new RobotStateCollection::element_type(DATABASE_NAME, "robot_states", db_host_, db_port_, timeout_));
+  state_collection_ = conn_->openCollectionPtr<moveit_msgs::RobotState>(DATABASE_NAME, "robot_states");
 }
 
 void moveit_warehouse::RobotStateStorage::reset()
 {
   state_collection_.reset();
-  MoveItMessageStorage::drop(DATABASE_NAME);
+  conn_->dropDatabase(DATABASE_NAME);
   createCollections();
 }
 
@@ -68,18 +70,20 @@ void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::Robot
     removeRobotState(name, robot);
     replace = true;
   }
-  mongo_ros::Metadata metadata(STATE_NAME, name,
-                               ROBOT_NAME, robot);
+  Metadata::Ptr metadata = state_collection_->createMetadata();
+  metadata->append(STATE_NAME, name);
+  metadata->append(ROBOT_NAME, robot);
   state_collection_->insert(msg, metadata);
   ROS_DEBUG("%s robot state '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
 
 bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name, const std::string &robot) const
 {
-  mongo_ros::Query q(STATE_NAME, name);
+  Query::Ptr q = state_collection_->createQuery();
+  q->append(STATE_NAME, name);
   if (!robot.empty())
-    q.append(ROBOT_NAME, robot);
-  std::vector<RobotStateWithMetadata> constr = state_collection_->pullAllResults(q, true);
+    q->append(ROBOT_NAME, robot);
+  std::vector<RobotStateWithMetadata> constr = state_collection_->queryList(q, true);
   return !constr.empty();
 }
 
@@ -92,21 +96,22 @@ void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string 
 void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string> &names, const std::string &robot) const
 {
   names.clear();
-  mongo_ros::Query q;
+  Query::Ptr q = state_collection_->createQuery();
   if (!robot.empty())
-    q.append(ROBOT_NAME, robot);
-  std::vector<RobotStateWithMetadata> constr = state_collection_->pullAllResults(q, true, STATE_NAME, true);
+    q->append(ROBOT_NAME, robot);
+  std::vector<RobotStateWithMetadata> constr = state_collection_->queryList(q, true, STATE_NAME, true);
   for (std::size_t i = 0; i < constr.size() ; ++i)
-    if (constr[i]->metadata.hasField(STATE_NAME.c_str()))
+    if (constr[i]->lookupField(STATE_NAME))
       names.push_back(constr[i]->lookupString(STATE_NAME));
 }
 
 bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot) const
 {
-  mongo_ros::Query q(STATE_NAME, name);
+  Query::Ptr q = state_collection_->createQuery();
+  q->append(STATE_NAME, name);
   if (!robot.empty())
-    q.append(ROBOT_NAME, robot);
-  std::vector<RobotStateWithMetadata> constr = state_collection_->pullAllResults(q, false);
+    q->append(ROBOT_NAME, robot);
+  std::vector<RobotStateWithMetadata> constr = state_collection_->queryList(q, false);
   if (constr.empty())
     return false;
   else
@@ -118,19 +123,22 @@ bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &
 
 void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &old_name, const std::string &new_name, const std::string &robot)
 {
-  mongo_ros::Query q(STATE_NAME, old_name);
+  Query::Ptr q = state_collection_->createQuery();
+  q->append(STATE_NAME, old_name);
   if (!robot.empty())
-    q.append(ROBOT_NAME, robot);
-  mongo_ros::Metadata m(STATE_NAME, new_name);
+    q->append(ROBOT_NAME, robot);
+  Metadata::Ptr m = state_collection_->createMetadata();
+  m->append(STATE_NAME, new_name);
   state_collection_->modifyMetadata(q, m);
   ROS_DEBUG("Renamed robot state from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 
 void moveit_warehouse::RobotStateStorage::removeRobotState(const std::string &name, const std::string &robot)
 {
-  mongo_ros::Query q(STATE_NAME, name);
+  Query::Ptr q = state_collection_->createQuery();
+  q->append(STATE_NAME, name);
   if (!robot.empty())
-    q.append(ROBOT_NAME, robot);
+    q->append(ROBOT_NAME, robot);
   unsigned int rem = state_collection_->removeMessages(q);
   ROS_DEBUG("Removed %u RobotState messages (named '%s')", rem, name.c_str());
 }

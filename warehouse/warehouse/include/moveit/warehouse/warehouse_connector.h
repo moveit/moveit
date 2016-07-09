@@ -46,7 +46,7 @@ class WarehouseConnector
 {
 public:
 
-  WarehouseConnector(const std::string &mongoexec);
+  WarehouseConnector(const std::string &dbexec);
 
   ~WarehouseConnector();
 
@@ -54,7 +54,7 @@ public:
 
 private:
 
-  std::string mongoexec_;
+  std::string dbexec_;
   int child_pid_;
 };
 

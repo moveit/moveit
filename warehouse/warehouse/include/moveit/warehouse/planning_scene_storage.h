@@ -45,13 +45,13 @@
 namespace moveit_warehouse
 {
 
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::PlanningScene>::ConstPtr PlanningSceneWithMetadata;
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::MotionPlanRequest>::ConstPtr MotionPlanRequestWithMetadata;
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr RobotTrajectoryWithMetadata;
+typedef warehouse_ros::MessageWithMetadata<moveit_msgs::PlanningScene>::ConstPtr PlanningSceneWithMetadata;
+typedef warehouse_ros::MessageWithMetadata<moveit_msgs::MotionPlanRequest>::ConstPtr MotionPlanRequestWithMetadata;
+typedef warehouse_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr RobotTrajectoryWithMetadata;
 
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScene> > PlanningSceneCollection;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
+typedef warehouse_ros::MessageCollection<moveit_msgs::PlanningScene>::Ptr PlanningSceneCollection;
+typedef warehouse_ros::MessageCollection<moveit_msgs::MotionPlanRequest>::Ptr MotionPlanRequestCollection;
+typedef warehouse_ros::MessageCollection<moveit_msgs::RobotTrajectory>::Ptr RobotTrajectoryCollection;
 
 class PlanningSceneStorage : public MoveItMessageStorage
 {
@@ -62,12 +62,7 @@ public:
   static const std::string PLANNING_SCENE_ID_NAME;
   static const std::string MOTION_PLAN_REQUEST_ID_NAME;
 
-  /** \brief Initialize the planning scene storage to connect to a specified \e host and \e port for the MongoDB.
-      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
-      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
-      If no values are found, the defaults are left to be the ones MongoDB uses.
-      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
-  PlanningSceneStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  PlanningSceneStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
   void addPlanningScene(const moveit_msgs::PlanningScene &scene);
   void addPlanningQuery(const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name = "");

@@ -43,8 +43,8 @@
 namespace moveit_benchmarks
 {
 
-// keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
-// as that couses boost::filesystem version issues (redefinition of symbols)
+// Keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
+// as that causes boost::filesystem version issues (redefinition of symbols)
 std::vector<std::string> benchmarkGetAvailablePluginNames()
 {
   // load the planning plugins

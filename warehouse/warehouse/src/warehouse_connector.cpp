@@ -34,16 +34,16 @@
 
 /* Author: E. Gil Jones */
 
-#include <mongo_ros/message_collection.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <unistd.h>
+#include <ros/ros.h>
 #include <moveit/warehouse/warehouse_connector.h>
 
 namespace moveit_warehouse
 {
 
-WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec_(mongoexec), child_pid_(0)
+WarehouseConnector::WarehouseConnector(const std::string &dbexec) : dbexec_(dbexec), child_pid_(0)
 {
 }
 
@@ -68,13 +68,13 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 
   if (child_pid_ == 0)
   {
-    std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
+    std::size_t exec_file_pos = dbexec_.find_last_of("/\\");
     if (exec_file_pos != std::string::npos)
     {
       char** argv = new char*[4];
-      std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
+      std::size_t exec_length = 1 + dbexec_.length() - exec_file_pos;
       argv[0] = new char[1 + exec_length];
-      snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
+      snprintf(argv[0], exec_length, "%s", dbexec_.substr(exec_file_pos + 1).c_str());
 
       argv[1] = new char[16];
       snprintf(argv[1], 15, "--dbpath");
@@ -84,7 +84,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 
       argv[3] = NULL;
 
-      int code = execv(mongoexec_.c_str(), argv);
+      int code = execv(dbexec_.c_str(), argv);
       delete[] argv[0];
       delete[] argv[1];
       delete[] argv[2];
