@@ -50,7 +50,7 @@ namespace core
 {
 namespace
 {
-  
+
 // check if a parent or ancestor of joint is included in this group
 bool includesParent(const JointModel *joint, const JointModelGroup *group)
 {
@@ -95,7 +95,7 @@ bool jointPrecedes(const JointModel *a, const JointModel *b)
     else
       break;
   }
-  
+
   return false;
 }
 
@@ -120,7 +120,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
   joint_model_vector_ = unsorted_group_joints;
   std::sort(joint_model_vector_.begin(), joint_model_vector_.end(), OrderJointsByIndex());
   joint_model_name_vector_.reserve(joint_model_vector_.size());
-  
+
   // figure out active joints, mimic joints, fixed joints
   // construct index maps, list of variables
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -147,7 +147,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
         variable_names_.push_back(name_order[j]);
         variable_names_set_.insert(name_order[j]);
       }
-      
+
       int first_index = joint_model_vector_[i]->getFirstVariableIndex();
       for (std::size_t j = 0; j < name_order.size(); ++j)
       {
@@ -155,8 +155,8 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
         joint_variables_index_map_[name_order[j]] = variable_count_ + j;
       }
       joint_variables_index_map_[joint_model_vector_[i]->getName()] = variable_count_;
-      
-      if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE && 
+
+      if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE &&
           static_cast<const RevoluteJointModel*>(joint_model_vector_[i])->isContinuous())
         continuous_joint_model_vector_.push_back(joint_model_vector_[i]);
 
@@ -165,7 +165,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
     else
       fixed_joints_.push_back(joint_model_vector_[i]);
   }
-  
+
   // now we need to find all the set of joints within this group
   // that root distinct subtrees
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
@@ -174,7 +174,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
     if (!includesParent(active_joint_model_vector_[i], this))
       joint_roots_.push_back(active_joint_model_vector_[i]);
   }
-  
+
   // when updating this group within a state, it is useful to know
   // if the full state of a group is contiguous within the full state of the robot
   if (variable_index_list_.empty())
@@ -197,7 +197,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
       GroupMimicUpdate mu(src, dest, mimic_joints_[i]->getMimicFactor(), mimic_joints_[i]->getMimicOffset());
       group_mimic_update_.push_back(mu);
     }
-  
+
   // now we need to make another pass for group links (we include the fixed joints here)
   std::set<const LinkModel*> group_links_set;
   for (std::size_t i = 0 ; i < joint_model_vector_.size() ; ++i)
@@ -216,7 +216,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
       link_model_with_geometry_name_vector_.push_back(link_model_vector_[i]->getName());
     }
   }
-  
+
   // compute the common root of this group
   if (!joint_roots_.empty())
   {
@@ -224,7 +224,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
     for (std::size_t i = 1 ; i < joint_roots_.size() ; ++i)
       common_root_ = parent_model->getCommonRoot(joint_roots_[i], common_root_);
   }
-  
+
   // compute updated links
   for (std::size_t i = 0 ; i < joint_roots_.size() ; ++i)
   {
@@ -248,13 +248,13 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name,
     updated_link_model_name_vector_.push_back(updated_link_model_vector_[i]->getName());
   for (std::size_t i = 0; i < updated_link_model_with_geometry_vector_.size(); ++i)
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
-  
+
   // check if this group should actually be a chain
   if (joint_roots_.size() == 1 && active_joint_model_vector_.size() > 1)
   {
     bool chain = true;
-    // due to our sorting, the joints are sorted in a DF fashion, so looking at them in reverse, 
-    // we should always get to the parent.    
+    // due to our sorting, the joints are sorted in a DF fashion, so looking at them in reverse,
+    // we should always get to the parent.
     for (std::size_t k = joint_model_vector_.size() - 1 ; k > 0 ; --k)
       if (!jointPrecedes(joint_model_vector_[k], joint_model_vector_[k - 1]))
       {
@@ -323,7 +323,7 @@ void moveit::core::JointModelGroup::getVariableRandomPositions(random_numbers::R
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
     active_joint_model_vector_[i]->getVariableRandomPositions(rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i]);
-  
+
   updateMimicJoints(values);
 }
 
@@ -363,9 +363,9 @@ void moveit::core::JointModelGroup::getVariableRandomPositionsNearBy(random_numb
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   if (distances.size() != active_joint_model_vector_.size())
-    throw Exception("When sampling random values nearby for group '" + name_ + "', distances vector should be of size " + 
-                    boost::lexical_cast<std::string>(active_joint_model_vector_.size()) + ", but it is of size " + 
-                    boost::lexical_cast<std::string>(distances.size()));  
+    throw Exception("When sampling random values nearby for group '" + name_ + "', distances vector should be of size " +
+                    boost::lexical_cast<std::string>(active_joint_model_vector_.size()) + ", but it is of size " +
+                    boost::lexical_cast<std::string>(distances.size()));
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
                                                                     near + active_joint_model_start_index_[i], distances[i]);
@@ -390,7 +390,7 @@ bool moveit::core::JointModelGroup::enforcePositionBounds(double *state, const J
       change = true;
   if (change)
     updateMimicJoints(state);
-  return change;  
+  return change;
 }
 
 double moveit::core::JointModelGroup::getMaximumExtent(const JointBoundsVector &active_joint_bounds) const
@@ -405,7 +405,7 @@ double moveit::core::JointModelGroup::distance(const double *state1, const doubl
 {
   double d = 0.0;
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
-    d += active_joint_model_vector_[i]->getDistanceFactor() * 
+    d += active_joint_model_vector_[i]->getDistanceFactor() *
       active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i], state2 + active_joint_model_start_index_[i]);
   return d;
 }
@@ -416,7 +416,7 @@ void moveit::core::JointModelGroup::interpolate(const double *from, const double
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
     active_joint_model_vector_[i]->interpolate(from + active_joint_model_start_index_[i], to + active_joint_model_start_index_[i],
                                                t, state + active_joint_model_start_index_[i]);
-  
+
   // now we update mimic as needed
   updateMimicJoints(state);
 }
@@ -701,7 +701,7 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream &out) const
       out << std::endl;
     }
   }
-  
+
   if (!group_mimic_update_.empty())
   {
     out << "  * Local Mimic Updates:" << std::endl;

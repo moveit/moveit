@@ -36,18 +36,29 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale) 
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+  std::size_t index;
   geoms_.resize(robot_model_->getLinkGeometryCount());
+  fcl_objs_.resize(robot_model_->getLinkGeometryCount());
   // we keep the same order of objects as what RobotState *::getLinkState() returns
   for (std::size_t i = 0 ; i < links.size() ; ++i)
     for (std::size_t j = 0 ; j < links[i]->getShapes().size() ; ++j)
     {
       FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
       if (g)
-        geoms_[links[i]->getFirstCollisionBodyTransformIndex() + j] = g;
+      {
+        index = links[i]->getFirstCollisionBodyTransformIndex() + j;
+        geoms_[index] = g;
+
+        // Need to store the FCL object so the AABB does not get recreated every time.
+        // Every time this object is created, g->computeLocalAABB() is called  which is
+        // very expensive and should only be calculated once. To update the AABB, use the
+        // collObj->setTransform and then call collObj->computeAABB() to transform the AABB.
+        fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObject(g->collision_geometry_));
+      }
       else
         logError("Unable to construct collision geometry for link '%s'", links[i]->getName().c_str());
     }
@@ -56,6 +67,7 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::Rob
 collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL &other) : CollisionRobot(other)
 {
   geoms_ = other.geoms_;
+  fcl_objs_ = other.fcl_objs_;
 }
 
 void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody *ab, std::vector<FCLGeometryConstPtr> &geoms) const
@@ -72,16 +84,19 @@ void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_
 void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState &state, FCLObject &fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(geoms_.size());
-  
+  fcl::Transform3f fcl_tf;
+
   for (std::size_t i = 0 ; i < geoms_.size() ; ++i)
     if (geoms_[i] && geoms_[i]->collision_geometry_)
     {
-      fcl::CollisionObject *collObj = new fcl::CollisionObject
-        (geoms_[i]->collision_geometry_, transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link, geoms_[i]->collision_geometry_data_->shape_index)));
-      fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
-      // the CollisionGeometryData is already stored in the class member geoms_, so we need not copy it
+      transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link, geoms_[i]->collision_geometry_data_->shape_index), fcl_tf);
+      fcl::CollisionObject *collObj = new fcl::CollisionObject(*fcl_objs_[i]);
+      collObj->setTransform(fcl_tf);
+      collObj->computeAABB();
+      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
     }
   
+  // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
   for (std::size_t j = 0 ; j < ab.size() ; ++j)
@@ -92,8 +107,8 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
     for (std::size_t k = 0 ; k < objs.size() ; ++k)
       if (objs[k]->collision_geometry_)
       {
-        fcl::CollisionObject *collObj = new fcl::CollisionObject(objs[k]->collision_geometry_, transform2fcl(ab_t[k]));
-        fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(collObj));
+        transform2fcl(ab_t[k], fcl_tf);
+        fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(new fcl::CollisionObject(objs[k]->collision_geometry_, fcl_tf)));
         // we copy the shared ptr to the CollisionGeometryData, as this is not stored by the class itself,
         // and would be destroyed when objs goes out of scope.
         fcl_obj.collision_geometry_.push_back(objs[k]);
@@ -191,6 +206,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
 
 void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string> &links)
 {
+  std::size_t index;
   for (std::size_t i = 0 ; i < links.size() ; ++i)
   {
     const robot_model::LinkModel *lmodel = robot_model_->getLinkModel(links[i]);
@@ -200,7 +216,11 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
       {
         FCLGeometryConstPtr g = createCollisionGeometry(lmodel->getShapes()[j], getLinkScale(lmodel->getName()), getLinkPadding(lmodel->getName()), lmodel, j);
         if (g)
-          geoms_[lmodel->getFirstCollisionBodyTransformIndex() + j] = g;
+        {
+          index = lmodel->getFirstCollisionBodyTransformIndex() + j;
+          geoms_[index] = g;
+          fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObject(g->collision_geometry_));
+        }
       }
     }
     else

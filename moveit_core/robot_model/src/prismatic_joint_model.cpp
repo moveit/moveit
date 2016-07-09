@@ -48,7 +48,7 @@ moveit::core::PrismaticJointModel::PrismaticJointModel(const std::string& name)
   variable_bounds_[0].min_position_ = -std::numeric_limits<double>::max();
   variable_bounds_[0].max_position_ = std::numeric_limits<double>::max();
   variable_index_map_[name_] = 0;
-  computeVariableBoundsMsg();  
+  computeVariableBoundsMsg();
 }
 
 unsigned int moveit::core::PrismaticJointModel::getStateSpaceDimension() const
@@ -127,12 +127,12 @@ void moveit::core::PrismaticJointModel::computeTransform(const double *joint_val
   d[5] = 1.0;
   d[6] = 0.0;
   d[7] = 0.0;
-  
+
   d[8] = 0.0;
   d[9] = 0.0;
   d[10] = 1.0;
   d[11] = 0.0;
-  
+
   d[12] = axis_.x() * joint_values[0];
   d[13] = axis_.y() * joint_values[0];
   d[14] = axis_.z() * joint_values[0];
