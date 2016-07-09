@@ -529,7 +529,7 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
 }
 
 void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult &res)
-{ 
+{
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkSelfCollision(req, res, getCurrentStateNonConst());
   else
@@ -819,12 +819,12 @@ void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_ms
     {
       geometry_msgs::Pose p;
       tf::poseEigenToMsg(obj->shape_poses_[j], p);
-      
+
       sv.setPoseMessage(&p);
       boost::apply_visitor(sv, sm);
     }
   }
-  
+
   if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
   {
     if (hasObjectType(co.id))
@@ -1049,7 +1049,7 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   }
   else
     robot_state::robotStateMsgToRobotState(*ftf_, state, *kstate_);
-  
+
   // we add object types to the planning scene, if any are specified
   for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
   {
@@ -1133,8 +1133,10 @@ void planning_scene::PlanningScene::decoupleParent()
   parent_.reset();
 }
 
-void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
+  bool result = true;
+
   logDebug("moveit.planning_scene: Adding planning scene diff");
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
@@ -1185,14 +1187,16 @@ void planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
   // process collision object updates
   for (std::size_t i = 0 ; i < scene_msg.world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
+    result &= processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
 
   // if an octomap was specified, replace the one we have with that one
   if (!scene_msg.world.octomap.octomap.data.empty())
     processOctomapMsg(scene_msg.world.octomap);
+
+  return result;
 }
 
-void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
   logDebug("moveit.planning_scene: Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
@@ -1221,22 +1225,24 @@ void planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   for (std::size_t i = 0 ; i < scene_msg.object_colors.size() ; ++i)
     setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
   world_->clearObjects();
-  processPlanningSceneWorldMsg(scene_msg.world);
+  return processPlanningSceneWorldMsg(scene_msg.world);
 }
 
-void planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world)
+bool planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld &world)
 {
+  bool result = true;
   for (std::size_t i = 0 ; i < world.collision_objects.size() ; ++i)
-    processCollisionObjectMsg(world.collision_objects[i]);
+    result &= processCollisionObjectMsg(world.collision_objects[i]);
   processOctomapMsg(world.octomap);
+  return result;
 }
 
-void planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
+bool planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene &scene_msg)
 {
   if (scene_msg.is_diff)
-    setPlanningSceneDiffMsg(scene_msg);
+    return setPlanningSceneDiffMsg(scene_msg);
   else
-    setPlanningSceneMsg(scene_msg);
+    return setPlanningSceneMsg(scene_msg);
 }
 
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octomap &map)
@@ -1249,7 +1255,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.id != "OcTree")
   {
-    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
     return;
   }
 
@@ -1283,7 +1289,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.octomap.id != "OcTree")
   {
-    logError("Received ocomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
     return;
   }
 
@@ -1350,7 +1356,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
     kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
   }
   kstate_->update();
-  
+
   if (object.object.operation == moveit_msgs::CollisionObject::ADD || object.object.operation == moveit_msgs::CollisionObject::APPEND)
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
@@ -1497,10 +1503,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       logError("Robot state is not compatible with robot model. This could be fatal.");
   }
   else if (object.object.operation == moveit_msgs::CollisionObject::REMOVE)
-  {   
+  {
     std::vector<const robot_state::AttachedBody*> attached_bodies;
     if (object.link_name.empty())
-    { 
+    {
       if (object.object.id.empty())
         kstate_->getAttachedBodies(attached_bodies);
       else
@@ -1511,7 +1517,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
       }
     }
     else
-    {      
+    {
       const robot_model::LinkModel *lm = getRobotModel()->getLinkModel(object.link_name);
       if (lm)
       {
@@ -1527,15 +1533,15 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(const move
         }
       }
     }
-    
+
     for (std::size_t i = 0; i < attached_bodies.size(); ++i)
     {
       std::vector<shapes::ShapeConstPtr> shapes = attached_bodies[i]->getShapes();
       EigenSTL::vector_Affine3d poses = attached_bodies[i]->getGlobalCollisionBodyTransforms();
       std::string name = attached_bodies[i]->getName();
-      
+
       kstate_->clearAttachedBody(name);
-      
+
       if (world_->hasObject(name))
         logWarn("The collision world already has an object with the same name as the body about to be detached. NOT adding the detached body '%s' to the collision world.", object.object.id.c_str());
       else
@@ -1598,7 +1604,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       world_->removeObject(object.id);
 
     const Eigen::Affine3d &t = getTransforms().getTransform(object.header.frame_id);
-    
+
     for (std::size_t i = 0 ; i < object.primitives.size() ; ++i)
     {
       shapes::Shape *s = shapes::constructShapeFromMsg(object.primitives[i]);

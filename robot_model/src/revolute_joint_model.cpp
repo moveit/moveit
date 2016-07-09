@@ -41,7 +41,7 @@
 #include <limits>
 #include <cmath>
 
-moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name) 
+moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
   : JointModel(name)
   , axis_(0.0, 0.0, 0.0)
   , continuous_(false)
@@ -209,7 +209,7 @@ void moveit::core::RevoluteJointModel::computeTransform(const double *joint_valu
   const double txy = t * xy_;
   const double txz = t * xz_;
   const double tyz = t * yz_;
-  
+
   const double zs = axis_.z() * s;
   const double ys = axis_.y() * s;
   const double xs = axis_.x() * s;
@@ -226,12 +226,12 @@ void moveit::core::RevoluteJointModel::computeTransform(const double *joint_valu
   d[5] = t * y2_ + c;
   d[6] = tyz + xs;
   d[7] = 0.0;
-  
+
   d[8] = txz + ys;
   d[9] = tyz - xs;
   d[10] = t * z2_ + c;
   d[11] = 0.0;
-  
+
   d[12] = 0.0;
   d[13] = 0.0;
   d[14] = 0.0;
@@ -244,5 +244,7 @@ void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Aff
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();
-  joint_values[0] = acos(q.w())*2.0f;
+  size_t maxIdx;
+  axis_.array().abs().maxCoeff(&maxIdx);
+  joint_values[0] = 2.*atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
 }

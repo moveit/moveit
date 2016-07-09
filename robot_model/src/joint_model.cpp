@@ -172,7 +172,7 @@ void moveit::core::JointModel::setMimic(const JointModel *mimic, double factor, 
 {
   mimic_ = mimic;
   mimic_factor_ = factor;
-  mimic_offset_ = offset;  
+  mimic_offset_ = offset;
 }
 
 void moveit::core::JointModel::addMimicRequest(const JointModel *joint)
@@ -202,7 +202,7 @@ inline void printBoundHelper(std::ostream &out, double v)
     if (v >= std::numeric_limits<double>::infinity())
       out << "inf";
     else
-      out << v;  
+      out << v;
 }
 }
 

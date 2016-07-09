@@ -103,7 +103,7 @@ struct CollisionGeometryData
   {
     return type == other.type && ptr.raw == other.ptr.raw;
   }
-  
+
   BodyType type;
   int shape_index;
   union
@@ -192,6 +192,8 @@ struct FCLGeometry
 
 typedef boost::shared_ptr<FCLGeometry> FCLGeometryPtr;
 typedef boost::shared_ptr<const FCLGeometry> FCLGeometryConstPtr;
+typedef boost::shared_ptr<fcl::CollisionObject> FCLCollisionObjectPtr;
+typedef boost::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
 
 struct FCLObject
 {
@@ -199,7 +201,7 @@ struct FCLObject
   void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
   void clear();
 
-  std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_objects_;
+  std::vector<FCLCollisionObjectPtr> collision_objects_;
   std::vector<FCLGeometryConstPtr> collision_geometry_;
 };
 
