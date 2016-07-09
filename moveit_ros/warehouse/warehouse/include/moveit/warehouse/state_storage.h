@@ -43,8 +43,8 @@
 namespace moveit_warehouse
 {
 
-typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotState>::ConstPtr RobotStateWithMetadata;
-typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotState> > RobotStateCollection;
+typedef warehouse_ros::MessageWithMetadata<moveit_msgs::RobotState>::ConstPtr RobotStateWithMetadata;
+typedef warehouse_ros::MessageCollection<moveit_msgs::RobotState>::Ptr RobotStateCollection;
 
 class RobotStateStorage : public MoveItMessageStorage
 {
@@ -55,12 +55,7 @@ public:
   static const std::string STATE_NAME;
   static const std::string ROBOT_NAME;
 
-  /** \brief Initialize the state storage to connect to a specified \e host and \e port for the MongoDB.
-      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
-      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
-      If no values are found, the defaults are left to be the ones MongoDB uses.
-      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
-  RobotStateStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  RobotStateStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
   void addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot = "");
   bool hasRobotState(const std::string &name, const std::string &robot = "") const;

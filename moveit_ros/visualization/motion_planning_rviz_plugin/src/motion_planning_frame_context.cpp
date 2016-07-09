@@ -116,12 +116,19 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked()
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 2));
     try
     {
-      planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(ui_->database_host->text().toStdString(),
-                                                                               ui_->database_port->value(), 5.0));
-      robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(ui_->database_host->text().toStdString(),
-                                                                         ui_->database_port->value(), 5.0));
-      constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(ui_->database_host->text().toStdString(),
-                                                                          ui_->database_port->value(), 5.0));
+      warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+      conn->setParams(ui_->database_host->text().toStdString(), ui_->database_port->value(), 5.0);
+      if (conn->connect())
+      {
+        planning_scene_storage_.reset(new moveit_warehouse::PlanningSceneStorage(conn));
+        robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(conn));
+        constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
+      }
+      else
+      {
+        planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
+        return;
+      }
     }
     catch(std::runtime_error &ex)
     {

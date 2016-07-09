@@ -137,8 +137,11 @@ int main(int argc, char **argv)
   node.param<std::string>("warehouse_host", host, "localhost");
   node.param<int>("warehouse_port", port, 33829);
 
+  warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+  conn->setParams(host, port, 5.0);
+
   ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
-  moveit_warehouse::RobotStateStorage rs(host, port);
+  moveit_warehouse::RobotStateStorage rs(conn);
 
   std::vector<std::string> names;
   rs.getKnownRobotStates(names);

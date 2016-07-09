@@ -771,10 +771,10 @@ public:
    */
   /**@{*/
 
-  /** \brief Specify where the MongoDB server that holds known constraints resides */
+  /** \brief Specify where the database server that holds known constraints resides */
   void setConstraintsDatabase(const std::string &host, unsigned int port);
 
-  /** \brief Get the names of the constraints known as read from the MongoDB server, if a connection was achieved. */
+  /** \brief Get the names of the known constraints as read from the Mongo database, if a connection was achieved. */
   std::vector<std::string> getKnownConstraints() const;
 
   /** \brief Get the actual set of constraints for this MoveGroup.
@@ -783,12 +783,12 @@ public:
   moveit_msgs::Constraints getPathConstraints() const;
 
   /** \brief Specify a set of path constraints to use.
-      The constraints are looked up by name from the MongoDB server.
+      The constraints are looked up by name from the Mongo database server.
       This replaces any path constraints set in previous calls to setPathConstraints(). */
   bool setPathConstraints(const std::string &constraint);
 
   /** \brief Specify a set of path constraints to use.
-      This version does not require a MongoDB server.
+      This version does not require a database server.
       This replaces any path constraints set in previous calls to setPathConstraints(). */
   void setPathConstraints(const moveit_msgs::Constraints &constraint);
 

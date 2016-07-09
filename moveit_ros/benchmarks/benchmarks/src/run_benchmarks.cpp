@@ -51,8 +51,8 @@ int main(int argc, char **argv)
   boost::program_options::options_description desc;
   desc.add_options()
     ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.")
+    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
+    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.")
     ("benchmark-goal-existance", "Benchmark the sampling of the goal region")
     ("benchmark-planners", "Benchmark only the planners");
 
@@ -66,39 +66,35 @@ int main(int argc, char **argv)
     std::cout << desc << std::endl;
     return 1;
   }
+  // Set up db
+  warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+  if (vm.count("host") && vm.count("port"))
+    conn->setParams(vm["host"].as<std::string>(), vm["port"].as<std::size_t>());
+  if (!conn->connect())
+    return 1;
 
-  try
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
+  moveit_benchmarks::BenchmarkType btype = 0;
+  moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(), conn);
+  if (vm.count("benchmark-planners"))
+    btype += moveit_benchmarks::BENCHMARK_PLANNERS;
+  if (vm.count("benchmark-goal-existance"))
+    btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
+
+  unsigned int proc = 0;
+  std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
+  for (std::size_t i = 0 ; i < files.size() ; ++i)
   {
-    planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
-    moveit_benchmarks::BenchmarkType btype = 0;
-    moveit_benchmarks::BenchmarkExecution be(psm.getPlanningScene(),
-                                             vm.count("host") ? vm["host"].as<std::string>() : "",
-                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
-    if (vm.count("benchmark-planners"))
-      btype += moveit_benchmarks::BENCHMARK_PLANNERS;
-    if (vm.count("benchmark-goal-existance"))
-      btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
-
-    unsigned int proc = 0;
-    std::vector<std::string> files = boost::program_options::collect_unrecognized(po.options, boost::program_options::include_positional);
-    for (std::size_t i = 0 ; i < files.size() ; ++i)
+    if (be.readOptions(files[i].c_str()))
     {
-      if (be.readOptions(files[i].c_str()))
-      {
-        std::stringstream ss;
-        be.printOptions(ss);
-        std::cout << "Calling benchmark with options:" << std::endl << ss.str() << std::endl;
-        be.runAllBenchmarks(btype);
-        proc++;
-      }
+      std::stringstream ss;
+      be.printOptions(ss);
+      std::cout << "Calling benchmark with options:" << std::endl << ss.str() << std::endl;
+      be.runAllBenchmarks(btype);
+      proc++;
     }
-    ROS_INFO_STREAM("Processed " << proc << " benchmark configuration files");
   }
-  catch(mongo_ros::DbConnectException &ex)
-  {
-    ROS_ERROR_STREAM("Unable to connect to warehouse. If you just created the database, it could take a while for initial setup. Please try to run the benchmark again."
-                     << std::endl << ex.what());
-  }
+  ROS_INFO_STREAM("Processed " << proc << " benchmark configuration files");
 
   ROS_INFO("Benchmarks complete! Shutting down ROS..."); // because sometimes there are segfaults after this
   ros::shutdown();
