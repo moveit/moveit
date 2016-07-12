@@ -51,6 +51,13 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/datastructures/PDF.h>
 
+
+#include "ompl/base/objectives/PathLengthOptimizationObjective.h"
+#include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
+#include "ompl/base/objectives/MinimaxObjective.h"
+#include "ompl/base/objectives/StateCostIntegralObjective.h"
+#include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
+
 ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec) :
   planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName()),
   spec_(spec),
@@ -216,6 +223,39 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
 
   if (cfg.empty())
     return;
+
+  std::string optimizer;
+  ompl::base::OptimizationObjectivePtr objective;
+  it = cfg.find("optimization_objective");
+  if (it == cfg.end())
+  {
+    optimizer = "PathLengthOptimizationObjective";
+    logInform("No optimization objective specified, defaulting to %s", optimizer.c_str());
+  } else {
+    optimizer = it->second;
+    cfg.erase(it);
+  }
+
+  if (optimizer == "PathLengthOptimizationObjective"){
+    objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+   }
+  else if (optimizer == "MinimaxObjective"){
+    objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+  else if (optimizer == "StateCostIntegralObjective"){
+    objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+  else if (optimizer == "MechanicalWorkOptimizationObjective"){
+    objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+  else if (optimizer == "MaximizeMinClearanceObjective"){
+    objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+  else {
+    objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
+  }
+
+  ompl_simple_setup_->setOptimizationObjective(objective);
 
   // remove the 'type' parameter; the rest are parameters for the planner itself
   it = cfg.find("type");
