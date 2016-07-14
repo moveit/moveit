@@ -238,6 +238,16 @@
                </widget>
               </item>
               <item>
+               <widget class="QPushButton" name="stop_button">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>&amp;Stop</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QLabel" name="result_label">
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
@@ -1601,6 +1611,7 @@
   <tabstop>plan_button</tabstop>
   <tabstop>execute_button</tabstop>
   <tabstop>plan_and_execute_button</tabstop>
+  <tabstop>stop_button</tabstop>
   <tabstop>start_state_selection</tabstop>
   <tabstop>use_start_state_button</tabstop>
   <tabstop>goal_state_selection</tabstop>

@@ -65,6 +65,12 @@ void MotionPlanningFrame::planAndExecuteButtonClicked()
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this), "plan and execute");
 }
 
+void MotionPlanningFrame::stopButtonClicked()
+{
+  ui_->stop_button->setEnabled(false); // avoid clicking again
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeStopButtonClicked, this), "stop");
+}
+
 void MotionPlanningFrame::allowReplanningToggled(bool checked)
 {
   if (move_group_)
@@ -129,9 +135,11 @@ void MotionPlanningFrame::computePlanButtonClicked()
 void MotionPlanningFrame::computeExecuteButtonClicked()
 {
   if (move_group_ && current_plan_)
-    move_group_->execute(*current_plan_);
-
-  updateStartStateToCurrent();
+  {
+    ui_->stop_button->setEnabled(true); // enable stopping
+    bool success = move_group_->execute(*current_plan_);
+    onFinishedExecution(success);
+  }
 }
 
 void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
@@ -139,18 +147,31 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   if (!move_group_)
     return;
   configureForPlanning();
-  move_group_->move();
+  ui_->stop_button->setEnabled(true);
+  bool success = move_group_->move();
+  onFinishedExecution(success);
   ui_->plan_and_execute_button->setEnabled(true);
-
-  updateStartStateToCurrent();
 }
 
-void MotionPlanningFrame::updateStartStateToCurrent()
+void MotionPlanningFrame::computeStopButtonClicked()
 {
+  if (move_group_)
+    move_group_->stop();
+}
+
+void MotionPlanningFrame::onFinishedExecution(bool success)
+{
+  // visualize result of execution
+  if (success) 
+    ui_->result_label->setText("Executed");
+  else 
+    ui_->result_label->setText(!ui_->stop_button->isEnabled() ? "Stopped" : "Failed");
+  // disable stop button
+  ui_->stop_button->setEnabled(false);
+
+  // update query start state to current if neccessary
   if (ui_->start_state_selection->currentText() == "<current>")
-  {
     useStartStateButtonClicked();
-  }
 }
 
 void MotionPlanningFrame::useStartStateButtonClicked()

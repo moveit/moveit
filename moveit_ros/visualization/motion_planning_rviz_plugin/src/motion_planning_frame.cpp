@@ -70,6 +70,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
   connect( ui_->execute_button, SIGNAL( clicked() ), this, SLOT( executeButtonClicked() ));
   connect( ui_->plan_and_execute_button, SIGNAL( clicked() ), this, SLOT( planAndExecuteButtonClicked() ));
+  connect( ui_->stop_button, SIGNAL( clicked() ), this, SLOT( stopButtonClicked() ));
   connect( ui_->use_start_state_button, SIGNAL( clicked() ), this, SLOT( useStartStateButtonClicked() ));
   connect( ui_->use_goal_state_button, SIGNAL( clicked() ), this, SLOT( useGoalStateButtonClicked() ));
   connect( ui_->database_connect_button, SIGNAL( clicked() ), this, SLOT( databaseConnectButtonClicked() ));
