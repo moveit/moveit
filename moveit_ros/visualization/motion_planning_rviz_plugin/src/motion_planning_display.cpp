@@ -131,7 +131,7 @@ MotionPlanningDisplay::MotionPlanningDisplay() :
   show_workspace_property_ = new rviz::BoolProperty("Show Workspace", false, "Shows the axis-aligned bounding box for the workspace allowed for planning",
                                                     plan_category_,
                                                     SLOT(changedWorkspace()), this);
-  query_start_state_property_ = new rviz::BoolProperty("Query Start State", true, "Shows the start state for the motion planning query",
+  query_start_state_property_ = new rviz::BoolProperty("Query Start State", false, "Set a custom start state for the motion planning query",
                                                        plan_category_,
                                                        SLOT(changedQueryStartState()), this);
   query_goal_state_property_ = new rviz::BoolProperty("Query Goal State", true, "Shows the goal state for the motion planning query",
