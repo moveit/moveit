@@ -162,63 +162,66 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
     configureWorkspace();
     if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
       state.setToRandomPositions(jmg);
+    return;
   }
-  else
-    if (v == "<random valid>")
-    {
-      configureWorkspace();
 
-      if (const robot_model::JointModelGroup *jmg =
+  if (v == "<random valid>")
+  {
+    configureWorkspace();
+
+    if (const robot_model::JointModelGroup *jmg =
         state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+    {
+      // Loop until a collision free state is found
+      static const int MAX_ATTEMPTS = 100;
+      int attempt_count = 0; // prevent loop for going forever
+      while (attempt_count < MAX_ATTEMPTS)
       {
-        // Loop until a collision free state is found
-        static const int MAX_ATTEMPTS = 100;
-        int attempt_count = 0; // prevent loop for going forever
-        while (attempt_count < MAX_ATTEMPTS)
-        {
-          // Generate random state
-          state.setToRandomPositions(jmg);
+        // Generate random state
+        state.setToRandomPositions(jmg);
 
-          state.update(); // prevent dirty transforms
+        state.update(); // prevent dirty transforms
 
-          // Test for collision
-          if (planning_display_->getPlanningSceneRO()->isStateValid(state, "", false))
-            break;
+        // Test for collision
+        if (planning_display_->getPlanningSceneRO()->isStateValid(state, "", false))
+          break;
 
-          attempt_count ++;
-        }
-        // Explain if no valid rand state found
-        if (attempt_count >= MAX_ATTEMPTS)
-          ROS_WARN("Unable to find a random collision free configuration after %d attempts", MAX_ATTEMPTS);
+        attempt_count ++;
       }
-      else
-      {
-        ROS_WARN_STREAM("Unable to get joint model group " << planning_display_->getCurrentPlanningGroup());
-      }
+      // Explain if no valid rand state found
+      if (attempt_count >= MAX_ATTEMPTS)
+        ROS_WARN("Unable to find a random collision free configuration after %d attempts", MAX_ATTEMPTS);
     }
     else
-      if (v == "<current>")
-      {
-        const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-        if (ps)
-          state = ps->getCurrentState();
-      }
-      else
-        if (v == "<same as goal>")
-        {
-          state = *planning_display_->getQueryGoalState();
-        }
-        else
-          if (v == "<same as start>")
-          {
-            state = *planning_display_->getQueryStartState();
-          }
-          else
-          {
-            // maybe it is a named state
-            if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
-              state.setToDefaultValues(jmg, v);
-          }
+    {
+      ROS_WARN_STREAM("Unable to get joint model group " << planning_display_->getCurrentPlanningGroup());
+    }
+    return;
+  }
+
+  if (v == "<current>")
+  {
+    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+    if (ps)
+      state = ps->getCurrentState();
+    return;
+  }
+
+  if (v == "<same as goal>")
+  {
+    state = *planning_display_->getQueryGoalState();
+    return;
+  }
+
+  if (v == "<same as start>")
+  {
+    state = *planning_display_->getQueryStartState();
+    return;
+  }
+
+  // maybe it is a named state
+  if (const robot_model::JointModelGroup *jmg = state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+    state.setToDefaultValues(jmg, v);
 }
 
 void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfaceDescription &desc)
