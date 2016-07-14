@@ -232,6 +232,11 @@ void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job, 
   background_process_.addJob(job, name);
 }
 
+void PlanningSceneDisplay::spawnBackgroundJob(const boost::function<void ()> &job)
+{
+  boost::thread t(job);
+}
+
 void PlanningSceneDisplay::addMainLoopJob(const boost::function<void()> &job)
 {
   boost::unique_lock<boost::mutex> ulock(main_loop_jobs_lock_);

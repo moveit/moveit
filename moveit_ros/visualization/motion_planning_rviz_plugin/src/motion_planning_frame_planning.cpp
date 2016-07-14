@@ -55,14 +55,16 @@ void MotionPlanningFrame::planButtonClicked()
 void MotionPlanningFrame::executeButtonClicked()
 {
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this), "execute");
+  // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
+  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::computeExecuteButtonClicked, this));
 }
 
 void MotionPlanningFrame::planAndExecuteButtonClicked()
 {
   ui_->plan_and_execute_button->setEnabled(false);
   ui_->execute_button->setEnabled(false);
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this), "plan and execute");
+  // execution is done in a separate thread, to not block other background jobs by blocking for synchronous execution
+  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::computePlanAndExecuteButtonClicked, this));
 }
 
 void MotionPlanningFrame::stopButtonClicked()
