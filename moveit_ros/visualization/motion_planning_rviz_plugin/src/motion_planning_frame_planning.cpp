@@ -130,6 +130,8 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
 {
   if (move_group_ && current_plan_)
     move_group_->execute(*current_plan_);
+
+  updateStartStateToCurrent();
 }
 
 void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
@@ -139,6 +141,16 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   configureForPlanning();
   move_group_->move();
   ui_->plan_and_execute_button->setEnabled(true);
+
+  updateStartStateToCurrent();
+}
+
+void MotionPlanningFrame::updateStartStateToCurrent()
+{
+  if (ui_->start_state_selection->currentText() == "<current>")
+  {
+    useStartStateButtonClicked();
+  }
 }
 
 void MotionPlanningFrame::useStartStateButtonClicked()

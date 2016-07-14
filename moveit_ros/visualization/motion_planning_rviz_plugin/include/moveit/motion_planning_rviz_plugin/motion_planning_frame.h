@@ -210,6 +210,7 @@ private:
   void computeExecuteButtonClicked();
   void computePlanAndExecuteButtonClicked();
   void computePlanAndExecuteButtonClickedDisplayHelper();
+  void updateStartStateToCurrent();
   void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning();
