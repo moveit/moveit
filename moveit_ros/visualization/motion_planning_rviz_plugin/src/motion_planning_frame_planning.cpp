@@ -149,6 +149,9 @@ void MotionPlanningFrame::computePlanAndExecuteButtonClicked()
   if (!move_group_)
     return;
   configureForPlanning();
+  // move_group::move() on the server side, will always start from the current state
+  // to suppress a warning, we pass an empty state (which encodes "start from current state")
+  move_group_->setStartStateToCurrentState();
   ui_->stop_button->setEnabled(true);
   bool success = move_group_->move();
   onFinishedExecution(success);
