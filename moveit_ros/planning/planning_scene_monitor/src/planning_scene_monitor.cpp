@@ -817,9 +817,9 @@ void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead()
 {
-  scene_update_mutex_.unlock_shared();
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->unlockRead();
+  scene_update_mutex_.unlock_shared();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
@@ -831,9 +831,9 @@ void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
 
 void planning_scene_monitor::PlanningSceneMonitor::unlockSceneWrite()
 {
-  scene_update_mutex_.unlock();
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->unlockWrite();
+  scene_update_mutex_.unlock();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::startSceneMonitor(const std::string &scene_topic)
