@@ -393,6 +393,13 @@ class MoveGroupCommander(object):
                 else:
                     raise MoveItCommanderException("Expected 0, 4 or 6 values in list specifying workspace")
 
+    def set_max_velocity_scaling_factor(self, value):
+        """ Set a scaling factor for optionally reducing the maximum joint velocity. Allowed values are in (0,1]. """        
+        if value > 0 and value <= 1:
+            self._g.set_max_velocity_scaling_factor(value)
+        else:
+            raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor" )
+
     def go(self, joints = None, wait = True):
         """ Set the target of the group and then move the group to the specified target """
         if type(joints) is bool:
