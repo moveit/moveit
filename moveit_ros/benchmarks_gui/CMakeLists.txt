@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_ros_benchmarks_gui)
 
+add_compile_options(-std=c++11)
+
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -25,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
 )
 
-pkg_search_module(EIGEN3 REQUIRED eigen3) 
+pkg_search_module(EIGEN3 REQUIRED eigen3)
 
 if(rviz_QT_VERSION VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
@@ -46,8 +48,8 @@ set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
-    INCLUDE_DIRS 
-        ${EIGEN3_INCLUDE_DIRS} 
+    INCLUDE_DIRS
+        ${EIGEN3_INCLUDE_DIRS}
 )
 
 include_directories(include)
