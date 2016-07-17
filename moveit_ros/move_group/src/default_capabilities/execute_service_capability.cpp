@@ -41,7 +41,7 @@
 move_group::MoveGroupExecuteService::MoveGroupExecuteService():
   MoveGroupCapability("ExecutePathService"),
   callback_queue_(),
-  spinner_(1, &callback_queue_)
+  spinner_(1 /* spinner threads */, &callback_queue_)
 {
 }
 
@@ -55,7 +55,7 @@ void move_group::MoveGroupExecuteService::initialize()
   // We need to serve each service request in a thread independent of the main spinner thread.
   // Otherwise, a synchronous execution request (i.e. waiting for the execution to finish) would block
   // execution of the main spinner thread.
-  // Hence, we use an own asynchronous spinner listening to our own callback queue.
+  // Hence, we use our own asynchronous spinner listening to our own callback queue.
   ros::AdvertiseServiceOptions ops;
   ops.template init<moveit_msgs::ExecuteKnownTrajectory::Request, moveit_msgs::ExecuteKnownTrajectory::Response>
       (EXECUTE_SERVICE_NAME, boost::bind(&MoveGroupExecuteService::executeTrajectoryService, this, _1, _2));
