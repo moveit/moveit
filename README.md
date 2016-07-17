@@ -10,4 +10,4 @@ This repository includes components of MoveIt that use ROS. This is where much o
 
 ## Build Status
 
- * Job Status: [![Devel Job Status](https://travis-ci.org/ros-planning/moveit_ros.svg?branch=jade-devel)](https://travis-ci.org/ros-planning/moveit_ros/builds)
+ * Travis CI: [![Devel Job Status](https://travis-ci.org/ros-planning/moveit_ros.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit_ros/builds)
