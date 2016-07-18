@@ -5,7 +5,7 @@ import sys, os
 extensions = [ 'sphinx.ext.extlinks' ]
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'doc/tutorial'
 
 # The suffix of source filenames.
 source_suffix = '.rst'
