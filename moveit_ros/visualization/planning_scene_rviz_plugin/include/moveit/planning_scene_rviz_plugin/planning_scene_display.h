@@ -104,7 +104,12 @@ public:
 
   const std::string getMoveGroupNS() const;
   const robot_model::RobotModelConstPtr& getRobotModel() const;
+
+  /// wait for robot state more recent than t
+  bool waitForCurrentRobotState(const ros::Time& t = ros::Time::now());
+  /// get read-only access to planning scene
   planning_scene_monitor::LockedPlanningSceneRO getPlanningSceneRO() const;
+  /// get write access to planning scene
   planning_scene_monitor::LockedPlanningSceneRW getPlanningSceneRW();
   const planning_scene_monitor::PlanningSceneMonitorPtr& getPlanningSceneMonitor();
 
