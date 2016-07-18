@@ -471,7 +471,20 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr &scene)
     scene->getTransformsNonConst().setAllTransforms(ftf_->getAllTransforms());
 
   if (kstate_)
+  {
     scene->getCurrentStateNonConst() = *kstate_;
+    // push colors and types for attached objects
+    std::vector<const moveit::core::AttachedBody*> attached_objs;
+    kstate_->getAttachedBodies(attached_objs);
+    for(std::vector<const moveit::core::AttachedBody*>::const_iterator it = attached_objs.begin();
+            it != attached_objs.end(); ++it)
+    {
+        if(hasObjectType((*it)->getName()))
+            scene->setObjectType((*it)->getName(), getObjectType((*it)->getName()));
+        if(hasObjectColor((*it)->getName()))
+            scene->setObjectColor((*it)->getName(), getObjectColor((*it)->getName()));
+    }
+  }
 
   if (acm_)
     scene->getAllowedCollisionMatrixNonConst() = *acm_;
@@ -910,10 +923,21 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
     getTransforms().copyTransforms(scene_msg.fixed_frame_transforms);
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS)
+  {
     robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, true);
-  else
-    if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE)
+    for(std::vector<moveit_msgs::AttachedCollisionObject>::iterator it = scene_msg.robot_state.attached_collision_objects.begin();
+            it != scene_msg.robot_state.attached_collision_objects.end(); ++it)
+    {
+        if(hasObjectType(it->object.id))
+        {
+            it->object.type = getObjectType(it->object.id);
+        }
+    }
+  }
+  else if (comp.components & moveit_msgs::PlanningSceneComponents::ROBOT_STATE)
+  {
       robot_state::robotStateToRobotStateMsg(getCurrentState(), scene_msg.robot_state, false);
+  }
 
   if (comp.components & moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX)
     getAllowedCollisionMatrix().getMessage(scene_msg.allowed_collision_matrix);
