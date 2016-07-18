@@ -87,15 +87,21 @@ public:
 
   void queueRenderSceneGeometry();
 
-  // pass the execution of this function call to a separate thread that runs in the background
+  /** Queue this function call for execution within the background thread
+      All jobs are queued and processed in order by a single background thread. */
   void addBackgroundJob(const boost::function<void()> &job, const std::string &name);
 
-  // queue the execution of this function for the next time the main update() loop gets called
+  /** Directly spawn a (detached) background thread for execution of this function call
+      Should be used, when order of processing is not relevant / job can run in parallel.
+      Must be used, when job will be blocking. Using addBackgroundJob() in this case will block other queued jobs as well */
+  void spawnBackgroundJob(const boost::function<void()> &job);
+
+  /// queue the execution of this function for the next time the main update() loop gets called
   void addMainLoopJob(const boost::function<void()> &job);
 
   void waitForAllMainLoopJobs();
 
-  // remove all queued jobs
+  /// remove all queued jobs
   void clearJobs();
 
   const std::string getMoveGroupNS() const;
