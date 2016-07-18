@@ -61,7 +61,6 @@ void move_group::MoveGroupMoveAction::initialize()
 void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
 {
   setMoveState(PLANNING);
-  context_->planning_scene_monitor_->updateFrameTransforms();
 
   moveit_msgs::MoveGroupResult action_res;
   if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
@@ -94,6 +93,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
 
   if (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff))
   {
+    context_->planning_scene_monitor_->syncSceneUpdates();
     planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
     const robot_state::RobotState &current_state = lscene->getCurrentState();
 
@@ -141,6 +141,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
 {
   ROS_INFO("Planning request received for MoveGroup action. Forwarding to planning pipeline.");
 
+  context_->planning_scene_monitor_->syncSceneUpdates();
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
   const planning_scene::PlanningSceneConstPtr &the_scene = (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
     static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) : lscene->diff(goal->planning_options.planning_scene_diff);
@@ -169,7 +170,6 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
 {
   setMoveState(PLANNING);
 
-  planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   bool solved = false;
   planning_interface::MotionPlanResponse res;
   try
