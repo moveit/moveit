@@ -345,6 +345,20 @@ public:
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 
+  /** \brief Wait for robot state to become more recent than t.
+   *
+   * If there is no state monitor active, there will be no scene updates.
+   * Hence, you can specify a timeout to wait for those updates. Default is 1s.
+   */
+  bool waitForCurrentRobotState(const ros::Time &t, double wait_time = 1.);
+
+  /** \brief Wait current robot state and wait for all pending scene updates to be processed.
+   *
+   * Additionally to waitForCurrentRobotState() this processes also all already received scene updates
+   * as long as wait_time is not exceeded.
+   */
+  bool syncSceneUpdates(const ros::Time &t = ros::Time::now(), double wait_time = 1.);
+
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockSceneRead();
 
@@ -417,9 +431,14 @@ protected:
   planning_scene::PlanningSceneConstPtr scene_const_;
   planning_scene::PlanningScenePtr      parent_scene_; /// if diffs are monitored, this is the pointer to the parent scene
   boost::shared_mutex                   scene_update_mutex_; /// mutex for stored scene
+  ros::Time                             last_update_time_; /// Last time the state was updated
+  ros::Time                             last_robot_motion_time_; /// Last time the robot has moved
+  bool                                  enforce_next_state_update_;
 
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;
+  ros::CallbackQueue                    callback_queue_;
+  boost::scoped_ptr<ros::AsyncSpinner>  spinner_;
   boost::shared_ptr<tf::Transformer>    tf_;
   std::string                           robot_description_;
 
@@ -472,7 +491,6 @@ protected:
   /// lock access to update_callbacks_
   boost::recursive_mutex update_lock_;
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_; /// List of callbacks to trigger when updates are received
-  ros::Time last_update_time_; /// Last time the state was updated
 
 private:
 
@@ -514,7 +532,7 @@ private:
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  ros::WallTime last_state_update_;
+  ros::WallTime wall_last_state_update_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   robot_model::RobotModelConstPtr robot_model_;

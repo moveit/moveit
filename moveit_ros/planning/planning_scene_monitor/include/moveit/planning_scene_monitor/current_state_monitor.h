@@ -44,6 +44,7 @@
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 
 namespace planning_scene_monitor
 {
@@ -136,7 +137,11 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
 
-  /** @brief Wait for at most \e wait_time seconds until the complete current state is known. Return true if the full state is known */
+  /** @brief Wait for at most \e wait_time seconds for a robot state more recent than t */
+  bool waitForCurrentState(const ros::Time t=ros::Time::now(), double wait_time=1) const;
+
+  // TODO: rename functions to waitForCompleteState
+  /** @brief Wait for at most \e wait_time seconds until the complete robot state is known. Return true if the full state is known */
   bool waitForCurrentState(double wait_time) const;
 
   /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true if values for all joints in \e group are known */
@@ -199,6 +204,7 @@ private:
   ros::Time                                    last_tf_update_;
 
   mutable boost::mutex                         state_update_lock_;
+  mutable boost::condition_variable            state_update_condition_;
   std::vector< JointStateUpdateCallback >      update_callbacks_;
 };
 
