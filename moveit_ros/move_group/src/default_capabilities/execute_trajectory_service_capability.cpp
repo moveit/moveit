@@ -78,6 +78,12 @@ bool move_group::MoveGroupExecuteService::executeTrajectoryService(moveit_msgs::
   //    robot_trajectory::RobotTrajectory to_exec(planning_scene_monitor_->getRobotModel(), ;
 
   context_->trajectory_execution_manager_->clear();
+  if (!context_->validateTrajectory(req.trajectory.joint_trajectory))
+  {
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+    return true;
+  }
+
   if (context_->trajectory_execution_manager_->push(req.trajectory))
   {
     context_->trajectory_execution_manager_->execute();

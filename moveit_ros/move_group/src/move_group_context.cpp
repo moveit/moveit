@@ -89,3 +89,41 @@ bool move_group::MoveGroupContext::status() const
     return false;
   }
 }
+
+/** Validate that first point of given a trajectory matches current state of robot */
+bool move_group::MoveGroupContext::validateTrajectory(const trajectory_msgs::JointTrajectory &trajectory) const
+{
+  if (trajectory.points.empty())
+    return true;
+
+  const planning_scene_monitor::CurrentStateMonitorPtr csm = planning_scene_monitor_->getStateMonitor();
+  robot_state::RobotStatePtr current_state;
+  if (!csm->waitForCurrentState(1.0) || !(current_state = csm->getCurrentState()))
+  {
+    ROS_WARN("Failed to receive full current joint state");
+    return false;
+  }
+
+  const std::vector<double> &positions = trajectory.points.front().positions;
+  std::size_t n = trajectory.joint_names.size();
+  if (positions.size() != n)
+    return false;
+
+  for (std::size_t i = 0; i < n; ++i)
+  {
+    const robot_model::JointModel *jm = current_state->getJointModel(trajectory.joint_names[i]);
+    if (!jm)
+    {
+      ROS_ERROR_STREAM("Unknown joint in trajectory: " << trajectory.joint_names[i]);
+      return false;
+    }
+    // TODO: check multi-DoF joints
+    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > std::numeric_limits<float>::epsilon())
+    {
+      ROS_ERROR("Trajectory start deviates from current robot state");
+      return false;
+    }
+  }
+  return true;
+}
+
