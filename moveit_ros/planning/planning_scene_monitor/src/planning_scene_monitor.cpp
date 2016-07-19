@@ -502,7 +502,6 @@ bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
 
     last_update_time_ = ros::Time::now();
     last_robot_motion_time_ = scene.robot_state.joint_state.header.stamp;
-    ROS_DEBUG_STREAM_NAMED("PSM", "scene update " << fmod(last_update_time_.toSec(), 10.) << "robot stamp: " << fmod(last_robot_motion_time_.toSec(), 10.));
     old_scene_name = scene_->getName();
     result = scene_->usePlanningSceneMsg(scene);
     if (octomap_monitor_)
@@ -825,7 +824,6 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
   if (t.isZero())
     return;
 
-  ROS_DEBUG_STREAM_NAMED("PSM", "sync to: " << fmod(t.toSec(), 10.));
   enforce_next_state_update_ = true;  // enforce next state update to trigger without throttling
 
   // Robot state updates in the scene are only triggered by the state monitor on changes of the state.
@@ -836,8 +834,6 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
          last_robot_update < t &&                      // wait for recent state update
          (t - last_robot_motion_time_).toSec() < 1.0)  // but only if robot moved in last second
   {
-    ROS_DEBUG_STREAM_NAMED("PSM", "robot monitor update " << (t-robot).toSec() << " ago"
-                           << " robot state update " << (t-last_robot_motion_time_).toSec() << "ago");
     new_scene_update_condition_.wait_for(lock, boost::chrono::milliseconds(50));
     last_robot_update = current_state_monitor_->getCurrentStateTime();
   }
@@ -846,13 +842,8 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
   // ensure that last update time is more recent than t (or no more update events pending)
   while (last_update_time_ < t && !callback_queue_.empty())
   {
-    ROS_DEBUG_STREAM_NAMED("PSM", "last update: " << (t-last_update_time_).toSec() << " ago");
     new_scene_update_condition_.wait_for(lock, boost::chrono::milliseconds(50));
   }
-  ROS_DEBUG_STREAM_NAMED("PSM", "sync done: robot:" << (t-last_robot_motion_time_).toSec()
-                         << " monitor:" << (bool)current_state_monitor_ << ":" << (t-robot).toSec()
-                         << " update:" << (t-last_update_time_).toSec()
-                         << " queue:" << (callback_queue_.empty() ? "empty" : "non-empty"));
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
@@ -871,7 +862,6 @@ void planning_scene_monitor::PlanningSceneMonitor::unlockSceneRead()
 
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneWrite()
 {
-  ros::WallTime t = ros::WallTime::now();
   scene_update_mutex_.lock();
   if (octomap_monitor_)
     octomap_monitor_->getOcTreePtr()->lockWrite();
@@ -1177,7 +1167,6 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
-      ROS_DEBUG_STREAM_NAMED("PSM", "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       enforce_next_state_update_ = false;
       scene_->getCurrentStateNonConst().update(); // compute all transforms
