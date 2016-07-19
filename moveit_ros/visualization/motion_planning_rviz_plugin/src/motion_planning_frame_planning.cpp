@@ -139,7 +139,9 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
   if (move_group_ && current_plan_)
   {
     ui_->stop_button->setEnabled(true); // enable stopping
-    bool success = move_group_->execute(*current_plan_);
+    bool success =
+      move_group_->validatePlan(*current_plan_) &&
+      move_group_->execute(*current_plan_);
     onFinishedExecution(success);
   }
 }
