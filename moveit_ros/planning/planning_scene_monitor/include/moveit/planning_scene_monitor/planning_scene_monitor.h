@@ -336,6 +336,9 @@ public:
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 
+  /** \brief Wait until all pending scene updates with timestamps < t are incorporated */
+  void syncSceneUpdates(const ros::Time &t = ros::Time::now());
+
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockSceneRead();
 
@@ -505,7 +508,7 @@ private:
 
   /// Last time the state was updated from current_state_monitor_
   // Only access this from callback functions (and constructor)
-  ros::WallTime last_state_update_;
+  ros::WallTime wall_last_state_update_;
 
   robot_model_loader::RobotModelLoaderPtr rm_loader_;
   robot_model::RobotModelConstPtr robot_model_;
@@ -514,6 +517,11 @@ private:
 
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
+
+  ros::CallbackQueue                    callback_queue_;
+  boost::scoped_ptr<ros::AsyncSpinner>  spinner_;
+  ros::Time                             last_robot_motion_time_; /// Last time the robot has moved
+  bool                                  enforce_next_state_update_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
