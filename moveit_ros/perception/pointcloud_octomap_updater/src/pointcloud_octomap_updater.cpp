@@ -247,7 +247,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
         //  continue;
 
         /* check for NaN */
-        if (!isnan(pt_iter[0]) && !isnan(pt_iter[1]) && !isnan(pt_iter[2]))
+        if (!std::isnan(pt_iter[0]) && !std::isnan(pt_iter[1]) && !std::isnan(pt_iter[2]))
         {
           /* transform to map frame */
           tf::Vector3 point_tf = map_H_sensor * tf::Vector3(pt_iter[0], pt_iter[1],
