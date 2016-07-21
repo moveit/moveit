@@ -610,8 +610,3 @@ class MoveitJoy:
         self.marker_lock.acquire()
         self.initial_poses[self.current_pose_topic.split("/")[-1]] = new_pose.pose
         self.marker_lock.release()
-
-if __name__ == "__main__":
-    rospy.init_node("moveit_joy")
-    app = MoveitJoy()
-    rospy.spin()
