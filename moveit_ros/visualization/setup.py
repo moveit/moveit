@@ -3,6 +3,5 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 d = generate_distutils_setup()
 d['packages'] = ['moveit_ros_visualization']
-d['scripts'] = []
-d['package_dir'] = {'': 'python'}
+d['package_dir'] = {'': 'src'}
 setup(**d)
