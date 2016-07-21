@@ -50,8 +50,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
 
-
-catkin_python_setup()
 catkin_package(
   LIBRARIES
     moveit_rviz_plugin_render_tools
@@ -70,6 +68,9 @@ catkin_package(
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
     )
+
+catkin_install_python(PROGRAMS scripts/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_python_setup()
 
 include_directories(rviz_plugin_render_tools/include
                     robot_state_rviz_plugin/include
@@ -99,8 +100,6 @@ install(FILES
   planning_scene_rviz_plugin_description.xml
   robot_state_rviz_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(PROGRAMS python/moveit_ros_visualization/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
