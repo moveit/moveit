@@ -834,15 +834,21 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
          last_robot_update < t &&                      // wait for recent state update
          (t - last_robot_motion_time_).toSec() < 1.0)  // but only if robot moved in last second
   {
-    new_scene_update_condition_.wait_for(lock, boost::chrono::milliseconds(50));
+    new_scene_update_condition_.wait_for(lock, boost::chrono::milliseconds(100));
     last_robot_update = current_state_monitor_->getCurrentStateTime();
   }
-  // Now, we know that robot state is up-to-date
+  // If there was a state monitor connected (and robot moved), the robot state should be up-to-date now
+  // and last_update_time_ = last_robot_motion_time_
 
-  // ensure that last update time is more recent than t (or no more update events pending)
-  while (last_update_time_ < t && !callback_queue_.empty())
+  // If last scene update is recent and there are no pending updates, we are done.
+  if (last_update_time_ >= t && callback_queue_.empty())
+    return;
+
+  // Processing pending updates and wait for new incoming updates up to 1s.
+  // This is necessary as re-publishing is throttled.
+  while (!callback_queue_.empty() || (ros::Time::now()-t).toSec() < 1.)
   {
-    new_scene_update_condition_.wait_for(lock, boost::chrono::milliseconds(50));
+    new_scene_update_condition_.wait_for(lock, boost::chrono::seconds(1));
   }
 }
 
