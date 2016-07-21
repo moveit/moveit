@@ -1,77 +1,21 @@
-# Generic MoveIt Travis Continuous Integration Configuration File
-# Works with all MoveIt! repositories/branches
-# Author: Dave Coleman, Jonathan Bohren, Robert Haschke
+# This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
 sudo: required
 dist: trusty
+services:
+  - docker
 language: generic
-python:
-  - "2.7"
 compiler:
   - gcc
 notifications:
   email:
     recipients:
-    #  - davetcoleman@gmail.com
-    on_success: change #[always|never|change] # default: change
-    on_failure: change #[always|never|change] # default: always
-
+      - dave@dav.ee
+      - 130s@2000.jukuin.keio.ac.jp
 env:
-  global:
-    # Specify which repositories to build too
-    - MOVEIT_REPOS="moveit_core moveit_planners moveit_msgs moveit_plugins moveit_ros"
   matrix:
-    - ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-    - ROS_DISTRO="indigo" ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
-    - ROS_DISTRO="jade"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-    - ROS_DISTRO="jade"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
-
-before_install: # Use this to prepare the system to install prerequisites or dependencies
-  # Define some config vars
-  - export CI_SOURCE_PATH=$(pwd)
-  - export REPOSITORY_NAME=${PWD##*/}
-  - echo "Testing branch $TRAVIS_BRANCH of $REPOSITORY_NAME on $ROS_DISTRO"
-  - sudo -E sh -c 'echo "deb $ROS_REPOSITORY_PATH `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
-  - wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq -y python-rosdep python-wstool python-catkin-tools
-  # MongoDB hack - I don't fully understand this but its for moveit_warehouse
-#  - sudo apt-get remove -y mongodb mongodb-10gen || true
-#  - sudo apt-get install -y mongodb-clients mongodb-server -o Dpkg::Options::="--force-confdef" # default actions
-  # Setup rosdep
-  - sudo rosdep init
-  - rosdep update
-
-install: # Use this to install any prerequisites or dependencies necessary to run your build
-  # Create workspace
-  - mkdir -p ~/ros/ws_moveit/src
-  - cd ~/ros/ws_moveit/src
-  - wget https://raw.github.com/ros-planning/moveit_docs/${ROS_DISTRO}-devel/moveit.rosinstall
-  # filter for $MOVEIT_REPOS
-  - PKGS_FILTER=$(echo $MOVEIT_REPOS | tr ' ' '|')
-  - if [ -n "$PKGS_FILTER" ]; then egrep "$PKGS_FILTER" moveit.rosinstall > .rosinstall; else cp moveit.rosinstall .rosinstall; fi
-  - rm -f moveit.rosinstall
-  # download moveit repos, except $REPOSITORY_NAME
-  - wstool rm $REPOSITORY_NAME || true
-  - wstool update
-  # link in the repo we are testing
-  - ln -s $TRAVIS_BUILD_DIR $REPOSITORY_NAME
-  - cd ../
-  # use rosdep to install all dependencies (including ROS itself)
-  - rosdep install --from-paths ./ -i -y --rosdistro $ROS_DISTRO
-
-before_script: # Build the workspace
-  - catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release
-  - catkin build --no-status --summarize
-  # determine list of packages to test
-  - source install/setup.bash
-  - TEST_PKGS=$(catkin_topological_order $TRAVIS_BUILD_DIR --only-names)
-  - if [ -n "$TEST_PKGS" ]; then TEST_PKGS="--no-deps $TEST_PKGS"; fi
-  - if [ "$ALLOW_TEST_FAILURE" != "true" ]; then ALLOW_TEST_FAILURE=false; fi
-
-script: # run tests
-  - catkin build --no-status --summarize --make-args tests -- $TEST_PKGS
-  # Run tests
-  - catkin run_tests --no-status --summarize $TEST_PKGS
-  # catkin run_tests always returns 0, use catkin_test_results to check for errors
-  # https://github.com/catkin/catkin_tools/issues/245
-  - catkin_test_results || $ALLOW_TEST_FAILURE
+    - ROS_DISTRO="indigo"  ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu              UPSTREAM_WORKSPACE=https://raw.githubusercontent.com/ros-planning/moveit_docs/indigo-devel/moveit.rosinstall
+    - ROS_DISTRO="indigo"  ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu UPSTREAM_WORKSPACE=https://raw.githubusercontent.com/ros-planning/moveit_docs/indigo-devel/moveit.rosinstall
+before_script:
+  - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
+script:
+  - source .moveit_ci/travis.sh
