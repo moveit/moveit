@@ -232,7 +232,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   shape_transform_cache_lookup_wait_time_ = ros::Duration(temp_wait_time);
 
   state_update_pending_ = false;
-  enforce_next_state_update_ = false;
   state_update_timer_ = nh_.createWallTimer(dt_state_update_,
                                             &PlanningSceneMonitor::stateUpdateTimerCallback,
                                             this,
@@ -824,8 +823,6 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
   if (t.isZero())
     return;
 
-  enforce_next_state_update_ = true;  // enforce next state update to trigger without throttling
-
   // Robot state updates in the scene are only triggered by the state monitor on changes of the state.
   // Hence, last_state_update_time_ might be much older than current_state_monitor_ (when robot didn't moved for a while).
   boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
@@ -1064,11 +1061,11 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_ms
   const ros::WallTime &n = ros::WallTime::now();
   ros::WallDuration dt = n - wall_last_state_update_;
 
-  bool update = enforce_next_state_update_;
+  bool update = false;
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
 
-    if (dt < dt_state_update_ && !update)
+    if (dt < dt_state_update_)
     {
       state_update_pending_ = true;
     }
@@ -1174,7 +1171,6 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
-      enforce_next_state_update_ = false;
       scene_->getCurrentStateNonConst().update(); // compute all transforms
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
