@@ -845,7 +845,7 @@ void planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::T
     return;
 
   // Processing pending updates and wait for new incoming updates up to 1s.
-  // This is necessary as re-publishing is throttled.
+  // This is necessary as publishing planning scene diffs is throttled (2Hz by default).
   while (!callback_queue_.empty() || (ros::Time::now()-t).toSec() < 1.)
   {
     new_scene_update_condition_.wait_for(lock, boost::chrono::seconds(1));
