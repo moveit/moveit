@@ -3,7 +3,7 @@
 
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2015, TORK (Tokyo Opensource Robotics Kyokai Association)
+# Copyright (c) 2016, TORK (Tokyo Opensource Robotics Kyokai Association)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,41 +34,10 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-import unittest
-
-from geometry_msgs.msg import Pose
 from moveit_ros_visualization.moveitjoy_module import MoveitJoy
 import rospy
 
-import math
-from tf.transformations import quaternion_from_euler
-
-_PKGNAME = 'moveit_ros_visualization'
-_NODENAME = 'test_moveit_joy'
-
-class TestMoveitJoy(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(self):
-        rospy.init_node(_NODENAME)
-        self.moveit_joy = MoveitJoy()
-
-    @classmethod
-    def tearDownClass(self):
-        True  # TODO impl something meaningful
-
-    def test_updatePlanningGroup_exception(self):
-        '''Test MoveitJoy.updatePlanningGroup'''
-        exception_raised = False
-        try:
-            # Passng 0 to MoveitJoy.updatePlanningGroup should raise an exception.
-            self.moveit_joy.updatePlanningGroup(0)
-        except rospy.ROSInitException:
-            exception_raised = True
-        self.assertTrue(exception_raised)
-
-
-if __name__ == '__main__':
-    import rostest
-    rostest.rosrun(_PKGNAME, _NODENAME, TestMoveitJoy) 
+if __name__ == "__main__":
+    rospy.init_node("moveit_joy")
+    app = MoveitJoy()
+    rospy.spin()
