@@ -61,6 +61,7 @@ void move_group::MoveGroupMoveAction::initialize()
 void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal)
 {
   setMoveState(PLANNING);
+  context_->planning_scene_monitor_->updateFrameTransforms();
 
   moveit_msgs::MoveGroupResult action_res;
   if (goal->planning_options.plan_only || !context_->allow_trajectory_execution_)
@@ -170,6 +171,7 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
 {
   setMoveState(PLANNING);
 
+  planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);
   bool solved = false;
   planning_interface::MotionPlanResponse res;
   try
