@@ -709,7 +709,7 @@ public:
         return false;
       }
       // TODO: check multi-DoF joints
-      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) < std::numeric_limits<float>::epsilon())
+      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > std::numeric_limits<float>::epsilon())
       {
         ROS_ERROR("Trajectory start deviates from current robot state");
         return false;
