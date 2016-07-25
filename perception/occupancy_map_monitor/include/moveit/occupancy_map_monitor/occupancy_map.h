@@ -38,9 +38,9 @@
 #define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_
 
 #include <octomap/octomap.h>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/function.hpp>
+#include <memory>
 
 namespace occupancy_map_monitor
 {
@@ -115,8 +115,8 @@ private:
   boost::function<void()> update_callback_;
 };
 
-typedef boost::shared_ptr<OccMapTree> OccMapTreePtr;
-typedef boost::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
+typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
+typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
 
 }
 

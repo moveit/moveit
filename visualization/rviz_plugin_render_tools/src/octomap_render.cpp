@@ -50,7 +50,7 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree> &octree,
+OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
                            OctreeVoxelRenderMode octree_voxel_rendering,
                            OctreeVoxelColorMode octree_color_mode,
                            std::size_t max_octree_depth,
@@ -152,7 +152,7 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
 }
 
 
-void OcTreeRender::octreeDecoding (const boost::shared_ptr<const octomap::OcTree> &octree,
+void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> &octree,
                                    OctreeVoxelRenderMode octree_voxel_rendering,
                                    OctreeVoxelColorMode octree_color_mode)
 {
