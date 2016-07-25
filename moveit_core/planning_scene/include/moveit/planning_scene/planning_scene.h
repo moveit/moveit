@@ -55,6 +55,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
+#include <memory>
 
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
@@ -692,7 +693,7 @@ public:
 
   void processOctomapMsg(const octomap_msgs::OctomapWithPose &map);
   void processOctomapMsg(const octomap_msgs::Octomap &map);
-  void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
+  void processOctomapPtr(const std::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t);
 
   /**
    * \brief Clear all collision objects in planning scene
