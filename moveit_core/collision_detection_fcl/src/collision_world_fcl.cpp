@@ -39,6 +39,7 @@
 #include <fcl/traversal/traversal_node_bvhs.h>
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
+#include <boost/bind.hpp>
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL() :
   CollisionWorld()
