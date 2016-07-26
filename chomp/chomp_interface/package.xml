@@ -1,0 +1,19 @@
+<package>
+  <name>chomp_interface</name>
+  <description>The chomp_interface package</description>
+
+  <version>0.7.0</version>
+  <author email="gjones@willowgarage.com">Gil Jones</author>
+  <maintainer email="chitt@live.in">Chittaranjan S Srinivas</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>chomp_motion_planner</build_depend>
+  <build_depend>moveit_core</build_depend>
+
+</package>
+
+
