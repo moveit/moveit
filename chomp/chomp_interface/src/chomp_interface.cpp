@@ -39,13 +39,13 @@
 namespace chomp_interface
 {
 
-CHOMPInterfaceROS::CHOMPInterfaceROS(const moveit::core::RobotModelConstPtr& kmodel) :
+CHOMPInterface::CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel) :
   ChompPlanner(kmodel), nh_("~")
 {
   loadParams();
 }
 
-void CHOMPInterfaceROS::loadParams() {
+void CHOMPInterface::loadParams() {
   nh_.param("planning_time_limit", params_.planning_time_limit_, 6.0);
   nh_.param("max_iterations", params_.max_iterations_, 50);
   nh_.param("max_iterations_after_collision_free", params_.max_iterations_after_collision_free_, 5);

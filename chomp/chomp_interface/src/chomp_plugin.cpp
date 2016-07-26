@@ -41,20 +41,30 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <pluginlib/class_list_macros.h>
+#include <class_loader/class_loader.h>
 
 namespace chomp_interface
 {
 
-class CHOMPPlanner : public planning_interface::PlannerManager
+class CHOMPPlannerManager : public planning_interface::PlannerManager
 {
 public:
-  void init(const moveit::core::RobotModelConstPtr& model)
+  CHOMPPlannerManager() : planning_interface::PlannerManager()
   {
-    chomp_interface_.reset(new CHOMPInterfaceROS(model));
   }
 
-  bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req) const
+  void init(const moveit::core::RobotModelConstPtr& model)
+  {
+    chomp_interface_.reset(new CHOMPInterface(model));
+  }
+
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+      const planning_interface::MotionPlanRequest &req,
+      moveit_msgs::MoveItErrorCodes &error_code) const {
+
+  }
+
+  bool canServiceRequest(const planning_interface::MotionPlanRequest &req) const
   {
     // TODO: this is a dummy implementation
     //      capabilities.dummy = false;
@@ -101,9 +111,9 @@ public:
   }
 
 private:
-  boost::shared_ptr<CHOMPInterfaceROS> chomp_interface_;
+  boost::shared_ptr<CHOMPInterface> chomp_interface_;
 };
 
 } // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( chomp_interface::CHOMPPlanner, planning_interface::PlannerManager);
+CLASS_LOADER_REGISTER_CLASS(chomp_interface::CHOMPPlannerManager, planning_interface::PlannerManager);

@@ -44,10 +44,10 @@
 namespace chomp_interface
 {
 /** @class CHOMPInterfaceROS */
-class CHOMPInterfaceROS : public chomp::ChompPlanner
+class CHOMPInterface : public chomp::ChompPlanner
 {
 public:
-  CHOMPInterfaceROS(const moveit::core::RobotModelConstPtr &kmodel);
+  CHOMPInterface(const moveit::core::RobotModelConstPtr &kmodel);
 
   const chomp::ChompParameters& getParams() const {
     return params_;
