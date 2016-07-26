@@ -34,12 +34,12 @@
 
 /* Author: E. Gil Jones */
 
-#include <chomp_interface_ros/chomp_interface_ros.h>
+#include <chomp_interface/chomp_interface.h>
 
-namespace chomp_interface_ros
+namespace chomp_interface
 {
 
-CHOMPInterfaceROS::CHOMPInterfaceROS(const planning_models::RobotModelConstPtr& kmodel) :
+CHOMPInterfaceROS::CHOMPInterfaceROS(const moveit::core::RobotModelConstPtr& kmodel) :
   ChompPlanner(kmodel), nh_("~")
 {
   loadParams();

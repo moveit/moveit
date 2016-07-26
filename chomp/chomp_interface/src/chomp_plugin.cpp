@@ -33,29 +33,28 @@
  *********************************************************************/
 
 
-#include <planning_interface/planning_interface.h>
-#include <planning_scene/planning_scene.h>
-#include <planning_models/robot_model.h>
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <chomp_interface_ros/chomp_interface_ros.h>
+#include <chomp_interface/chomp_interface.h>
 
 #include <boost/shared_ptr.hpp>
 
 #include <pluginlib/class_list_macros.h>
 
-namespace chomp_interface_ros
+namespace chomp_interface
 {
 
-class CHOMPPlanner : public planning_interface::Planner
+class CHOMPPlanner : public planning_interface::PlannerManager
 {
 public:
-  void init(const planning_models::RobotModelConstPtr& model)
+  void init(const moveit::core::RobotModelConstPtr& model)
   {
     chomp_interface_.reset(new CHOMPInterfaceROS(model));
   }
 
-  bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
-                         planning_interface::PlannerCapability &capabilities) const
+  bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req) const
   {
     // TODO: this is a dummy implementation
     //      capabilities.dummy = false;
@@ -78,10 +77,10 @@ public:
     if (chomp_interface_->solve(planning_scene, req,
                                 chomp_interface_->getParams(),res2))
     {
-      res.trajectory_start = res2.trajectory_start;
-      res.trajectory.push_back(res2.trajectory);
+      res.trajectory_start = res2.motion_plan_response.trajectory_start;
+      res.trajectory.push_back(res2.motion_plan_response.trajectory);
       res.description.push_back("plan");
-      res.processing_time.push_back(res2.planning_time);
+      res.processing_time.push_back(res2.motion_plan_response.planning_time);
       return true;
     }
     else
@@ -107,4 +106,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( chomp_interface_ros::CHOMPPlanner, planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS( chomp_interface::CHOMPPlanner, planning_interface::PlannerManager);

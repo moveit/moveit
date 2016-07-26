@@ -41,13 +41,13 @@
 #include <chomp_motion_planner/chomp_parameters.h>
 #include <ros/ros.h>
 
-namespace chomp_interface_ros
+namespace chomp_interface
 {
 /** @class CHOMPInterfaceROS */
 class CHOMPInterfaceROS : public chomp::ChompPlanner
 {
 public:
-  CHOMPInterfaceROS(const planning_models::RobotModelConstPtr &kmodel);
+  CHOMPInterfaceROS(const moveit::core::RobotModelConstPtr &kmodel);
 
   const chomp::ChompParameters& getParams() const {
     return params_;
