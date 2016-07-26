@@ -29,7 +29,6 @@
   <build_depend>geometry_msgs</build_depend>
   <build_depend>kdl_parser</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
-  <build_depend>libfcl-dev</build_depend>
   <build_depend>liburdfdom-dev</build_depend>
   <build_depend>liburdfdom-headers-dev</build_depend>
   <build_depend>moveit_msgs</build_depend>
@@ -55,7 +54,6 @@
   <run_depend>geometry_msgs</run_depend>
   <run_depend>kdl_parser</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
-  <run_depend>libfcl-dev</run_depend>
   <run_depend>liburdfdom-dev</run_depend>
   <run_depend>liburdfdom-headers-dev</run_depend>
   <run_depend>moveit_msgs</run_depend>
