@@ -44,6 +44,7 @@
 #include <moveit/exceptions/exceptions.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <memory>
 #include <set>
 
 namespace planning_scene
@@ -1283,7 +1284,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
     return;
   }
 
-  boost::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map)));
+  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map)));
   if (!map.header.frame_id.empty())
   {
     const Eigen::Affine3d &t = getTransforms().getTransform(map.header.frame_id);
@@ -1317,7 +1318,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
     return;
   }
 
-  boost::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
+  std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
   const Eigen::Affine3d &t = getTransforms().getTransform(map.header.frame_id);
   Eigen::Affine3d p;
   tf::poseMsgToEigen(map.origin, p);
@@ -1325,7 +1326,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
 }
 
-void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
+void planning_scene::PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree> &octree, const Eigen::Affine3d &t)
 {
   collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
   if (map)
