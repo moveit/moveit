@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <name>moveit_ros_planning</name>
+  <version>0.6.6</version>
+  <description>Planning components of MoveIt that use ROS</description>
+  <author email="isucan@google.com">Ioan Sucan</author>
+  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
+
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_perception</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>angles</build_depend>
+  <build_depend>eigen</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_perception</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>angles</run_depend>
+
+  <export>
+    <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/srv_kinematics_plugin_description.xml"/>
+  </export>
+
+</package>

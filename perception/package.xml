@@ -1,0 +1,61 @@
+<package>
+  <name>moveit_ros_perception</name>
+  <version>0.6.6</version>
+  <description>Components of MoveIt connecting to perception</description>
+
+  <author email="isucan@google.com">Ioan Sucan</author>
+  <author email="jon.binney@gmail.com">Jon Binney</author>
+  <author email="gedikli@willowgarage.com">Suat Gedikli</author>
+
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>octomap</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>glut</build_depend>
+  <build_depend>libglew-dev</build_depend>
+  <build_depend>opengl</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>eigen</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+  <run_depend>message_filters</run_depend>
+  <run_depend>octomap</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>glut</run_depend>
+  <run_depend>libglew-dev</run_depend>
+  <run_depend>opengl</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>moveit_msgs</run_depend>
+
+  <export>
+    <moveit_ros_perception plugin="${prefix}/pointcloud_octomap_updater_plugin_description.xml"/>
+    <moveit_ros_perception plugin="${prefix}/depth_image_octomap_updater_plugin_description.xml"/>
+  </export>
+
+</package>
