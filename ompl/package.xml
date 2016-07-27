@@ -1,0 +1,38 @@
+<package>
+  <name>moveit_planners_ompl</name>
+  <version>0.7.0</version>
+  <description>MoveIt interface to OMPL</description>
+  <author email="isucan@willowgarage.com">Ioan Sucan</author>
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_planners/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_planners</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>ompl</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>pluginlib</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>ompl</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>pluginlib</run_depend>
+
+  <export>
+    <moveit_core plugin="${prefix}/ompl_interface_plugin_description.xml"/>
+  </export>
+
+</package>
