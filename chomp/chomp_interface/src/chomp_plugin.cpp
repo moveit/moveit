@@ -41,7 +41,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <class_loader/class_loader.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace chomp_interface
 {
@@ -116,4 +116,4 @@ private:
 
 } // ompl_interface_ros
 
-CLASS_LOADER_REGISTER_CLASS(chomp_interface::CHOMPPlannerManager, planning_interface::PlannerManager);
+PLUGINLIB_EXPORT_CLASS(chomp_interface::CHOMPPlannerManager, planning_interface::PlannerManager);

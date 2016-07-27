@@ -4,6 +4,7 @@ project(chomp_interface)
 find_package(catkin REQUIRED COMPONENTS 
   roscpp
   moveit_core
+  pluginlib
   chomp_motion_planner
 )
 
@@ -13,6 +14,7 @@ find_package(Boost REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES chomp_interface
+  CATKIN_DEPENDS roscpp moveit_core pluginlib
 ) 
 
 include_directories( 
