@@ -1,0 +1,17 @@
+/**
+\page constraint_representation Representation and Evaluation of Constraints
+
+Constraints are integral component of MoveIt! and they are used both to constrain robot motion as well as to define planning goals. There following set of constraints are defined in the kinematic_constraints namespace:
+- kinematic_constraints::JointConstraint
+- kinematic_constraints::OrientationConstraint
+- kinematic_constraints::PositionConstraint
+- kinematic_constraints::VisibilityConstraint
+.
+
+All of these constraints inherit from the kinematic_constraints::KinematicConstraint base class and thus more constraint types can be added by the user by providing their own derived classes. The main operation each constraint implements is the KinematicConstraint::decide() function, which decides whether a constraint is satisfied, and optionally returns a distance (an error) when a constraint is not satisfied.
+
+Often multiple constraints need to be imposed on a particular motion plan or for a particular goal. The class kinematic_constraints::KinematicConstraintSet facilitates operating with sets of constraints.
+
+A related functionality to representing and evaluating constraints is \ref constraint_sampling "generating samples" that satisfy those constraints.
+
+*/
