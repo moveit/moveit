@@ -148,7 +148,7 @@ void collision_detection::CollisionWorldFCL::constructFCLObject(const World::Obj
     if (g)
     {
       fcl::CollisionObject *co = new fcl::CollisionObject(g->collision_geometry_,  transform2fcl(obj->shape_poses_[i]));
-      fcl_obj.collision_objects_.push_back(boost::shared_ptr<fcl::CollisionObject>(co));
+      fcl_obj.collision_objects_.push_back(std::shared_ptr<fcl::CollisionObject>(co));
       fcl_obj.collision_geometry_.push_back(g);
     }
   }
