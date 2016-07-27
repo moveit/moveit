@@ -1,0 +1,27 @@
+# This file is primarilly intended for the users who want to build MoveIt! from source.
+# Used with wstool, users can download source of all packages of MoveIt!.
+- git:
+    local-name: moveit
+    uri: https://github.com/davetcoleman/moveit.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_docs
+    uri: https://github.com/ros-planning/moveit_docs.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_msgs
+    uri: https://github.com/ros-planning/moveit_msgs.git
+    version: jade-devel
+- git:
+    local-name: warehouse_ros
+    uri: https://github.com/ros-planning/warehouse_ros.git
+    version: jade-devel
+# Temporary until released into kinetic
+- git:
+    local-name: geometric_shapes
+    uri: https://github.com/ros-planning/geometric_shapes.git
+    version: kinetic-devel
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: indigo-devel
