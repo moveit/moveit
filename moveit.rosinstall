@@ -25,3 +25,11 @@
     local-name: srdfdom
     uri: https://github.com/ros-planning/srdfdom.git
     version: indigo-devel
+- git:
+    local-name: fcl
+    uri: https://github.com/flexible-collision-library/fcl.git
+    version: 0.5.0
+- git:
+    local-name: octomap
+    uri: https://github.com/OctoMap/octomap.git
+    version: v1.8.0
