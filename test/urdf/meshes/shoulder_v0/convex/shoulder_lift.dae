@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA version="1.4.0" xmlns="http://www.collada.org/2005/11/COLLADASchema">
+	<asset>
+		<contributor>
+			<author>NxuStream2 converter - http://www.ageia.com</author>
+			<authoring_tool>PhysX Rocket, PhysX Viewer, or CreateDynamics</authoring_tool>
+			<comments>questions to: jratcliff@ageia.com</comments>
+			<copyright></copyright>
+			<source_data>chair_gothic_tilted</source_data>
+		</contributor>
+		<unit meter="1" name="meter"/>
+		<up_axis>Y_UP</up_axis>
+	</asset>
+   <library_materials>
+      <material id="Material" name="Material">
+         <instance_effect url="#Material-fx"></instance_effect>
+      </material>
+   </library_materials>
+   <library_effects>
+      <effect id="Material-fx" name="Material">
+         <profile_COMMON>
+            <technique id="Material-fx-COMMON" sid="COMMON">
+               <phong>
+                  <ambient>
+                     <color>0.803922 0.588235 0.92549 1</color>
+                  </ambient>
+                  <diffuse>
+                     <color>0.803922 0.588235 0.92549 1</color>
+                  </diffuse>
+                  <specular>
+                     <color>0.631373 0.631373 0.631373 1</color>
+                  </specular>
+                  <shininess>
+                     <float>1</float>
+                  </shininess>
+                  <reflective>
+                     <color>0 0 0 1</color>
+                  </reflective>
+                  <transparent>
+                     <color>1 1 1 1</color>
+                  </transparent>
+                  <transparency>
+                     <float>0</float>
+                  </transparency>
+               </phong>
+           </technique>
+         </profile_COMMON>
+      </effect>
+   </library_effects>
+  <library_geometries>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Position-array">
+            0.105350405 -0.053981408 0.065371677  0.106729075 -0.074891999 0.066081725  0.120999999 0.000108 0.077983305  0.12068034 -0.034042463 0.077209614  
+            0.117104001 -0.074891999 0.049150001  0.118000001 0.000108 0.072999999  0.118000001 -0.073891997 0.016971  0.120999999 -0.074891999 0.029798999  
+            0.120999999 -0.071061999 0.017183  0.120999999 -0.074891999 0.017971  0.120999999 0.000108 0.072999999  0.105342984 -0.074891783 0.06503953  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Vertex"/>
+           <p>
+             0 1 2  3 2 1  4 3 1  5 6 0  
+             5 0 2  7 3 4  7 4 1  7 2 3  
+             8 2 7  8 6 5  9 6 8  9 8 7  
+             9 7 1  10 5 2  10 2 8  10 8 5  
+             11 6 9  11 9 1  11 0 6  11 1 0  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Position-array">
+            0.077907369 -0.074891411 0.099044546  0.076322593 -0.029545041 0.097057298  0.105342984 -0.074891783 0.06503953  0.088319547 0.000108 0.112101004  
+            0.102499999 0.000108 0.115101002  0.118000001 0.000108 0.075727604  0.120075189 0.000108 0.102886461  0.12068034 -0.034042463 0.077209614  
+            0.118666001 -0.013005 0.102044001  0.105350405 -0.053981408 0.065371677  0.095574997 -0.074891999 0.084284998  0.109889999 -0.005571 0.113724001  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Vertex"/>
+           <p>
+             0 1 2  3 4 5  3 5 1  3 0 4  
+             3 1 0  6 5 4  7 5 6  7 6 8  
+             7 2 5  9 2 1  9 1 5  9 5 2  
+             10 2 7  10 7 8  10 0 2  10 8 0  
+             11 8 6  11 6 4  11 4 0  11 0 8  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Position-array">
+            0.120999999 0.000108 -0.072999999  0.100235 0.000108 -0.072999999  0.078633495 0.000108 -0.099670306  0.078626178 0.075107999 -0.099661134  
+            0.101081997 0.075107001 -0.077009998  0.117104001 0.075107999 -0.049150001  0.076598093 0.000108 -0.097117998  0.118000001 0.071277998 -0.017183  
+            0.120999999 0.074107997 -0.016971  0.121179 0.018494001 -0.070858002  0.076734275 0.075107999 -0.097288765  0.118000001 0.074814998 -0.017263001  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Vertex"/>
+           <p>
+             0 1 2  3 0 2  4 3 5  6 3 2  
+             6 2 1  7 6 1  7 0 8  7 1 0  
+             9 4 5  9 0 3  9 3 4  9 8 0  
+             9 5 8  10 3 6  10 6 7  10 5 3  
+             11 8 5  11 5 10  11 7 8  11 10 7  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Position-array">
+            0.100235 0.000108 -0.072999999  0.120999999 -0.071676999 -0.016971  0.120999999 0.000108 -0.072999999  0.076598093 0.000108 -0.097117998  
+            0.097955003 -0.074891999 -0.081524998  0.117104001 -0.074891999 -0.049150001  0.07858073 -0.074891999 -0.099604145  0.076047219 -0.074891999 -0.096427225  
+            0.118000001 -0.074891999 -0.017971  0.078633495 0.000108 -0.099670306  0.121174999 -0.018278999 -0.070859998  0.120999999 -0.074891999 -0.029798999  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Vertex"/>
+           <p>
+             0 1 2  0 2 3  4 5 6  7 3 6  
+             7 6 5  8 7 5  8 3 7  8 1 0  
+             8 0 3  9 2 6  9 6 3  9 3 2  
+             10 5 4  10 6 2  10 4 6  10 2 1  
+             11 5 10  11 10 1  11 1 8  11 8 5  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Position-array">
+            0.120999999 0.000108 0.072999999  0.076780185 0.027428929 0.097631097  0.118000001 0.071892999 0.016971  0.078518502 0.075107999 0.099810883  
+            0.120075189 0.000108 0.102886461  0.102499999 0.000108 0.115101002  0.120015003 0.020528 0.094154  0.088319547 0.000108 0.112101004  
+            0.108231999 0.010114 0.112462997  0.104730003 0.075107999 0.073345996  0.117104001 0.075107999 0.049150001  0.120999999 0.075107999 0.029798999  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Vertex"/>
+           <p>
+             0 1 2  3 2 1  4 5 0  4 0 6  
+             7 5 3  7 3 1  7 0 5  7 1 0  
+             8 6 3  8 4 6  8 3 5  8 5 4  
+             9 3 6  9 6 10  9 10 3  11 10 6  
+             11 2 3  11 3 10  11 0 2  11 6 0  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Position-array">
+            -0.069113001 -0.074891999 -0.107055001  -0.008045673 -0.074891254 -0.126062319  -0.089765437 -0.074891999 -0.085554421  -0.044195 0.075107001 -0.119162001  
+            -0.089840055 0.075104021 -0.085629039  -0.008058384 0.075107999 -0.126288652  -0.071393996 0.075104997 -0.105626002  -0.053279001 -0.004639 -0.115331002  
+            -0.032365002 -0.074888997 -0.123227999  -0.089713998 -0.074891999 -0.090006001  -0.007878202 -0.074891999 -0.123080216  -0.091577128 0.075105809 -0.087366112  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Vertex"/>
+           <p>
+             0 1 2  3 4 5  6 7 0  6 3 7  
+             8 5 1  8 3 5  8 7 3  8 1 0  
+             8 0 7  9 0 2  9 6 0  10 1 5  
+             10 5 4  10 4 2  10 2 1  11 6 9  
+             11 2 4  11 9 2  11 4 3  11 3 6  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Position-array">
+            -0.007909067 0.075107999 -0.123629808  0.076047219 -0.074891999 -0.096427225  0.076734275 0.075107999 -0.097288765  0.038711 0.075108998 -0.121146001  
+            0.039917 -0.074891999 -0.120844997  0 -0.074891999 -0.127000004  -0.007878202 -0.074891999 -0.123080216  0.075530998 -0.074891999 -0.102449998  
+            0.013302 0.075107999 -0.126367003  0.075672001 0.075107999 -0.102293  -0.008084549 -0.01032761 -0.126754552  0.07858073 -0.074891999 -0.099604145  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Vertex"/>
+           <p>
+             0 1 2  3 0 2  4 1 5  6 5 1  
+             6 1 0  7 1 4  8 3 4  8 4 5  
+             8 0 3  9 4 3  9 7 4  9 3 2  
+             10 0 8  10 8 5  10 5 6  10 6 0  
+             11 7 9  11 9 2  11 2 1  11 1 7  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Position-array">
+            -0.034395002 -0.074891999 0.122450002  -0.040442001 0.075107001 0.120674998  -0.066505998 -0.074891001 0.109096996  -0.008551969 -0.074891254 0.126699522  
+            -0.00853701 0.075107947 0.12648657  -0.008292309 0.075107239 0.123002775  -0.089784175 -0.074891843 0.085329853  -0.08975976 0.075106204 0.085305437  
+            -0.090134002 -0.074891001 0.089538001  -0.085692003 0.075104997 0.093923002  -0.008325751 -0.074891999 0.123478882  -0.064323999 0.075107001 0.109621003  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Vertex"/>
+           <p>
+             0 1 2  0 3 4  0 4 1  5 6 7  
+             5 7 4  5 4 3  8 3 0  8 0 2  
+             8 9 7  8 7 6  8 2 9  8 6 3  
+             10 3 6  10 6 5  10 5 3  11 4 7  
+             11 7 9  11 9 2  11 2 1  11 1 4  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Position-array">
+            -0.089840055 0.075104021 -0.085629039  -0.115042999 0.075107001 -0.054823998  -0.1240106 0.075107969 0.0000015  -0.125153005 0.075107001 -0.022557  
+            -0.122672997 -0.073891997 -0.032869998  -0.110146999 -0.054892 -0.063219003  -0.091856338 -0.074891999 -0.087645322  -0.096339002 0.075106002 -0.083058  
+            -0.127090544 0.074942566 0.0000015  -0.124200188 -0.074889153 0.0000015  -0.089765437 -0.074891999 -0.085554421  -0.126786441 -0.07489185 0.0000015  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Vertex"/>
+           <p>
+             0 1 2  3 2 1  3 1 4  5 6 4  
+             5 4 1  7 6 5  7 5 1  7 1 0  
+             7 0 6  8 9 2  8 2 3  10 6 0  
+             10 2 9  10 0 2  11 6 10  11 10 9  
+             11 3 4  11 8 3  11 9 8  11 4 6  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Position-array">
+            -0.114661001 0.075107999 0.054784  -0.124462001 0.075106002 0.02691  -0.117412999 -0.074886002 0.049222998  -0.091908209 -0.074891135 0.087453887  
+            -0.091653571 0.075104676 0.087199241  -0.127091005 0.075107999 0.000017  -0.1240106 0.075107969 0.0000015  -0.126786441 -0.07489185 0.0000015  
+            -0.089784175 -0.074891843 0.085329853  -0.124673001 -0.074891999 0.024524  -0.08975976 0.075106204 0.085305437  -0.124200188 -0.074889153 0.0000015  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Vertex"/>
+           <p>
+             0 1 2  0 3 4  0 2 3  5 6 7  
+             8 4 3  9 7 8  9 8 3  9 1 5  
+             9 5 7  9 2 1  9 3 2  10 4 8  
+             10 8 6  10 6 5  10 5 1  10 0 4  
+             10 1 0  11 7 6  11 6 8  11 8 7  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+    <geometry id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Mesh" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Mesh">
+      <convex_mesh>
+        <source id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Position">
+          <float_array count="36" id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Position-array">
+            0.076585084 0.075107858 0.09738645  0.076557063 -0.07489191 0.097351313  -0.008292309 0.075107239 0.123002775  0 0.075107999 0.127000004  
+            0.090711966 0.000108 0.115101002  0 -0.074891999 0.127000004  0.050074 0.075107999 0.117211998  0.038507 -0.074891001 0.121344998  
+            -0.008325751 -0.074891999 0.123478882  0.065581001 -0.074891001 0.109342001  -0.008546292 0.066112041 0.126618713  0.077214003 0.075107999 0.101127997  
+          </float_array>
+          <technique_common>
+            <accessor count="12" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Position-array" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+    		   </technique_common>
+				 </source>
+   		 <vertices id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Vertex">
+					<input semantic="POSITION" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Position"/>
+				</vertices>
+				<triangles material="Material" count="20">
+					<input offset="0" semantic="VERTEX" source="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Vertex"/>
+           <p>
+             0 1 2  0 2 3  4 1 0  4 3 5  
+             6 0 3  6 3 4  7 5 1  7 4 5  
+             8 2 1  8 1 5  9 1 4  9 4 7  
+             9 7 1  10 3 2  10 2 8  10 5 3  
+             10 8 5  11 4 0  11 0 6  11 6 4  
+           </p>
+				</triangles>
+      </convex_mesh>
+		</geometry>
+  </library_geometries>
+  <library_visual_scenes>
+	  <visual_scene id="Scene0-Visual" name="Scene0-Visual">
+      <node id="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift-Node" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift" type="NODE">
+        <translate>0 0 0</translate>
+        <rotate>1 0 0  0</rotate>
+      </node>
+  	  </visual_scene>
+  </library_visual_scenes>
+  <library_physics_materials>
+    <physics_material id="pmat0_0-PhysicsMaterial" name="pmat0_0-PhysicsMaterial">
+      <technique_common>
+        <dynamic_friction>0.5</dynamic_friction>
+        <restitution>0</restitution>
+        <static_friction>0.5</static_friction>
+      </technique_common>
+    </physics_material>
+  </library_physics_materials>
+  <library_physics_models>
+    <physics_model id="Scene0-PhysicsModel">
+      <rigid_body sid="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift-RigidBody" name="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift">
+        <technique_common>
+          <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_0-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_1-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_2-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_3-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_4-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_5-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_6-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_7-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_8-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_9-Mesh"/>
+         </shape>
+         <shape>
+            <translate>0 0 0</translate>
+            <rotate>1 0 0  0</rotate>
+            <instance_physics_material url="#pmat0_0-PhysicsMaterial"/>
+            <density>1</density>
+            <extra>
+              <technique profile="PhysX">
+               <skinWidth>0</skinWidth>
+              </technique>
+            </extra>
+            <instance_geometry url="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift_10-Mesh"/>
+         </shape>
+        <dynamic>true</dynamic>
+        <mass>1</mass>
+		   	</technique_common>
+        <extra>
+          <technique profile="PhysX">
+            <extra>
+              <technique profile="PhysX">
+                <linearDamping>0</linearDamping>
+                <angularDamping>0</angularDamping>
+                <solverIterationCount>32</solverIterationCount>
+              </technique>
+            </extra>
+            <disable_collision>false</disable_collision>
+          </technique>
+        </extra>
+  	  </rigid_body>
+    </physics_model>
+  </library_physics_models>
+  <library_physics_scenes>
+    <physics_scene id="Scene0-Physics">
+      <instance_physics_model url="#Scene0-PhysicsModel">
+        <instance_rigid_body target="#/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift-Node" body="/tmp/buildd/ros-groovy-pr2-common-1.10.2/debian/ros-groovy-pr2-common/opt/ros/groovy/stacks/pr2_common/pr2_description/meshes/shoulder_v0/convex/shoulder_lift-RigidBody"/>
+      <extra>
+        <technique profile="PhysX">
+        </technique>
+      </extra>
+      </instance_physics_model>
+      <technique_common>
+        <gravity>0 -9.800000191 0</gravity>
+      </technique_common>
+    </physics_scene>
+  </library_physics_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene0-Visual"/>
+    <instance_physics_scene url="#Scene0-Physics"/>
+  </scene>
+</COLLADA>

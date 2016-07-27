@@ -1,0 +1,17 @@
+<package>
+  <name>moveit_resources</name>
+  <version>0.6.0</version>
+  <description>Resources used by MoveIt!</description>
+  <author email="isucan@willowgarage.edu">Ioan Sucan</author>
+  <author email="acorn@willowgarage.edu">Acorn Pooley</author>
+
+  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+
+  <license>BSD</license>  
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit-resources/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit-resources</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

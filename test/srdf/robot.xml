@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<robot name="pr2">
+  
+  <virtual_joint name="world_joint" type="planar" parent_frame="odom_combined" child_link="base_footprint"/> 
+  
+  <group name="right_arm">
+    <chain base_link="torso_lift_link" tip_link="r_wrist_roll_link"/>
+  </group>
+  
+  <group name="left_arm">
+    <chain base_link="torso_lift_link" tip_link="l_wrist_roll_link"/>
+  </group>
+  
+  <group name="arms">
+    <group name="left_arm"/>
+    <group name="right_arm"/>
+  </group>
+
+  <group name="arms_and_torso">
+    <group name="arms"/>
+    <joint name="torso_lift_joint"/>
+  </group>
+
+  
+  <group_state name="tuck_arms" group="arms">
+    <joint name="l_shoulder_pan_joint" value="0.2" />
+    <!-- ... the rest of the joint values... -->
+  </group_state>
+  
+  <group name="base">
+    <joint name="world_joint"/>
+  </group>
+  
+  <group name="whole_body">
+    <group name="arms"/>
+    <group name="base"/>
+    <joint name="torso_lift_joint"/>
+  </group>
+  
+  <group name="l_end_effector">
+    <joint name="l_gripper_palm_joint" />
+    <joint name="l_gripper_l_finger_joint" />
+    <joint name="l_gripper_l_finger_tip_joint" />
+    <joint name="l_gripper_led_joint" />
+    <joint name="l_gripper_motor_accelerometer_joint" />
+    <joint name="l_gripper_motor_slider_joint" />
+    <joint name="l_gripper_motor_screw_joint" />
+    <joint name="l_gripper_r_finger_joint" />
+    <joint name="l_gripper_r_finger_tip_joint" />
+    <joint name="l_gripper_joint" />
+    <joint name="l_gripper_tool_joint" />
+  </group>
+  
+  <group name="r_end_effector">
+    <joint name="r_gripper_palm_joint" />
+    <joint name="r_gripper_l_finger_joint" />
+    <joint name="r_gripper_l_finger_tip_joint" />
+    <joint name="r_gripper_led_joint" />
+    <joint name="r_gripper_motor_accelerometer_joint" />
+    <joint name="r_gripper_motor_slider_joint" />
+    <joint name="r_gripper_motor_screw_joint" />
+    <joint name="r_gripper_r_finger_joint" />
+    <joint name="r_gripper_r_finger_tip_joint" />
+    <joint name="r_gripper_joint" />
+    <joint name="r_gripper_tool_joint" />
+  </group>
+  
+  <end_effector name="r_end_effector" parent_link="r_wrist_roll_link" group="r_end_effector"/>
+  <end_effector name="l_end_effector" parent_link="l_wrist_roll_link" group="l_end_effector"/>
+  
+  <disable_collisions link1="r_shoulder_pan_link" link2="r_shoulder_lift_link" />
+  <!-- and many more disable_collisions tags -->
+  
+</robot>
