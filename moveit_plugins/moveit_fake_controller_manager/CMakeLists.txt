@@ -11,6 +11,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
+  moveit_ros_planning
   pluginlib
   roscpp
   REQUIRED)
@@ -23,11 +24,14 @@ catkin_package(
   INCLUDE_DIRS
   DEPENDS
     moveit_core
+    moveit_ros_planning
     )
 
 include_directories(include)
 
-add_library(moveit_fake_controller_manager src/moveit_fake_controller_manager.cpp)
+add_library(moveit_fake_controller_manager
+   src/moveit_fake_controller_manager.cpp
+   src/moveit_fake_controllers.cpp)
 target_link_libraries(moveit_fake_controller_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS moveit_fake_controller_manager LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
