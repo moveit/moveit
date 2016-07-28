@@ -65,6 +65,17 @@ OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer
   initialize();
 }
 
+OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, ros::NodeHandle &nh, const std::string &map_frame, double map_resolution) :
+  tf_(tf),
+  map_frame_(map_frame),
+  map_resolution_(map_resolution),
+  debug_info_(false),
+  mesh_handle_count_(0),
+  nh_(nh)
+{
+  initialize();
+}
+
 void OccupancyMapMonitor::initialize()
 {
   /* load params from param server */

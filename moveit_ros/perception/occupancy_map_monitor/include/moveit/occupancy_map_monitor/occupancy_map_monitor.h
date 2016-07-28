@@ -60,6 +60,8 @@ public:
   OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf,
                       const std::string &map_frame = "", double map_resolution = 0.0);
   OccupancyMapMonitor(double map_resolution = 0.0);
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, ros::NodeHandle &nh,
+                      const std::string &map_frame = "", double map_resolution = 0.0);
 
   ~OccupancyMapMonitor();
 
