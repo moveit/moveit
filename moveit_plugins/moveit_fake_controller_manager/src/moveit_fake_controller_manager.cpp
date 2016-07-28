@@ -45,7 +45,7 @@
 
 namespace moveit_fake_controller_manager
 {
-static const std::string DEFAULT_TYPE = "interpolation";
+static const std::string DEFAULT_TYPE = "interpolate";
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 class MoveItFakeControllerManager : public moveit_controller_manager::MoveItControllerManager
