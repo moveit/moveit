@@ -40,6 +40,7 @@
 #include <QMessageBox>
 #include <boost/program_options.hpp>
 #include <signal.h>
+#include <locale.h>
 
 static void siginthandler(int param)
 {
@@ -81,6 +82,8 @@ int main(int argc, char **argv)
 
   // Create Qt Application
   QApplication qtApp(argc, argv);
+  // numeric values should always be POSIX
+  setlocale(LC_NUMERIC, "C");
 
   // Load Qt Widget
   moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
