@@ -489,3 +489,11 @@ class MoveGroupCommander(object):
     def set_support_surface_name(self, value):
         """ Set the support surface name for a place operation """
         self._g.set_support_surface_name(value)
+
+    def retime_trajectory(self, ref_state_in, traj_in, velocity_scaling_factor):
+        ser_ref_state_in = conversions.msg_to_string(ref_state_in)
+        ser_traj_in = conversions.msg_to_string(traj_in)
+        ser_traj_out = self._g.retime_trajectory(ser_ref_state_in, ser_traj_in, velocity_scaling_factor)
+        traj_out = RobotTrajectory()
+        traj_out.deserialize(ser_traj_out)
+        return traj_out
