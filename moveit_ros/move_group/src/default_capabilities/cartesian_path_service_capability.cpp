@@ -42,6 +42,7 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService() :
   MoveGroupCapability("CartesianPathService"),
@@ -138,7 +139,13 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
 
           robot_trajectory::RobotTrajectory rt(context_->planning_scene_monitor_->getRobotModel(), req.group_name);
           for (std::size_t i = 0 ; i < traj.size() ; ++i)
-            rt.addSuffixWayPoint(traj[i], 0.2); // \todo make 0.2 a param; better: compute time stemps based on eef distance and param m/s speed for eef;
+            rt.addSuffixWayPoint(traj[i], 0.0);
+
+          // time trajectory
+          // \todo optionally compute timing to move the eef with constant speed
+          trajectory_processing::IterativeParabolicTimeParameterization time_param;
+          time_param.computeTimeStamps(rt, 1.0);
+
           rt.getRobotTrajectoryMsg(res.solution);
           ROS_INFO("Computed Cartesian path with %u points (followed %lf%% of requested trajectory)", (unsigned int)traj.size(), res.fraction * 100.0);
           if (display_computed_paths_ && rt.getWayPointCount() > 0)
