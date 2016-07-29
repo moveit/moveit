@@ -6,7 +6,7 @@ This is the new EXPERIMENTAL unified repository for MoveIt! code. For more infor
 
 Travis - Continuous Integration |
 ------------------------------- |
-[![Build Status](https://travis-ci.org/davetcoleman/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/davetcoleman/moveit) |
+[![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) |
 
 ROS Buildfarm | Jade Trusty Devel Source | AMD64 Jade Trusty Debian
 ------------- | ------------------- | -------------------
@@ -47,7 +47,7 @@ To build this package in a new workspace:
     mkdir -p ws_moveit/src
     cd ws_moveit/src
     wstool init .
-    wstool merge https://raw.githubusercontent.com/davetcoleman/moveit/kinetic-devel/moveit.rosinstall
+    wstool merge https://raw.githubusercontent.com/ros-planning/moveit/kinetic-devel/moveit.rosinstall
     wstool update
     rosdep install --from-paths . --ignore-src --rosdistro kinetic
     cd ..
