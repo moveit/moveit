@@ -40,7 +40,7 @@ namespace chomp_interface
 {
 
 CHOMPInterface::CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel) :
-  ChompPlanner(kmodel), nh_("~")
+    ChompPlanner(kmodel)
 {
   loadParams();
 }

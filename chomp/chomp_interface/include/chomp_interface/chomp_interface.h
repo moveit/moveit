@@ -47,7 +47,7 @@ namespace chomp_interface
 class CHOMPInterface : public chomp::ChompPlanner
 {
 public:
-  CHOMPInterface(const moveit::core::RobotModelConstPtr &kmodel);
+  CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel);
 
   const chomp::ChompParameters& getParams() const {
     return params_;

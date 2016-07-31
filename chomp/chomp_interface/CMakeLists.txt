@@ -23,7 +23,7 @@ include_directories(
   ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_library(chomp_interface src/chomp_interface.cpp)
+add_library(chomp_interface src/chomp_interface.cpp src/chomp_planning_context.cpp)
 target_link_libraries(chomp_interface ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)

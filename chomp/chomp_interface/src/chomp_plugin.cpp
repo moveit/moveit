@@ -37,7 +37,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
-#include <chomp_interface/chomp_interface.h>
+#include <chomp_interface/chomp_planning_context.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -51,17 +51,25 @@ class CHOMPPlannerManager : public planning_interface::PlannerManager
 public:
   CHOMPPlannerManager() : planning_interface::PlannerManager()
   {
+
   }
 
-  void init(const moveit::core::RobotModelConstPtr& model)
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns)
   {
-    chomp_interface_.reset(new CHOMPInterface(model));
+    std::vector <std::string> groups = model->getJointModelGroupNames();
+    ROS_INFO("Following groups exist:");
+    for(int i = 0; i < groups.size(); i++) {
+      ROS_INFO("%s", groups[i].c_str());
+    }
+    planning_context_ = ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[0].c_str(), model));
+
+    return true;
   }
 
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
       const planning_interface::MotionPlanRequest &req,
       moveit_msgs::MoveItErrorCodes &error_code) const {
-
+    return planning_context_;
   }
 
   bool canServiceRequest(const planning_interface::MotionPlanRequest &req) const
@@ -69,32 +77,6 @@ public:
     // TODO: this is a dummy implementation
     //      capabilities.dummy = false;
     return true;
-  }
-
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::GetMotionPlan::Response &res) const
-  {
-    return chomp_interface_->solve(planning_scene, req,
-                                   chomp_interface_->getParams(),res);
-  }
-
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::MotionPlanDetailedResponse &res) const
-  {
-    moveit_msgs::GetMotionPlan::Response res2;
-    if (chomp_interface_->solve(planning_scene, req,
-                                chomp_interface_->getParams(),res2))
-    {
-      res.trajectory_start = res2.motion_plan_response.trajectory_start;
-      res.trajectory.push_back(res2.motion_plan_response.trajectory);
-      res.description.push_back("plan");
-      res.processing_time.push_back(res2.motion_plan_response.planning_time);
-      return true;
-    }
-    else
-      return false;
   }
 
   std::string getDescription() const { return "CHOMP"; }
@@ -105,13 +87,9 @@ public:
     algs[0] = "CHOMP";
   }
 
-  void terminate() const
-  {
-    //TODO - make interruptible
-  }
+protected:
 
-private:
-  boost::shared_ptr<CHOMPInterface> chomp_interface_;
+  ChompPlanningContextPtr planning_context_;
 };
 
 } // ompl_interface_ros
