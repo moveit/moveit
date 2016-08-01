@@ -57,7 +57,7 @@ public:
   bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns)
   {
     std::vector <std::string> groups = model->getJointModelGroupNames();
-    ROS_INFO("Following groups exist:");
+    ROS_INFO_STREAM("Following groups exist:");
     for(int i = 0; i < groups.size(); i++) {
       ROS_INFO("%s", groups[i].c_str());
     }
@@ -69,6 +69,8 @@ public:
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
       const planning_interface::MotionPlanRequest &req,
       moveit_msgs::MoveItErrorCodes &error_code) const {
+    planning_context_->setMotionPlanRequest(req);
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return planning_context_;
   }
 

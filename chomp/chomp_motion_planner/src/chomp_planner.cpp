@@ -54,6 +54,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 {
   if(!planning_scene)
     ROS_ERROR_STREAM("No planning scene initialized.");
+  else {
+    ROS_INFO_STREAM("Planning scene is configured. Beginning to plan.");
+  }
   ros::WallTime start_time = ros::WallTime::now();
   ChompTrajectory trajectory(planning_scene->getRobotModel(),
                              3.0,
@@ -77,6 +80,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                     js,
                     req.group_name,
                     trajectory.getTrajectoryPoint(goal_index));
+
   const moveit::core::JointModelGroup* model_group =
     planning_scene->getRobotModel()->getJointModelGroup(req.group_name);
   // fix the goal to move the shortest angular distance for wrap-around joints:
