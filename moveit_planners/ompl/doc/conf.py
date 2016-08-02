@@ -5,7 +5,7 @@ import sys, os
 extensions = [ 'sphinx.ext.extlinks' ]
 
 # The master toctree document.
-master_doc = 'doc/tutorial'
+master_doc = 'tutorial'
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -20,7 +20,8 @@ show_authors = True
 pygments_style = 'sphinx'
 
 html_theme = "moveit-theme"
-html_theme_path = ["doc"]
+html_theme_path = ["."]
+
 
 extlinks = {'codedir': ('https://github.com/ros-planning/moveit_pr2/blob/hydro-devel/pr2_moveit_tutorials/%s', ''),
             'moveit_core': ('http://docs.ros.org/api/moveit_core/html/classmoveit_1_1core_1_1%s.html', ''),
