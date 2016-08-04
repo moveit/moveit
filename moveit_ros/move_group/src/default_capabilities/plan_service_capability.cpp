@@ -51,7 +51,7 @@ void move_group::MoveGroupPlanService::initialize()
 bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
 {
   ROS_INFO("Received new planning service request...");
-  context_->planning_scene_monitor_->syncSceneUpdates();
+  context_->planning_scene_monitor_->updateFrameTransforms();
 
   bool solved = false;
   planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);

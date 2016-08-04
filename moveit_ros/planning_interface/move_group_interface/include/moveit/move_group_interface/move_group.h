@@ -619,9 +619,6 @@ public:
   /** \brief Given a \e plan, execute it while waiting for completion. Return true on success. */
   MoveItErrorCode execute(const Plan &plan);
 
-  /** \brief Validate that first point of given a \e plan matches current state of robot */
-  bool validatePlan(const Plan &plan);
-
   /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
       between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
       waypoints is that specified by setPoseReferenceFrame(). No more than \e jump_threshold
