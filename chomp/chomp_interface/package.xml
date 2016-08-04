@@ -14,6 +14,7 @@
   <build_depend>chomp_motion_planner</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>pluginlib</build_depend>
+  <build_depend>moveit_experimental</build_depend>
   
   <run_depend>roscpp</run_depend>
   <run_depend>moveit_core</run_depend>

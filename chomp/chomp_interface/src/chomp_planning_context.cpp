@@ -15,15 +15,23 @@ ChompPlanningContext::ChompPlanningContext(const std::string &name, const std::s
   chomp_interface_ = boost::shared_ptr <CHOMPInterface> (new CHOMPInterface(model));
 
   tf_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
-  planning_scene_monitor::PlanningSceneMonitor psm("robot_description", tf_);
+  planning_scene_monitor::PlanningSceneMonitorPtr psm(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf_));
   ROS_INFO_STREAM("PlanningContext " + this->name_ + " is congifured for group: " + this->group_); //, this->group_);
 
-  this->setPlanningScene(psm.getPlanningScene());
+  planning_scene_monitor::LockedPlanningSceneRW psm_rw(psm);
+
+  // Get the planning scene and set it for the context.
+  this->setPlanningScene(psm_rw.operator ->());
+
+  boost::shared_ptr<collision_detection::CollisionDetectorAllocator> hybrid_cd (new collision_detection::CollisionDetectorAllocatorHybrid());
+  psm_rw->addCollisionDetector(hybrid_cd);
+  psm_rw->setActiveCollisionDetector(hybrid_cd->getName());
+
   if (this->getPlanningScene())
   {
-    psm.startWorldGeometryMonitor();
-    psm.startSceneMonitor();
-    psm.startStateMonitor();
+    //psm->startWorldGeometryMonitor();
+    //psm->startSceneMonitor();
+    //psm->startStateMonitor();
   }
   else
     ROS_ERROR_STREAM("[CHOMP CONTEXT]: Planning scene not configured");

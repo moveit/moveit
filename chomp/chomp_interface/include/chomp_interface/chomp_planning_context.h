@@ -11,6 +11,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <chomp_interface/chomp_interface.h>
 #include <chomp_interface/chomp_planning_context.h>
+#include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 
 #include <tf/transform_listener.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
