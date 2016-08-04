@@ -9,12 +9,33 @@
 
 namespace chomp_interface {
 
+ChompPlanningContext::ChompPlanningContext(const std::string &name, const std::string &group, const robot_model::RobotModelConstPtr& model):
+  planning_interface::PlanningContext(name, group),
+  kmodel_ (model) {
+  chomp_interface_ = boost::shared_ptr <CHOMPInterface> (new CHOMPInterface(model));
+
+  tf_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
+  planning_scene_monitor::PlanningSceneMonitor psm("robot_description", tf_);
+  ROS_INFO_STREAM("PlanningContext " + this->name_ + " is congifured for group: " + this->group_); //, this->group_);
+
+  this->setPlanningScene(psm.getPlanningScene());
+  if (this->getPlanningScene())
+  {
+    psm.startWorldGeometryMonitor();
+    psm.startSceneMonitor();
+    psm.startStateMonitor();
+  }
+  else
+    ROS_ERROR_STREAM("[CHOMP CONTEXT]: Planning scene not configured");
+}
+
 ChompPlanningContext::~ChompPlanningContext() {
   // TODO Auto-generated destructor stub
 }
 
 bool ChompPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
 {
+
   moveit_msgs::MotionPlanDetailedResponse res2;
   if (chomp_interface_->solve(planning_scene_, request_,
       chomp_interface_->getParams(),res2))
