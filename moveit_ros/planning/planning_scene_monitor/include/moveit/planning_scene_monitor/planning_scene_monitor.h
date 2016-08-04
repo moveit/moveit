@@ -521,6 +521,7 @@ private:
   ros::CallbackQueue                    callback_queue_;
   boost::scoped_ptr<ros::AsyncSpinner>  spinner_;
   ros::Time                             last_robot_motion_time_; /// Last time the robot has moved
+  bool                                  enforce_next_state_update_;
 };
 
 typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
