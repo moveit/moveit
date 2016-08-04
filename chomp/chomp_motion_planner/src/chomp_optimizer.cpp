@@ -68,6 +68,14 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
   start_state_(start_state),
   initialized_(false)
 {
+  std::vector <std::string> cd_names;
+  planning_scene->getCollisionDetectorNames(cd_names);
+
+  ROS_INFO_STREAM("The following collision detectors are active in the planning scene.");
+  for(int i = 0; i < cd_names.size(); i++) {
+    ROS_INFO_STREAM(cd_names[i]);
+  }
+
   hy_world_ = dynamic_cast<const collision_detection::CollisionWorldHybrid*>(planning_scene->getCollisionWorld().get());
   if(!hy_world_) {
     ROS_WARN_STREAM("Could not initialize hybrid collision world from planning scene");
