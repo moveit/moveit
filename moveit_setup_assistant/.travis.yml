@@ -1,0 +1,25 @@
+# This config file for Travis CI utilizes https://github.com/ros-planning/moveit_ci/ package.
+sudo: required
+dist: trusty
+services:
+  - docker
+language: generic
+compiler:
+  - gcc
+notifications:
+  email:
+    on_success: always
+    on_failure: always
+    recipients:
+      - gm130s@gmail.com
+env:
+  matrix:
+    - ROS_DISTRO="kinetic"  ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu              UPSTREAM_WORKSPACE=https://raw.githubusercontent.com/ros-planning/moveit_docs/kinetic-devel/moveit.rosinstall
+    - ROS_DISTRO="kinetic"  ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu UPSTREAM_WORKSPACE=https://raw.githubusercontent.com/ros-planning/moveit_docs/kinetic-devel/moveit.rosinstall
+matrix:
+  allow_failures:
+    - env: ROS_DISTRO="kinetic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu        UPSTREAM_WORKSPACE=https://raw.githubusercontent.com/ros-planning/moveit_docs/kinetic-devel/moveit.rosinstall
+before_script:
+  - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
+script:
+  - source .moveit_ci/travis.sh
