@@ -1,0 +1,32 @@
+<package>
+  <name>moveit_ros_benchmarks</name>
+  <version>0.7.2</version>
+  <description>MoveIt tools for benchmarking</description>
+
+  <author email="isucan@google.com">Ioan Sucan</author>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_warehouse</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_warehouse</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+
+</package>
