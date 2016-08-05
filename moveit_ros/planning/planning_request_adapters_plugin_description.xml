@@ -1,0 +1,33 @@
+<library path="libmoveit_default_planning_request_adapter_plugins">
+
+  <class name="default_planner_request_adapters/Empty" type="default_planner_request_adapters::Empty" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/FixStartStateBounds" type="default_planner_request_adapters::FixStartStateBounds" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/FixStartStatePathConstraints" type="default_planner_request_adapters::FixStartStatePathConstraints" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/FixWorkspaceBounds" type="default_planner_request_adapters::FixWorkspaceBounds" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/FixStartStateCollision" type="default_planner_request_adapters::FixStartStateCollision" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+  <class name="default_planner_request_adapters/AddTimeParameterization" type="default_planner_request_adapters::AddTimeParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
+</library>
