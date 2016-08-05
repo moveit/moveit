@@ -1,0 +1,21 @@
+# This config file for Travis CI utilizes https://github.com/davetcoleman/moveit_ci/ package.
+sudo: required
+dist: trusty
+services:
+  - docker
+language: generic
+compiler:
+  - gcc
+notifications:
+  email:
+    recipients:
+      - 130s@2000.jukuin.keio.ac.jp
+      - dave@dav.ee
+env:
+  matrix:
+    #- ROS_DISTRO="jade"  ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
+    - ROS_DISTRO="jade"  ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
+before_script:
+  - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
+script:
+  - source .moveit_ci/travis.sh
