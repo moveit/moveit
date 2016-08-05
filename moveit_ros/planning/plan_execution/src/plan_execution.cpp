@@ -457,8 +457,6 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(const planning_
 
 void plan_execution::PlanExecution::doneWithTrajectoryExecution(const moveit_controller_manager::ExecutionStatus &status)
 {
-  // sync all planning scene updates before continuing
-  planning_scene_monitor_->syncSceneUpdates();
   execution_complete_ = true;
 }
 

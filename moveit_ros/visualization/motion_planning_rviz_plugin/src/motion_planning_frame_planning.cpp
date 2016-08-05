@@ -139,9 +139,7 @@ void MotionPlanningFrame::computeExecuteButtonClicked()
   if (move_group_ && current_plan_)
   {
     ui_->stop_button->setEnabled(true); // enable stopping
-    bool success =
-      move_group_->validatePlan(*current_plan_) &&
-      move_group_->execute(*current_plan_);
+    bool success = move_group_->execute(*current_plan_);
     onFinishedExecution(success);
   }
 }
@@ -241,7 +239,6 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
 
   if (v == "<current>")
   {
-    planning_display_->syncSceneUpdates();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
       state = ps->getCurrentState();
@@ -405,11 +402,11 @@ void MotionPlanningFrame::remoteUpdateStartStateCallback(const std_msgs::EmptyCo
 {
   if (move_group_ && planning_display_)
   {
-    planning_display_->syncSceneUpdates();
+    robot_state::RobotState state = *planning_display_->getQueryStartState();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
-      robot_state::RobotState state = ps->getCurrentState();
+      state = ps->getCurrentState();
       planning_display_->setQueryStartState(state);
     }
   }
@@ -419,11 +416,11 @@ void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyCon
 {
   if (move_group_ && planning_display_)
   {
-    planning_display_->syncSceneUpdates();
+    robot_state::RobotState state = *planning_display_->getQueryStartState();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
-      robot_state::RobotState state = ps->getCurrentState();
+      state = ps->getCurrentState();
       planning_display_->setQueryGoalState(state);
     }
   }
