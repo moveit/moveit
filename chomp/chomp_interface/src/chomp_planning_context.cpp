@@ -23,14 +23,15 @@ ChompPlanningContext::ChompPlanningContext(const std::string &name, const std::s
   // Get the planning scene and set it for the context.
 //  this->setPlanningScene(psm_rw.operator ->());
 
-//  boost::shared_ptr<collision_detection::CollisionDetectorAllocator> hybrid_cd (new collision_detection::CollisionDetectorAllocatorHybrid());
-//  psm_rw->addCollisionDetector(hybrid_cd);
-//  psm_rw->setActiveCollisionDetector(hybrid_cd->getName());
+  boost::shared_ptr<collision_detection::CollisionDetectorAllocator> hybrid_cd (new collision_detection::CollisionDetectorAllocatorHybrid());
 
   if (!this->getPlanningScene())
   {
     ROS_INFO_STREAM("Configuring New Planning Scene.");
-    setPlanningScene(planning_scene::PlanningSceneConstPtr(new planning_scene::PlanningScene(model)));
+    planning_scene::PlanningScenePtr planning_scene_ptr(new planning_scene::PlanningScene(model));
+    planning_scene_ptr->addCollisionDetector(hybrid_cd);
+    planning_scene_ptr->setActiveCollisionDetector(hybrid_cd->getName());
+    setPlanningScene(planning_scene_ptr);
   }
 }
 
