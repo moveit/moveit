@@ -1,0 +1,31 @@
+<package>
+  <name>moveit_setup_assistant</name>
+  <version>0.7.1</version>
+
+  <description>
+    Generates a configuration package that makes it easy to use MoveIt!
+  </description>
+
+  <author email="davetcoleman@gmail.com">Dave Coleman</author>
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_setup_assistant/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_setup_assistant</url>
+
+  <buildtool_depend>catkin</buildtool_depend> 
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_visualization</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+ 
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_visualization</run_depend>
+  <run_depend>yaml-cpp</run_depend>
+  <run_depend>xacro</run_depend>
+
+</package>
