@@ -1,0 +1,53 @@
+<package>
+  <name>moveit_ros_manipulation</name>
+  <version>0.6.6</version>
+  <description>Components of MoveIt used for manipulation</description>
+
+  <author email="isucan@gmail.com">Ioan Sucan</author>
+  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
+
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>actionlib</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_move_group</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>manipulation_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosconsole</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>household_objects_database_msgs</build_depend>
+  <build_depend>manipulation_msgs</build_depend>
+  <build_depend>eigen</build_depend>
+
+  <run_depend>actionlib</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_move_group</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rosconsole</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>household_objects_database_msgs</run_depend>
+  <run_depend>manipulation_msgs</run_depend>
+
+  <export>
+    <moveit_ros_move_group plugin="${prefix}/pick_place_capability_plugin_description.xml"/>
+  </export>
+
+</package>

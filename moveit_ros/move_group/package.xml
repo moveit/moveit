@@ -1,0 +1,38 @@
+<package>
+  <name>moveit_ros_move_group</name>
+  <version>0.6.6</version>
+  <description>The move_group node for MoveIt</description>
+  <author email="isucan@google.com">Ioan Sucan</author>
+  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
+
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
+  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ros/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>std_srvs</build_depend>
+
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>std_srvs</run_depend>
+
+  <export>
+    <moveit_ros_move_group plugin="${prefix}/default_capabilities_plugin_description.xml"/>
+  </export>
+
+</package>
