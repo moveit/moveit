@@ -1,0 +1,20 @@
+<package>
+  <description brief="chomp_motion_planner">
+
+     chomp_motion_planner
+
+  </description>
+  <author>Gil Jones</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/chomp_motion_planner</url>
+  <depend package="collision_distance_field"/>
+  <depend package="planning_scene"/>
+
+  <export>
+    <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lchomp_motion_planner"/>
+  </export>
+
+</package>
+
+
