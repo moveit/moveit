@@ -67,8 +67,26 @@ public:
   }
 
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-      const planning_interface::MotionPlanRequest &req,
-      moveit_msgs::MoveItErrorCodes &error_code) const {
+                                                            const planning_interface::MotionPlanRequest &req,
+                                                            moveit_msgs::MoveItErrorCodes &error_code) const
+  {
+
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+
+    if (req.group_name.empty())
+    {
+      ROS_ERROR("No group specified to plan for");
+      error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      return planning_interface::PlanningContextPtr();
+    }
+
+    if (!planning_scene)
+    {
+      ROS_ERROR("No planning scene supplied as input");
+      error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+      return planning_interface::PlanningContextPtr();
+    }
+
     planning_context_->setMotionPlanRequest(req);
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return planning_context_;
