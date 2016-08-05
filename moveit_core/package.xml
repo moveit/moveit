@@ -1,0 +1,76 @@
+<package>
+  <name>moveit_core</name>
+  <version>0.7.2</version>
+  <description>Core libraries used by MoveIt!</description>
+  <author email="isucan@gmail.com">Ioan Sucan</author>
+  <author email="robot.moveit@gmail.com">Sachin Chitta</author>
+  <author email="acorn.pooley@sri.com">Acorn Pooley</author>
+
+  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
+  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+  <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
+  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+
+  <license>BSD</license>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_core/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_core</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>pkg-config</buildtool_depend>
+
+  <build_depend>assimp</build_depend>
+  <build_depend>boost</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>eigen_stl_containers</build_depend>
+  <build_depend>fcl</build_depend>
+  <build_depend version_gte="0.3.4">geometric_shapes</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>kdl_parser</build_depend>
+  <build_depend>libconsole-bridge-dev</build_depend>
+  <build_depend>liburdfdom-dev</build_depend>
+  <build_depend>liburdfdom-headers-dev</build_depend>
+  <build_depend>moveit_msgs</build_depend>
+  <build_depend>octomap</build_depend>
+  <build_depend>octomap_msgs</build_depend>
+  <build_depend>random_numbers</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>rostime</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>shape_msgs</build_depend>
+  <build_depend>srdfdom</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+
+  <run_depend>assimp</run_depend>
+  <run_depend>boost</run_depend>
+  <run_depend>eigen</run_depend>
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>eigen_stl_containers</run_depend>
+  <run_depend>fcl</run_depend>
+  <run_depend version_gte="0.3.4">geometric_shapes</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>kdl_parser</run_depend>
+  <run_depend>libconsole-bridge-dev</run_depend>
+  <run_depend>liburdfdom-dev</run_depend>
+  <run_depend>liburdfdom-headers-dev</run_depend>
+  <run_depend>moveit_msgs</run_depend>
+  <run_depend>octomap</run_depend>
+  <run_depend>octomap_msgs</run_depend>
+  <run_depend>random_numbers</run_depend>
+  <run_depend>rostime</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>srdfdom</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+
+  <test_depend>angles</test_depend>
+  <test_depend>moveit_resources</test_depend>
+  <test_depend>orocos_kdl</test_depend>
+  <test_depend>rosunit</test_depend>
+  <test_depend>tf_conversions</test_depend>
+</package>
