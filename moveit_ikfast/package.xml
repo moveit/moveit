@@ -1,0 +1,26 @@
+<package>
+  <name>moveit_ikfast</name>
+  <version>3.1.0</version>
+  <description>Generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. </description>
+
+  <author>Dave Coleman</author>
+  <author>Jeremy Zoss</author>
+  <author>David Butterworth</author>
+  <author>Mathias Lüdtk</author>
+
+  <maintainer email="g.a.vanderhoorn@tudelft.nl">G.A. vd. Hoorn</maintainer>
+  <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://moveit.ros.org/wiki/Kinematics/IKFast</url>
+  <url type="bugtracker">https://github.com/ros-planning/moveit_ikfast/issues</url>
+  <url type="repository">https://github.com/ros-planning/moveit_ikfast</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+  </export>
+
+</package>
