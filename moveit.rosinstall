@@ -1,0 +1,31 @@
+# This file is intended for users who want to build MoveIt! from source.
+# Used with wstool, users can download source of all packages of MoveIt!.
+- git:
+    local-name: moveit
+    uri: https://github.com/ros-planning/moveit.git
+    version: kinetic-devel
+- git:
+    local-name: moveit_msgs
+    uri: https://github.com/ros-planning/moveit_msgs.git
+    version: jade-devel
+- git:
+    local-name: moveit_resources
+    uri: https://github.com/ros-planning/moveit_resources.git
+    version: master
+# Temporary until released into kinetic
+- git:
+    local-name: geometric_shapes
+    uri: https://github.com/ros-planning/geometric_shapes.git
+    version: kinetic-devel
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: indigo-devel
+- git:
+    local-name: manipulation_msgs
+    uri: https://github.com/ros-interactive-manipulation/manipulation_msgs.git
+    version: hydro-devel
+- git:
+    local-name: household_objects_database_msgs
+    uri: https://github.com/ros-interactive-manipulation/household_objects_database_msgs.git
+    version: hydro-devel
