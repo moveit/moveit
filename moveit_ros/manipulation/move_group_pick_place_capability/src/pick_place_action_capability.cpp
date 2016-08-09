@@ -431,6 +431,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     }
 
     request.arm_name = goal.group_name;
+    request.collision_object_name = goal.target_name;
     request.target.reference_frame_id = lscene->getPlanningFrame();
 
     if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
