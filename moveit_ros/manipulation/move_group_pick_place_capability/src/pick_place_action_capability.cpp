@@ -425,35 +425,32 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     bool valid = true;
 
     collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
-    if (object && !object->shape_poses_.empty())
-    {
-      request.arm_name = goal.group_name;
-      request.target.reference_frame_id = lscene->getPlanningFrame();
-
-      if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
-      {
-        household_objects_database_msgs::DatabaseModelPose dbp;
-        dbp.pose.header.frame_id = lscene->getPlanningFrame();
-        dbp.pose.header.stamp = ros::Time::now();
-        tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
-        dbp.type = lscene->getObjectType(goal.target_name);
-        try
-        {
-          dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
-          ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
-          request.target.potential_models.push_back(dbp);
-        }
-        catch (boost::bad_lexical_cast &)
-        {
-          valid = false;
-          ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
-        }
-      }
+    if (!object || object->shape_poses_.empty()){
+      ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
+      return;
     }
-    else
+
+    request.arm_name = goal.group_name;
+    request.target.reference_frame_id = lscene->getPlanningFrame();
+
+    if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
     {
-      valid = false;
-      ROS_ERROR_NAMED("manipulation", "Object has no geometry");
+      household_objects_database_msgs::DatabaseModelPose dbp;
+      dbp.pose.header.frame_id = lscene->getPlanningFrame();
+      dbp.pose.header.stamp = ros::Time::now();
+      tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
+      dbp.type = lscene->getObjectType(goal.target_name);
+      try
+      {
+        dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
+        ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+        request.target.potential_models.push_back(dbp);
+      }
+      catch (boost::bad_lexical_cast &)
+      {
+        valid = false;
+        ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
+      }
     }
 
     if (valid)
