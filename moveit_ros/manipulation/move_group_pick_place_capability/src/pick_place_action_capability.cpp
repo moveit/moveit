@@ -418,18 +418,24 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
 {
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
 
-  if (grasp_planning_service_ && lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
+  if (grasp_planning_service_)
   {
     manipulation_msgs::GraspPlanning::Request request;
     manipulation_msgs::GraspPlanning::Response response;
     bool valid = true;
 
     collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
-    if (object && !object->shape_poses_.empty())
-    {
-      request.arm_name = goal.group_name;
-      request.target.reference_frame_id = lscene->getPlanningFrame();
+    if (!object || object->shape_poses_.empty()){
+      ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
+      return;
+    }
 
+    request.arm_name = goal.group_name;
+    request.collision_object_name = goal.target_name;
+    request.target.reference_frame_id = lscene->getPlanningFrame();
+
+    if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
+    {
       household_objects_database_msgs::DatabaseModelPose dbp;
       dbp.pose.header.frame_id = lscene->getPlanningFrame();
       dbp.pose.header.stamp = ros::Time::now();
@@ -446,11 +452,6 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
         valid = false;
         ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
       }
-    }
-    else
-    {
-      valid = false;
-      ROS_ERROR_NAMED("manipulation", "Object has no geometry");
     }
 
     if (valid)
