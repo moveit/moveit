@@ -84,6 +84,7 @@ void moveit::core::RobotModel::buildModel(const urdf::ModelInterface &urdf_model
   root_joint_ = NULL;
   root_link_ = NULL;
   link_geometry_count_ = 0;
+  variable_count_ = 0;
   model_name_ = urdf_model.getName();
   logInform("Loading robot model '%s'...", model_name_.c_str());
 
