@@ -217,11 +217,14 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   last_state_update_ = ros::WallTime::now();
   dt_state_update_ = ros::WallDuration(0.1);
 
-  double temp_wait_time;
-  nh_.param(
-      robot_description_ + "_planning/shape_transform_cache_lookup_wait_time",
-      temp_wait_time,
-      0.05);
+  double temp_wait_time = 0.05;
+
+  if (!robot_description_.empty())
+    nh_.param(
+        robot_description_ + "_planning/shape_transform_cache_lookup_wait_time",
+        temp_wait_time,
+        temp_wait_time);
+
   shape_transform_cache_lookup_wait_time_ = ros::Duration(temp_wait_time);
 
   state_update_pending_ = false;
