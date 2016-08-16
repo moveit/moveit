@@ -7,7 +7,7 @@ This is the new unified repository for MoveIt! code. See the [Migration Notes](h
 - [Overview of MoveIt!](http://moveit.ros.org)
 - [Installation Instructions](http://moveit.ros.org/install/)
 - [Documentation](http://moveit.ros.org/documentation/)
-- [Docker Containers](https://github.com/ros-planning/moveit_docker)
+- [Docker Containers](http://moveit.ros.org/install/docker)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
 
 ## Travis - Continuous Integration
