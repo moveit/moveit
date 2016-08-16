@@ -6,7 +6,7 @@ add_library(${MOVEIT_LIB_NAME}_core
 
 target_link_libraries(${MOVEIT_LIB_NAME}_core moveit_lazy_free_space_updater moveit_mesh_filter moveit_occupancy_map_monitor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-add_dependencies(${MOVEIT_LIB_NAME}_core sensor_msgs_generate_cpp)
+add_dependencies(${MOVEIT_LIB_NAME}_core ${sensor_msgs_EXPORTED_TARGETS})
 
 add_library(${MOVEIT_LIB_NAME} src/updater_plugin.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${MOVEIT_LIB_NAME}_core ${catkin_LIBRARIES} ${Boost_LIBRARIES})
