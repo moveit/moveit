@@ -39,6 +39,7 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
+#include <ros/param.h>
 
 move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
                            bool allow_trajectory_execution, bool debug) :
@@ -100,9 +101,13 @@ bool move_group::MoveGroupContext::validateTrajectory(const trajectory_msgs::Joi
   robot_state::RobotStatePtr current_state;
   if (!csm->waitForCurrentState(1.0) || !(current_state = csm->getCurrentState()))
   {
-    ROS_WARN("Failed to receive full current joint state");
+    ROS_WARN("Failed to validate trajectory: couldn't receive full current joint state");
     return false;
   }
+
+  double allowed_start_deviation = 1e-3; // default value
+  ros::param::get("~allowed_start_deviation", allowed_start_deviation);
+  ROS_DEBUG("validating trajectory using allowed_start_deviation: %g", allowed_start_deviation);
 
   const std::vector<double> &positions = trajectory.points.front().positions;
   std::size_t n = trajectory.joint_names.size();
@@ -114,16 +119,15 @@ bool move_group::MoveGroupContext::validateTrajectory(const trajectory_msgs::Joi
     const robot_model::JointModel *jm = current_state->getJointModel(trajectory.joint_names[i]);
     if (!jm)
     {
-      ROS_ERROR_STREAM("Unknown joint in trajectory: " << trajectory.joint_names[i]);
+      ROS_ERROR_STREAM("Invalid Trajectory: Unknown joint in trajectory: " << trajectory.joint_names[i]);
       return false;
     }
     // TODO: check multi-DoF joints
-    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > std::numeric_limits<float>::epsilon())
+    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_deviation)
     {
-      ROS_ERROR("Trajectory start deviates from current robot state");
+      ROS_ERROR("Invalid Trajectory: start point deviates from current robot state");
       return false;
     }
   }
   return true;
 }
-
