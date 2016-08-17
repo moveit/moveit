@@ -280,9 +280,8 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
   return true;
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
+bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wait_time) const
 {
-  // TODO: rewrite to use state_update_condition_ too.
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
   ros::Duration sleep_step(sleep_step_s);
@@ -293,10 +292,14 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wai
   }
   return haveCompleteState();
 }
-
-bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std::string &group, double wait_time) const
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
-  if (waitForCurrentState(wait_time))
+  waitForCompleteState(wait_time);
+}
+
+bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string &group, double wait_time) const
+{
+  if (waitForCompleteState(wait_time))
     return true;
   bool ok = true;
 
@@ -319,6 +322,10 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std:
       ok = false;
   }
   return ok;
+}
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std::string &group, double wait_time) const
+{
+  waitForCompleteState(group, wait_time);
 }
 
 void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state)

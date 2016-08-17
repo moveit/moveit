@@ -530,7 +530,7 @@ public:
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
 
-    current_state_monitor_->waitForCurrentState(opt_.group_name_, wait);
+    current_state_monitor_->waitForCompleteState(opt_.group_name_, wait);
     return true;
   }
 
