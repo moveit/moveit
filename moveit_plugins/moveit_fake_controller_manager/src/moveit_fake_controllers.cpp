@@ -204,7 +204,7 @@ InterpolatingController::InterpolatingController(const std::string &name, const 
   , rate_(10)
 {
   double r;
-  if (ros::param::get("~rate", r))
+  if (ros::param::get("~fake_interpolating_controller_rate", r))
     rate_ = ros::WallRate(r);
 }
 
