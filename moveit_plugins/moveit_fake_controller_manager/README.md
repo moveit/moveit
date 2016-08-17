@@ -7,7 +7,7 @@ interpolate: perform smooth interpolation between via points - the default for v
 via points:  traverse via points, w/o interpolation in between - useful for visual debugging
 last point:  warp directly to the last point of the trajectory - fastest method for offline benchmarking
 
-rate: 10 (Hz, used for interpolation controller)
+fake_interpolating_controller_rate: 10 (Hz)
 controller_list:
   - name: fake_arm_controller
     type: interpolate | via points | last point
