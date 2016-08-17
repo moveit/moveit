@@ -151,7 +151,6 @@ planning_scene_monitor::PlanningSceneMonitor::~PlanningSceneMonitor()
   stopStateMonitor();
   stopWorldGeometryMonitor();
   stopSceneMonitor();
-  spinner_->stop();
 
   delete reconfigure_impl_;
   current_state_monitor_.reset();
@@ -167,11 +166,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
   enforce_next_state_update_ = false;
-
-  // start our own spinner listening on our own callback_queue to become independent of any global callback queue
-  root_nh_.setCallbackQueue(&callback_queue_);
-  spinner_.reset(new ros::AsyncSpinner(1 /* threads */, &callback_queue_));
-  spinner_->start();
 
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
@@ -878,28 +872,8 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
                    (t - last_robot_motion_time_).toSec());
 
   ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "sync done: robot motion: " << (t-last_robot_motion_time_).toSec()
-                         << " scene update: " << (t-last_update_time_).toSec()
-                         << " queue: " << (callback_queue_.empty() ? "empty" : "non-empty"));
+                         << " scene update: " << (t-last_update_time_).toSec());
   return success;
-}
-
-bool planning_scene_monitor::PlanningSceneMonitor::syncSceneUpdates(const ros::Time &t, double wait_time)
-{
-  ros::WallTime start = ros::WallTime::now();
-  ros::WallDuration timeout(wait_time);
-  if (!waitForCurrentRobotState(t, wait_time))
-    return false;
-
-  // Also sync pending scene update events.
-  ROS_DEBUG_NAMED("PSM", "sync scene state to: %.3fs", fmod(t.toSec(), 10.));
-  timeout -= ros::WallTime::now()-start; // compute remaining wait_time
-  boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
-  while (timeout > ros::WallDuration() && !callback_queue_.empty())
-  {
-    new_scene_update_condition_.wait_for(lock, boost::chrono::nanoseconds(timeout.toNSec()));
-    timeout -= ros::WallTime::now()-start; // compute remaining wait_time
-  }
-  return callback_queue_.empty();
 }
 
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
