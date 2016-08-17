@@ -37,6 +37,7 @@
 #ifndef MOVEIT_PLANNING_REQUEST_ADAPTER_PLANNING_REQUEST_ADAPTER_
 #define MOVEIT_PLANNING_REQUEST_ADAPTER_PLANNING_REQUEST_ADAPTER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <boost/function.hpp>
@@ -87,8 +88,7 @@ public:
 
 };
 
-typedef boost::shared_ptr<PlanningRequestAdapter> PlanningRequestAdapterPtr;
-typedef boost::shared_ptr<const PlanningRequestAdapter> PlanningRequestAdapterConstPtr;
+MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);
 
 /// Apply a sequence of adapters to a motion plan
 class PlanningRequestAdapterChain

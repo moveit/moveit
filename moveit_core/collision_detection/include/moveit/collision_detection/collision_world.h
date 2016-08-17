@@ -42,6 +42,7 @@
 #include <moveit/collision_detection/collision_matrix.h>
 #include <moveit/collision_detection/collision_robot.h>
 #include <moveit/collision_detection/world.h>
+#include <moveit/macros/class_forward.h>
 
 /** \brief Generic interface to collision detection */
 namespace collision_detection
@@ -239,8 +240,7 @@ namespace collision_detection
     WorldConstPtr world_const_; // always same as world_
   };
 
-  typedef boost::shared_ptr<CollisionWorld> CollisionWorldPtr;
-  typedef boost::shared_ptr<const CollisionWorld> CollisionWorldConstPtr;
+  MOVEIT_CLASS_FORWARD(CollisionWorld);
 }
 
 #endif

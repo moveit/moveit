@@ -38,7 +38,7 @@
 #define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_MANAGER_
 
 #include <moveit/constraint_samplers/constraint_sampler_allocator.h>
-#include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 
 namespace constraint_samplers
 {
@@ -85,8 +85,8 @@ public:
    * @param group_name The group name for which to allocate the constraint sampler
    * @param constr The constraints
    *
-   * @return A boost::shared_ptr to the ConstraintSampler that is
-   * allocated, or an empty pointer if none could be allocated
+   * @return An allocated ConstraintSamplerPtr,
+   * or an empty pointer if none could be allocated
    */
   ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const;
 

@@ -59,14 +59,14 @@ class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
 
-  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverRightArm(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverRightArm(const robot_model::JointModelGroup *jmg)
   {
     {
       return pr2_kinematics_plugin_right_arm_;
     }
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> getKinematicsSolverLeftArm(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr getKinematicsSolverLeftArm(const robot_model::JointModelGroup *jmg)
   {
     {
       return pr2_kinematics_plugin_left_arm_;
@@ -118,14 +118,14 @@ protected:
                                                 "l_wrist_roll_link",
                                                 .01);
 
-    func_right_arm.reset(new robot_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1)));
-    func_left_arm.reset(new robot_model::SolverAllocatorFn(boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1)));
+    func_right_arm = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
+    func_left_arm  = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1);
 
     std::map<std::string, robot_model::SolverAllocatorFn> allocators;
-    allocators["right_arm"] = *func_right_arm;
-    allocators["left_arm"] = *func_left_arm;
-    allocators["whole_body"] = *func_right_arm;
-    allocators["base"] = *func_left_arm;
+    allocators["right_arm"]  = func_right_arm;
+    allocators["left_arm"]   = func_left_arm;
+    allocators["whole_body"] = func_right_arm;
+    allocators["base"]       = func_left_arm;
 
     kmodel->setKinematicsAllocators(allocators);
 
@@ -145,8 +145,8 @@ protected:
   planning_scene::PlanningScenePtr ps;
   boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_right_arm_;
   boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_left_arm_;
-  boost::shared_ptr<robot_model::SolverAllocatorFn> func_right_arm;
-  boost::shared_ptr<robot_model::SolverAllocatorFn> func_left_arm;
+  robot_model::SolverAllocatorFn func_right_arm;
+  robot_model::SolverAllocatorFn func_left_arm;
 };
 
 TEST_F(LoadPlanningModelsPr2, JointConstraintsSamplerSimple)
@@ -549,13 +549,13 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   std::vector<kinematic_constraints::JointConstraint> js;
   js.push_back(jc1);
 
-  boost::shared_ptr<constraint_samplers::JointConstraintSampler> jcsp(new constraint_samplers::JointConstraintSampler(ps, "arms_and_torso"));
+  constraint_samplers::JointConstraintSamplerPtr jcsp(new constraint_samplers::JointConstraintSampler(ps, "arms_and_torso"));
   EXPECT_TRUE(jcsp->configure(js));
 
   std::vector<kinematic_constraints::JointConstraint> js2;
   js2.push_back(jc2);
 
-  boost::shared_ptr<constraint_samplers::JointConstraintSampler> jcsp2(new constraint_samplers::JointConstraintSampler(ps, "arms"));
+  constraint_samplers::JointConstraintSamplerPtr jcsp2(new constraint_samplers::JointConstraintSampler(ps, "arms"));
   EXPECT_TRUE(jcsp2->configure(js2));
 
   kinematic_constraints::PositionConstraint pc(kmodel);
@@ -564,7 +564,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   kinematic_constraints::OrientationConstraint oc(kmodel);
   EXPECT_TRUE(oc.configure(ocm, tf));
 
-  boost::shared_ptr<constraint_samplers::IKConstraintSampler> iksp(new constraint_samplers::IKConstraintSampler(ps, "left_arm"));
+  constraint_samplers::IKConstraintSamplerPtr iksp(new constraint_samplers::IKConstraintSampler(ps, "left_arm"));
   EXPECT_TRUE(iksp->configure(constraint_samplers::IKSamplingPose(pc, oc)));
   EXPECT_TRUE(iksp->isValid());
 
@@ -605,7 +605,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   kinematic_constraints::OrientationConstraint oc2(kmodel);
   EXPECT_TRUE(oc2.configure(ocm, tf));
 
-  boost::shared_ptr<constraint_samplers::IKConstraintSampler> iksp2(new constraint_samplers::IKConstraintSampler(ps, "right_arm"));
+  constraint_samplers::IKConstraintSamplerPtr iksp2(new constraint_samplers::IKConstraintSampler(ps, "right_arm"));
   EXPECT_TRUE(iksp2->configure(constraint_samplers::IKSamplingPose(pc2, oc2)));
   EXPECT_TRUE(iksp2->isValid());
 

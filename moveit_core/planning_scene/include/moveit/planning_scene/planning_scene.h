@@ -45,6 +45,7 @@
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -61,9 +62,7 @@
 namespace planning_scene
 {
 
-class PlanningScene;
-typedef boost::shared_ptr<PlanningScene> PlanningScenePtr;
-typedef boost::shared_ptr<const PlanningScene> PlanningSceneConstPtr;
+MOVEIT_CLASS_FORWARD(PlanningScene);
 
 /** \brief This is the function signature for additional feasibility checks to be imposed on states (in addition to respecting constraints and collision avoidance).
     The first argument is the state to check the feasibility for, the second one is whether the check should be verbose or not. */
@@ -893,9 +892,7 @@ private:
   void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene &scene) const;
   void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene &scene_msg) const;
 
-  struct CollisionDetector;
-  typedef boost::shared_ptr<CollisionDetector> CollisionDetectorPtr;
-  typedef boost::shared_ptr<const CollisionDetector> CollisionDetectorConstPtr;
+  MOVEIT_CLASS_FORWARD(CollisionDetector);
 
   /* \brief A set of compatible collision detectors */
   struct CollisionDetector

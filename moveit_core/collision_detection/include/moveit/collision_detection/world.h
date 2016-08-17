@@ -37,10 +37,11 @@
 #ifndef MOVEIT_COLLISION_DETECTION_WORLD_
 #define MOVEIT_COLLISION_DETECTION_WORLD_
 
+#include <moveit/macros/class_forward.h>
+
 #include <string>
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <Eigen/Geometry>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
@@ -97,8 +98,7 @@ namespace collision_detection
       EigenSTL::vector_Affine3d          shape_poses_;
     };
 
-    typedef boost::shared_ptr<Object> ObjectPtr;
-    typedef boost::shared_ptr<Object> ObjectConstPtr;
+    MOVEIT_CLASS_FORWARD(Object);
 
     /** \brief Get the list of Object ids */
     std::vector<std::string> getObjectIds() const;
@@ -107,7 +107,7 @@ namespace collision_detection
     ObjectConstPtr getObject(const std::string &id) const;
 
     /** iterator over the objects in the world. */
-    typedef std::map<std::string, ObjectConstPtr>::const_iterator const_iterator;
+    typedef std::map<std::string, ObjectPtr>::const_iterator const_iterator;
     /** iterator pointing to first change */
     const_iterator begin() const
     {
@@ -263,8 +263,7 @@ namespace collision_detection
 
   };
 
-  typedef boost::shared_ptr<World> WorldPtr;
-  typedef boost::shared_ptr<const World> WorldConstPtr;
+  MOVEIT_CLASS_FORWARD(World);
 
 }
 

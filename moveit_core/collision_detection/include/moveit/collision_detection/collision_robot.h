@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_COLLISION_ROBOT_
 
 #include <moveit/collision_detection/collision_matrix.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/LinkPadding.h>
 #include <moveit_msgs/LinkScale.h>
@@ -253,8 +254,7 @@ namespace collision_detection
     std::map<std::string, double>           link_scale_;
   };
 
-  typedef boost::shared_ptr<CollisionRobot> CollisionRobotPtr;
-  typedef boost::shared_ptr<const CollisionRobot> CollisionRobotConstPtr;
+  MOVEIT_CLASS_FORWARD(CollisionRobot);
 }
 
 #endif

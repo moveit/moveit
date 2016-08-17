@@ -40,7 +40,6 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Pose.h>
 #include <Eigen/Geometry>
-#include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 #include <moveit/macros/class_forward.h>
 

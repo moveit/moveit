@@ -39,6 +39,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit/macros/class_forward.h>
 #include <boost/function.hpp>
 #include <console_bridge/console.h>
 #include <string>
@@ -633,8 +634,7 @@ private:
   std::string removeSlash(const std::string &str) const;
 };
 
-typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
-typedef boost::shared_ptr<const KinematicsBase> KinematicsBaseConstPtr;
+MOVEIT_CLASS_FORWARD(KinematicsBase);
 
 };
 

@@ -39,7 +39,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <geometry_msgs/PointStamped.h>
 
@@ -100,8 +100,7 @@ public:
 
 };
 
-typedef boost::shared_ptr<MoveItSensorManager> MoveItSensorManagerPtr;
-typedef boost::shared_ptr<const MoveItSensorManager> MoveItSensorManagerConstPtr;
+MOVEIT_CLASS_FORWARD(MoveItSensorManager);
 
 }
 

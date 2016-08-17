@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_COLLISION_MATRIX_
 
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/AllowedCollisionMatrix.h>
 #include <boost/function.hpp>
 #include <iostream>
@@ -243,8 +244,7 @@ namespace collision_detection
 
   };
 
-  typedef boost::shared_ptr<AllowedCollisionMatrix> AllowedCollisionMatrixPtr;
-  typedef boost::shared_ptr<const AllowedCollisionMatrix> AllowedCollisionMatrixConstPtr;
+  MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 }
 
 #endif

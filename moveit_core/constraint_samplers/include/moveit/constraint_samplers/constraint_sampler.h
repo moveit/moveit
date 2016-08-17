@@ -39,7 +39,6 @@
 
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
-#include <boost/shared_ptr.hpp>
 #include <vector>
 
 /**

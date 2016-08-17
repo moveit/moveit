@@ -41,6 +41,7 @@
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include <moveit_msgs/RobotTrajectory.h>
+#include <moveit/macros/class_forward.h>
 
 /// Namespace for the base class of a MoveIt controller manager
 namespace moveit_controller_manager
@@ -131,8 +132,7 @@ protected:
 
 };
 
-typedef boost::shared_ptr<MoveItControllerHandle> MoveItControllerHandlePtr;
-typedef boost::shared_ptr<const MoveItControllerHandle> MoveItControllerHandleConstPtr;
+MOVEIT_CLASS_FORWARD(MoveItControllerHandle);
 
 /** @brief MoveIt! does not enforce how controllers are
     implemented. To make your controllers usable by MoveIt, this
@@ -191,8 +191,7 @@ public:
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) = 0;
 };
 
-typedef boost::shared_ptr<MoveItControllerManager> MoveItControllerManagerPtr;
-typedef boost::shared_ptr<const MoveItControllerManager> MoveItControllerManagerConstPtr;
+MOVEIT_CLASS_FORWARD(MoveItControllerManager);
 
 }
 
