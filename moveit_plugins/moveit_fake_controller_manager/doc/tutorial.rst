@@ -13,7 +13,7 @@ The following controllers are available:
 
 .. code:: yaml
 
-   rate: 10 (Hz, used for interpolation controller)
+   fake_interpolating_controller_rate: 10 (Hz)
    controller_list:
      - name: fake_arm_controller
        type: interpolate | via points | last point
