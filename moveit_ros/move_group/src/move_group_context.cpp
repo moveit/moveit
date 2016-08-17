@@ -39,7 +39,6 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/plan_execution/plan_execution.h>
 #include <moveit/plan_execution/plan_with_sensing.h>
-#include <ros/param.h>
 
 move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
                            bool allow_trajectory_execution, bool debug) :
@@ -51,7 +50,8 @@ move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::Pla
 
   if (allow_trajectory_execution_)
   {
-    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
+    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel(),
+                                                                                                     planning_scene_monitor_->getStateMonitor()));
     plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
     plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
     if (debug)
@@ -89,45 +89,4 @@ bool move_group::MoveGroupContext::status() const
     ROS_WARN_STREAM("MoveGroup running was unable to load " << planning_pipeline_->getPlannerPluginName());
     return false;
   }
-}
-
-/** Validate that first point of given a trajectory matches current state of robot */
-bool move_group::MoveGroupContext::validateTrajectory(const trajectory_msgs::JointTrajectory &trajectory) const
-{
-  if (trajectory.points.empty())
-    return true;
-
-  const planning_scene_monitor::CurrentStateMonitorPtr csm = planning_scene_monitor_->getStateMonitor();
-  robot_state::RobotStatePtr current_state;
-  if (!csm->waitForCurrentState(1.0) || !(current_state = csm->getCurrentState()))
-  {
-    ROS_WARN("Failed to validate trajectory: couldn't receive full current joint state");
-    return false;
-  }
-
-  double allowed_start_deviation = 1e-3; // default value
-  ros::param::get("~allowed_start_deviation", allowed_start_deviation);
-  ROS_DEBUG("validating trajectory using allowed_start_deviation: %g", allowed_start_deviation);
-
-  const std::vector<double> &positions = trajectory.points.front().positions;
-  std::size_t n = trajectory.joint_names.size();
-  if (positions.size() != n)
-    return false;
-
-  for (std::size_t i = 0; i < n; ++i)
-  {
-    const robot_model::JointModel *jm = current_state->getJointModel(trajectory.joint_names[i]);
-    if (!jm)
-    {
-      ROS_ERROR_STREAM("Invalid Trajectory: Unknown joint in trajectory: " << trajectory.joint_names[i]);
-      return false;
-    }
-    // TODO: check multi-DoF joints
-    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_deviation)
-    {
-      ROS_ERROR("Invalid Trajectory: start point deviates from current robot state");
-      return false;
-    }
-  }
-  return true;
 }

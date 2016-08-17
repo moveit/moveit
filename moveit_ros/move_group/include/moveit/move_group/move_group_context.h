@@ -38,7 +38,6 @@
 #define MOVEIT_MOVE_GROUP_CONTEXT_
 
 #include <moveit/macros/class_forward.h>
-#include <trajectory_msgs/JointTrajectory.h>
 
 namespace planning_scene_monitor
 {
@@ -74,7 +73,6 @@ struct MoveGroupContext
   ~MoveGroupContext();
 
   bool status() const;
-  bool validateTrajectory(const trajectory_msgs::JointTrajectory &trajectory) const;
 
   planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;

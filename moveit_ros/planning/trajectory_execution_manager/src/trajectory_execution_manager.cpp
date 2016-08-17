@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
+#include <moveit/robot_state/robot_state.h>
 #include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
 #include <dynamic_reconfigure/server.h>
 
@@ -46,6 +47,7 @@ const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajector
 static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN = 0.5; // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
+static const double DEFAULT_ALLOWED_START_DEVIATION = 1e-3; // maximally allowed joint deviation for trajectory start point
 
 using namespace moveit_ros_planning;
 
@@ -73,8 +75,9 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel) :
-  robot_model_(kmodel), node_handle_("~")
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
+                                                       const planning_scene_monitor::CurrentStateMonitorPtr &csm) :
+  robot_model_(kmodel), csm_(csm), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -82,8 +85,10 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers) :
-  robot_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
+                                                       const planning_scene_monitor::CurrentStateMonitorPtr &csm,
+                                                       bool manage_controllers) :
+  robot_model_(kmodel), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -120,6 +125,9 @@ void TrajectoryExecutionManager::initialize()
     ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_goal_duration_margin");
   else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
+
+  if (!node_handle_.getParam("allowed_start_deviation", allowed_start_deviation_))
+    allowed_start_deviation_ = DEFAULT_ALLOWED_START_DEVIATION;
 
   // load the controller manager plugin
   try
@@ -859,6 +867,44 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
   return true;
 }
 
+bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &trajectory) const
+{
+  ROS_DEBUG_NAMED("traj_execution", "validating trajectory with allowed_start_deviation %g", allowed_start_deviation_);
+
+  if (trajectory.joint_trajectory.points.empty())
+    return true;
+
+  robot_state::RobotStatePtr current_state;
+  if (!csm_->waitForCurrentState(1.0) || !(current_state = csm_->getCurrentState()))
+  {
+    ROS_WARN_NAMED("traj_execution", "Failed to validate trajectory: couldn't receive full current joint state");
+    return false;
+  }
+
+  const std::vector<double> &positions = trajectory.joint_trajectory.points.front().positions;
+  const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
+  std::size_t n = joint_names.size();
+  if (positions.size() != n)
+    return false;
+
+  for (std::size_t i = 0; i < n; ++i)
+  {
+    const robot_model::JointModel *jm = current_state->getJointModel(joint_names[i]);
+    if (!jm)
+    {
+      ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
+      return false;
+    }
+    // TODO: check multi-DoF joints ?
+    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_deviation_)
+    {
+      ROS_ERROR_NAMED("traj_execution", "Invalid Trajectory: start point deviates from current robot state");
+      return false;
+    }
+  }
+  return true;
+}
+
 bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers)
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() &&  trajectory.joint_trajectory.points.empty())
@@ -876,6 +922,9 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
     ROS_WARN_NAMED("traj_execution","The trajectory to execute specifies no joints");
     return false;
   }
+
+  if (!validate(trajectory))
+    return false;
 
   if (controllers.empty())
   {
