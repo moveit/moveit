@@ -143,6 +143,7 @@ private Q_SLOTS:
   void planButtonClicked();
   void executeButtonClicked();
   void planAndExecuteButtonClicked();
+  void stopButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
@@ -210,6 +211,8 @@ private:
   void computeExecuteButtonClicked();
   void computePlanAndExecuteButtonClicked();
   void computePlanAndExecuteButtonClickedDisplayHelper();
+  void computeStopButtonClicked();
+  void onFinishedExecution(bool success);
   void populateConstraintsList();
   void populateConstraintsList(const std::vector<std::string> &constr);
   void configureForPlanning();

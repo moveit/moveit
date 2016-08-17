@@ -48,6 +48,7 @@ class MoveGroupExecuteService : public MoveGroupCapability
 public:
 
   MoveGroupExecuteService();
+  ~MoveGroupExecuteService();
 
   virtual void initialize();
 
@@ -56,6 +57,8 @@ private:
   bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res);
 
   ros::ServiceServer execute_service_;
+  ros::CallbackQueue callback_queue_;
+  ros::AsyncSpinner spinner_;
 };
 
 }
