@@ -66,6 +66,7 @@ void MoveGroupExecutePathAction::executePathCallback(const moveit_msgs::ExecuteP
     std::string response = "Cannot execute trajectory since ~allow_trajectory_execution was set to false";
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     execute_action_server_->setAborted(action_res, response);
+    return;
   }
 
   executePathCallback_Execute(goal, action_res);
