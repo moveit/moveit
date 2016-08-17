@@ -227,6 +227,7 @@ private:
 
   void reloadControllerInformation();
 
+  /// Validate first point of trajectory matches current robot state
   bool validate(const moveit_msgs::RobotTrajectory &trajectory) const;
   bool configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
 
@@ -298,7 +299,7 @@ private:
   bool execution_duration_monitoring_;
   double allowed_execution_duration_scaling_;
   double allowed_goal_duration_margin_;
-  double allowed_start_deviation_;
+  double allowed_start_tolerance_; // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
 };
 
