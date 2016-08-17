@@ -60,7 +60,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback(const moveit_msgs::Mov
 {
   setMoveState(PLANNING);
   // before we start planning, ensure that we have the latest robot state received...
-  context_->planning_scene_monitor_->syncSceneUpdates();
+  context_->planning_scene_monitor_->waitForCurrentRobotState(ros::Time::now());
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   moveit_msgs::MoveGroupResult action_res;

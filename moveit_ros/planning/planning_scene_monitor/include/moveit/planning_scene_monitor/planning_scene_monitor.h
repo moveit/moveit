@@ -362,13 +362,6 @@ public:
    */
   bool waitForCurrentRobotState(const ros::Time &t, double wait_time = 1.);
 
-  /** \brief Wait current robot state and wait for all pending scene updates to be processed.
-   *
-   * Additionally to waitForCurrentRobotState() this processes also all already received scene updates
-   * as long as wait_time is not exceeded.
-   */
-  bool syncSceneUpdates(const ros::Time &t = ros::Time::now(), double wait_time = 1.);
-
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockSceneRead();
 
@@ -452,8 +445,6 @@ protected:
 
   ros::NodeHandle nh_;
   ros::NodeHandle root_nh_;
-  ros::CallbackQueue callback_queue_;
-  boost::scoped_ptr<ros::AsyncSpinner> spinner_;
   boost::shared_ptr<tf::Transformer> tf_;
   std::string robot_description_;
 
