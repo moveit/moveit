@@ -38,10 +38,13 @@
 #define MOVEIT_CONSTRAINT_SAMPLERS_DEFAULT_CONSTRAINT_SAMPLERS_
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/macros/class_forward.h>
 #include <random_numbers/random_numbers.h>
 
 namespace constraint_samplers
 {
+
+MOVEIT_CLASS_FORWARD(JointConstraintSampler);
 
 /**
  * \brief JointConstraintSampler is a class that allows the sampling
@@ -254,7 +257,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc);
+  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr &pc);
 
   /**
    * \brief Constructor that takes a pointer to a orientation constraint.
@@ -263,7 +266,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
+  IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr &oc);
 
 
   /**
@@ -274,12 +277,14 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc,
-                 const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc);
+  IKSamplingPose(const kinematic_constraints::PositionConstraintPtr &pc,
+                 const kinematic_constraints::OrientationConstraintPtr &oc);
 
-  boost::shared_ptr<kinematic_constraints::PositionConstraint>    position_constraint_; /**< \brief Holds the position constraint for sampling */
-  boost::shared_ptr<kinematic_constraints::OrientationConstraint> orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
+  kinematic_constraints::PositionConstraintPtr    position_constraint_; /**< \brief Holds the position constraint for sampling */
+  kinematic_constraints::OrientationConstraintPtr orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
 };
+
+MOVEIT_CLASS_FORWARD(IKConstraintSampler);
 
 /**
  * \brief A class that allows the sampling of IK constraints.
@@ -289,7 +294,6 @@ struct IKSamplingPose
  * that adheres to the constraint, and then solves IK for that pose.
  *
  */
-
 class IKConstraintSampler : public ConstraintSampler
 {
 public:
@@ -387,9 +391,9 @@ public:
    * \brief Gets the position constraint associated with this sampler.
    *
    *
-   * @return The position constraint, or an empty boost::shared_ptr if none has been specified
+   * @return The position constraint, or an empty shared_ptr if none has been specified
    */
-  const boost::shared_ptr<kinematic_constraints::PositionConstraint>& getPositionConstraint() const
+  const kinematic_constraints::PositionConstraintPtr& getPositionConstraint() const
   {
     return sampling_pose_.position_constraint_;
   }
@@ -397,9 +401,9 @@ public:
    * \brief Gets the orientation constraint associated with this sampler.
    *
    *
-   * @return The orientation constraint, or an empty boost::shared_ptr if none has been specified
+   * @return The orientation constraint, or an empty shared_ptr if none has been specified
    */
-  const boost::shared_ptr<kinematic_constraints::OrientationConstraint>& getOrientationConstraint() const
+  const kinematic_constraints::OrientationConstraintPtr& getOrientationConstraint() const
   {
     return sampling_pose_.orientation_constraint_;
   }

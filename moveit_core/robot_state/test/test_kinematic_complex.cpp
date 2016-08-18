@@ -237,7 +237,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupInit)
 
 TEST_F(LoadPlanningModelsPr2, AssociatedFixedLinks)
 {
-  boost::shared_ptr<moveit::core::RobotModel> model(new moveit::core::RobotModel(urdf_model, srdf_model));
+  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdf_model, srdf_model));
   EXPECT_TRUE(model->getLinkModel("r_gripper_palm_link")->getAssociatedFixedTransforms().size() > 1);
 }
 

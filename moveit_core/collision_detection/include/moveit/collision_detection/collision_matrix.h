@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_COLLISION_MATRIX_
 
 #include <moveit/collision_detection/collision_common.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/AllowedCollisionMatrix.h>
 #include <boost/function.hpp>
 #include <iostream>
@@ -70,6 +71,8 @@ namespace collision_detection
 
   /** \brief Signature of predicate that decides whether a contact is allowed or not (when AllowedCollision::Type is CONDITIONAL) */
   typedef boost::function<bool(collision_detection::Contact&)> DecideContactFn;
+
+  MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 
   /** @class AllowedCollisionMatrix
    *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are referred to by their names.
@@ -242,9 +245,6 @@ namespace collision_detection
     std::map<std::string, DecideContactFn>                                default_allowed_contacts_;
 
   };
-
-  typedef boost::shared_ptr<AllowedCollisionMatrix> AllowedCollisionMatrixPtr;
-  typedef boost::shared_ptr<const AllowedCollisionMatrix> AllowedCollisionMatrixConstPtr;
 }
 
 #endif

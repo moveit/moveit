@@ -39,6 +39,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
+#include <moveit/macros/class_forward.h>
 #include <boost/function.hpp>
 #include <console_bridge/console.h>
 #include <string>
@@ -131,6 +132,8 @@ struct KinematicsResult
 	double solution_percentage;             /**< The percentage of solutions achieved over the total number
 	                                             of solutions explored. */
 };
+
+MOVEIT_CLASS_FORWARD(KinematicsBase);
 
 /**
  * @class KinematicsBase
@@ -632,9 +635,6 @@ private:
 
   std::string removeSlash(const std::string &str) const;
 };
-
-typedef boost::shared_ptr<KinematicsBase> KinematicsBasePtr;
-typedef boost::shared_ptr<const KinematicsBase> KinematicsBaseConstPtr;
 
 };
 

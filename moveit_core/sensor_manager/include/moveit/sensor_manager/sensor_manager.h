@@ -39,7 +39,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <geometry_msgs/PointStamped.h>
 
@@ -72,6 +72,8 @@ struct SensorInfo
   double y_angle;
 };
 
+MOVEIT_CLASS_FORWARD(MoveItSensorManager);
+
 class MoveItSensorManager
 {
 public:
@@ -99,9 +101,6 @@ public:
   virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target, moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
 
 };
-
-typedef boost::shared_ptr<MoveItSensorManager> MoveItSensorManagerPtr;
-typedef boost::shared_ptr<const MoveItSensorManager> MoveItSensorManagerConstPtr;
 
 }
 
