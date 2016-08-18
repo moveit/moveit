@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project(chomp_interface)
 
-find_package(catkin REQUIRED COMPONENTS 
+find_package(catkin REQUIRED COMPONENTS
+  cmake_modules 
   roscpp
   moveit_core
   pluginlib
@@ -9,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_experimental
 )
 
-#find_package(Eigen3 REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 find_package(Boost REQUIRED)
 
@@ -22,7 +23,7 @@ catkin_package(
 include_directories( 
   include
   ${catkin_INCLUDE_DIRS} 
-  ${Boost_INCLUDE_DIRS} $ENV{EIGEN3_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(chomp_interface src/chomp_interface.cpp src/chomp_planning_context.cpp)

@@ -56,13 +56,13 @@ public:
 
   bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns)
   {
+    //model->printModelInfo(std::cout);
     std::vector <std::string> groups = model->getJointModelGroupNames();
     ROS_INFO_STREAM("Following groups exist:");
     for(int i = 0; i < groups.size(); i++) {
       ROS_INFO("%s", groups[i].c_str());
+      planning_contexts_[groups[i]] = ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[i], model));
     }
-    planning_context_ = ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[0].c_str(), model));
-
     return true;
   }
 
@@ -87,9 +87,9 @@ public:
       return planning_interface::PlanningContextPtr();
     }
 
-    planning_context_->setMotionPlanRequest(req);
+    planning_contexts_.at(req.group_name)->setMotionPlanRequest(req);
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    return planning_context_;
+    return planning_contexts_.at(req.group_name);
   }
 
   bool canServiceRequest(const planning_interface::MotionPlanRequest &req) const
@@ -109,7 +109,7 @@ public:
 
 protected:
 
-  ChompPlanningContextPtr planning_context_;
+  std::map <std::string, ChompPlanningContextPtr> planning_contexts_;
 };
 
 } // ompl_interface_ros

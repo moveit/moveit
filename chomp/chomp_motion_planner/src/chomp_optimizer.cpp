@@ -85,7 +85,7 @@ ChompOptimizer::ChompOptimizer(ChompTrajectory *trajectory,
     return;
   }
 
-  hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot().get());
+  hy_robot_ = dynamic_cast<const collision_detection::CollisionRobotHybrid*>(planning_scene->getCollisionRobot(planning_scene->getActiveCollisionDetectorName()).get());
   if(!hy_robot_) {
     ROS_WARN_STREAM("Could not initialize hybrid collision robot from planning scene");
     return;
