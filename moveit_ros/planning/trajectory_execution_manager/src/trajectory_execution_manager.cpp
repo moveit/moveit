@@ -65,6 +65,7 @@ private:
   {
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
+    owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
   }
 
@@ -77,6 +78,11 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
+
+  ROS_WARN_NAMED("trajectory_execution_manager",
+                 "Deprecation warning: the namespace for params ~allowed_execution_duration_scaling and "
+                 "~allowed_goal_duration_margin are changed under ns `~/trajectory_execution`."
+                 "Parameter reading from that under old ns will be deprecated.");
 
   if (!node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
     allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
@@ -170,6 +176,11 @@ void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
 void TrajectoryExecutionManager::setAllowedExecutionDurationScaling(double scaling)
 {
   allowed_execution_duration_scaling_ = scaling;
+}
+
+void TrajectoryExecutionManager::setAllowedGoalDurationMargin(double margin)
+{
+  allowed_goal_duration_margin_ = margin;
 }
 
 void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
