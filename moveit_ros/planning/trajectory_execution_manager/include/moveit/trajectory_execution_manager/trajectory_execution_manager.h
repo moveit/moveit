@@ -205,6 +205,9 @@ public:
   /// By default, this is 1.0
   void setExecutionVelocityScaling(double scaling);
 
+  /// Set joint-value tolerance for validating trajectory's start point against current robot state
+  void setAllowedStartTolerance(double tolerance);
+
 private:
 
   struct ControllerInformation

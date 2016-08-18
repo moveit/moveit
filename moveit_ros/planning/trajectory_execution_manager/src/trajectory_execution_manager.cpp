@@ -47,7 +47,6 @@ const std::string TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC = "trajector
 static const ros::Duration DEFAULT_CONTROLLER_INFORMATION_VALIDITY_AGE(1.0);
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN = 0.5; // allow 0.5s more than the expected execution time before triggering a trajectory cancel (applied after scaling)
 static const double DEFAULT_CONTROLLER_GOAL_DURATION_SCALING = 1.1; // allow the execution of a trajectory to take more time than expected (scaled by a value > 1)
-static const double DEFAULT_ALLOWED_START_TOLERANCE = 1e-3; // maximally allowed joint-value tolerance for trajectory's start point validation
 
 using namespace moveit_ros_planning;
 
@@ -69,6 +68,7 @@ private:
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
+    owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
   }
 
   TrajectoryExecutionManager *owner_;
@@ -114,6 +114,7 @@ void TrajectoryExecutionManager::initialize()
   run_continuous_execution_thread_ = true;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
+  allowed_start_tolerance_ = 1e-3;
 
   // TODO: Reading from old param location should be removed in L-turtle. Handled by DynamicReconfigure.
   if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
@@ -125,9 +126,6 @@ void TrajectoryExecutionManager::initialize()
     ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_goal_duration_margin");
   else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
-
-  if (!node_handle_.getParam("allowed_start_tolerance", allowed_start_tolerance_))
-    allowed_start_tolerance_ = DEFAULT_ALLOWED_START_TOLERANCE;
 
   // load the controller manager plugin
   try
@@ -197,6 +195,11 @@ void TrajectoryExecutionManager::setAllowedGoalDurationMargin(double margin)
 void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 {
   execution_velocity_scaling_ = scaling;
+}
+
+void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
+{
+  allowed_start_tolerance_ = tolerance;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
