@@ -68,9 +68,9 @@ protected:
       return;
     }
     boost::filesystem::path res_path(resource_dir);
-    std::string urdf_file = (res_path / "test/urdf/robot.xml").string();
-    std::string srdf_file = (res_path / "test/srdf/robot.xml").string();
-    kinect_dae_resource_ = "package://moveit_resources/test/urdf/meshes/sensors/kinect_v0/kinect.dae";
+    std::string urdf_file = (res_path / "pr2_description/urdf/robot.xml").string();
+    std::string srdf_file = (res_path / "pr2_description/srdf/robot.xml").string();
+    kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
