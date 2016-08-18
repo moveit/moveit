@@ -79,15 +79,18 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
 
-  ROS_WARN_NAMED("trajectory_execution_manager",
-                 "Deprecation warning: the namespace for params ~allowed_execution_duration_scaling and "
-                 "~allowed_goal_duration_margin are changed under ns `~/trajectory_execution`."
-                 "Parameter reading from that under old ns will be deprecated.");
-
-  if (!node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+  if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+    ROS_WARN_NAMED("trajectory_execution_manager",
+                   "Deprecation warning: the namespace for params ~allowed_execution_duration_scaling is changed under"
+                   " ns `~/trajectory_execution`. Parameter reading from that under old ns will be deprecated.");
+  else
     allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
 
-  if (!node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+  if (node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+    ROS_WARN_NAMED("trajectory_execution_manager",
+                   "Deprecation warning: the namespace for params ~allowed_goal_duration_margin is changed under"
+                   " ns `~/trajectory_execution`. Parameter reading from that under old ns will be deprecated.");
+  else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
 
   initialize();
