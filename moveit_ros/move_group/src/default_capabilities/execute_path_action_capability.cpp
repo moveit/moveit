@@ -88,7 +88,8 @@ void MoveGroupExecutePathAction::executePathCallback(const moveit_msgs::ExecuteP
   setExecutePathState(IDLE);
 }
 
-void MoveGroupExecutePathAction::executePathCallback_Execute(const moveit_msgs::ExecutePathGoalConstPtr& goal, moveit_msgs::ExecutePathResult &action_res)
+void MoveGroupExecutePathAction::executePathCallback_Execute(const moveit_msgs::ExecutePathGoalConstPtr& goal,
+                                                             moveit_msgs::ExecutePathResult &action_res)
 {
   ROS_INFO("Execution request received for ExecutePath action.");
 
