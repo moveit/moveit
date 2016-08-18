@@ -677,18 +677,6 @@ public:
 
   MoveItErrorCode execute(const Plan &plan, bool wait)
   {
-    // moveit_msgs::ExecuteKnownTrajectory::Request req;
-    // moveit_msgs::ExecuteKnownTrajectory::Response res;
-    // req.trajectory = plan.trajectory_;
-    // req.wait_for_execution = wait;
-    // if (execute_service_.call(req, res))
-    // {
-    //   return MoveItErrorCode(res.error_code);
-    // }
-    // else
-    // {
-    //   return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
-    // }
     if (!execute_action_client_)
     {
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
