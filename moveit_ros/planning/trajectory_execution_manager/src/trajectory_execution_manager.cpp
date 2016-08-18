@@ -65,6 +65,7 @@ private:
   {
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
+    owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
   }
 
   TrajectoryExecutionManager *owner_;
