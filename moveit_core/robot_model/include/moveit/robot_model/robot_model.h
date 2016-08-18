@@ -62,6 +62,8 @@ namespace moveit
 namespace core
 {
 
+MOVEIT_CLASS_FORWARD(RobotModel);
+
 /** \brief Definition of a kinematic model. This class is not thread
     safe, however multiple instances can be created */
 class RobotModel
@@ -595,8 +597,6 @@ protected:
   /** \brief Given a geometry spec from the URDF and a filename (for a mesh), construct the corresponding shape object*/
   shapes::ShapePtr constructShape(const urdf::Geometry *geom);
 };
-
-MOVEIT_CLASS_FORWARD(RobotModel);
 
 }
 }

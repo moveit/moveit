@@ -37,6 +37,7 @@
 #ifndef MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
 #define MOVEIT_DISTANCE_FIELD_DISTANCE_FIELD_H
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
 #include <moveit/distance_field/voxel_grid.h>
 #include <vector>
@@ -65,6 +66,8 @@ enum PlaneVisualizationType
  XZPlane,
  YZPlane
 };
+
+MOVEIT_CLASS_FORWARD(DistanceField);
 
 /**
 * \brief DistanceField is an abstract base class for computing
@@ -640,9 +643,6 @@ protected:
   double resolution_;           /**< \brief Resolution of the distance field */
   int inv_twice_resolution_;    /**< \brief Computed value 1.0/(2.0*resolution_) */
 };
-
-typedef boost::shared_ptr<DistanceField> DistanceFieldPtr;
-typedef boost::shared_ptr<const DistanceField> DistanceFieldConstPtr;
 
 }  // namespace distance_field
 

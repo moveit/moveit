@@ -38,12 +38,15 @@
 #define MOVEIT_COLLISION_DETECTION_COLLISION_ROBOT_
 
 #include <moveit/collision_detection/collision_matrix.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/LinkPadding.h>
 #include <moveit_msgs/LinkScale.h>
 
 namespace collision_detection
 {
+
+  MOVEIT_CLASS_FORWARD(CollisionRobot);
 
   /** @brief This class represents a collision model of the robot and can be used for self collision checks
       (to check if the robot is in collision with itself) or in collision checks with a different robot. Collision checks with
@@ -252,9 +255,6 @@ namespace collision_detection
     /** @brief The internally maintained map (from link names to scaling)*/
     std::map<std::string, double>           link_scale_;
   };
-
-  typedef boost::shared_ptr<CollisionRobot> CollisionRobotPtr;
-  typedef boost::shared_ptr<const CollisionRobot> CollisionRobotConstPtr;
 }
 
 #endif

@@ -39,6 +39,7 @@
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/collision_detection/collision_world.h>
+#include <moveit/macros/class_forward.h>
 #include <fcl/broadphase/broadphase.h>
 #include <fcl/collision.h>
 #include <fcl/distance.h>
@@ -47,6 +48,8 @@
 
 namespace collision_detection
 {
+
+MOVEIT_CLASS_FORWARD(CollisionGeometryData);
 
 struct CollisionGeometryData
 {
@@ -153,6 +156,8 @@ struct CollisionData
 };
 
 
+MOVEIT_CLASS_FORWARD(FCLGeometry);
+
 struct FCLGeometry
 {
   FCLGeometry()
@@ -188,11 +193,9 @@ struct FCLGeometry
   }
 
   std::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
-  boost::shared_ptr<CollisionGeometryData>  collision_geometry_data_;
+  CollisionGeometryDataPtr collision_geometry_data_;
 };
 
-typedef std::shared_ptr<FCLGeometry> FCLGeometryPtr;
-typedef std::shared_ptr<const FCLGeometry> FCLGeometryConstPtr;
 typedef std::shared_ptr<fcl::CollisionObject> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
 
