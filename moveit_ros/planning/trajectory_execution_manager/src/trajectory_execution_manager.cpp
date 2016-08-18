@@ -79,19 +79,6 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
 
-  const char* DEPRECATION_WARNING = "Deprecation warning: parameter %s should be moved into namespace "
-                                    "'trajectory_execution'. Adjust file trajectory_execution.launch.xml.";
-
-  if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
-    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_execution_duration_scaling");
-  else
-    allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
-
-  if (node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
-    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_goal_duration_margin");
-  else
-    allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
-
   initialize();
 }
 
@@ -108,6 +95,9 @@ TrajectoryExecutionManager::~TrajectoryExecutionManager()
   delete reconfigure_impl_;
 }
 
+static const char* DEPRECATION_WARNING =
+  "\nDeprecation warning: parameter '%s' moved into namespace 'trajectory_execution'."
+  "\nPlease, adjust file trajectory_execution.launch.xml!";
 void TrajectoryExecutionManager::initialize()
 {
   reconfigure_impl_ = NULL;
@@ -119,6 +109,17 @@ void TrajectoryExecutionManager::initialize()
   run_continuous_execution_thread_ = true;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
+
+  // TODO: Reading from old param location should be removed in L-turtle. Handled by DynamicReconfigure.
+  if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_execution_duration_scaling");
+  else
+    allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
+
+  if (node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_goal_duration_margin");
+  else
+    allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
 
   // load the controller manager plugin
   try
