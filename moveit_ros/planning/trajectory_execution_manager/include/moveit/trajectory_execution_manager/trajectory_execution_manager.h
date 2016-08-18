@@ -193,6 +193,10 @@ public:
   /// to get the allowed duration of execution
   void setAllowedExecutionDurationScaling(double scaling);
 
+  /// When determining the expected duration of a trajectory, this multiplicative factor is applied
+  /// to allow more than the expected execution time before triggering trajectory cancel
+  void setAllowedGoalDurationMargin(double margin);
+
   /// Before sending a trajectory to a controller, scale the velocities by the factor specified.
   /// By default, this is 1.0
   void setExecutionVelocityScaling(double scaling);

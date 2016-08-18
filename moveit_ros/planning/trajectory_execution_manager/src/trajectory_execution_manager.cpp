@@ -65,6 +65,7 @@ private:
   {
     owner_->enableExecutionDurationMonitoring(config.execution_duration_monitoring);
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
+    owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
   }
 
@@ -78,10 +79,17 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
 
-  if (!node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+  const char* DEPRECATION_WARNING = "Deprecation warning: parameter %s should be moved into namespace "
+                                    "'trajectory_execution'. Adjust file trajectory_execution.launch.xml.";
+
+  if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
+    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_execution_duration_scaling");
+  else
     allowed_execution_duration_scaling_ = DEFAULT_CONTROLLER_GOAL_DURATION_SCALING;
 
-  if (!node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+  if (node_handle_.getParam("allowed_goal_duration_margin", allowed_goal_duration_margin_))
+    ROS_WARN_NAMED("trajectory_execution_manager", DEPRECATION_WARNING, "allowed_goal_duration_margin");
+  else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
 
   initialize();
@@ -170,6 +178,11 @@ void TrajectoryExecutionManager::enableExecutionDurationMonitoring(bool flag)
 void TrajectoryExecutionManager::setAllowedExecutionDurationScaling(double scaling)
 {
   allowed_execution_duration_scaling_ = scaling;
+}
+
+void TrajectoryExecutionManager::setAllowedGoalDurationMargin(double margin)
+{
+  allowed_goal_duration_margin_ = margin;
 }
 
 void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
