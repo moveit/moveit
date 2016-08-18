@@ -91,7 +91,7 @@ void MoveGroupExecutePathAction::executePathCallback(const moveit_msgs::ExecuteP
 void MoveGroupExecutePathAction::executePathCallback_Execute(const moveit_msgs::ExecutePathGoalConstPtr& goal,
                                                              moveit_msgs::ExecutePathResult &action_res)
 {
-  ROS_INFO("Execution request received for ExecutePath action.");
+  ROS_INFO_NAMED("move_group", "Execution request received for ExecutePath action.");
 
   context_->trajectory_execution_manager_->clear();
   if (context_->trajectory_execution_manager_->push(goal->trajectory))
