@@ -56,7 +56,7 @@ protected:
       FAIL() << "Failed to find package moveit_resources.";
       return;
     }
-    std::fstream xml_file((boost::filesystem::path(resource_dir) / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
+    std::fstream xml_file((boost::filesystem::path(resource_dir) / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while (xml_file.good())
@@ -68,7 +68,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (boost::filesystem::path(resource_dir) / "test/srdf/robot.xml").string());
+    srdf_model->initFile(*urdf_model, (boost::filesystem::path(resource_dir) / "pr2_description/srdf/robot.xml").string());
     robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   };
 

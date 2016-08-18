@@ -85,7 +85,7 @@ protected:
 
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
+    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -97,7 +97,7 @@ protected:
       xml_file.close();
       urdf_model = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (res_path / "test/srdf/robot.xml").string());
+    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
 
     pr2_kinematics_plugin_right_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
