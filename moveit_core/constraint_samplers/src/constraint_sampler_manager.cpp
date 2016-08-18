@@ -98,7 +98,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     // if we have constrained every joint, then we just use a sampler using these constraints
     if (full_coverage)
     {
-      boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+      JointConstraintSamplerPtr sampler(new JointConstraintSampler(scene, jmg->getName()));
       if (sampler->configure(jc))
       {
         logDebug("Allocated a sampler satisfying joint constraints for group '%s'", jmg->getName().c_str());
@@ -109,7 +109,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       // if a smaller set of joints has been specified, keep the constraint sampler around, but use it only if no IK sampler has been specified.
       if (!jc.empty())
       {
-        boost::shared_ptr<JointConstraintSampler> sampler(new JointConstraintSampler(scene, jmg->getName()));
+        JointConstraintSamplerPtr sampler(new JointConstraintSampler(scene, jmg->getName()));
         if (sampler->configure(jc))
         {
           logDebug("Temporary sampler satisfying joint constraints for group '%s' allocated. Looking for different types of constraints before returning though.", jmg->getName().c_str());
@@ -132,7 +132,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     logDebug("There is an IK allocator for '%s'. Checking for corresponding position and/or orientation constraints", jmg->getName().c_str());
 
     // keep track of which links we constrained
-    std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL;
+    std::map<std::string, IKConstraintSamplerPtr> usedL;
 
     // if we have position and/or orientation constraints on links that we can perform IK for,
     // we will use a sampleable goal region that employs IK to sample goals;
@@ -142,11 +142,11 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
         if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
         {
-          boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
-          boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
+          kinematic_constraints::PositionConstraintPtr pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
+          kinematic_constraints::OrientationConstraintPtr oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
           if (pc->configure(constr.position_constraints[p], scene->getTransforms()) && oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
           {
-            boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+            IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
             if(iks->configure(IKSamplingPose(pc, oc))) {
               bool use = true;
               // Check if there already is a constraint on this link
@@ -166,7 +166,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
         }
 
     // keep track of links constrained with a full pose
-    std::map<std::string, boost::shared_ptr<IKConstraintSampler> > usedL_fullPose = usedL;
+    std::map<std::string, IKConstraintSamplerPtr> usedL_fullPose = usedL;
 
     for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
     {
@@ -174,10 +174,10 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.position_constraints[p].link_name) != usedL_fullPose.end())
         continue;
 
-      boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
+      kinematic_constraints::PositionConstraintPtr pc(new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
       if (pc->configure(constr.position_constraints[p], scene->getTransforms()))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
         if(iks->configure(IKSamplingPose(pc)))
         {
           bool use = true;
@@ -200,10 +200,10 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (usedL_fullPose.find(constr.orientation_constraints[o].link_name) != usedL_fullPose.end())
         continue;
 
-      boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
+      kinematic_constraints::OrientationConstraintPtr oc(new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
       if (oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
       {
-        boost::shared_ptr<IKConstraintSampler> iks(new IKConstraintSampler(scene, jmg->getName()));
+        IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
         if(iks->configure(IKSamplingPose(oc)))
         {
           bool use = true;
@@ -235,9 +235,9 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       {
         logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
         // find the sampler with the smallest sampling volume; delete the rest
-        boost::shared_ptr<IKConstraintSampler> iks = usedL.begin()->second;
+        IKConstraintSamplerPtr iks = usedL.begin()->second;
         double msv = iks->getSamplingVolume();
-        for (std::map<std::string, boost::shared_ptr<IKConstraintSampler> >::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
+        for (std::map<std::string, IKConstraintSamplerPtr>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
         {
           double v = it->second->getSamplingVolume();
           if (v < msv)
