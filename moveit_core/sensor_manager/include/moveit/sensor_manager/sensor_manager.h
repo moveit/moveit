@@ -72,6 +72,8 @@ struct SensorInfo
   double y_angle;
 };
 
+MOVEIT_CLASS_FORWARD(MoveItSensorManager);
+
 class MoveItSensorManager
 {
 public:
@@ -99,8 +101,6 @@ public:
   virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target, moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
 
 };
-
-MOVEIT_CLASS_FORWARD(MoveItSensorManager);
 
 }
 

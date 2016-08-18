@@ -44,6 +44,8 @@
 namespace constraint_samplers
 {
 
+MOVEIT_CLASS_FORWARD(JointConstraintSampler);
+
 /**
  * \brief JointConstraintSampler is a class that allows the sampling
  * of joints in a particular group of the robot, subject to a set of individual joint constraints.
@@ -205,8 +207,6 @@ protected:
   std::vector<double>                             values_; /**< \brief Values associated with this group to avoid continuously reallocating */
 };
 
-MOVEIT_CLASS_FORWARD(JointConstraintSampler);
-
 /**
  * \brief A structure for potentially holding a position constraint
  * and an orientation constraint for use during Ik Sampling
@@ -284,6 +284,8 @@ struct IKSamplingPose
   kinematic_constraints::OrientationConstraintPtr orientation_constraint_; /**< \brief Holds the orientation constraint for sampling */
 };
 
+MOVEIT_CLASS_FORWARD(IKConstraintSampler);
+
 /**
  * \brief A class that allows the sampling of IK constraints.
  *
@@ -292,7 +294,6 @@ struct IKSamplingPose
  * that adheres to the constraint, and then solves IK for that pose.
  *
  */
-
 class IKConstraintSampler : public ConstraintSampler
 {
 public:
@@ -525,8 +526,6 @@ protected:
   std::string                           ik_frame_; /**< \brief Holds the base from of the IK solver */
   bool                                  transform_ik_; /**< \brief True if the frame associated with the kinematic model is different than the base frame of the IK solver */
 };
-
-MOVEIT_CLASS_FORWARD(IKConstraintSampler);
 
 
 }

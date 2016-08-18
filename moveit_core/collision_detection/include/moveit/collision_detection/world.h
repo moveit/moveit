@@ -50,6 +50,8 @@
 namespace collision_detection
 {
 
+  MOVEIT_CLASS_FORWARD(World);
+
   /** \brief Maintain a representation of the environment */
   class World
   {
@@ -68,6 +70,8 @@ namespace collision_detection
     /**********************************************************************/
     /* Collision Bodies                                                   */
     /**********************************************************************/
+
+    MOVEIT_CLASS_FORWARD(Object);
 
     /** \brief A representation of an object */
     struct Object
@@ -97,8 +101,6 @@ namespace collision_detection
        * @copydetails shapes_ */
       EigenSTL::vector_Affine3d          shape_poses_;
     };
-
-    MOVEIT_CLASS_FORWARD(Object);
 
     /** \brief Get the list of Object ids */
     std::vector<std::string> getObjectIds() const;
@@ -262,8 +264,6 @@ namespace collision_detection
     std::vector<Observer*> observers_;
 
   };
-
-  MOVEIT_CLASS_FORWARD(World);
 
 }
 

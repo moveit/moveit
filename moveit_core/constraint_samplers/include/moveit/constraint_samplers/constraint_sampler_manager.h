@@ -43,6 +43,8 @@
 namespace constraint_samplers
 {
 
+MOVEIT_CLASS_FORWARD(ConstraintSamplerManager);
+
 /**
  * \brief This class assists in the generation of a ConstraintSampler for a
  * particular group from a moveit_msgs::Constraints.
@@ -133,8 +135,6 @@ private:
 
   std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
 };
-
-MOVEIT_CLASS_FORWARD(ConstraintSamplerManager);
 
 }
 

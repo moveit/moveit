@@ -48,6 +48,8 @@
 namespace collision_detection
 {
 
+  MOVEIT_CLASS_FORWARD(CollisionWorld);
+
   /** \brief Perform collision checking with the environment. The
    *  collision world maintains a representation of the environment
    *  that the robot is operating in. */
@@ -239,8 +241,6 @@ namespace collision_detection
     WorldPtr      world_;       // The world.  Always valid.  Never NULL.
     WorldConstPtr world_const_; // always same as world_
   };
-
-  MOVEIT_CLASS_FORWARD(CollisionWorld);
 }
 
 #endif

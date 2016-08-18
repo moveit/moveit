@@ -46,6 +46,8 @@
 namespace robot_trajectory
 {
 
+MOVEIT_CLASS_FORWARD(RobotTrajectory);
+
 /** \brief Maintain a sequence of waypoints and the time durations
     between these waypoints */
 class RobotTrajectory
@@ -239,8 +241,6 @@ private:
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };
-
-MOVEIT_CLASS_FORWARD(RobotTrajectory);
 
 }
 

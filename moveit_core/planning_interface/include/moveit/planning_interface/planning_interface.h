@@ -73,6 +73,8 @@ struct PlannerConfigurationSettings
 typedef std::map<std::string, PlannerConfigurationSettings> PlannerConfigurationMap;
 
 
+MOVEIT_CLASS_FORWARD(PlanningContext);
+
 /** \brief Representation of a particular planning context -- the planning scene and the request are known,
     solution is not yet computed. */
 class PlanningContext
@@ -141,7 +143,7 @@ protected:
   MotionPlanRequest request_;
 };
 
-MOVEIT_CLASS_FORWARD(PlanningContext);
+MOVEIT_CLASS_FORWARD(PlannerManager);
 
 /** \brief Base class for a MoveIt planner */
 class PlannerManager
@@ -204,8 +206,6 @@ protected:
       form "group_name" if default settings are to be used. */
   PlannerConfigurationMap config_settings_;
 };
-
-MOVEIT_CLASS_FORWARD(PlannerManager);
 
 } // planning_interface
 

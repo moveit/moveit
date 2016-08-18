@@ -51,6 +51,9 @@
  */
 namespace constraint_samplers
 {
+
+MOVEIT_CLASS_FORWARD(ConstraintSampler);
+
 /**
  * \brief ConstraintSampler is an abstract base class that allows the
  * sampling of a kinematic state for a particular group of a robot.
@@ -295,8 +298,6 @@ protected:
   robot_state::GroupStateValidityCallbackFn group_state_validity_callback_; /**< \brief Holds the callback for state validity */
   bool                                  verbose_; /**< \brief True if verbosity is on */
 };
-
-MOVEIT_CLASS_FORWARD(ConstraintSampler);
 
 }
 

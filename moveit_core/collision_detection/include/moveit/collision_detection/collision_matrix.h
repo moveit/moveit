@@ -72,6 +72,8 @@ namespace collision_detection
   /** \brief Signature of predicate that decides whether a contact is allowed or not (when AllowedCollision::Type is CONDITIONAL) */
   typedef boost::function<bool(collision_detection::Contact&)> DecideContactFn;
 
+  MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+
   /** @class AllowedCollisionMatrix
    *  @brief Definition of a structure for the allowed collision matrix. All elements in the collision world are referred to by their names.
    *   This class represents which collisions are allowed to happen and which are not. */
@@ -243,8 +245,6 @@ namespace collision_detection
     std::map<std::string, DecideContactFn>                                default_allowed_contacts_;
 
   };
-
-  MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
 }
 
 #endif

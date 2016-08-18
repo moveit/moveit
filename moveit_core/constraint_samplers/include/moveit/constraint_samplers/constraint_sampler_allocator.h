@@ -43,6 +43,8 @@
 namespace constraint_samplers
 {
 
+MOVEIT_CLASS_FORWARD(ConstraintSamplerAllocator);
+
 class ConstraintSamplerAllocator
 {
 public:
@@ -62,8 +64,6 @@ public:
                           const moveit_msgs::Constraints &constr) const = 0;
 
 };
-
-MOVEIT_CLASS_FORWARD(ConstraintSamplerAllocator);
 
 
 }

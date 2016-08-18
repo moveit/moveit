@@ -46,6 +46,8 @@
 namespace planning_request_adapter
 {
 
+MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);
+
 class PlanningRequestAdapter
 {
 public:
@@ -87,8 +89,6 @@ public:
                             std::vector<std::size_t> &added_path_index) const = 0;
 
 };
-
-MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);
 
 /// Apply a sequence of adapters to a motion plan
 class PlanningRequestAdapterChain

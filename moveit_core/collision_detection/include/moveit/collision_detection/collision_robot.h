@@ -46,6 +46,8 @@
 namespace collision_detection
 {
 
+  MOVEIT_CLASS_FORWARD(CollisionRobot);
+
   /** @brief This class represents a collision model of the robot and can be used for self collision checks
       (to check if the robot is in collision with itself) or in collision checks with a different robot. Collision checks with
       the environment are performed using the CollisionWorld class. */
@@ -253,8 +255,6 @@ namespace collision_detection
     /** @brief The internally maintained map (from link names to scaling)*/
     std::map<std::string, double>           link_scale_;
   };
-
-  MOVEIT_CLASS_FORWARD(CollisionRobot);
 }
 
 #endif

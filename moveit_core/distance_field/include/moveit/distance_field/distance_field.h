@@ -67,6 +67,8 @@ enum PlaneVisualizationType
  YZPlane
 };
 
+MOVEIT_CLASS_FORWARD(DistanceField);
+
 /**
 * \brief DistanceField is an abstract base class for computing
 * distances from sets of 3D obstacle points.  The distance assigned to
@@ -641,8 +643,6 @@ protected:
   double resolution_;           /**< \brief Resolution of the distance field */
   int inv_twice_resolution_;    /**< \brief Computed value 1.0/(2.0*resolution_) */
 };
-
-MOVEIT_CLASS_FORWARD(DistanceField);
 
 }  // namespace distance_field
 

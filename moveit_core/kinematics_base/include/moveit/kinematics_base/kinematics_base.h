@@ -133,6 +133,8 @@ struct KinematicsResult
 	                                             of solutions explored. */
 };
 
+MOVEIT_CLASS_FORWARD(KinematicsBase);
+
 /**
  * @class KinematicsBase
  * @brief Provides an interface for kinematics solvers.
@@ -633,8 +635,6 @@ private:
 
   std::string removeSlash(const std::string &str) const;
 };
-
-MOVEIT_CLASS_FORWARD(KinematicsBase);
 
 };
 

@@ -94,6 +94,8 @@ private:
   Value status_;
 };
 
+MOVEIT_CLASS_FORWARD(MoveItControllerHandle);
+
 /** \brief MoveIt sends commands to a controller via a handle that satisfies this interface. */
 class MoveItControllerHandle
 {
@@ -132,7 +134,7 @@ protected:
 
 };
 
-MOVEIT_CLASS_FORWARD(MoveItControllerHandle);
+MOVEIT_CLASS_FORWARD(MoveItControllerManager);
 
 /** @brief MoveIt! does not enforce how controllers are
     implemented. To make your controllers usable by MoveIt, this
@@ -190,8 +192,6 @@ public:
   /** \brief Activate and deactivate controllers */
   virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) = 0;
 };
-
-MOVEIT_CLASS_FORWARD(MoveItControllerManager);
 
 }
 

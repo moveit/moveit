@@ -49,6 +49,8 @@
 namespace collision_detection
 {
 
+MOVEIT_CLASS_FORWARD(CollisionGeometryData);
+
 struct CollisionGeometryData
 {
   CollisionGeometryData(const robot_model::LinkModel *link, int index)
@@ -117,8 +119,6 @@ struct CollisionGeometryData
   } ptr;
 };
 
-MOVEIT_CLASS_FORWARD(CollisionGeometryData);
-
 struct CollisionData
 {
   CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
@@ -155,6 +155,8 @@ struct CollisionData
   bool                          done_;
 };
 
+
+MOVEIT_CLASS_FORWARD(FCLGeometry);
 
 struct FCLGeometry
 {
@@ -194,7 +196,6 @@ struct FCLGeometry
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
-MOVEIT_CLASS_FORWARD(FCLGeometry);
 typedef std::shared_ptr<fcl::CollisionObject> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
 
