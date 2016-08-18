@@ -19,3 +19,6 @@ install(DIRECTORY include/
 
 catkin_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp)
 target_link_libraries(test_collision_distance_field  ${MOVEIT_LIB_NAME})
+
+add_library(collision_detector_hybrid_plugin src/collision_detector_hybrid_plugin_loader.cpp)
+target_link_libraries(collision_detector_hybrid_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})

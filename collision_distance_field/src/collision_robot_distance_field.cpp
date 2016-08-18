@@ -50,7 +50,11 @@ const double EPSILON = 0.001f;
 CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel)
   : CollisionRobot(kmodel)
 {
-  planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
+  ROS_INFO_STREAM("Version 1");
+  //planning_scene_.reset(new planning_scene::PlanningScene(robot_model_));
+
+  std::map<std::string, std::vector<CollisionSphere> > link_body_decompositions;
+  CollisionRobotDistanceField(kmodel, link_body_decompositions);
 }
 
 CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel,
@@ -66,6 +70,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const robot_model::Robo
                                                          double scale)
   : CollisionRobot(kmodel, padding, scale)
 {
+  ROS_INFO_STREAM("Version 2");
   initialize(link_body_decompositions,Eigen::Vector3d(size_x,size_y,size_z), Eigen::Vector3d(0,0,0)
   ,use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
 }
@@ -80,6 +85,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobot& c
                                                          double padding)
   : CollisionRobot(col_robot)
 {
+  ROS_INFO_STREAM("Version 3");
   std::map<std::string, std::vector<CollisionSphere> > link_body_decompositions;
   initialize(link_body_decompositions, size, origin, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
   setPadding(padding);
@@ -88,6 +94,7 @@ CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobot& c
 CollisionRobotDistanceField::CollisionRobotDistanceField(const CollisionRobotDistanceField& other) :
   CollisionRobot(other)
 {
+  ROS_INFO_STREAM("Version 4");
   size_ = other.size_;
   origin_ = other.origin_;
 
@@ -1050,7 +1057,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
 
     if(link_models[i]->getShapes().empty())
     {
-      ROS_DEBUG_STREAM("Skipping model generation for link "<<link_models[i]->getName()<<" since it contains no geometries");
+      ROS_INFO_STREAM("Skipping model generation for link "<<link_models[i]->getName()<<" since it contains no geometries");
       continue;
     }
 
@@ -1059,7 +1066,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
                                                        resolution,
                                                        getLinkPadding(link_models[i]->getName())));
 
-    ROS_DEBUG("Generated model for %s", link_models[i]->getName().c_str());
+    ROS_INFO("Generated model for %s", link_models[i]->getName().c_str());
 
     if(link_spheres.find(link_models[i]->getName()) != link_spheres.end())
     {
@@ -1069,6 +1076,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(double resolution,
     link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size()-1;
   }
 
+  ROS_INFO("The sizes are %d, %d", link_body_decomposition_vector_.size(), link_body_decomposition_index_map_.size());
   ROS_DEBUG_STREAM(__FUNCTION__<<" Finished ");
 }
 
@@ -1086,7 +1094,14 @@ CollisionRobotDistanceField::getPosedLinkBodyPointDecomposition(const moveit::co
   PosedBodyPointDecompositionPtr ret;
   std::map<std::string, unsigned int>::const_iterator it = link_body_decomposition_index_map_.find(ls->getName());
   if(it == link_body_decomposition_index_map_.end()) {
-    logError("No link body decomposition for link %s", ls->getName().c_str());
+    logError("No link body decomposition for link %s, %d. Will initialize and try again.", ls->getName().c_str(), link_body_decomposition_index_map_.size());
+    std::map<std::string, std::vector<CollisionSphere> > link_body_decompositions;
+    CollisionRobotDistanceField(this->robot_model_, link_body_decompositions);
+  }
+
+  it = link_body_decomposition_index_map_.find(ls->getName());
+  if(it == link_body_decomposition_index_map_.end()) {
+    logError("No link body decomposition for link %s, %d", ls->getName().c_str(), link_body_decomposition_index_map_.size());
     return ret;
   }
   ret.reset(new PosedBodyPointDecomposition(link_body_decomposition_vector_[it->second]));

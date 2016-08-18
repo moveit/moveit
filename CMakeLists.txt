@@ -21,6 +21,7 @@ COMPONENTS
   visualization_msgs
   roslib
   rostime
+  pluginlib
   cmake_modules
 )
 find_package(console_bridge REQUIRED)
@@ -43,8 +44,10 @@ catkin_package(
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_collision_distance_field
+    collision_detector_hybrid_plugin
     ${OCTOMAP_LIBRARIES}
   CATKIN_DEPENDS
+    moveit_core
     geometric_shapes
     shape_tools
     eigen_stl_containers
@@ -53,6 +56,7 @@ catkin_package(
     moveit_msgs
     kdl_parser
     srdfdom
+    pluginlib
   DEPENDS
     Boost
     Eigen

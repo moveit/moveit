@@ -21,6 +21,7 @@
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
 
+  <build_depend>pluginlib</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
   <build_depend>liburdfdom-dev</build_depend>
   <build_depend>liburdfdom-headers-dev</build_depend>
@@ -48,9 +49,12 @@
   <build_depend>roslib</build_depend>
   <build_depend>rostime</build_depend>
   <build_depend>cmake_modules</build_depend>
+  <build_depend>moveit_core</build_depend>
+  
   <test_depend>angles</test_depend>
   <test_depend>tf_conversions</test_depend>
 
+  <run_depend>pluginlib</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
   <run_depend>liburdfdom-dev</run_depend>
   <run_depend>liburdfdom-headers-dev</run_depend>
@@ -75,6 +79,12 @@
   <run_depend>shape_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>trajectory_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>  
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>moveit_core</run_depend>
+
+	<export>
+		<moveit_core
+			plugin="${prefix}/collision_distance_field/collision_detector_hybrid_description.xml" />
+	</export>
 
 </package>
