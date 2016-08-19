@@ -2,6 +2,13 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* 1st release after repository consolidation
+* [fix] msa: push traj exec monitor params down int proper nsroper ns `ros-planning/moveit#68 <https://github.com/ros-planning/moveit/pull/68>`_
+* [fix] write float numbers always in POSIX format `ros-planning/moveit_setup_assistant#123 <https://github.com/ros-planning/moveit_setup_assistant/pull/123>`_
+* Contributors: G.A. vd. Hoorn
+
 0.7.1 (2016-06-24)
 ------------------
 * [sys] Qt adjustment. 
