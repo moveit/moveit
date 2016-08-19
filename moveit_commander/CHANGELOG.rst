@@ -2,6 +2,13 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* 1st release after repository consolidation
+* [feat] Add retime_trajectory() to MoveGroupCommander `#29 <https://github.com/ros-planning/moveit_commander/pull/29>`_
+* [feat] Added set_max_velocity_scaling_factor function to move_group.py
+* Contributors: Dave Coleman, Michael Goerner, Robert Haschke
+
 0.6.1 (2016-04-28)
 ------------------
 * [feat] Add the possibility to choose description file `#43 <https://github.com/ros-planning/moveit_commander/issues/43>`_
