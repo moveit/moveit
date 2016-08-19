@@ -694,7 +694,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     return createCollisionGeometry<BV, T>(shape, data, shape_index);
   else
   {
-    boost::shared_ptr<shapes::Shape> scaled_shape(shape->clone());
+    shapes::ShapePtr scaled_shape(shape->clone());
     scaled_shape->scaleAndPadd(scale, padding);
     return createCollisionGeometry<BV, T>(scaled_shape, data, shape_index);
   }

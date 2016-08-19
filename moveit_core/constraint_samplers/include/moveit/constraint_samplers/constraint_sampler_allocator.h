@@ -38,9 +38,12 @@
 #define MOVEIT_CONSTRAINT_SAMPLERS_CONSTRAINT_SAMPLER_ALLOCATOR_
 
 #include <moveit/constraint_samplers/constraint_sampler.h>
+#include <moveit/macros/class_forward.h>
 
 namespace constraint_samplers
 {
+
+MOVEIT_CLASS_FORWARD(ConstraintSamplerAllocator);
 
 class ConstraintSamplerAllocator
 {
@@ -61,9 +64,6 @@ public:
                           const moveit_msgs::Constraints &constr) const = 0;
 
 };
-
-typedef boost::shared_ptr<ConstraintSamplerAllocator> ConstraintSamplerAllocatorPtr;
-typedef boost::shared_ptr<const ConstraintSamplerAllocator> ConstraintSamplerAllocatorConstPtr;
 
 
 }

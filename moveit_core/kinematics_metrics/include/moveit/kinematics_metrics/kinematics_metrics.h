@@ -44,6 +44,8 @@
 namespace kinematics_metrics
 {
 
+MOVEIT_CLASS_FORWARD(KinematicsMetrics);
+
 /**
  * \brief Compute different kinds of metrics for kinematics evaluation. Currently includes
  * manipulability.
@@ -167,8 +169,6 @@ private:
   double penalty_multiplier_;
 
 };
-
-MOVEIT_CLASS_FORWARD(KinematicsMetrics);
 
 }
 
