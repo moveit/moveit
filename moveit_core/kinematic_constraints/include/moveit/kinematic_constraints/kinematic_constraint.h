@@ -41,13 +41,13 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/transforms/transforms.h>
 #include <moveit/collision_detection/collision_world.h>
+#include <moveit/macros/class_forward.h>
 
 #include <geometric_shapes/bodies.h>
 #include <moveit_msgs/Constraints.h>
 
 #include <iostream>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 
 /** \brief Representation and evaluation of kinematic constraints */
 namespace kinematic_constraints
@@ -71,6 +71,8 @@ struct ConstraintEvaluationResult
   bool   satisfied;             /**< \brief Whether or not the constraint or constraints were satisfied */
   double distance;              /**< \brief The distance evaluation from the constraint or constraints */
 };
+
+MOVEIT_CLASS_FORWARD(KinematicConstraint);
 
 /// \brief Base class for representing a kinematic constraint
 class KinematicConstraint
@@ -173,8 +175,7 @@ protected:
   double                          constraint_weight_; /**< \brief The weight of a constraint is a multiplicative factor associated to the distance computed by the decide() function  */
 };
 
-typedef boost::shared_ptr<KinematicConstraint> KinematicConstraintPtr; /**< \brief boost::shared_ptr to a Kinematic Constraint */
-typedef boost::shared_ptr<const KinematicConstraint> KinematicConstraintConstPtr; /**< \brief boost::shared_ptr to a Const Kinematic Constraint */
+MOVEIT_CLASS_FORWARD(JointConstraint);
 
 /**
  * \brief Class for handling single DOF joint constraints.
@@ -327,6 +328,8 @@ protected:
   int                                                joint_variable_index_;  /**< \brief The index of the joint variable name in the full robot state */
   double                                             joint_position_, joint_tolerance_above_, joint_tolerance_below_; /**< \brief Position and tolerance values*/
 };
+
+MOVEIT_CLASS_FORWARD(OrientationConstraint);
 
 /**
  * \brief Class for constraints on the orientation of a link
@@ -484,6 +487,8 @@ protected:
   double                        absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_; /**< \brief Storage for the tolerances */
 };
 
+
+MOVEIT_CLASS_FORWARD(PositionConstraint);
 
 /**
  * \brief Class for constraints on the XYZ position of a link
@@ -649,6 +654,8 @@ protected:
   std::string                                       constraint_frame_id_; /**< \brief The constraint frame id */
   const robot_model::LinkModel *link_model_; /**< \brief The link model constraint subject */
 };
+
+MOVEIT_CLASS_FORWARD(VisibilityConstraint);
 
 /**
  * \brief Class for constraints on the visibility relationship between
@@ -846,6 +853,8 @@ protected:
   double                                 max_view_angle_; /**< \brief Storage for the max view angle */
   double                                 max_range_angle_; /**< \brief Storage for the max range angle */
 };
+
+MOVEIT_CLASS_FORWARD(KinematicConstraintSet);
 
 /**
  * \brief A class that contains many different constraints, and can
@@ -1063,9 +1072,6 @@ protected:
   moveit_msgs::Constraints                        all_constraints_; /**<  \brief Messages corresponding to all internal constraints */
 
 };
-
-typedef boost::shared_ptr<KinematicConstraintSet> KinematicConstraintSetPtr; /**< \brief boost::shared_ptr to a KinematicConstraintSetPtr */
-typedef boost::shared_ptr<const KinematicConstraintSet> KinematicConstraintSetConstPtr; /**< \brief boost::shared_ptr to a KinematicConstraintSet Const */
 
 }
 

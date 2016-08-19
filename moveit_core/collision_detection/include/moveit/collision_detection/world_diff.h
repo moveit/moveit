@@ -38,10 +38,13 @@
 #define MOVEIT_COLLISION_DETECTION_WORLD_DIFF_
 
 #include <moveit/collision_detection/world.h>
+#include <moveit/macros/class_forward.h>
 #include <boost/weak_ptr.hpp>
 
 namespace collision_detection
 {
+
+  MOVEIT_CLASS_FORWARD(WorldDiff);
 
   /** \brief Maintain a diff list of changes that have happened to a World. */
   class WorldDiff
@@ -123,9 +126,6 @@ namespace collision_detection
     /* used to unregister the notifier */
     boost::weak_ptr<World> world_;
   };
-
-  typedef boost::shared_ptr<WorldDiff> WorldDiffPtr;
-  typedef boost::shared_ptr<const WorldDiff> WorldDiffConstPtr;
 }
 
 #endif

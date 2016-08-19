@@ -202,15 +202,15 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints:
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc) : position_constraint_(pc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr &pc) : position_constraint_(pc)
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr &oc) : orientation_constraint_(oc)
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const boost::shared_ptr<kinematic_constraints::PositionConstraint> &pc, const boost::shared_ptr<kinematic_constraints::OrientationConstraint> &oc) : position_constraint_(pc), orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr &pc, const kinematic_constraints::OrientationConstraintPtr &oc) : position_constraint_(pc), orientation_constraint_(oc)
 {
 }
 
@@ -264,22 +264,22 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
     for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
       if (constr.position_constraints[p].link_name == constr.orientation_constraints[o].link_name)
       {
-        boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
-        boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
+        kinematic_constraints::PositionConstraintPtr pc(new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
+        kinematic_constraints::OrientationConstraintPtr oc(new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
         if (pc->configure(constr.position_constraints[p], scene_->getTransforms()) && oc->configure(constr.orientation_constraints[o], scene_->getTransforms()))
           return configure(IKSamplingPose(pc, oc));
       }
 
   for (std::size_t p = 0 ; p < constr.position_constraints.size() ; ++p)
   {
-    boost::shared_ptr<kinematic_constraints::PositionConstraint> pc(new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
+    kinematic_constraints::PositionConstraintPtr pc(new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
     if (pc->configure(constr.position_constraints[p], scene_->getTransforms()))
       return configure(IKSamplingPose(pc));
   }
 
   for (std::size_t o = 0 ; o < constr.orientation_constraints.size() ; ++o)
   {
-    boost::shared_ptr<kinematic_constraints::OrientationConstraint> oc(new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
+    kinematic_constraints::OrientationConstraintPtr oc(new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
     if (oc->configure(constr.orientation_constraints[o], scene_->getTransforms()))
         return configure(IKSamplingPose(oc));
   }

@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
 #define MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -44,6 +45,8 @@
 
 namespace robot_trajectory
 {
+
+MOVEIT_CLASS_FORWARD(RobotTrajectory);
 
 /** \brief Maintain a sequence of waypoints and the time durations
     between these waypoints */
@@ -238,9 +241,6 @@ private:
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };
-
-typedef boost::shared_ptr<RobotTrajectory> RobotTrajectoryPtr;
-typedef boost::shared_ptr<const RobotTrajectory> RobotTrajectoryConstPtr;
 
 }
 

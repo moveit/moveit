@@ -39,9 +39,12 @@
 
 #include <moveit/collision_detection/collision_robot.h>
 #include <moveit/collision_detection/collision_world.h>
+#include <moveit/macros/class_forward.h>
 
 namespace collision_detection
 {
+
+  MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
 
   /** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair. */
   class CollisionDetectorAllocator
@@ -63,9 +66,6 @@ namespace collision_detection
     /** create a new CollisionRobot by copying an existing CollisionRobot of the same type. */
     virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const = 0;
   };
-
-  typedef boost::shared_ptr<CollisionDetectorAllocator> CollisionDetectorAllocatorPtr;
-
 
 
   /** \brief Template class to make it easy to create an allocator for a specific CollisionWorld/CollisionRobot pair. */

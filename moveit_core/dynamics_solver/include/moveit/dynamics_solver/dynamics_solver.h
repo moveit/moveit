@@ -49,6 +49,8 @@
 namespace dynamics_solver
 {
 
+MOVEIT_CLASS_FORWARD(DynamicsSolver);
+
 /**
  * This solver currently computes the required torques given a
  * joint configuration, velocities, accelerations and external wrenches
@@ -156,8 +158,6 @@ private:
   double gravity_; //Norm of the gravity vector passed in initialize()
 
 };
-
-MOVEIT_CLASS_FORWARD(DynamicsSolver);
 
 }
 #endif
