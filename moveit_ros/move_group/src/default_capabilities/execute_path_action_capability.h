@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2016, Kentaro Wada.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,42 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/*
+ * Capability of execute trajectory with a ROS action.
+ * In order to allow monitoring and stopping the execution,
+ * the service should be turned into an action.
+ *
+ * Author: Kentaro Wada
+ * */
 
-#ifndef MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
-#define MOVEIT_MOVE_GROUP_DEFAULT_CAPABILITY_NAMES
+#ifndef MOVEIT_MOVE_GROUP_EXECUTE_PATH_ACTION_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_EXECUTE_PATH_ACTION_CAPABILITY_
 
-#include <string>
+#include <moveit/move_group/move_group_capability.h>
+#include <actionlib/server/simple_action_server.h>
+#include <moveit_msgs/ExecutePathAction.h>
 
 namespace move_group
 {
 
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string EXECUTE_ACTION = "execute_path"; // name of 'execute' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
-static const std::string APPLY_PLANNING_SCENE_SERVICE_NAME = "apply_planning_scene"; // name of the service that applies a given planning scene
-static const std::string CLEAR_OCTOMAP_SERVICE_NAME = "clear_octomap"; // name of the service that can be used to clear the octomap
+class MoveGroupExecutePathAction : public MoveGroupCapability
+{
+public:
 
-}
+  MoveGroupExecutePathAction();
 
-#endif
+  virtual void initialize();
+
+private:
+
+  void executePathCallback(const moveit_msgs::ExecutePathGoalConstPtr& goal);
+  void executePathCallback_Execute(const moveit_msgs::ExecutePathGoalConstPtr& goal, moveit_msgs::ExecutePathResult &action_res);
+  void preemptExecutePathCallback();
+  void setExecutePathState(MoveGroupState state);
+
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecutePathAction> > execute_action_server_;
+};
+
+}  // namespace move_group
+
+#endif  // MOVEIT_MOVE_GROUP_EXECUTE_PATH_ACTION_CAPABILITY_
