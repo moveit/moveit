@@ -2,8 +2,8 @@
 Changelog for package moveit_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.3 (2016-08-19) 
+------------------
 * 1st release after repository consolidation
 * [fix] FakeController: publish all trajectory points in real time `ros-planning/moveit_plugins#21 <https://github.com/ros-planning/moveit_plugins/pull/21>`_
 * [fix] install plugin xml even if it's no functional controller `ros-planning/moveit_plugins#19 <https://github.com/ros-planning/moveit_plugins/pull/19>`_

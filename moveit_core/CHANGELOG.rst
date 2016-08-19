@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.3 (2016-08-19) 
+------------------
 * 1st release after repository consolidation
 * [fix] Add object types when requesting attached bodies in planning scene msg. pushDiff also pushes attached bodies' types and colors
 * [improve] Cache robot FCL objects to avoid fcl::CollisionObject's being created every time a request is made `ros-planning/moveit_core#295 <https://github.com/ros-planning/moveit_core/pull/295>`_
@@ -14,7 +14,7 @@ Forthcoming
 ------------------
 * [feat] planning_scene updates: expose success state to caller. This is required to get the information back for the ApplyPlanningSceneService. `#296 <https://github.com/ros-planning/moveit_core/issues/297>`_
 * [sys] replaced cmake_modules dependency with eigen
-* Contributors: Michael Ferguson, Robert Haschke, Michael Gè´”rner, Isaac I. Y. Saito
+* Contributors: Michael Ferguson, Robert Haschke, Michael GÔøΩÔøΩÔøΩrner, Isaac I. Y. Saito
 
 0.8.1 (2016-05-19)
 ------------------

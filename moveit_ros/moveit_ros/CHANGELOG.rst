@@ -2,8 +2,8 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.3 (2016-08-19) 
+------------------
 * 1st release after repository consolidation
 * [fix] Properly monitor trajectory execution `ros-planning/moveit#72 <https://github.com/ros-planning/moveit/pull/72>`_
 * [fix] trajectory service blocking callback queue `ros-planning/moveit_ros#717 <https://github.com/ros-planning/moveit_ros/pull/717>`_
