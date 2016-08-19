@@ -20,6 +20,7 @@
   <run_depend>joint_state_publisher</run_depend>
   <run_depend>robot_state_publisher</run_depend>
   <run_depend>xacro</run_depend>
+  <run_depend>warehouse_ros_mongo</run_depend>
   [OTHER_DEPENDENCIES]
 
   <buildtool_depend>catkin</buildtool_depend>
