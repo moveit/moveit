@@ -37,6 +37,7 @@
 /* Author: Ioan Sucan, Sachin Chitta */
 
 #include <stdexcept>
+#include <sstream>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
@@ -87,7 +88,7 @@ class MoveGroup::MoveGroupImpl
 {
 public:
 
-  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
+  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::WallDuration &wait_for_servers)
     : opt_(opt),
       node_handle_(opt.node_handle_),
       tf_(tf)
@@ -133,23 +134,55 @@ public:
 
     current_state_monitor_ = getSharedStateMonitor( robot_model_, tf_, node_handle_ );
 
+    ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
+    if (wait_for_servers == ros::WallDuration())
+      timeout_for_servers == ros::WallTime(); // wait for ever
+    double allotted_time = wait_for_servers.toSec();
+
     move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>
                               (node_handle_, move_group::MOVE_ACTION, false));
-    waitForAction(move_action_client_, wait_for_server, move_group::MOVE_ACTION);
+    waitForAction(move_action_client_, move_group::MOVE_ACTION, timeout_for_servers, allotted_time);
 
     pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>
                               (node_handle_, move_group::PICKUP_ACTION, false));
-    waitForAction(pick_action_client_, wait_for_server, move_group::PICKUP_ACTION);
+    waitForAction(pick_action_client_, move_group::PICKUP_ACTION, timeout_for_servers, allotted_time);
 
     place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>
                                (node_handle_, move_group::PLACE_ACTION, false));
-    waitForAction(place_action_client_, wait_for_server, move_group::PLACE_ACTION);
+    waitForAction(place_action_client_, move_group::PLACE_ACTION, timeout_for_servers, allotted_time);
 
     execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>
-                                 (node_handle_, move_group::EXECUTE_ACTION, false));
-    waitForAction(execute_action_client_, wait_for_server, move_group::EXECUTE_ACTION);
+                                 (node_handle_, move_group::EXECUTE_ACTION_NAME, false));
+    // TODO: standard waitForAction after deprecation period (L-turtle)
+    // waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
 
+    // TODO: after deprecation period, i.e. for L-turtle, remove the following stuff
+    // SNIP
     execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
+
+    // wait for either of action or service
+    while (!execute_action_client_->isServerConnected() &&
+           !execute_service_.exists() &&
+           timeout_for_servers > ros::WallTime::now())
+    {
+      ros::WallDuration(0.1).sleep();
+      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
+    }
+
+    // issue warning
+    if (!execute_action_client_->isServerConnected())
+    {
+      if (execute_service_.exists())
+        ROS_WARN_NAMED("planning_interface",
+                       "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
+                       "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in move_group.launch");
+      else
+        throw std::runtime_error("No Trajectory execution capability available.");
+      execute_action_client_.reset();
+    }
+    // SNAP
+
     query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
     get_params_service_ = node_handle_.serviceClient<moveit_msgs::GetPlannerParams>(move_group::GET_PLANNER_PARAMS_SERVICE_NAME);
     set_params_service_ = node_handle_.serviceClient<moveit_msgs::SetPlannerParams>(move_group::SET_PLANNER_PARAMS_SERVICE_NAME);
@@ -160,35 +193,25 @@ public:
   }
 
   template<typename T>
-  void waitForAction(const T &action, const ros::Duration &wait_for_server, const std::string &name)
+  void waitForAction(const T &action, const std::string &name, const ros::WallTime &timeout, double allotted_time)
   {
     ROS_DEBUG("Waiting for MoveGroup action server (%s)...", name.c_str());
 
-    // in case ROS time is published, wait for the time data to arrive
-    ros::Time start_time = ros::Time::now();
-    while (start_time == ros::Time::now())
-    {
-      ros::WallDuration(0.001).sleep();
-      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
-    }
-
     // wait for the server (and spin as needed)
-    if (wait_for_server == ros::Duration(0, 0))
+    if (timeout == ros::WallTime())
     {
       while (node_handle_.ok() && !action->isServerConnected())
       {
-        ros::WallDuration(0.001).sleep();
+        ros::WallDuration(0.1).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
         ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
     }
     else
     {
-      ros::Time final_time = ros::Time::now() + wait_for_server;
-      while (node_handle_.ok() && !action->isServerConnected() && final_time > ros::Time::now())
+      while (node_handle_.ok() && !action->isServerConnected() && timeout > ros::WallTime::now())
       {
-        ros::WallDuration(0.001).sleep();
+        ros::WallDuration(0.01).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
         ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
@@ -196,8 +219,9 @@ public:
 
     if (!action->isServerConnected())
     {
-      std::string error = "Unable to connect to move_group action server '" + name + "' within allotted time (2)";
-      throw std::runtime_error(error);
+      std::stringstream error;
+      error << "Unable to connect to move_group action server '" << name << "' within allotted time (" << allotted_time << "s)";
+      throw std::runtime_error(error.str());
     }
     else
     {
@@ -713,10 +737,6 @@ public:
   {
     if (!execute_action_client_)
     {
-      // Run trajectory with a ROS service when the action is not avaiable
-      ROS_WARN_NAMED("planning_interface",
-                     "Deprecation warning: Executing planned trajectory with rosservice is being deprecated and "
-                     "using actionlib is recommended. Adjust capabilities in move_group.launch");
       moveit_msgs::ExecuteKnownTrajectory::Request req;
       moveit_msgs::ExecuteKnownTrajectory::Response res;
       req.trajectory = plan.trajectory_;
@@ -730,6 +750,7 @@ public:
         return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
       }
     }
+
     if (!execute_action_client_->isServerConnected())
     {
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
@@ -1160,16 +1181,27 @@ private:
 }
 }
 
-moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
+moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group_name, const boost::shared_ptr<tf::Transformer> &tf, const ros::WallDuration &wait_for_servers)
 {
   if (!ros::ok())
     throw std::runtime_error("ROS does not seem to be running");
-  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF(), wait_for_server);
+  impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF(), wait_for_servers);
 }
 
-moveit::planning_interface::MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_server)
+moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
+  : MoveGroup(group, tf, ros::WallDuration(wait_for_servers.toSec()))
 {
-  impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF(), wait_for_server);
+}
+
+moveit::planning_interface::MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::WallDuration &wait_for_servers)
+{
+  impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF(), wait_for_servers);
+}
+
+moveit::planning_interface::MoveGroup::MoveGroup(const moveit::planning_interface::MoveGroup::Options &opt,
+                                                 const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
+  : MoveGroup(opt, tf, ros::WallDuration(wait_for_servers.toSec()))
+{
 }
 
 moveit::planning_interface::MoveGroup::~MoveGroup()
