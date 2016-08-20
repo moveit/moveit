@@ -24,9 +24,9 @@
     </description>
   </class>
 
-  <class name="move_group/MoveGroupExecutePathAction" type="move_group::MoveGroupExecutePathAction" base_class_type="move_group::MoveGroupCapability">
+  <class name="move_group/MoveGroupExecuteTrajectoryAction" type="move_group::MoveGroupExecuteTrajectoryAction" base_class_type="move_group::MoveGroupCapability">
     <description>
-      Allow execution of previously computed paths via a ROS action
+      Allow execution of previously computed trajectories via a ROS action
     </description>
   </class>
 

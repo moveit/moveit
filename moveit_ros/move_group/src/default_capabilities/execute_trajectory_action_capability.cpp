@@ -43,24 +43,25 @@
 
 namespace move_group {
 
-MoveGroupExecutePathAction::MoveGroupExecutePathAction() :
-  MoveGroupCapability("ExecutePathAction")
+MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() :
+  MoveGroupCapability("ExecuteTrajectoryAction")
 {
 }
 
-void MoveGroupExecutePathAction::initialize()
+void MoveGroupExecuteTrajectoryAction::initialize()
 {
   // start the move action server
-  execute_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::ExecutePathAction>
+  execute_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>
                                (root_node_handle_, EXECUTE_ACTION,
-                                boost::bind(&MoveGroupExecutePathAction::executePathCallback, this, _1), false));
-  execute_action_server_->registerPreemptCallback(boost::bind(&MoveGroupExecutePathAction::preemptExecutePathCallback, this));
+                                boost::bind(&MoveGroupExecuteTrajectoryAction::executePathCallback, this, _1), false));
+  execute_action_server_->registerPreemptCallback(
+    boost::bind(&MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback, this));
   execute_action_server_->start();
 }
 
-void MoveGroupExecutePathAction::executePathCallback(const moveit_msgs::ExecutePathGoalConstPtr& goal)
+void MoveGroupExecuteTrajectoryAction::executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal)
 {
-  moveit_msgs::ExecutePathResult action_res;
+  moveit_msgs::ExecuteTrajectoryResult action_res;
   if (!context_->trajectory_execution_manager_)
   {
     std::string response = "Cannot execute trajectory since ~allow_trajectory_execution was set to false";
@@ -85,18 +86,19 @@ void MoveGroupExecutePathAction::executePathCallback(const moveit_msgs::ExecuteP
     execute_action_server_->setAborted(action_res, response);
   }
 
-  setExecutePathState(IDLE);
+  setExecuteTrajectoryState(IDLE);
 }
 
-void MoveGroupExecutePathAction::executePathCallback_Execute(const moveit_msgs::ExecutePathGoalConstPtr& goal,
-                                                             moveit_msgs::ExecutePathResult &action_res)
+void MoveGroupExecuteTrajectoryAction::executePathCallback_Execute(
+  const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
+  moveit_msgs::ExecuteTrajectoryResult &action_res)
 {
-  ROS_INFO_NAMED("move_group", "Execution request received for ExecutePath action.");
+  ROS_INFO_NAMED("move_group", "Execution request received for ExecuteTrajectory action.");
 
   context_->trajectory_execution_manager_->clear();
   if (context_->trajectory_execution_manager_->push(goal->trajectory))
   {
-    setExecutePathState(MONITOR);
+    setExecuteTrajectoryState(MONITOR);
     context_->trajectory_execution_manager_->execute();
     moveit_controller_manager::ExecutionStatus es = context_->trajectory_execution_manager_->waitForExecution();
     if (es == moveit_controller_manager::ExecutionStatus::SUCCEEDED)
@@ -123,14 +125,14 @@ void MoveGroupExecutePathAction::executePathCallback_Execute(const moveit_msgs::
   }
 }
 
-void MoveGroupExecutePathAction::preemptExecutePathCallback()
+void MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback()
 {
   context_->trajectory_execution_manager_->stopExecution(true);
 }
 
-void MoveGroupExecutePathAction::setExecutePathState(MoveGroupState state)
+void MoveGroupExecuteTrajectoryAction::setExecuteTrajectoryState(MoveGroupState state)
 {
-  moveit_msgs::ExecutePathFeedback execute_feedback;
+  moveit_msgs::ExecuteTrajectoryFeedback execute_feedback;
   execute_feedback.state = stateToStr(state);
   execute_action_server_->publishFeedback(execute_feedback);
 }
@@ -138,4 +140,4 @@ void MoveGroupExecutePathAction::setExecutePathState(MoveGroupState state)
 }  // namespace move_group
 
 #include <class_loader/class_loader.h>
-CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupExecutePathAction, move_group::MoveGroupCapability)
+CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupExecuteTrajectoryAction, move_group::MoveGroupCapability)
