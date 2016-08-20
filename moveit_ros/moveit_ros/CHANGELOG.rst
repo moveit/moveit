@@ -13,6 +13,7 @@ Changelog for package moveit_ros
 * [fix] Re-enable warehouse_ros `ros-planning/moveit_ros#699 <https://github.com/ros-planning/moveit_ros/pull/699>`_
 * [fix] MoveGroup class_loader::LibraryUnloadException on destruction `ros-planning/moveit_ros#706 <https://github.com/ros-planning/moveit_ros/pull/706>`_
 * [fix] planning_interface: Set is_diff true for empty start state `ros-planning/moveit_ros#688 <https://github.com/ros-planning/moveit_ros/pull/688>`_
+* [feat] rviz plugin: stop execution + update of start state to current `ros-planning/moveit_ros/713 <https://github.com/ros-planning/moveit_ros/pull/713>`_
 * [feat] add velocity & acceleration values to cartesian trajectory `ros-planning/moveit_ros#735 <https://github.com/ros-planning/moveit_ros/pull/735>`_
 * [feat] Added kinematics plugin that uses Levenberg-Marquardt method `ros-planning/moveit_ros#740 <https://github.com/ros-planning/moveit_ros/pull/740>`_
 * [feat] Add nodehandle for specific params `ros-planning/moveit_ros#707 <https://github.com/ros-planning/moveit_ros/pull/707>`_
@@ -20,7 +21,7 @@ Changelog for package moveit_ros
 * [feat] Extended planning_interface::PlanningSceneInterface `ros-planning/moveit_ros/issues/630 https://github.com/ros-planning/moveit_ros/issues/630>`_
 * [feat] add ApplyPlanningSceneService capability `ros-planning/moveit_ros#686 <https://github.com/ros-planning/moveit_ros/pull/686>`_
 * [improve] Improve fillGrasp method for pick("object_name") interface `ros-planning/moveit#31 <https://github.com/ros-planning/moveit/pull/31>`_
-* Contributors: anderwm, chengshy, Dave Coleman, Yannick Jonetzko, Robert Haschke, Michael Goener, Isaac I. Y. Saito, Alain Sanguinetti, Jorge Santos Simón, Maarten de Vries, Kentaro Wada
+* Contributors: anderwm, chengshy, Dave Coleman, Yannick Jonetzko, Robert Haschke, Michael Goener, Isaac I. Y. Saito, Alain Sanguinetti, Jorge Santos Simon, Maarten de Vries, Kentaro Wada
 
 0.6.6 (2016-06-08)
 ------------------
