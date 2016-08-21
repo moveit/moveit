@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2016, Delft Robotics B.V.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Willow Garage nor the names of its
+ *   * Neither the name of the copyright holder nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -32,27 +32,24 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+#ifndef MOVEIT_MACROS_DECLARE_PTR_
+#define MOVEIT_MACROS_DECLARE_PTR_
 
-#ifndef MOVEIT_MACROS_CLASS_FORWARD_
-#define MOVEIT_MACROS_CLASS_FORWARD_
-
-#include <moveit/macros/declare_ptr.h>
+#include <boost/shared_ptr.hpp>
 
 /**
- * \def MOVEIT_CLASS_FORWARD
- * Macro that forward declares a class and defines two shared ptrs types:
- *  - ${Class}Ptr      = shared_ptr<${Class}>
- *  - ${Class}ConstPtr = shared_ptr<const ${Class}>
+ * \def MOVEIT_DELCARE_PTR
+ * Macro that given a Name and a Type declares the following types:
+ * - ${Name}Ptr      = shared_ptr<${Type}>
+ * - ${Name}ConstPtr = shared_ptr<const ${Type}>
+ *
+ * For best portability the exact type of shared_ptr declared by the macro
+ * should be considered to be an implementation detail, liable to change in
+ * future releases.
  */
 
-#define MOVEIT_CLASS_FORWARD(C) class C; MOVEIT_DECLARE_PTR(C, C);
-
-/**
- * \def MOVEIT_STRUCT_FORWARD
- * Like MOVEIT_CLASS_FORWARD, but forward declares the type as a struct
- * instead of a class.
- */
-#define MOVEIT_STRUCT_FORWARD(C) struct C; MOVEIT_DECLARE_PTR(C, C);
+#define MOVEIT_DECLARE_PTR(Name, Type)                \
+  typedef boost::shared_ptr<Type> Name##Ptr;          \
+  typedef boost::shared_ptr<const Type> Name##ConstPtr;
 
 #endif
