@@ -176,7 +176,7 @@ public:
     {
       while (node_handle_.ok() && !action->isServerConnected())
       {
-        ros::WallDuration(0.1).sleep();
+        ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
         ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
@@ -185,7 +185,7 @@ public:
     {
       while (node_handle_.ok() && !action->isServerConnected() && timeout > ros::WallTime::now())
       {
-        ros::WallDuration(0.01).sleep();
+        ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
         ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
       }
@@ -212,7 +212,7 @@ public:
            !execute_service_.exists() &&
            timeout_for_servers > ros::WallTime::now())
     {
-      ros::WallDuration(0.1).sleep();
+      ros::WallDuration(0.001).sleep();
       // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
       ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
     }
