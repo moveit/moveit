@@ -11,5 +11,6 @@
   <param name="warehouse_port" value="$(arg moveit_warehouse_port)"/>
   <param name="warehouse_host" value="$(arg moveit_warehouse_host)"/>
   <param name="warehouse_exec" value="mongod" />
+  <param name="warehouse_plugin" value="warehouse_ros_mongo::MongoDatabaseConnection" />
 
 </launch>
