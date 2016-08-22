@@ -37,6 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
 #define MOVEIT_OMPL_INTERFACE_DETAIL_CONSTRAINT_APPROXIMATION_
 
+#include <moveit/macros/declare_ptr.h>
 #include <planning_scene/planning_scene.h>
 #include <kinematic_constraints/kinematic_constraint.h>
 #include <ompl/base/StateStorage.h>
@@ -71,7 +72,8 @@ struct ConstraintApproximation
   ConstraintApproximationStateStorage             *state_storage_;
 };
 
-typedef boost::shared_ptr<std::vector<ConstraintApproximation> > ConstraintApproximationsPtr;
+MOVEIT_DECLARE_PTR(ConstraintApproximations, std::vector<ConstraintApproximation>)
+
 }
 
 #endif
