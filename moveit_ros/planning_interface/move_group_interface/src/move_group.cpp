@@ -153,35 +153,9 @@ public:
 
     execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>
                                  (node_handle_, move_group::EXECUTE_ACTION_NAME, false));
-    // TODO: standard waitForAction after deprecation period (L-turtle)
+    // TODO: after deprecation period, i.e. for L-turtle, switch back to standard waitForAction function
     // waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
-
-    // TODO: after deprecation period, i.e. for L-turtle, remove the following stuff
-    // SNIP
-    execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
-
-    // wait for either of action or service
-    while (!execute_action_client_->isServerConnected() &&
-           !execute_service_.exists() &&
-           timeout_for_servers > ros::WallTime::now())
-    {
-      ros::WallDuration(0.1).sleep();
-      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
-    }
-
-    // issue warning
-    if (!execute_action_client_->isServerConnected())
-    {
-      if (execute_service_.exists())
-        ROS_WARN_NAMED("planning_interface",
-                       "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
-                       "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in move_group.launch");
-      else
-        throw std::runtime_error("No Trajectory execution capability available.");
-      execute_action_client_.reset();
-    }
-    // SNAP
+    waitForExecuteActionOrService(timeout_for_servers);
 
     query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
     get_params_service_ = node_handle_.serviceClient<moveit_msgs::GetPlannerParams>(move_group::GET_PLANNER_PARAMS_SERVICE_NAME);
@@ -226,6 +200,33 @@ public:
     else
     {
       ROS_DEBUG("Connected to '%s'", name.c_str());
+    }
+  }
+
+  void waitForExecuteActionOrService(ros::WallTime timeout_for_servers)
+  {
+    execute_service_ = node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
+
+    // wait for either of action or service
+    while (!execute_action_client_->isServerConnected() &&
+           !execute_service_.exists() &&
+           timeout_for_servers > ros::WallTime::now())
+    {
+      ros::WallDuration(0.1).sleep();
+      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
+    }
+
+    // issue warning
+    if (!execute_action_client_->isServerConnected())
+    {
+      if (execute_service_.exists())
+        ROS_WARN_NAMED("planning_interface",
+                       "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
+                       "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in move_group.launch");
+      else
+        throw std::runtime_error("No Trajectory execution capability available.");
+      execute_action_client_.reset();
     }
   }
 
@@ -737,6 +738,7 @@ public:
   {
     if (!execute_action_client_)
     {
+      // TODO: Remove this backwards compatibility code in L-turtle
       moveit_msgs::ExecuteKnownTrajectory::Request req;
       moveit_msgs::ExecuteKnownTrajectory::Response res;
       req.trajectory = plan.trajectory_;
