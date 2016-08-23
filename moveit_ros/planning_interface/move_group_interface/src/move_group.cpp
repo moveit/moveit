@@ -55,6 +55,7 @@
 #include <moveit_msgs/GetCartesianPath.h>
 #include <moveit_msgs/GetPlannerParams.h>
 #include <moveit_msgs/SetPlannerParams.h>
+#include <moveit_msgs/ApplyPlanningScene.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -148,8 +149,8 @@ public:
     query_service_ = node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
     get_params_service_ = node_handle_.serviceClient<moveit_msgs::GetPlannerParams>(move_group::GET_PLANNER_PARAMS_SERVICE_NAME);
     set_params_service_ = node_handle_.serviceClient<moveit_msgs::SetPlannerParams>(move_group::SET_PLANNER_PARAMS_SERVICE_NAME);
-
     cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+    apply_planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
 
     ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
   }
@@ -789,7 +790,15 @@ public:
     else
       aco.touch_links = touch_links;
     aco.object.operation = moveit_msgs::CollisionObject::ADD;
-    attached_object_publisher_.publish(aco);
+
+    moveit_msgs::ApplyPlanningScene::Request request;
+    moveit_msgs::ApplyPlanningScene::Response response;
+    request.scene.robot_state.attached_collision_objects.push_back(aco);
+    if (!apply_planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("ApplyPlanningScene service call failed. Please add \"move_group/ApplyPlanningSceneService\" capability. Falling back to asynchronous change processing.");
+      attached_object_publisher_.publish(aco);
+    }
     return true;
   }
 
@@ -802,6 +811,10 @@ public:
     else
       aco.object.id = name;
     aco.object.operation = moveit_msgs::CollisionObject::REMOVE;
+
+    moveit_msgs::ApplyPlanningScene::Request request;
+    moveit_msgs::ApplyPlanningScene::Response response;
+    std::vector<moveit_msgs::AttachedCollisionObject> &detach_list = request.scene.robot_state.attached_collision_objects;
     if (aco.link_name.empty() && aco.object.id.empty())
     {
       // we only want to detach objects for this group
@@ -809,11 +822,22 @@ public:
       for (std::size_t i = 0 ; i < lnames.size() ; ++i)
       {
         aco.link_name = lnames[i];
-        attached_object_publisher_.publish(aco);
+        detach_list.push_back(aco);
       }
     }
     else
-      attached_object_publisher_.publish(aco);
+    {
+      detach_list.push_back(aco);
+    }
+
+    if (!apply_planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("ApplyPlanningScene service call failed. Please add \"move_group/ApplyPlanningSceneService\" capability. Falling back to asynchronous change processing.");
+      for (std::vector<moveit_msgs::AttachedCollisionObject>::const_iterator it = detach_list.begin(); it != detach_list.end(); ++it)
+      {
+        attached_object_publisher_.publish(aco);
+      }
+    }
     return true;
   }
 
@@ -1112,6 +1136,7 @@ private:
   ros::ServiceClient get_params_service_;
   ros::ServiceClient set_params_service_;
   ros::ServiceClient cartesian_path_service_;
+  ros::ServiceClient apply_planning_scene_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
