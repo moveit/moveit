@@ -45,11 +45,16 @@ COMPONENTS
   visualization_msgs
 )
 
-set(VERSION_FILE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/version")
+set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
+# Add the folder for the generated version header to the package's
+# exported include dirs to avoid a catkin_lint error.
+# This is how gencpp adds the folder of generated message code to
+# the include dirs, see:
+#   https://github.com/ros/gencpp/blob/e5acaf6/cmake/gencpp-extras.cmake.em#L51-L54
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${VERSION_FILE_PATH})
 file(MAKE_DIRECTORY "${VERSION_FILE_PATH}/moveit")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-    ${VERSION_FILE_PATH}
     background_processing/include
     exceptions/include
     backtrace/include
@@ -129,6 +134,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR}
                            )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
+                    ${VERSION_FILE_PATH}
                     ${catkin_INCLUDE_DIRS}
                     ${console_bridge_INCLUDE_DIRS}
                     ${urdfdom_INCLUDE_DIRS}
