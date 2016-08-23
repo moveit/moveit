@@ -639,6 +639,17 @@ public:
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
                               moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes *error_code = NULL);
 
+  /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
+      between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
+      waypoints is that specified by setPoseReferenceFrame(). No more than \e jump_threshold
+      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
+      Kinematic constraints for the path given by \e path_constraints will be met for every point along the trajectory, if they are not met, a partial solution will be returned.
+      Constraints are checked (collision and kinematic) if \e avoid_collisions is set to true. If constraints cannot be met, the function fails.
+      Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
+      Return -1.0 in case of error. */
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+                              moveit_msgs::RobotTrajectory &trajectory, const moveit_msgs::Constraints &path_constraints, bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes *error_code = NULL);
+
   /** \brief Stop any trajectory execution, if one is active */
   void stop();
 
