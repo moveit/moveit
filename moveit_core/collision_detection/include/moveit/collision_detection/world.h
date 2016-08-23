@@ -42,10 +42,14 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <type_traits>
+#include <memory>
 #include <boost/function.hpp>
 #include <Eigen/Geometry>
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
 #include <geometric_shapes/shapes.h>
+
+static_assert(std::is_same<decltype(shapes::OcTree::octree), std::shared_ptr<const octomap::OcTree>>::value, "This version of moveit requires geometric_shapes 0.5.0 or later.");
 
 namespace collision_detection
 {
