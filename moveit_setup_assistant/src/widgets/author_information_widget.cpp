@@ -101,6 +101,8 @@ AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_
 void AuthorInformationWidget::focusGiven()
 {
   // Allow list box to populate
+  this->name_edit_->setText(QString::fromStdString(config_data_->author_name_));
+  this->email_edit_->setText(QString::fromStdString(config_data_->author_email_));
   QApplication::processEvents();
 }
 
