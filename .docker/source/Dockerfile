@@ -14,7 +14,7 @@ RUN wstool init . && \
     wstool update
 
 # Update apt-get because osrf image clears this cache. download deps
-RUN echo 'deb http://packages.ros.org/ros-shadow-fixed/ubuntu xenial main' | tee --append /etc/apt/sources.list.d/ros-latest.list && \
+RUN echo 'deb http://packages.ros.org/ros-shadow-fixed/ubuntu xenial main' | tee /etc/apt/sources.list.d/ros-latest.list && \
     rosdep update && \
     apt-get -qq update && \
     apt-get -qq install -y \
