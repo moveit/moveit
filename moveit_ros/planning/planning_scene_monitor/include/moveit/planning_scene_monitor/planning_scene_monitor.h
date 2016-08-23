@@ -453,7 +453,7 @@ protected:
 
   typedef std::map<const robot_model::LinkModel*, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > > LinkShapeHandles;
   typedef std::map<const robot_state::AttachedBody*, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > > AttachedBodyShapeHandles;
-  typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, const Eigen::Affine3d*> > > CollisionBodyShapeHandles;
+  typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, Eigen::Affine3d*> > > CollisionBodyShapeHandles;
 
   LinkShapeHandles link_shape_handles_;
   AttachedBodyShapeHandles attached_body_shape_handles_;
