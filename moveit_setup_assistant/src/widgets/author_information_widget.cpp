@@ -66,6 +66,7 @@ AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
+  layout->setAlignment(Qt::AlignTop);
 
   // Top Header Area ------------------------------------------------
 
@@ -75,7 +76,7 @@ AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_
   layout->addWidget( header );
 
   QLabel * name_title = new QLabel(this);
-  name_title->setText( "Name of this MoveIt! configuration:" );
+  name_title->setText( "Name of the maintainer this MoveIt! configuration:" );
   layout->addWidget( name_title );
 
   name_edit_ = new QLineEdit(this);
