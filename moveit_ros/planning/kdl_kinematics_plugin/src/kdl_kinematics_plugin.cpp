@@ -98,7 +98,7 @@ void KDLKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
     consistency_limits_mimic.push_back(consistency_limits[i]);
   }
 
-  joint_model_group_->getVariableRandomPositionsNearBy(state_->getRandomNumberGenerator(), values, near, consistency_limits_mimic);
+  joint_model_group_->getVariableRandomPositionsNearBy(robot_state_->getRandomNumberGenerator(), values, near, consistency_limits_mimic);
 
   for (std::size_t i = 0; i < dimension_; ++i)
   {
@@ -227,7 +227,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
-    const robot_model::JointModel *jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
+    const robot_model::JointModel *jm = robot_model->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     //first check whether it belongs to the set of active joints in the group
     if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
