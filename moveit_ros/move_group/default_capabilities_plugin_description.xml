@@ -12,6 +12,12 @@
     </description>
   </class>
 
+  <class name="move_group/MoveGroupExecuteTrajectoryAction" type="move_group::MoveGroupExecuteTrajectoryAction" base_class_type="move_group::MoveGroupCapability">
+    <description>
+      Allow execution of previously computed trajectories via a ROS action
+    </description>
+  </class>
+
   <class name="move_group/MoveGroupKinematicsService" type="move_group::MoveGroupKinematicsService" base_class_type="move_group::MoveGroupCapability">
     <description>
       Compute forward and inverse kinematics via ROS services
