@@ -40,6 +40,7 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QSplitter>
+#include <QRegExp>
 // ROS
 #include "configuration_files_widget.h"
 #include <srdfdom/model.h> // use their struct datastructures
@@ -440,6 +441,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
 bool ConfigurationFilesWidget::checkDependencies()
 {
   QStringList dependencies;
+  bool requiredActions = false;
 
   // Check that at least 1 planning group exists
   if( ! config_data_->srdf_->groups_.size() )
@@ -465,23 +467,54 @@ bool ConfigurationFilesWidget::checkDependencies()
     dependencies << "No virtual joints have been added";
   }
 
+  // Check that there is a author name
+  if( config_data_->author_name_.find_first_not_of(' ') == std::string::npos )
+  {
+    //There is no name or it consists of whitespaces only
+    dependencies << "<b>No author name added</b>";
+    requiredActions = true;
+  }
+
+  // Check that email information is filled
+  QRegExp mailRegex("\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}\\b");
+  mailRegex.setCaseSensitivity(Qt::CaseInsensitive);
+  mailRegex.setPatternSyntax(QRegExp::RegExp);
+  QString testEmail = QString::fromStdString(config_data_->author_email_);
+  if( ! mailRegex.exactMatch(testEmail) )
+  {
+    dependencies << "<b>No valid email adress added</b>";
+    requiredActions = true;
+  }
+
   // Display all accumumlated errors:
   if( dependencies.size() )
   {
     // Create a dependency message
-    QString dep_message = "Some setup steps have not been completed. None of the steps are required, but here is a reminder of what was not filled in, just in case something was forgotten::<br /><ul>";
+    QString dep_message;
+    if ( ! requiredActions )
+    {
+      dep_message = "Some setup steps have not been completed. None of the steps are required, but here is a reminder of what was not filled in, just in case something was forgotten:<br /><ul>";
+    } else
+    {
+      dep_message = "Some setup steps have not been completed. Please fix the required steps (printed in bold), otherwise the setup cannot be completed:<br /><ul>";
+    }
 
     for (int i = 0; i < dependencies.size(); ++i)
     {
       dep_message.append("<li>").append(dependencies.at(i)).append("</li>");
     }
-    dep_message.append("</ul><br/>Press Ok to continue generating files.");
 
-    if( QMessageBox::question( this, "Incomplete MoveIt Setup Assistant Steps", dep_message,
-                               QMessageBox::Ok | QMessageBox::Cancel)
-        == QMessageBox::Cancel )
+    if ( ! requiredActions )
     {
-      return false; // abort
+      dep_message.append("</ul><br/>Press Ok to continue generating files.");
+      if( QMessageBox::question( this, "Incomplete MoveIt Setup Assistant Steps", dep_message,
+          QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel )
+      {
+        return false; // abort
+      }
+    } else {
+      QMessageBox::warning( this, "Incomplete MoveIt Setup Assistant Steps", dep_message );
+      return false;
     }
   }
 
