@@ -45,8 +45,7 @@ COMPONENTS
   visualization_msgs
 )
 
-set(VERSION_FILE_PATH "${CATKIN_DEVEL_PREFIX}/include")
-file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
+set(VERSION_FILE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/version")
 
 set(THIS_PACKAGE_INCLUDE_DIRS
     ${VERSION_FILE_PATH}
@@ -143,8 +142,8 @@ string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" MOVEIT_VERSION_PATCH 
 set(MOVEIT_VERSION_EXTRA "Alpha")
 set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VERSION_PATCH}-${MOVEIT_VERSION_EXTRA}")
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
-configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
-install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+configure_file("version/version.h.in" "${VERSION_FILE_PATH}/version.h")
+install(FILES "${VERSION_FILE_PATH}/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)
