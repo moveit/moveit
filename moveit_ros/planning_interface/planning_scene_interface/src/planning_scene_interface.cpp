@@ -37,6 +37,7 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
+#include <moveit_msgs/ApplyPlanningScene.h>
 #include <ros/ros.h>
 #include <algorithm>
 
@@ -51,6 +52,7 @@ public:
   {
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+    apply_planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   }
 
@@ -215,7 +217,7 @@ public:
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.is_diff = true;
-    planning_scene_diff_publisher_.publish(planning_scene);
+    applyPlanningScene(planning_scene);
   }
 
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const
@@ -229,14 +231,30 @@ public:
       planning_scene.world.collision_objects.push_back(object);
     }
     planning_scene.is_diff = true;
-    planning_scene_diff_publisher_.publish(planning_scene);
+    applyPlanningScene(planning_scene);
   }
 
 private:
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
+  mutable ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
   robot_model::RobotModelConstPtr robot_model_;
+
+  // Helper function to call ApplyPlanningScene service with fallback
+  // to asynchronous processing via "planning_scene" topic.
+  void applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene) const
+  {
+    moveit_msgs::ApplyPlanningScene::Request request;
+    moveit_msgs::ApplyPlanningScene::Response response;
+    request.scene = planning_scene;
+    if (!apply_planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("ApplyPlanningScene service call failed. Please add \"move_group/ApplyPlanningSceneService\" capability. Falling back to asynchronous change processing.");
+      planning_scene_diff_publisher_.publish(planning_scene);
+    }
+  }
+
 };
 
 PlanningSceneInterface::PlanningSceneInterface()
