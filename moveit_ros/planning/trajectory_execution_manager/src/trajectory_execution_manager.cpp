@@ -872,7 +872,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &trajectory) const
 {
-  ROS_DEBUG_NAMED("traj_execution", "validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
+  ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
 
   if (trajectory.joint_trajectory.points.empty())
     return true;
@@ -888,7 +888,10 @@ bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &tr
   const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
   const std::size_t n = joint_names.size();
   if (positions.size() != n)
+  {
+    ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
     return false;
+  }
 
   for (std::size_t i = 0; i < n; ++i)
   {
@@ -902,8 +905,10 @@ bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &tr
     if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
     {
       ROS_ERROR_NAMED("traj_execution",
-                      "Invalid Trajectory: start point deviates from current robot state more than %g",
-                      allowed_start_tolerance_);
+                      "\nInvalid Trajectory: start point deviates from current robot state more than %g"
+                      "\njoint '%s': expected: %g, current: %g",
+                      allowed_start_tolerance_,
+                      joint_names[i].c_str(), positions[i], current_state->getJointPositions(jm)[0]);
       return false;
     }
   }
