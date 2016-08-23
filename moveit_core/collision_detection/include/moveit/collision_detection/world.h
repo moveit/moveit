@@ -49,7 +49,7 @@
 #include <eigen_stl_containers/eigen_stl_vector_container.h>
 #include <geometric_shapes/shapes.h>
 
-static_assert(std::is_same<decltype(shapes::OcTree::octree), std::shared_ptr<const octomap::OcTree>>::value, "This version of moveit requires geometric_shapes 0.5.0 or later.");
+static_assert(std::is_same<decltype(shapes::OcTree::octree), std::shared_ptr<const octomap::OcTree>>::value, "This version of moveit requires geometric_shapes 0.5.1 or later.");
 
 namespace collision_detection
 {
