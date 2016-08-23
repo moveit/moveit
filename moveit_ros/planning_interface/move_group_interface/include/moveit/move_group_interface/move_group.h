@@ -38,6 +38,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
+#include <moveit/macros/deprecation.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -116,18 +117,23 @@ public:
       \param opt. A MoveGroup::Options structure, if you pass a ros::NodeHandle with a specific callback queue, it has to be of type ros::CallbackQueue
         (which is the default type of callback queues used in ROS)
       \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
-      \param wait_for_server. Optional timeout for connecting to the action server. If it is not specified, the wait time is unlimited.
+      \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
     */
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-            const ros::Duration &wait_for_server = ros::Duration(0, 0));
+            const ros::WallDuration &wait_for_servers = ros::WallDuration());
+  MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                           const ros::Duration &wait_for_servers = ros::Duration());
 
   /**
-      \brief Construct a client for the MoveGroup action for a particular \e group. Optionally, specify a TF instance to use.
-      If not specified, one will be constructed internally. A timeout for connecting to the action server can also be specified. If it is not specified,
-      the wait time is unlimited.
-   */
+      \brief Construct a client for the MoveGroup action for a particular \e group.
+
+      \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
+      \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
+    */
   MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-            const ros::Duration &wait_for_server = ros::Duration(0, 0));
+            const ros::WallDuration &wait_for_servers = ros::WallDuration());
+  MOVEIT_DEPRECATED MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+                           const ros::Duration &wait_for_servers = ros::Duration());
 
   ~MoveGroup();
 
