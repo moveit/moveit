@@ -721,7 +721,7 @@ public:
   }
 
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double step, double jump_threshold,
-                              moveit_msgs::RobotTrajectory &msg, bool avoid_collisions, moveit_msgs::MoveItErrorCodes &error_code)
+                              moveit_msgs::RobotTrajectory &msg, const moveit_msgs::Constraints &path_constraints, bool avoid_collisions, moveit_msgs::MoveItErrorCodes &error_code)
   {
     moveit_msgs::GetCartesianPath::Request req;
     moveit_msgs::GetCartesianPath::Response res;
@@ -737,6 +737,7 @@ public:
     req.waypoints = waypoints;
     req.max_step = step;
     req.jump_threshold = jump_threshold;
+    req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
 
     if (cartesian_path_service_.call(req, res))
@@ -1274,14 +1275,23 @@ double moveit::planning_interface::MoveGroup::computeCartesianPath(const std::ve
                                                                    moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions,
 								   moveit_msgs::MoveItErrorCodes *error_code)
 {
+  moveit_msgs::Constraints path_constraints_tmp;
+  return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints_tmp, avoid_collisions, error_code);
+}
+
+double moveit::planning_interface::MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+                                                                   moveit_msgs::RobotTrajectory &trajectory,
+                                                                   const moveit_msgs::Constraints &path_constraints, bool avoid_collisions,
+                                                                   moveit_msgs::MoveItErrorCodes *error_code)
+{
   if(error_code)
   {
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, avoid_collisions, *error_code);
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions, *error_code);
   }
   else
   {
     moveit_msgs::MoveItErrorCodes error_code_tmp;
-    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, avoid_collisions, error_code_tmp);
+    return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions, error_code_tmp);
   }
 }
 
