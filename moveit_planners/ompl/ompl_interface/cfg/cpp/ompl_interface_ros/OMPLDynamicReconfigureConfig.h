@@ -51,6 +51,7 @@
 #define __ompl_interface_ros__OMPLDYNAMICRECONFIGURECONFIG_H__
 
 #include <dynamic_reconfigure/config_tools.h>
+#include <moveit/macros/class_forward.h>
 #include <limits>
 #include <ros/node_handle.h>
 #include <dynamic_reconfigure/ConfigDescription.h>
@@ -66,6 +67,7 @@ namespace ompl_interface_ros
   class OMPLDynamicReconfigureConfig
   {
   public:
+    MOVEIT_CLASS_FORWARD(AbstractParamDescription);
     class AbstractParamDescription : public dynamic_reconfigure::ParamDescription
     {
     public:
@@ -87,9 +89,6 @@ namespace ompl_interface_ros
       virtual void toMessage(dynamic_reconfigure::Config &msg, const OMPLDynamicReconfigureConfig &config) const = 0;
       virtual void getValue(const OMPLDynamicReconfigureConfig &config, boost::any &val) const = 0;
     };
-
-    typedef boost::shared_ptr<AbstractParamDescription> AbstractParamDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractParamDescription> AbstractParamDescriptionConstPtr;
 
     template <class T>
     class ParamDescription : public AbstractParamDescription
@@ -144,6 +143,7 @@ namespace ompl_interface_ros
       }
     };
 
+    MOVEIT_CLASS_FORWARD(AbstractGroupDescription);
     class AbstractGroupDescription : public dynamic_reconfigure::Group
     {
       public:
@@ -173,9 +173,6 @@ namespace ompl_interface_ros
         }
       }
     };
-
-    typedef boost::shared_ptr<AbstractGroupDescription> AbstractGroupDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractGroupDescription> AbstractGroupDescriptionConstPtr;
 
     template<class T, class PT>
     class GroupDescription : public AbstractGroupDescription

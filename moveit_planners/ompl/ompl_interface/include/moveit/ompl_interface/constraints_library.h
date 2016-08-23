@@ -37,6 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
 #define MOVEIT_OMPL_INTERFACE_CONSTRAINTS_LIBRARY_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <ompl/base/StateStorage.h>
@@ -49,9 +50,7 @@ namespace ompl_interface
 typedef std::pair<std::vector<std::size_t>, std::map<std::size_t, std::pair<std::size_t, std::size_t> > > ConstrainedStateMetadata;
 typedef ompl::base::StateStorageWithMetadata<ConstrainedStateMetadata> ConstraintApproximationStateStorage;
 
-class ConstraintApproximation;
-typedef boost::shared_ptr<ConstraintApproximation> ConstraintApproximationPtr;
-typedef boost::shared_ptr<const ConstraintApproximation> ConstraintApproximationConstPtr;
+MOVEIT_CLASS_FORWARD(ConstraintApproximation)
 
 class ConstraintApproximation
 {
@@ -160,6 +159,8 @@ struct ConstraintApproximationConstructionResults
   double                     sampling_success_rate;
 };
 
+MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
+
 class ConstraintsLibrary
 {
 public:
@@ -203,9 +204,6 @@ private:
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;
 
 };
-
-typedef boost::shared_ptr<ConstraintsLibrary> ConstraintsLibraryPtr;
-typedef boost::shared_ptr<const ConstraintsLibrary> ConstraintsLibraryConstPtr;
 
 }
 
