@@ -37,13 +37,10 @@
 
 import unittest
 
-from geometry_msgs.msg import Pose
 from moveit_ros_visualization.moveitjoy_module import MoveitJoy
 import rospy
 import rostest
-
-import math
-from tf.transformations import quaternion_from_euler
+import os
 
 _PKGNAME = 'moveit_ros_visualization'
 _NODENAME = 'test_moveit_joy'
@@ -60,15 +57,12 @@ class TestMoveitJoy(unittest.TestCase):
 
     def test_updatePlanningGroup_exception(self):
         '''Test MoveitJoy.updatePlanningGroup'''
-        exception_raised = False
-        try:
-            # Passng 0 to MoveitJoy.updatePlanningGroup should raise an exception.
-            self.moveit_joy.updatePlanningGroup(0)
-        except rospy.ROSInitException:
-            exception_raised = True
-        self.assertTrue(exception_raised)
+        # Passng 0 to MoveitJoy.updatePlanningGroup should raise an exception.
+        self.assertRaises(rospy.ROSInitException, self.moveit_joy.updatePlanningGroup(0))
 
 
 if __name__ == '__main__':
     rospy.init_node(_NODENAME)
-    rostest.rosrun(_PKGNAME, _NODENAME, TestMoveitJoy) 
+    rostest.rosrun(_PKGNAME, _NODENAME, TestMoveitJoy)
+    # Don't get trapped by https://github.com/ros/ros_comm/issues/870
+    os._exit(0)  # exit without cleanup
