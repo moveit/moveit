@@ -10,7 +10,7 @@ WORKDIR $CATKIN_WS/src
 # installing mongocxx driver for the warehouse
 RUN git clone -b 26compat https://github.com/mongodb/mongo-cxx-driver.git && \
     apt-get update -qq && \
-    apt-get -qq install -y scons && \
+    apt-get -qq install -y scons mongodb && \
     cd mongo-cxx-driver && \
     scons --use-system-boost --prefix=/usr/local/ --full --disable-warnings-as-errors && \
     ls /usr/local/lib && \
