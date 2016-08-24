@@ -88,4 +88,4 @@ install(FILES
 
 install(DIRECTORY icons DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
-add_rostest(test/moveit_joy.test)
+#add_rostest(test/moveit_joy.test)  # Disabled until the issue discussed at https://github.com/ros-planning/moveit/pull/46#issuecomment-240463490 gets resolved.
