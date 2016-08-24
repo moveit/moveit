@@ -742,7 +742,7 @@ bool ConfigurationFilesWidget::generatePackage()
     // Create new directory ------------------------------------------------------------------
     try
     {
-      fs::create_directory(new_package_path) & & !fs::is_directory(new_package_path);
+      fs::create_directory(new_package_path) && !fs::is_directory(new_package_path);
     }
     catch (...)
     {
