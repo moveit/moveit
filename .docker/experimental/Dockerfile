@@ -19,9 +19,8 @@ RUN git clone -b 26compat https://github.com/mongodb/mongo-cxx-driver.git && \
 
 # Download warehouse source
 RUN wstool init . && \
-    wstool set -y warehouse_ros_mongo --git https://github.com/TheBrewCrew/warehouse_ros_mongo.git && \
-    wstool set -y warehouse_ros --git https://github.com/TheBrewCrew/warehouse_ros.git --version jade-devel && \
-    wstool update -j2
+    wstool set -yu warehouse_ros_mongo --git https://github.com/TheBrewCrew/warehouse_ros_mongo.git -v jade-devel && \
+    wstool set -yu warehouse_ros --git https://github.com/ros-planning/warehouse_ros.git -v jade-devel
 
 # build the workspace
 RUN cd $CATKIN_WS && \
