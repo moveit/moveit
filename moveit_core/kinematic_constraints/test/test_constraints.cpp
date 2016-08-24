@@ -40,7 +40,7 @@
 #include <fstream>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/filesystem/path.hpp>
-#include <ros/package.h>
+#include <moveit_resources/config.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -48,13 +48,7 @@ protected:
 
   virtual void SetUp()
   {
-    std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
-    {
-      FAIL() << "Failed to find package moveit_resources.";
-      return;
-    }
-    boost::filesystem::path res_path(resource_dir);
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
     srdf_model.reset(new srdf::Model());
     std::string xml_string;
