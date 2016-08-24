@@ -55,10 +55,10 @@ int main(int argc, char **argv)
   // Declare the supported options
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "Show help message")
-    ("debug", "Run in debug/test mode")
-    ("urdf_path", po::value<std::string>(), "Optional, relative path to URDF in URDF package")
-    ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
+  ("help", "Show help message")
+  ("debug", "Run in debug/test mode")
+  ("urdf_path", po::value<std::string>(), "Optional, relative path to URDF in URDF package")
+  ("config_pkg", po::value<std::string>(), "Optional, pass in existing config package to load");
 
   // Process options
   po::variables_map vm;
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
   setlocale(LC_NUMERIC, "C");
 
   // Load Qt Widget
-  moveit_setup_assistant::SetupAssistantWidget saw( NULL, vm );
+  moveit_setup_assistant::SetupAssistantWidget saw(NULL, vm);
   saw.setMinimumWidth(980);
   saw.setMinimumHeight(550);
   //  saw.setWindowState( Qt::WindowMaximized );

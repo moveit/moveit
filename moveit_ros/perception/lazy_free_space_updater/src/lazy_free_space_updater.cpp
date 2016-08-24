@@ -123,10 +123,10 @@ void LazyFreeSpaceUpdater::processThread()
     ros::WallTime start = ros::WallTime::now();
     tree_->lockRead();
 
-#pragma omp sections
-        {
+    #pragma omp sections
+    {
 
-#pragma omp section
+      #pragma omp section
       {
         /* compute the free cells along each ray that ends at an occupied cell */
         for (OcTreeKeyCountMap::iterator it = process_occupied_cells_set_->begin(), end = process_occupied_cells_set_->end(); it != end; ++it)
@@ -135,7 +135,7 @@ void LazyFreeSpaceUpdater::processThread()
               free_cells1[*jt] += it->second;
       }
 
-#pragma omp section
+      #pragma omp section
       {
         /* compute the free cells along each ray that ends at a model cell */
         for (octomap::KeySet::iterator it = process_model_cells_set_->begin(), end = process_model_cells_set_->end(); it != end; ++it)

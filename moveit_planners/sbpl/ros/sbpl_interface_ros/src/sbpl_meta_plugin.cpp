@@ -69,8 +69,8 @@ public:
              moveit_msgs::GetMotionPlan::Response &res) const
   {
     bool solve_ok = sbpl_meta_interface_->solve(planning_scene,
-                                                req,
-                                                res);
+                    req,
+                    res);
     return solve_ok;
   }
 
@@ -93,7 +93,10 @@ public:
       return false;
   }
 
-  std::string getDescription() const { return "SBPLMeta"; }
+  std::string getDescription() const
+  {
+    return "SBPLMeta";
+  }
 
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -113,4 +116,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( sbpl_interface_ros::SBPLMetaPlanner, planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS(sbpl_interface_ros::SBPLMetaPlanner, planning_interface::Planner);

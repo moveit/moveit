@@ -49,9 +49,9 @@ const std::string planning_pipeline::PlanningPipeline::MOTION_PLAN_REQUEST_TOPIC
 const std::string planning_pipeline::PlanningPipeline::MOTION_CONTACTS_TOPIC = "display_contacts";
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model,
-                                                      const ros::NodeHandle &nh,
-                                                      const std::string &planner_plugin_param_name,
-                                                      const std::string &adapter_plugins_param_name) :
+    const ros::NodeHandle &nh,
+    const std::string &planner_plugin_param_name,
+    const std::string &adapter_plugins_param_name) :
   nh_(nh),
   kmodel_(model)
 {
@@ -64,7 +64,7 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
   {
     boost::char_separator<char> sep(" ");
     boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
-    for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+    for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
       adapter_plugin_names_.push_back(*beg);
   }
 
@@ -72,9 +72,9 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotMo
 }
 
 planning_pipeline::PlanningPipeline::PlanningPipeline(const robot_model::RobotModelConstPtr& model,
-                                                      const ros::NodeHandle &nh,
-                                                      const std::string &planner_plugin_name,
-                                                      const std::vector<std::string> &adapter_plugin_names) :
+    const ros::NodeHandle &nh,
+    const std::string &planner_plugin_name,
+    const std::vector<std::string> &adapter_plugin_names) :
   nh_(nh),
   planner_plugin_name_(planner_plugin_name),
   adapter_plugin_names_(adapter_plugin_names),
@@ -94,7 +94,7 @@ void planning_pipeline::PlanningPipeline::configure()
   {
     planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
@@ -119,7 +119,7 @@ void planning_pipeline::PlanningPipeline::configure()
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name_ << "': " << ex.what() << std::endl
                      << "Available plugins: " << boost::algorithm::join(classes, ", "));
@@ -133,7 +133,7 @@ void planning_pipeline::PlanningPipeline::configure()
     {
       adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_ERROR_STREAM("Exception while creating planning plugin loader " << ex.what());
     }
@@ -171,9 +171,8 @@ void planning_pipeline::PlanningPipeline::displayComputedMotionPlans(bool flag)
 {
   if (display_computed_motion_plans_ && !flag)
     display_path_publisher_.shutdown();
-  else
-    if (!display_computed_motion_plans_ && flag)
-      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
+  else if (!display_computed_motion_plans_ && flag)
+    display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
   display_computed_motion_plans_ = flag;
 }
 
@@ -181,9 +180,8 @@ void planning_pipeline::PlanningPipeline::publishReceivedRequests(bool flag)
 {
   if (publish_received_requests_ && !flag)
     received_request_publisher_.shutdown();
-  else
-    if (!publish_received_requests_ && flag)
-      received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>(MOTION_PLAN_REQUEST_TOPIC, 10, true);
+  else if (!publish_received_requests_ && flag)
+    received_request_publisher_ = nh_.advertise<moveit_msgs::MotionPlanRequest>(MOTION_PLAN_REQUEST_TOPIC, 10, true);
   publish_received_requests_ = flag;
 }
 
@@ -191,24 +189,23 @@ void planning_pipeline::PlanningPipeline::checkSolutionPaths(bool flag)
 {
   if (check_solution_paths_ && !flag)
     contacts_publisher_.shutdown();
-  else
-    if (!check_solution_paths_ && flag)
-      contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(MOTION_CONTACTS_TOPIC, 100, true);
+  else if (!check_solution_paths_ && flag)
+    contacts_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(MOTION_CONTACTS_TOPIC, 100, true);
   check_solution_paths_ = flag;
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const planning_interface::MotionPlanRequest& req,
-                                                       planning_interface::MotionPlanResponse& res) const
+    const planning_interface::MotionPlanRequest& req,
+    planning_interface::MotionPlanResponse& res) const
 {
   std::vector<std::size_t> dummy;
   return generatePlan(planning_scene, req, res, dummy);
 }
 
 bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                       const planning_interface::MotionPlanRequest& req,
-                                                       planning_interface::MotionPlanResponse& res,
-                                                       std::vector<std::size_t> &adapter_added_state_index) const
+    const planning_interface::MotionPlanRequest& req,
+    planning_interface::MotionPlanResponse& res,
+    std::vector<std::size_t> &adapter_added_state_index) const
 {
   // broadcast the request we are about to work on, if needed
   if (publish_received_requests_)
@@ -241,12 +238,12 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       solved = context ? context->solve(res) : false;
     }
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("Exception caught: '%s'", ex.what());
     return false;
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR("Unknown exception thrown by planner");
     return false;

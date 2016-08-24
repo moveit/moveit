@@ -91,7 +91,7 @@ private:
 struct PlanningContextManager::CachedContexts
 {
   std::map<std::pair<std::string, std::string>,
-           std::vector<ModelBasedPlanningContextPtr> > contexts_;
+      std::vector<ModelBasedPlanningContextPtr> > contexts_;
   boost::mutex                                         lock_;
 };
 
@@ -189,8 +189,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_interface::PlannerConfigurationSettings &config,
-                                                                                                        const StateSpaceFactoryTypeSelector &factory_selector,
-                                                                                                        const moveit_msgs::MotionPlanRequest &req) const
+    const StateSpaceFactoryTypeSelector &factory_selector,
+    const moveit_msgs::MotionPlanRequest &req) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
 
@@ -234,7 +234,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       state_validity_cache = false;
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(config.config.at("subspaces"), sep);
-      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
       {
         const ompl_interface::ModelBasedStateSpaceFactoryPtr &sub_fact = factory_selector(*beg);
         if (sub_fact)
@@ -314,8 +314,8 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                                                                        const moveit_msgs::MotionPlanRequest &req,
-                                                                                                        moveit_msgs::MoveItErrorCodes &error_code) const
+    const moveit_msgs::MotionPlanRequest &req,
+    moveit_msgs::MoveItErrorCodes &error_code) const
 {
   if (req.group_name.empty())
   {

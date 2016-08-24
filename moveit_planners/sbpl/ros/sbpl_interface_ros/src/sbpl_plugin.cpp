@@ -100,7 +100,10 @@ public:
       return false;
   }
 
-  std::string getDescription() const { return "SBPL"; }
+  std::string getDescription() const
+  {
+    return "SBPL";
+  }
 
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -120,4 +123,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( sbpl_interface_ros::SBPLPlanner, planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS(sbpl_interface_ros::SBPLPlanner, planning_interface::Planner);

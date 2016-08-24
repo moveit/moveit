@@ -46,8 +46,8 @@ TEST(World, AddRemoveShape)
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
   EXPECT_EQ(1, ball.use_count());
 
@@ -62,9 +62,9 @@ TEST(World, AddRemoveShape)
   EXPECT_TRUE(world.hasObject("ball"));
 
   bool move_ok = world.moveShapeInObject(
-                          "ball",
-                          ball,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,9)));
+                   "ball",
+                   ball,
+                   Eigen::Affine3d(Eigen::Translation3d(0, 0, 9)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ball.use_count());
@@ -106,9 +106,9 @@ TEST(World, AddRemoveShape)
     shapes.push_back(cyl);
     shapes.push_back(ball);
 
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,1)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,2)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,3)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 2)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 3)));
 
     EXPECT_FALSE(world.hasObject("mix1"));
 
@@ -125,7 +125,7 @@ TEST(World, AddRemoveShape)
   // add ball2
   world.addToObject("ball2",
                     ball,
-                    Eigen::Affine3d(Eigen::Translation3d(0,0,4)));
+                    Eigen::Affine3d(Eigen::Translation3d(0, 0, 4)));
 
   EXPECT_EQ(2, box.use_count());
   EXPECT_EQ(2, cyl.use_count());
@@ -157,25 +157,25 @@ TEST(World, AddRemoveShape)
     ASSERT_EQ(2, obj->shape_poses_.size());
 
     // check translation.z of pose
-    EXPECT_EQ(1.0, obj->shape_poses_[0](2,3));
-    EXPECT_EQ(3.0, obj->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
+    EXPECT_EQ(3.0, obj->shape_poses_[1](2, 3));
 
 
     move_ok = world.moveShapeInObject(
-                            "mix1",
-                            ball,
-                            Eigen::Affine3d(Eigen::Translation3d(0,0,5)));
+                "mix1",
+                ball,
+                Eigen::Affine3d(Eigen::Translation3d(0, 0, 5)));
     EXPECT_TRUE(move_ok);
 
     collision_detection::World::ObjectConstPtr obj2 = world.getObject("mix1");
     EXPECT_EQ(2, obj2.use_count());
     EXPECT_EQ(1, obj.use_count());
 
-    EXPECT_EQ(1.0, obj2->shape_poses_[0](2,3));
-    EXPECT_EQ(5.0, obj2->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj2->shape_poses_[0](2, 3));
+    EXPECT_EQ(5.0, obj2->shape_poses_[1](2, 3));
 
-    EXPECT_EQ(1.0, obj->shape_poses_[0](2,3));
-    EXPECT_EQ(3.0, obj->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
+    EXPECT_EQ(3.0, obj->shape_poses_[1](2, 3));
 
     // moving object causes copy, thus extra references to shapes in obj
     EXPECT_EQ(3, box.use_count());
@@ -219,7 +219,8 @@ TEST(World, AddRemoveShape)
 }
 
 /* structure to hold copy of callback args */
-struct TestAction {
+struct TestAction
+{
   collision_detection::World::Object obj_;
   collision_detection::World::Action action_;
   int cnt_;
@@ -238,9 +239,9 @@ struct TestAction {
 
 /* notification callback */
 static void TrackChangesNotify(
-              TestAction *ta,
-              const collision_detection::World::ObjectConstPtr& obj,
-              collision_detection::World::Action action)
+  TestAction *ta,
+  const collision_detection::World::ObjectConstPtr& obj,
+  collision_detection::World::Action action)
 {
   ta->obj_ = *obj;
   ta->action_ = action;
@@ -260,8 +261,8 @@ TEST(World, TrackChanges)
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
 
   world.addToObject("obj1",
@@ -276,9 +277,9 @@ TEST(World, TrackChanges)
   ta.reset();
 
   bool move_ok = world.moveShapeInObject(
-                          "obj1",
-                          ball,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,1)));
+                   "obj1",
+                   ball,
+                   Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ta.cnt_);

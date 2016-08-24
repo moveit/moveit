@@ -43,7 +43,10 @@ namespace default_planner_request_adapters
 class Empty : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  virtual std::string getDescription() const { return "No Op"; }
+  virtual std::string getDescription() const
+  {
+    return "No Op";
+  }
 
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,

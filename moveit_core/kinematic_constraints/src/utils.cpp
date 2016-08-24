@@ -107,23 +107,23 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
 bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints &constr)
 {
   return constr.position_constraints.empty() && constr.orientation_constraints.empty() &&
-    constr.visibility_constraints.empty() && constr.joint_constraints.empty();
+         constr.visibility_constraints.empty() && constr.joint_constraints.empty();
 }
 
 std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints &constr)
 {
   return constr.position_constraints.size() + constr.orientation_constraints.size() +
-    constr.visibility_constraints.size() + constr.joint_constraints.size();
+         constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
-                                                                         double tolerance)
+    double tolerance)
 {
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
-                                                                         double tolerance_below, double tolerance_above)
+    double tolerance_below, double tolerance_above)
 {
   moveit_msgs::Constraints goal;
   std::vector<double> vals;
@@ -142,7 +142,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const r
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
-                                                                         double tolerance_pos, double tolerance_angle)
+    double tolerance_pos, double tolerance_angle)
 {
   moveit_msgs::Constraints goal;
 
@@ -183,7 +183,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
-                                                                         const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle)
+    const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle)
 {
   moveit_msgs::Constraints goal = constructGoalConstraints(link_name, pose);
   if (tolerance_pos.size() == 3)
@@ -226,7 +226,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   p.x = 0;
   p.y = 0;
   p.z = 0;
-  return constructGoalConstraints(link_name, p, goal_point, tolerance );
+  return constructGoalConstraints(link_name, p, goal_point, tolerance);
 }
 
 moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name, const geometry_msgs::Point &reference_point, const geometry_msgs::PointStamped &goal_point, double tolerance)

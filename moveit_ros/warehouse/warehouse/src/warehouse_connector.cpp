@@ -55,7 +55,7 @@ WarehouseConnector::~WarehouseConnector()
 
 bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 {
-  if(child_pid_ != 0)
+  if (child_pid_ != 0)
     kill(child_pid_, SIGTERM);
 
   child_pid_ = fork();

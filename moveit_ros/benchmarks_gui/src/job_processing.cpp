@@ -58,7 +58,7 @@ void JobProcessing::addMainLoopJob(const boost::function<void(void)> &job)
 void JobProcessing::executeMainLoopJobs()
 {
   main_loop_jobs_lock_.lock();
-  while ( ! main_loop_jobs_.empty())
+  while (! main_loop_jobs_.empty())
   {
     boost::function<void(void)> fn = main_loop_jobs_.front();
     main_loop_jobs_.pop_front();
@@ -67,11 +67,11 @@ void JobProcessing::executeMainLoopJobs()
     {
       fn();
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
     }
-    catch(...)
+    catch (...)
     {
       ROS_ERROR("Exception caught executing main loop job");
     }

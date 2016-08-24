@@ -94,83 +94,82 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
   switch (s->type)
   {
   case shapes::SPHERE:
-    {
-      ogre_shape = new rviz::Shape(rviz::Shape::Sphere,
-                                   context_->getSceneManager(), node);
-      double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
-      ogre_shape->setScale(Ogre::Vector3(d, d, d));
-    }
-    break;
+  {
+    ogre_shape = new rviz::Shape(rviz::Shape::Sphere,
+                                 context_->getSceneManager(), node);
+    double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
+    ogre_shape->setScale(Ogre::Vector3(d, d, d));
+  }
+  break;
   case shapes::BOX:
-    {
-      ogre_shape = new rviz::Shape(rviz::Shape::Cube,
-                                   context_->getSceneManager(), node);
-      const double* sz = static_cast<const shapes::Box*>(s)->size;
-      ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
-    }
-    break;
+  {
+    ogre_shape = new rviz::Shape(rviz::Shape::Cube,
+                                 context_->getSceneManager(), node);
+    const double* sz = static_cast<const shapes::Box*>(s)->size;
+    ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
+  }
+  break;
   case shapes::CYLINDER:
-    {
-      ogre_shape = new rviz::Shape(rviz::Shape::Cylinder,
-                                   context_->getSceneManager(), node);
-      double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
-      double z = static_cast<const shapes::Cylinder*>(s)->length;
-      ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
-    }
-    break;
+  {
+    ogre_shape = new rviz::Shape(rviz::Shape::Cylinder,
+                                 context_->getSceneManager(), node);
+    double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
+    double z = static_cast<const shapes::Cylinder*>(s)->length;
+    ogre_shape->setScale(Ogre::Vector3(d, z, d)); // the shape has z as major axis, but the rendered cylinder has y as major axis (assuming z is upright);
+  }
+  break;
   case shapes::MESH:
+  {
+    const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
+    if (mesh->triangle_count > 0)
     {
-      const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(s);
-      if (mesh->triangle_count > 0)
+      rviz::MeshShape *m = new rviz::MeshShape(context_->getSceneManager(), node);
+      ogre_shape = m;
+
+      Ogre::Vector3 normal(0.0, 0.0, 0.0);
+      for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
       {
-        rviz::MeshShape *m = new rviz::MeshShape(context_->getSceneManager(), node);
-        ogre_shape = m;
-
-        Ogre::Vector3 normal(0.0, 0.0, 0.0);
-        for (unsigned int i = 0 ; i < mesh->triangle_count ; ++i)
+        unsigned int i3 = i * 3;
+        if (mesh->triangle_normals && !mesh->vertex_normals)
         {
-          unsigned int i3 = i * 3;
-          if (mesh->triangle_normals && !mesh->vertex_normals)
-          {
-            normal.x = mesh->triangle_normals[i3];
-            normal.y = mesh->triangle_normals[i3 + 1];
-            normal.z = mesh->triangle_normals[i3 + 2];
-          }
-
-          for (int k = 0 ; k < 3 ; ++k)
-          {
-            unsigned int vi = 3 * mesh->triangles[i3 + k];
-            Ogre::Vector3 v(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
-            if (mesh->vertex_normals)
-            {
-              Ogre::Vector3 n(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
-              m->addVertex(v, n);
-            }
-            else
-              if (mesh->triangle_normals)
-                m->addVertex(v, normal);
-              else
-                m->addVertex(v);
-          }
+          normal.x = mesh->triangle_normals[i3];
+          normal.y = mesh->triangle_normals[i3 + 1];
+          normal.z = mesh->triangle_normals[i3 + 2];
         }
-        m->endTriangles();
+
+        for (int k = 0 ; k < 3 ; ++k)
+        {
+          unsigned int vi = 3 * mesh->triangles[i3 + k];
+          Ogre::Vector3 v(mesh->vertices[vi], mesh->vertices[vi + 1], mesh->vertices[vi + 2]);
+          if (mesh->vertex_normals)
+          {
+            Ogre::Vector3 n(mesh->vertex_normals[vi], mesh->vertex_normals[vi + 1], mesh->vertex_normals[vi + 2]);
+            m->addVertex(v, n);
+          }
+          else if (mesh->triangle_normals)
+            m->addVertex(v, normal);
+          else
+            m->addVertex(v);
+        }
       }
+      m->endTriangles();
     }
-    break;
+  }
+  break;
 
   case shapes::OCTREE:
-    {
-      boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
-                                                              octree_voxel_rendering,
-                                                              octree_color_mode,
-                                                              0u,
-                                                              context_->getSceneManager(),
-                                                              node));
+  {
+    boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
+                                           octree_voxel_rendering,
+                                           octree_color_mode,
+                                           0u,
+                                           context_->getSceneManager(),
+                                           node));
 
 
-      octree_voxel_grids_.push_back(octree);
-    }
-    break;
+    octree_voxel_grids_.push_back(octree);
+  }
+  break;
 
   default:
     break;
@@ -187,7 +186,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
     {
       // in geometric shapes, the z axis of the cylinder is it height;
       // for the rviz shape, the y axis is the height; we add a transform to fix this
-      static Ogre::Quaternion fix(Ogre::Radian(boost::math::constants::pi<double>()/2.0), Ogre::Vector3(1.0, 0.0, 0.0));
+      static Ogre::Quaternion fix(Ogre::Radian(boost::math::constants::pi<double>() / 2.0), Ogre::Vector3(1.0, 0.0, 0.0));
       orientation = orientation * fix;
     }
 

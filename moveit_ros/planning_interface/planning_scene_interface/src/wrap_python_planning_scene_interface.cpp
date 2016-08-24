@@ -53,13 +53,13 @@ namespace planning_interface
 {
 
 class PlanningSceneInterfaceWrapper : protected py_bindings_tools::ROScppInitializer,
-                                      public PlanningSceneInterface
+  public PlanningSceneInterface
 {
 public:
 
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
   PlanningSceneInterfaceWrapper() : py_bindings_tools::ROScppInitializer(),
-                                    PlanningSceneInterface()
+    PlanningSceneInterface()
   {
   }
 

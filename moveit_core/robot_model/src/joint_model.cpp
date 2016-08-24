@@ -63,13 +63,20 @@ std::string moveit::core::JointModel::getTypeName() const
 {
   switch (type_)
   {
-  case UNKNOWN: return "Unkown";
-  case REVOLUTE: return "Revolute";
-  case PRISMATIC: return "Prismatic";
-  case PLANAR: return "Planar";
-  case FLOATING: return "Floating";
-  case FIXED: return "Fixed";
-  default: return "[Unkown]";
+  case UNKNOWN:
+    return "Unkown";
+  case REVOLUTE:
+    return "Revolute";
+  case PRISMATIC:
+    return "Prismatic";
+  case PLANAR:
+    return "Planar";
+  case FLOATING:
+    return "Floating";
+  case FIXED:
+    return "Fixed";
+  default:
+    return "[Unkown]";
   }
 }
 
@@ -90,12 +97,11 @@ bool moveit::core::JointModel::enforceVelocityBounds(double *values, const Bound
       values[i] = other_bounds[i].max_velocity_;
       change = true;
     }
-    else
-      if (other_bounds[i].min_velocity_ > values[i])
-      {
-        values[i] = other_bounds[i].min_velocity_;
-        change = true;
-      }
+    else if (other_bounds[i].min_velocity_ > values[i])
+    {
+      values[i] = other_bounds[i].min_velocity_;
+      change = true;
+    }
   return change;
 }
 
@@ -104,9 +110,8 @@ bool moveit::core::JointModel::satisfiesVelocityBounds(const double *values, con
   for (std::size_t i = 0 ; i < other_bounds.size() ; ++i)
     if (other_bounds[i].max_velocity_ + margin < values[i])
       return false;
-    else
-      if (other_bounds[i].min_velocity_ - margin > values[i])
-        return false;
+    else if (other_bounds[i].min_velocity_ - margin > values[i])
+      return false;
   return true;
 }
 
@@ -198,11 +203,10 @@ inline void printBoundHelper(std::ostream &out, double v)
 {
   if (v <= -std::numeric_limits<double>::infinity())
     out << "-inf";
+  else if (v >= std::numeric_limits<double>::infinity())
+    out << "inf";
   else
-    if (v >= std::numeric_limits<double>::infinity())
-      out << "inf";
-    else
-      out << v;
+    out << v;
 }
 }
 

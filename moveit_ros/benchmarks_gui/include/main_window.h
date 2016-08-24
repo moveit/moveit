@@ -74,7 +74,7 @@ namespace benchmark_tool
 
 class MainWindow : public QMainWindow
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   MainWindow(int argc, char **argv, QWidget *parent = 0);

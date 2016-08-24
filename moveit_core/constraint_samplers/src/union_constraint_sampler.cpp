@@ -88,7 +88,7 @@ struct OrderSamplers
     }
     if (b_depends_on_a && !a_depends_on_b)
       return true;
-    if(a_depends_on_b && !b_depends_on_a)
+    if (a_depends_on_b && !b_depends_on_a)
       return false;
 
     // prefer sampling JointConstraints first
@@ -106,7 +106,7 @@ struct OrderSamplers
 }
 
 constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
-                                                                    const std::vector<ConstraintSamplerPtr> &samplers) :
+    const std::vector<ConstraintSamplerPtr> &samplers) :
   ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents

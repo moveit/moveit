@@ -60,10 +60,22 @@ namespace planning_interface
 class MoveItErrorCode : public moveit_msgs::MoveItErrorCodes
 {
 public:
-  MoveItErrorCode() { val = 0; };
-  MoveItErrorCode(int code) { val = code; };
-  MoveItErrorCode(const moveit_msgs::MoveItErrorCodes &code) { val = code.val; };
-  operator bool() const { return val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
+  MoveItErrorCode()
+  {
+    val = 0;
+  };
+  MoveItErrorCode(int code)
+  {
+    val = code;
+  };
+  MoveItErrorCode(const moveit_msgs::MoveItErrorCodes &code)
+  {
+    val = code.val;
+  };
+  operator bool() const
+  {
+    return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+  }
 };
 
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
@@ -79,7 +91,7 @@ public:
   {
     Options(const std::string &group_name,
             const std::string &desc = ROBOT_DESCRIPTION,
-	    const ros::NodeHandle &node_handle = ros::NodeHandle()) :
+            const ros::NodeHandle &node_handle = ros::NodeHandle()) :
       group_name_(group_name),
       robot_description_(desc),
       node_handle_(node_handle)
@@ -122,7 +134,7 @@ public:
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
   MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                           const ros::Duration &wait_for_servers = ros::Duration());
+                              const ros::Duration &wait_for_servers = ros::Duration());
 
   /**
       \brief Construct a client for the MoveGroup action for a particular \e group.
@@ -133,7 +145,7 @@ public:
   MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
   MOVEIT_DEPRECATED MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                           const ros::Duration &wait_for_servers = ros::Duration());
+                              const ros::Duration &wait_for_servers = ros::Duration());
 
   ~MoveGroup();
 
@@ -156,7 +168,7 @@ public:
   const std::vector<std::string>& getJointNames();
 
   /** \brief Get the joint angles for targets specified by name */
-  std::map<std::string,double> getNamedTargetValues(const std::string& name);
+  std::map<std::string, double> getNamedTargetValues(const std::string& name);
 
   /** \brief Get only the active (actuated) joints this instance operates on */
   const std::vector<std::string>& getActiveJoints() const;
@@ -172,7 +184,7 @@ public:
 
   /** \brief Get the planner parameters for given group and planner_id */
   std::map<std::string, std::string> getPlannerParams(const std::string &planner_id,
-                                                      const std::string &group="");
+      const std::string &group = "");
 
   /** \brief Set the planner parameters for given group and planner_id */
   void setPlannerParams(const std::string &planner_id,
@@ -181,7 +193,7 @@ public:
                         bool bReplace = false);
 
   /** \brief Get the default planner for a given group (or global default) */
-  std::string getDefaultPlannerId(const std::string &group="") const;
+  std::string getDefaultPlannerId(const std::string &group = "") const;
 
   /** \brief Specify a planner to be used for further planning */
   void setPlannerId(const std::string &planner_id);
@@ -203,7 +215,7 @@ public:
       Allowed values are in (0,1]. The maximum joint acceleration specified
       in the robot model is multiplied by the factor. If outside valid range
       (imporantly, this includes it being set to 0.0), the factor is set to a
-      default value of 1.0 internally (i.e. maximum joint acceleration) */  
+      default value of 1.0 internally (i.e. maximum joint acceleration) */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
 
   /** \brief Get the number of seconds set by setPlanningTime() */
@@ -826,6 +838,6 @@ private:
 }
 }
 // for backward compatibility; remove in hydro
-namespace move_group_interface=moveit::planning_interface;
+namespace move_group_interface = moveit::planning_interface;
 
 #endif

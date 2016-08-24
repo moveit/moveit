@@ -57,7 +57,7 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
   @param tf
   @return
  */
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf );
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf);
 
 /**
   @brief getSharedStateMonitor
@@ -68,7 +68,7 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
   @return
  */
 planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf,
-    ros::NodeHandle nh );
+    ros::NodeHandle nh);
 
 
 } // namespace planning interface

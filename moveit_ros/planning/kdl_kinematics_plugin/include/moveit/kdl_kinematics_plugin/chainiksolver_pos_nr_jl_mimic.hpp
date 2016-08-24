@@ -64,7 +64,7 @@ public:
    *
    * @return
    */
-  ChainIkSolverPos_NR_JL_Mimic(const Chain& chain,const JntArray& q_min, const JntArray& q_max, ChainFkSolverPos& fksolver,ChainIkSolverVel& iksolver,unsigned int maxiter=100,double eps=1e-6, bool position_ik = false);
+  ChainIkSolverPos_NR_JL_Mimic(const Chain& chain, const JntArray& q_min, const JntArray& q_max, ChainFkSolverPos& fksolver, ChainIkSolverVel& iksolver, unsigned int maxiter = 100, double eps = 1e-6, bool position_ik = false);
 
   ~ChainIkSolverPos_NR_JL_Mimic();
 

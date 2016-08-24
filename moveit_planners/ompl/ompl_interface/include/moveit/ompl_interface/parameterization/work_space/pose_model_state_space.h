@@ -53,10 +53,10 @@ public:
   {
   public:
     enum
-      {
-        JOINTS_COMPUTED = 256,
-        POSE_COMPUTED = 512
-      };
+    {
+      JOINTS_COMPUTED = 256,
+      POSE_COMPUTED = 512
+    };
 
     StateType()
       : ModelBasedStateSpace::StateType()

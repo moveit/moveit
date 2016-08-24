@@ -40,7 +40,8 @@
 #include <chomp_motion_planner/chomp_optimizer.h>
 #include <planning_models/conversions.h>
 
-namespace chomp {
+namespace chomp
+{
 
 ChompPlanner::ChompPlanner(const planning_models::RobotModelConstPtr& kmodel)
 {
@@ -61,10 +62,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                     req.motion_plan_request.group_name,
                     trajectory.getTrajectoryPoint(0));
 
-  int goal_index = trajectory.getNumPoints()- 1;
+  int goal_index = trajectory.getNumPoints() - 1;
   trajectory.getTrajectoryPoint(goal_index) = trajectory.getTrajectoryPoint(0);
   sensor_msgs::JointState js;
-  for(unsigned int i = 0; i < req.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++) {
+  for (unsigned int i = 0; i < req.motion_plan_request.goal_constraints[0].joint_constraints.size(); i++)
+  {
     js.name.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name);
     js.position.push_back(req.motion_plan_request.goal_constraints[0].joint_constraints[i].position);
     ROS_INFO_STREAM("Setting joint " << req.motion_plan_request.goal_constraints[0].joint_constraints[i].joint_name
@@ -84,7 +86,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
     if (revolute_joint != NULL)
     {
-      if(revolute_joint->isContinuous())
+      if (revolute_joint->isContinuous())
       {
         double start = (trajectory)(0, i);
         double end = (trajectory)(goal_index, i);
@@ -107,7 +109,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                            req.motion_plan_request.group_name,
                            &params,
                            start_state);
-  if(!optimizer.isInitialized()) {
+  if (!optimizer.isInitialized())
+  {
     ROS_WARN_STREAM("Could not initialize optimizer");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
@@ -132,13 +135,14 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   // fill in the entire trajectory
   res.trajectory.joint_trajectory.points.resize(trajectory.getNumPoints());
-  for (int i=0; i < trajectory.getNumPoints(); i++)
+  for (int i = 0; i < trajectory.getNumPoints(); i++)
   {
     res.trajectory.joint_trajectory.points[i].positions.resize(trajectory.getNumJoints());
-    for (size_t j=0; j < res.trajectory.joint_trajectory.points[i].positions.size(); j++)
+    for (size_t j = 0; j < res.trajectory.joint_trajectory.points[i].positions.size(); j++)
     {
       res.trajectory.joint_trajectory.points[i].positions[j] = trajectory.getTrajectoryPoint(i)(j);
-      if(i == trajectory.getNumPoints()-1) {
+      if (i == trajectory.getNumPoints() - 1)
+      {
         ROS_INFO_STREAM("Joint " << j << " " << res.trajectory.joint_trajectory.points[i].positions[j]);
       }
     }

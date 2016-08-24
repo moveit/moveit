@@ -65,44 +65,44 @@ RobotStateDisplay::RobotStateDisplay() :
   update_state_(false)
 {
   robot_description_property_ =
-    new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-                              this,
-                              SLOT( changedRobotDescription() ), this );
+    new rviz::StringProperty("Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
+                             this,
+                             SLOT(changedRobotDescription()), this);
 
   robot_state_topic_property_ =
-    new rviz::RosTopicProperty( "Robot State Topic", "display_robot_state",
-                                ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
-                                "The topic on which the moveit_msgs::RobotState messages are received",
-                                this,
-                                SLOT( changedRobotStateTopic() ), this );
+    new rviz::RosTopicProperty("Robot State Topic", "display_robot_state",
+                               ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
+                               "The topic on which the moveit_msgs::RobotState messages are received",
+                               this,
+                               SLOT(changedRobotStateTopic()), this);
 
   // Planning scene category -------------------------------------------------------------------------------------------
   root_link_name_property_ =
-    new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
-                              this,
-                              SLOT( changedRootLinkName() ), this );
+    new rviz::StringProperty("Robot Root Link", "", "Shows the name of the root link for the robot model",
+                             this,
+                             SLOT(changedRootLinkName()), this);
   root_link_name_property_->setReadOnly(true);
 
   robot_alpha_property_ =
-    new rviz::FloatProperty( "Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
-                             this,
-                             SLOT( changedRobotSceneAlpha() ), this );
-  robot_alpha_property_->setMin( 0.0 );
-  robot_alpha_property_->setMax( 1.0 );
+    new rviz::FloatProperty("Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
+                            this,
+                            SLOT(changedRobotSceneAlpha()), this);
+  robot_alpha_property_->setMin(0.0);
+  robot_alpha_property_->setMax(1.0);
 
-  attached_body_color_property_ = new rviz::ColorProperty( "Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
-                                                           this,
-                                                           SLOT( changedAttachedBodyColor() ), this );
+  attached_body_color_property_ = new rviz::ColorProperty("Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
+      this,
+      SLOT(changedAttachedBodyColor()), this);
 
   enable_link_highlight_ = new rviz::BoolProperty("Show Highlights", true, "Specifies whether link highlighting is enabled",
-                                                  this, SLOT( changedEnableLinkHighlight() ), this);
+      this, SLOT(changedEnableLinkHighlight()), this);
   enable_visual_visible_ = new rviz::BoolProperty("Visual Enabled", true, "Whether to display the visual representation of the robot.",
-                                                  this, SLOT( changedEnableVisualVisible() ), this);
+      this, SLOT(changedEnableVisualVisible()), this);
   enable_collision_visible_ = new rviz::BoolProperty("Collision Enabled", false, "Whether to display the collision representation of the robot.",
-                                                  this, SLOT( changedEnableCollisionVisible() ), this);
+      this, SLOT(changedEnableCollisionVisible()), this);
 
   show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.",
-                                           this, SLOT( changedAllLinks() ), this);
+      this, SLOT(changedAllLinks()), this);
 }
 
 // ******************************************************************************************
@@ -139,7 +139,7 @@ void RobotStateDisplay::changedAllLinks()
   Property *links_prop = subProp("Links");
   QVariant value(show_all_links_->getBool());
 
-  for (int i=0 ; i<links_prop->numChildren() ; ++i)
+  for (int i = 0 ; i < links_prop->numChildren() ; ++i)
   {
     Property *link_prop = links_prop->childAt(i);
     link_prop->setValue(value);
@@ -325,7 +325,7 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
 
 void RobotStateDisplay::setLinkColor(const std::string& link_name, const QColor &color)
 {
-  setLinkColor(&robot_->getRobot(), link_name, color );
+  setLinkColor(&robot_->getRobot(), link_name, color);
 }
 
 void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
@@ -333,16 +333,16 @@ void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
   unsetLinkColor(&robot_->getRobot(), link_name);
 }
 
-void RobotStateDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, const QColor &color )
+void RobotStateDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, const QColor &color)
 {
   rviz::RobotLink *link = robot->getLink(link_name);
 
   // Check if link exists
   if (link)
-    link->setColor( color.redF(), color.greenF(), color.blueF() );
+    link->setColor(color.redF(), color.greenF(), color.blueF());
 }
 
-void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link_name )
+void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link_name)
 {
   rviz::RobotLink *link = robot->getLink(link_name);
 
@@ -370,10 +370,10 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(oldState);
     update_state_ = true;
-    setStatus( rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully" );
+    setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
   }
   else
-    setStatus( rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded" );
+    setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
 
   highlights_.clear();
 }

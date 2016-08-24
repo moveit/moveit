@@ -113,9 +113,9 @@ public:
 
   /** \brief The different types of joints we support */
   enum JointType
-    {
-      UNKNOWN, REVOLUTE, PRISMATIC, PLANAR, FLOATING, FIXED
-    };
+  {
+    UNKNOWN, REVOLUTE, PRISMATIC, PLANAR, FLOATING, FIXED
+  };
 
   /** \brief The datatype for the joint bounds */
   typedef std::vector<VariableBounds> Bounds;
@@ -257,7 +257,7 @@ public:
 
   /** \brief Provide random values for the joint variables (within specified bounds). Enough memory is assumed to be allocated. */
   virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
-                                                const double *near, const double distance) const = 0;
+      const double *near, const double distance) const = 0;
 
   /** @} */
 

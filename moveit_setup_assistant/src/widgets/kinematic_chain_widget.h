@@ -56,19 +56,19 @@ class KinematicChainWidget : public QWidget
   // ******************************************************************************************
   // Reusable double list widget for selecting and deselecting a subset from a set
   // ******************************************************************************************
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   /// Constructor
-  KinematicChainWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  KinematicChainWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Loads the availble data list
   void setAvailable();
 
   /// Set the link field with previous value
-  void setSelected( const std::string &base_link, const std::string &tip_link );
+  void setSelected(const std::string &base_link, const std::string &tip_link);
 
 
   void addLinktoTreeRecursive(const robot_model::LinkModel* link,
@@ -102,7 +102,7 @@ private Q_SLOTS:
   void tipLinkTreeClick();
 
   /// Expand/Collapse Tree
-  void alterTree( const QString &link );
+  void alterTree(const QString &link);
 
   /// Highlight the selected link in the kinematic chain
   void itemSelected();
@@ -120,7 +120,7 @@ Q_SIGNALS:
   void cancelEditing();
 
   /// Event for telling rviz to highlight a link of the robot
-  void highlightLink( const std::string& name );
+  void highlightLink(const std::string& name);
 
   /// Event for telling rviz to unhighlight all links of the robot
   void unhighlightAll();

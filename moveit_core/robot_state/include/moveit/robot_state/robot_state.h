@@ -549,7 +549,7 @@ public:
    */
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const std::string &joint_group_name, const double *gstate)
   {
     const JointModelGroup *jmg = robot_model_->getJointModelGroup(joint_group_name);
@@ -558,7 +558,7 @@ as the new values that correspond to the group */
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const std::string &joint_group_name, const std::vector<double> &gstate)
   {
     const JointModelGroup *jmg = robot_model_->getJointModelGroup(joint_group_name);
@@ -567,18 +567,18 @@ as the new values that correspond to the group */
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const JointModelGroup *group, const std::vector<double> &gstate)
   {
     setJointGroupPositions(group, &gstate[0]);
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const JointModelGroup *group, const double *gstate);
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const std::string &joint_group_name, const Eigen::VectorXd& values)
   {
     const JointModelGroup *jmg = robot_model_->getJointModelGroup(joint_group_name);
@@ -587,7 +587,7 @@ as the new values that correspond to the group */
   }
 
   /** \brief Given positions for the variables that make up a group, in the order found in the group (including values of mimic joints), set those
-as the new values that correspond to the group */
+  as the new values that correspond to the group */
   void setJointGroupPositions(const JointModelGroup *group, const Eigen::VectorXd& values);
 
   /** \brief For a given group, copy the position values of the variables that make up the group into another location, in the order that the variables are found in the group. This is not necessarily a contiguous block of memory in the RobotState itself, so we copy instead of returning a pointer.*/
@@ -756,12 +756,12 @@ as the new values that correspond to the group */
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
   bool setFromIKSubgroups(const JointModelGroup *group,
-                 const EigenSTL::vector_Affine3d &poses,
-                 const std::vector<std::string> &tips,
-                 const std::vector<std::vector<double> > &consistency_limits,
-                 unsigned int attempts = 0, double timeout = 0.0,
-                 const GroupStateValidityCallbackFn &constraint = GroupStateValidityCallbackFn(),
-                 const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
+                          const EigenSTL::vector_Affine3d &poses,
+                          const std::vector<std::string> &tips,
+                          const std::vector<std::vector<double> > &consistency_limits,
+                          unsigned int attempts = 0, double timeout = 0.0,
+                          const GroupStateValidityCallbackFn &constraint = GroupStateValidityCallbackFn(),
+                          const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
    * @param group the group of joints this function operates on

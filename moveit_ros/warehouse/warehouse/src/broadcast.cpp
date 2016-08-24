@@ -62,15 +62,15 @@ int main(int argc, char **argv)
 
   boost::program_options::options_description desc;
   desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.")
-    ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")
-    ("planning_requests", "Also publish the planning requests that correspond to the scene")
-    ("planning_results", "Also publish the planning results that correspond to the scene")
-    ("constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")
-    ("state", boost::program_options::value<std::string>(), "Name of the robot state to publish.")
-    ("delay", boost::program_options::value<double>()->default_value(delay), "Time to wait in between publishing messages (s)");
+  ("help", "Show help message")
+  ("host", boost::program_options::value<std::string>(), "Host for the DB.")
+  ("port", boost::program_options::value<std::size_t>(), "Port for the DB.")
+  ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")
+  ("planning_requests", "Also publish the planning requests that correspond to the scene")
+  ("planning_results", "Also publish the planning results that correspond to the scene")
+  ("constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")
+  ("state", boost::program_options::value<std::string>(), "Name of the robot state to publish.")
+  ("delay", boost::program_options::value<double>()->default_value(delay), "Time to wait in between publishing messages (s)");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   {
     delay = vm["delay"].as<double>();
   }
-  catch(...)
+  catch (...)
   {
     std::cout << desc << std::endl;
     return 2;

@@ -71,7 +71,7 @@ typedef boost::shared_ptr<const KinematicsConstraintAware> KinematicsConstraintA
  */
 class KinematicsConstraintAware
 {
-  public:
+public:
 
   /** @brief Default constructor
    * @param kinematic_model An instance of a kinematic model
@@ -80,7 +80,7 @@ class KinematicsConstraintAware
    */
   KinematicsConstraintAware(const robot_model::RobotModelConstPtr &kinematic_model,
                             const std::string &group_name);
-  
+
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
    * @param request A const reference to the kinematics request
@@ -104,27 +104,27 @@ class KinematicsConstraintAware
   const std::string& getGroupName() const
   {
     return group_name_;
-  }  
-  
+  }
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }
-  
-  
+
+
 private:
 
-  EigenSTL::vector_Affine3d transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene, 
-                                           const robot_state::RobotState &kinematic_state,
-                                           const std::vector<geometry_msgs::PoseStamped> &poses,
-                                           const std::string &target_frame) const;
+  EigenSTL::vector_Affine3d transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene,
+      const robot_state::RobotState &kinematic_state,
+      const std::vector<geometry_msgs::PoseStamped> &poses,
+      const std::string &target_frame) const;
 
   bool convertServiceRequest(const planning_scene::PlanningSceneConstPtr &planning_scene,
                              const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
                              kinematics_constraint_aware::KinematicsRequest &kinematics_request,
                              kinematics_constraint_aware::KinematicsResponse &kinematics_response) const;
 
-  geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene, 
+  geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                       const robot_state::RobotState &kinematic_state,
                                       const geometry_msgs::Pose &pose,
                                       const std::string &link_name,
@@ -134,20 +134,20 @@ private:
                           const kinematics_constraint_aware::KinematicsRequest &request,
                           kinematics_constraint_aware::KinematicsResponse &response,
                           robot_state::JointStateGroup *joint_state_group,
-                          const std::vector<double> &joint_group_variable_values) const;  
-  
+                          const std::vector<double> &joint_group_variable_values) const;
+
   std::vector<std::string> sub_groups_names_;
 
   robot_model::RobotModelConstPtr kinematic_model_;
-  
+
   const robot_model::JointModelGroup *joint_model_group_;
-  
+
   std::string group_name_;
 
   bool has_sub_groups_;
 
   unsigned int ik_attempts_;
-  
+
 };
 
 }

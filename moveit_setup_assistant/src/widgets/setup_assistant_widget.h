@@ -89,7 +89,7 @@ class SetupAssistantWidget : public QWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -99,7 +99,7 @@ class SetupAssistantWidget : public QWidget
    * @param parent - used by Qt for destructing all elements
    * @return
    */
-  SetupAssistantWidget( QWidget *parent, boost::program_options::variables_map args );
+  SetupAssistantWidget(QWidget *parent, boost::program_options::variables_map args);
 
   /**
    * Deconstructor
@@ -112,13 +112,13 @@ class SetupAssistantWidget : public QWidget
    * @param index screen index to switch to
    */
 
-  void moveToScreen( const int index );
+  void moveToScreen(const int index);
 
   /**
    * Qt close event function for reminding user to save
    * @param event A Qt paramenter
    */
-  void closeEvent( QCloseEvent * event );
+  void closeEvent(QCloseEvent * event);
 
   /**
    * Qt error handling function
@@ -127,7 +127,7 @@ class SetupAssistantWidget : public QWidget
    * @param ev
    * @return bool
    */
-  virtual bool notify( QObject * rec, QEvent * ev );
+  virtual bool notify(QObject * rec, QEvent * ev);
 
   /**
    * Show/hide the Rviz right panel
@@ -149,7 +149,7 @@ private Q_SLOTS:
    * Event for changing screens by user clicking
    * @param index screen id
    */
-  void navigationClicked( const QModelIndex& index );
+  void navigationClicked(const QModelIndex& index);
 
   /**
    * Event for spinning the ros node
@@ -172,19 +172,19 @@ private Q_SLOTS:
    *
    * @param isModal if true disable left navigation
    */
-  void setModalMode( bool isModal );
+  void setModalMode(bool isModal);
 
   /**
    * Highlight a link of the robot
    *
    * @param link_name name of link to highlight
    */
-  void highlightLink( const std::string& link_name );
+  void highlightLink(const std::string& link_name);
 
   /**
    * Highlight a robot group
    */
-  void highlightGroup( const std::string& group_name );
+  void highlightGroup(const std::string& group_name);
 
   /**
    * Unhighlight all links of a robot

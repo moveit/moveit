@@ -45,13 +45,13 @@ namespace occupancy_map_monitor
 {
 
 PointCloudOctomapUpdater::PointCloudOctomapUpdater() : OccupancyMapUpdater("PointCloudUpdater"),
-                                                       private_nh_("~"),
-                                                       scale_(1.0),
-                                                       padding_(0.0),
-                                                       max_range_(std::numeric_limits<double>::infinity()),
-                                                       point_subsample_(1),
-                                                       point_cloud_subscriber_(NULL),
-                                                       point_cloud_filter_(NULL)
+  private_nh_("~"),
+  scale_(1.0),
+  padding_(0.0),
+  max_range_(std::numeric_limits<double>::infinity()),
+  point_subsample_(1),
+  point_cloud_subscriber_(NULL),
+  point_cloud_filter_(NULL)
 {
 }
 
@@ -213,7 +213,8 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
   boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
 
-  if (!filtered_cloud_topic_.empty()) {
+  if (!filtered_cloud_topic_.empty())
+  {
     filtered_cloud.reset(new sensor_msgs::PointCloud2());
     filtered_cloud->header = cloud_msg->header;
     sensor_msgs::PointCloud2Modifier pcd_modifier(*filtered_cloud);
@@ -241,7 +242,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
       pt_iter += row_c;
 
       for (unsigned int col = 0; col < cloud_msg->width; col += point_subsample_,
-        pt_iter += point_subsample_)
+           pt_iter += point_subsample_)
       {
         //if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
         //  continue;
@@ -251,7 +252,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
         {
           /* transform to map frame */
           tf::Vector3 point_tf = map_H_sensor * tf::Vector3(pt_iter[0], pt_iter[1],
-            pt_iter[2]);
+                                 pt_iter[2]);
 
           /* occupied cell at ray endpoint if ray is shorter than max range and this point
              isn't on a part of the robot*/

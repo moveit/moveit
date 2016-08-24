@@ -61,22 +61,22 @@ class PlanningSceneMonitor : private boost::noncopyable
 public:
 
   enum SceneUpdateType
-    {
-      /** \brief No update */
-      UPDATE_NONE = 0,
+  {
+    /** \brief No update */
+    UPDATE_NONE = 0,
 
-      /** \brief The state in the monitored scene was updated */
-      UPDATE_STATE = 1,
+    /** \brief The state in the monitored scene was updated */
+    UPDATE_STATE = 1,
 
-      /** \brief The maintained set of fixed transforms in the monitored scene was updated */
-      UPDATE_TRANSFORMS = 2,
+    /** \brief The maintained set of fixed transforms in the monitored scene was updated */
+    UPDATE_TRANSFORMS = 2,
 
-      /** \brief The geometry of the scene was updated. This includes receiving new octomaps, collision objects, attached objects, scene geometry, etc. */
-      UPDATE_GEOMETRY = 4,
+    /** \brief The geometry of the scene was updated. This includes receiving new octomaps, collision objects, attached objects, scene geometry, etc. */
+    UPDATE_GEOMETRY = 4,
 
-      /** \brief The entire scene was updated */
-      UPDATE_SCENE = 8 + UPDATE_STATE + UPDATE_TRANSFORMS + UPDATE_GEOMETRY
-    };
+    /** \brief The entire scene was updated */
+    UPDATE_SCENE = 8 + UPDATE_STATE + UPDATE_TRANSFORMS + UPDATE_GEOMETRY
+  };
 
   /// The name of the topic used by default for receiving joint states
   static const std::string DEFAULT_JOINT_STATES_TOPIC; // "/joint_states"

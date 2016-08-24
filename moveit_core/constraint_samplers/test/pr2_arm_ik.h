@@ -53,54 +53,54 @@ static const double IK_EPS = 1e-5;
 
 inline double distance(const urdf::Pose &transform)
 {
-  return sqrt(transform.position.x*transform.position.x+transform.position.y*transform.position.y+transform.position.z*transform.position.z);
+  return sqrt(transform.position.x * transform.position.x + transform.position.y * transform.position.y + transform.position.z * transform.position.z);
 }
 
 
 inline bool solveQuadratic(const double &a, const double &b, const double &c, double *x1, double *x2)
 {
-  double discriminant = b*b-4*a*c;
-  if(fabs(a) < IK_EPS)
+  double discriminant = b * b - 4 * a * c;
+  if (fabs(a) < IK_EPS)
   {
-    *x1 = -c/b;
+    *x1 = -c / b;
     *x2 = *x1;
     return true;
   }
   //ROS_DEBUG("Discriminant: %f\n",discriminant);
   if (discriminant >= 0)
   {
-    *x1 = (-b + sqrt(discriminant))/(2*a);
-    *x2 = (-b - sqrt(discriminant))/(2*a);
+    *x1 = (-b + sqrt(discriminant)) / (2 * a);
+    *x2 = (-b - sqrt(discriminant)) / (2 * a);
     return true;
   }
-  else if(fabs(discriminant) < IK_EPS)
+  else if (fabs(discriminant) < IK_EPS)
   {
-    *x1 = -b/(2*a);
-    *x2 = -b/(2*a);
+    *x1 = -b / (2 * a);
+    *x2 = -b / (2 * a);
     return true;
   }
   else
   {
-    *x1 = -b/(2*a);
-    *x2 = -b/(2*a);
+    *x1 = -b / (2 * a);
+    *x2 = -b / (2 * a);
     return false;
   }
 }
 
 inline bool solveCosineEqn(const double &a, const double &b, const double &c, double &soln1, double &soln2)
 {
-  double theta1 = atan2(b,a);
-  double denom  = sqrt(a*a+b*b);
+  double theta1 = atan2(b, a);
+  double denom  = sqrt(a * a + b * b);
 
-  if(fabs(denom) < IK_EPS) // should never happen, wouldn't make sense but make sure it is checked nonetheless
+  if (fabs(denom) < IK_EPS) // should never happen, wouldn't make sense but make sure it is checked nonetheless
   {
 #ifdef DEBUG
     std::cout << "denom: " << denom << std::endl;
 #endif
     return false;
   }
-  double rhs_ratio = c/denom;
-  if(rhs_ratio < -1 || rhs_ratio > 1)
+  double rhs_ratio = c / denom;
+  if (rhs_ratio < -1 || rhs_ratio > 1)
   {
 #ifdef DEBUG
     std::cout << "rhs_ratio: " << rhs_ratio << std::endl;
@@ -124,7 +124,7 @@ public:
    *
    */
   PR2ArmIK();
-  ~PR2ArmIK(){};
+  ~PR2ArmIK() {};
 
   /**
       @brief Initialize the solver by providing a urdf::Model and a root and tip name.
@@ -140,14 +140,14 @@ public:
      @param Input pose for end-effector
      @param Initial guess for shoulder pan angle
   */
-  void computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &shoulder_pan_initial_guess,std::vector<std::vector<double> > &solution) const;
+  void computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &shoulder_pan_initial_guess, std::vector<std::vector<double> > &solution) const;
 
   /**
      @brief compute IK based on an initial guess for the shoulder roll angle.
      h       @param Input pose for end-effector
      @param Initial guess for shoulder roll angle
   */
-  void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess,std::vector<std::vector<double> > &solution) const;
+  void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess, std::vector<std::vector<double> > &solution) const;
 
 
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
@@ -165,9 +165,9 @@ public:
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  private:
+private:
 
-  void addJointToChainInfo(boost::shared_ptr<const urdf::Joint> joint,moveit_msgs::KinematicSolverInfo &info);
+  void addJointToChainInfo(boost::shared_ptr<const urdf::Joint> joint, moveit_msgs::KinematicSolverInfo &info);
 
   bool checkJointLimits(const std::vector<double> &joint_values) const;
 

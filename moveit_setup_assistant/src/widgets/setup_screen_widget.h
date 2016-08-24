@@ -48,8 +48,8 @@ class SetupScreenWidget : public QWidget
 
 public:
 
-  SetupScreenWidget( QWidget* parent )
-  : QWidget( parent )
+  SetupScreenWidget(QWidget* parent)
+    : QWidget(parent)
   {
   }
 
@@ -63,13 +63,13 @@ public:
 Q_SIGNALS:
 
   /// Event for when the current screen is in modal view. Essential disabled the left navigation
-  void isModal( bool isModal );
+  void isModal(bool isModal);
 
   /// Event for telling rviz to highlight a link of the robot
-  void highlightLink( const std::string& name );
+  void highlightLink(const std::string& name);
 
   /// Event for telling rviz to highlight a group of the robot
-  void highlightGroup( const std::string& name );
+  void highlightGroup(const std::string& name);
 
   /// Event for telling rviz to unhighlight all links of the robot
   void unhighlightAll();

@@ -42,9 +42,10 @@
 #include <planning_models/robot_model.h>
 #include <planning_models/angle_utils.h>
 
-namespace sbpl_interface {
+namespace sbpl_interface
+{
 
-static unsigned int HASH_TABLE_SIZE = 32*1024;
+static unsigned int HASH_TABLE_SIZE = 32 * 1024;
 
 static inline unsigned int intHash(unsigned int key)
 {
@@ -98,19 +99,22 @@ struct EnvChain3DPlanningData
     coord_to_state_ID_table_.resize(hash_table_size_);
   }
 
-  ~EnvChain3DPlanningData() {
-    for(unsigned int i = 0; i < state_ID_to_coord_table_.size(); i++) {
+  ~EnvChain3DPlanningData()
+  {
+    for (unsigned int i = 0; i < state_ID_to_coord_table_.size(); i++)
+    {
       delete state_ID_to_coord_table_[i];
     }
   }
 
-  unsigned int getHashBin(const std::vector<int>& coord) {
+  unsigned int getHashBin(const std::vector<int>& coord)
+  {
     unsigned int val = 0;
 
-    for(size_t i = 0; i < coord.size(); i++)
+    for (size_t i = 0; i < coord.size(); i++)
       val += intHash(coord[i]) << i;
 
-    return intHash(val) & (hash_table_size_-1);
+    return intHash(val) & (hash_table_size_ - 1);
   }
 
   EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord,
@@ -122,7 +126,7 @@ struct EnvChain3DPlanningData
     new_hash_entry->stateID = state_ID_to_coord_table_.size();
     new_hash_entry->coord = coord;
     new_hash_entry->angles = angles;
-    memcpy(new_hash_entry->xyz, xyz, sizeof(int)*3);
+    memcpy(new_hash_entry->xyz, xyz, sizeof(int) * 3);
     new_hash_entry->action = action;
     state_ID_to_coord_table_.push_back(new_hash_entry);
     unsigned int bin = getHashBin(coord);
@@ -131,9 +135,10 @@ struct EnvChain3DPlanningData
     //have to do for DiscreteSpaceInformation
     //insert into and initialize the mappings
     int* entry = new int [NUMOFINDICES_STATEID2IND];
-    memset(entry, -1, NUMOFINDICES_STATEID2IND*sizeof(int));
+    memset(entry, -1, NUMOFINDICES_STATEID2IND * sizeof(int));
     state_ID_to_index_mapping_.push_back(entry);
-    if(new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size()-1) {
+    if (new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size() - 1)
+    {
       ROS_ERROR_STREAM("Size mismatch between state mappings " << new_hash_entry->stateID << " " << state_ID_to_index_mapping_.size());
     }
     return new_hash_entry;
@@ -143,8 +148,10 @@ struct EnvChain3DPlanningData
                                     int action)
   {
     unsigned int bin = getHashBin(coord);
-    for(unsigned int i = 0; i < coord_to_state_ID_table_[bin].size(); i++) {
-      if(coord_to_state_ID_table_[bin][i]->coord == coord) {
+    for (unsigned int i = 0; i < coord_to_state_ID_table_[bin].size(); i++)
+    {
+      if (coord_to_state_ID_table_[bin][i]->coord == coord)
+      {
         return coord_to_state_ID_table_[bin][i];
       }
     }
@@ -152,10 +159,13 @@ struct EnvChain3DPlanningData
   }
 
   bool convertFromStateIDsToAngles(const std::vector<int>& state_ids,
-                                   std::vector<std::vector<double> >& angle_vector) const {
+                                   std::vector<std::vector<double> >& angle_vector) const
+  {
     angle_vector.resize(state_ids.size());
-    for(unsigned int i = 0; i < state_ids.size(); i++) {
-      if(state_ids[i] > (int) state_ID_to_coord_table_.size()-1) {
+    for (unsigned int i = 0; i < state_ids.size(); i++)
+    {
+      if (state_ids[i] > (int) state_ID_to_coord_table_.size() - 1)
+      {
         return false;
       }
       angle_vector[i] = state_ID_to_coord_table_[state_ids[i]]->angles;
@@ -178,7 +188,8 @@ struct EnvChain3DPlanningData
 
 };
 
-class JointMotionWrapper {
+class JointMotionWrapper
+{
 public:
 
   JointMotionWrapper(const planning_models::RobotModel::JointModel* joint_model) :
@@ -190,27 +201,40 @@ public:
 
   bool getSuccessorValue(double start,
                          double delta,
-                         double& end) {
-    end = start+delta;
-    if(joint_limit_.has_position_limits) {
-      if(end < joint_limit_.min_position) {
-        if(fabs(start-joint_limit_.min_position) > std::numeric_limits<double>::epsilon()) {
+                         double& end)
+  {
+    end = start + delta;
+    if (joint_limit_.has_position_limits)
+    {
+      if (end < joint_limit_.min_position)
+      {
+        if (fabs(start - joint_limit_.min_position) > std::numeric_limits<double>::epsilon())
+        {
           //start not at min limit, so peg the end position
           end = joint_limit_.min_position;
-        } else {
+        }
+        else
+        {
           //start already at min limit
           return false;
         }
-      } else if(end > joint_limit_.max_position) {
-        if(fabs(start-joint_limit_.max_position) > std::numeric_limits<double>::epsilon()) {
+      }
+      else if (end > joint_limit_.max_position)
+      {
+        if (fabs(start - joint_limit_.max_position) > std::numeric_limits<double>::epsilon())
+        {
           //start not at max limit, so peg the end position
           end = joint_limit_.max_position;
-        } else {
+        }
+        else
+        {
           //start already at max limit
           return false;
         }
       }
-    } else {
+    }
+    else
+    {
       end = normalizeAngle(end);
     }
     return true;
@@ -218,19 +242,24 @@ public:
 
   bool canGetCloser(double start,
                     double goal,
-                    double delta) {
-    double start_dist = getDoubleDistance(start,goal);
+                    double delta)
+  {
+    double start_dist = getDoubleDistance(start, goal);
     double plus_value = 0.0;
     double minus_value = 0.0;
-    if(getSuccessorValue(start, delta, plus_value)) {
+    if (getSuccessorValue(start, delta, plus_value))
+    {
       double succ_dist = getDoubleDistance(plus_value, goal);
-      if(succ_dist < start_dist) {
+      if (succ_dist < start_dist)
+      {
         return true;
       }
     }
-    if(getSuccessorValue(start, -delta, minus_value)) {
+    if (getSuccessorValue(start, -delta, minus_value))
+    {
       double succ_dist = getDoubleDistance(minus_value, goal);
-      if(succ_dist < start_dist) {
+      if (succ_dist < start_dist)
+      {
         return true;
       }
     }
@@ -240,24 +269,34 @@ public:
   double getDoubleDistance(double start,
                            double end)
   {
-    if(joint_limit_.has_position_limits) {
-      return fabs(end-start);
-    } else {
-      return fabs(planning_models::shortestAngularDistance(start,end));
+    if (joint_limit_.has_position_limits)
+    {
+      return fabs(end - start);
+    }
+    else
+    {
+      return fabs(planning_models::shortestAngularDistance(start, end));
     }
   }
   int getIntegerDistance(double start,
                          double end,
-                         double delta) {
+                         double delta)
+  {
     double val;
-    if(joint_limit_.has_position_limits) {
-      val = fabs(end-start)/delta;
-    } else {
-      val = fabs(planning_models::shortestAngularDistance(start,end))/delta;
+    if (joint_limit_.has_position_limits)
+    {
+      val = fabs(end - start) / delta;
     }
-    if(val-floor(val) > std::numeric_limits<double>::epsilon()) {
+    else
+    {
+      val = fabs(planning_models::shortestAngularDistance(start, end)) / delta;
+    }
+    if (val - floor(val) > std::numeric_limits<double>::epsilon())
+    {
       return ceil(val);
-    } else {
+    }
+    else
+    {
       return floor(val);
     }
   }
@@ -266,13 +305,15 @@ protected:
   moveit_msgs::JointLimits joint_limit_;
 };
 
-class JointMotionPrimitive {
+class JointMotionPrimitive
+{
 public:
   virtual bool generateSuccessorState(const std::vector<double>& start,
                                       std::vector<double>& end) = 0;
 };
 
-class SingleJointMotionPrimitive : public JointMotionPrimitive {
+class SingleJointMotionPrimitive : public JointMotionPrimitive
+{
 public:
   SingleJointMotionPrimitive(const boost::shared_ptr<JointMotionWrapper>& joint_motion_wrapper,
                              unsigned int ind,
@@ -284,7 +325,8 @@ public:
   }
 
   virtual bool generateSuccessorState(const std::vector<double>& start,
-                                      std::vector<double>& end) {
+                                      std::vector<double>& end)
+  {
     end = start;
     return joint_motion_wrapper_->getSuccessorValue(start[ind_], delta_, end[ind_]);
   }

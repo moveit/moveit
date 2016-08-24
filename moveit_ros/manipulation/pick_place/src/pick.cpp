@@ -87,25 +87,24 @@ bool PickPlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene,
         ROS_WARN_STREAM_NAMED("manipulation", "Choice of end-effector for group '" << planning_group << "' is ambiguous. Assuming '" << end_effector << "'");
     }
   }
-  else
-    if (!end_effector.empty() && planning_group.empty())
+  else if (!end_effector.empty() && planning_group.empty())
+  {
+    const robot_model::JointModelGroup *jmg = planning_scene->getRobotModel()->getEndEffector(end_effector);
+    if (!jmg)
     {
-      const robot_model::JointModelGroup *jmg = planning_scene->getRobotModel()->getEndEffector(end_effector);
-      if (!jmg)
-      {
-        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-        return false;
-      }
-      planning_group = jmg->getEndEffectorParentGroup().first;
-      if (planning_group.empty())
-      {
-        ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
-        error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-        return false;
-      }
-      else
-        ROS_INFO_STREAM_NAMED("manipulation", "Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
+      error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      return false;
     }
+    planning_group = jmg->getEndEffectorParentGroup().first;
+    if (planning_group.empty())
+    {
+      ROS_ERROR_STREAM_NAMED("manipulation", "No parent group to plan in was identified based on end-effector '" << end_effector << "'. Please define a parent group in the SRDF.");
+      error_code_.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
+      return false;
+    }
+    else
+      ROS_INFO_STREAM_NAMED("manipulation", "Assuming the planning group for end effector '" << end_effector << "' is '" << planning_group << "'");
+  }
   const robot_model::JointModelGroup *eef = end_effector.empty() ? NULL : planning_scene->getRobotModel()->getEndEffector(end_effector);
   if (!eef)
   {

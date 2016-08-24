@@ -62,9 +62,9 @@ namespace distance_field
 /// \brief The plane to visualize
 enum PlaneVisualizationType
 {
- XYPlane,
- XZPlane,
- YZPlane
+  XYPlane,
+  XZPlane,
+  YZPlane
 };
 
 MOVEIT_CLASS_FORWARD(DistanceField);
@@ -112,7 +112,7 @@ public:
    *
    * @param [in] points The set of obstacle points to add
    */
-  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points)=0;
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points) = 0;
 
   /**
    * \brief Remove a set of obstacle points from the distance field,
@@ -127,7 +127,7 @@ public:
 
    * @param [in] points The set of obstacle points that will be set as free
    */
-  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
+  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points) = 0;
 
   /**
    * \brief This function will remove any obstacle points that are in
@@ -247,13 +247,13 @@ public:
 
   // DEPRECATED form
   MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape,
-                                              const geometry_msgs::Pose& pose);
+      const geometry_msgs::Pose& pose);
 
   /**
    * \brief Resets all points in the distance field to an uninitialize
    * value.
    */
-  virtual void reset()=0;
+  virtual void reset() = 0;
 
   /**
    * \brief Gets the distance to the closest obstacle at the given
@@ -446,7 +446,7 @@ public:
                             double max_distance,
                             const std::string &frame_id,
                             const ros::Time stamp,
-                            visualization_msgs::Marker& marker ) const;
+                            visualization_msgs::Marker& marker) const;
 
   /**
    * \brief Populates the supplied marker array with a series of
@@ -593,7 +593,8 @@ public:
    *
    * @return The resolution of the distance field in meters
    */
-  double getResolution() const {
+  double getResolution() const
+  {
     return resolution_;
   }
 

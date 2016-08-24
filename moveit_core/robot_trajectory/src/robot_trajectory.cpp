@@ -47,7 +47,7 @@ robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModel
 }
 
 robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model,
-                                                   const robot_model::JointModelGroup* group) :
+    const robot_model::JointModelGroup* group) :
   robot_model_(robot_model),
   group_(group)
 {
@@ -108,7 +108,7 @@ void robot_trajectory::RobotTrajectory::unwind()
     return;
 
   const std::vector<const robot_model::JointModel*> &cont_joints = group_ ?
-    group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
+      group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
 
   for (std::size_t i = 0 ; i < cont_joints.size() ; ++i)
   {
@@ -121,9 +121,8 @@ void robot_trajectory::RobotTrajectory::unwind()
       double current_value = waypoints_[j]->getJointPositions(cont_joints[i])[0];
       if (last_value > current_value + boost::math::constants::pi<double>())
         running_offset += 2.0 * boost::math::constants::pi<double>();
-      else
-        if (current_value > last_value + boost::math::constants::pi<double>())
-          running_offset -= 2.0 * boost::math::constants::pi<double>();
+      else if (current_value > last_value + boost::math::constants::pi<double>())
+        running_offset -= 2.0 * boost::math::constants::pi<double>();
 
       last_value = current_value;
       if (running_offset > std::numeric_limits<double>::epsilon() || running_offset < -std::numeric_limits<double>::epsilon())
@@ -143,7 +142,7 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &st
     return;
 
   const std::vector<const robot_model::JointModel*> &cont_joints = group_ ?
-    group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
+      group_->getContinuousJointModels() : robot_model_->getContinuousJointModels();
 
   for (std::size_t i = 0 ; i < cont_joints.size() ; ++i)
   {
@@ -166,9 +165,8 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState &st
       double current_value = waypoints_[j]->getJointPositions(cont_joints[i])[0];
       if (last_value > current_value + boost::math::constants::pi<double>())
         running_offset += 2.0 * boost::math::constants::pi<double>();
-      else
-        if (current_value > last_value + boost::math::constants::pi<double>())
-          running_offset -= 2.0 * boost::math::constants::pi<double>();
+      else if (current_value > last_value + boost::math::constants::pi<double>())
+        running_offset -= 2.0 * boost::math::constants::pi<double>();
 
       last_value = current_value;
       if (running_offset > std::numeric_limits<double>::epsilon() || running_offset < -std::numeric_limits<double>::epsilon())
@@ -278,7 +276,7 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                                                              const trajectory_msgs::JointTrajectory &trajectory)
+    const trajectory_msgs::JointTrajectory &trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
@@ -304,7 +302,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                                                              const moveit_msgs::RobotTrajectory &trajectory)
+    const moveit_msgs::RobotTrajectory &trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
@@ -313,7 +311,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
   std::size_t state_count = std::max(trajectory.joint_trajectory.points.size(),
                                      trajectory.multi_dof_joint_trajectory.points.size());
   ros::Time last_time_stamp = trajectory.joint_trajectory.points.empty() ?
-    trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
+                              trajectory.multi_dof_joint_trajectory.header.stamp : trajectory.joint_trajectory.header.stamp;
   ros::Time this_time_stamp = last_time_stamp;
 
   for (std::size_t i = 0 ; i < state_count ; ++i)
@@ -347,7 +345,7 @@ void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state:
 }
 
 void robot_trajectory::RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                                                              const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory)
+    const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory)
 {
   robot_state::RobotState st(reference_state);
   robot_state::robotStateMsgToRobotState(state, st);
@@ -367,7 +365,7 @@ void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart
   // Find indicies
   std::size_t index = 0, num_points = waypoints_.size();
   double running_duration = 0.0;
-  for ( ; index < num_points; ++index)
+  for (; index < num_points; ++index)
   {
     running_duration += duration_from_previous_[index];
     if (running_duration >= duration)

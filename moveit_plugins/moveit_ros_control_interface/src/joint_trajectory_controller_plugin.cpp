@@ -49,10 +49,10 @@ class JointTrajectoryControllerAllocator : public ControllerHandleAllocator
 {
 public:
   virtual moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string &name,
-                                                                     const std::vector<std::string> &resources)
+      const std::vector<std::string> &resources)
   {
     return boost::make_shared<moveit_simple_controller_manager::FollowJointTrajectoryControllerHandle>(
-        name, "follow_joint_trajectory");
+             name, "follow_joint_trajectory");
   }
 };
 

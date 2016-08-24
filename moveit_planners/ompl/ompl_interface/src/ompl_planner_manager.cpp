@@ -56,8 +56,8 @@ class OMPLPlannerManager : public planning_interface::PlannerManager
 public:
 
   OMPLPlannerManager() : planning_interface::PlannerManager(),
-                         nh_("~"),
-                         display_random_valid_states_(false)
+    nh_("~"),
+    display_random_valid_states_(false)
   {
   }
 
@@ -101,27 +101,27 @@ public:
   }
 
   virtual planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                    const planning_interface::MotionPlanRequest &req,
-                                                                    moveit_msgs::MoveItErrorCodes &error_code) const
+      const planning_interface::MotionPlanRequest &req,
+      moveit_msgs::MoveItErrorCodes &error_code) const
   {
     return ompl_interface_->getPlanningContext(planning_scene, req, error_code);
   }
 
 private:
 
-    /*
-    bool r = ompl_interface_->solve(planning_scene, req, res);
-    if (!planner_data_link_name_.empty())
-      displayPlannerData(planning_scene, planner_data_link_name_);
-    return r;
-    */
+  /*
+  bool r = ompl_interface_->solve(planning_scene, req, res);
+  if (!planner_data_link_name_.empty())
+    displayPlannerData(planning_scene, planner_data_link_name_);
+  return r;
+  */
 
-    /*
-    bool r = ompl_interface_->solve(planning_scene, req, res);
-    if (!planner_data_link_name_.empty())
-      displayPlannerData(planning_scene, planner_data_link_name_);
-    return r;
-    */
+  /*
+  bool r = ompl_interface_->solve(planning_scene, req, res);
+  if (!planner_data_link_name_.empty())
+    displayPlannerData(planning_scene, planner_data_link_name_);
+  return r;
+  */
 
   /*
   void displayRandomValidStates()
@@ -225,13 +225,12 @@ private:
       planner_data_link_name_.clear();
       ROS_INFO("Not displaying OMPL exploration data structures.");
     }
-    else
-      if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
-      {
-        pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
-        planner_data_link_name_ = config.link_for_exploration_tree;
-        ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
-      }
+    else if (!config.link_for_exploration_tree.empty() && planner_data_link_name_.empty())
+    {
+      pub_markers_ = nh_.advertise<visualization_msgs::MarkerArray>("ompl_planner_data_marker_array", 5);
+      planner_data_link_name_ = config.link_for_exploration_tree;
+      ROS_INFO("Displaying OMPL exploration data structures for %s", planner_data_link_name_.c_str());
+    }
 
     ompl_interface_->simplifySolutions(config.simplify_solutions);
     ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
@@ -247,14 +246,13 @@ private:
       pub_valid_states_.shutdown();
       pub_valid_traj_.shutdown();
     }
-    else
-      if (!display_random_valid_states_ && config.display_random_valid_states)
-      {
-        pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
-        pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
-    display_random_valid_states_ = true;
-        //    pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates, this)));
-      }
+    else if (!display_random_valid_states_ && config.display_random_valid_states)
+    {
+      pub_valid_states_ = nh_.advertise<moveit_msgs::DisplayRobotState>("ompl_planner_valid_states", 5);
+      pub_valid_traj_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("ompl_planner_valid_trajectories", 5);
+      display_random_valid_states_ = true;
+      //    pub_valid_states_thread_.reset(new boost::thread(boost::bind(&OMPLPlannerManager::displayRandomValidStates, this)));
+    }
   }
 
   ros::NodeHandle nh_;

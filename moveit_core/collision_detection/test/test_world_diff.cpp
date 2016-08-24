@@ -49,12 +49,12 @@ TEST(WorldDiff, TrackChanges)
 
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
   world->addToObject("obj1",
-                    ball,
-                    Eigen::Affine3d::Identity());
+                     ball,
+                     Eigen::Affine3d::Identity());
 
   EXPECT_EQ(1, diff1.getChanges().size());
   EXPECT_EQ(0, diff2.getChanges().size());
@@ -69,8 +69,8 @@ TEST(WorldDiff, TrackChanges)
   EXPECT_EQ(diff1.end(), it);
 
   world->addToObject("obj2",
-                    box,
-                    Eigen::Affine3d::Identity());
+                     box,
+                     Eigen::Affine3d::Identity());
 
   EXPECT_EQ(2, diff1.getChanges().size());
   EXPECT_EQ(0, diff2.getChanges().size());
@@ -82,8 +82,8 @@ TEST(WorldDiff, TrackChanges)
             it->second);
 
   world->addToObject("obj2",
-                    cyl,
-                    Eigen::Affine3d::Identity());
+                     cyl,
+                     Eigen::Affine3d::Identity());
 
   EXPECT_EQ(2, diff1.getChanges().size());
   EXPECT_EQ(0, diff2.getChanges().size());
@@ -97,9 +97,9 @@ TEST(WorldDiff, TrackChanges)
   diff2.reset(world);
 
   bool move_ok = world->moveShapeInObject(
-                          "obj2",
-                          cyl,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,1)));
+                   "obj2",
+                   cyl,
+                   Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, diff1.getChanges().size());
@@ -127,19 +127,19 @@ TEST(WorldDiff, TrackChanges)
   EXPECT_EQ(diff1.end(), it);
 
   world->addToObject("obj3",
-                    box,
-                    Eigen::Affine3d::Identity());
+                     box,
+                     Eigen::Affine3d::Identity());
 
   EXPECT_EQ(1, diff1.getChanges().size());
   EXPECT_EQ(2, diff2.getChanges().size());
 
   world->addToObject("obj3",
-                    cyl,
-                    Eigen::Affine3d::Identity());
+                     cyl,
+                     Eigen::Affine3d::Identity());
 
   world->addToObject("obj3",
-                    ball,
-                    Eigen::Affine3d::Identity());
+                     ball,
+                     Eigen::Affine3d::Identity());
 
   EXPECT_EQ(1, diff1.getChanges().size());
   EXPECT_EQ(2, diff2.getChanges().size());
@@ -147,9 +147,9 @@ TEST(WorldDiff, TrackChanges)
   diff1.reset();
 
   move_ok = world->moveShapeInObject(
-                          "obj3",
-                          cyl,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,2)));
+              "obj3",
+              cyl,
+              Eigen::Affine3d(Eigen::Translation3d(0, 0, 2)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(0, diff1.getChanges().size());
@@ -201,9 +201,9 @@ TEST(WorldDiff, TrackChanges)
             it->second);
 
   move_ok = world->moveShapeInObject(
-                          "obj3",
-                          ball,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,3)));
+              "obj3",
+              ball,
+              Eigen::Affine3d(Eigen::Translation3d(0, 0, 3)));
   EXPECT_TRUE(move_ok);
 
   it = diff1.getChanges().find("obj3");
@@ -241,32 +241,32 @@ TEST(WorldDiff, SetWorld)
   collision_detection::WorldDiff::const_iterator it;
 
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
   world1->addToObject("objA1",
-                    ball,
-                    Eigen::Affine3d::Identity());
+                      ball,
+                      Eigen::Affine3d::Identity());
 
   world1->addToObject("objA2",
-                    ball,
-                    Eigen::Affine3d::Identity());
+                      ball,
+                      Eigen::Affine3d::Identity());
 
   world1->addToObject("objA3",
-                    ball,
-                    Eigen::Affine3d::Identity());
+                      ball,
+                      Eigen::Affine3d::Identity());
 
   world2->addToObject("objB1",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   world2->addToObject("objB2",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   world2->addToObject("objB3",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   EXPECT_EQ(3, diff1.getChanges().size());
   EXPECT_EQ(3, diff1b.getChanges().size());
@@ -366,8 +366,8 @@ TEST(WorldDiff, SetWorld)
 
 
   world1->addToObject("objC",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   EXPECT_EQ(6, diff1.getChanges().size());
   EXPECT_EQ(6, diff1b.getChanges().size());
@@ -375,8 +375,8 @@ TEST(WorldDiff, SetWorld)
 
 
   world2->addToObject("objC",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
 
   EXPECT_EQ(7, diff1.getChanges().size());
@@ -401,16 +401,16 @@ TEST(WorldDiff, SetWorld)
 
 
   world1->addToObject("objD",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   EXPECT_EQ(7, diff1.getChanges().size());
   EXPECT_EQ(7, diff1b.getChanges().size());
   EXPECT_EQ(8, diff2.getChanges().size());
 
   world2->addToObject("objE",
-                    box,
-                    Eigen::Affine3d::Identity());
+                      box,
+                      Eigen::Affine3d::Identity());
 
   EXPECT_EQ(8, diff1.getChanges().size());
   EXPECT_EQ(8, diff1b.getChanges().size());

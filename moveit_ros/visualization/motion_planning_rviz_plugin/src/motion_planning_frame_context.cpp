@@ -91,7 +91,7 @@ void MotionPlanningFrame::resetDbButtonClicked()
 
   bool ok = false;
   QString response = QInputDialog::getItem(this, tr("Select Database"), tr("Choose the database to reset:"),
-                                           dbs, 2, false, &ok);
+                     dbs, 2, false, &ok);
   if (!ok)
     return;
 
@@ -130,7 +130,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked()
         return;
       }
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
       ROS_ERROR("%s", ex.what());
@@ -162,51 +162,46 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
     ui_->delete_scene_button->setEnabled(false);
     populateConstraintsList(std::vector<std::string>());
   }
-  else
-    if (mode == 2)
+  else if (mode == 2)
+  {
+    ui_->database_connect_button->setUpdatesEnabled(false);
+    ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
+    ui_->database_connect_button->setUpdatesEnabled(true);
+    populateConstraintsList(std::vector<std::string>());
+  }
+  else if (mode == 3)
+  {
+    ui_->database_connect_button->setUpdatesEnabled(false);
+    ui_->database_connect_button->setText(QString::fromStdString("Connect"));
+    ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
+    ui_->database_connect_button->setUpdatesEnabled(true);
+    ui_->reset_db_button->hide();
+  }
+  else if (mode == 4)
+  {
+    ui_->database_connect_button->setUpdatesEnabled(false);
+    ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
+    ui_->database_connect_button->setStyleSheet("QPushButton { color : darkBlue }");
+    ui_->database_connect_button->setUpdatesEnabled(true);
+    ui_->save_scene_button->setEnabled(true);
+    ui_->reset_db_button->show();
+    populatePlanningSceneTreeView();
+    loadStoredStates(".*"); // automatically populate the 'Stored States' tab with all states
+    if (move_group_)
     {
-      ui_->database_connect_button->setUpdatesEnabled(false);
-      ui_->database_connect_button->setText(QString::fromStdString("Connecting ..."));
-      ui_->database_connect_button->setUpdatesEnabled(true);
-      populateConstraintsList(std::vector<std::string>());
+      move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
+      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
     }
-    else
-      if (mode == 3)
-      {
-        ui_->database_connect_button->setUpdatesEnabled(false);
-        ui_->database_connect_button->setText(QString::fromStdString("Connect"));
-        ui_->database_connect_button->setStyleSheet("QPushButton { color : green }");
-        ui_->database_connect_button->setUpdatesEnabled(true);
-        ui_->reset_db_button->hide();
-      }
-      else
-        if (mode == 4)
-        {
-          ui_->database_connect_button->setUpdatesEnabled(false);
-          ui_->database_connect_button->setText(QString::fromStdString("Disconnect"));
-          ui_->database_connect_button->setStyleSheet("QPushButton { color : darkBlue }");
-          ui_->database_connect_button->setUpdatesEnabled(true);
-          ui_->save_scene_button->setEnabled(true);
-          ui_->reset_db_button->show();
-          populatePlanningSceneTreeView();
-          loadStoredStates(".*"); // automatically populate the 'Stored States' tab with all states
-          if (move_group_)
-          {
-            move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
-            planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
-          }
-        }
+  }
 }
 
 void MotionPlanningFrame::computeResetDbButtonClicked(const std::string &db)
 {
   if (db == "Constraints" && constraints_storage_)
     constraints_storage_->reset();
-  else
-    if (db == "Robot States" && robot_state_storage_)
-      robot_state_storage_->reset();
-    else
-      if (db == "Planning Scenes")
-        planning_scene_storage_->reset();
+  else if (db == "Robot States" && robot_state_storage_)
+    robot_state_storage_->reset();
+  else if (db == "Planning Scenes")
+    planning_scene_storage_->reset();
 }
 }

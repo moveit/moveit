@@ -112,7 +112,7 @@ void OccupancyMapMonitor::initialize()
             continue;
           }
 
-          if (!sensor_list[i].hasMember ("sensor_plugin"))
+          if (!sensor_list[i].hasMember("sensor_plugin"))
           {
             ROS_ERROR("No sensor plugin specified for octomap updater %d; ignoring.", i);
             continue;
@@ -131,7 +131,7 @@ void OccupancyMapMonitor::initialize()
             {
               updater_plugin_loader_.reset(new pluginlib::ClassLoader<OccupancyMapUpdater>("moveit_ros_perception", "occupancy_map_monitor::OccupancyMapUpdater"));
             }
-            catch(pluginlib::PluginlibException& ex)
+            catch (pluginlib::PluginlibException& ex)
             {
               ROS_FATAL_STREAM("Exception while creating octomap updater plugin loader " << ex.what());
             }
@@ -143,7 +143,7 @@ void OccupancyMapMonitor::initialize()
             up.reset(updater_plugin_loader_->createUnmanagedInstance(sensor_plugin));
             up->setMonitor(this);
           }
-          catch(pluginlib::PluginlibException& ex)
+          catch (pluginlib::PluginlibException& ex)
           {
             ROS_ERROR_STREAM("Exception while loading octomap updater '" << sensor_plugin << "': " << ex.what() << std::endl);
           }

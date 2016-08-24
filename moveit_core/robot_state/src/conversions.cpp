@@ -289,14 +289,13 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
           Eigen::Affine3d t0;
           if (state.knowsFrameTransform(aco.object.header.frame_id))
             t0 = state.getFrameTransform(aco.object.header.frame_id);
+          else if (tf && tf->canTransform(aco.object.header.frame_id))
+            t0 = tf->getTransform(aco.object.header.frame_id);
           else
-            if (tf && tf->canTransform(aco.object.header.frame_id))
-              t0 = tf->getTransform(aco.object.header.frame_id);
-            else
-            {
-              t0.setIdentity();
-              logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
-            }
+          {
+            t0.setIdentity();
+            logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect", aco.object.header.frame_id.c_str());
+          }
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0 ; i < poses.size() ; ++i)
             poses[i] = t * poses[i];
@@ -308,7 +307,7 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
         {
           if (state.clearAttachedBody(aco.object.id))
             logDebug("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
-                      aco.object.id.c_str(), aco.link_name.c_str());
+                     aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
           logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
@@ -317,13 +316,12 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
     else
       logError("The attached body for link '%s' has no geometry", aco.link_name.c_str());
   }
+  else if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
+  {
+    state.clearAttachedBody(aco.object.id);
+  }
   else
-    if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
-    {
-      state.clearAttachedBody(aco.object.id);
-    }
-    else
-      logError("Unknown collision object operation: %d", aco.object.operation);
+    logError("Unknown collision object operation: %d", aco.object.operation);
 }
 
 static bool _robotStateMsgToRobotStateHelper(const Transforms *tf, const moveit_msgs::RobotState &robot_state, RobotState& state, bool copy_attached_bodies)
@@ -508,7 +506,7 @@ void moveit::core::streamToRobotState(RobotState &state, const std::string &line
   for (std::size_t i = 0; i < state.getVariableCount(); ++i)
   {
     // Get a variable
-    if(!std::getline(lineStream, cell, separator[0]))
+    if (!std::getline(lineStream, cell, separator[0]))
       logError("Missing variable %i", i);
 
     state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());

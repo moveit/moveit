@@ -103,13 +103,13 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
   }
 }
 
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf )
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf)
 {
-    return getSharedStateMonitor( kmodel, tf, ros::NodeHandle() );
+  return getSharedStateMonitor(kmodel, tf, ros::NodeHandle());
 }
 
 planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel, const boost::shared_ptr<tf::Transformer> &tf,
-    ros::NodeHandle nh )
+    ros::NodeHandle nh)
 {
   SharedStorage &s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
@@ -117,7 +117,7 @@ planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot
     return s.state_monitors_[kmodel->getName()];
   else
   {
-    planning_scene_monitor::CurrentStateMonitorPtr monitor(new planning_scene_monitor::CurrentStateMonitor(kmodel, tf, nh ));
+    planning_scene_monitor::CurrentStateMonitorPtr monitor(new planning_scene_monitor::CurrentStateMonitor(kmodel, tf, nh));
     s.state_monitors_[kmodel->getName()] = monitor;
     return monitor;
   }

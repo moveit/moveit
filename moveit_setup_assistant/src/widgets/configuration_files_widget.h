@@ -76,12 +76,12 @@ class ConfigurationFilesWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  ConfigurationFilesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  ConfigurationFilesWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -167,7 +167,7 @@ private:
   void updateProgress();
 
   /// Get the last folder name in a directory path
-  const std::string getPackageName( std::string package_path );
+  const std::string getPackageName(std::string package_path);
 
   /// Check that no group is empty (without links/joints/etc)
   bool noGroupsEmpty();
@@ -184,7 +184,7 @@ private:
    * \param value string to replace with
    * \return void
    */
-  bool addTemplateString( const std::string& key, const std::string& value );
+  bool addTemplateString(const std::string& key, const std::string& value);
 
   /**
    * Copy a template from location <template_path> to location <output_path> and replace package name
@@ -195,7 +195,7 @@ private:
    *
    * @return bool if the template was copied correctly
    */
-  bool copyTemplate(const std::string& template_path, const std::string& output_path );
+  bool copyTemplate(const std::string& template_path, const std::string& output_path);
 
   /**
    * \brief Create a folder

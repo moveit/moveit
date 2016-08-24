@@ -36,6 +36,7 @@ COMPONENTS
   octomap_msgs
   random_numbers
   roslib
+  roslint
   rostime
   sensor_msgs
   shape_msgs
@@ -151,6 +152,10 @@ set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VER
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+
+
+#Invoke roslint for static code analysis
+roslint_cpp()
 
 add_subdirectory(version)
 add_subdirectory(macros)

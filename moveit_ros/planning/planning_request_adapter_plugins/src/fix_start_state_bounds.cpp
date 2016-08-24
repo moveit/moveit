@@ -70,7 +70,10 @@ public:
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was set to " << max_dt_offset_);
   }
 
-  virtual std::string getDescription() const { return "Fix Start State Bounds"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State Bounds";
+  }
 
 
   virtual bool adaptAndPlan(const PlannerFn &planner,

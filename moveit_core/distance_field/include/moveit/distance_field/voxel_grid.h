@@ -45,7 +45,8 @@ namespace distance_field
 {
 
 /// \brief Specifies dimension of different axes
-enum Dimension {
+enum Dimension
+{
   DIM_X = 0,
   DIM_Y = 1,
   DIM_Z = 2
@@ -116,7 +117,7 @@ public:
    * @param [in] origin_z Minimum point along the Z axis of the volume
    */
   void resize(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object);
+              double origin_x, double origin_y, double origin_z, T default_object);
 
   /**
    * \brief Operator that gets the value of the given location (x, y,
@@ -339,7 +340,7 @@ protected:
 
 template<typename T>
 VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object)
+                        double origin_x, double origin_y, double origin_z, T default_object)
   : data_(NULL)
 {
   resize(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, default_object);
@@ -349,7 +350,7 @@ template<typename T>
 VoxelGrid<T>::VoxelGrid()
   : data_(NULL)
 {
-  for (int i=DIM_X; i<=DIM_Z; ++i)
+  for (int i = DIM_X; i <= DIM_Z; ++i)
   {
     size_[i] = 0;
     origin_[i] = 0;
@@ -365,7 +366,7 @@ VoxelGrid<T>::VoxelGrid()
 
 template<typename T>
 void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object)
+                          double origin_x, double origin_y, double origin_z, T default_object)
 {
   delete[] data_;
   data_ = NULL;
@@ -382,7 +383,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
   num_cells_total_ = 1;
   resolution_ = resolution;
   oo_resolution_ = 1.0 / resolution_;
-  for (int i=DIM_X; i<=DIM_Z; ++i)
+  for (int i = DIM_X; i <= DIM_Z; ++i)
   {
     num_cells_[i] = size_[i] * oo_resolution_;
     num_cells_total_ *= num_cells_[i];
@@ -390,7 +391,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
 
   default_object_ = default_object;
 
-  stride1_ = num_cells_[DIM_Y]*num_cells_[DIM_Z];
+  stride1_ = num_cells_[DIM_Y] * num_cells_[DIM_Z];
   stride2_ = num_cells_[DIM_Z];
 
   // initialize the data:
@@ -408,9 +409,9 @@ template<typename T>
 inline bool VoxelGrid<T>::isCellValid(int x, int y, int z) const
 {
   return (
-      x>=0 && x<num_cells_[DIM_X] &&
-      y>=0 && y<num_cells_[DIM_Y] &&
-      z>=0 && z<num_cells_[DIM_Z]);
+           x >= 0 && x < num_cells_[DIM_X] &&
+           y >= 0 && y < num_cells_[DIM_Y] &&
+           z >= 0 && z < num_cells_[DIM_Z]);
 }
 
 template<typename T>
@@ -422,13 +423,13 @@ inline bool VoxelGrid<T>::isCellValid(const Eigen::Vector3i& pos) const
 template<typename T>
 inline bool VoxelGrid<T>::isCellValid(Dimension dim, int cell) const
 {
-  return cell>=0 && cell<num_cells_[dim];
+  return cell >= 0 && cell < num_cells_[dim];
 }
 
 template<typename T>
 inline int VoxelGrid<T>::ref(int x, int y, int z) const
 {
-  return x*stride1_ + y*stride2_ + z;
+  return x * stride1_ + y * stride2_ + z;
 }
 
 template<typename T>
@@ -481,13 +482,13 @@ inline const T& VoxelGrid<T>::operator()(const Eigen::Vector3d& pos) const
 template<typename T>
 inline T& VoxelGrid<T>::getCell(int x, int y, int z)
 {
-  return data_[ref(x,y,z)];
+  return data_[ref(x, y, z)];
 }
 
 template<typename T>
 inline const T& VoxelGrid<T>::getCell(int x, int y, int z) const
 {
-  return data_[ref(x,y,z)];
+  return data_[ref(x, y, z)];
 }
 
 template<typename T>
@@ -505,7 +506,7 @@ inline const T& VoxelGrid<T>::getCell(const Eigen::Vector3i& pos) const
 template<typename T>
 inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 {
-  data_[ref(x,y,z)] = obj;
+  data_[ref(x, y, z)] = obj;
 }
 
 template<typename T>
@@ -569,7 +570,7 @@ inline bool VoxelGrid<T>::worldToGrid(double world_x, double world_y, double wor
   x = getCellFromLocation(DIM_X, world_x);
   y = getCellFromLocation(DIM_Y, world_y);
   z = getCellFromLocation(DIM_Z, world_z);
-  return isCellValid(x,y,z);
+  return isCellValid(x, y, z);
 }
 
 template<typename T>

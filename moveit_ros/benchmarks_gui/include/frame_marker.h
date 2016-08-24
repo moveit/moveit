@@ -162,7 +162,7 @@ public:
   {
     receiver_ = receiver;
     receiver_method_ = method;
-    QObject::connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), receiver, method );
+    QObject::connect(imarker.get(), SIGNAL(userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), receiver, method);
   }
 
   virtual ~FrameMarker()

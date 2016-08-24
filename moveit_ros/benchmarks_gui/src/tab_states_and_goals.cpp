@@ -71,11 +71,11 @@ void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d
   static const float marker_scale = 0.15;
 
   GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
-                                               robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
+                             robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED));
   goal_poses_.insert(GoalPosePair(name,  goal_pose));
 
   // Connect signals
-  goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 
   //If connected to a database, save all the goals back to the database
   if (constraints_storage_)
@@ -117,7 +117,7 @@ void MainWindow::saveGoalsToDB()
       oc.link_name = robot_interaction_->getActiveEndEffectors()[0].parent_link; // TODO this is hacky i think
       it->second->getOrientation(oc.orientation);
       oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-        oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+                                       oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
       oc.weight = 1.0;
       constraints.orientation_constraints.push_back(oc);
 
@@ -143,10 +143,10 @@ void MainWindow::createGoalPoseButtonClicked(void)
 
   {
     const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
-    if ( ! ps || robot_interaction_->getActiveEndEffectors().empty() )
+    if (! ps || robot_interaction_->getActiveEndEffectors().empty())
     {
-      if ( ! ps ) ROS_ERROR("Not planning scene");
-      if ( robot_interaction_->getActiveEndEffectors().empty() ) ROS_ERROR("No end effector");
+      if (! ps) ROS_ERROR("Not planning scene");
+      if (robot_interaction_->getActiveEndEffectors().empty()) ROS_ERROR("No end effector");
       return;
     }
     else
@@ -161,7 +161,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
   std::string name;
   if (ok)
   {
-    if ( ! text.isEmpty() )
+    if (! text.isEmpty())
     {
       name = text.toStdString();
       if (goal_poses_.find(name) != goal_poses_.end())
@@ -187,10 +187,10 @@ void MainWindow::showBBoxGoalsDialog()
   std::string goals_base_name;
   {
     const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
-    if ( ! ps || robot_interaction_->getActiveEndEffectors().empty() )
+    if (! ps || robot_interaction_->getActiveEndEffectors().empty())
     {
-      if ( ! ps ) ROS_ERROR("No planning scene");
-      if ( robot_interaction_->getActiveEndEffectors().empty() ) ROS_ERROR("No end effector");
+      if (! ps) ROS_ERROR("No planning scene");
+      if (robot_interaction_->getActiveEndEffectors().empty()) ROS_ERROR("No end effector");
       return;
     }
     goals_base_name = ps->getName() + "_pose_";
@@ -221,9 +221,9 @@ void MainWindow::createBBoxGoalsButtonClicked(void)
     for (std::size_t y = 0; y < bbox_dialog_ui_.ngoals_y_text->text().toShort(); ++y)
       for (std::size_t z = 0; z < bbox_dialog_ui_.ngoals_z_text->text().toShort(); ++z)
       {
-        goal_pose(0,3) = minx + x * stepx;
-        goal_pose(1,3) = miny + y * stepy;
-        goal_pose(2,3) = minz + z * stepz;
+        goal_pose(0, 3) = minx + x * stepx;
+        goal_pose(1, 3) = miny + y * stepy;
+        goal_pose(2, 3) = minz + z * stepz;
 
         std::stringstream ss;
         ss << bbox_dialog_ui_.base_name_text->text().toStdString() << std::setfill('0') << std::setw(4) << goal_poses_.size();
@@ -237,7 +237,7 @@ void MainWindow::createBBoxGoalsButtonClicked(void)
 void MainWindow::removeSelectedGoalsButtonClicked(void)
 {
   QList<QListWidgetItem*> found_items = ui_.goal_poses_list->selectedItems();
-  for ( unsigned int i = 0 ; i < found_items.size() ; i++ )
+  for (unsigned int i = 0 ; i < found_items.size() ; i++)
   {
     goal_poses_.erase(found_items[i]->text().toStdString());
   }
@@ -286,10 +286,10 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
       if (!got_constraint)
         continue;
 
-      if ( c->position_constraints.size() > 0 && c->position_constraints[0].constraint_region.primitive_poses.size() > 0 && c->orientation_constraints.size() > 0 )
+      if (c->position_constraints.size() > 0 && c->position_constraints[0].constraint_region.primitive_poses.size() > 0 && c->orientation_constraints.size() > 0)
       {
         //Overwrite if exists. TODO: Ask the user before overwriting? copy the existing one with another name before?
-        if ( goal_poses_.find(c->name) != goal_poses_.end() )
+        if (goal_poses_.find(c->name) != goal_poses_.end())
         {
           goal_poses_.erase(c->name);
         }
@@ -305,16 +305,16 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
 
         static const float marker_scale = 0.15;
         GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, c->name, scene_display_->getRobotModel()->getModelFrame(),
-                                robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
-                                ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
+                                   robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
+                                   ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
         // Connect signals
-        goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+        goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 
         goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
     }
     populateGoalPosesList();
-   }
+  }
   else
   {
     if (!constraints_storage_)
@@ -341,23 +341,23 @@ void MainWindow::deleteGoalsOnDBButtonClicked(void)
 
     switch (ret)
     {
-      case QMessageBox::Yes:
+    case QMessageBox::Yes:
+    {
+      //Go through the list of goal poses, and delete those selected
+      QList<QListWidgetItem*> found_items = ui_.goal_poses_list->selectedItems();
+      for (std::size_t i = 0 ; i < found_items.size() ; i++)
       {
-        //Go through the list of goal poses, and delete those selected
-        QList<QListWidgetItem*> found_items = ui_.goal_poses_list->selectedItems();
-        for ( std::size_t i = 0 ; i < found_items.size() ; i++ )
+        try
         {
-          try
-          {
-            constraints_storage_->removeConstraints(found_items[i]->text().toStdString());
-          }
-          catch (std::runtime_error &ex)
-          {
-            ROS_ERROR("%s", ex.what());
-          }
+          constraints_storage_->removeConstraints(found_items[i]->text().toStdString());
         }
-        break;
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
       }
+      break;
+    }
     }
   }
   removeSelectedGoalsButtonClicked();
@@ -383,7 +383,7 @@ void MainWindow::loadStatesFromDBButtonClicked(void)
       return;
     }
 
-    for ( unsigned int i = 0 ; i < names.size() ; i++ )
+    for (unsigned int i = 0 ; i < names.size() ; i++)
     {
       moveit_warehouse::RobotStateWithMetadata rs;
       bool got_state = false;
@@ -391,7 +391,7 @@ void MainWindow::loadStatesFromDBButtonClicked(void)
       {
         got_state = robot_state_storage_->getRobotState(rs, names[i]);
       }
-      catch(std::runtime_error &ex)
+      catch (std::runtime_error &ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -450,22 +450,22 @@ void MainWindow::deleteStatesOnDBButtonClicked(void)
 
     switch (ret)
     {
-      case QMessageBox::Yes:
+    case QMessageBox::Yes:
+    {
+      QList<QListWidgetItem*> found_items =  ui_.start_states_list->selectedItems();
+      for (unsigned int i = 0; i < found_items.size() ; ++i)
       {
-        QList<QListWidgetItem*> found_items =  ui_.start_states_list->selectedItems();
-        for (unsigned int i = 0; i < found_items.size() ; ++i)
+        try
         {
-          try
-          {
-            robot_state_storage_->removeRobotState(found_items[i]->text().toStdString());
-          }
-          catch (std::runtime_error &ex)
-          {
-            ROS_ERROR("%s", ex.what());
-          }
+          robot_state_storage_->removeRobotState(found_items[i]->text().toStdString());
         }
-        break;
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
       }
+      break;
+    }
     }
   }
   removeSelectedStatesButtonClicked();
@@ -473,7 +473,7 @@ void MainWindow::deleteStatesOnDBButtonClicked(void)
 
 void MainWindow::visibleAxisChanged(int state)
 {
-  if ( ! robot_interaction_->getActiveEndEffectors().empty() )
+  if (! robot_interaction_->getActiveEndEffectors().empty())
   {
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
     {
@@ -531,9 +531,9 @@ void MainWindow::goalPoseSelectionChanged(void)
   {
     QListWidgetItem *item = ui_.goal_poses_list->item(i);
     std::string name = item->text().toStdString();
-    if ( goal_poses_.find(name) != goal_poses_.end() &&
-        ( (item->isSelected() && ! goal_poses_[name]->isSelected() )
-            || ( ! item->isSelected() && goal_poses_[name]->isSelected() )))
+    if (goal_poses_.find(name) != goal_poses_.end() &&
+        ((item->isSelected() && ! goal_poses_[name]->isSelected())
+         || (! item->isSelected() && goal_poses_[name]->isSelected())))
       switchGoalPoseMarkerSelection(name);
   }
 }
@@ -545,7 +545,7 @@ void MainWindow::goalPoseDoubleClicked(QListWidgetItem * item)
 
 void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem * item)
 {
-  if ( ! robot_interaction_ || robot_interaction_->getActiveEndEffectors().empty() )
+  if (! robot_interaction_ || robot_interaction_->getActiveEndEffectors().empty())
     return;
 
   std::string item_text = item->text().toStdString();
@@ -566,7 +566,7 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     for (unsigned int i = 0; i < ui_.goal_poses_list->count(); ++i)
     {
       item = ui_.goal_poses_list->item(i);
-      if ( item->text().toStdString() != feedback.marker_name)
+      if (item->text().toStdString() != feedback.marker_name)
         JobProcessing::addMainLoopJob(boost::bind(&MainWindow::selectItemJob, this, item, false));
     }
 
@@ -596,7 +596,8 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     // If this is a mouse-down on an already-selected goal pose, we
     // want to initialize dragging all selected goal poses at the same
     // time.
-    if(this_goal_already_selected) {
+    if (this_goal_already_selected)
+    {
       //Store current poses
       goals_dragging_initial_pose_.clear();
       for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
@@ -605,16 +606,16 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
         {
           Eigen::Affine3d pose(Eigen::Quaterniond(it->second->imarker->getOrientation().w, it->second->imarker->getOrientation().x,
                                                   it->second->imarker->getOrientation().y, it->second->imarker->getOrientation().z));
-          pose(0,3) = it->second->imarker->getPosition().x;
-          pose(1,3) = it->second->imarker->getPosition().y;
-          pose(2,3) = it->second->imarker->getPosition().z;
+          pose(0, 3) = it->second->imarker->getPosition().x;
+          pose(1, 3) = it->second->imarker->getPosition().y;
+          pose(2, 3) = it->second->imarker->getPosition().z;
           goals_dragging_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(it->second->imarker->getName(), pose));
 
           if (it->second->imarker->getName() == feedback.marker_name)
             drag_initial_pose_ = pose;
         }
       }
-      goal_pose_dragging_=true;
+      goal_pose_dragging_ = true;
     }
   }
   else if (feedback.event_type == feedback.POSE_UPDATE && goal_pose_dragging_)
@@ -626,15 +627,15 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
     Eigen::Affine3d current_wrt_initial = drag_initial_pose_.inverse() * current_pose_eigen;
 
     //Display the pose in the ui
-    Eigen::Vector3d v = current_pose_eigen.linear().eulerAngles(0,1,2);
+    Eigen::Vector3d v = current_pose_eigen.linear().eulerAngles(0, 1, 2);
     setStatusFromBackground(STATUS_INFO, QString().sprintf(
-        "%.2f %.2f %.2f    %.2f %.2f %.2f",
-        current_pose_eigen(0,3),
-        current_pose_eigen(1,3),
-        current_pose_eigen(2,3),
-        v(0) * 180.0 / boost::math::constants::pi<double>(),
-        v(1) * 180.0 / boost::math::constants::pi<double>(),
-        v(2) * 180.0 / boost::math::constants::pi<double>()));
+                              "%.2f %.2f %.2f    %.2f %.2f %.2f",
+                              current_pose_eigen(0, 3),
+                              current_pose_eigen(1, 3),
+                              current_pose_eigen(2, 3),
+                              v(0) * 180.0 / boost::math::constants::pi<double>(),
+                              v(1) * 180.0 / boost::math::constants::pi<double>(),
+                              v(2) * 180.0 / boost::math::constants::pi<double>()));
 
     //Update the rest of selected markers
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
@@ -647,10 +648,11 @@ void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback 
         tf::poseEigenToMsg(newpose, impose.pose);
 
         it->second->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
-                                      Ogre::Quaternion(impose.pose.orientation.w, impose.pose.orientation.x, impose.pose.orientation.y, impose.pose.orientation.z), "");
+                                     Ogre::Quaternion(impose.pose.orientation.w, impose.pose.orientation.x, impose.pose.orientation.y, impose.pose.orientation.z), "");
       }
     }
-  } else if (feedback.event_type == feedback.MOUSE_UP)
+  }
+  else if (feedback.event_type == feedback.MOUSE_UP)
   {
     goal_pose_dragging_ = false;
     JobProcessing::addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, feedback.marker_name));
@@ -671,10 +673,10 @@ void MainWindow::checkGoalsInCollision(void)
 
 void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable)
 {
-  if ( goal_poses_.find(goal_name) == goal_poses_.end())
+  if (goal_poses_.find(goal_name) == goal_poses_.end())
     return;
 
-  if ( ! goal_poses_[goal_name]->isVisible())
+  if (! goal_poses_[goal_name]->isVisible())
     return;
 
   const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name]->imarker;
@@ -694,8 +696,8 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   static const int ik_attempts = 5;
   static const float ik_timeout = 0.2;
   bool feasible = robot_interaction_->updateState(ks,
-                                                  robot_interaction_->getActiveEndEffectors()[0],
-                                                  current_pose_msg, ik_attempts, ik_timeout);
+                  robot_interaction_->getActiveEndEffectors()[0],
+                  current_pose_msg, ik_attempts, ik_timeout);
   if (feasible)
   {
     setStatusFromBackground(STATUS_INFO, "Updating state...");
@@ -708,20 +710,20 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
     setStatusFromBackground(STATUS_INFO, "Updating marker...");
     //Switch the marker color to reachable
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                  GripperMarker::REACHABLE));
+                                  GripperMarker::REACHABLE));
   }
   else
   {
     //Switch the marker color to not-reachable
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                  GripperMarker::NOT_REACHABLE));
+                                  GripperMarker::NOT_REACHABLE));
   }
   setStatusFromBackground(STATUS_INFO, "");
 }
 
 bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name)
 {
-  collision_detection::AllowedCollisionMatrix acm( scene_display_->getPlanningSceneRO()->getAllowedCollisionMatrix() );
+  collision_detection::AllowedCollisionMatrix acm(scene_display_->getPlanningSceneRO()->getAllowedCollisionMatrix());
   // get link names in group_name
   const std::vector<std::string>& group_link_names =
     scene_display_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry();
@@ -729,13 +731,13 @@ bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState& robot_state,
   // Create a set of links which is all links minus links in the group.
   const std::vector<std::string>& all_links = scene_display_->getRobotModel()->getLinkModelNames();
   std::set<std::string> link_set(all_links.begin(), all_links.end());
-  for(size_t i = 0; i < group_link_names.size(); i++ )
+  for (size_t i = 0; i < group_link_names.size(); i++)
   {
     link_set.erase(group_link_names[i]);
   }
 
   // for each link name in the set,
-  for(std::set<std::string>::const_iterator it = link_set.begin(); it != link_set.end(); it++ )
+  for (std::set<std::string>::const_iterator it = link_set.begin(); it != link_set.end(); it++)
   {
     // allow collisions with link.
     acm.setEntry(*it, true);
@@ -753,11 +755,11 @@ bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState& robot_state,
 
 void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
 {
-  if ( goal_poses_.find(goal_name) == goal_poses_.end())
+  if (goal_poses_.find(goal_name) == goal_poses_.end())
     return;
 
   // Check if the end-effector is in collision at the current pose
-  if ( ! goal_poses_[goal_name]->isVisible())
+  if (! goal_poses_[goal_name]->isVisible())
     return;
 
   const robot_interaction::RobotInteraction::EndEffector &eef = robot_interaction_->getActiveEndEffectors()[0];
@@ -770,15 +772,15 @@ void MainWindow::checkIfGoalInCollision(const std::string & goal_name)
   ks.updateStateWithLinkAt(eef.parent_link, marker_pose_eigen);
   bool in_collision = isGroupCollidingWithWorld(ks, eef.eef_group);
 
-  if ( in_collision )
+  if (in_collision)
   {
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                  GripperMarker::IN_COLLISION));
+                                  GripperMarker::IN_COLLISION));
   }
   else
   {
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                      GripperMarker::NOT_TESTED));
+                                  GripperMarker::NOT_TESTED));
   }
 }
 
@@ -841,12 +843,12 @@ void MainWindow::copySelectedGoalPoses(void)
 
     static const float marker_scale = 0.15;
     GripperMarkerPtr goal_pose(new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_, ss.str(), scene_display_->getRobotModel()->getModelFrame(),
-                            robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true));
+                               robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED, true));
 
     goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
 
     // Connect signals
-    goal_pose->connect(this, SLOT( goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+    goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 
     //Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);
@@ -887,7 +889,7 @@ void MainWindow::saveStartStateButtonClicked(void)
         {
           try
           {
-              robot_state_storage_->addRobotState(msg, name);
+            robot_state_storage_->addRobotState(msg, name);
           }
           catch (std::runtime_error &ex)
           {
@@ -957,7 +959,7 @@ void MainWindow::runBenchmark(void)
   {
     planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
@@ -986,7 +988,7 @@ void MainWindow::runBenchmark(void)
     {
       std::stringstream interfaces_ss, algorithms_ss;
       for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces.begin() ;
-          it != planner_interfaces.end(); ++it)
+           it != planner_interfaces.end(); ++it)
       {
         interfaces_ss << it->first << " ";
 
@@ -1007,7 +1009,7 @@ void MainWindow::runBenchmark(void)
 void MainWindow::benchmarkFolderButtonClicked(void)
 {
   QString dir = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
-                                                  "/home", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                "/home", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   run_benchmark_ui_.benchmark_output_folder_text->setText(dir);
 }
 
@@ -1037,8 +1039,8 @@ bool MainWindow::saveBenchmarkConfigButtonClicked(void)
     outfile << "timeout=" << run_benchmark_ui_.timeout_spin->value() << std::endl;
     outfile << "runs=" << run_benchmark_ui_.number_of_runs_spin->value() << std::endl;
     outfile << "output=" << run_benchmark_ui_.benchmark_output_folder_text->text().toStdString() << "/" << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << "_" <<
-        scene_display_->getPlanningSceneRO()->getName() << "_" <<
-        ros::Time::now() << std::endl;
+            scene_display_->getPlanningSceneRO()->getName() << "_" <<
+            ros::Time::now() << std::endl;
     outfile << "start=" << run_benchmark_ui_.benchmark_start_state_text->text().toStdString() << std::endl;
     outfile << "query=" << std::endl;
     outfile << "goal=" << run_benchmark_ui_.benchmark_goal_text->text().toStdString() << std::endl;
@@ -1077,47 +1079,47 @@ void MainWindow::runBenchmarkButtonClicked(void)
 
   switch (ret)
   {
-    case QMessageBox::Yes:
+  case QMessageBox::Yes:
+  {
+    // Set up db
+    warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+    conn->setParams(database_host_, database_port_, 10.0);
+    if (!conn->connect())
     {
-      // Set up db
-      warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
-      conn->setParams(database_host_, database_port_, 10.0);
-      if (!conn->connect())
-      {
-        QMessageBox::warning(this, "Error", QString("Unable to connect to Database"));
-        break;
-      }
-      QString outfilename =  run_benchmark_ui_.benchmark_output_folder_text->text().append("/config.cfg");
-      moveit_benchmarks::BenchmarkType btype = 0;
-      moveit_benchmarks::BenchmarkExecution be(scene_display_->getPlanningSceneMonitor()->getPlanningScene(), conn);
-      if (run_benchmark_ui_.benchmark_include_planners_checkbox->isChecked())
-        btype += moveit_benchmarks::BENCHMARK_PLANNERS;
-      if (run_benchmark_ui_.benchmark_check_reachability_checkbox->isChecked())
-        btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
-
-      if (be.readOptions(outfilename.toStdString()))
-      {
-        std::stringstream ss;
-        be.printOptions(ss);
-        ROS_INFO_STREAM("Calling benchmark with options:" << std::endl << ss.str() << std::endl);
-
-        BenchmarkProcessingThread benchmark_thread(be, btype, this);
-        benchmark_thread.startAndShow();
-
-        if (benchmark_thread.isRunning())
-        {
-          benchmark_thread.terminate();
-          benchmark_thread.wait();
-          QMessageBox::warning(this, "", "Benchmark computation canceled");
-        }
-        else
-        {
-          QMessageBox::information(this, "Benchmark computation finished", QString("The results were logged into '").append(run_benchmark_ui_.benchmark_output_folder_text->text()));
-        }
-      }
-
+      QMessageBox::warning(this, "Error", QString("Unable to connect to Database"));
       break;
     }
+    QString outfilename =  run_benchmark_ui_.benchmark_output_folder_text->text().append("/config.cfg");
+    moveit_benchmarks::BenchmarkType btype = 0;
+    moveit_benchmarks::BenchmarkExecution be(scene_display_->getPlanningSceneMonitor()->getPlanningScene(), conn);
+    if (run_benchmark_ui_.benchmark_include_planners_checkbox->isChecked())
+      btype += moveit_benchmarks::BENCHMARK_PLANNERS;
+    if (run_benchmark_ui_.benchmark_check_reachability_checkbox->isChecked())
+      btype += moveit_benchmarks::BENCHMARK_GOAL_EXISTANCE;
+
+    if (be.readOptions(outfilename.toStdString()))
+    {
+      std::stringstream ss;
+      be.printOptions(ss);
+      ROS_INFO_STREAM("Calling benchmark with options:" << std::endl << ss.str() << std::endl);
+
+      BenchmarkProcessingThread benchmark_thread(be, btype, this);
+      benchmark_thread.startAndShow();
+
+      if (benchmark_thread.isRunning())
+      {
+        benchmark_thread.terminate();
+        benchmark_thread.wait();
+        QMessageBox::warning(this, "", "Benchmark computation canceled");
+      }
+      else
+      {
+        QMessageBox::information(this, "Benchmark computation finished", QString("The results were logged into '").append(run_benchmark_ui_.benchmark_output_folder_text->text()));
+      }
+    }
+
+    break;
+  }
   }
 }
 
@@ -1136,8 +1138,8 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
   std::string logid, basename, logid_text;
   try
   {
-    logid = file.substr( file.find_last_of(".", file.length()-5) + 1, file.find_last_of(".") - file.find_last_of(".", file.length()-5) - 1 );
-    basename = file.substr(0, file.find_last_of(".", file.length()-5));
+    logid = file.substr(file.find_last_of(".", file.length() - 5) + 1, file.find_last_of(".") - file.find_last_of(".", file.length() - 5) - 1);
+    basename = file.substr(0, file.find_last_of(".", file.length() - 5));
     logid_text = logid.substr(logid.find_first_of("_"), logid.length() - logid.find_first_of("_"));
   }
   catch (...)
@@ -1170,7 +1172,7 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
       {
         while (ifile.good())
         {
-          if ( strstr(text_line, "total_time REAL") != NULL)
+          if (strstr(text_line, "total_time REAL") != NULL)
           {
             valid_file = true;
             break;
@@ -1202,8 +1204,8 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
               //Update colors accordingly
               if (count <= trajectories_.size())
               {
-                std::string trajectory_name = ui_.trajectory_list->item(count-1)->text().toStdString();
-                if ( nwaypoint < trajectories_[trajectory_name]->waypoint_markers.size() )
+                std::string trajectory_name = ui_.trajectory_list->item(count - 1)->text().toStdString();
+                if (nwaypoint < trajectories_[trajectory_name]->waypoint_markers.size())
                 {
                   if (reachable)
                   {
@@ -1211,20 +1213,20 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
                     {
                       //Reachable and collision-free
                       JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
-                                                                GripperMarker::REACHABLE));
+                                                    GripperMarker::REACHABLE));
                     }
                     else
                     {
                       //Reachable, but in collision
                       JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
-                                                                GripperMarker::IN_COLLISION));
+                                                    GripperMarker::IN_COLLISION));
                     }
                   }
                   else
                   {
                     //Not reachable
                     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateMarkerState, this, trajectories_[trajectory_name]->waypoint_markers[nwaypoint],
-                                                              GripperMarker::NOT_REACHABLE));
+                                                  GripperMarker::NOT_REACHABLE));
                   }
                 }
               }
@@ -1250,27 +1252,27 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
               //Update colors accordingly
               if (count <= goal_poses_.size())
               {
-                std::string goal_name = ui_.goal_poses_list->item(count-1)->text().toStdString();
+                std::string goal_name = ui_.goal_poses_list->item(count - 1)->text().toStdString();
                 if (reachable)
                 {
                   if (collision_free)
                   {
                     //Reachable and collision-free
                     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                              GripperMarker::REACHABLE));
+                                                  GripperMarker::REACHABLE));
                   }
                   else
                   {
                     //Reachable, but in collision
                     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                              GripperMarker::IN_COLLISION));
+                                                  GripperMarker::IN_COLLISION));
                   }
                 }
                 else
                 {
                   //Not reachable
                   JobProcessing::addMainLoopJob(boost::bind(&MainWindow::updateGoalMarkerStateFromName, this, goal_name,
-                                                            GripperMarker::NOT_REACHABLE));
+                                                GripperMarker::NOT_REACHABLE));
                 }
               }
             }
@@ -1298,7 +1300,7 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
 
 void MainWindow::updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
 {
-  if ( goal_poses_.find(name) != goal_poses_.end())
+  if (goal_poses_.find(name) != goal_poses_.end())
     goal_poses_[name]->setState(state);
 }
 
@@ -1311,10 +1313,10 @@ void MainWindow::goalOffsetChanged()
 {
   goal_offset_.setIdentity();
   goal_offset_ = Eigen::AngleAxisd(ui_.goal_offset_roll->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitX()) *
-      Eigen::AngleAxisd(ui_.goal_offset_pitch->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitY()) *
-      Eigen::AngleAxisd(ui_.goal_offset_yaw->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitZ());
+                 Eigen::AngleAxisd(ui_.goal_offset_pitch->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitY()) *
+                 Eigen::AngleAxisd(ui_.goal_offset_yaw->value() * boost::math::constants::pi<double>() / 180.0, Eigen::Vector3d::UnitZ());
 
-  if ( ! robot_interaction_->getActiveEndEffectors().empty() )
+  if (! robot_interaction_->getActiveEndEffectors().empty())
   {
     Eigen::Affine3d current_pose;
     for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)

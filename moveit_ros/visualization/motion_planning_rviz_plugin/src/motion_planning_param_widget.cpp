@@ -46,7 +46,7 @@ namespace moveit_rviz_plugin
 {
 
 MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget *parent) :
-   rviz::PropertyTreeWidget(parent)
+  rviz::PropertyTreeWidget(parent)
 {
   property_tree_model_ = NULL;
 }
@@ -88,26 +88,31 @@ MotionPlanningParamWidget::createPropertyTree()
 {
   if (planner_id_.empty()) return NULL;
   const std::map<std::string, std::string> &params
-      = move_group_->getPlannerParams(planner_id_, group_name_);
+    = move_group_->getPlannerParams(planner_id_, group_name_);
 
   rviz::Property *root = new rviz::Property
-      (QString::fromStdString(planner_id_ + " parameters"));
+  (QString::fromStdString(planner_id_ + " parameters"));
   for (std::map<std::string, std::string>::const_iterator
-       it = params.begin(), end = params.end(); it != end; ++it) {
+       it = params.begin(), end = params.end(); it != end; ++it)
+  {
     const QString key = QString::fromStdString(it->first);
     const QString value = QString::fromStdString(it->second);
     long value_long;
     double value_double;
 
-    if (try_lexical_convert(value, value_long)) {
+    if (try_lexical_convert(value, value_long))
+    {
       new rviz::IntProperty(key, value_long, QString(), root,
                             SLOT(changedValue()), this);
-    } else if (try_lexical_convert(value, value_double)) {
+    }
+    else if (try_lexical_convert(value, value_double))
+    {
       new rviz::FloatProperty(key, value_double, QString(), root,
                               SLOT(changedValue()), this);
-    } else
-      new rviz::StringProperty (key, value, QString(), root,
-                                SLOT(changedValue()), this);
+    }
+    else
+      new rviz::StringProperty(key, value, QString(), root,
+                               SLOT(changedValue()), this);
   }
   return root;
 }
@@ -116,7 +121,7 @@ void MotionPlanningParamWidget::changedValue()
 {
   if (!move_group_) return;
   rviz::Property *source
-      = qobject_cast<rviz::Property *>(QObject::sender());
+    = qobject_cast<rviz::Property *>(QObject::sender());
   std::map<std::string, std::string> params;
   params[source->getName().toStdString()] = source->getValue().toString().toStdString();
   move_group_->setPlannerParams(planner_id_, group_name_, params);

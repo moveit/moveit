@@ -83,9 +83,9 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
   robot_path_alpha_property_->setMax(1.0);
 
   state_display_time_property_ =  new rviz::EditableEnumProperty("State Display Time", "0.05 s",
-                                                                 "The amount of wall-time to wait in between displaying states along a received trajectory path",
-                                                                 widget,
-                                                                 SLOT(changedStateDisplayTime()), this);
+      "The amount of wall-time to wait in between displaying states along a received trajectory path",
+      widget,
+      SLOT(changedStateDisplayTime()), this);
   state_display_time_property_->addOptionStd("REALTIME");
   state_display_time_property_->addOptionStd("0.05 s");
   state_display_time_property_->addOptionStd("0.1 s");
@@ -136,7 +136,7 @@ void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr
   // Error check
   if (!robot_model_)
   {
-    ROS_ERROR_STREAM_NAMED("trajectory_visualization","No robot model found");
+    ROS_ERROR_STREAM_NAMED("trajectory_visualization", "No robot model found");
     return;
   }
 
@@ -161,7 +161,7 @@ void TrajectoryVisualization::reset()
   display_path_robot_->setVisible(false);
 
   if (!robot_model_)
-    ROS_WARN_STREAM_NAMED("trajectory_visualization","No robot model found");
+    ROS_WARN_STREAM_NAMED("trajectory_visualization", "No robot model found");
   else
     display_path_robot_->load(*robot_model_->getURDF());
 }
@@ -272,7 +272,8 @@ void TrajectoryVisualization::onDisable()
   animating_path_ = false;
 }
 
-void TrajectoryVisualization::interruptCurrentDisplay() {
+void TrajectoryVisualization::interruptCurrentDisplay()
+{
   // update() starts a new trajectory as soon as it is available
   // interrupting may cause the newly received trajectory to interrupt
   // hence, only interrupt when current_state_ already advanced past first
@@ -294,7 +295,7 @@ float TrajectoryVisualization::getStateDisplayTime()
     {
       t = boost::lexical_cast<float>(tm);
     }
-    catch(const boost::bad_lexical_cast &ex)
+    catch (const boost::bad_lexical_cast &ex)
     {
       state_display_time_property_->setStdString("0.05 s");
     }
@@ -304,21 +305,26 @@ float TrajectoryVisualization::getStateDisplayTime()
 
 void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 {
-  if (!animating_path_) { // finished last animation?
+  if (!animating_path_)   // finished last animation?
+  {
     boost::mutex::scoped_lock lock(update_trajectory_message_);
 
     // new trajectory available to display?
-    if (trajectory_message_to_display_ && !trajectory_message_to_display_->empty()) {
+    if (trajectory_message_to_display_ && !trajectory_message_to_display_->empty())
+    {
       animating_path_ = true;
       displaying_trajectory_message_ = trajectory_message_to_display_;
       changedShowTrail();
-    } else if (loop_display_property_->getBool() &&
-               displaying_trajectory_message_) { // do loop? -> start over too
+    }
+    else if (loop_display_property_->getBool() &&
+             displaying_trajectory_message_)   // do loop? -> start over too
+    {
       animating_path_ = true;
     }
     trajectory_message_to_display_.reset();
 
-    if (animating_path_) {
+    if (animating_path_)
+    {
       current_state_ = -1;
       current_state_time_ = std::numeric_limits<float>::infinity();
       display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
@@ -356,7 +362,7 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
   // Error check
   if (!robot_state_ || !robot_model_)
   {
-    ROS_ERROR_STREAM_NAMED("trajectory_visualization","No robot state or robot model loaded");
+    ROS_ERROR_STREAM_NAMED("trajectory_visualization", "No robot state or robot model loaded");
     return;
   }
 

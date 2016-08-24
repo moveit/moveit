@@ -77,7 +77,7 @@ MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& me
   mean_(mean),
   covariance_(covariance),
   covariance_cholesky_(covariance_.llt().matrixL()),
-  normal_dist_(0.0,1.0),
+  normal_dist_(0.0, 1.0),
   gaussian_(rng_, normal_dist_)
 {
   rng_.seed(rand());
@@ -87,9 +87,9 @@ MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& me
 template <typename Derived>
 void MultivariateGaussian::sample(Eigen::MatrixBase<Derived>& output)
 {
-  for (int i=0; i<size_; ++i)
+  for (int i = 0; i < size_; ++i)
     output(i) = gaussian_();
-  output = mean_ + covariance_cholesky_*output;
+  output = mean_ + covariance_cholesky_ * output;
 }
 
 }

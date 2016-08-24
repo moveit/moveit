@@ -51,7 +51,7 @@ class PlanWithSensing::DynamicReconfigureImpl
 public:
 
   DynamicReconfigureImpl(PlanWithSensing *owner) : owner_(owner),
-                                                   dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
+    dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
     dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
@@ -92,7 +92,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
     {
       sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_ERROR_STREAM("Exception while creating sensor manager plugin loader: " << ex.what());
     }
@@ -104,7 +104,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
         {
           sensor_manager_ = sensor_manager_loader_->createInstance(manager);
         }
-        catch(pluginlib::PluginlibException& ex)
+        catch (pluginlib::PluginlibException& ex)
         {
           ROS_ERROR_STREAM("Exception while loading sensor manager '" << manager << "': " << ex.what());
         }
@@ -131,9 +131,8 @@ void plan_execution::PlanWithSensing::displayCostSources(bool flag)
   if (flag && !display_cost_sources_)
     // publisher for cost sources
     cost_sources_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("display_cost_sources", 100, true);
-  else
-    if (!flag && display_cost_sources_)
-      cost_sources_publisher_.shutdown();
+  else if (!flag && display_cost_sources_)
+    cost_sources_publisher_.shutdown();
   display_cost_sources_ = flag;
 }
 
@@ -232,7 +231,8 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
     }
     else
       return true;
-  } while (true);
+  }
+  while (true);
 
   return false;
 }

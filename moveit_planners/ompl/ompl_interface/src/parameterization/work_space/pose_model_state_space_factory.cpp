@@ -43,8 +43,8 @@ ompl_interface::PoseModelStateSpaceFactory::PoseModelStateSpaceFactory() : Model
 }
 
 int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::string &group,
-                                                                    const moveit_msgs::MotionPlanRequest &req,
-                                                                    const robot_model::RobotModelConstPtr &kmodel) const
+    const moveit_msgs::MotionPlanRequest &req,
+    const robot_model::RobotModelConstPtr &kmodel) const
 {
   const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
@@ -54,20 +54,19 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
     // check that we have a direct means to compute IK
     if (slv.first)
       ik = jmg->getVariableCount() == slv.first.bijection_.size();
-    else
-      if (!slv.second.empty())
+    else if (!slv.second.empty())
+    {
+      // or an IK solver for each of the subgroups
+      unsigned int vc = 0;
+      unsigned int bc = 0;
+      for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
       {
-        // or an IK solver for each of the subgroups
-        unsigned int vc = 0;
-        unsigned int bc = 0;
-        for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator jt = slv.second.begin() ; jt != slv.second.end() ; ++jt)
-        {
-          vc += jt->first->getVariableCount();
-          bc += jt->second.bijection_.size();
-        }
-        if (vc == jmg->getVariableCount() && vc == bc)
-          ik = true;
+        vc += jt->first->getVariableCount();
+        bc += jt->second.bijection_.size();
       }
+      if (vc == jmg->getVariableCount() && vc == bc)
+        ik = true;
+    }
 
     if (ik)
     {

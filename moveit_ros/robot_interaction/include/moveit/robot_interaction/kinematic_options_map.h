@@ -85,9 +85,9 @@ public:
   ///
   /// @fields which options to set for the key.
   void setOptions(
-          const std::string& key,
-          const KinematicOptions& options,
-          KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
+    const std::string& key,
+    const KinematicOptions& options,
+    KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
 
   /// Merge all options from \e other into \e this.
   /// Values in \e other (including defaults_) take precedence over values in \e

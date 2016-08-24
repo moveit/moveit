@@ -60,11 +60,11 @@ public:
 
   /** \brief The possible values of a mask computed for a point */
   enum
-    {
-      INSIDE = 0,
-      OUTSIDE = 1,
-      CLIP = 2
-    };
+  {
+    INSIDE = 0,
+    OUTSIDE = 1,
+    CLIP = 2
+  };
 
   typedef boost::function<bool (ShapeHandle, Eigen::Affine3d&)> TransformCallback;
 
@@ -77,7 +77,7 @@ public:
   ShapeHandle addShape(const shapes::ShapeConstPtr &shape, double scale = 1.0, double padding = 0.0);
   void removeShape(ShapeHandle handle);
 
-  void setTransformCallback (const TransformCallback& transform_callback);
+  void setTransformCallback(const TransformCallback& transform_callback);
 
   /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the point
       is inside the robot. The point is outside if the mask element is OUTSIDE.

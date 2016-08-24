@@ -55,7 +55,7 @@ public:
   virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const;
   virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const;
   virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
-                                                const double *near, const double distance) const;
+      const double *near, const double distance) const;
   virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const;
   virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const;
 

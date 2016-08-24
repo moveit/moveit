@@ -78,9 +78,9 @@ public:
    */
   virtual ~ChompTrajectory();
 
-  double& operator() (int traj_point, int joint);
+  double& operator()(int traj_point, int joint);
 
-  double operator() (int traj_point, int joint) const;
+  double operator()(int traj_point, int joint) const;
 
   Eigen::MatrixXd::RowXpr getTrajectoryPoint(int traj_point);
 
@@ -184,12 +184,12 @@ private:
 
 ///////////////////////// inline functions follow //////////////////////
 
-inline double& ChompTrajectory::operator() (int traj_point, int joint)
+inline double& ChompTrajectory::operator()(int traj_point, int joint)
 {
   return trajectory_(traj_point, joint);
 }
 
-inline double ChompTrajectory::operator() (int traj_point, int joint) const
+inline double ChompTrajectory::operator()(int traj_point, int joint) const
 {
   return trajectory_(traj_point, joint);
 }
@@ -211,7 +211,7 @@ inline int ChompTrajectory::getNumPoints() const
 
 inline int ChompTrajectory::getNumFreePoints() const
 {
-  return (end_index_ - start_index_)+1;
+  return (end_index_ - start_index_) + 1;
 }
 
 inline int ChompTrajectory::getNumJoints() const
@@ -266,13 +266,14 @@ void ChompTrajectory::getJointVelocities(int traj_point, Eigen::MatrixBase<Deriv
   velocities.setZero();
   double invTime = 1.0 / discretization_;
 
-  for (int k=-DIFF_RULE_LENGTH/2; k<=DIFF_RULE_LENGTH/2; k++)
+  for (int k = -DIFF_RULE_LENGTH / 2; k <= DIFF_RULE_LENGTH / 2; k++)
   {
-    velocities += (invTime * DIFF_RULES[0][k+DIFF_RULE_LENGTH/2]) * trajectory_.row(traj_point+k).transpose();
+    velocities += (invTime * DIFF_RULES[0][k + DIFF_RULE_LENGTH / 2]) * trajectory_.row(traj_point + k).transpose();
   }
 }
 
-inline double ChompTrajectory::getDuration() const {
+inline double ChompTrajectory::getDuration() const
+{
   return duration_;
 }
 

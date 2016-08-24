@@ -54,7 +54,7 @@ public:
    *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; the SRDF is assumed to be at the same param name + the "_semantic" suffix */
   RDFLoader(const std::string &robot_description = "robot_description");
 
-   /** \brief Initialize the robot model from a string representation of the URDF and SRDF documents */
+  /** \brief Initialize the robot model from a string representation of the URDF and SRDF documents */
   RDFLoader(const std::string &urdf_string, const std::string &srdf_string);
 
   /** \brief Initialize the robot model from a parsed XML representation of the URDF and SRDF */

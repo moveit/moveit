@@ -70,7 +70,7 @@ public:
     {
       kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));
     }
-    catch(pluginlib::PluginlibException& e)
+    catch (pluginlib::PluginlibException& e)
     {
       ROS_ERROR("Unable to construct kinematics loader. Error: %s", e.what());
     }
@@ -90,15 +90,15 @@ public:
     if (ik_it != iksolver_to_tip_links_.end())
     {
       // the tip is being chosen based on a corresponding rosparam ik link
-      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader","Chooing tip frame of kinematic solver for group "
-        << jmg->getName() << " based on values in rosparam server.");
+      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Chooing tip frame of kinematic solver for group "
+                             << jmg->getName() << " based on values in rosparam server.");
       tips = ik_it->second;
     }
     else
     {
       // get the last link in the chain
-      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader","Chooing tip frame of kinematic solver for group "
-        << jmg->getName() << " based on last link in chain");
+      ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "Chooing tip frame of kinematic solver for group "
+                             << jmg->getName() << " based on last link in chain");
 
       tips.push_back(jmg->getLinkModels().back()->getName());
     }
@@ -106,7 +106,7 @@ public:
     // Error check
     if (tips.empty())
     {
-      ROS_ERROR_STREAM_NAMED("kinematics_plugin_loader","Error choosing kinematic solver tip frame(s).");
+      ROS_ERROR_STREAM_NAMED("kinematics_plugin_loader", "Error choosing kinematic solver tip frame(s).");
     }
 
     // Debug tip choices
@@ -149,7 +149,7 @@ public:
               if (!links.empty())
               {
                 const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
-                  links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel().getModelFrame();
+                                          links.front()->getParentJointModel()->getParentLinkModel()->getName() : jmg->getParentModel().getModelFrame();
 
                 // choose the tip of the IK solver
                 const std::vector<std::string> tips = chooseTipFrames(jmg);
@@ -229,7 +229,7 @@ private:
   std::map<std::string, std::vector<std::string> >                       iksolver_to_tip_links_;  // a map between each ik solver and a vector of custom-specified tip link(s)
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   std::map<const robot_model::JointModelGroup*,
-           std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
+      std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
   boost::mutex                                                           lock_;
 };
 
@@ -287,18 +287,18 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
         for (std::size_t i = 0 ; i < known_groups.size() ; ++i)
         {
           std::string base_param_name = known_groups[i].name_;
-          ROS_DEBUG_NAMED("kinematics_plugin_loader","Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
+          ROS_DEBUG_NAMED("kinematics_plugin_loader", "Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
           std::string ksolver_param_name;
           bool found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           if (!found || !nh.hasParam(ksolver_param_name))
           {
             base_param_name = robot_description_ + "_kinematics/" + known_groups[i].name_;
-            ROS_DEBUG_NAMED("kinematics_plugin_loader","Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
+            ROS_DEBUG_NAMED("kinematics_plugin_loader", "Looking for param %s ", (base_param_name + "/kinematics_solver").c_str());
             found = nh.searchParam(base_param_name + "/kinematics_solver", ksolver_param_name);
           }
           if (found)
           {
-            ROS_DEBUG_NAMED("kinematics_plugin_loader","Found param %s", ksolver_param_name.c_str());
+            ROS_DEBUG_NAMED("kinematics_plugin_loader", "Found param %s", ksolver_param_name.c_str());
             std::string ksolver;
             if (nh.getParam(ksolver_param_name, ksolver))
             {
@@ -311,9 +311,10 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
                   first = false;
                   groups_.push_back(known_groups[i].name_);
                 }
-                std::string solver; ss >> solver >> std::ws;
+                std::string solver;
+                ss >> solver >> std::ws;
                 possible_kinematics_solvers[known_groups[i].name_].push_back(solver);
-                ROS_DEBUG_NAMED("kinematics_plugin_loader","Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
+                ROS_DEBUG_NAMED("kinematics_plugin_loader", "Using kinematics solver '%s' for group '%s'.", solver.c_str(), known_groups[i].name_.c_str());
               }
             }
           }
@@ -325,7 +326,8 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
             if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout))
               ik_timeout_[known_groups[i].name_] = ksolver_timeout;
             else
-            {// just in case this is an int
+            {
+              // just in case this is an int
               int ksolver_timeout_i;
               if (nh.getParam(ksolver_timeout_param_name, ksolver_timeout_i))
                 ik_timeout_[known_groups[i].name_] = ksolver_timeout_i;
@@ -349,12 +351,14 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
               std::stringstream ss(ksolver_res);
               while (ss.good() && !ss.eof())
               {
-                double res; ss >> res >> std::ws;
+                double res;
+                ss >> res >> std::ws;
                 search_res[known_groups[i].name_].push_back(res);
               }
             }
             else
-            { // handle the case this param is just one value and parsed as a double
+            {
+              // handle the case this param is just one value and parsed as a double
               double res;
               if (nh.getParam(ksolver_res_param_name, res))
                 search_res[known_groups[i].name_].push_back(res);
@@ -375,7 +379,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
             std::string ksolver_ik_link;
             if (nh.getParam(ksolver_ik_link_param_name, ksolver_ik_link)) // has a custom rosparam-based tip link
             {
-              ROS_WARN_STREAM_NAMED("kinematics_plugin_loader","Using kinematics_solver_ik_link rosparam is deprecated in favor of kinematics_solver_ik_links rosparam array.");
+              ROS_WARN_STREAM_NAMED("kinematics_plugin_loader", "Using kinematics_solver_ik_link rosparam is deprecated in favor of kinematics_solver_ik_links rosparam array.");
               iksolver_to_tip_links[known_groups[i].name_].push_back(ksolver_ik_link);
             }
           }
@@ -389,15 +393,15 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
             {
               if (ksolver_ik_links.getType() != XmlRpc::XmlRpcValue::TypeArray)
               {
-                ROS_WARN_STREAM_NAMED("kinematics_plugin_loader","rosparam '" << ksolver_ik_links_param_name << "' should be an XmlRpc value type 'Array'");
+                ROS_WARN_STREAM_NAMED("kinematics_plugin_loader", "rosparam '" << ksolver_ik_links_param_name << "' should be an XmlRpc value type 'Array'");
               }
               else
               {
                 for (int32_t j = 0; j < ksolver_ik_links.size(); ++j)
                 {
                   ROS_ASSERT(ksolver_ik_links[j].getType() == XmlRpc::XmlRpcValue::TypeString);
-                  ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader","found tip " << static_cast<std::string>(ksolver_ik_links[j]) << " for group " << known_groups[i].name_ );
-                  iksolver_to_tip_links[known_groups[i].name_].push_back( static_cast<std::string>(ksolver_ik_links[j]) );
+                  ROS_DEBUG_STREAM_NAMED("kinematics_plugin_loader", "found tip " << static_cast<std::string>(ksolver_ik_links[j]) << " for group " << known_groups[i].name_);
+                  iksolver_to_tip_links[known_groups[i].name_].push_back(static_cast<std::string>(ksolver_ik_links[j]));
                 }
               }
             }

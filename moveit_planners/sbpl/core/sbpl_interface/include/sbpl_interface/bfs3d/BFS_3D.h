@@ -40,12 +40,14 @@
 
 #include <boost/thread.hpp>
 
-namespace sbpl_interface {
+namespace sbpl_interface
+{
 
 #define WALL         0x7FFFFFFF
 #define UNDISCOVERED 0xFFFFFFFF
 
-class BFS_3D {
+class BFS_3D
+{
 private:
   int dim_x, dim_y, dim_z;
   int dim_xy, dim_xyz;

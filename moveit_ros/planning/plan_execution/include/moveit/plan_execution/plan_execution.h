@@ -56,8 +56,8 @@ public:
   struct Options
   {
     Options() : replan_(false),
-                replan_attempts_(0),
-                replan_delay_(0.0)
+      replan_attempts_(0),
+      replan_delay_(0.0)
     {
     }
 

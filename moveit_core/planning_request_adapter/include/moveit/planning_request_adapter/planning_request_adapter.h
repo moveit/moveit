@@ -64,7 +64,10 @@ public:
   }
 
   /// Get a short string that identifies the planning request adapter
-  virtual std::string getDescription() const { return ""; }
+  virtual std::string getDescription() const
+  {
+    return "";
+  }
 
   bool adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
                     const planning_scene::PlanningSceneConstPtr& planning_scene,

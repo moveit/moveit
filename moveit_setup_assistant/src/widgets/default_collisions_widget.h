@@ -76,7 +76,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  DefaultCollisionsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  DefaultCollisionsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /**
    * \brief Output Link Pairs to SRDF Format
@@ -126,7 +126,7 @@ private Q_SLOTS:
   /**
    * \breif Called when a row is clicked, to highlight links on robot
    */
-  void previewClicked( int row, int column );
+  void previewClicked(int row, int column);
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
@@ -172,7 +172,7 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
-  void generateCollisionTableThread( unsigned int *collision_progress );
+  void generateCollisionTableThread(unsigned int *collision_progress);
 
   /**
    * \brief Helper function to disable parts of GUI during computation

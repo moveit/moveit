@@ -38,7 +38,7 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
 void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene, const std::string &group,
-                                                const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
+    const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
 {
   visualizeDistribution(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState(), link_name, sample_count, markers);
 }
@@ -75,7 +75,7 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
 }
 
 void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state,
-                                                const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
+    const std::string &link_name, unsigned int sample_count, visualization_msgs::MarkerArray &markers)
 {
   if (!sampler)
   {

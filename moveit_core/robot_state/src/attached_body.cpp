@@ -37,11 +37,11 @@
 #include <moveit/robot_state/attached_body.h>
 
 moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
-                                         const std::string &id,
-                                         const std::vector<shapes::ShapeConstPtr> &shapes,
-                                         const EigenSTL::vector_Affine3d &attach_trans,
-                                         const std::set<std::string> &touch_links,
-                                         const trajectory_msgs::JointTrajectory &detach_posture)
+    const std::string &id,
+    const std::vector<shapes::ShapeConstPtr> &shapes,
+    const EigenSTL::vector_Affine3d &attach_trans,
+    const std::set<std::string> &touch_links,
+    const trajectory_msgs::JointTrajectory &detach_posture)
   : parent_link_model_(parent_link_model)
   , id_(id)
   , shapes_(shapes)
@@ -50,7 +50,7 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
   , detach_posture_(detach_posture)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
-  for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
+  for (std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
     global_collision_body_transforms_[i].setIdentity();
 }
 

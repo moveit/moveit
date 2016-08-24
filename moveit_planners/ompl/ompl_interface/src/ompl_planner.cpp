@@ -42,9 +42,9 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
-static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
-static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
+static const std::string PLANNER_NODE_NAME = "ompl_planning";        // name of node
+static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
+static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
 
 class OMPLPlannerService
 {
@@ -72,7 +72,7 @@ public:
       ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
     if (!context)
     {
-      ROS_ERROR_STREAM_NAMED("computePlan","No planning context found");
+      ROS_ERROR_STREAM_NAMED("computePlan", "No planning context found");
       return false;
     }
     context->clear();

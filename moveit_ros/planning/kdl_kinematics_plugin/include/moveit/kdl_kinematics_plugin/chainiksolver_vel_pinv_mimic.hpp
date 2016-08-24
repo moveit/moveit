@@ -63,7 +63,7 @@ public:
    * @param maxiter maximum iterations for the svd calculation,
    * default: 150
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints =0, int num_redundant_joints =0, bool position_ik=false, double eps=0.00001, int maxiter=150);
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0, bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
   ~ChainIkSolverVel_pinv_mimic();
 
@@ -75,7 +75,10 @@ public:
    * not (yet) implemented.
    *
    */
-  virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out){return -1;};
+  virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out)
+  {
+    return -1;
+  };
 
   /**
    * @brief Set a vector of indices that map each (and every) joint in the chain onto the corresponding joint in a

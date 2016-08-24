@@ -67,7 +67,7 @@ typename warehouse_ros::DatabaseConnection::Ptr moveit_warehouse::loadDatabase()
 {
   if (!dbloader)
   {
-    dbloader.reset(new warehouse_ros::DatabaseLoader()); 
+    dbloader.reset(new warehouse_ros::DatabaseLoader());
   }
   return dbloader->loadDatabase();
   //return typename warehouse_ros::DatabaseConnection::Ptr(new warehouse_ros_mongo::MongoDatabaseConnection());

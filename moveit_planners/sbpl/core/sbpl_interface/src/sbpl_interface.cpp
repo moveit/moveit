@@ -38,7 +38,8 @@
 //#include <valgrind/callgrind.h>
 
 
-namespace sbpl_interface {
+namespace sbpl_interface
+{
 
 bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
                           const moveit_msgs::GetMotionPlan::Request &req,
@@ -52,10 +53,11 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
 
   ros::WallTime wt = ros::WallTime::now();
   boost::shared_ptr<EnvironmentChain3D> env_chain(new EnvironmentChain3D(planning_scene));
-  if(!env_chain->setupForMotionPlan(planning_scene,
-                                    req,
-                                    res,
-                                    params)){
+  if (!env_chain->setupForMotionPlan(planning_scene,
+                                     req,
+                                     res,
+                                     params))
+  {
     //std::cerr << "Env chain setup failing" << std::endl;
     return false;
   }
@@ -76,25 +78,28 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_
   //CALLGRIND_START_INSTRUMENTATION;
   bool b_ret = planner->replan(10.0, &solution_state_ids, &solution_cost);
   //CALLGRIND_STOP_INSTRUMENTATION;
-  double el = (ros::WallTime::now()-wt).toSec();
+  double el = (ros::WallTime::now() - wt).toSec();
   std::cerr << "B ret is " << b_ret << " planning time " << el << std::endl;
   std::cerr << "Expansions " << env_chain->getPlanningStatistics().total_expansions_
-            << " average time " << (env_chain->getPlanningStatistics().total_expansion_time_.toSec()/(env_chain->getPlanningStatistics().total_expansions_*1.0))
-            << " hz " << 1.0/(env_chain->getPlanningStatistics().total_expansion_time_.toSec()/(env_chain->getPlanningStatistics().total_expansions_*1.0))
+            << " average time " << (env_chain->getPlanningStatistics().total_expansion_time_.toSec() / (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
+            << " hz " << 1.0 / (env_chain->getPlanningStatistics().total_expansion_time_.toSec() / (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
             << std::endl;
-  std::cerr << "Total coll checks " << env_chain->getPlanningStatistics().coll_checks_ << " hz " << 1.0/(env_chain->getPlanningStatistics().total_coll_check_time_.toSec()/(env_chain->getPlanningStatistics().coll_checks_*1.0)) << std::endl;
+  std::cerr << "Total coll checks " << env_chain->getPlanningStatistics().coll_checks_ << " hz " << 1.0 / (env_chain->getPlanningStatistics().total_coll_check_time_.toSec() / (env_chain->getPlanningStatistics().coll_checks_ * 1.0)) << std::endl;
   std::cerr << "Path length is " << solution_state_ids.size() << std::endl;
-  if(!b_ret) {
+  if (!b_ret)
+  {
     res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
-  if(solution_state_ids.size() == 0) {
+  if (solution_state_ids.size() == 0)
+  {
     std::cerr << "Success but no path" << std::endl;
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
   }
-  if(!env_chain->populateTrajectoryFromStateIDSequence(solution_state_ids,
-                                                       res.trajectory.joint_trajectory)) {
+  if (!env_chain->populateTrajectoryFromStateIDSequence(solution_state_ids,
+      res.trajectory.joint_trajectory))
+  {
     std::cerr << "Success but path bad" << std::endl;
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   {
     loader.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     std::cout << "Exception while creating class loader " << ex.what() << std::endl;
   }

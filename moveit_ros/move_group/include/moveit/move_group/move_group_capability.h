@@ -46,12 +46,12 @@ namespace move_group
 {
 
 enum MoveGroupState
-  {
-    IDLE,
-    PLANNING,
-    MONITOR,
-    LOOK
-  };
+{
+  IDLE,
+  PLANNING,
+  MONITOR,
+  LOOK
+};
 
 class MoveGroupCapability
 {

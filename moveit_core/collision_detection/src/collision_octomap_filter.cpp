@@ -73,19 +73,19 @@ bool sampleCloud(const octomap::point3d_list& cloud,
 
 
 int collision_detection::refineContactNormals(const World::ObjectConstPtr& object,
-                                              CollisionResult &res,
-                                              double cell_bbx_search_distance,
-                                              double allowed_angle_divergence,
-                                              bool estimate_depth,
-                                              double iso_value,
-                                              double metaball_radius_multiple)
+    CollisionResult &res,
+    double cell_bbx_search_distance,
+    double allowed_angle_divergence,
+    bool estimate_depth,
+    double iso_value,
+    double metaball_radius_multiple)
 {
-  if(!object)
+  if (!object)
   {
     logError("No valid Object passed in, cannot refine Normals!");
     return 0;
   }
-  if(res.contact_count < 1)
+  if (res.contact_count < 1)
   {
     logWarn("There do not appear to be any contacts, so there is nothing to refine!");
     return 0;
@@ -94,48 +94,48 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
   int modified = 0;
 
   // iterate through contacts
-  for( collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin(); it != res.contacts.end(); ++it)
+  for (collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin(); it != res.contacts.end(); ++it)
   {
     std::string contact1 = it->first.first;
     std::string contact2 = it->first.second;
     std::string octomap_name = "";
     std::vector<collision_detection::Contact>& contact_vector = it->second;
 
-    if(      contact1.find("octomap") != std::string::npos ) octomap_name = contact1;
-    else if( contact2.find("octomap") != std::string::npos ) octomap_name = contact2;
+    if (contact1.find("octomap") != std::string::npos) octomap_name = contact1;
+    else if (contact2.find("octomap") != std::string::npos) octomap_name = contact2;
     else
     {
       continue;
     }
 
     double cell_size = 0;
-    if(!object->shapes_.empty())
+    if (!object->shapes_.empty())
     {
       const shapes::ShapeConstPtr& shape = object->shapes_[0];
       boost::shared_ptr<const shapes::OcTree> shape_octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
-      if(shape_octree)
+      if (shape_octree)
       {
         std::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
         cell_size = octree->getResolution();
-        for(size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
+        for (size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
         {
           const Eigen::Vector3d& point =   contact_vector[contact_index].pos;
           const Eigen::Vector3d& normal =  contact_vector[contact_index].normal;
 
           octomath::Vector3 contact_point(point[0], point[1], point[2]);
           octomath::Vector3 contact_normal(normal[0], normal[1], normal[2]);
-          octomath::Vector3 diagonal = octomath::Vector3(1,1,1);
-          octomath::Vector3 bbx_min = contact_point - diagonal*cell_size*cell_bbx_search_distance;
-          octomath::Vector3 bbx_max = contact_point + diagonal*cell_size*cell_bbx_search_distance;
+          octomath::Vector3 diagonal = octomath::Vector3(1, 1, 1);
+          octomath::Vector3 bbx_min = contact_point - diagonal * cell_size * cell_bbx_search_distance;
+          octomath::Vector3 bbx_max = contact_point + diagonal * cell_size * cell_bbx_search_distance;
           octomap::point3d_list node_centers;
           octomap::OcTreeBaseImpl<octomap::OcTreeNode, octomap::AbstractOccupancyOcTree>::leaf_bbx_iterator it = octree->begin_leafs_bbx(bbx_min, bbx_max);
           octomap::OcTreeBaseImpl<octomap::OcTreeNode, octomap::AbstractOccupancyOcTree>::leaf_bbx_iterator leafs_end = octree->end_leafs_bbx();
           int count = 0;
-          for(  ; it != leafs_end; ++it)
+          for (; it != leafs_end; ++it)
           {
             octomap::point3d pt = it.getCoordinate();
             //double prob = it->getOccupancy();
-            if(octree->isNodeOccupied(*it)) // magic number!
+            if (octree->isNodeOccupied(*it)) // magic number!
             {
               count++;
               node_centers.push_back(pt);
@@ -150,12 +150,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
 
           octomath::Vector3 n;
           double depth;
-          if(getMetaballSurfaceProperties(node_centers, cell_size, iso_value, metaball_radius_multiple,
-                                          contact_point, n, depth, estimate_depth))
+          if (getMetaballSurfaceProperties(node_centers, cell_size, iso_value, metaball_radius_multiple,
+                                           contact_point, n, depth, estimate_depth))
           {
             // only modify normal if the refinement predicts a "very different" result.
             double divergence = contact_normal.angleTo(n);
-            if(divergence > allowed_angle_divergence)
+            if (divergence > allowed_angle_divergence)
             {
               modified++;
 //              logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
@@ -165,7 +165,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
               contact_vector[contact_index].normal = Eigen::Vector3d(n.x(), n.y(), n.z());
             }
 
-            if(estimate_depth)
+            if (estimate_depth)
               contact_vector[contact_index].depth = depth;
 
           }
@@ -186,10 +186,10 @@ bool getMetaballSurfaceProperties(const octomap::point3d_list& cloud,
                                   bool estimate_depth)
 {
   double intensity;
-  if(estimate_depth)
+  if (estimate_depth)
   {
     octomath::Vector3 surface_point;
-    if(findSurface(cloud, spacing, iso_value, r_multiple, contact_point, surface_point, normal))
+    if (findSurface(cloud, spacing, iso_value, r_multiple, contact_point, surface_point, normal))
     {
       depth = normal.dot(surface_point - contact_point); // do we prefer this, or magnitude of surface - contact?
       return true;
@@ -202,7 +202,7 @@ bool getMetaballSurfaceProperties(const octomap::point3d_list& cloud,
   else // just get normals, no depth
   {
     octomath::Vector3 gradient;
-    if(sampleCloud(cloud, spacing, r_multiple, contact_point, intensity, gradient))
+    if (sampleCloud(cloud, spacing, r_multiple, contact_point, intensity, gradient))
     {
       normal = gradient.normalized();
       return true;
@@ -226,25 +226,25 @@ bool findSurface(const octomap::point3d_list& cloud,
                  octomath::Vector3& surface_point,
                  octomath::Vector3& normal)
 {
-    const double epsilon = 1e-10;
-    const int iterations = 10;
-    double intensity = 0;
+  const double epsilon = 1e-10;
+  const int iterations = 10;
+  double intensity = 0;
 
-    octomath::Vector3 p = seed, dp, gs;
-    for (int i = 0; i < iterations; ++i)
+  octomath::Vector3 p = seed, dp, gs;
+  for (int i = 0; i < iterations; ++i)
+  {
+    if (!sampleCloud(cloud, spacing, r_multiple, p, intensity, gs)) return false;
+    double s = iso_value - intensity;
+    dp = (gs * -s) * (1.0 / std::max(gs.dot(gs), epsilon));
+    p = p + dp;
+    if (dp.dot(dp) < epsilon)
     {
-      if(!sampleCloud(cloud, spacing, r_multiple, p, intensity, gs)) return false;
-      double s = iso_value - intensity;
-      dp = (gs * -s) * (1.0 / std::max(gs.dot(gs), epsilon));
-      p = p + dp;
-      if (dp.dot(dp) < epsilon)
-      {
-        surface_point = p;
-        normal = gs.normalized();
-        return true;
-      }
+      surface_point = p;
+      normal = gs.normalized();
+      return true;
     }
-    return false;
+  }
+  return false;
 //    return p;
 }
 
@@ -257,34 +257,40 @@ bool sampleCloud(const octomap::point3d_list& cloud,
                  octomath::Vector3& gradient)
 {
   intensity = 0.f;
-  gradient = octomath::Vector3(0,0,0);
+  gradient = octomath::Vector3(0, 0, 0);
 
-  double R = r_multiple*spacing; // TODO magic number!
+  double R = r_multiple * spacing; // TODO magic number!
   //double T = 0.5; // TODO magic number!
 
   int NN = cloud.size();
-  if(NN == 0)
+  if (NN == 0)
   {
     return false;
   }
 
   // variables for Wyvill
-  double a=0, b=0, c=0, R2=0, R4=0, R6=0, a1=0, b1=0, c1=0, a2=0, b2=0, c2=0;
+  double a = 0, b = 0, c = 0, R2 = 0, R4 = 0, R6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0, c2 = 0;
   bool WYVILL = true;
 
   octomap::point3d_list::const_iterator it;
-  for ( it = cloud.begin(); it != cloud.end(); ++it )
+  for (it = cloud.begin(); it != cloud.end(); ++it)
   {
     octomath::Vector3 v = (*it);
 
-    if(WYVILL)
+    if (WYVILL)
     {
-      R2 = R*R;
-      R4 = R2*R2;
-      R6 = R4*R2;
-      a = -4.0/9.0; b  = 17.0/9.0; c = -22.0/9.0;
-      a1 = a/R6; b1 = b/R4; c1 = c/R2;
-      a2 = 6*a1; b2 = 4*b1; c2 = 2*c1;
+      R2 = R * R;
+      R4 = R2 * R2;
+      R6 = R4 * R2;
+      a = -4.0 / 9.0;
+      b  = 17.0 / 9.0;
+      c = -22.0 / 9.0;
+      a1 = a / R6;
+      b1 = b / R4;
+      c1 = c / R2;
+      a2 = 6 * a1;
+      b2 = 4 * b1;
+      c2 = 2 * c1;
     }
     else
     {
@@ -292,33 +298,33 @@ bool sampleCloud(const octomap::point3d_list& cloud,
     }
 
     double f_val = 0;
-    octomath::Vector3 f_grad(0,0,0);
+    octomath::Vector3 f_grad(0, 0, 0);
 
-    octomath::Vector3 pos = position-v;
+    octomath::Vector3 pos = position - v;
     double r = pos.norm();
-    pos = pos*(1.0/r);
-    if(r > R)  // must skip points outside valid bounds.
+    pos = pos * (1.0 / r);
+    if (r > R) // must skip points outside valid bounds.
     {
       continue;
     }
-    double r2 = r*r;
-    double r3 = r*r2;
-    double r4 = r2*r2;
-    double r5 = r3*r2;
-    double r6 = r3*r3;
+    double r2 = r * r;
+    double r3 = r * r2;
+    double r4 = r2 * r2;
+    double r5 = r3 * r2;
+    double r6 = r3 * r3;
 
-    if(WYVILL)
+    if (WYVILL)
     {
-      f_val = (a1*r6 + b1*r4 + c1*r2 + 1);
-      f_grad = pos*(a2*r5 + b2*r3 + c2*r);
+      f_val = (a1 * r6 + b1 * r4 + c1 * r2 + 1);
+      f_grad = pos * (a2 * r5 + b2 * r3 + c2 * r);
     }
     else
     {
       logError("This should not be called!");
-      double r_scaled = r/R;
+      double r_scaled = r / R;
       // TODO still need to address the scaling...
-      f_val = pow((1-r_scaled),4)*(4*r_scaled + 1);
-      f_grad = pos*(-4.0/R*pow(1.0-r_scaled,3)*(4.0*r_scaled+1.0)+4.0/R*pow(1-r_scaled,4));
+      f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);
+      f_grad = pos * (-4.0 / R * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) + 4.0 / R * pow(1 - r_scaled, 4));
     }
 
     // TODO:  The whole library should be overhauled to follow the "gradient points out"

@@ -149,16 +149,16 @@ double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
 
 double ompl_interface::ModelBasedStateSpace::getMeasure() const
 {
-    double m = 1.0;
-    for (std::size_t i = 0 ; i < spec_.joint_bounds_.size() ; ++i)
+  double m = 1.0;
+  for (std::size_t i = 0 ; i < spec_.joint_bounds_.size() ; ++i)
+  {
+    const robot_model::JointModel::Bounds& bounds = *spec_.joint_bounds_[i];
+    for (std::size_t j = 0; j < bounds.size(); ++j)
     {
-        const robot_model::JointModel::Bounds& bounds = *spec_.joint_bounds_[i];
-        for (std::size_t j = 0; j < bounds.size(); ++j)
-        {
-            m *= bounds[j].max_position_ - bounds[j].min_position_;
-        }
+      m *= bounds[j].max_position_ - bounds[j].min_position_;
     }
-    return m;
+  }
+  return m;
 }
 
 double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
@@ -200,9 +200,8 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State *
     // compute tag
     if (from->as<StateType>()->tag >= 0 && t < 1.0 - tag_snap_to_segment_)
       state->as<StateType>()->tag = from->as<StateType>()->tag;
-    else
-      if (to->as<StateType>()->tag >= 0 && t > tag_snap_to_segment_)
-        state->as<StateType>()->tag = to->as<StateType>()->tag;
+    else if (to->as<StateType>()->tag >= 0 && t > tag_snap_to_segment_)
+      state->as<StateType>()->tag = to->as<StateType>()->tag;
     else
       state->as<StateType>()->tag = -1;
   }
@@ -225,16 +224,15 @@ void ompl_interface::ModelBasedStateSpace::setPlanningVolume(double minX, double
       joint_bounds_storage_[i][1].min_position_ = minY;
       joint_bounds_storage_[i][1].max_position_ = maxY;
     }
-    else
-      if (joint_model_vector_[i]->getType() == robot_model::JointModel::FLOATING)
-      {
-        joint_bounds_storage_[i][0].min_position_ = minX;
-        joint_bounds_storage_[i][0].max_position_ = maxX;
-        joint_bounds_storage_[i][1].min_position_ = minY;
-        joint_bounds_storage_[i][1].max_position_ = maxY;
-        joint_bounds_storage_[i][2].min_position_ = minZ;
-        joint_bounds_storage_[i][2].max_position_ = maxZ;
-      }
+    else if (joint_model_vector_[i]->getType() == robot_model::JointModel::FLOATING)
+    {
+      joint_bounds_storage_[i][0].min_position_ = minX;
+      joint_bounds_storage_[i][0].max_position_ = maxX;
+      joint_bounds_storage_[i][1].min_position_ = minY;
+      joint_bounds_storage_[i][1].max_position_ = maxY;
+      joint_bounds_storage_[i][2].min_position_ = minZ;
+      joint_bounds_storage_[i][2].max_position_ = maxZ;
+    }
 }
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler() const
@@ -325,7 +323,7 @@ void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State *st
 }
 
 void ompl_interface::ModelBasedStateSpace::copyJointToOMPLState(ompl::base::State *state, const robot_state::RobotState &robot_state,
-                                                                const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const
+    const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const
 {
   // Copy one joint (multiple variables possibly)
   memcpy(getValueAddressAtIndex(state, ompl_state_joint_index),

@@ -66,7 +66,7 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene,
   state->setJointGroupPositions(group, ik_solution);
   state->update();
   return (!planning_scene || !planning_scene->isStateColliding(*state, group->getName())) &&
-    (!constraint_set || constraint_set->decide(*state).satisfied);
+         (!constraint_set || constraint_set->decide(*state).satisfied);
 }
 }
 
@@ -87,7 +87,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     EigenSTL::vector_Affine3d waypoints(req.waypoints.size());
     const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
     bool no_transform = req.header.frame_id.empty() || robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) ||
-      robot_state::Transforms::sameFrame(req.header.frame_id, link_name);
+                        robot_state::Transforms::sameFrame(req.header.frame_id, link_name);
 
     for (std::size_t i = 0 ; i < req.waypoints.size() ; ++i)
     {

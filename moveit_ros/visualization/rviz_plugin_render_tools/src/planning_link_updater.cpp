@@ -39,7 +39,7 @@
 #include <OgreVector3.h>
 
 bool moveit_rviz_plugin::PlanningLinkUpdater::getLinkTransforms(const std::string& link_name, Ogre::Vector3& visual_position, Ogre::Quaternion& visual_orientation,
-                                                                Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
+    Ogre::Vector3& collision_position, Ogre::Quaternion& collision_orientation) const
 {
   const robot_model::LinkModel* link_model = kinematic_state_->getLinkModel(link_name);
 

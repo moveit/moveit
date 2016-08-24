@@ -737,12 +737,12 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 }
 
 moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *urdf_link,
-                                                                   const srdf::Model &srdf_model)
+    const srdf::Model &srdf_model)
 {
   // construct the joint
   JointModel *joint = urdf_link->parent_joint ?
-    constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
-    constructJointModel(NULL, urdf_link, srdf_model);
+                      constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
+                      constructJointModel(NULL, urdf_link, srdf_model);
   if (joint == NULL)
     return NULL;
 
@@ -823,7 +823,7 @@ static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint
 }
 
 moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const urdf::Joint *urdf_joint, const urdf::Link *child_link,
-                                                                        const srdf::Model &srdf_model)
+    const srdf::Model &srdf_model)
 {
   JointModel* result = NULL;
 
@@ -833,31 +833,31 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     switch (urdf_joint->type)
     {
     case urdf::Joint::REVOLUTE:
-      {
-        RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
-        j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
-        j->setContinuous(false);
-        j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
-        result = j;
-      }
-      break;
+    {
+      RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
+      j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
+      j->setContinuous(false);
+      j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
+      result = j;
+    }
+    break;
     case urdf::Joint::CONTINUOUS:
-      {
-        RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
-        j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
-        j->setContinuous(true);
-        j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
-        result = j;
-      }
-      break;
+    {
+      RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
+      j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
+      j->setContinuous(true);
+      j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
+      result = j;
+    }
+    break;
     case urdf::Joint::PRISMATIC:
-      {
-        PrismaticJointModel *j = new PrismaticJointModel(urdf_joint->name);
-        j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
-        j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
-        result = j;
-      }
-      break;
+    {
+      PrismaticJointModel *j = new PrismaticJointModel(urdf_joint->name);
+      j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
+      j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
+      result = j;
+    }
+    break;
     case urdf::Joint::FLOATING:
       result = new FloatingJointModel(urdf_joint->name);
       break;
@@ -936,7 +936,7 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
   LinkModel *result = new LinkModel(urdf_link->name);
 
   const std::vector<boost::shared_ptr<urdf::Collision> > &col_array = urdf_link->collision_array.empty() ?
-    std::vector<boost::shared_ptr<urdf::Collision> >(1, urdf_link->collision) : urdf_link->collision_array;
+      std::vector<boost::shared_ptr<urdf::Collision> >(1, urdf_link->collision) : urdf_link->collision_array;
 
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Affine3d poses;
@@ -954,7 +954,7 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
   if (shapes.empty())
   {
     const std::vector<boost::shared_ptr<urdf::Visual> > &vis_array = urdf_link->visual_array.empty() ?
-      std::vector<boost::shared_ptr<urdf::Visual> >(1, urdf_link->visual) : urdf_link->visual_array;
+        std::vector<boost::shared_ptr<urdf::Visual> >(1, urdf_link->visual) : urdf_link->visual_array;
     for (std::size_t i = 0 ; i < vis_array.size() ; ++i)
       if (vis_array[i] && vis_array[i]->geometry)
       {
@@ -980,17 +980,16 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
                               Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
     }
   }
-  else
-    if (urdf_link->collision && urdf_link->collision->geometry)
+  else if (urdf_link->collision && urdf_link->collision->geometry)
+  {
+    if (urdf_link->collision->geometry->type == urdf::Geometry::MESH)
     {
-      if (urdf_link->collision->geometry->type == urdf::Geometry::MESH)
-      {
-        const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get());
-        if (!mesh->filename.empty())
-          result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->collision->origin),
-                                Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
-      }
+      const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get());
+      if (!mesh->filename.empty())
+        result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->collision->origin),
+                              Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
     }
+  }
 
   if (urdf_link->parent_joint)
     result->setJointOriginTransform(urdfPose2Affine3d(urdf_link->parent_joint->parent_to_joint_origin_transform));
@@ -1009,26 +1008,26 @@ shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry *
     result = new shapes::Sphere(static_cast<const urdf::Sphere*>(geom)->radius);
     break;
   case urdf::Geometry::BOX:
-    {
-      urdf::Vector3 dim = static_cast<const urdf::Box*>(geom)->dim;
-      result = new shapes::Box(dim.x, dim.y, dim.z);
-    }
-    break;
+  {
+    urdf::Vector3 dim = static_cast<const urdf::Box*>(geom)->dim;
+    result = new shapes::Box(dim.x, dim.y, dim.z);
+  }
+  break;
   case urdf::Geometry::CYLINDER:
     result = new shapes::Cylinder(static_cast<const urdf::Cylinder*>(geom)->radius,
                                   static_cast<const urdf::Cylinder*>(geom)->length);
     break;
   case urdf::Geometry::MESH:
+  {
+    const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(geom);
+    if (!mesh->filename.empty())
     {
-      const urdf::Mesh *mesh = static_cast<const urdf::Mesh*>(geom);
-      if (!mesh->filename.empty())
-      {
-        Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-        shapes::Mesh *m = shapes::createMeshFromResource(mesh->filename, scale);
-        result = m;
-      }
+      Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
+      shapes::Mesh *m = shapes::createMeshFromResource(mesh->filename, scale);
+      result = m;
     }
-    break;
+  }
+  break;
   default:
     logError("Unknown geometry type: %d", (int)geom->type);
     break;
@@ -1199,7 +1198,7 @@ double moveit::core::RobotModel::distance(const double *state1, const double *st
   double d = 0.0;
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
     d += active_joint_model_vector_[i]->getDistanceFactor() *
-      active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i], state2 + active_joint_model_start_index_[i]);
+         active_joint_model_vector_[i]->distance(state1 + active_joint_model_start_index_[i], state2 + active_joint_model_start_index_[i]);
   return d;
 }
 
@@ -1208,7 +1207,7 @@ void moveit::core::RobotModel::interpolate(const double *from, const double *to,
   // we interpolate values only for active joint models (non-mimic)
   for (std::size_t i = 0 ; i < active_joint_model_vector_.size() ; ++i)
     active_joint_model_vector_[i]->interpolate(from + active_joint_model_start_index_[i], to + active_joint_model_start_index_[i],
-                                               t, state + active_joint_model_start_index_[i]);
+        t, state + active_joint_model_start_index_[i]);
   // now we update mimic as needed
   updateMimicJoints(state);
 }

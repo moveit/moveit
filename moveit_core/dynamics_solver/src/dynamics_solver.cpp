@@ -51,11 +51,11 @@ namespace dynamics_solver
 namespace
 {
 inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform,
-                                              const geometry_msgs::Vector3 &vector)
+    const geometry_msgs::Vector3 &vector)
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
-  p = transform.rotation()*p;
+  p = transform.rotation() * p;
 
   geometry_msgs::Vector3 result;
   result.x = p.x();
@@ -258,7 +258,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
   double min_payload = std::numeric_limits<double>::max();
   for (unsigned int i = 0; i < num_joints_; ++i)
   {
-    double payload_joint = std::max<double>((max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]),(-max_torques_[i]-zero_torques[i])/(torques[i]-zero_torques[i]));//because we set the payload to 1.0
+    double payload_joint = std::max<double>((max_torques_[i] - zero_torques[i]) / (torques[i] - zero_torques[i]), (-max_torques_[i] - zero_torques[i]) / (torques[i] - zero_torques[i])); //because we set the payload to 1.0
     logDebug("moveit.dynamics_solver: Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i, torques[i], max_torques_[i], zero_torques[i]);
     logDebug("moveit.dynamics_solver: Joint: %d, Payload Allowed (N): %f", i, payload_joint);
     if (payload_joint < min_payload)
@@ -267,7 +267,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles,
       joint_saturated = i;
     }
   }
-  payload = min_payload/gravity_;
+  payload = min_payload / gravity_;
   logDebug("moveit.dynamics_solver: Max payload (kg): %f", payload);
   return true;
 }
@@ -297,7 +297,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles,
 
   const Eigen::Affine3d &base_frame = state_->getFrameTransform(base_name_);
   const Eigen::Affine3d &tip_frame = state_->getFrameTransform(tip_name_);
-  Eigen::Affine3d transform = tip_frame.inverse()* base_frame;
+  Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
   wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);

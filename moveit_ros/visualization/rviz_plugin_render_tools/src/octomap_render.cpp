@@ -68,7 +68,8 @@ OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
   if (!max_octree_depth)
   {
     octree_depth_ = octree->getTreeDepth();
-  } else
+  }
+  else
   {
     octree_depth_ = std::min(max_octree_depth, (std::size_t)octree->getTreeDepth());
   }
@@ -106,7 +107,7 @@ OcTreeRender::~OcTreeRender()
 }
 
 // method taken from octomap_server package
-void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point)
+void OcTreeRender::setColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point)
 {
   int i;
   double m, n, f;
@@ -114,7 +115,7 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
   double s = 1.0;
   double v = 1.0;
 
-  double h = (1.0 - std::min(std::max((z_pos-min_z)/ (max_z - min_z), 0.0), 1.0)) *color_factor;
+  double h = (1.0 - std::min(std::max((z_pos - min_z) / (max_z - min_z), 0.0), 1.0)) * color_factor;
 
   h -= floor(h);
   h *= 6;
@@ -125,36 +126,37 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
   m = v * (1 - s);
   n = v * (1 - s * f);
 
-  switch (i) {
-    case 6:
-    case 0:
-      point->setColor(v, n, m);
-      break;
-    case 1:
-      point->setColor(n, v, m);
-      break;
-    case 2:
-      point->setColor(m, v, n);
-      break;
-    case 3:
-      point->setColor(m, n, v);
-      break;
-    case 4:
-      point->setColor(n, m, v);
-      break;
-    case 5:
-      point->setColor(v, m, n);
-      break;
-    default:
-      point->setColor(1, 0.5, 0.5);
-      break;
+  switch (i)
+  {
+  case 6:
+  case 0:
+    point->setColor(v, n, m);
+    break;
+  case 1:
+    point->setColor(n, v, m);
+    break;
+  case 2:
+    point->setColor(m, v, n);
+    break;
+  case 3:
+    point->setColor(m, n, v);
+    break;
+  case 4:
+    point->setColor(n, m, v);
+    break;
+  case 5:
+    point->setColor(v, m, n);
+    break;
+  default:
+    point->setColor(1, 0.5, 0.5);
+    break;
   }
 }
 
 
-void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> &octree,
-                                   OctreeVoxelRenderMode octree_voxel_rendering,
-                                   OctreeVoxelColorMode octree_color_mode)
+void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree> &octree,
+                                  OctreeVoxelRenderMode octree_voxel_rendering,
+                                  OctreeVoxelColorMode octree_color_mode)
 {
   VVPoint pointBuf_;
   pointBuf_.resize(octree_depth_);
@@ -219,20 +221,20 @@ void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> 
 
         switch (octree_color_mode)
         {
-          case OCTOMAP_Z_AXIS_COLOR:
-            setColor(newPoint.position.z, minZ, maxZ, colorFactor_, &newPoint);
-            break;
-          case OCTOMAP_PROBABLILTY_COLOR:
-            cell_probability = it->getOccupancy();
-            newPoint.setColor((1.0f-cell_probability), cell_probability, 0.0);
-            break;
-          default:
-            break;
+        case OCTOMAP_Z_AXIS_COLOR:
+          setColor(newPoint.position.z, minZ, maxZ, colorFactor_, &newPoint);
+          break;
+        case OCTOMAP_PROBABLILTY_COLOR:
+          cell_probability = it->getOccupancy();
+          newPoint.setColor((1.0f - cell_probability), cell_probability, 0.0);
+          break;
+        default:
+          break;
         }
 
         // push to point vectors
         unsigned int depth = it.getDepth();
-        pointBuf_[depth-1].push_back(newPoint);
+        pointBuf_[depth - 1].push_back(newPoint);
 
         ++pointCount;
       }
@@ -242,10 +244,10 @@ void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> 
 
   for (size_t i = 0; i < octree_depth_ ; ++i)
   {
-    double size = octree->getNodeSize(i+1);
+    double size = octree->getNodeSize(i + 1);
 
     cloud_[i]->clear();
-    cloud_[i]->setDimensions( size, size, size );
+    cloud_[i]->setDimensions(size, size, size);
 
     cloud_[i]->addPoints(&pointBuf_[i].front(), pointBuf_[i].size());
     pointBuf_[i].clear();

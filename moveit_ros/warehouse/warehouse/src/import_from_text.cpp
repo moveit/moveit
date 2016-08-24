@@ -47,7 +47,7 @@
 #include <boost/program_options/variables_map.hpp>
 #include <ros/ros.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void parseStart(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::RobotStateStorage *rs)
 {
@@ -118,18 +118,17 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
       in >> x >> y >> z;
       pos = Eigen::Translation3d(x, y, z);
     }
+    else if (type == "rpy")
+    {
+      have_orientation = true;
+      double r, p, y;
+      in >> r >> p >> y;
+      rot = Eigen::Quaterniond(Eigen::AngleAxisd(r, Eigen::Vector3d::UnitX())
+                               * Eigen::AngleAxisd(p, Eigen::Vector3d::UnitY())
+                               * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitZ()));
+    }
     else
-      if (type == "rpy")
-      {
-        have_orientation = true;
-        double r, p, y;
-        in >> r >> p >> y;
-        rot = Eigen::Quaterniond(Eigen::AngleAxisd(r, Eigen::Vector3d::UnitX())
-                                 * Eigen::AngleAxisd(p, Eigen::Vector3d::UnitY())
-                                 * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitZ()));
-      }
-      else
-        ROS_ERROR("Unknown link constraint element: '%s'", type.c_str());
+      ROS_ERROR("Unknown link constraint element: '%s'", type.c_str());
     in >> type;
   }
 
@@ -190,11 +189,10 @@ void parseQueries(std::istream &in, planning_scene_monitor::PlanningSceneMonitor
     {
       if (type == "start")
         parseStart(in, psm, rs);
+      else if (type == "goal")
+        parseGoal(in, psm, cs);
       else
-        if (type == "goal")
-          parseGoal(in, psm, cs);
-        else
-          ROS_ERROR("Unknown query type: '%s'", type.c_str());
+        ROS_ERROR("Unknown query type: '%s'", type.c_str());
     }
   }
 }
@@ -205,11 +203,11 @@ int main(int argc, char **argv)
 
   boost::program_options::options_description desc;
   desc.add_options()
-    ("help", "Show help message")
-    ("queries", boost::program_options::value<std::string>(), "Name of file containing motion planning queries.")
-    ("scene", boost::program_options::value<std::string>(), "Name of file containing motion planning scene.")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+  ("help", "Show help message")
+  ("queries", boost::program_options::value<std::string>(), "Name of file containing motion planning queries.")
+  ("scene", boost::program_options::value<std::string>(), "Name of file containing motion planning scene.")
+  ("host", boost::program_options::value<std::string>(), "Host for the DB.")
+  ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);

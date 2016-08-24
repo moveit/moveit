@@ -56,12 +56,12 @@ class CurrentStateMonitor
 {
 public:
 
-    /**
-     * @brief Constructor.
-     * @param robot_model The current kinematic model to build on
-     * @param tf A pointer to the tf transformer to use
-     */
-    CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf );
+  /**
+   * @brief Constructor.
+   * @param robot_model The current kinematic model to build on
+   * @param tf A pointer to the tf transformer to use
+   */
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
@@ -69,7 +69,7 @@ public:
    *  @param nh A ros::NodeHandle to pass node specific options
    */
   CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf,
-        ros::NodeHandle nh );
+                      ros::NodeHandle nh);
 
   ~CurrentStateMonitor();
 

@@ -69,10 +69,11 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");}
+    logInform("Using AllValid collision detection. No collision checking is performed.");
+}
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
-                                                                      const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const
+    const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const
 {
   res.collision = false;
   if (req.verbose)
@@ -80,8 +81,8 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state,
-                                                                      const CollisionRobot &other_robot, const robot_state::RobotState &other_state,
-                                                                      const AllowedCollisionMatrix &acm) const
+    const CollisionRobot &other_robot, const robot_state::RobotState &other_state,
+    const AllowedCollisionMatrix &acm) const
 {
   res.collision = false;
   if (req.verbose)
@@ -89,7 +90,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2,
-                                                                      const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2) const
+    const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2) const
 {
   res.collision = false;
   if (req.verbose)
@@ -97,8 +98,8 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest &req, CollisionResult &res, const robot_state::RobotState &state1, const robot_state::RobotState &state2,
-                                                                      const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2,
-                                                                      const AllowedCollisionMatrix &acm) const
+    const CollisionRobot &other_robot, const robot_state::RobotState &other_state1, const robot_state::RobotState &other_state2,
+    const AllowedCollisionMatrix &acm) const
 {
   res.collision = false;
   if (req.verbose)
@@ -111,23 +112,23 @@ double collision_detection::CollisionRobotAllValid::distanceSelf(const robot_sta
 }
 
 double collision_detection::CollisionRobotAllValid::distanceSelf(const robot_state::RobotState &state,
-                                                                 const AllowedCollisionMatrix &acm) const
+    const AllowedCollisionMatrix &acm) const
 {
   return 0.0;
 }
 
 
 double collision_detection::CollisionRobotAllValid::distanceOther(const robot_state::RobotState &state,
-                                                                  const CollisionRobot &other_robot,
-                                                                  const robot_state::RobotState &other_state) const
+    const CollisionRobot &other_robot,
+    const robot_state::RobotState &other_state) const
 {
   return 0.0;
 }
 
 double collision_detection::CollisionRobotAllValid::distanceOther(const robot_state::RobotState &state,
-                                                                  const CollisionRobot &other_robot,
-                                                                  const robot_state::RobotState &other_state,
-                                                                  const AllowedCollisionMatrix &acm) const
+    const CollisionRobot &other_robot,
+    const robot_state::RobotState &other_state,
+    const AllowedCollisionMatrix &acm) const
 {
   return 0.0;
 }

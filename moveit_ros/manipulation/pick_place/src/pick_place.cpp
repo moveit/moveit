@@ -110,9 +110,8 @@ void PickPlace::displayProcessedGrasps(bool flag)
 {
   if (display_grasps_ && !flag)
     grasps_publisher_.shutdown();
-  else
-    if (!display_grasps_ && flag)
-      grasps_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(DISPLAY_GRASP_TOPIC, 10, true);
+  else if (!display_grasps_ && flag)
+    grasps_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>(DISPLAY_GRASP_TOPIC, 10, true);
   display_grasps_ = flag;
 }
 
@@ -120,9 +119,8 @@ void PickPlace::displayComputedMotionPlans(bool flag)
 {
   if (display_computed_motion_plans_ && !flag)
     display_path_publisher_.shutdown();
-  else
-    if (!display_computed_motion_plans_ && flag)
-      display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
+  else if (!display_computed_motion_plans_ && flag)
+    display_path_publisher_ = nh_.advertise<moveit_msgs::DisplayTrajectory>(DISPLAY_PATH_TOPIC, 10, true);
   display_computed_motion_plans_ = flag;
 }
 
@@ -158,12 +156,30 @@ std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors()
 {
   std::vector<std_msgs::ColorRGBA> result;
   result.resize(6);
-  result[0].r = 0.5f; result[0].g = 0.5f; result[0].b = 0.5f; result[0].a = 1.0f;
-  result[1].r = 1.0f; result[1].g = 0.0f; result[1].b = 0.0f; result[1].a = 1.0f;
-  result[2].r = 1.0f; result[2].g = 0.5f; result[2].b = 0.0f; result[2].a = 1.0f;
-  result[3].r = 0.0f; result[3].g = 1.0f; result[3].b = 1.0f; result[3].a = 1.0f;
-  result[4].r = 0.0f; result[4].g = 1.0f; result[4].b = 0.0f; result[4].a = 1.0f;
-  result[5].r = 1.0f; result[5].g = 0.0f; result[5].b = 1.0f; result[5].a = 0.75f;
+  result[0].r = 0.5f;
+  result[0].g = 0.5f;
+  result[0].b = 0.5f;
+  result[0].a = 1.0f;
+  result[1].r = 1.0f;
+  result[1].g = 0.0f;
+  result[1].b = 0.0f;
+  result[1].a = 1.0f;
+  result[2].r = 1.0f;
+  result[2].g = 0.5f;
+  result[2].b = 0.0f;
+  result[2].a = 1.0f;
+  result[3].r = 0.0f;
+  result[3].g = 1.0f;
+  result[3].b = 1.0f;
+  result[3].a = 1.0f;
+  result[4].r = 0.0f;
+  result[4].g = 1.0f;
+  result[4].b = 0.0f;
+  result[4].a = 1.0f;
+  result[5].r = 1.0f;
+  result[5].g = 0.0f;
+  result[5].b = 1.0f;
+  result[5].a = 0.75f;
   return result;
 }
 

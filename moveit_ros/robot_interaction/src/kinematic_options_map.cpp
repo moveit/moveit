@@ -49,7 +49,7 @@ robot_interaction::KinematicOptionsMap::KinematicOptionsMap()
 // worry about locking.
 robot_interaction::KinematicOptions
 robot_interaction::KinematicOptionsMap::getOptions(
-      const std::string& key) const
+  const std::string& key) const
 {
   boost::mutex::scoped_lock lock(lock_);
 
@@ -63,9 +63,9 @@ robot_interaction::KinematicOptionsMap::getOptions(
 }
 
 void robot_interaction::KinematicOptionsMap::setOptions(
-      const std::string& key,
-      const KinematicOptions& options_delta,
-      KinematicOptions::OptionBitmask fields)
+  const std::string& key,
+  const KinematicOptions& options_delta,
+  KinematicOptions::OptionBitmask fields)
 {
   boost::mutex::scoped_lock lock(lock_);
 
@@ -114,7 +114,7 @@ void robot_interaction::KinematicOptionsMap::setOptions(
 
 // merge other into this.  All options in other take precedence over this.
 void robot_interaction::KinematicOptionsMap::merge(
-      const KinematicOptionsMap& other)
+  const KinematicOptionsMap& other)
 {
   if (&other == this)
     return;
@@ -140,11 +140,11 @@ void robot_interaction::KinematicOptionsMap::merge(
 // This is intended to be called as a ModifyStateFunction to modify the state
 // maintained by a LockedRobotState in place.
 bool robot_interaction::KinematicOptionsMap::setStateFromIK(
-      robot_state::RobotState& state,
-      const std::string& key,
-      const std::string& group,
-      const std::string& tip,
-      const geometry_msgs::Pose& pose) const
+  robot_state::RobotState& state,
+  const std::string& key,
+  const std::string& group,
+  const std::string& tip,
+  const geometry_msgs::Pose& pose) const
 {
   // copy options so lock is not needed during IK solve.
   KinematicOptions options = getOptions(key);

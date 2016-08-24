@@ -143,7 +143,7 @@ private:
   };
 
   /// Contains the parameter combination for one test
-  typedef std::map<std::string,double> ParameterInstance;
+  typedef std::map<std::string, double> ParameterInstance;
 
   void collectMetrics(std::map<std::string, std::string> &rundata,
                       const planning_interface::MotionPlanDetailedResponse &mp_res,

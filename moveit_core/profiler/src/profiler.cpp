@@ -93,7 +93,7 @@ void moveit::tools::Profiler::average(const std::string &name, const double valu
   lock_.lock();
   AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
   a.total += value;
-  a.totalSqr += value*value;
+  a.totalSqr += value * value;
   a.parts++;
   lock_.unlock();
 }
@@ -237,7 +237,7 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
   {
     const AvgInfo &a = data.avg.find(avg[i].name)->second;
     out << avg[i].name << ": " << avg[i].value << " (stddev = " <<
-      sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
+        sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
   }
 
   std::vector<dataDoubleVal> time;
@@ -259,14 +259,14 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
 
     double tS = to_seconds(d.shortest);
     double tL = to_seconds(d.longest);
-    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
+    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), ["
         << tS << "s --> " << tL << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
       double pavg = to_seconds(d.total) / (double)d.parts;
       out << ", " << pavg << " s on average";
       if (pavg < 1.0)
-        out << " (" << 1.0/pavg << " /s)";
+        out << " (" << 1.0 / pavg << " /s)";
     }
     out << std::endl;
     unaccounted -= time[i].value;

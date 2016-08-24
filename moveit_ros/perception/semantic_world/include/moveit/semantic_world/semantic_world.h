@@ -71,13 +71,13 @@ public:
    * @brief Get all the tables within a region of interest
    */
   object_recognition_msgs::TableArray getTablesInROI(double minx, double miny, double minz,
-                                                     double maxx, double maxy, double maxz) const;
+      double maxx, double maxy, double maxz) const;
 
   /**
    * @brief Get all the tables within a region of interest
    */
   std::vector<std::string> getTableNamesInROI(double minx, double miny, double minz,
-                                              double maxx, double maxy, double maxz) const;
+      double maxx, double maxy, double maxz) const;
 
   /**
    * @brief Generate possible place poses on the table for a given object. This chooses appropriate
@@ -85,11 +85,11 @@ public:
    * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const std::string &table_name,
-                                                             const shapes::ShapeConstPtr& object_shape,
-                                                             const geometry_msgs::Quaternion &object_orientation,
-                                                             double resolution,
-                                                             double delta_height = 0.01,
-                                                             unsigned int num_heights = 2) const;
+      const shapes::ShapeConstPtr& object_shape,
+      const geometry_msgs::Quaternion &object_orientation,
+      double resolution,
+      double delta_height = 0.01,
+      unsigned int num_heights = 2) const;
 
   /**
    * @brief Generate possible place poses on the table for a given object. This chooses appropriate
@@ -97,11 +97,11 @@ public:
    * The assumption is that the object is represented by a mesh.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
-                                                             const shapes::ShapeConstPtr& object_shape,
-                                                             const geometry_msgs::Quaternion &object_orientation,
-                                                             double resolution,
-                                                             double delta_height = 0.01,
-                                                             unsigned int num_heights = 2) const;
+      const shapes::ShapeConstPtr& object_shape,
+      const geometry_msgs::Quaternion &object_orientation,
+      double resolution,
+      double delta_height = 0.01,
+      unsigned int num_heights = 2) const;
   /**
    * @brief Generate possible place poses on the table. This samples locations in a grid on the table at
    * the given resolution (in meters) in both X and Y directions. The locations are sampled at the
@@ -110,11 +110,11 @@ public:
    * meters from the edge of the table.
    */
   std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
-                                                             double resolution,
-                                                             double height_above_table,
-                                                             double delta_height = 0.01,
-                                                             unsigned int num_heights = 2,
-                                                             double min_distance_from_edge = 0.10) const;
+      double resolution,
+      double height_above_table,
+      double delta_height = 0.01,
+      unsigned int num_heights = 2,
+      double min_distance_from_edge = 0.10) const;
 
 
   void clear();
@@ -139,9 +139,9 @@ public:
 
 private:
 
-  shapes::Mesh* createSolidMeshFromPlanarPolygon (const shapes::Mesh& polygon, double thickness) const;
+  shapes::Mesh* createSolidMeshFromPlanarPolygon(const shapes::Mesh& polygon, double thickness) const;
 
-  shapes::Mesh* orientPlanarPolygon (const shapes::Mesh& polygon) const;
+  shapes::Mesh* orientPlanarPolygon(const shapes::Mesh& polygon) const;
 
   void tableCallback(const object_recognition_msgs::TableArrayPtr &msg);
 

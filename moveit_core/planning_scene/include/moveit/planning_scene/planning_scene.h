@@ -83,7 +83,7 @@ typedef std::map<std::string, object_recognition_msgs::ObjectType> ObjectTypeMap
     environment as seen by a planning instance. The environment
     geometry, the robot geometry and state are maintained. */
 class PlanningScene : private boost::noncopyable,
-                      public boost::enable_shared_from_this<PlanningScene>
+  public boost::enable_shared_from_this<PlanningScene>
 {
 public:
 
@@ -885,7 +885,7 @@ private:
 
   /* helper function to create a RobotModel from a urdf/srdf. */
   static robot_model::RobotModelPtr createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
-                                                     const boost::shared_ptr<const srdf::Model> &srdf_model);
+      const boost::shared_ptr<const srdf::Model> &srdf_model);
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;

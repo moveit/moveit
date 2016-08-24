@@ -241,10 +241,10 @@ public:
   void setCompleteInitialState(const robot_state::RobotState &complete_initial_robot_state);
 
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-              const moveit_msgs::Constraints &path_constraints,
-              moveit_msgs::MoveItErrorCodes *error);
+                          const moveit_msgs::Constraints &path_constraints,
+                          moveit_msgs::MoveItErrorCodes *error);
   bool setPathConstraints(const moveit_msgs::Constraints &path_constraints,
-              moveit_msgs::MoveItErrorCodes *error);
+                          moveit_msgs::MoveItErrorCodes *error);
 
   void setConstraintsApproximations(const ConstraintsLibraryConstPtr &constraints_library)
   {

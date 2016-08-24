@@ -64,12 +64,12 @@ class PassiveJointsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  PassiveJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  PassiveJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -88,7 +88,7 @@ private Q_SLOTS:
   void selectionUpdated();
 
   /// Called from Double List widget to highlight joints
-  void previewSelectedJoints( std::vector<std::string> joints );
+  void previewSelectedJoints(std::vector<std::string> joints);
 
 private:
 

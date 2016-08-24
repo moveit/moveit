@@ -58,13 +58,13 @@ void move_group::MoveGroupPickPlaceAction::initialize()
 
   // start the pickup action server
   pickup_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PickupAction>(root_node_handle_, PICKUP_ACTION,
-                                                                                           boost::bind(&MoveGroupPickPlaceAction::executePickupCallback, this, _1), false));
+                              boost::bind(&MoveGroupPickPlaceAction::executePickupCallback, this, _1), false));
   pickup_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPickupCallback, this));
   pickup_action_server_->start();
 
   // start the place action server
   place_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::PlaceAction>(root_node_handle_, PLACE_ACTION,
-                                                                                         boost::bind(&MoveGroupPickPlaceAction::executePlaceCallback, this, _1), false));
+                             boost::bind(&MoveGroupPickPlaceAction::executePlaceCallback, this, _1), false));
   place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPlaceCallback, this));
   place_action_server_->start();
 
@@ -99,11 +99,11 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPick(ps, *goal);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
@@ -141,11 +141,11 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPlace(ps, *goal);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
@@ -176,7 +176,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
 }
 
 bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult *action_res,
-                                                                     plan_execution::ExecutableMotionPlan &plan)
+    plan_execution::ExecutableMotionPlan &plan)
 {
   setPickupState(PLANNING);
 
@@ -187,11 +187,11 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   {
     pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
@@ -221,7 +221,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
 }
 
 bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, moveit_msgs::PlaceResult *action_res,
-                                                                    plan_execution::ExecutableMotionPlan &plan)
+    plan_execution::ExecutableMotionPlan &plan)
 {
   setPlaceState(PLANNING);
 
@@ -232,11 +232,11 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   {
     place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
@@ -425,7 +425,8 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     bool valid = true;
 
     collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
-    if (!object || object->shape_poses_.empty()){
+    if (!object || object->shape_poses_.empty())
+    {
       ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
       return;
     }
@@ -434,7 +435,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     request.collision_object_name = goal.target_name;
     request.target.reference_frame_id = lscene->getPlanningFrame();
 
-    if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
+    if (lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
     {
       household_objects_database_msgs::DatabaseModelPose dbp;
       dbp.pose.header.frame_id = lscene->getPlanningFrame();

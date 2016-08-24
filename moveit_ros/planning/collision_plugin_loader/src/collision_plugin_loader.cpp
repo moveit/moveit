@@ -49,7 +49,7 @@ public:
     {
       loader_.reset(new pluginlib::ClassLoader<CollisionPlugin>("moveit_core", "collision_detection::CollisionPlugin"));
     }
-    catch(pluginlib::PluginlibException& e)
+    catch (pluginlib::PluginlibException& e)
     {
       ROS_ERROR("Unable to construct colllision plugin loader. Error: %s", e.what());
     }

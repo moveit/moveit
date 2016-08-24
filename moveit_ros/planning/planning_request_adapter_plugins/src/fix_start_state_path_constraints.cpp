@@ -52,7 +52,10 @@ public:
   {
   }
 
-  virtual std::string getDescription() const { return "Fix Start State Path Constraints"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State Path Constraints";
+  }
 
 
   virtual bool adaptAndPlan(const PlannerFn &planner,

@@ -86,7 +86,10 @@ public:
 
   }
 
-  virtual std::string getDescription() const { return "Fix Start State In Collision"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State In Collision";
+  }
 
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,

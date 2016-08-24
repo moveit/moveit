@@ -38,14 +38,14 @@
 #include <tf_conversions/tf_eigen.h>
 #include <limits>
 
-planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf )
-  : CurrentStateMonitor( robot_model, tf, ros::NodeHandle() )
+planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf)
+  : CurrentStateMonitor(robot_model, tf, ros::NodeHandle())
 {
 }
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf,
-                                                                 ros::NodeHandle nh )
-  : nh_( nh )
+    ros::NodeHandle nh)
+  : nh_(nh)
   , tf_(tf)
   , robot_model_(robot_model)
   , robot_state_(robot_model)
@@ -221,19 +221,18 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
       ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
       result = false;
     }
-    else
-      if (it->second < old)
-      {
-        ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                  dof[i].c_str(), (now - it->second).toSec(), age.toSec());
-        result = false;
-      }
+    else if (it->second < old)
+    {
+      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+      result = false;
+    }
   }
   return result;
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration &age,
-                                                                    std::vector<std::string> &missing_states) const
+    std::vector<std::string> &missing_states) const
 {
   bool result = true;
   const std::vector<std::string> &dof = robot_model_->getVariableNames();
@@ -251,14 +250,13 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
       missing_states.push_back(dof[i]);
       result = false;
     }
-    else
-      if (it->second < old)
-      {
-        ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                  dof[i].c_str(), (now - it->second).toSec(), age.toSec());
-        missing_states.push_back(dof[i]);
-        result = false;
-      }
+    else if (it->second < old)
+    {
+      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+      missing_states.push_back(dof[i]);
+      result = false;
+    }
   }
   return result;
 }
@@ -291,7 +289,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std:
     {
       std::set<std::string> mj;
       mj.insert(missing_joints.begin(), missing_joints.end());
-      const std::vector<std::string> &names= jmg->getJointModelNames();
+      const std::vector<std::string> &names = jmg->getJointModelNames();
       bool ok = true;
       for (std::size_t i = 0 ; ok && i < names.size() ; ++i)
         if (mj.find(names[i]) != mj.end())
@@ -359,9 +357,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
         // if the read variable is 'almost' within bounds (up to error_ difference), then consider it to be within bounds
         if (joint_state->position[i] < b.min_position_ && joint_state->position[i] >= b.min_position_ - error_)
           robot_state_.setJointPositions(jm, &b.min_position_);
-        else
-          if (joint_state->position[i] > b.max_position_ && joint_state->position[i] <= b.max_position_ + error_)
-            robot_state_.setJointPositions(jm, &b.max_position_);
+        else if (joint_state->position[i] > b.max_position_ && joint_state->position[i] <= b.max_position_ + error_)
+          robot_state_.setJointPositions(jm, &b.max_position_);
       }
     }
 
@@ -383,7 +380,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
           tf_->lookupTransform(parent_frame, child_frame, tm, transf);
           ok = true;
         }
-        catch(tf::TransformException& ex)
+        catch (tf::TransformException& ex)
         {
           ROS_ERROR_THROTTLE(1, "Unable to lookup transform from %s to %s.  Exception: %s", parent_frame.c_str(), child_frame.c_str(), ex.what());
         }

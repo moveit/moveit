@@ -40,8 +40,8 @@
 #include <sstream>
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectSampler(const planning_scene::PlanningSceneConstPtr &scene,
-                                                                                                       const std::string &group_name,
-                                                                                                       const moveit_msgs::Constraints &constr) const
+    const std::string &group_name,
+    const moveit_msgs::Constraints &constr) const
 {
   for (std::size_t i = 0 ; i < sampler_alloc_.size() ; ++i)
     if (sampler_alloc_[i]->canService(scene, group_name, constr))
@@ -52,13 +52,14 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
 }
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene,
-                                                                                                              const std::string &group_name,
-                                                                                                              const moveit_msgs::Constraints &constr)
+    const std::string &group_name,
+    const moveit_msgs::Constraints &constr)
 {
   const robot_model::JointModelGroup *jmg = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
-  std::stringstream ss; ss << constr;
+  std::stringstream ss;
+  ss << constr;
   logDebug("Attempting to construct constrained state sampler for group '%s', using constraints:\n%s.\n", jmg->getName().c_str(), ss.str().c_str());
 
   ConstraintSamplerPtr joint_sampler; // location to put chosen joint sampler if needed
@@ -68,7 +69,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     logDebug("There are joint constraints specified. Attempting to construct a JointConstraintSampler for group '%s'", jmg->getName().c_str());
 
     std::map<std::string, bool> joint_coverage;
-    for(std::size_t i = 0; i < jmg->getVariableNames().size() ; ++i)
+    for (std::size_t i = 0; i < jmg->getVariableNames().size() ; ++i)
       joint_coverage[jmg->getVariableNames()[i]] = false;
 
     // construct the constraints
@@ -147,7 +148,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           if (pc->configure(constr.position_constraints[p], scene->getTransforms()) && oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
           {
             IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
-            if(iks->configure(IKSamplingPose(pc, oc))) {
+            if (iks->configure(IKSamplingPose(pc, oc)))
+            {
               bool use = true;
               // Check if there already is a constraint on this link
               if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
@@ -178,7 +180,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (pc->configure(constr.position_constraints[p], scene->getTransforms()))
       {
         IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
-        if(iks->configure(IKSamplingPose(pc)))
+        if (iks->configure(IKSamplingPose(pc)))
         {
           bool use = true;
           if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
@@ -204,7 +206,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       if (oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
       {
         IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
-        if(iks->configure(IKSamplingPose(oc)))
+        if (iks->configure(IKSamplingPose(oc)))
         {
           bool use = true;
           if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
@@ -230,32 +232,31 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
         return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
       }
     }
-    else
-      if (usedL.size() > 1)
+    else if (usedL.size() > 1)
+    {
+      logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
+      // find the sampler with the smallest sampling volume; delete the rest
+      IKConstraintSamplerPtr iks = usedL.begin()->second;
+      double msv = iks->getSamplingVolume();
+      for (std::map<std::string, IKConstraintSamplerPtr>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
       {
-        logDebug("Too many IK-based samplers for group '%s'. Keeping the one with minimal sampling volume", jmg->getName().c_str());
-        // find the sampler with the smallest sampling volume; delete the rest
-        IKConstraintSamplerPtr iks = usedL.begin()->second;
-        double msv = iks->getSamplingVolume();
-        for (std::map<std::string, IKConstraintSamplerPtr>::const_iterator it = ++usedL.begin() ; it != usedL.end() ; ++it)
+        double v = it->second->getSamplingVolume();
+        if (v < msv)
         {
-          double v = it->second->getSamplingVolume();
-          if (v < msv)
-          {
-            iks = it->second;
-            msv = v;
-          }
-        }
-        if (samplers.empty())
-        {
-          return iks;
-        }
-        else
-        {
-          samplers.push_back(iks);
-          return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+          iks = it->second;
+          msv = v;
         }
       }
+      if (samplers.empty())
+      {
+        return iks;
+      }
+      else
+      {
+        samplers.push_back(iks);
+        return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
+      }
+    }
   }
 
   // if we got to this point, we have not decided on a sampler.

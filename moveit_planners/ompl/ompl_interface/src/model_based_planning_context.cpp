@@ -103,39 +103,39 @@ ompl::base::ProjectionEvaluatorPtr ompl_interface::ModelBasedPlanningContext::ge
     else
       logError("Attempted to set projection evaluator with respect to position of link '%s', but that link is not known to the kinematic model.", link_name.c_str());
   }
-  else
-    if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
+  else if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
+  {
+    std::string joints = peval.substr(7, peval.length() - 8);
+    boost::replace_all(joints, ",", " ");
+    std::vector<unsigned int> j;
+    std::stringstream ss(joints);
+    while (ss.good() && !ss.eof())
     {
-      std::string joints = peval.substr(7, peval.length() - 8);
-      boost::replace_all(joints, ",", " ");
-      std::vector<unsigned int> j;
-      std::stringstream ss(joints);
-      while (ss.good() && !ss.eof())
+      std::string v;
+      ss >> v >> std::ws;
+      if (getJointModelGroup()->hasJointModel(v))
       {
-        std::string v; ss >> v >> std::ws;
-        if (getJointModelGroup()->hasJointModel(v))
+        unsigned int vc = getJointModelGroup()->getJointModel(v)->getVariableCount();
+        if (vc > 0)
         {
-          unsigned int vc = getJointModelGroup()->getJointModel(v)->getVariableCount();
-          if (vc > 0)
-          {
-            int idx = getJointModelGroup()->getVariableGroupIndex(v);
-            for (int q = 0 ; q < vc ; ++q)
-              j.push_back(idx + q);
-          }
-          else
-            logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+          int idx = getJointModelGroup()->getVariableGroupIndex(v);
+          for (int q = 0 ; q < vc ; ++q)
+            j.push_back(idx + q);
         }
         else
-          logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
-                   name_.c_str(), v.c_str(), getGroupName().c_str());
+          logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
       }
-      if (j.empty())
-        logError("%s: No valid joints specified for joint projection", name_.c_str());
       else
-        return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
+        logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not known to the group '%s'.",
+                 name_.c_str(), v.c_str(), getGroupName().c_str());
     }
+    if (j.empty())
+      logError("%s: No valid joints specified for joint projection", name_.c_str());
     else
-      logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
+      return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
+  }
+  else
+    logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
   return ob::ProjectionEvaluatorPtr();
 }
 
@@ -231,27 +231,35 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   {
     optimizer = "PathLengthOptimizationObjective";
     logInform("No optimization objective specified, defaulting to %s", optimizer.c_str());
-  } else {
+  }
+  else
+  {
     optimizer = it->second;
     cfg.erase(it);
   }
 
-  if (optimizer == "PathLengthOptimizationObjective"){
+  if (optimizer == "PathLengthOptimizationObjective")
+  {
     objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
-   }
-  else if (optimizer == "MinimaxObjective"){
+  }
+  else if (optimizer == "MinimaxObjective")
+  {
     objective.reset(new ompl::base::MinimaxObjective(ompl_simple_setup_->getSpaceInformation()));
   }
-  else if (optimizer == "StateCostIntegralObjective"){
+  else if (optimizer == "StateCostIntegralObjective")
+  {
     objective.reset(new ompl::base::StateCostIntegralObjective(ompl_simple_setup_->getSpaceInformation()));
   }
-  else if (optimizer == "MechanicalWorkOptimizationObjective"){
+  else if (optimizer == "MechanicalWorkOptimizationObjective")
+  {
     objective.reset(new ompl::base::MechanicalWorkOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
   }
-  else if (optimizer == "MaximizeMinClearanceObjective"){
+  else if (optimizer == "MaximizeMinClearanceObjective")
+  {
     objective.reset(new ompl::base::MaximizeMinClearanceObjective(ompl_simple_setup_->getSpaceInformation()));
   }
-  else {
+  else
+  {
     objective.reset(new ompl::base::PathLengthOptimizationObjective(ompl_simple_setup_->getSpaceInformation()));
   }
 
@@ -269,7 +277,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     std::string type = it->second;
     cfg.erase(it);
     ompl_simple_setup_->setPlannerAllocator(boost::bind(spec_.planner_selector_(type), _1,
-                               name_ != getGroupName() ? name_ : "", spec_));
+                                            name_ != getGroupName() ? name_ : "", spec_));
     logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when the planner is constructed.",
               name_.c_str(), type.c_str());
   }
@@ -378,7 +386,7 @@ void ompl_interface::ModelBasedPlanningContext::clear()
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,
-                                   moveit_msgs::MoveItErrorCodes *error)
+    moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* set the path constraints to use
   path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
@@ -389,8 +397,8 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                                   const moveit_msgs::Constraints &path_constraints,
-                                   moveit_msgs::MoveItErrorCodes *error)
+    const moveit_msgs::Constraints &path_constraints,
+    moveit_msgs::MoveItErrorCodes *error)
 {
   // ******************* check if the input is correct
   goal_constraints_.clear();
@@ -425,7 +433,7 @@ bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsign
   ompl_simple_setup_->setup();
   ompl_benchmark_.addPlanner(ompl_simple_setup_->getPlanner());
   ompl_benchmark_.setExperimentName(getRobotModel()->getName() + "_" + getGroupName() + "_" +
-                    getPlanningScene()->getName() + "_" + name_);
+                                    getPlanningScene()->getName() + "_" + name_);
 
   ot::Benchmark::Request req;
   req.maxTime = timeout;
