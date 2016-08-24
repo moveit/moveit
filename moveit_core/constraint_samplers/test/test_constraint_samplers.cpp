@@ -42,9 +42,9 @@
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/robot_state/conversions.h>
+#include <moveit_resources/config.h>
 
 #include <geometric_shapes/shape_operations.h>
-#include <ros/package.h>
 #include <visualization_msgs/MarkerArray.h>
 
 #include <gtest/gtest.h>
@@ -75,13 +75,7 @@ protected:
 
   virtual void SetUp()
   {
-    std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
-    {
-      FAIL() << "Failed to find package moveit_resources.";
-      return;
-    }
-    boost::filesystem::path res_path(resource_dir);
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
     srdf_model.reset(new srdf::Model());
     std::string xml_string;

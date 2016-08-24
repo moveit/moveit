@@ -31,6 +31,8 @@
   <run_depend>tf</run_depend>
   <run_depend>pluginlib</run_depend>
 
+  <test_depend>moveit_resources</test_depend>
+
   <export>
     <moveit_core plugin="${prefix}/ompl_interface_plugin_description.xml"/>
   </export>

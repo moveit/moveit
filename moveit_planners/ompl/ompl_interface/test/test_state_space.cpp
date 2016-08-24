@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
+#include <moveit_resources/config.h>
 
 #include <urdf_parser/urdf_parser.h>
 
@@ -44,7 +45,6 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
-#include <ros/package.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -52,13 +52,7 @@ protected:
 
   virtual void SetUp()
   {
-    std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
-    {
-      FAIL() << "Failed to find package moveit_resources.";
-      return;
-    }
-    boost::filesystem::path res_path(resource_dir);
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
