@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  moveit::planning_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm", boost::shared_ptr<tf::Transformer>(), ros::WallDuration());
+  moveit::planning_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
   demoPlace(group);
 
   sleep(2);

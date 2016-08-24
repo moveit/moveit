@@ -121,8 +121,8 @@ public:
     */
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                           const ros::Duration &wait_for_servers = ros::Duration());
+  MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf,
+                              const ros::Duration &wait_for_servers);
 
   /**
       \brief Construct a client for the MoveGroup action for a particular \e group.
@@ -132,8 +132,8 @@ public:
     */
   MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                           const ros::Duration &wait_for_servers = ros::Duration());
+  MOVEIT_DEPRECATED MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf,
+                              const ros::Duration &wait_for_servers);
 
   ~MoveGroup();
 
