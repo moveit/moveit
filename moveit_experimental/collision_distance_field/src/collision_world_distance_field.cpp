@@ -34,6 +34,7 @@
 
 /* Author: E. Gil Jones */
 
+#include <ros/console.h>
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
@@ -43,22 +44,21 @@
 namespace collision_detection
 {
 
+
 CollisionWorldDistanceField::~CollisionWorldDistanceField()
 {
   getWorld()->removeObserver(observer_handle_);
 }
 
-CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x, 
-                                                         double size_y,
-                                                         double size_z,
+CollisionWorldDistanceField::CollisionWorldDistanceField(Eigen::Vector3d size,
+                                                         Eigen::Vector3d origin,
                                                          bool use_signed_distance_field,
                                                          double resolution,
                                                          double collision_tolerance,
                                                          double max_propogation_distance)
   : CollisionWorld(),
-    size_x_(size_x),
-    size_y_(size_y),
-    size_z_(size_z),
+    size_(size),
+    origin_(origin),
     use_signed_distance_field_(use_signed_distance_field),
     resolution_(resolution),
     collision_tolerance_(collision_tolerance),
@@ -71,17 +71,15 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(double size_x,
 }
 
 CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world,
-                                                         double size_x, 
-                                                         double size_y,
-                                                         double size_z,
+                                                         Eigen::Vector3d size,
+                                                         Eigen::Vector3d origin,
                                                          bool use_signed_distance_field,
                                                          double resolution,
                                                          double collision_tolerance,
                                                          double max_propogation_distance) :
     CollisionWorld(world),
-    size_x_(size_x),
-    size_y_(size_y),
-    size_z_(size_z),
+    size_(size_),
+    origin_(origin_),
     use_signed_distance_field_(use_signed_distance_field),
     resolution_(resolution),
     collision_tolerance_(collision_tolerance),
@@ -98,9 +96,8 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDis
                                                          const WorldPtr& world) :
   CollisionWorld(other, world)
 {
-  size_x_ = other.size_x_;
-  size_y_ = other.size_y_;
-  size_z_ = other.size_z_;
+  size_ = other.size_;
+  origin_ = other.origin_;
   use_signed_distance_field_ = other.use_signed_distance_field_;
   resolution_ = other.resolution_;
   collision_tolerance_ = other.collision_tolerance_;
@@ -149,12 +146,14 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
     if(!done) {
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
   }
 
-  //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
 void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, 
@@ -181,7 +180,8 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
 {
   try {
     const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
-    if(!gsr) {
+    if(!gsr)
+    {
       cdr.generateCollisionCheckingStructures(req.group_name,
                                               state,
                                               &acm,
@@ -197,12 +197,14 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req,
     if(!done) {
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
   }
 
-  //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
 void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &req, 
@@ -234,10 +236,13 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
       cdr.updateGroupStateRepresentationState(state, gsr);
     }
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
-    //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+    (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+
     //checkRobotCollisionHelper(req, res, robot, state, &acm);
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
   }
 }
@@ -269,15 +274,18 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
                                               state,
                                               &acm,
                                               gsr,
-                                              false);
+                                              true);
     } else {
       cdr.updateGroupStateRepresentationState(state, gsr);
     }
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
-    //(const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+    (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
+
     //checkRobotCollisionHelper(req, res, robot, state, &acm);
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
   }
 }
@@ -303,10 +311,14 @@ void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest &
     cdr.getSelfProximityGradients(gsr);
     cdr.getIntraGroupProximityGradients(gsr);
     getEnvironmentProximityGradients(env_distance_field, gsr);
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
   }
+
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
 void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req, 
@@ -316,7 +328,8 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req,
                                                    const AllowedCollisionMatrix* acm,
                                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
-  try {
+  try
+  {
     const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if(!gsr) {
       cdr.generateCollisionCheckingStructures(req.group_name,
@@ -331,10 +344,14 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req,
     cdr.getIntraGroupCollisions(req, res, gsr);
     boost::shared_ptr<const distance_field::DistanceField> env_distance_field = distance_field_cache_entry_->distance_field_;
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
-  } catch(...) {
-    logError("Could not cast CollisionRobot to CollisionRobotDistanceField");    
+  }
+  catch(const std::bad_cast& e)
+  {
+    ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, "<<e.what());
     return;
-  }  
+  }
+
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
 bool CollisionWorldDistanceField::getEnvironmentCollisions(const CollisionRequest& req,
@@ -342,40 +359,58 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const CollisionReques
                                                            const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
                                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const
 {
-  for(unsigned int i = 0; i < gsr->dfce_->link_names_.size()+gsr->dfce_->attached_body_names_.size(); i++) {
+  for(unsigned int i = 0; i < gsr->dfce_->link_names_.size()+gsr->dfce_->attached_body_names_.size(); i++)
+  {
     bool is_link = i < gsr->dfce_->link_names_.size();
-    if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
+    std::string link_name = i < gsr->dfce_->link_names_.size() ? gsr->dfce_->link_names_[i] : "attached";
+    if(is_link && !gsr->dfce_->link_has_geometry_[i])
+    {
+      continue;
+    }
+
     const std::vector<CollisionSphere>* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
-    if(is_link) {
+
+    if(is_link)
+    {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
-    } else {
+    }
+    else
+    {
       collision_spheres_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters());
     }
-    if(req.contacts) {
+
+    if(req.contacts)
+    {
       std::vector<unsigned int> colls;
       bool coll = getCollisionSphereCollision(env_distance_field.get(),
                                               *collision_spheres_1,
                                               *sphere_centers_1,
                                               max_propogation_distance_,
-                                              0.0,
+                                              collision_tolerance_,
                                               std::min(req.max_contacts_per_pair, req.max_contacts-res.contact_count),
                                               colls);
-      if(coll) {
+      if(coll)
+      {
         res.collision = true;
-        for(unsigned int j = 0; j < colls.size(); j++) {
+        for(unsigned int j = 0; j < colls.size(); j++)
+        {
           Contact con;
-          if(is_link) {
+          if(is_link)
+          {
             con.pos = gsr->link_body_decompositions_[i]->getSphereCenters()[colls[j]];
             con.body_type_1 = BodyTypes::ROBOT_LINK;
             con.body_name_1 = gsr->dfce_->link_names_[i];
-          } else {
+          }
+          else
+          {
             con.pos = gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters()[colls[j]];
             con.body_type_1 = BodyTypes::ROBOT_ATTACHED;
             con.body_name_1 = gsr->dfce_->attached_body_names_[i-gsr->dfce_->link_names_.size()];
           }
+
           con.body_type_2 = BodyTypes::WORLD_OBJECT;
           con.body_name_2 = "environment";
           res.contact_count++;
@@ -383,18 +418,23 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(const CollisionReques
           gsr->gradients_[i].types[colls[j]] = ENVIRONMENT;
           //ROS_DEBUG_STREAM("Link " << dfce->link_names_[i] << " sphere " << colls[j] << " in env collision");
         }
+
         gsr->gradients_[i].collision = true;
-        if(res.contact_count >= req.max_contacts) {
+        if(res.contact_count >= req.max_contacts)
+        {
           return true;
         }
       } 
-    } else {
+    }
+    else
+    {
       bool coll = getCollisionSphereCollision(env_distance_field.get(),
                                               *collision_spheres_1,
                                               *sphere_centers_1,
                                               max_propogation_distance_,
-                                              false);
-      if(coll) {
+                                              collision_tolerance_);
+      if(coll)
+      {
         res.collision = true;
         return true;
       } 
@@ -409,26 +449,36 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(const boost::
   bool in_collision = false;
   for(unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++) {
     bool is_link = i < gsr->dfce_->link_names_.size();
-    if(is_link && !gsr->dfce_->link_has_geometry_[i]) continue;
+
+    if(is_link && !gsr->dfce_->link_has_geometry_[i])
+    {
+      continue;
+    }
+
     const std::vector<CollisionSphere>* collision_spheres_1;
     const EigenSTL::vector_Vector3d* sphere_centers_1;
-    if(is_link) {
+    if(is_link)
+    {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->link_body_decompositions_[i]->getSphereCenters());
-    } else {
+    }
+    else
+    {
       collision_spheres_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getCollisionSpheres());
       sphere_centers_1 = &(gsr->attached_body_decompositions_[i-gsr->dfce_->link_names_.size()]->getSphereCenters());
     }
+
     bool coll = getCollisionSphereGradients(env_distance_field.get(),
                                             *collision_spheres_1,
                                             *sphere_centers_1,
                                             gsr->gradients_[i],
                                             ENVIRONMENT,
-                                            0.0,
+                                            collision_tolerance_,
                                             false,
                                             max_propogation_distance_,
                                             false);
-    if(coll) {
+    if(coll)
+    {
       in_collision = true;
     }
   }
@@ -495,21 +545,43 @@ void CollisionWorldDistanceField::updateDistanceObject(const std::string& id,
                              cur_it->second[i]->getCollisionPoints().end());
     }
   }
+
   World::ObjectConstPtr object = getWorld()->getObject(id);
-  if(object) {
+  if(object)
+  {
+    ROS_DEBUG_STREAM("Updating/Adding Object '"<<object->id_<<"' with "<<object->shapes_.size()
+                     <<" shapes  to CollisionWorldDistanceField");
     std::vector<PosedBodyPointDecompositionPtr> shape_points;
-    for(unsigned int i = 0; i < object->shapes_.size(); i++) {
+    for(unsigned int i = 0; i < object->shapes_.size(); i++)
+    {
+      shapes::ShapeConstPtr shape = object->shapes_[i];
+      if(shape->type == shapes::OCTREE)
+      {
+        const shapes::OcTree* octree_shape = static_cast<const shapes::OcTree*>(shape.get());
+        boost::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
+
+        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(octree));
+      }
+      else
+      {
       
-      BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(object->shapes_[i],
-                                                                    resolution_);
-      
-      shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+        BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(shape,
+                                                                      resolution_);
+
+        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+
+      }
+
       add_points.insert(add_points.end(),
                         shape_points.back()->getCollisionPoints().begin(),
                         shape_points.back()->getCollisionPoints().end());
     }
+
     dfce->posed_body_point_decompositions_[id] = shape_points;
-  } else {
+  }
+  else
+  {
+    ROS_DEBUG_STREAM("Removing Object '"<<id<<"' from CollisionWorldDistanceField");
     dfce->posed_body_point_decompositions_.erase(id);
   }
 }
@@ -518,28 +590,15 @@ boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>
 CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
 {
   boost::shared_ptr<DistanceFieldCacheEntry> dfce(new DistanceFieldCacheEntry());
-  if(use_signed_distance_field_)
-  {
-    dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_x_,
-                                                                             size_y_, 
-                                                                             size_z_, 
-                                                                             resolution_, 
-                                                                             -(size_x_/2.0), 
-                                                                             -(size_y_/2.0), 
-                                                                             -(size_z_/2.0), 
-                                                                             max_propogation_distance_, true));
-  }
-  else
-  {
-    dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_x_,
-                                                                             size_y_, 
-                                                                             size_z_, 
-                                                                             resolution_, 
-                                                                             -(size_x_/2.0), 
-                                                                             -(size_y_/2.0), 
-                                                                             -(size_z_/2.0), 
-                                                                             max_propogation_distance_, false));
-  }
+  dfce->distance_field_.reset(new distance_field::PropagationDistanceField(size_.x(),
+                                                                           size_.y(),
+                                                                           size_.z(),
+                                                                           resolution_,
+                                                                           origin_.x() - 0.5*size_.x(),
+                                                                           origin_.y() - 0.5*size_.y(),
+                                                                           origin_.z() - 0.5*size_.z(),
+                                                                           max_propogation_distance_, use_signed_distance_field_));
+
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
   for(World::const_iterator it=getWorld()->begin(); it!=getWorld()->end(); ++it)
