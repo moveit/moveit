@@ -42,6 +42,7 @@
 #include <boost/progress.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <unistd.h>
 
 using namespace moveit_ros_benchmarks;
@@ -288,11 +289,13 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
 
     try
     {
-        pss_ = new moveit_warehouse::PlanningSceneStorage(opts.getHostName(), opts.getPort());
-        psws_ = new moveit_warehouse::PlanningSceneWorldStorage(opts.getHostName(), opts.getPort());
-        rs_ = new moveit_warehouse::RobotStateStorage(opts.getHostName(), opts.getPort());
-        cs_ = new moveit_warehouse::ConstraintsStorage(opts.getHostName(), opts.getPort());
-        tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(opts.getHostName(), opts.getPort());
+	warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
+	conn->setParams(opts.getHostName(), opts.getPort(), 5.0);
+        pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
+        psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
+        rs_ = new moveit_warehouse::RobotStateStorage(conn);
+        cs_ = new moveit_warehouse::ConstraintsStorage(conn);
+        tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
     }
     catch(std::runtime_error& e)
     {
