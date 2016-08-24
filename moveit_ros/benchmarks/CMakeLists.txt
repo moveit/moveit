@@ -26,8 +26,6 @@ find_package(catkin COMPONENTS
 
 # catkin_package defines the env vars used in install later
 catkin_package(
-  INCLUDE_DIRS
-    benchmarks/include
   LIBRARIES ${MOVEIT_LIB_NAME}
   CATKIN_DEPENDS
     moveit_ros_planning

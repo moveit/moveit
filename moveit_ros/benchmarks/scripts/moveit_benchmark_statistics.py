@@ -529,18 +529,21 @@ def computeViews(dbname):
 
 if __name__ == "__main__":
     usage = """%prog [options] [<benchmark.log> ...]"""
-    parser = OptionParser(usage)
+    parser = OptionParser("A script to parse benchmarking results.\n" + usage)
     parser.add_option("-d", "--database", dest="dbname", default="benchmark.db",
         help="Filename of benchmark database [default: %default]")
     parser.add_option("-v", "--view", action="store_true", dest="view", default=False,
         help="Compute the views for best planner configurations")
     parser.add_option("-p", "--plot", dest="plot", default=None,
-        help="Create a PDF of plots")
+        help="Create a PDF of plots with the filename provided")
     parser.add_option("-m", "--mysql", dest="mysqldb", default=None,
         help="Save SQLite3 database as a MySQL dump file")
     (options, args) = parser.parse_args()
 
-    if len(args)>0:
+    if len(args) == 0:
+	parser.error("No arguments were provided. Please provide full path of log file")
+
+    if len(args) == 1:
         readBenchmarkLog(options.dbname, args)
         # If we update the database, we recompute the views as well
         options.view = True
