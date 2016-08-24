@@ -1,0 +1,7 @@
+\subsubsection usage Usage
+\verbatim
+<node name="ompl_interface_ros" pkg="ompl_interface_ros" type="ompl_interface_ros">
+  <param name="link_for_exploration_tree" type="str" value="" />
+</node>
+\endverbatim
+

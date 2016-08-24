@@ -41,10 +41,10 @@
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <chomp_motion_planner/chomp_cost.h>
 #include <chomp_motion_planner/multivariate_gaussian.h>
-#include <planning_models/robot_model.h>
-#include <planning_scene/planning_scene.h>
-#include <collision_distance_field/collision_robot_hybrid.h>
-#include <collision_distance_field/collision_world_hybrid.h>
+#include <moveit/robot_model/robot_model.h>
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/collision_distance_field/collision_robot_hybrid.h>
+#include <moveit/collision_distance_field/collision_world_hybrid.h>
 
 
 #include <Eigen/Core>
@@ -61,7 +61,7 @@ public:
                  const planning_scene::PlanningSceneConstPtr& planning_scene,
                  const std::string& planning_group,
                  const ChompParameters *parameters,
-                 const planning_models::RobotState& start_state);
+                 const moveit::core::RobotState& start_state);
 
   virtual ~ChompOptimizer();
 
@@ -107,7 +107,7 @@ private:
                    std::string& jointName,
                    Eigen::MatrixBase<Derived>& jacobian) const;
 
-  // void getRandomState(const planning_models::RobotState& currentState,
+  // void getRandomState(const moveit::core::RobotState& currentState,
   //                     const std::string& group_name,
   //                     Eigen::VectorXd& state_vec);
 
@@ -126,14 +126,14 @@ private:
   unsigned int collision_free_iteration_;
 
   ChompTrajectory *full_trajectory_;
-  const planning_models::RobotModelConstPtr& kmodel_;
+  const moveit::core::RobotModelConstPtr& kmodel_;
   std::string planning_group_;
   const ChompParameters *parameters_;
   ChompTrajectory group_trajectory_;
   planning_scene::PlanningSceneConstPtr planning_scene_;
-  planning_models::RobotState *state_;
-  planning_models::RobotState *start_state_;
-  const planning_models::RobotModel::JointModelGroup* joint_model_group_;
+  moveit::core::RobotState state_;
+  moveit::core::RobotState start_state_;
+  const moveit::core::JointModelGroup* joint_model_group_;
   const collision_detection::CollisionWorldHybrid* hy_world_;
   const collision_detection::CollisionRobotHybrid* hy_robot_;
 
@@ -199,7 +199,7 @@ private:
     return (parents.find(parentLink) != parents.end() && parents.at(parentLink));
   }
 
-  void registerParents(const planning_models::RobotModel::JointModel* model);
+  void registerParents(const moveit::core::JointModel* model);
   void initialize();
   void calculateSmoothnessIncrements();
   void calculateCollisionIncrements();
