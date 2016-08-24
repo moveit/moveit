@@ -39,7 +39,6 @@
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/deprecation.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -135,8 +134,8 @@ public:
     */
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                           const ros::Duration &wait_for_servers = ros::Duration());
+  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
+            const ros::Duration &wait_for_servers = ros::Duration());
 
   /**
       \brief Construct a client for the MoveGroup action for a particular \e group.
@@ -150,9 +149,9 @@ public:
   MoveGroup(const std::string &group,
             const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MOVEIT_DEPRECATED MoveGroup(const std::string &group,
-                              const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-                              const ros::Duration &wait_for_servers = ros::Duration());
+  MoveGroup(const std::string &group,
+            const boost::shared_ptr<tf::Transformer> &tf,
+            const ros::Duration &wait_for_servers);
 
   ~MoveGroup();
 

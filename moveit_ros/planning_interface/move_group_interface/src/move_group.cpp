@@ -158,8 +158,8 @@ public:
 
     execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>
                                  (node_handle_, move_group::EXECUTE_ACTION_NAME, false));
-    // TODO: after deprecation period, i.e. for L-turtle, switch back to standard waitForAction function
-    // waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
+    // In Indigo, we maintain backwards compatibility
+    // silently falling back to old service when new action is not available
     waitForExecuteActionOrService(timeout_for_servers);
 
     query_service_ =
@@ -223,17 +223,16 @@ public:
       ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
     }
 
-    // issue warning
+    std::string version = "new action";
     if (!execute_action_client_->isServerConnected())
     {
       if (execute_service_.exists())
-        ROS_WARN_NAMED("planning_interface",
-                       "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
-                       "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in move_group.launch");
+        version = "old service";
       else
         throw std::runtime_error("No Trajectory execution capability available.");
       execute_action_client_.reset();
     }
+    ROS_INFO("TrajectoryExecution will use %s capability.", version.c_str());
   }
 
   ~MoveGroupImpl()
