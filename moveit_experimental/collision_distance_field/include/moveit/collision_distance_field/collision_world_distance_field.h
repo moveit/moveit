@@ -46,25 +46,23 @@ namespace collision_detection {
 class CollisionWorldDistanceField : public CollisionWorld
 {
 public:
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   struct DistanceFieldCacheEntry {
     std::map<std::string, 
              std::vector<PosedBodyPointDecompositionPtr> > posed_body_point_decompositions_;
     boost::shared_ptr<distance_field::DistanceField> distance_field_;
   };
   
-  CollisionWorldDistanceField(double size_x = DEFAULT_SIZE_X, 
-                              double size_y = DEFAULT_SIZE_Y,
-                              double size_z = DEFAULT_SIZE_Z,
+  CollisionWorldDistanceField(Eigen::Vector3d size = Eigen::Vector3d(DEFAULT_SIZE_X,DEFAULT_SIZE_Y,DEFAULT_SIZE_Z),
+                              Eigen::Vector3d origin = Eigen::Vector3d(0,0,0),
                               bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                               double resolution = DEFAULT_RESOLUTION,
                               double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
                               double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE);
 
   explicit CollisionWorldDistanceField(const WorldPtr& world,
-                              double size_x = DEFAULT_SIZE_X, 
-                              double size_y = DEFAULT_SIZE_Y,
-                              double size_z = DEFAULT_SIZE_Z,
+                              Eigen::Vector3d size = Eigen::Vector3d(DEFAULT_SIZE_X,DEFAULT_SIZE_Y,DEFAULT_SIZE_Z),
+                              Eigen::Vector3d origin = Eigen::Vector3d(0,0,0),
                               bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                               double resolution = DEFAULT_RESOLUTION,
                               double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
@@ -144,9 +142,9 @@ public:
     return distance_field_cache_entry_->distance_field_;
   }
 
-  // boost::shared_ptr<const CollisionRobotDistanceField::GroupStateRepresentation> getLastGroupStateRepresentation() const {
-  //   return last_gsr_;
-  // }
+  boost::shared_ptr<const collision_detection::GroupStateRepresentation> getLastGroupStateRepresentation() const {
+     return last_gsr_;
+  }
 
   void getCollisionGradients(const CollisionRequest &req, 
                              CollisionResult &res, 
@@ -183,10 +181,9 @@ protected:
                                         boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   static void notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr& obj, World::Action action);
-                                        
-  double size_x_;
-  double size_y_;
-  double size_z_;
+
+  Eigen::Vector3d size_;
+  Eigen::Vector3d origin_;
   bool use_signed_distance_field_;
   double resolution_;
   double collision_tolerance_;
@@ -194,7 +191,7 @@ protected:
 
   mutable boost::mutex update_cache_lock_;
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
-  //boost::shared_ptr<CollisionRobotDistanceField::GroupStateRepresentation> last_gsr_;  
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> last_gsr_;
   World::ObserverHandle observer_handle_;
 };
 

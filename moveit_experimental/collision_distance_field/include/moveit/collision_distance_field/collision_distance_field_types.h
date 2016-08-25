@@ -45,10 +45,13 @@
 
 #include <geometric_shapes/shapes.h>
 #include <geometric_shapes/bodies.h>
+#include <octomap/OcTree.h>
 
 #include <moveit/distance_field/distance_field.h>
+#include <moveit/distance_field/propagation_distance_field.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <console_bridge/console.h>
+
 
 namespace collision_detection
 {
@@ -103,6 +106,99 @@ struct GradientInfo
   }
 };
 
+
+class PosedDistanceField: public distance_field::PropagationDistanceField
+{
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  PosedDistanceField(const Eigen::Vector3d& size,
+                     const Eigen::Vector3d& origin,
+                     double resolution,
+                     double max_distance,
+                     bool propagate_negative_distances=false):
+                       distance_field::PropagationDistanceField(size.x(),size.y(),size.z(),
+                                resolution,
+                                origin.x(),origin.y(),origin.z(),
+                                max_distance,
+                                propagate_negative_distances)  ,
+                                pose_(Eigen::Affine3d::Identity())
+  {
+
+  }
+
+  void updatePose(const Eigen::Affine3d& transform)
+  {
+    pose_ = transform;
+  }
+
+  const Eigen::Affine3d& getPose() const
+  {
+    return pose_;
+  }
+
+  /**
+   * @brief Gets not only the distance to the nearest cell but the gradient direction. The point
+   * defined by the x, y and z values is transform into the local distance field coordinate system using
+   * the current pose.
+   * The gradient is computed as a function of the distances of near-by cells. An uninitialized
+   *  distance is returned if the cell is not valid for gradient production purposes.
+   * @param x input x value of the query point
+   * @param y input y value of the query point
+   * @param z input z value of the query point
+   * @param gradient_x output argument with the x value of the gradient
+   * @param gradient_y output argument with the y value of the gradient
+   * @param gradient_z output argument with the z value of the gradient
+   * @param in_bounds true if the point is within the bounds of the distance field, false otherwise
+   */
+  double getDistanceGradient(double x,
+                             double y,
+                             double z,
+                             double &gradient_x,
+                             double &gradient_y,
+                             double &gradient_z,
+                             bool &in_bounds) const
+  {
+    Eigen::Vector3d rel_pos = pose_.inverse()*Eigen::Vector3d(x,y,z);
+    double gx, gy, gz;
+    double res = distance_field::PropagationDistanceField::getDistanceGradient(
+        rel_pos.x(),rel_pos.y(),rel_pos.z(),gx,gy,gz,in_bounds);
+    Eigen::Vector3d grad = pose_ * Eigen::Vector3d(gx,gy,gz);
+    gradient_x = grad.x();
+    gradient_y = grad.y();
+    gradient_z = grad.z();
+    return res;
+  }
+
+  /*
+   * @brief determines a set of gradients of the given collision spheres in the distance field
+   * @param sphere_list vector of the spheres that approximate a links geometry
+   * @param sphere_centers vector of points which indicate the center of each sphere in sphere_list
+   * @param gradient output argument to be populated with the resulting gradient calculation
+   * @param tolerance
+   * @param subtract_radii distance to the sphere centers will be computed by substracting the sphere radius from the nearest point
+   * @param maximum_value
+   * @param stop_at_first_collision when true the computation is terminated when the first collision is found
+   */
+  bool getCollisionSphereGradients(const std::vector<CollisionSphere>& sphere_list,
+                                   const EigenSTL::vector_Vector3d& sphere_centers,
+                                   GradientInfo& gradient,
+                                   const CollisionType& type,
+                                   double tolerance,
+                                   bool subtract_radii,
+                                   double maximum_value,
+                                   bool stop_at_first_collision);
+
+protected:
+
+  Eigen::Affine3d pose_;
+};
+
+typedef boost::shared_ptr<PosedDistanceField> PosedDistanceFieldPtr;
+typedef boost::shared_ptr<const PosedDistanceField> PosedDistanceFieldConstPtr;
+
+
+
 //determines set of collision spheres given a posed body; this is BAD! Allocation erorrs will happen; change this function so it does not return that vector by value
 std::vector<CollisionSphere> determineCollisionSpheres(const bodies::Body* body, Eigen::Affine3d& relativeTransform);
 
@@ -143,9 +239,14 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     
-  BodyDecomposition(const shapes::ShapeConstPtr& shape, 
+  BodyDecomposition(const shapes::ShapeConstPtr& shape,
                     double resolution, 
                     double padding = 0.01);
+
+  BodyDecomposition(const std::vector<shapes::ShapeConstPtr>& shapes,
+                    const EigenSTL::vector_Affine3d& poses,
+                    double resolution,
+                    double padding);
 
   ~BodyDecomposition();
 
@@ -173,9 +274,14 @@ public:
     return relative_collision_points_;
   }
 
-  const bodies::Body* getBody() const
+  const bodies::Body* getBody(unsigned int i) const
   {
-    return body_;
+    return bodies_.getBody(i);
+  }
+
+  unsigned int getBodiesCount()
+  {
+    return bodies_.getCount();
   }
 
   Eigen::Affine3d getRelativeCylinderPose() const {
@@ -186,13 +292,21 @@ public:
     return relative_bounding_sphere_;
   }
 
-private:
-  bodies::Body* body_;
+protected:
+
+  void init(const std::vector<shapes::ShapeConstPtr>& shapes,
+            const EigenSTL::vector_Affine3d& poses,
+            double resolution,
+            double padding);
+
+protected:
+  bodies::BodyVector bodies_;
 
   bodies::BoundingSphere relative_bounding_sphere_;
   std::vector<double> sphere_radii_;
   std::vector<CollisionSphere> collision_spheres_;
   EigenSTL::vector_Vector3d relative_collision_points_;
+
 };
 
 typedef boost::shared_ptr<BodyDecomposition> BodyDecompositionPtr;
@@ -201,6 +315,7 @@ typedef boost::shared_ptr<const BodyDecomposition> BodyDecompositionConstPtr;
 class PosedBodySphereDecomposition {
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   PosedBodySphereDecomposition(const BodyDecompositionConstPtr& body_decomposition);
   
@@ -212,6 +327,11 @@ public:
   const EigenSTL::vector_Vector3d& getSphereCenters() const 
   {
     return sphere_centers_;
+  }
+
+  const EigenSTL::vector_Vector3d& getCollisionPoints() const
+  {
+    return posed_collision_points_;
   }
 
   const std::vector<double>& getSphereRadii() const {
@@ -229,29 +349,31 @@ public:
   //the collision spheres, and the posed collision points
   void updatePose(const Eigen::Affine3d& linkTransform);
 
-  void updateSpheresPose(const Eigen::Affine3d& linkTransform);
-
 protected:
 
   BodyDecompositionConstPtr body_decomposition_;
   Eigen::Vector3d posed_bounding_sphere_center_;
+  EigenSTL::vector_Vector3d posed_collision_points_;
   EigenSTL::vector_Vector3d sphere_centers_;
 };
 
 class PosedBodyPointDecomposition {
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition);
 
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition,
                               const Eigen::Affine3d& pose);
 
+  PosedBodyPointDecomposition(boost::shared_ptr<const octomap::OcTree> octree);
+
+
   const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
     return posed_collision_points_;
   }
-
   //the collision spheres, and the posed collision points
   void updatePose(const Eigen::Affine3d& linkTransform);
 
