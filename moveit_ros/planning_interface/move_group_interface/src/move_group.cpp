@@ -136,7 +136,7 @@ public:
 
     ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
     if (wait_for_servers == ros::WallDuration())
-      timeout_for_servers == ros::WallTime(); // wait for ever
+      timeout_for_servers = ros::WallTime(); // wait for ever
     double allotted_time = wait_for_servers.toSec();
 
     move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>
