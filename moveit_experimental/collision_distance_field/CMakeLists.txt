@@ -10,7 +10,7 @@ add_library(${MOVEIT_LIB_NAME}
 )
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_collision_detection_fcl moveit_distance_field ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION lib)
@@ -19,3 +19,6 @@ install(DIRECTORY include/
 
 catkin_add_gtest(test_collision_distance_field test/test_collision_distance_field.cpp)
 target_link_libraries(test_collision_distance_field  ${MOVEIT_LIB_NAME})
+
+add_library(collision_detector_hybrid_plugin src/collision_detector_hybrid_plugin_loader.cpp)
+target_link_libraries(collision_detector_hybrid_plugin ${catkin_LIBRARIES} ${MOVEIT_LIB_NAME})

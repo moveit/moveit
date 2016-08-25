@@ -38,7 +38,7 @@
 #define CHOMP_TRAJECTORY_H_
 
 #include <trajectory_msgs/JointTrajectory.h>
-#include <planning_models/robot_model.h>
+#include <moveit/robot_model/robot_model.h>
 #include <chomp_motion_planner/chomp_utils.h>
 
 #include <vector>
@@ -56,12 +56,12 @@ public:
   /**
    * \brief Constructs a trajectory for a given robot model, trajectory duration, and discretization
    */
-  ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model, double duration, double discretization, std::string groupName);
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration, double discretization, std::string groupName);
 
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
-  ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model, int num_points, double discretization, std::string groupName);
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points, double discretization, std::string groupName);
 
   /**
    * \brief Creates a new containing only the joints of interest, and adds padding to the start
@@ -69,7 +69,7 @@ public:
    */
   ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group, int diff_rule_length);
 
-  ChompTrajectory(const planning_models::RobotModelConstPtr& robot_model,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
                   const std::string& planning_group,
                   const trajectory_msgs::JointTrajectory& traj);
 

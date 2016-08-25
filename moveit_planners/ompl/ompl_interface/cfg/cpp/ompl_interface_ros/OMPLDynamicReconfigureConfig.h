@@ -52,6 +52,7 @@
 
 #include <dynamic_reconfigure/config_tools.h>
 #include <moveit/macros/class_forward.h>
+
 #include <limits>
 #include <ros/node_handle.h>
 #include <dynamic_reconfigure/ConfigDescription.h>

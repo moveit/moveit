@@ -38,21 +38,22 @@
 #define _CHOMP_PLANNER_H_
 
 #include <chomp_motion_planner/chomp_parameters.h>
-#include <moveit_msgs/GetMotionPlan.h>
-#include <planning_scene/planning_scene.h>
+#include <moveit_msgs/MotionPlanDetailedResponse.h>
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace chomp {
 
 class ChompPlanner
 {
 public:
-  ChompPlanner(const planning_models::RobotModelConstPtr& kmodel);
+  ChompPlanner(const moveit::core::RobotModelConstPtr& kmodel);
   virtual ~ChompPlanner(){};
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
+             const moveit_msgs::MotionPlanRequest &req,
              const ChompParameters& params,
-             moveit_msgs::GetMotionPlan::Response &res) const;
+             moveit_msgs::MotionPlanDetailedResponse &res) const;
 
 protected:
 

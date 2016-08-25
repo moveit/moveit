@@ -40,7 +40,7 @@
 #include <moveit/collision_detection/collision_robot.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
-
+#include <moveit/planning_scene/planning_scene.h>
 #include <boost/thread/mutex.hpp>
 
 namespace collision_detection
@@ -60,8 +60,16 @@ class CollisionRobotDistanceField : public CollisionRobot
   friend class CollisionWorldDistanceField;
 
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel);
+
+  CollisionRobotDistanceField(const CollisionRobot& col_robot,const Eigen::Vector3d& size,const Eigen::Vector3d& origin,
+                                                           bool use_signed_distance_field,
+                                                           double resolution,
+                                                           double collision_tolerance,
+                                                           double max_propogation_distance,
+                                                           double padding);
 
   CollisionRobotDistanceField(const robot_model::RobotModelConstPtr& kmodel, 
                               const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
@@ -78,46 +86,46 @@ public:
   CollisionRobotDistanceField(const CollisionRobotDistanceField& other); 
 
   void initialize(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
-                  double size_x, 
-                  double size_y,
-                  double size_z,
+                  const Eigen::Vector3d& size,
+                  const Eigen::Vector3d& origin,
                   bool use_signed_distance_field,
                   double resolution,
                   double collision_tolerance,
                   double max_propogation_distance);
 
+
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const robot_state::RobotState &state) const;
+                                  const moveit::core::RobotState &state) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const robot_state::RobotState &state,
+                          const moveit::core::RobotState &state,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const robot_state::RobotState &state,
+                                  const moveit::core::RobotState &state,
                                   const collision_detection::AllowedCollisionMatrix &acm) const;
 
   void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                           collision_detection::CollisionResult &res, 
-                          const robot_state::RobotState &state,
+                          const moveit::core::RobotState &state,
                           const collision_detection::AllowedCollisionMatrix &acm,
                           boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const robot_state::RobotState &state1, 
-                                  const robot_state::RobotState &state2) const
+                                  const moveit::core::RobotState &state1,
+                                  const moveit::core::RobotState &state2) const
   {
     logWarn("Not implemented");
   };
   
   virtual void checkSelfCollision(const collision_detection::CollisionRequest &req, 
                                   collision_detection::CollisionResult &res, 
-                                  const robot_state::RobotState &state1, 
-                                  const robot_state::RobotState &state2, 
+                                  const moveit::core::RobotState &state1,
+                                  const moveit::core::RobotState &state2,
                                   const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
@@ -125,60 +133,63 @@ public:
   
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const robot_state::RobotState &state,
+                                   const moveit::core::RobotState &state,
                                    const CollisionRobot &other_robot, 
-                                   const robot_state::RobotState &other_state) const
+                                   const moveit::core::RobotState &other_state) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const robot_state::RobotState &state,
+                                   const moveit::core::RobotState &state,
                                    const CollisionRobot &other_robot, 
-                                   const robot_state::RobotState &other_state,
+                                   const moveit::core::RobotState &other_state,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, collision_detection::CollisionResult &res, 
-                                   const robot_state::RobotState &state1, 
-                                   const robot_state::RobotState &state2,
+                                   const moveit::core::RobotState &state1,
+                                   const moveit::core::RobotState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const robot_state::RobotState &other_state1, 
-                                   const robot_state::RobotState &other_state2) const
+                                   const moveit::core::RobotState &other_state1,
+                                   const moveit::core::RobotState &other_state2) const
   {
     logWarn("Not implemented");
   };
 
   virtual void checkOtherCollision(const collision_detection::CollisionRequest &req, 
                                    collision_detection::CollisionResult &res, 
-                                   const robot_state::RobotState &state1, 
-                                   const robot_state::RobotState &state2,
+                                   const moveit::core::RobotState &state1,
+                                   const moveit::core::RobotState &state2,
                                    const CollisionRobot &other_robot, 
-                                   const robot_state::RobotState &other_state1, 
-                                   const robot_state::RobotState &other_state2,
+                                   const moveit::core::RobotState &other_state1,
+                                   const moveit::core::RobotState &other_state2,
                                    const collision_detection::AllowedCollisionMatrix &acm) const
   {
     logWarn("Not implemented");
   };
   
-  virtual double distanceSelf(const robot_state::RobotState &state) const
+  void createCollisionModelMarker(const moveit::core::RobotState& state,
+                                  visualization_msgs::MarkerArray& model_markers) const;
+
+  virtual double distanceSelf(const moveit::core::RobotState &state) const
   {
     return 0.0;
   };
-  virtual double distanceSelf(const robot_state::RobotState &state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceSelf(const moveit::core::RobotState &state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const robot_state::RobotState &state,
-                               const CollisionRobot &other_robot, const robot_state::RobotState &other_state) const
+  virtual double distanceOther(const moveit::core::RobotState &state,
+                               const CollisionRobot &other_robot, const moveit::core::RobotState &other_state) const
   {
     return 0.0;
   };
-  virtual double distanceOther(const robot_state::RobotState &state, const CollisionRobot &other_robot,
-                               const robot_state::RobotState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
+  virtual double distanceOther(const moveit::core::RobotState &state, const CollisionRobot &other_robot,
+                               const moveit::core::RobotState &other_state, const collision_detection::AllowedCollisionMatrix &acm) const
   {
     return 0.0;
   };
@@ -189,9 +200,10 @@ public:
 
   // void getSelfCollisionsGradients(const collision_detection::CollisionRequest &req, 
   //                                 collision_detection::CollisionResult &res, 
-  //                                 const robot_state::RobotState &state, 
+  //                                 const moveit::core::RobotState &state,
   //                                 const collision_detection::AllowedCollisionMatrix &acm) const;  
 protected:
+
 
   bool getSelfProximityGradients(boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
@@ -207,28 +219,28 @@ protected:
 
   void checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
                                 collision_detection::CollisionResult& res,
-                                const robot_state::RobotState& state,
+                                const moveit::core::RobotState& state,
                                 const collision_detection::AllowedCollisionMatrix *acm,
                                 boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  void updateGroupStateRepresentationState(const robot_state::RobotState& state,
+  void updateGroupStateRepresentationState(const moveit::core::RobotState& state,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   void generateCollisionCheckingStructures(const std::string& group_name,
-                                           const robot_state::RobotState& state,
+                                           const moveit::core::RobotState& state,
                                            const collision_detection::AllowedCollisionMatrix *acm,
                                            boost::shared_ptr<GroupStateRepresentation>& gsr,
                                            bool generate_distance_field) const;
 
   boost::shared_ptr<const DistanceFieldCacheEntry> 
   getDistanceFieldCacheEntry(const std::string& group_name,
-                             const robot_state::RobotState& state,
+                             const moveit::core::RobotState& state,
                              const collision_detection::AllowedCollisionMatrix *acm) const;
   
 
   boost::shared_ptr<DistanceFieldCacheEntry> 
   generateDistanceFieldCacheEntry(const std::string& group_name,
-                                  const robot_state::RobotState& state,
+                                  const moveit::core::RobotState& state,
                                   const collision_detection::AllowedCollisionMatrix *acm,
                                   bool generate_distance_field) const;
     
@@ -238,17 +250,17 @@ protected:
                                  const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions);
 
   PosedBodySphereDecompositionPtr 
-  getPosedLinkBodySphereDecomposition(const robot_state::LinkState* ls,
+  getPosedLinkBodySphereDecomposition(const moveit::core::LinkModel* ls,
                                       unsigned int ind) const;
 
-  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const robot_state::LinkState* ls) const;
+  PosedBodyPointDecompositionPtr getPosedLinkBodyPointDecomposition(const moveit::core::LinkModel* ls) const;
 
   void getGroupStateRepresentation(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                   const robot_state::RobotState& state,
+                                   const moveit::core::RobotState& state,
                                    boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
   bool compareCacheEntryToState(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
-                                const robot_state::RobotState& state) const;
+                                const moveit::core::RobotState& state) const;
 
   bool compareCacheEntryToAllowedCollisionMatrix(const boost::shared_ptr<const DistanceFieldCacheEntry>& dfce, 
                                                  const collision_detection::AllowedCollisionMatrix& acm) const;
@@ -256,9 +268,9 @@ protected:
   virtual void updatedPaddingOrScaling(const std::vector<std::string> &links)
   {};
   
-  double size_x_;
-  double size_y_;
-  double size_z_;
+
+  Eigen::Vector3d size_;
+  Eigen::Vector3d origin_;
   bool use_signed_distance_field_;
   double resolution_;
   double collision_tolerance_;
@@ -271,6 +283,8 @@ protected:
   boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;  
   std::map<std::string, std::map<std::string, bool> > in_group_update_map_;
   std::map<std::string, boost::shared_ptr<GroupStateRepresentation> > pregenerated_group_state_representation_map_;
+
+  planning_scene::PlanningScenePtr planning_scene_;
 };
 
 }

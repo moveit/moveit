@@ -73,7 +73,6 @@ struct ConstraintApproximation
 };
 
 MOVEIT_DECLARE_PTR(ConstraintApproximations, std::vector<ConstraintApproximation>)
-
 }
 
 #endif

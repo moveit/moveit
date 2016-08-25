@@ -51,7 +51,8 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
 {
   
 public:
-  
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
 
   CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel, 
@@ -77,7 +78,8 @@ public:
                                     double collision_tolerance,
                                     double max_propogation_distance)
   {
-    crobot_distance_->initialize(link_body_decompositions, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
+    crobot_distance_->initialize(link_body_decompositions,Eigen::Vector3d(size_x,size_y,size_z),Eigen::Vector3d(0,0,0),
+                                 use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
   }
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 

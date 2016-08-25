@@ -34,18 +34,18 @@
 
 /* Author: E. Gil Jones */
 
-#include <chomp_interface_ros/chomp_interface_ros.h>
+#include <chomp_interface/chomp_interface.h>
 
-namespace chomp_interface_ros
+namespace chomp_interface
 {
 
-CHOMPInterfaceROS::CHOMPInterfaceROS(const planning_models::RobotModelConstPtr& kmodel) :
-  ChompPlanner(kmodel), nh_("~")
+CHOMPInterface::CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel) :
+    ChompPlanner(kmodel)
 {
   loadParams();
 }
 
-void CHOMPInterfaceROS::loadParams() {
+void CHOMPInterface::loadParams() {
   nh_.param("planning_time_limit", params_.planning_time_limit_, 6.0);
   nh_.param("max_iterations", params_.max_iterations_, 50);
   nh_.param("max_iterations_after_collision_free", params_.max_iterations_after_collision_free_, 5);

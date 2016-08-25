@@ -48,19 +48,17 @@ class CollisionRobotHybrid;
 class CollisionWorldHybrid : public CollisionWorldFCL
 {
 public:
-
-  CollisionWorldHybrid(double size_x = 3.0, 
-                       double size_y = 3.0,
-                       double size_z = 4.0,
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  CollisionWorldHybrid(Eigen::Vector3d size = Eigen::Vector3d(3,3,4),
+                       Eigen::Vector3d origin  = Eigen::Vector3d(0,0,0),
                        bool use_signed_distance_field = false,
                        double resolution = .02,
                        double collision_tolerance = 0.0,
                        double max_propogation_distance = .25);
 
   explicit CollisionWorldHybrid(const WorldPtr& world,
-                       double size_x = 3.0, 
-                       double size_y = 3.0,
-                       double size_z = 4.0,
+                       Eigen::Vector3d size = Eigen::Vector3d(3,3,4),
+                       Eigen::Vector3d origin  = Eigen::Vector3d(0,0,0),
                        bool use_signed_distance_field = false,
                        double resolution = .02,
                        double collision_tolerance = 0.0,
