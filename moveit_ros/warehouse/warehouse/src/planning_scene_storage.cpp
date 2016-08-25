@@ -151,7 +151,8 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(const 
     {
       id = "Motion Plan Request " + boost::lexical_cast<std::string>(index);
       index++;
-    } while (used.find(id) != used.end());
+    }
+    while (used.find(id) != used.end());
   }
   Metadata::Ptr metadata = motion_plan_request_collection_->createMetadata();
   metadata->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -286,7 +287,7 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(std::vector<Moti
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results,
-                                const std::string &scene_name, const moveit_msgs::MotionPlanRequest &planning_query) const
+    const std::string &scene_name, const moveit_msgs::MotionPlanRequest &planning_query) const
 {
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
   if (id.empty())
@@ -296,7 +297,7 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<Robo
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(std::vector<RobotTrajectoryWithMetadata> &planning_results,
-                                const std::string &scene_name, const std::string &planning_query) const
+    const std::string &scene_name, const std::string &planning_query) const
 {
   Query::Ptr q = robot_trajectory_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);

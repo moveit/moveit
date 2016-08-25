@@ -64,16 +64,16 @@ namespace kinematics
  */
 namespace DiscretizationMethods
 {
-  enum DiscretizationMethod
-  {
-    NO_DISCRETIZATION = 1,      /**< The redundant joints will be fixed at their current value. */
-    ALL_DISCRETIZED ,           /**< All redundant joints will be discretized uniformly */
-    SOME_DISCRETIZED,           /**< Some redundant joints will be discretized uniformly. The unused redundant joints will be fixed at their
+enum DiscretizationMethod
+{
+  NO_DISCRETIZATION = 1,      /**< The redundant joints will be fixed at their current value. */
+  ALL_DISCRETIZED ,           /**< All redundant joints will be discretized uniformly */
+  SOME_DISCRETIZED,           /**< Some redundant joints will be discretized uniformly. The unused redundant joints will be fixed at their
                                      current value */
-    ALL_RANDOM_SAMPLED ,        /**< the discretization for each redundant joint will be randomly generated.*/
-    SOME_RANDOM_SAMPLED         /**< the discretization for some redundant joint will be randomly generated.
+  ALL_RANDOM_SAMPLED ,        /**< the discretization for each redundant joint will be randomly generated.*/
+  SOME_RANDOM_SAMPLED         /**< the discretization for some redundant joint will be randomly generated.
                                      The unused redundant joints will be fixed at their current value. */
-  };
+};
 }
 typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
 
@@ -83,19 +83,19 @@ typedef DiscretizationMethods::DiscretizationMethod DiscretizationMethod;
  */
 namespace KinematicErrors
 {
-  enum KinematicError
-  {
-    OK = 1,                                     /**< No errors*/
-    UNSUPORTED_DISCRETIZATION_REQUESTED,        /**< Discretization method isn't supported by this implementation */
-    DISCRETIZATION_NOT_INITIALIZED,             /**< Discretization values for the redundancy has not been set. See
+enum KinematicError
+{
+  OK = 1,                                     /**< No errors*/
+  UNSUPORTED_DISCRETIZATION_REQUESTED,        /**< Discretization method isn't supported by this implementation */
+  DISCRETIZATION_NOT_INITIALIZED,             /**< Discretization values for the redundancy has not been set. See
                                                      setSearchDiscretization(...) method*/
-    MULTIPLE_TIPS_NOT_SUPPORTED,                 /**< Only single tip link support is allowed */
-    EMPTY_TIP_POSES,                            /**< Empty ik_poses array passed */
-    IK_SEED_OUTSIDE_LIMITS,                                /**< Ik seed is out of bounds*/
-    SOLVER_NOT_ACTIVE,                          /**< Solver isn't active */
-    NO_SOLUTION                                 /**< A valid joint solution that can reach this pose(s) could not be found */
+  MULTIPLE_TIPS_NOT_SUPPORTED,                 /**< Only single tip link support is allowed */
+  EMPTY_TIP_POSES,                            /**< Empty ik_poses array passed */
+  IK_SEED_OUTSIDE_LIMITS,                                /**< Ik seed is out of bounds*/
+  SOLVER_NOT_ACTIVE,                          /**< Solver isn't active */
+  NO_SOLUTION                                 /**< A valid joint solution that can reach this pose(s) could not be found */
 
-  };
+};
 }
 typedef KinematicErrors::KinematicError KinematicError;
 
@@ -128,9 +128,9 @@ struct KinematicsQueryOptions
  */
 struct KinematicsResult
 {
-	KinematicError kinematic_error;         /**< Error code that indicates the type of failure */
-	double solution_percentage;             /**< The percentage of solutions achieved over the total number
-	                                             of solutions explored. */
+  KinematicError kinematic_error;         /**< Error code that indicates the type of failure */
+  double solution_percentage;             /**< The percentage of solutions achieved over the total number
+                                               of solutions explored. */
 };
 
 MOVEIT_CLASS_FORWARD(KinematicsBase);
@@ -310,23 +310,23 @@ public:
       if (solution_callback)
       {
         return searchPositionIK(ik_poses[0],
-          ik_seed_state,
-          timeout,
-          consistency_limits,
-          solution,
-          solution_callback,
-          error_code,
-          options);
+                                ik_seed_state,
+                                timeout,
+                                consistency_limits,
+                                solution,
+                                solution_callback,
+                                error_code,
+                                options);
       }
       else
       {
         return searchPositionIK(ik_poses[0],
-          ik_seed_state,
-          timeout,
-          consistency_limits,
-          solution,
-          error_code,
-          options);
+                                ik_seed_state,
+                                timeout,
+                                consistency_limits,
+                                solution,
+                                error_code,
+                                options);
       }
     }
 
@@ -416,10 +416,10 @@ public:
     if (tip_frames.size() == 1)
     {
       return initialize(robot_description,
-        group_name,
-        base_frame,
-        tip_frames[0],
-        search_discretization);
+                        group_name,
+                        base_frame,
+                        tip_frames[0],
+                        search_discretization);
     }
 
     logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip frames");
@@ -525,7 +525,7 @@ public:
    * \return True if the group is supported, false if not.
    */
   virtual bool supportsGroup(const moveit::core::JointModelGroup *jmg,
-                                   std::string* error_text_out = NULL) const;
+                             std::string* error_text_out = NULL) const;
 
   /**
    * @brief  Set the search discretization value for all the redundant joints
@@ -533,8 +533,8 @@ public:
   void setSearchDiscretization(double sd)
   {
     redundant_joint_discretization_.clear();
-    for(std::vector<unsigned int>::iterator i = redundant_joint_indices_.begin();
-       i != redundant_joint_indices_.end();i++)
+    for (std::vector<unsigned int>::iterator i = redundant_joint_indices_.begin();
+         i != redundant_joint_indices_.end(); i++)
     {
       redundant_joint_discretization_[*i] = sd;
     }
@@ -547,12 +547,12 @@ public:
    *
    * @param discretization a map of joint indices and discretization value pairs.
    */
-  void setSearchDiscretization(const std::map<int,double>& discretization)
+  void setSearchDiscretization(const std::map<int, double>& discretization)
   {
     redundant_joint_discretization_.clear();
     redundant_joint_indices_.clear();
-    for(std::map<int,double>::const_iterator i = discretization.begin();
-        i != discretization.end() ; i++)
+    for (std::map<int, double>::const_iterator i = discretization.begin();
+         i != discretization.end() ; i++)
     {
       redundant_joint_discretization_.insert(*i);
       redundant_joint_indices_.push_back(i->first);
@@ -564,7 +564,7 @@ public:
    */
   double getSearchDiscretization(int joint_index = 0) const
   {
-    if(redundant_joint_discretization_.count(joint_index) > 0)
+    if (redundant_joint_discretization_.count(joint_index) > 0)
     {
       return redundant_joint_discretization_.at(joint_index);
     }
@@ -604,7 +604,7 @@ public:
 
   KinematicsBase() :
     tip_frame_("DEPRECATED"), // help users understand why this variable might not be set
-                              // (if multiple tip frames provided, this variable will be unset)
+    // (if multiple tip frames provided, this variable will be unset)
     search_discretization_(DEFAULT_SEARCH_DISCRETIZATION),
     default_timeout_(DEFAULT_TIMEOUT)
   {
@@ -619,16 +619,16 @@ protected:
   std::string base_frame_;
   std::vector<std::string> tip_frames_;
   std::string tip_frame_; // DEPRECATED - this variable only still exists for backwards compatibility with
-                          // previously generated custom ik solvers like IKFast
+  // previously generated custom ik solvers like IKFast
 
   double search_discretization_; // DEPRECATED - this variable only still exists for backwards compatibility
-                                 // with previous implementations.  Discretization values for each joint are
-                                 // now stored in the redundant_joint_discretization_ member
+  // with previous implementations.  Discretization values for each joint are
+  // now stored in the redundant_joint_discretization_ member
 
 
   double default_timeout_;
   std::vector<unsigned int> redundant_joint_indices_;
-  std::map<int,double> redundant_joint_discretization_;
+  std::map<int, double> redundant_joint_discretization_;
   std::vector<DiscretizationMethod> supported_methods_;
 
 private:

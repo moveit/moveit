@@ -51,7 +51,7 @@ protected:
   virtual void SetUp()
   {
     std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
+    if (resource_dir == "")
     {
       FAIL() << "Failed to find package moveit_resources.";
       return;
@@ -186,7 +186,7 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
 
   bool found_shoulder_pan_link = false;
   bool found_wrist_roll_link = false;
-  for(unsigned int i = 0; i < left_arm_base_tip_group->getLinkModels().size(); i++)
+  for (unsigned int i = 0; i < left_arm_base_tip_group->getLinkModels().size(); i++)
   {
     if (left_arm_base_tip_group->getLinkModels()[i]->getName() == "l_shoulder_pan_link")
     {
@@ -253,7 +253,7 @@ TEST_F(LoadPlanningModelsPr2, FullTest)
 
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Affine3d poses;
-  shapes::Shape* shape = new shapes::Box(.1,.1,.1);
+  shapes::Shape* shape = new shapes::Box(.1, .1, .1);
   shapes.push_back(shapes::ShapeConstPtr(shape));
   poses.push_back(Eigen::Affine3d::Identity());
   std::set<std::string> touch_links;

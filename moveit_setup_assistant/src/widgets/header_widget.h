@@ -56,7 +56,7 @@ class HeaderWidget : public QWidget
 public:
 
   /// Contructor
-  HeaderWidget( const std::string &title, const std::string &instructions, QWidget *parent );
+  HeaderWidget(const std::string &title, const std::string &instructions, QWidget *parent);
 };
 
 
@@ -69,7 +69,7 @@ class LoadPathWidget : public QFrame
 {
   Q_OBJECT
 
-  private:
+private:
   // Only allow user to select folders
   bool dir_only_;
   // Only allow user to load files (not save)
@@ -84,8 +84,8 @@ private Q_SLOTS:
 public:
 
   /// Constructor
-  LoadPathWidget( const std::string &title, const std::string &instructions,
-                  const bool dir_only = false, const bool load_only = false, QWidget * parent=0 );
+  LoadPathWidget(const std::string &title, const std::string &instructions,
+                 const bool dir_only = false, const bool load_only = false, QWidget * parent = 0);
 
   /// Returns the file path in QString format
   const QString getQPath();
@@ -94,10 +94,10 @@ public:
   const std::string getPath();
 
   /// Set the path with QString
-  void setPath( const QString &path );
+  void setPath(const QString &path);
 
   /// Set the path with std string
-  void setPath( const std::string &path );
+  void setPath(const std::string &path);
 };
 
 

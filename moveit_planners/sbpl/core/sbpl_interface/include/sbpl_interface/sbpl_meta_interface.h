@@ -49,13 +49,14 @@ class SBPLMetaInterface
 public:
 
   SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel);
-  virtual ~SBPLMetaInterface(){}
+  virtual ~SBPLMetaInterface() {}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
              const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res);
 
-  const PlanningStatistics& getLastPlanningStatistics() const {
+  const PlanningStatistics& getLastPlanningStatistics() const
+  {
     return last_planning_statistics_;
   }
 

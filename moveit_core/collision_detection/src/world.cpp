@@ -52,16 +52,16 @@ collision_detection::World::~World()
 }
 
 inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj,
-                                                            const shapes::ShapeConstPtr &shape,
-                                                            const Eigen::Affine3d &pose)
+    const shapes::ShapeConstPtr &shape,
+    const Eigen::Affine3d &pose)
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
 void collision_detection::World::addToObject(const std::string &id,
-                                             const std::vector<shapes::ShapeConstPtr> &shapes,
-                                             const EigenSTL::vector_Affine3d &poses)
+    const std::vector<shapes::ShapeConstPtr> &shapes,
+    const EigenSTL::vector_Affine3d &poses)
 {
   if (shapes.size() != poses.size())
   {
@@ -75,7 +75,8 @@ void collision_detection::World::addToObject(const std::string &id,
   int action = ADD_SHAPE;
 
   ObjectPtr& obj = objects_[id];
-  if (!obj) {
+  if (!obj)
+  {
     obj.reset(new Object(id));
     action |= CREATE;
   }
@@ -89,13 +90,14 @@ void collision_detection::World::addToObject(const std::string &id,
 }
 
 void collision_detection::World::addToObject(const std::string &id,
-                                             const shapes::ShapeConstPtr &shape,
-                                             const Eigen::Affine3d &pose)
+    const shapes::ShapeConstPtr &shape,
+    const Eigen::Affine3d &pose)
 {
   int action = ADD_SHAPE;
 
   ObjectPtr& obj = objects_[id];
-  if (!obj) {
+  if (!obj)
+  {
     obj.reset(new Object(id));
     action |= CREATE;
   }
@@ -135,8 +137,8 @@ bool collision_detection::World::hasObject(const std::string &id) const
 }
 
 bool collision_detection::World::moveShapeInObject(const std::string &id,
-                                                   const shapes::ShapeConstPtr &shape,
-                                                   const Eigen::Affine3d &pose)
+    const shapes::ShapeConstPtr &shape,
+    const Eigen::Affine3d &pose)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -156,7 +158,7 @@ bool collision_detection::World::moveShapeInObject(const std::string &id,
 }
 
 bool collision_detection::World::removeShapeFromObject(const std::string &id,
-                                                       const shapes::ShapeConstPtr &shape)
+    const shapes::ShapeConstPtr &shape)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())

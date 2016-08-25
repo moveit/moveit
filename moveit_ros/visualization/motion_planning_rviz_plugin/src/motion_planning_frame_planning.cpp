@@ -122,7 +122,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
 
     // Success
     ui_->result_label->setText(QString("Time: ").append(
-        QString::number(current_plan_->planning_time_,'f',3)));
+                                 QString::number(current_plan_->planning_time_, 'f', 3)));
   }
   else
   {
@@ -167,9 +167,9 @@ void MotionPlanningFrame::computeStopButtonClicked()
 void MotionPlanningFrame::onFinishedExecution(bool success)
 {
   // visualize result of execution
-  if (success) 
+  if (success)
     ui_->result_label->setText("Executed");
-  else 
+  else
     ui_->result_label->setText(!ui_->stop_button->isEnabled() ? "Stopped" : "Failed");
   // disable stop button
   ui_->stop_button->setEnabled(false);
@@ -208,7 +208,7 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
     configureWorkspace();
 
     if (const robot_model::JointModelGroup *jmg =
-        state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
+          state.getJointModelGroup(planning_display_->getCurrentPlanningGroup()))
     {
       // Loop until a collision free state is found
       static const int MAX_ATTEMPTS = 100;
@@ -277,19 +277,18 @@ void MotionPlanningFrame::populatePlannersList(const moveit_msgs::PlannerInterfa
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       if (desc.planner_ids[i] == group)
         found_group = true;
-      else
-        if (desc.planner_ids[i].substr(0, group.length()) == group)
+      else if (desc.planner_ids[i].substr(0, group.length()) == group)
+      {
+        if (desc.planner_ids[i].size() > group.length() && desc.planner_ids[i][group.length()] == '[')
         {
-          if (desc.planner_ids[i].size() > group.length() && desc.planner_ids[i][group.length()] == '[')
+          std::string id = desc.planner_ids[i].substr(group.length());
+          if (id.size() > 2)
           {
-            std::string id = desc.planner_ids[i].substr(group.length());
-            if (id.size() > 2)
-            {
-              id.resize(id.length() - 1);
-              ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
-            }
+            id.resize(id.length() - 1);
+            ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(id.substr(1)));
           }
         }
+      }
   if (ui_->planning_algorithm_combo_box->count() == 0 && !found_group)
     for (std::size_t i = 0 ; i < desc.planner_ids.size() ; ++i)
       ui_->planning_algorithm_combo_box->addItem(QString::fromStdString(desc.planner_ids[i]));
@@ -367,13 +366,12 @@ void MotionPlanningFrame::configureWorkspace()
         jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
         jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
       }
-      else
-        if (jm[i]->getType() == robot_model::JointModel::FLOATING)
-        {
-          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
-          jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[2], bz);
-        }
+      else if (jm[i]->getType() == robot_model::JointModel::FLOATING)
+      {
+        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[0], bx);
+        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[1], by);
+        jm[i]->setVariableBounds(jm[i]->getName() + "/" + jm[i]->getLocalVariableNames()[2], bz);
+      }
   }
 }
 

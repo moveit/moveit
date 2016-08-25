@@ -109,10 +109,10 @@ public:
   /// process - called when the marker moves.  Updates the robot state.  See
   ///              comment on ProcessFeedbackFn above.
   void addActiveComponent(
-        const InteractiveMarkerConstructorFn &construct,
-        const ProcessFeedbackFn &process,
-        const InteractiveMarkerUpdateFn &update = InteractiveMarkerUpdateFn(),
-        const std::string &name = "");
+    const InteractiveMarkerConstructorFn &construct,
+    const ProcessFeedbackFn &process,
+    const InteractiveMarkerUpdateFn &update = InteractiveMarkerUpdateFn(),
+    const std::string &name = "");
 
   /// Adds an interaction for:
   ///  - each end effector in the group that can be controller by IK
@@ -136,17 +136,17 @@ public:
   /// The markers are not actually added until you call
   /// publishInteractiveMarkers().
   void addInteractiveMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler,
-        const double marker_scale = 0.0);
+    const ::robot_interaction::InteractionHandlerPtr &handler,
+    const double marker_scale = 0.0);
 
   // Update pose of all interactive markers to match the handler's RobotState.
   // Call this when the handler's RobotState changes.
   void updateInteractiveMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler);
+    const ::robot_interaction::InteractionHandlerPtr &handler);
 
   // True if markers are being shown for this handler.
   bool showingMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler);
+    const ::robot_interaction::InteractionHandlerPtr &handler);
 
   // Display all markers that have been added.
   // This is needed after calls to addInteractiveMarkers() to publish the
@@ -160,11 +160,17 @@ public:
   // is needed to actually remove the markers from the display.
   void clearInteractiveMarkers();
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const { return robot_model_; }
+  const robot_model::RobotModelConstPtr& getRobotModel() const
+  {
+    return robot_model_;
+  }
 
   // Get the kinematic options map.
   // Use this to set kinematic options (defaults or per-group).
-  KinematicOptionsMapPtr getKinematicOptionsMap() { return kinematic_options_map_; }
+  KinematicOptionsMapPtr getKinematicOptionsMap()
+  {
+    return kinematic_options_map_;
+  }
 
   // enable/disable subscription of the topics to move interactive marker
   void toggleMoveInteractiveMarkerTopic(bool enable);
@@ -190,27 +196,27 @@ private:
   // the links in this group
   double computeGroupMarkerSize(const std::string &group);
   void computeMarkerPose(
-        const ::robot_interaction::InteractionHandlerPtr &handler,
-        const EndEffectorInteraction &eef,
-        const robot_state::RobotState &robot_state,
-        geometry_msgs::Pose &pose,
-        geometry_msgs::Pose &control_to_eef_tf) const;
+    const ::robot_interaction::InteractionHandlerPtr &handler,
+    const EndEffectorInteraction &eef,
+    const robot_state::RobotState &robot_state,
+    geometry_msgs::Pose &pose,
+    geometry_msgs::Pose &control_to_eef_tf) const;
 
   void addEndEffectorMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler,
-        const EndEffectorInteraction& eef,
-        visualization_msgs::InteractiveMarker& im,
-        bool position = true,
-        bool orientation = true);
+    const ::robot_interaction::InteractionHandlerPtr &handler,
+    const EndEffectorInteraction& eef,
+    visualization_msgs::InteractiveMarker& im,
+    bool position = true,
+    bool orientation = true);
   void addEndEffectorMarkers(
-        const ::robot_interaction::InteractionHandlerPtr &handler,
-        const EndEffectorInteraction& eef,
-        const geometry_msgs::Pose& offset,
-        visualization_msgs::InteractiveMarker& im,
-        bool position = true,
-        bool orientation = true);
+    const ::robot_interaction::InteractionHandlerPtr &handler,
+    const EndEffectorInteraction& eef,
+    const geometry_msgs::Pose& offset,
+    visualization_msgs::InteractiveMarker& im,
+    bool position = true,
+    bool orientation = true);
   void processInteractiveMarkerFeedback(
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+    const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
   void subscribeMoveInteractiveMarker(const std::string marker_name, const std::string& name);
   void processingThread();
   void clearInteractiveMarkersUnsafe();
@@ -297,15 +303,15 @@ public:
   }
   // DEPRECATED
   static bool updateState(
-            robot_state::RobotState &state,
-            const EndEffectorInteraction &eef,
-            const geometry_msgs::Pose &pose,
-            unsigned int attempts,
-            double ik_timeout,
-            const robot_state::GroupStateValidityCallbackFn &validity_callback =
-                                robot_state::GroupStateValidityCallbackFn(),
-            const kinematics::KinematicsQueryOptions &kinematics_query_options =
-                                kinematics::KinematicsQueryOptions());
+    robot_state::RobotState &state,
+    const EndEffectorInteraction &eef,
+    const geometry_msgs::Pose &pose,
+    unsigned int attempts,
+    double ik_timeout,
+    const robot_state::GroupStateValidityCallbackFn &validity_callback =
+      robot_state::GroupStateValidityCallbackFn(),
+    const kinematics::KinematicsQueryOptions &kinematics_query_options =
+      kinematics::KinematicsQueryOptions());
 };
 
 typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;

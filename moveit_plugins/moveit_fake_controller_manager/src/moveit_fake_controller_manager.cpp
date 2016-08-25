@@ -102,7 +102,7 @@ public:
           joints.push_back(std::string(controller_list[i]["joints"][j]));
 
         const std::string &type =
-            controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
+          controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
         if (type == "last point")
           controllers_[name].reset(new LastPointController(name, joints, pub_));
         else if (type == "via points")

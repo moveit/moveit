@@ -122,7 +122,7 @@ public:
       if (good)
       {
         result.push_back(response.scene.world.collision_objects[i].id);
-        if(with_type)
+        if (with_type)
           types.push_back(response.scene.world.collision_objects[i].type.key);
       }
     }
@@ -148,7 +148,7 @@ public:
         if (response.scene.world.collision_objects[i].mesh_poses.empty() &&
             response.scene.world.collision_objects[i].primitive_poses.empty())
           continue;
-        if(!response.scene.world.collision_objects[i].mesh_poses.empty())
+        if (!response.scene.world.collision_objects[i].mesh_poses.empty())
           result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].mesh_poses[0];
         else
           result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].primitive_poses[0];
@@ -214,7 +214,7 @@ public:
   {
     moveit_msgs::PlanningScene planning_scene;
     moveit_msgs::CollisionObject object;
-    for(std::size_t i=0; i < object_ids.size(); ++i)
+    for (std::size_t i = 0; i < object_ids.size(); ++i)
     {
       object.id = object_ids[i];
       object.operation = object.REMOVE;

@@ -61,8 +61,8 @@ public:
   explicit NavigationWidget(QWidget *parent = 0);
 
   void setNavs(const QList<QString> &navs);
-  void setEnabled( const int &index, bool enabled );
-  void setSelected( const int &index );
+  void setEnabled(const int &index, bool enabled);
+  void setSelected(const int &index);
 
 private:
   QStandardItemModel *model_;
@@ -79,7 +79,7 @@ private:
 class NavDelegate : public QStyledItemDelegate
 {
   Q_OBJECT
-  public:
+public:
   explicit NavDelegate(QObject *parent = 0);
 
   QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;

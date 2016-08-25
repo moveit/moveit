@@ -53,7 +53,7 @@ protected:
   virtual void SetUp()
   {
     std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
+    if (resource_dir == "")
     {
       FAIL() << "Failed to find package moveit_resources.";
       return;
@@ -105,7 +105,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
     ss.sanityChecks();
     passed = true;
   }
-  catch(ompl::Exception &ex)
+  catch (ompl::Exception &ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -148,7 +148,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     ss.sanityChecks();
     passed = true;
   }
-  catch(ompl::Exception &ex)
+  catch (ompl::Exception &ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -178,6 +178,6 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 
 int main(int argc, char **argv)
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

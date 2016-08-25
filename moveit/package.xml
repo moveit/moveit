@@ -20,6 +20,7 @@
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslint</build_depend>
   <run_depend>moveit_commander</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_planners</run_depend>

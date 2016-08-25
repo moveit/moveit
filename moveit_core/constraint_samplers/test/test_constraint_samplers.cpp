@@ -76,7 +76,7 @@ protected:
   virtual void SetUp()
   {
     std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
+    if (resource_dir == "")
     {
       FAIL() << "Failed to find package moveit_resources.";
       return;
@@ -88,10 +88,10 @@ protected:
     std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
-      while ( xml_file.good() )
+      while (xml_file.good())
       {
         std::string line;
-        std::getline( xml_file, line);
+        std::getline(xml_file, line);
         xml_string += (line + "\n");
       }
       xml_file.close();
@@ -104,19 +104,19 @@ protected:
 
     pr2_kinematics_plugin_right_arm_->setRobotModel(urdf_model);
     pr2_kinematics_plugin_right_arm_->initialize("",
-                                                 "right_arm",
-                                                 "torso_lift_link",
-                                                 "r_wrist_roll_link",
-                                                 .01);
+        "right_arm",
+        "torso_lift_link",
+        "r_wrist_roll_link",
+        .01);
 
     pr2_kinematics_plugin_left_arm_.reset(new pr2_arm_kinematics::PR2ArmKinematicsPlugin);
 
     pr2_kinematics_plugin_left_arm_->setRobotModel(urdf_model);
     pr2_kinematics_plugin_left_arm_->initialize("",
-                                                "left_arm",
-                                                "torso_lift_link",
-                                                "l_wrist_roll_link",
-                                                .01);
+        "left_arm",
+        "torso_lift_link",
+        "l_wrist_roll_link",
+        .01);
 
     func_right_arm = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverRightArm, this, _1);
     func_left_arm  = boost::bind(&LoadPlanningModelsPr2::getKinematicsSolverLeftArm, this, _1);
@@ -721,7 +721,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
   ASSERT_TRUE(static_cast<bool>(iks->getOrientationConstraint()));
-  EXPECT_NEAR(iks->getOrientationConstraint()->getXAxisTolerance(),.1, .0001);
+  EXPECT_NEAR(iks->getOrientationConstraint()->getXAxisTolerance(), .1, .0001);
 }
 
 TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)

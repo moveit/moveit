@@ -53,7 +53,7 @@ void move_group::MoveGroupMoveAction::initialize()
 {
   // start the move action server
   move_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction>(root_node_handle_, MOVE_ACTION,
-                                                                                            boost::bind(&MoveGroupMoveAction::executeMoveCallback, this, _1), false));
+                            boost::bind(&MoveGroupMoveAction::executeMoveCallback, this, _1), false));
   move_action_server_->registerPreemptCallback(boost::bind(&MoveGroupMoveAction::preemptMoveCallback, this));
   move_action_server_->start();
 }
@@ -100,7 +100,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
     // check to see if the desired constraints are already met
     for (std::size_t i = 0 ; i < goal->request.goal_constraints.size() ; ++i)
       if (lscene->isStateConstrained(current_state, kinematic_constraints::mergeConstraints(goal->request.goal_constraints[i],
-                                                                                            goal->request.path_constraints)))
+                                     goal->request.path_constraints)))
       {
         ROS_INFO("Goal constraints are already satisfied. No need to plan or execute any motions");
         action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -111,9 +111,9 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   plan_execution::PlanExecution::Options opt;
 
   const moveit_msgs::MotionPlanRequest &motion_plan_request = planning_scene::PlanningScene::isEmpty(goal->request.start_state) ?
-    goal->request : clearRequestStartState(goal->request);
+      goal->request : clearRequestStartState(goal->request);
   const moveit_msgs::PlanningScene &planning_scene_diff = planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
-    goal->planning_options.planning_scene_diff : clearSceneRobotState(goal->planning_options.planning_scene_diff);
+      goal->planning_options.planning_scene_diff : clearSceneRobotState(goal->planning_options.planning_scene_diff);
 
   opt.replan_ = goal->planning_options.replan;
   opt.replan_attempts_ = goal->planning_options.replan_attempts;
@@ -143,18 +143,18 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
 
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_); // lock the scene so that it does not modify the world representation while diff() is called
   const planning_scene::PlanningSceneConstPtr &the_scene = (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
-    static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) : lscene->diff(goal->planning_options.planning_scene_diff);
+      static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) : lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
   try
   {
     context_->planning_pipeline_->generatePlan(the_scene, goal->request, res);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR("Planning pipeline threw an exception");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
@@ -176,12 +176,12 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
   {
     solved = context_->planning_pipeline_->generatePlan(plan.planning_scene_, req, res);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR("Planning pipeline threw an exception");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;

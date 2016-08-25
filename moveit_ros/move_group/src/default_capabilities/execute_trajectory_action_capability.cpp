@@ -41,7 +41,8 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 
-namespace move_group {
+namespace move_group
+{
 
 MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() :
   MoveGroupCapability("ExecuteTrajectoryAction")

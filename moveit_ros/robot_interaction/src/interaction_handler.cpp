@@ -56,67 +56,67 @@ namespace robot_interaction
 {
 
 InteractionHandler::InteractionHandler(
-      const RobotInteractionPtr& robot_interaction,
-      const std::string &name,
-      const robot_state::RobotState &initial_robot_state,
-      const boost::shared_ptr<tf::Transformer> &tf)
-:LockedRobotState(initial_robot_state)
-,name_(fixName(name))
-,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
-,tf_(tf)
-,robot_interaction_(NULL)
-,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
-,display_meshes_(true)
-,display_controls_(true)
+  const RobotInteractionPtr& robot_interaction,
+  const std::string &name,
+  const robot_state::RobotState &initial_robot_state,
+  const boost::shared_ptr<tf::Transformer> &tf)
+  : LockedRobotState(initial_robot_state)
+  , name_(fixName(name))
+  , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
+  , tf_(tf)
+  , robot_interaction_(NULL)
+  , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
+  , display_meshes_(true)
+  , display_controls_(true)
 {
   setRobotInteraction(robot_interaction.get());
 }
 
 InteractionHandler::InteractionHandler(
-      const RobotInteractionPtr& robot_interaction,
-      const std::string &name,
-      const boost::shared_ptr<tf::Transformer> &tf)
-:LockedRobotState(robot_interaction->getRobotModel())
-,name_(fixName(name))
-,planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
-,tf_(tf)
-,robot_interaction_(NULL)
-,kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
-,display_meshes_(true)
-,display_controls_(true)
+  const RobotInteractionPtr& robot_interaction,
+  const std::string &name,
+  const boost::shared_ptr<tf::Transformer> &tf)
+  : LockedRobotState(robot_interaction->getRobotModel())
+  , name_(fixName(name))
+  , planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
+  , tf_(tf)
+  , robot_interaction_(NULL)
+  , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
+  , display_meshes_(true)
+  , display_controls_(true)
 {
   setRobotInteraction(robot_interaction.get());
 }
 
 // DEPRECATED
 InteractionHandler::InteractionHandler(
-      const std::string &name,
-      const robot_state::RobotState &initial_robot_state,
-      const boost::shared_ptr<tf::Transformer> &tf)
-:LockedRobotState(initial_robot_state)
-,name_(fixName(name))
-,planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
-,tf_(tf)
-,robot_interaction_(NULL)
-,kinematic_options_map_(new KinematicOptionsMap)
-,display_meshes_(true)
-,display_controls_(true)
+  const std::string &name,
+  const robot_state::RobotState &initial_robot_state,
+  const boost::shared_ptr<tf::Transformer> &tf)
+  : LockedRobotState(initial_robot_state)
+  , name_(fixName(name))
+  , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
+  , tf_(tf)
+  , robot_interaction_(NULL)
+  , kinematic_options_map_(new KinematicOptionsMap)
+  , display_meshes_(true)
+  , display_controls_(true)
 {
 }
 
 // DEPRECATED
 InteractionHandler::InteractionHandler(
-      const std::string &name,
-      const robot_model::RobotModelConstPtr &robot_model,
-      const boost::shared_ptr<tf::Transformer> &tf)
-:LockedRobotState(robot_model)
-,name_(fixName(name))
-,planning_frame_(robot_model->getModelFrame())
-,tf_(tf)
-,robot_interaction_(NULL)
-,kinematic_options_map_(new KinematicOptionsMap)
-,display_meshes_(true)
-,display_controls_(true)
+  const std::string &name,
+  const robot_model::RobotModelConstPtr &robot_model,
+  const boost::shared_ptr<tf::Transformer> &tf)
+  : LockedRobotState(robot_model)
+  , name_(fixName(name))
+  , planning_frame_(robot_model->getModelFrame())
+  , tf_(tf)
+  , robot_interaction_(NULL)
+  , kinematic_options_map_(new KinematicOptionsMap)
+  , display_meshes_(true)
+  , display_controls_(true)
 {
 }
 
@@ -242,19 +242,19 @@ void InteractionHandler::clearMenuHandler()
 
 
 void InteractionHandler::handleGeneric(
-      const GenericInteraction &g,
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+  const GenericInteraction &g,
+  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (g.process_feedback)
   {
     StateChangeCallbackFn callback;
     // modify the RobotState in-place with the state_lock_ held.
     LockedRobotState::modifyState(boost::bind(&InteractionHandler::updateStateGeneric,
-                                              this,
-                                              _1,
-                                              &g,
-                                              &feedback,
-                                              &callback));
+                                  this,
+                                  _1,
+                                  &g,
+                                  &feedback,
+                                  &callback));
 
     // This calls update_callback_ to notify client that state changed.
     if (callback)
@@ -263,8 +263,8 @@ void InteractionHandler::handleGeneric(
 }
 
 void InteractionHandler::handleEndEffector(
-      const EndEffectorInteraction &eef,
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+  const EndEffectorInteraction &eef,
+  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
     return;
@@ -287,11 +287,11 @@ void InteractionHandler::handleEndEffector(
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
   LockedRobotState::modifyState(boost::bind(&InteractionHandler::updateStateEndEffector,
-                                            this,
-                                            _1,
-                                            &eef,
-                                            &tpose.pose,
-                                            &callback));
+                                this,
+                                _1,
+                                &eef,
+                                &tpose.pose,
+                                &callback));
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)
@@ -299,8 +299,8 @@ void InteractionHandler::handleEndEffector(
 }
 
 void InteractionHandler::handleJoint(
-      const JointInteraction &vj,
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+  const JointInteraction &vj,
+  const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
   if (feedback->event_type != visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE)
     return;
@@ -323,11 +323,11 @@ void InteractionHandler::handleJoint(
   // modify the RobotState in-place with state_lock_ held.
   // This locks state_lock_ before calling updateState()
   LockedRobotState::modifyState(boost::bind(&InteractionHandler::updateStateJoint,
-                                            this,
-                                            _1,
-                                            &vj,
-                                            &tpose.pose,
-                                            &callback));
+                                this,
+                                _1,
+                                &vj,
+                                &tpose.pose,
+                                &callback));
 
   // This calls update_callback_ to notify client that state changed.
   if (callback)
@@ -336,10 +336,10 @@ void InteractionHandler::handleJoint(
 
 // MUST hold state_lock_ when calling this!
 void InteractionHandler::updateStateGeneric(
-      robot_state::RobotState* state,
-      const GenericInteraction *g,
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr *feedback,
-      StateChangeCallbackFn *callback)
+  robot_state::RobotState* state,
+  const GenericInteraction *g,
+  const visualization_msgs::InteractiveMarkerFeedbackConstPtr *feedback,
+  StateChangeCallbackFn *callback)
 {
   bool ok = g->process_feedback(*state, *feedback);
   bool error_state_changed = setErrorState(g->marker_name_suffix, !ok);
@@ -351,19 +351,19 @@ void InteractionHandler::updateStateGeneric(
 
 // MUST hold state_lock_ when calling this!
 void InteractionHandler::updateStateEndEffector(
-      robot_state::RobotState* state,
-      const EndEffectorInteraction* eef,
-      const geometry_msgs::Pose* pose,
-      StateChangeCallbackFn *callback)
+  robot_state::RobotState* state,
+  const EndEffectorInteraction* eef,
+  const geometry_msgs::Pose* pose,
+  StateChangeCallbackFn *callback)
 {
   // This is called with state_lock_ held, so no additional locking needed to
   // access kinematic_options_map_.
   KinematicOptions kinematic_options = kinematic_options_map_->getOptions(eef->parent_group);
 
   bool ok = kinematic_options.setStateFromIK(*state,
-                                             eef->parent_group,
-                                             eef->parent_link,
-                                             *pose);
+            eef->parent_group,
+            eef->parent_link,
+            *pose);
   bool error_state_changed = setErrorState(eef->parent_group, !ok);
   if (update_callback_)
     *callback = boost::bind(update_callback_,
@@ -373,10 +373,10 @@ void InteractionHandler::updateStateEndEffector(
 
 // MUST hold state_lock_ when calling this!
 void InteractionHandler::updateStateJoint(
-      robot_state::RobotState* state,
-      const JointInteraction* vj,
-      const geometry_msgs::Pose* feedback_pose,
-      StateChangeCallbackFn *callback)
+  robot_state::RobotState* state,
+  const JointInteraction* vj,
+  const geometry_msgs::Pose* feedback_pose,
+  StateChangeCallbackFn *callback)
 {
   geometry_msgs::Pose rel_pose = *feedback_pose;
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
@@ -396,17 +396,16 @@ void InteractionHandler::updateStateJoint(
     Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
     vals[vj->joint_name + "/theta"] = xyz[2];
   }
-  else
-    if (vj->dof == 6)
-    {
-      vals[vj->joint_name + "/trans_x"] = rel_pose.position.x;
-      vals[vj->joint_name + "/trans_y"] = rel_pose.position.y;
-      vals[vj->joint_name + "/trans_z"] = rel_pose.position.z;
-      vals[vj->joint_name + "/rot_x"] = q.x();
-      vals[vj->joint_name + "/rot_y"] = q.y();
-      vals[vj->joint_name + "/rot_z"] = q.z();
-      vals[vj->joint_name + "/rot_w"] = q.w();
-    }
+  else if (vj->dof == 6)
+  {
+    vals[vj->joint_name + "/trans_x"] = rel_pose.position.x;
+    vals[vj->joint_name + "/trans_y"] = rel_pose.position.y;
+    vals[vj->joint_name + "/trans_z"] = rel_pose.position.z;
+    vals[vj->joint_name + "/rot_x"] = q.x();
+    vals[vj->joint_name + "/rot_y"] = q.y();
+    vals[vj->joint_name + "/rot_z"] = q.z();
+    vals[vj->joint_name + "/rot_w"] = q.w();
+  }
   state->setVariablePositions(vals);
   state->update();
 
@@ -462,8 +461,8 @@ bool InteractionHandler::getErrorState(const std::string& name) const
 }
 
 bool InteractionHandler::transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
-                                                                 const geometry_msgs::Pose &offset,
-                                                                 geometry_msgs::PoseStamped &tpose)
+    const geometry_msgs::Pose &offset,
+    geometry_msgs::PoseStamped &tpose)
 {
   tpose.header = feedback->header;
   tpose.pose = feedback->pose;
@@ -485,15 +484,15 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
       catch (tf::TransformException& e)
       {
         ROS_ERROR("Error transforming from frame '%s' to frame '%s'",
-          tpose.header.frame_id.c_str(),
-          planning_frame_.c_str());
+                  tpose.header.frame_id.c_str(),
+                  planning_frame_.c_str());
         return false;
       }
     else
     {
       ROS_ERROR("Cannot transform from frame '%s' to frame '%s' (no TF instance provided)",
-          tpose.header.frame_id.c_str(),
-          planning_frame_.c_str());
+                tpose.header.frame_id.c_str(),
+                planning_frame_.c_str());
       return false;
     }
   }
@@ -572,7 +571,7 @@ void InteractionHandler::setIKAttempts(unsigned int attempts)
 }
 
 void InteractionHandler::setKinematicsQueryOptions(
-      const kinematics::KinematicsQueryOptions &opt)
+  const kinematics::KinematicsQueryOptions &opt)
 {
   KinematicOptions delta;
   delta.options_ = opt;
@@ -584,8 +583,8 @@ void InteractionHandler::setKinematicsQueryOptions(
 }
 
 void InteractionHandler::setKinematicsQueryOptionsForGroup(
-      const std::string& group_name,
-      const kinematics::KinematicsQueryOptions &opt)
+  const std::string& group_name,
+  const kinematics::KinematicsQueryOptions &opt)
 {
   KinematicOptions delta;
   delta.options_ = opt;
@@ -597,7 +596,7 @@ void InteractionHandler::setKinematicsQueryOptionsForGroup(
 }
 
 void InteractionHandler::setGroupStateValidityCallback(
-      const robot_state::GroupStateValidityCallbackFn &callback)
+  const robot_state::GroupStateValidityCallbackFn &callback)
 {
   KinematicOptions delta;
   delta.state_validity_callback_ = callback;

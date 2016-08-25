@@ -62,14 +62,14 @@ public:
 
   /** \brief Events for jobs */
   enum JobEvent
-    {
-      /// Called when a job is added to the queue
-      ADD,
-      /// Called when a job is removed from the queue without execution
-      REMOVE,
-      /// Called when a job is completed (and removed from the queue)
-      COMPLETE
-    };
+  {
+    /// Called when a job is added to the queue
+    ADD,
+    /// Called when a job is removed from the queue without execution
+    REMOVE,
+    /// Called when a job is completed (and removed from the queue)
+    COMPLETE
+  };
 
   /** \brief The signature for callback triggered when job events take place: the event that took place and the name of the job */
   typedef boost::function<void(JobEvent, const std::string&)> JobUpdateCallback;

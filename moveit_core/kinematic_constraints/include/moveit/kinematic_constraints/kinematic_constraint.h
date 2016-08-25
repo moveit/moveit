@@ -81,9 +81,9 @@ public:
 
   /// \brief Enum for representing a constraint
   enum ConstraintType
-    {
-      UNKNOWN_CONSTRAINT, JOINT_CONSTRAINT, POSITION_CONSTRAINT, ORIENTATION_CONSTRAINT, VISIBILITY_CONSTRAINT
-    };
+  {
+    UNKNOWN_CONSTRAINT, JOINT_CONSTRAINT, POSITION_CONSTRAINT, ORIENTATION_CONSTRAINT, VISIBILITY_CONSTRAINT
+  };
 
   /**
    * \brief Constructor
@@ -600,7 +600,7 @@ public:
    */
   bool hasLinkOffset() const
   {
-    if(!enabled()) return false;
+    if (!enabled()) return false;
     return has_offset_;
   }
 

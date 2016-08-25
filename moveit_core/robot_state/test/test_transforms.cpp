@@ -53,10 +53,10 @@ protected:
     std::fstream xml_file("test/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
-      while ( xml_file.good() )
+      while (xml_file.good())
       {
         std::string line;
-        std::getline( xml_file, line);
+        std::getline(xml_file, line);
         xml_string += (line + "\n");
       }
       xml_file.close();

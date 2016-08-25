@@ -77,13 +77,14 @@ private:
 }
 
 pick_place::PickPlaceParams::PickPlaceParams() : max_goal_count_(5),
-						 max_fail_(3),
-						 max_step_(0.02),
-						 jump_factor_(2.0)
+  max_fail_(3),
+  max_step_(0.02),
+  jump_factor_(2.0)
 {
 }
 
-const pick_place::PickPlaceParams& pick_place::GetGlobalPickPlaceParams() {
+const pick_place::PickPlaceParams& pick_place::GetGlobalPickPlaceParams()
+{
   static DynamicReconfigureImpl PICK_PLACE_PARAMS;
   return PICK_PLACE_PARAMS.getParams();
 }

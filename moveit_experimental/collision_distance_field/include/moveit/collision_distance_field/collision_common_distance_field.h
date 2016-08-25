@@ -53,17 +53,22 @@ struct DistanceFieldCacheEntry;
  * link group in a particular pose.  It is associated with a particular dfce_
  * and can only be used with that dfce_ (DistanceFieldCacheEntry -- see below).
  * */
-struct GroupStateRepresentation {
+struct GroupStateRepresentation
+{
   GroupStateRepresentation() {};
-  GroupStateRepresentation(const GroupStateRepresentation& gsr) {
+  GroupStateRepresentation(const GroupStateRepresentation& gsr)
+  {
     link_body_decompositions_.resize(gsr.link_body_decompositions_.size());
-    for(unsigned int i = 0; i < gsr.link_body_decompositions_.size(); i++) {
-      if(gsr.link_body_decompositions_[i]) {
+    for (unsigned int i = 0; i < gsr.link_body_decompositions_.size(); i++)
+    {
+      if (gsr.link_body_decompositions_[i])
+      {
         link_body_decompositions_[i].reset(new PosedBodySphereDecomposition(*gsr.link_body_decompositions_[i]));
       }
     }
     attached_body_decompositions_.resize(gsr.attached_body_decompositions_.size());
-    for(unsigned int i = 0; i < gsr.attached_body_decompositions_.size(); i++) {
+    for (unsigned int i = 0; i < gsr.attached_body_decompositions_.size(); i++)
+    {
       (*attached_body_decompositions_[i]) = (*gsr.attached_body_decompositions_[i]);
     }
     gradients_ = gsr.gradients_;
@@ -90,7 +95,8 @@ struct GroupStateRepresentation {
  * a particular ACM, and a particular configuration of attached objects.  It
  * assumes the poses of joints above this group have not changed, but can be
  * used with different poses of the joints within the group. */
-struct DistanceFieldCacheEntry {
+struct DistanceFieldCacheEntry
+{
   /** for checking collisions between this group and other objects */
   std::string group_name_;
   /** RobotState that this cache entry represents */
@@ -114,7 +120,7 @@ struct DistanceFieldCacheEntry {
    * GroupStateRepresentation needed for collision checking */
   boost::shared_ptr<GroupStateRepresentation> pregenerated_group_state_representation_;
   /** names of all links in the group and all links below the group (links that
-   * will move if any of the joints in the group move) 
+   * will move if any of the joints in the group move)
    */
   std::vector<std::string> link_names_;
   /** for each link in link_names_, true if the link has collision geometry */
@@ -144,16 +150,16 @@ struct DistanceFieldCacheEntry {
 };
 
 BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape,
-                                                         double resolution);
+    double resolution);
 
 PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
-                                                                          double resolution);
+    double resolution);
 
 PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
-                                                                         double resolution);
+    double resolution);
 
 PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
-                                                                       double resolution);
+    double resolution);
 
 
 }

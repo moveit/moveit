@@ -115,7 +115,7 @@ typedef boost::shared_ptr<PlacePlan> PlacePlanPtr;
 typedef boost::shared_ptr<const PlacePlan> PlacePlanConstPtr;
 
 class PickPlace : private boost::noncopyable,
-                  public boost::enable_shared_from_this<PickPlace>
+  public boost::enable_shared_from_this<PickPlace>
 {
 public:
 

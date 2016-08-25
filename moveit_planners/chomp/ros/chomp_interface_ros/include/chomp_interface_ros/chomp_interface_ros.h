@@ -49,7 +49,8 @@ class CHOMPInterfaceROS : public chomp::ChompPlanner
 public:
   CHOMPInterfaceROS(const planning_models::RobotModelConstPtr &kmodel);
 
-  const chomp::ChompParameters& getParams() const {
+  const chomp::ChompParameters& getParams() const
+  {
     return params_;
   }
 

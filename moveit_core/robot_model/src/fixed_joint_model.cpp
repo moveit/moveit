@@ -56,7 +56,7 @@ void moveit::core::FixedJointModel::getVariableRandomPositions(random_numbers::R
 }
 
 void moveit::core::FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
-                                                                     const double *near, const double distance) const
+    const double *near, const double distance) const
 {
 }
 

@@ -70,7 +70,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 }
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                                         const robot_state::RobotState &state1, const robot_state::RobotState &state2) const
+    const robot_state::RobotState &state1, const robot_state::RobotState &state2) const
 {
   robot.checkSelfCollision(req, res, state1, state2);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
@@ -78,7 +78,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest 
 }
 
 void collision_detection::CollisionWorld::checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                                         const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const
+    const robot_state::RobotState &state1, const robot_state::RobotState &state2, const AllowedCollisionMatrix &acm) const
 {
   robot.checkSelfCollision(req, res, state1, state2, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))

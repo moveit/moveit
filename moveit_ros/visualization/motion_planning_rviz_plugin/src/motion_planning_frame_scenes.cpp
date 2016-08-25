@@ -77,8 +77,8 @@ void MotionPlanningFrame::saveSceneButtonClicked()
       else
         q.reset(new QMessageBox(QMessageBox::Question, "Confirm Planning Scene Overwrite",
                                 QString("A planning scene named '")
-                                .append( name.c_str() )
-                                .append( "' already exists. Do you wish to overwrite that scene?"),
+                                .append(name.c_str())
+                                .append("' already exists. Do you wish to overwrite that scene?"),
                                 QMessageBox::Yes | QMessageBox::No,
                                 this));
       boost::scoped_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
@@ -147,8 +147,8 @@ void MotionPlanningFrame::saveQueryButtonClicked()
           else
             q.reset(new QMessageBox(QMessageBox::Question, "Confirm Planning Query Overwrite",
                                     QString("A planning query named '")
-                                    .append( query_name.c_str() )
-                                    .append( "' already exists. Do you wish to overwrite that query?"),
+                                    .append(query_name.c_str())
+                                    .append("' already exists. Do you wish to overwrite that query?"),
                                     QMessageBox::Yes | QMessageBox::No,
                                     this));
           boost::scoped_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));

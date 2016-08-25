@@ -77,7 +77,7 @@ int main(int argc, char **argv)
           {
             test_count = boost::lexical_cast<unsigned int>(argv[2]);
           }
-          catch(...)
+          catch (...)
           {
           }
 

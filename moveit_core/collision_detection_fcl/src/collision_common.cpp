@@ -87,13 +87,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                    cd2->getID().c_str(),
                    cd2->getTypeString().c_str());
       }
-      else
-        if (type == AllowedCollision::CONDITIONAL)
-        {
-          cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
-          if (cdata->req_->verbose)
-            logDebug("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
-        }
+      else if (type == AllowedCollision::CONDITIONAL)
+      {
+        cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
+        if (cdata->req_->verbose)
+          logDebug("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(), cd2->getID().c_str());
+      }
     }
   }
 
@@ -109,18 +108,17 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                  cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
-  else
-    if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
+  else if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
+  {
+    const std::set<std::string> &tl = cd1->ptr.ab->getTouchLinks();
+    if (tl.find(cd2->getID()) != tl.end())
     {
-      const std::set<std::string> &tl = cd1->ptr.ab->getTouchLinks();
-      if (tl.find(cd2->getID()) != tl.end())
-      {
-        always_allow_collision = true;
-        if (cdata->req_->verbose)
-          logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
-                   cd2->getID().c_str(), cd1->getID().c_str());
-      }
+      always_allow_collision = true;
+      if (cdata->req_->verbose)
+        logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                 cd2->getID().c_str(), cd1->getID().c_str());
     }
+  }
   // bodies attached to the same link should not collide
   if (cd1->type == BodyTypes::ROBOT_ATTACHED && cd2->type == BodyTypes::ROBOT_ATTACHED)
   {
@@ -170,7 +168,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                   num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
       Contact c;
       const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
-        std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
+          std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
       for (int i = 0 ; i < num_contacts ; ++i)
       {
         fcl2contact(col_result.getContact(i), c);
@@ -187,11 +185,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
               logInform("Found unacceptable contact between '%s' and '%s'. Contact was stored.",
                         cd1->getID().c_str(), cd2->getID().c_str());
           }
-          else
-            if (cdata->req_->verbose)
-              logInform("Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
-                        cd1->getID().c_str(), cd1->getTypeString().c_str(),
-                        cd2->getID().c_str(), cd2->getTypeString().c_str());
+          else if (cdata->req_->verbose)
+            logInform("Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
+                      cd1->getID().c_str(), cd1->getTypeString().c_str(),
+                      cd2->getID().c_str(), cd2->getTypeString().c_str());
           cdata->res_->collision = true;
           if (want_contact_count == 0)
             break;
@@ -246,7 +243,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void 
                     num_contacts);
 
         const std::pair<std::string, std::string> &pc = cd1->getID() < cd2->getID() ?
-          std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
+            std::make_pair(cd1->getID(), cd2->getID()) : std::make_pair(cd2->getID(), cd1->getID());
         cdata->res_->collision = true;
         for (int i = 0 ; i < num_contacts ; ++i)
         {
@@ -339,9 +336,10 @@ struct FCLShapeCache
     {
       clean_count_ = 0;
       unsigned int from = map_.size();
-      for (std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator it = map_.begin() ; it != map_.end() ; )
+      for (std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator it = map_.begin() ; it != map_.end() ;)
       {
-        std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator nit = it; ++nit;
+        std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator nit = it;
+        ++nit;
         if (it->first.expired())
           map_.erase(it);
         it = nit;
@@ -430,7 +428,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     }
   }
 
-  if(always_allow_collision)
+  if (always_allow_collision)
   {
     min_dist = cdata->res_->distance;
     return cdata->done_;
@@ -443,14 +441,14 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   dist_result.update(cdata->res_->distance, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE); // can be faster
   double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
 
-  if(d < 0)
+  if (d < 0)
   {
     cdata->done_ = true;
     cdata->res_->distance = -1;
   }
   else
   {
-    if(cdata->res_->distance > d)
+    if (cdata->res_->distance > d)
       cdata->res_->distance = d;
   }
 
@@ -495,13 +493,12 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
         //        logDebug("Collision data structures for object %s retrieved from cache.", cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
       }
-      else
-        if (cache_it->second.unique())
-        {
-          const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
-          //          logDebug("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
-          return cache_it->second;
-        }
+      else if (cache_it->second.unique())
+      {
+        const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
+        //          logDebug("Collision data structures for object %s retrieved from cache after updating the source object.", cache_it->second->collision_geometry_data_->getID().c_str());
+        return cache_it->second;
+      }
     }
   }
 
@@ -583,11 +580,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     switch (shape->type)
     {
     case shapes::PLANE:
-      {
-        const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
-        cg_g = new fcl::Plane(p->a, p->b, p->c, p->d);
-      }
-      break;
+    {
+      const shapes::Plane* p = static_cast<const shapes::Plane*>(shape.get());
+      cg_g = new fcl::Plane(p->a, p->b, p->c, p->d);
+    }
+    break;
     default:
       break;
     }
@@ -597,57 +594,57 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
     switch (shape->type)
     {
     case shapes::SPHERE:
-      {
-        const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
-        cg_g = new fcl::Sphere(s->radius);
-      }
-      break;
+    {
+      const shapes::Sphere* s = static_cast<const shapes::Sphere*>(shape.get());
+      cg_g = new fcl::Sphere(s->radius);
+    }
+    break;
     case shapes::BOX:
-      {
-        const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
-        const double* size = s->size;
-        cg_g = new fcl::Box(size[0], size[1], size[2]);
-      }
-      break;
+    {
+      const shapes::Box* s = static_cast<const shapes::Box*>(shape.get());
+      const double* size = s->size;
+      cg_g = new fcl::Box(size[0], size[1], size[2]);
+    }
+    break;
     case shapes::CYLINDER:
-      {
-        const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
-        cg_g = new fcl::Cylinder(s->radius, s->length);
-      }
-      break;
+    {
+      const shapes::Cylinder* s = static_cast<const shapes::Cylinder*>(shape.get());
+      cg_g = new fcl::Cylinder(s->radius, s->length);
+    }
+    break;
     case shapes::CONE:
-      {
-        const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
-        cg_g = new fcl::Cone(s->radius, s->length);
-      }
-      break;
+    {
+      const shapes::Cone* s = static_cast<const shapes::Cone*>(shape.get());
+      cg_g = new fcl::Cone(s->radius, s->length);
+    }
+    break;
     case shapes::MESH:
+    {
+      fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
+      const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape.get());
+      if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
       {
-        fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
-        const shapes::Mesh *mesh = static_cast<const shapes::Mesh*>(shape.get());
-        if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
-        {
-          std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
-          for(unsigned int i = 0; i < mesh->triangle_count; ++i)
-            tri_indices[i] = fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
+        std::vector<fcl::Triangle> tri_indices(mesh->triangle_count);
+        for (unsigned int i = 0; i < mesh->triangle_count; ++i)
+          tri_indices[i] = fcl::Triangle(mesh->triangles[3 * i], mesh->triangles[3 * i + 1], mesh->triangles[3 * i + 2]);
 
-          std::vector<fcl::Vec3f> points(mesh->vertex_count);
-          for (unsigned int i = 0; i < mesh->vertex_count; ++i)
-            points[i] = fcl::Vec3f(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
+        std::vector<fcl::Vec3f> points(mesh->vertex_count);
+        for (unsigned int i = 0; i < mesh->vertex_count; ++i)
+          points[i] = fcl::Vec3f(mesh->vertices[3 * i], mesh->vertices[3 * i + 1], mesh->vertices[3 * i + 2]);
 
-          g->beginModel();
-          g->addSubModel(points, tri_indices);
-          g->endModel();
-        }
-        cg_g = g;
+        g->beginModel();
+        g->addSubModel(points, tri_indices);
+        g->endModel();
       }
-      break;
+      cg_g = g;
+    }
+    break;
     case shapes::OCTREE:
-      {
-        const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
-        cg_g = new fcl::OcTree(g->octree);
-      }
-      break;
+    {
+      const shapes::OcTree* g = static_cast<const shapes::OcTree*>(shape.get());
+      cg_g = new fcl::OcTree(g->octree);
+    }
+    break;
     default:
       logError("This shape type (%d) is not supported using FCL yet", (int)shape->type);
       cg_g = NULL;
@@ -668,21 +665,21 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 
 /////////////////////////////////////////////////////
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_model::LinkModel *link,
-                                            int shape_index)
+    const robot_model::LinkModel *link,
+    int shape_index)
 {
   return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, link, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_state::AttachedBody *ab,
-                                            int shape_index)
+    const robot_state::AttachedBody *ab,
+    int shape_index)
 {
   return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, ab, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const World::Object *obj)
+    const World::Object *obj)
 {
   return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, obj, 0);
 }
@@ -701,19 +698,19 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, 
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_model::LinkModel *link, int shape_index)
+    const robot_model::LinkModel *link, int shape_index)
 {
   return createCollisionGeometry<fcl::OBBRSS, robot_model::LinkModel>(shape, scale, padding, link, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_state::AttachedBody *ab, int shape_index)
+    const robot_state::AttachedBody *ab, int shape_index)
 {
   return createCollisionGeometry<fcl::OBBRSS, robot_state::AttachedBody>(shape, scale, padding, ab, shape_index);
 }
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const World::Object *obj)
+    const World::Object *obj)
 {
   return createCollisionGeometry<fcl::OBBRSS, World::Object>(shape, scale, padding, obj, 0);
 }
@@ -745,7 +742,7 @@ void collision_detection::CollisionData::enableGroup(const robot_model::RobotMod
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager *manager)
 {
   std::vector<fcl::CollisionObject*> collision_objects(collision_objects_.size());
-  for(std::size_t i = 0; i < collision_objects_.size(); ++i)
+  for (std::size_t i = 0; i < collision_objects_.size(); ++i)
     collision_objects[i] = collision_objects_[i].get();
   if (!collision_objects.empty())
     manager->registerObjects(collision_objects);

@@ -227,7 +227,7 @@ void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectCons
   else
   {
     updateFCLObject(obj->id_);
-    if (action & (World::DESTROY|World::REMOVE_SHAPE))
+    if (action & (World::DESTROY | World::REMOVE_SHAPE))
       cleanCollisionGeometryCache();
   }
 }
@@ -243,7 +243,7 @@ double collision_detection::CollisionWorldFCL::distanceRobotHelper(const Collisi
   CollisionData cd(&req, &res, acm);
   cd.enableGroup(robot.getRobotModel());
 
-  for(std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
+  for (std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
     manager_->distance(fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
 
 

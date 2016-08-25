@@ -41,10 +41,10 @@ const double kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double kinematics::KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
 void kinematics::KinematicsBase::setValues(const std::string& robot_description,
-                       const std::string& group_name,
-                       const std::string& base_frame,
-                       const std::string& tip_frame,
-                       double search_discretization)
+    const std::string& group_name,
+    const std::string& base_frame,
+    const std::string& tip_frame,
+    double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -56,10 +56,10 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
 }
 
 void kinematics::KinematicsBase::setValues(const std::string& robot_description,
-                       const std::string& group_name,
-                       const std::string& base_frame,
-                       const std::vector<std::string>& tip_frames,
-                       double search_discretization)
+    const std::string& group_name,
+    const std::string& base_frame,
+    const std::vector<std::string>& tip_frames,
+    double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -79,9 +79,9 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
 
 bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
 {
-  for(std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
+  for (std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
   {
-    if(redundant_joint_indices[i] >= getJointNames().size())
+    if (redundant_joint_indices[i] >= getJointNames().size())
     {
       return false;
     }
@@ -100,8 +100,8 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
     for (std::size_t j = 0 ; j < jnames.size() ; ++j)
       if (jnames[j] == redundant_joint_names[i])
       {
-    redundant_joint_indices.push_back(j);
-    break;
+        redundant_joint_indices.push_back(j);
+        break;
       }
   return redundant_joint_indices.size() == redundant_joint_names.size() ? setRedundantJoints(redundant_joint_indices) : false;
 }
@@ -112,12 +112,12 @@ std::string kinematics::KinematicsBase::removeSlash(const std::string &str) cons
 }
 
 bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup *jmg,
-                                                     std::string* error_text_out) const
+    std::string* error_text_out) const
 {
   // Default implementation for legacy solvers:
   if (!jmg->isChain())
   {
-    if(error_text_out)
+    if (error_text_out)
     {
       *error_text_out = "This plugin only supports joint groups which are chains";
     }
@@ -128,30 +128,30 @@ bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGro
 }
 
 bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
-                           const std::vector<double> &ik_seed_state,
-                           std::vector< std::vector<double> >& solutions,
-                           kinematics::KinematicsResult& result,
-                           const kinematics::KinematicsQueryOptions &options) const
+    const std::vector<double> &ik_seed_state,
+    std::vector< std::vector<double> >& solutions,
+    kinematics::KinematicsResult& result,
+    const kinematics::KinematicsQueryOptions &options) const
 {
   std::vector<double> solution;
   result.solution_percentage = 0.0;
 
   bool supported = false;
-  if(std::find(supported_methods_.begin(),supported_methods_.end(),options.discretization_method) ==
+  if (std::find(supported_methods_.begin(), supported_methods_.end(), options.discretization_method) ==
       supported_methods_.end())
   {
     result.kinematic_error = kinematics::KinematicErrors::UNSUPORTED_DISCRETIZATION_REQUESTED;
     return false;
   }
 
-  if(ik_poses.size() != 1)
+  if (ik_poses.size() != 1)
   {
     logError("moveit.kinematics_base: This kinematic solver does not support getPositionIK for multiple poses");
     result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
 
-  if(ik_poses.size() == 0)
+  if (ik_poses.size() == 0)
   {
     logError("moveit.kinematics_base: Input ik_poses array is empty");
     result.kinematic_error = kinematics::KinematicErrors::EMPTY_TIP_POSES;
@@ -160,7 +160,7 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
 
 
   moveit_msgs::MoveItErrorCodes error_code;
-  if(getPositionIK(ik_poses[0],ik_seed_state,solution,error_code,options))
+  if (getPositionIK(ik_poses[0], ik_seed_state, solution, error_code, options))
   {
     solutions.resize(1);
     solutions[0] = solution;

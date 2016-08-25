@@ -106,7 +106,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   {
     planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
@@ -327,7 +327,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             checkHeader(req.motion_plan_request.goal_constraints[j], options_.planning_frame);
         }
 
-        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i+1, (int)planning_queries_names.size());
+        ROS_INFO("Benckmarking query '%s' (%d of %d)", planning_queries_names[i].c_str(), (int)i + 1, (int)planning_queries_names.size());
         runBenchmark(req);
       }
     }
@@ -400,7 +400,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             checkHeader(req.motion_plan_request.goal_constraints[0], options_.planning_frame);
           req.filename = options_.output + "." + boost::lexical_cast<std::string>(++n_call) + ".log";
 
-          ROS_INFO("Benckmarking goal '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
+          ROS_INFO("Benckmarking goal '%s' (%d of %d)", cnames[i].c_str(), (int)i + 1, (int)cnames.size());
           runBenchmark(req);
         }
       }
@@ -475,9 +475,9 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             req.motion_plan_request.group_name = options_.group_override;
           if (options_.timeout > 0.0)
             req.motion_plan_request.allowed_planning_time = options_.timeout;
-          req.filename = options_.output + ".trajectory." + boost::lexical_cast<std::string>(i+1) + ".log";
+          req.filename = options_.output + ".trajectory." + boost::lexical_cast<std::string>(i + 1) + ".log";
 
-          ROS_INFO("Benckmarking trajectory '%s' (%d of %d)", cnames[i].c_str(), (int)i+1, (int)cnames.size());
+          ROS_INFO("Benckmarking trajectory '%s' (%d of %d)", cnames[i].c_str(), (int)i + 1, (int)cnames.size());
           runBenchmark(req);
         }
       }
@@ -501,26 +501,26 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
   {
     boost::program_options::options_description desc;
     desc.add_options()
-      ("scene.name", boost::program_options::value<std::string>(), "Scene name")
-      ("scene.runs", boost::program_options::value<std::string>()->default_value("1"), "Number of runs")
-      ("scene.timeout", boost::program_options::value<std::string>()->default_value(""), "Timeout for planning (s)")
-      ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
-      ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
-      ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
-      ("scene.trajectory", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as trajectories")
-      ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
-      ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
-      ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
-       "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
-      ("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in x")
-      ("scene.goal_offset_y", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in y")
-      ("scene.goal_offset_z", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in z")
-      ("scene.goal_offset_roll", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in roll")
-      ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
-      ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
-      ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file")
-      ("scene.workspace", boost::program_options::value<std::string>(), "Bounding box of workspace to plan in - min_x, min_y, min_z, max_x, max_y, max_z")
-      ("scene.workspace_frame", boost::program_options::value<std::string>(), "Frame id of bounding box of workspace to plan in");
+    ("scene.name", boost::program_options::value<std::string>(), "Scene name")
+    ("scene.runs", boost::program_options::value<std::string>()->default_value("1"), "Number of runs")
+    ("scene.timeout", boost::program_options::value<std::string>()->default_value(""), "Timeout for planning (s)")
+    ("scene.start", boost::program_options::value<std::string>()->default_value(""), "Regex for the start states to use")
+    ("scene.query", boost::program_options::value<std::string>()->default_value(".*"), "Regex for the queries to execute")
+    ("scene.goal", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as goals")
+    ("scene.trajectory", boost::program_options::value<std::string>()->default_value(""), "Regex for the names of constraints to use as trajectories")
+    ("scene.group", boost::program_options::value<std::string>()->default_value(""), "Override the group to plan for")
+    ("scene.planning_frame", boost::program_options::value<std::string>()->default_value(""), "Override the planning frame to use")
+    ("scene.default_constrained_link", boost::program_options::value<std::string>()->default_value(""),
+     "Specify the default link to consider as constrained when one is not specified in a moveit_msgs::Constraints message")
+    ("scene.goal_offset_x", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in x")
+    ("scene.goal_offset_y", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in y")
+    ("scene.goal_offset_z", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in z")
+    ("scene.goal_offset_roll", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in roll")
+    ("scene.goal_offset_pitch", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in pitch")
+    ("scene.goal_offset_yaw", boost::program_options::value<std::string>()->default_value("0.0"), "Goal offset in yaw")
+    ("scene.output", boost::program_options::value<std::string>(), "Location of benchmark log file")
+    ("scene.workspace", boost::program_options::value<std::string>(), "Bounding box of workspace to plan in - min_x, min_y, min_z, max_x, max_y, max_z")
+    ("scene.workspace_frame", boost::program_options::value<std::string>(), "Frame id of bounding box of workspace to plan in");
 
     boost::program_options::variables_map vm;
     boost::program_options::parsed_options po = boost::program_options::parse_config_file(cfg, desc, true);
@@ -542,7 +542,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
     options_.planning_frame = declared_options["scene.planning_frame"];
     try
     {
-      memset(options_.offsets, 0, 6*sizeof(double));
+      memset(options_.offsets, 0, 6 * sizeof(double));
       if (!declared_options["scene.goal_offset_x"].empty())
         options_.offsets[0] = boost::lexical_cast<double>(declared_options["scene.goal_offset_x"]);
       if (!declared_options["scene.goal_offset_y"].empty())
@@ -556,7 +556,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       if (!declared_options["scene.goal_offset_yaw"].empty())
         options_.offsets[5] = boost::lexical_cast<double>(declared_options["scene.goal_offset_yaw"]);
     }
-    catch(boost::bad_lexical_cast &ex)
+    catch (boost::bad_lexical_cast &ex)
     {
       ROS_WARN("%s", ex.what());
     }
@@ -589,7 +589,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           options_.workspace_parameters.max_corner.y = boost::lexical_cast<double>(strings[4]);
           options_.workspace_parameters.max_corner.z = boost::lexical_cast<double>(strings[5]);
         }
-        catch(boost::bad_lexical_cast &ex)
+        catch (boost::bad_lexical_cast &ex)
         {
           ROS_WARN("%s", ex.what());
         }
@@ -611,7 +611,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       {
         default_run_count = boost::lexical_cast<std::size_t>(declared_options["scene.runs"]);
       }
-      catch(boost::bad_lexical_cast &ex)
+      catch (boost::bad_lexical_cast &ex)
       {
         ROS_WARN("%s", ex.what());
       }
@@ -626,7 +626,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       {
         options_.timeout = boost::lexical_cast<double>(declared_options["scene.timeout"]);
       }
-      catch(boost::bad_lexical_cast &ex)
+      catch (boost::bad_lexical_cast &ex)
       {
         ROS_WARN("%s", ex.what());
       }
@@ -653,36 +653,34 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           bpo->name = val;
           bpo->runs = default_run_count;
         }
-        else
-          if (k == "runs")
+        else if (k == "runs")
+        {
+          if (bpo)
           {
-            if (bpo)
+            try
             {
-              try
-              {
-                bpo->runs = boost::lexical_cast<std::size_t>(val);
-              }
-              catch(boost::bad_lexical_cast &ex)
-              {
-                ROS_WARN("%s", ex.what());
-              }
+              bpo->runs = boost::lexical_cast<std::size_t>(val);
             }
-            else
-              ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+            catch (boost::bad_lexical_cast &ex)
+            {
+              ROS_WARN("%s", ex.what());
+            }
           }
           else
-            if (k == "planners")
-            {
-              if (bpo)
-              {
-                boost::char_separator<char> sep(" ");
-                boost::tokenizer<boost::char_separator<char> > tok(val, sep);
-                for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
-                  bpo->planners.push_back(*beg);
-              }
-              else
-                ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
-            }
+            ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+        }
+        else if (k == "planners")
+        {
+          if (bpo)
+          {
+            boost::char_separator<char> sep(" ");
+            boost::tokenizer<boost::char_separator<char> > tok(val, sep);
+            for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+              bpo->planners.push_back(*beg);
+          }
+          else
+            ROS_WARN("Ignoring option '%s' = '%s'. Please include plugin name first.", key.c_str(), val.c_str());
+        }
       }
       // parameter sweeping option
       else if (key.substr(0, 6) == "sweep.")
@@ -693,9 +691,9 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
         std::vector<std::string> strings;
         boost::split(strings, val, boost::is_any_of(":"));
 
-        if(strings.size() != 3)
+        if (strings.size() != 3)
         {
-          ROS_WARN_STREAM("Invalid sweep parameter for key " << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved " << strings.size() );
+          ROS_WARN_STREAM("Invalid sweep parameter for key " << sweep_var << ". Expected 3 values (start, iterator, end) but only recieved " << strings.size());
           continue;
         }
 
@@ -712,13 +710,13 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
           ss << "param_" << sweep_var << " REAL";
           new_sweep.log_key = ss.str();
         }
-        catch(boost::bad_lexical_cast &ex)
+        catch (boost::bad_lexical_cast &ex)
         {
           ROS_WARN("%s", ex.what());
         }
 
         // Error check
-        if( new_sweep.start > new_sweep.end )
+        if (new_sweep.start > new_sweep.end)
         {
           ROS_ERROR_STREAM("Invalid sweep parameter for key " << sweep_var << ". Start is greater than end");
           continue;
@@ -738,7 +736,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
       options_.plugins.push_back(*bpo);
   }
 
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_STREAM("Unable to parse '" << filename << "'");
     return false;
@@ -776,8 +774,8 @@ void moveit_benchmarks::BenchmarkExecution::runBenchmark(BenchmarkRequest &req)
 }
 
 void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData &rundata,
-                                                           const planning_interface::MotionPlanDetailedResponse &mp_res,
-                                                           bool solved, double total_time)
+    const planning_interface::MotionPlanDetailedResponse &mp_res,
+    bool solved, double total_time)
 {
   rundata["total_time REAL"] = boost::lexical_cast<std::string>(total_time);
   rundata["solved BOOLEAN"] = boost::lexical_cast<std::string>(solved);
@@ -798,7 +796,7 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData &rundata,
 
       // compute path length
       for (std::size_t k = 1 ; k < p.getWayPointCount() ; ++k)
-        L += p.getWayPoint(k-1).distance(p.getWayPoint(k));
+        L += p.getWayPoint(k - 1).distance(p.getWayPoint(k));
 
       // compute correctness and clearance
       collision_detection::CollisionRequest req;
@@ -831,9 +829,9 @@ void moveit_benchmarks::BenchmarkExecution::collectMetrics(RunData &rundata,
           //     s0    c   s2     s3
           //
           // use Pythagoras generalized theorem to find the cos of the angle between segments a and b
-          double b = p.getWayPoint(k-1).distance(p.getWayPoint(k));
-          double cdist = p.getWayPoint(k-2).distance(p.getWayPoint(k));
-          double acosValue = (a*a + b*b - cdist*cdist) / (2.0*a*b);
+          double b = p.getWayPoint(k - 1).distance(p.getWayPoint(k));
+          double cdist = p.getWayPoint(k - 2).distance(p.getWayPoint(k));
+          double acosValue = (a * a + b * b - cdist * cdist) / (2.0 * a * b);
           if (acosValue > -1.0 && acosValue < 1.0)
           {
             // the smoothness is actually the outside angle of the one we compute
@@ -1030,7 +1028,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
     // n = algorithms * runs * parameters
     total_n_runs += planner_ids_to_benchmark_per_planner_interface[i].size() *
-      runs_per_planner_interface[i] * n_parameter_sets;
+                    runs_per_planner_interface[i] * n_parameter_sets;
   }
 
   // benchmark all the planners
@@ -1055,14 +1053,14 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
       for (std::size_t param_count = 0; param_count < n_parameter_sets; ++param_count)
       {
         // Check if ROS is still alive
-        if( !ros::ok() )
+        if (!ros::ok())
           return;
 
         // Create new instance of the chosen parameters
         RunData parameter_data;
 
         // apply the current parameter, if we are using those
-        if( n_parameter_sets > 1 )
+        if (n_parameter_sets > 1)
         {
           modifyPlannerConfiguration(*planner_interfaces_to_benchmark[i], motion_plan_req.planner_id, param_combinations_id_, parameter_data);
           ++param_combinations_id_;
@@ -1087,7 +1085,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
 
           // collect data
           start = ros::WallTime::now();
-          runs[run_id].insert(parameter_data.begin(),parameter_data.end()); // initalize this run's data with the chosen parameters, if we have any
+          runs[run_id].insert(parameter_data.begin(), parameter_data.end()); // initalize this run's data with the chosen parameters, if we have any
 
           collectMetrics(runs[run_id], mp_res, solved, total_time);
           double metrics_time = (ros::WallTime::now() - start).toSec();
@@ -1328,9 +1326,9 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
 }
 
 void moveit_benchmarks::BenchmarkExecution::modifyPlannerConfiguration(planning_interface::PlannerManager &planner,
-                                                                       const std::string& planner_id,
-                                                                       std::size_t param_combinations_id_,
-                                                                       RunData &parameter_data)
+    const std::string& planner_id,
+    std::size_t param_combinations_id_,
+    RunData &parameter_data)
 {
   // Get the planner's current settings
   planning_interface::PlannerConfigurationMap settings = planner.getPlannerConfigurations();
@@ -1409,7 +1407,7 @@ void moveit_benchmarks::BenchmarkExecution::recursiveParamCombinations(int optio
   do
   {
     // Call the next parameter if one exists
-    if( param_options_.size() > options_id + 1 )
+    if (param_options_.size() > options_id + 1)
     {
       recursiveParamCombinations(options_id + 1, param_instance);
     }
@@ -1422,7 +1420,8 @@ void moveit_benchmarks::BenchmarkExecution::recursiveParamCombinations(int optio
     param_instance[param_option.key] += param_option.step_size;
 
     // Continue adding iteration amount until value equals end
-  } while( param_instance[param_option.key] <= param_option.end + 0.00001 ); // rounding issues fudge parameter
+  }
+  while (param_instance[param_option.key] <= param_option.end + 0.00001);    // rounding issues fudge parameter
 
   return;
 }
@@ -1435,7 +1434,7 @@ void moveit_benchmarks::BenchmarkExecution::printConfigurationSettings(const pla
   {
     out << "  - " << it->first << " => " << it->second.name << "/" << it->second.group << std::endl;
     // Debug map
-    for(std::map<std::string,std::string>::const_iterator config_it = it->second.config.begin() ; config_it != it->second.config.end(); ++config_it)
+    for (std::map<std::string, std::string>::const_iterator config_it = it->second.config.begin() ; config_it != it->second.config.end(); ++config_it)
       out << "      - " << config_it->first << " => " << config_it->second << std::endl;
   }
 }

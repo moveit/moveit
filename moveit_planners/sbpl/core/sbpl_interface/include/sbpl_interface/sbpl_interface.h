@@ -47,15 +47,16 @@ class SBPLInterface
 {
 public:
 
-  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel){}
-  virtual ~SBPLInterface(){}
+  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel) {}
+  virtual ~SBPLInterface() {}
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
              const moveit_msgs::GetMotionPlan::Request &req,
              moveit_msgs::GetMotionPlan::Response &res,
              const PlanningParameters& params) const;
 
-  const PlanningStatistics& getLastPlanningStatistics() const {
+  const PlanningStatistics& getLastPlanningStatistics() const
+  {
     return last_planning_statistics_;
   }
 

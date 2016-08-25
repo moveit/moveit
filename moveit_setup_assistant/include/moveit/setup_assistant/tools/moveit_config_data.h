@@ -80,45 +80,48 @@ struct GroupMetaData
 /**
  * Planning parameters which may be set in the config files
  */
- struct OmplPlanningParameter
+struct OmplPlanningParameter
 {
   std::string name; // name of parameter
   std::string value; // value parameter will receive (but as a string)
   std::string comment; // comment briefly describing what this parameter does
- };
+};
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the ompl_planning.yaml file */
- class OMPLPlannerDescription 
+class OMPLPlannerDescription
 {
- public:
-/** \brief Constructor
- *  @param name: name of planner
- *  @parameter type: type of planner
- */
-   OMPLPlannerDescription(const std::string  &name, const std::string  &type){
-     name_ = name;
-     type_ = type;
-   };
-   /** \brief Destructor */
-   ~OMPLPlannerDescription(){
-     parameter_list_.clear();
-   };
-   /** \brief adds a parameter to the planner description 
-    * @param name: name of parameter to add
-    * @parameter: value: value of parameter as a string
-    *  @parameter: value: value of parameter as a string
-    */
-   void   addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment=""){
-     OmplPlanningParameter temp;
-     temp.name =  name;
-     temp.value =  value;
-     temp.comment = comment;
-     parameter_list_.push_back(temp);
-   }
-   std::vector<OmplPlanningParameter> parameter_list_;
-   std::string name_; // name of planner
-   std::string type_;  // type of planner (geometric)
- };
+public:
+  /** \brief Constructor
+   *  @param name: name of planner
+   *  @parameter type: type of planner
+   */
+  OMPLPlannerDescription(const std::string  &name, const std::string  &type)
+  {
+    name_ = name;
+    type_ = type;
+  };
+  /** \brief Destructor */
+  ~OMPLPlannerDescription()
+  {
+    parameter_list_.clear();
+  };
+  /** \brief adds a parameter to the planner description
+   * @param name: name of parameter to add
+   * @parameter: value: value of parameter as a string
+   *  @parameter: value: value of parameter as a string
+   */
+  void   addParameter(const std::string &name, const  std::string &value = "", const  std::string  &comment = "")
+  {
+    OmplPlanningParameter temp;
+    temp.name =  name;
+    temp.value =  value;
+    temp.comment = comment;
+    parameter_list_.push_back(temp);
+  }
+  std::vector<OmplPlanningParameter> parameter_list_;
+  std::string name_; // name of planner
+  std::string type_;  // type of planner (geometric)
+};
 
 /** \brief This class is shared with all widgets and contains the common configuration data
     needed for generating each robot's MoveIt configuration package.
@@ -210,7 +213,7 @@ public:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::Group* findGroupByName( const std::string &name );
+  srdf::Model::Group* findGroupByName(const std::string &name);
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
@@ -218,12 +221,12 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  bool outputSetupAssistantFile( const std::string& file_path );
-  bool outputOMPLPlanningYAML( const std::string& file_path );
-  bool outputKinematicsYAML( const std::string& file_path );
-  bool outputJointLimitsYAML( const std::string& file_path );
-  bool outputFakeControllersYAML( const std::string& file_path );
-  
+  bool outputSetupAssistantFile(const std::string& file_path);
+  bool outputOMPLPlanningYAML(const std::string& file_path);
+  bool outputKinematicsYAML(const std::string& file_path);
+  bool outputJointLimitsYAML(const std::string& file_path);
+  bool outputFakeControllersYAML(const std::string& file_path);
+
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
    * \param link_pairs list of collision link pairs
@@ -243,27 +246,27 @@ public:
    * @param file_path path to kinematics.yaml in the input package
    * @return bool if the file was read correctly
    */
-  bool inputKinematicsYAML( const std::string& file_path );
+  bool inputKinematicsYAML(const std::string& file_path);
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
    * @param pkg_path path to package or package name
    * @return bool if the path was set
    */
-  bool setPackagePath( const std::string& pkg_path );
+  bool setPackagePath(const std::string& pkg_path);
 
   /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
    * @return bool if the path could be resolved
    */
-  bool getSetupAssistantYAMLPath( std::string& path );
+  bool getSetupAssistantYAMLPath(std::string& path);
 
   /// Make the full URDF path using the loaded .setup_assistant data
   bool createFullURDFPath();
 
   /// Make the full SRDF path using the loaded .setup_assistant data
-  bool createFullSRDFPath( const std::string& package_path );
+  bool createFullSRDFPath(const std::string& package_path);
 
   /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
@@ -271,7 +274,7 @@ public:
    * @param file_path path to .setup_assistant file
    * @return bool if the file was read correctly
    */
-  bool inputSetupAssistantYAML( const std::string& file_path );
+  bool inputSetupAssistantYAML(const std::string& file_path);
 
   /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
@@ -281,7 +284,7 @@ public:
    * @param path2 second half of path, or filename
    * @return string resulting combined paths
    */
-  std::string appendPaths( const std::string &path1, const std::string &path2 );
+  std::string appendPaths(const std::string &path1, const std::string &path2);
 
   /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
@@ -291,7 +294,7 @@ public:
    */
   struct joint_model_compare
   {
-    bool operator() (const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
+    bool operator()(const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
     {
       return jm1->getName() < jm2->getName();
     }

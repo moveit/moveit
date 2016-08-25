@@ -39,8 +39,8 @@
 #include <moveit/profiler/profiler.h>
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(const ModelBasedPlanningContext *pc,
-                                                                 const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                                                                 const constraint_samplers::ConstraintSamplerPtr &cs)
+    const kinematic_constraints::KinematicConstraintSetPtr &ks,
+    const constraint_samplers::ConstraintSamplerPtr &cs)
   : ob::ValidStateSampler(pc->getOMPLSimpleSetup()->getSpaceInformation().get())
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)

@@ -61,8 +61,8 @@ public:
    * @return True if collision robot/world were added to scene.
    */
   bool activate(const std::string& name,
-    const planning_scene::PlanningScenePtr& scene,
-    bool exclusive);
+                const planning_scene::PlanningScenePtr& scene,
+                bool exclusive);
 
 private:
   class CollisionPluginLoaderImpl;

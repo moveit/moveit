@@ -45,7 +45,7 @@
 #include <boost/program_options/variables_map.hpp>
 #include <ros/ros.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
@@ -118,9 +118,9 @@ int main(int argc, char **argv)
 
   boost::program_options::options_description desc;
   desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+  ("help", "Show help message")
+  ("host", boost::program_options::value<std::string>(), "Host for the DB.")
+  ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);

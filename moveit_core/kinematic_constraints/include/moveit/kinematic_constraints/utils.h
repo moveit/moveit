@@ -81,7 +81,7 @@ std::size_t countIndividualConstraints(const moveit_msgs::Constraints &constr);
  * @return A full constraint message containing all the joint constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
-                                                  double tolerance_below, double tolerance_above);
+    double tolerance_below, double tolerance_above);
 
 /**
  * \brief Generates a constraint message intended to be used as a goal
@@ -95,7 +95,7 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState 
  * @return A full constraint message containing all the joint constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState &state, const robot_model::JointModelGroup *jmg,
-                                                  double tolerance = std::numeric_limits<double>::epsilon());
+    double tolerance = std::numeric_limits<double>::epsilon());
 
 
 /**
@@ -113,7 +113,7 @@ moveit_msgs::Constraints constructGoalConstraints(const robot_state::RobotState 
  * @return A full constraint message containing both constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
-                                                  double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
+    double tolerance_pos = 1e-3, double tolerance_angle = 1e-2);
 
 /**
  * \brief Generates a constraint message intended to be used as a goal
@@ -130,7 +130,7 @@ moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, 
  * @return A full constraint message containing both constraints
  */
 moveit_msgs::Constraints constructGoalConstraints(const std::string &link_name, const geometry_msgs::PoseStamped &pose,
-                                                  const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle);
+    const std::vector<double> &tolerance_pos, const std::vector<double> &tolerance_angle);
 
 /**
  * \brief Generates a constraint message intended to be used as a goal

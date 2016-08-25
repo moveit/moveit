@@ -56,7 +56,7 @@ public:
       {
         constraint_sampler_plugin_loader_.reset(new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>("moveit_core", "constraint_samplers::ConstraintSamplerAllocator"));
       }
-      catch(pluginlib::PluginlibException& ex)
+      catch (pluginlib::PluginlibException& ex)
       {
         ROS_ERROR_STREAM("Exception while creating constraint sampling plugin loader " << ex.what());
         return;

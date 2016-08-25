@@ -109,7 +109,7 @@ bool DepthImageOctomapUpdater::initialize()
 
   // create our mesh filter
   mesh_filter_.reset(new mesh_filter::MeshFilter<mesh_filter::StereoCameraModel>(mesh_filter::MeshFilterBase::TransformCallback(),
-                                                                                 mesh_filter::StereoCameraModel::RegisteredPSDKParams));
+                     mesh_filter::StereoCameraModel::RegisteredPSDKParams));
   mesh_filter_->parameters().setDepthRange(near_clipping_plane_distance_, far_clipping_plane_distance_);
   mesh_filter_->setShadowThreshold(shadow_threshold_);
   mesh_filter_->setPaddingOffset(padding_offset_);
@@ -124,7 +124,7 @@ void DepthImageOctomapUpdater::start()
   image_transport::TransportHints hints("raw", ros::TransportHints(), nh_);
   pub_model_depth_image_ = model_depth_transport_.advertiseCamera("model_depth", 1);
 
-  if(!filtered_cloud_topic_.empty())
+  if (!filtered_cloud_topic_.empty())
     pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera(filtered_cloud_topic_, 1);
   else
     pub_filtered_depth_image_ = filtered_depth_transport_.advertiseCamera("filtered_depth", 1);
@@ -185,9 +185,10 @@ namespace
 {
 bool host_is_big_endian(void)
 {
-  union {
-      uint32_t i;
-      char c[sizeof(uint32_t)];
+  union
+  {
+    uint32_t i;
+    char c[sizeof(uint32_t)];
   } bint = {0x01020304};
   return bint.c[0] == 1;
 }
@@ -254,7 +255,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
         good_tf_++;
         if (good_tf_ > MAX_TF_COUNTER)
         {
-          const unsigned int div = MAX_TF_COUNTER/10;
+          const unsigned int div = MAX_TF_COUNTER / 10;
           good_tf_ /= div;
           failed_tf_ /= div;
         }
@@ -269,7 +270,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
           ROS_DEBUG_THROTTLE(1, "Transform error of sensor data: %s; quitting callback", err.c_str());
         if (failed_tf_ > MAX_TF_COUNTER)
         {
-          const unsigned int div = MAX_TF_COUNTER/10;
+          const unsigned int div = MAX_TF_COUNTER / 10;
           good_tf_ /= div;
           failed_tf_ /= div;
         }
@@ -294,7 +295,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
   // call the mesh filter
   mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
-  params.setCameraParameters (info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
+  params.setCameraParameters(info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(w, h);
 
   const bool is_u_short = depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1;
@@ -399,7 +400,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     pub_filtered_label_image_.publish(label_msg, *info_msg);
   }
 
-  if(!filtered_cloud_topic_.empty())
+  if (!filtered_cloud_topic_.empty())
   {
     static std::vector<float> filtered_data;
     sensor_msgs::Image filtered_msg;
@@ -410,13 +411,13 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     filtered_msg.is_bigendian = depth_msg->is_bigendian;
     filtered_msg.step = depth_msg->step;
     filtered_msg.data.resize(img_size * sizeof(unsigned short));
-    if(filtered_data.size() < img_size)
+    if (filtered_data.size() < img_size)
       filtered_data.resize(img_size);
     mesh_filter_->getFilteredDepth(reinterpret_cast<float*>(&filtered_data[0]));
     unsigned short* tmp_ptr = (unsigned short*) &filtered_msg.data[0];
-    for(std::size_t i=0; i < img_size; ++i)
+    for (std::size_t i = 0; i < img_size; ++i)
     {
-      tmp_ptr[i] = (unsigned short) (filtered_data[i] * 1000 + 0.5);
+      tmp_ptr[i] = (unsigned short)(filtered_data[i] * 1000 + 0.5);
     }
     pub_filtered_depth_image_.publish(filtered_msg, *info_msg);
   }

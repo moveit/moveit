@@ -67,7 +67,7 @@ public:
              moveit_msgs::GetMotionPlan::Response &res) const
   {
     return chomp_interface_->solve(planning_scene, req,
-                                   chomp_interface_->getParams(),res);
+                                   chomp_interface_->getParams(), res);
   }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
@@ -76,7 +76,7 @@ public:
   {
     moveit_msgs::GetMotionPlan::Response res2;
     if (chomp_interface_->solve(planning_scene, req,
-                                chomp_interface_->getParams(),res2))
+                                chomp_interface_->getParams(), res2))
     {
       res.trajectory_start = res2.trajectory_start;
       res.trajectory.push_back(res2.trajectory);
@@ -88,7 +88,10 @@ public:
       return false;
   }
 
-  std::string getDescription() const { return "CHOMP"; }
+  std::string getDescription() const
+  {
+    return "CHOMP";
+  }
 
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -107,4 +110,4 @@ private:
 
 } // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( chomp_interface_ros::CHOMPPlanner, planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS(chomp_interface_ros::CHOMPPlanner, planning_interface::Planner);

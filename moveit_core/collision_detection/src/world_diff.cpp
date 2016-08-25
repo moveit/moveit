@@ -101,7 +101,7 @@ void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
   boost::weak_ptr<World>(world).swap(world_);
 
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
-  world->notifyObserverAllObjects(observer_handle_, World::CREATE|World::ADD_SHAPE);
+  world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);
 }
 
 void collision_detection::WorldDiff::clearChanges()

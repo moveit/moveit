@@ -46,13 +46,12 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
 
   if (spec.joint_model_group_->getGroupKinematics().first)
     poses_.push_back(PoseComponent(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first));
-  else
-    if (!spec.joint_model_group_->getGroupKinematics().second.empty())
-    {
-      const robot_model::JointModelGroup::KinematicsSolverMap &m = spec.joint_model_group_->getGroupKinematics().second;
-      for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = m.begin() ; it != m.end() ; ++it)
-        poses_.push_back(PoseComponent(it->first, it->second));
-    }
+  else if (!spec.joint_model_group_->getGroupKinematics().second.empty())
+  {
+    const robot_model::JointModelGroup::KinematicsSolverMap &m = spec.joint_model_group_->getGroupKinematics().second;
+    for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = m.begin() ; it != m.end() ; ++it)
+      poses_.push_back(PoseComponent(it->first, it->second));
+  }
   if (poses_.empty())
     logError("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
   else
@@ -158,14 +157,18 @@ void ompl_interface::PoseModelStateSpace::setPlanningVolume(double minX, double 
 {
   ModelBasedStateSpace::setPlanningVolume(minX, maxX, minY, maxY, minZ, maxZ);
   ompl::base::RealVectorBounds b(3);
-  b.low[0] = minX; b.low[1] = minY; b.low[2] = minZ;
-  b.high[0] = maxX; b.high[1] = maxY; b.high[2] = maxZ;
+  b.low[0] = minX;
+  b.low[1] = minY;
+  b.low[2] = minZ;
+  b.high[0] = maxX;
+  b.high[1] = maxY;
+  b.high[2] = maxZ;
   for (std::size_t i = 0 ; i < poses_.size() ; ++i)
     poses_[i].state_space_->as<ompl::base::SE3StateSpace>()->setBounds(b);
 }
 
 ompl_interface::PoseModelStateSpace::PoseComponent::PoseComponent(const robot_model::JointModelGroup *subgroup,
-                                                                  const robot_model::JointModelGroup::KinematicsSolver &k)
+    const robot_model::JointModelGroup::KinematicsSolver &k)
   : subgroup_(subgroup)
   , kinematics_solver_(k.allocator_(subgroup))
   , bijection_(k.bijection_)

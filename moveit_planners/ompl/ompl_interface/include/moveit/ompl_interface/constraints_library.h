@@ -196,9 +196,9 @@ public:
 private:
 
   ompl::base::StateStoragePtr constructConstraintApproximation(const ModelBasedPlanningContextPtr &pcontext,
-                                                               const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-                                                               const ConstraintApproximationConstructionOptions &options,
-                                                               ConstraintApproximationConstructionResults &result);
+      const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
+      const ConstraintApproximationConstructionOptions &options,
+      ConstraintApproximationConstructionResults &result);
 
   const PlanningContextManager &context_manager_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;

@@ -48,7 +48,10 @@ class JointMimic
 {
 public:
 
-  JointMimic() { this->reset(0); };
+  JointMimic()
+  {
+    this->reset(0);
+  };
 
   /** \brief Offset for this joint value from the joint that it mimics */
   double offset;

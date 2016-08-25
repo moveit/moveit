@@ -68,7 +68,7 @@ class StartScreenWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -76,7 +76,7 @@ class StartScreenWidget : public SetupScreenWidget
   /**
    * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  StartScreenWidget( QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   ~StartScreenWidget();
 
@@ -147,13 +147,13 @@ private:
   bool loadExistingFiles();
 
   /// Load URDF File to Parameter Server
-  bool loadURDFFile( const std::string& urdf_file_path );
+  bool loadURDFFile(const std::string& urdf_file_path);
 
   /// Load SRDF File
-  bool loadSRDFFile( const std::string& srdf_file_path );
+  bool loadSRDFFile(const std::string& srdf_file_path);
 
   /// Put SRDF File on Parameter Server
-  bool setSRDFFile( const std::string& srdf_string );
+  bool setSRDFFile(const std::string& srdf_string);
 
   //// Extract the package/stack name and relative path to urdf from an absolute path name
   bool extractPackageNameFromPath();
@@ -162,7 +162,7 @@ private:
   bool createFullURDFPath();
 
   /// Make the full SRDF path using the loaded .setup_assistant data
-  bool createFullSRDFPath( const std::string& package_path );
+  bool createFullSRDFPath(const std::string& package_path);
 
   /// Get the full package path for editing an existing package
   bool createFullPackagePath();
@@ -178,13 +178,13 @@ class SelectModeWidget : public QFrame
 {
   Q_OBJECT
 
-  private:
+private:
 
-    private Q_SLOTS:
+private Q_SLOTS:
 
-  public:
+public:
 
-  SelectModeWidget( QWidget * parent );
+  SelectModeWidget(QWidget * parent);
 
   // Load file button
   QPushButton *btn_new_;

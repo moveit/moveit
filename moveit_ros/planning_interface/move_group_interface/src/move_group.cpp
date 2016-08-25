@@ -132,7 +132,7 @@ public:
     trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
 
-    current_state_monitor_ = getSharedStateMonitor( robot_model_, tf_, node_handle_ );
+    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_, node_handle_);
 
     ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
     if (wait_for_servers == ros::WallDuration())
@@ -178,7 +178,7 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
+        ((ros::CallbackQueue *) node_handle_.getCallbackQueue())->callAvailable();
       }
     }
     else
@@ -187,7 +187,7 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
+        ((ros::CallbackQueue *) node_handle_.getCallbackQueue())->callAvailable();
       }
     }
 
@@ -214,7 +214,7 @@ public:
     {
       ros::WallDuration(0.001).sleep();
       // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-      ( ( ros::CallbackQueue * ) node_handle_.getCallbackQueue())->callAvailable();
+      ((ros::CallbackQueue *) node_handle_.getCallbackQueue())->callAvailable();
     }
 
     // issue warning
@@ -270,13 +270,15 @@ public:
   }
 
   std::map<std::string, std::string>
-  getPlannerParams(const std::string &planner_id, const std::string &group="") {
+  getPlannerParams(const std::string &planner_id, const std::string &group = "")
+  {
     moveit_msgs::GetPlannerParams::Request req;
     moveit_msgs::GetPlannerParams::Response res;
     req.planner_config = planner_id;
     req.group = group;
     std::map<std::string, std::string> result;
-    if (get_params_service_.call(req, res)) {
+    if (get_params_service_.call(req, res))
+    {
       for (unsigned int i = 0, end = res.params.keys.size(); i < end; ++i)
         result[res.params.keys[i]] = res.params.values[i];
     }
@@ -284,21 +286,24 @@ public:
   }
 
   void setPlannerParams(const std::string &planner_id, const std::string &group,
-                        const std::map<std::string, std::string> &params, bool replace=false) {
+                        const std::map<std::string, std::string> &params, bool replace = false)
+  {
     moveit_msgs::SetPlannerParams::Request req;
     moveit_msgs::SetPlannerParams::Response res;
     req.planner_config = planner_id;
     req.group = group;
     req.replace = replace;
     for (std::map<std::string, std::string>::const_iterator
-         it=params.begin(), end=params.end(); it != end; ++it) {
+         it = params.begin(), end = params.end(); it != end; ++it)
+    {
       req.params.keys.push_back(it->first);
       req.params.values.push_back(it->second);
     }
     set_params_service_.call(req, res);
   }
 
-  std::string getDefaultPlannerId(const std::string &group) const {
+  std::string getDefaultPlannerId(const std::string &group) const
+  {
     std::stringstream param_name;
     param_name << "move_group";
     if (!group.empty()) param_name << "/" << group;
@@ -966,37 +971,36 @@ public:
       goal.request.goal_constraints.resize(1);
       goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(getJointStateTarget(), joint_model_group_, goal_joint_tolerance_);
     }
-    else
-      if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
+    else if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
+    {
+      // find out how many goals are specified
+      std::size_t goal_count = 0;
+      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
+           it != pose_targets_.end() ; ++it)
+        goal_count = std::max(goal_count, it->second.size());
+
+      // start filling the goals;
+      // each end effector has a number of possible poses (K) as valid goals
+      // but there could be multiple end effectors specified, so we want each end effector
+      // to reach the goal that corresponds to the goals of the other end effectors
+      goal.request.goal_constraints.resize(goal_count);
+
+      for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
+           it != pose_targets_.end() ; ++it)
       {
-        // find out how many goals are specified
-        std::size_t goal_count = 0;
-        for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
-             it != pose_targets_.end() ; ++it)
-          goal_count = std::max(goal_count, it->second.size());
-
-        // start filling the goals;
-        // each end effector has a number of possible poses (K) as valid goals
-        // but there could be multiple end effectors specified, so we want each end effector
-        // to reach the goal that corresponds to the goals of the other end effectors
-        goal.request.goal_constraints.resize(goal_count);
-
-        for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin() ;
-             it != pose_targets_.end() ; ++it)
+        for (std::size_t i = 0 ; i < it->second.size() ; ++i)
         {
-          for (std::size_t i = 0 ; i < it->second.size() ; ++i)
-          {
-            moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_position_tolerance_, goal_orientation_tolerance_);
-            if (active_target_ == ORIENTATION)
-              c.position_constraints.clear();
-            if (active_target_ == POSITION)
-              c.orientation_constraints.clear();
-            goal.request.goal_constraints[i] = kinematic_constraints::mergeConstraints(goal.request.goal_constraints[i], c);
-          }
+          moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(it->first, it->second[i], goal_position_tolerance_, goal_orientation_tolerance_);
+          if (active_target_ == ORIENTATION)
+            c.position_constraints.clear();
+          if (active_target_ == POSITION)
+            c.orientation_constraints.clear();
+          goal.request.goal_constraints[i] = kinematic_constraints::mergeConstraints(goal.request.goal_constraints[i], c);
         }
       }
-      else
-        ROS_ERROR("Unable to construct goal representation");
+    }
+    else
+      ROS_ERROR("Unable to construct goal representation");
 
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
@@ -1012,7 +1016,7 @@ public:
     goal.allowed_planning_time = planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
-    if(!support_surface_.empty())
+    if (!support_surface_.empty())
       goal.allow_gripper_support_collision = true;
 
     if (path_constraints_)
@@ -1029,7 +1033,7 @@ public:
     goal.allowed_planning_time = planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
-    if(!support_surface_.empty())
+    if (!support_surface_.empty())
       goal.allow_gripper_support_collision = true;
 
     if (path_constraints_)
@@ -1051,7 +1055,7 @@ public:
       if (constraints_storage_->getConstraints(msg_m, constraint, robot_model_->getName(), opt_.group_name_))
       {
         path_constraints_.reset(new moveit_msgs::Constraints(static_cast<moveit_msgs::Constraints>(*msg_m)));
-    return true;
+        return true;
       }
       else
         return false;
@@ -1083,9 +1087,9 @@ public:
   moveit_msgs::Constraints getPathConstraints() const
   {
     if (path_constraints_)
-       return *path_constraints_;
+      return *path_constraints_;
     else
-       return moveit_msgs::Constraints();
+      return moveit_msgs::Constraints();
   }
 
   void initializeConstraintsStorage(const std::string &host, unsigned int port)
@@ -1122,7 +1126,7 @@ private:
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
       }
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -1202,7 +1206,7 @@ moveit::planning_interface::MoveGroup::MoveGroup(const Options &opt, const boost
 }
 
 moveit::planning_interface::MoveGroup::MoveGroup(const moveit::planning_interface::MoveGroup::Options &opt,
-                                                 const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
+    const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
   : MoveGroup(opt, tf, ros::WallDuration(wait_for_servers.toSec()))
 {
 }
@@ -1249,15 +1253,17 @@ bool moveit::planning_interface::MoveGroup::getInterfaceDescription(moveit_msgs:
 
 std::map<std::string, std::string>
 moveit::planning_interface::MoveGroup::getPlannerParams(const std::string &planner_id,
-                                                        const std::string &group) {
+    const std::string &group)
+{
   return impl_->getPlannerParams(planner_id, group);
 }
 
 
 void moveit::planning_interface::MoveGroup::setPlannerParams(const std::string &planner_id,
-                                                             const std::string &group,
-                                                             const std::map<std::string, std::string> &params,
-                                                             bool replace) {
+    const std::string &group,
+    const std::map<std::string, std::string> &params,
+    bool replace)
+{
   impl_->setPlannerParams(planner_id, group, params, replace);
 }
 
@@ -1347,19 +1353,19 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 }
 
 double moveit::planning_interface::MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-                                                                   moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions,
-								   moveit_msgs::MoveItErrorCodes *error_code)
+    moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions,
+    moveit_msgs::MoveItErrorCodes *error_code)
 {
   moveit_msgs::Constraints path_constraints_tmp;
   return computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints_tmp, avoid_collisions, error_code);
 }
 
 double moveit::planning_interface::MoveGroup::computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
-                                                                   moveit_msgs::RobotTrajectory &trajectory,
-                                                                   const moveit_msgs::Constraints &path_constraints, bool avoid_collisions,
-                                                                   moveit_msgs::MoveItErrorCodes *error_code)
+    moveit_msgs::RobotTrajectory &trajectory,
+    const moveit_msgs::Constraints &path_constraints, bool avoid_collisions,
+    moveit_msgs::MoveItErrorCodes *error_code)
 {
-  if(error_code)
+  if (error_code)
   {
     return impl_->computeCartesianPath(waypoints, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions, *error_code);
   }
@@ -1407,7 +1413,7 @@ const std::vector<std::string>& moveit::planning_interface::MoveGroup::getJointN
 std::map<std::string, double> moveit::planning_interface::MoveGroup::getNamedTargetValues(const std::string& name)
 {
   std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
-  std::map<std::string,double> positions;
+  std::map<std::string, double> positions;
 
   if (it != remembered_joint_values_.end())
   {
@@ -1931,7 +1937,7 @@ std::vector<std::string> moveit::planning_interface::MoveGroup::getKnownConstrai
 
 moveit_msgs::Constraints moveit::planning_interface::MoveGroup::getPathConstraints() const
 {
-   return impl_->getPathConstraints();
+  return impl_->getPathConstraints();
 }
 
 bool moveit::planning_interface::MoveGroup::setPathConstraints(const std::string &constraint)

@@ -72,7 +72,8 @@ public:
     //Nothing for now.
   }
 
-  bool isInitialized() const {
+  bool isInitialized() const
+  {
     return initialized_;
   }
 
@@ -92,7 +93,7 @@ private:
     {
       double diff = (d - clearence);
       double gradient_magnitude = diff * clearence; // (diff / clearance)
-      potential = 0.5*gradient_magnitude*diff;
+      potential = 0.5 * gradient_magnitude * diff;
     }
     else // if d < 0.0
     {
@@ -185,12 +186,12 @@ private:
 
   inline bool isParent(const std::string& childLink, const std::string& parentLink) const
   {
-    if(childLink == parentLink)
+    if (childLink == parentLink)
     {
       return true;
     }
 
-    if(joint_parent_map_.find(childLink) == joint_parent_map_.end())
+    if (joint_parent_map_.find(childLink) == joint_parent_map_.end())
     {
       //ROS_ERROR("%s was not in joint parent map! for lookup of %s", childLink.c_str(), parentLink.c_str());
       return false;

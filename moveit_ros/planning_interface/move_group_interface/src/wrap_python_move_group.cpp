@@ -58,7 +58,7 @@ namespace planning_interface
 {
 
 class MoveGroupWrapper : protected py_bindings_tools::ROScppInitializer,
-                         public MoveGroup
+  public MoveGroup
 {
 public:
 
@@ -280,7 +280,7 @@ public:
     for (size_t x = 0; x < rsmv.joint_state.name.size(); ++x)
       output[rsmv.joint_state.name[x]] = rsmv.joint_state.position[x];
     return output;
-  }  
+  }
 
   void setStartStatePython(const std::string &msg_str)
   {
@@ -302,19 +302,18 @@ public:
     geometry_msgs::Pose msg;
     if (v.size() == 6)
       tf::quaternionTFToMsg(tf::createQuaternionFromRPY(v[3], v[4], v[5]), msg.orientation);
+    else if (v.size() == 7)
+    {
+      msg.orientation.x = v[3];
+      msg.orientation.y = v[4];
+      msg.orientation.z = v[5];
+      msg.orientation.w = v[6];
+    }
     else
-      if (v.size() == 7)
-      {
-        msg.orientation.x = v[3];
-        msg.orientation.y = v[4];
-        msg.orientation.z = v[5];
-        msg.orientation.w = v[6];
-      }
-      else
-      {
-        ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
-        return false;
-      }
+    {
+      ROS_ERROR("Pose description expected to consist of either 6 or 7 values");
+      return false;
+    }
     msg.position.x = v[0];
     msg.position.y = v[1];
     msg.position.z = v[2];
@@ -339,8 +338,8 @@ public:
   bp::dict getNamedTargetValuesPython(const std::string& name)
   {
     bp::dict output;
-    std::map<std::string,double> positions = getNamedTargetValues(name);
-    std::map<std::string,double>::iterator iterator;
+    std::map<std::string, double> positions = getNamedTargetValues(name);
+    std::map<std::string, double>::iterator iterator;
 
     for (iterator = positions.begin(); iterator != positions.end(); iterator++)
       output[iterator->first] = iterator->second;
@@ -415,16 +414,16 @@ public:
 
   void setPathConstraintsFromMsg(const std::string &constraints_str)
   {
-      moveit_msgs::Constraints constraints_msg;
-      py_bindings_tools::deserializeMsg(constraints_str,constraints_msg);
-      setPathConstraints(constraints_msg);
+    moveit_msgs::Constraints constraints_msg;
+    py_bindings_tools::deserializeMsg(constraints_str, constraints_msg);
+    setPathConstraints(constraints_msg);
   }
 
   std::string getPathConstraintsPython()
   {
-     moveit_msgs::Constraints constraints_msg(getPathConstraints());
-     std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
-     return constraints_str;
+    moveit_msgs::Constraints constraints_msg(getPathConstraints());
+    std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
+    return constraints_str;
   }
 
   std::string retimeTrajectory(const std::string& ref_state_str,
@@ -435,7 +434,7 @@ public:
     moveit_msgs::RobotState ref_state_msg;
     py_bindings_tools::deserializeMsg(ref_state_str, ref_state_msg);
     moveit::core::RobotState ref_state_obj(getRobotModel());
-    if(moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
+    if (moveit::core::robotStateMsgToRobotState(ref_state_msg, ref_state_obj, true))
     {
       // Convert trajectory message to object
       moveit_msgs::RobotTrajectory traj_msg;
@@ -471,7 +470,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   MoveGroupClass.def("async_execute", &MoveGroupWrapper::asyncExecutePython);
-  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
+  moveit::planning_interface::MoveItErrorCode(MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);

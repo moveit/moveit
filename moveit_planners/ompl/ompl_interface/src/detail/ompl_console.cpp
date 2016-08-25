@@ -52,42 +52,42 @@ public:
     switch (level)
     {
     case ompl::msg::LOG_INFO:
+    {
+      ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
+      if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Info, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
-        if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
-        {
-          ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
-        }
+        ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
       }
-      break;
+    }
+    break;
     case ompl::msg::LOG_WARN:
+    {
+      ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Warn, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
+      if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Warn, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
-        if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
-        {
-          ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
-        }
+        ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
       }
-      break;
+    }
+    break;
     case ompl::msg::LOG_ERROR:
+    {
+      ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Error, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
+      if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Error, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
-        if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
-        {
-          ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
-        }
+        ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
       }
-      break;
+    }
+    break;
     default:
       // debug
+    {
+      ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
+      if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
       {
-        ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, std::string(ROSCONSOLE_ROOT_LOGGER_NAME) + ".ompl");
-        if (ROS_UNLIKELY(__rosconsole_define_location__enabled))
-        {
-          ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
-        }
+        ::ros::console::print(NULL, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_, filename, line, "", "%s", text.c_str());
       }
-      break;
+    }
+    break;
     }
   }
 };

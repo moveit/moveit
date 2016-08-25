@@ -82,13 +82,13 @@ public:
   public:
 
     enum
-      {
-        VALIDITY_KNOWN = 1,
-        GOAL_DISTANCE_KNOWN = 2,
-        VALIDITY_TRUE = 4,
-        IS_START_STATE = 8,
-        IS_GOAL_STATE = 16
-      };
+    {
+      VALIDITY_KNOWN = 1,
+      GOAL_DISTANCE_KNOWN = 2,
+      VALIDITY_TRUE = 4,
+      IS_START_STATE = 8,
+      IS_GOAL_STATE = 16
+    };
 
     StateType()
       : ompl::base::State()

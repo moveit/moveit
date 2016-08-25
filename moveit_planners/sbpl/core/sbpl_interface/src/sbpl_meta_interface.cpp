@@ -37,7 +37,8 @@
 #include <sbpl_interface/sbpl_interface.h>
 #include <planning_models/conversions.h>
 
-namespace sbpl_interface {
+namespace sbpl_interface
+{
 
 SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel)
 {
@@ -66,46 +67,62 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   boost::mutex::scoped_lock lock(planner_done_mutex_);
   planner_done_condition_.wait(lock);
 
-  if(first_done_) {
+  if (first_done_)
+  {
     std::cerr << "FIRST DONE" << std::endl;
-    if(first_ok_) {
+    if (first_ok_)
+    {
       std::cerr << "First ok, interrupting second" << std::endl;
-      if(!second_done_) {
+      if (!second_done_)
+      {
         thread2.interrupt();
         thread2.join();
       }
-    } else {
-      if(!second_done_) {
+    }
+    else
+    {
+      if (!second_done_)
+      {
         planner_done_condition_.wait(lock);
       }
     }
   }
-  if(second_done_) {
+  if (second_done_)
+  {
     std::cerr << "Second done" << std::endl;
-    if(second_ok_) {
+    if (second_ok_)
+    {
       std::cerr << "Second ok, interrupting first" << std::endl;
-      if(!first_done_) {
+      if (!first_done_)
+      {
         thread1.interrupt();
         thread1.join();
       }
-    } else {
-      if(!first_done_) {
+    }
+    else
+    {
+      if (!first_done_)
+      {
         planner_done_condition_.wait(lock);
       }
     }
   }
 
-  if(!first_ok_ && !second_ok_) {
+  if (!first_ok_ && !second_ok_)
+  {
     std::cerr << "Both planners failed" << std::endl;
     res = res1;
     return false;
   }
-  if(!first_ok_ && second_ok_) {
+  if (!first_ok_ && second_ok_)
+  {
     std::cerr << "Sbpl interface no bfs reports time " << sbpl_interface_second_->getLastPlanningStatistics().total_planning_time_ << std::endl;
     last_planning_statistics_ = sbpl_interface_second_->getLastPlanningStatistics();
     res = res2;
     return true;
-  } else if(first_ok_ && !second_ok_) {
+  }
+  else if (first_ok_ && !second_ok_)
+  {
     std::cerr << "Sbpl interface bfs reports time " << sbpl_interface_first_->getLastPlanningStatistics().total_planning_time_ << std::endl;
     last_planning_statistics_ = sbpl_interface_first_->getLastPlanningStatistics();
     res = res1;
@@ -113,11 +130,14 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& plann
   }
   std::cerr << "Sbpl interface bfs reports time " << sbpl_interface_first_->getLastPlanningStatistics().total_planning_time_ << std::endl;
   std::cerr << "Sbpl interface no bfs reports time " << sbpl_interface_second_->getLastPlanningStatistics().total_planning_time_ << std::endl;
-  if(sbpl_interface_first_->getLastPlanningStatistics().total_planning_time_ <
-     sbpl_interface_second_->getLastPlanningStatistics().total_planning_time_) {
+  if (sbpl_interface_first_->getLastPlanningStatistics().total_planning_time_ <
+      sbpl_interface_second_->getLastPlanningStatistics().total_planning_time_)
+  {
     last_planning_statistics_ = sbpl_interface_first_->getLastPlanningStatistics();
     res = res1;
-  } else {
+  }
+  else
+  {
     last_planning_statistics_ = sbpl_interface_second_->getLastPlanningStatistics();
     res = res2;
   }
@@ -130,24 +150,30 @@ void SBPLMetaInterface::runSolver(bool use_first,
                                   moveit_msgs::GetMotionPlan::Response &res,
                                   const PlanningParameters& params)
 {
-  try {
-    if(use_first) {
+  try
+  {
+    if (use_first)
+    {
       std::cerr << "Running first planner" << std::endl;
       first_ok_ = sbpl_interface_first_->solve(planning_scene,
-                                               req,
-                                               res,
-                                               params);
+                  req,
+                  res,
+                  params);
       first_done_ = true;
-    } else {
+    }
+    else
+    {
       std::cerr << "Running second planner" << std::endl;
       second_ok_ = sbpl_interface_second_->solve(planning_scene,
-                                                 req,
-                                                 res,
-                                                 params);
+                   req,
+                   res,
+                   params);
       second_done_ = true;
     }
     planner_done_condition_.notify_all();
-  } catch(...) {
+  }
+  catch (...)
+  {
     std::cerr << "Interruption requested\n";
   }
 }

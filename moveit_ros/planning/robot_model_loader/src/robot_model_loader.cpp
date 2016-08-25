@@ -59,12 +59,10 @@ bool canSpecifyPosition(const robot_model::JointModel *jmodel, const unsigned in
   bool ok = false;
   if (jmodel->getType() == robot_model::JointModel::PLANAR && index == 2)
     ROS_ERROR("Cannot specify position limits for orientation of planar joint '%s'", jmodel->getName().c_str());
-  else
-  if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
+  else if (jmodel->getType() == robot_model::JointModel::FLOATING && index > 2)
     ROS_ERROR("Cannot specify position limits for orientation of floating joint '%s'", jmodel->getName().c_str());
-  else
-  if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
-      static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
+  else if (jmodel->getType() == robot_model::JointModel::REVOLUTE &&
+           static_cast<const robot_model::RevoluteJointModel*>(jmodel)->isContinuous())
     ROS_ERROR("Cannot specify position limits for continuous joint '%s'", jmodel->getName().c_str());
   else
     ok = true;
@@ -80,11 +78,10 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
   ros::WallTime start = ros::WallTime::now();
   if (opt.urdf_doc_ && opt.srdf_doc_)
     rdf_loader_.reset(new rdf_loader::RDFLoader(opt.urdf_doc_, opt.srdf_doc_));
+  else if (!opt.urdf_string_.empty() && !opt.srdf_string_.empty())
+    rdf_loader_.reset(new rdf_loader::RDFLoader(opt.urdf_string_, opt.srdf_string_));
   else
-    if (!opt.urdf_string_.empty() && !opt.srdf_string_.empty())
-      rdf_loader_.reset(new rdf_loader::RDFLoader(opt.urdf_string_, opt.srdf_string_));
-    else
-      rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
+    rdf_loader_.reset(new rdf_loader::RDFLoader(opt.robot_description_));
   if (rdf_loader_->getURDF())
   {
     const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
@@ -151,7 +148,7 @@ void robot_model_loader::RobotModelLoader::configure(const Options &opt)
   if (model_ && opt.load_kinematics_solvers_)
     loadKinematicsSolvers();
 
-  ROS_DEBUG_STREAM_NAMED("robot_model_loader","Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM_NAMED("robot_model_loader", "Loaded kinematic model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader)
@@ -182,10 +179,10 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(const kinematic
       const robot_model::JointModelGroup *jmg = model_->getJointModelGroup(groups[i]);
 
       kinematics::KinematicsBasePtr solver = kinematics_allocator(jmg);
-      if(solver)
+      if (solver)
       {
         std::string error_msg;
-        if(solver->supportsGroup(jmg, &error_msg))
+        if (solver->supportsGroup(jmg, &error_msg))
         {
           imap[groups[i]] = kinematics_allocator;
         }

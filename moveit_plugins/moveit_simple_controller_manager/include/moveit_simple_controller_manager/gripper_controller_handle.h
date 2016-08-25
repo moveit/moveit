@@ -50,7 +50,7 @@ namespace moveit_simple_controller_manager
  * action interface (single DOF).
  */
 class GripperControllerHandle :
-      public ActionBasedControllerHandle<control_msgs::GripperCommandAction>
+  public ActionBasedControllerHandle<control_msgs::GripperCommandAction>
 {
 public:
   /* Topics will map to name/ns/goal, name/ns/result, etc */
@@ -84,7 +84,7 @@ public:
 
     if (trajectory.joint_trajectory.points.size() > 1)
     {
-      ROS_DEBUG_STREAM_NAMED("GripperController","Trajectory: " << trajectory.joint_trajectory);
+      ROS_DEBUG_STREAM_NAMED("GripperController", "Trajectory: " << trajectory.joint_trajectory);
     }
 
     if (trajectory.joint_trajectory.joint_names.empty())
@@ -145,9 +145,9 @@ public:
     }
 
     controller_action_client_->sendGoal(goal,
-                    boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
-                    boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
-                    boost::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
+                                        boost::bind(&GripperControllerHandle::controllerDoneCallback, this, _1, _2),
+                                        boost::bind(&GripperControllerHandle::controllerActiveCallback, this),
+                                        boost::bind(&GripperControllerHandle::controllerFeedbackCallback, this, _1));
 
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;

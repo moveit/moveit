@@ -50,7 +50,7 @@ namespace chomp
 class ChompCost
 {
 public:
-  ChompCost(const ChompTrajectory& trajectory, int joint_number, const std::vector<double>& derivative_costs, double ridge_factor=0.0);
+  ChompCost(const ChompTrajectory& trajectory, int joint_number, const std::vector<double>& derivative_costs, double ridge_factor = 0.0);
   virtual ~ChompCost();
 
   template<typename Derived>

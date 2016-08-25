@@ -63,8 +63,8 @@ static const float END_EFFECTOR_REACHABLE_COLOR[4] = { 0.2, 1.0, 0.2, 1.0 };
 const std::string RobotInteraction::INTERACTIVE_MARKER_TOPIC = "robot_interaction_interactive_marker_topic";
 
 RobotInteraction::RobotInteraction(const robot_model::RobotModelConstPtr &robot_model, const std::string &ns)
-: robot_model_(robot_model)
-, kinematic_options_map_(new KinematicOptionsMap)
+  : robot_model_(robot_model)
+  , kinematic_options_map_(new KinematicOptionsMap)
 {
   topic_ = ns.empty() ? INTERACTIVE_MARKER_TOPIC : ns + "/" + INTERACTIVE_MARKER_TOPIC;
   int_marker_server_ = new interactive_markers::InteractiveMarkerServer(topic_);
@@ -102,9 +102,9 @@ void RobotInteraction::decideActiveComponents(const std::string &group, Interact
 }
 
 void RobotInteraction::addActiveComponent(const InteractiveMarkerConstructorFn &construct,
-                                          const ProcessFeedbackFn &process,
-                                          const InteractiveMarkerUpdateFn &update,
-                                          const std::string &name)
+    const ProcessFeedbackFn &process,
+    const InteractiveMarkerUpdateFn &update,
+    const std::string &name)
 {
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   GenericInteraction g;
@@ -122,11 +122,13 @@ double RobotInteraction::computeLinkMarkerSize(const std::string &link)
   const robot_model::LinkModel *lm = robot_model_->getLinkModel(link);
   double size = 0;
 
-  while (lm) {
+  while (lm)
+  {
     Eigen::Vector3d ext = lm->getShapeExtentsAtOrigin();
     // drop largest extension and take norm of two remaining
     Eigen::MatrixXd::Index maxIndex;
-    ext.maxCoeff(&maxIndex); ext[maxIndex] = 0;
+    ext.maxCoeff(&maxIndex);
+    ext[maxIndex] = 0;
     size = 1.01 * ext.norm();
     if (size > 0) break; // break, if a non-empty shape was found
 
@@ -166,7 +168,8 @@ double RobotInteraction::computeGroupMarkerSize(const std::string &group)
 
     // drop largest extension and take norm of two remaining
     Eigen::MatrixXd::Index maxIndex;
-    ext.maxCoeff(&maxIndex); ext[maxIndex] = 0;
+    ext.maxCoeff(&maxIndex);
+    ext[maxIndex] = 0;
     size = std::max(size, 1.01 * ext.norm());
   }
 
@@ -230,7 +233,7 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
   {
     if ((joints[i]->getType() == robot_model::JointModel::PLANAR ||
-     joints[i]->getType() == robot_model::JointModel::FLOATING) &&
+         joints[i]->getType() == robot_model::JointModel::FLOATING) &&
         used.find(joints[i]->getName()) == used.end())
     {
       JointInteraction v;
@@ -275,7 +278,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
 
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
   const std::pair<robot_model::JointModelGroup::KinematicsSolver,
-                  robot_model::JointModelGroup::KinematicsSolverMap> &smap = jmg->getGroupKinematics();
+        robot_model::JointModelGroup::KinematicsSolverMap> &smap = jmg->getGroupKinematics();
 
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)
@@ -337,8 +340,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
     // if we have a separate group for the eef, we compute the scale based on it;
     // otherwise, we use the size of the parent_link
     active_eef_[i].size = active_eef_[i].eef_group == active_eef_[i].parent_group ?
-                            computeLinkMarkerSize(active_eef_[i].parent_link) :
-                            computeGroupMarkerSize(active_eef_[i].eef_group);
+                          computeLinkMarkerSize(active_eef_[i].parent_link) :
+                          computeGroupMarkerSize(active_eef_[i].eef_group);
     ROS_DEBUG_NAMED("robot_interaction",
                     "Found active end-effector '%s', of scale %lf",
                     active_eef_[i].eef_group.c_str(),
@@ -376,11 +379,11 @@ void RobotInteraction::clearInteractiveMarkersUnsafe()
 }
 
 void RobotInteraction::addEndEffectorMarkers(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const EndEffectorInteraction& eef,
-      visualization_msgs::InteractiveMarker& im,
-      bool position,
-      bool orientation)
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const EndEffectorInteraction& eef,
+  visualization_msgs::InteractiveMarker& im,
+  bool position,
+  bool orientation)
 {
   geometry_msgs::Pose pose;
   pose.orientation.w = 1;
@@ -388,12 +391,12 @@ void RobotInteraction::addEndEffectorMarkers(
 }
 
 void RobotInteraction::addEndEffectorMarkers(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const EndEffectorInteraction& eef,
-      const geometry_msgs::Pose& im_to_eef,
-      visualization_msgs::InteractiveMarker& im,
-      bool position,
-      bool orientation)
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const EndEffectorInteraction& eef,
+  const geometry_msgs::Pose& im_to_eef,
+  visualization_msgs::InteractiveMarker& im,
+  bool position,
+  bool orientation)
 {
   if (eef.parent_group == eef.eef_group || !robot_model_->hasLinkModel(eef.parent_link))
     return;
@@ -444,28 +447,28 @@ void RobotInteraction::addEndEffectorMarkers(
 }
 
 static inline std::string getMarkerName(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const EndEffectorInteraction &eef)
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const EndEffectorInteraction &eef)
 {
   return "EE:" + handler->getName() + "_" + eef.parent_link;
 }
 
 static inline std::string getMarkerName(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const JointInteraction &vj)
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const JointInteraction &vj)
 {
   return "JJ:" + handler->getName() + "_" + vj.connecting_link;
 }
 
 static inline std::string getMarkerName(
-      const ::robot_interaction::InteractionHandlerPtr &handler, const GenericInteraction &g)
+  const ::robot_interaction::InteractionHandlerPtr &handler, const GenericInteraction &g)
 {
   return "GG:" + handler->getName() + "_" + g.marker_name_suffix;
 }
 
 void RobotInteraction::addInteractiveMarkers(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const double marker_scale)
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const double marker_scale)
 {
   handler->setRobotInteraction(this);
   // If scale is left at default size of 0, scale will be based on end effector link size. a good value is between 0-1
@@ -513,7 +516,7 @@ void RobotInteraction::addInteractiveMarkers(
           addPositionControl(im, active_eef_[i].interaction & EEF_FIXED);
         if (active_eef_[i].interaction & EEF_ORIENTATION_CIRCLES)
           addOrientationControl(im, active_eef_[i].interaction & EEF_FIXED);
-        if (active_eef_[i].interaction & (EEF_POSITION_SPHERE|EEF_ORIENTATION_SPHERE))
+        if (active_eef_[i].interaction & (EEF_POSITION_SPHERE | EEF_ORIENTATION_SPHERE))
         {
           std_msgs::ColorRGBA color;
           color.r = 0;
@@ -523,13 +526,13 @@ void RobotInteraction::addInteractiveMarkers(
           addViewPlaneControl(im,
                               mscale * 0.25,
                               color,
-                              active_eef_[i].interaction&EEF_POSITION_SPHERE,
-                              active_eef_[i].interaction&EEF_ORIENTATION_SPHERE);
+                              active_eef_[i].interaction & EEF_POSITION_SPHERE,
+                              active_eef_[i].interaction & EEF_ORIENTATION_SPHERE);
         }
       }
       if (handler &&
           handler->getMeshesVisible() &&
-          (active_eef_[i].interaction & (EEF_POSITION_EEF|EEF_ORIENTATION_EEF)))
+          (active_eef_[i].interaction & (EEF_POSITION_EEF | EEF_ORIENTATION_EEF)))
         addEndEffectorMarkers(handler,
                               active_eef_[i],
                               control_to_eef_tf,
@@ -583,8 +586,8 @@ void RobotInteraction::addInteractiveMarkers(
     int_marker_server_->insert(ims[i]);
     int_marker_server_->setCallback(ims[i].name,
                                     boost::bind(&RobotInteraction::processInteractiveMarkerFeedback,
-                                                this,
-                                                _1));
+                                        this,
+                                        _1));
 
     // Add menu handler to all markers that this interaction handler creates.
     if (boost::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
@@ -611,7 +614,8 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
     if (int_marker_move_subscribers_.size() == 0)
     {
       ros::NodeHandle nh;
-      for (size_t i = 0; i < int_marker_move_topics_.size(); i++) {
+      for (size_t i = 0; i < int_marker_move_topics_.size(); i++)
+      {
         std::string topic_name = int_marker_move_topics_[i];
         std::string marker_name = int_marker_names_[i];
         int_marker_move_subscribers_.push_back(
@@ -629,11 +633,11 @@ void RobotInteraction::toggleMoveInteractiveMarkerTopic(bool enable)
 }
 
 void RobotInteraction::computeMarkerPose(
-      const ::robot_interaction::InteractionHandlerPtr &handler,
-      const EndEffectorInteraction &eef,
-      const robot_state::RobotState &robot_state,
-      geometry_msgs::Pose &pose,
-      geometry_msgs::Pose &control_to_eef_tf) const
+  const ::robot_interaction::InteractionHandlerPtr &handler,
+  const EndEffectorInteraction &eef,
+  const robot_state::RobotState &robot_state,
+  geometry_msgs::Pose &pose,
+  geometry_msgs::Pose &control_to_eef_tf) const
 {
   // Need to allow for control pose offsets
   tf::Transform tf_root_to_link, tf_root_to_control;
@@ -693,7 +697,8 @@ void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::Inter
     }
   }
 
-  std_msgs::Header header; header.frame_id = root_link; // marker poses are give w.r.t. root frame
+  std_msgs::Header header;
+  header.frame_id = root_link; // marker poses are give w.r.t. root frame
   for (std::map<std::string, geometry_msgs::Pose>::const_iterator it = pose_updates.begin() ;
        it != pose_updates.end() ;
        ++it)
@@ -725,13 +730,13 @@ bool RobotInteraction::showingMarkers(const ::robot_interaction::InteractionHand
 
 // TODO: can we get rid of this?  Only used in moveit_ros/benchmarks_gui/src/tab_states_and_goals.cpp right now.
 bool RobotInteraction::updateState(
-      robot_state::RobotState &state,
-      const EndEffectorInteraction &eef,
-      const geometry_msgs::Pose &pose,
-      unsigned int attempts,
-      double ik_timeout,
-      const robot_state::GroupStateValidityCallbackFn &validity_callback,
-      const kinematics::KinematicsQueryOptions &kinematics_query_options)
+  robot_state::RobotState &state,
+  const EndEffectorInteraction &eef,
+  const geometry_msgs::Pose &pose,
+  unsigned int attempts,
+  double ik_timeout,
+  const robot_state::GroupStateValidityCallbackFn &validity_callback,
+  const kinematics::KinematicsQueryOptions &kinematics_query_options)
 {
   if (state.setFromIK(state.getJointModelGroup(eef.parent_group), pose, eef.parent_link,
                       kinematics_query_options.lock_redundant_joints ? 1 : attempts,
@@ -748,7 +753,7 @@ void RobotInteraction::moveInteractiveMarker(const std::string name, const geome
   std::map<std::string, std::size_t>::const_iterator it = shown_markers_.find(name);
   if (it != shown_markers_.end())
   {
-    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback (new visualization_msgs::InteractiveMarkerFeedback);
+    visualization_msgs::InteractiveMarkerFeedback::Ptr feedback(new visualization_msgs::InteractiveMarkerFeedback);
     feedback->header = msg->header;
     feedback->marker_name = name;
     feedback->pose = msg->pose;
@@ -763,7 +768,7 @@ void RobotInteraction::moveInteractiveMarker(const std::string name, const geome
 }
 
 void RobotInteraction::processInteractiveMarkerFeedback(
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
+  const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
 {
   // perform some validity checks
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
@@ -820,7 +825,7 @@ void RobotInteraction::processingThread()
       std::string marker_class = feedback->marker_name.substr(0, 2);
       std::string handler_name = feedback->marker_name.substr(3, u - 3); // skip the ":"
       std::map<std::string, ::robot_interaction::InteractionHandlerPtr>::const_iterator jt =
-                                                                handlers_.find(handler_name);
+        handlers_.find(handler_name);
       if (jt == handlers_.end())
       {
         ROS_ERROR("Interactive Marker Handler '%s' is not known.", handler_name.c_str());
@@ -840,61 +845,59 @@ void RobotInteraction::processingThread()
           {
             ih->handleEndEffector(eef, feedback);
           }
-          catch(std::runtime_error &ex)
+          catch (std::runtime_error &ex)
           {
             ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
           }
-          catch(...)
+          catch (...)
           {
             ROS_ERROR("Exception caught while handling end-effector update");
           }
           marker_access_lock_.lock();
         }
-        else
-          if (marker_class == "JJ")
+        else if (marker_class == "JJ")
+        {
+          // make a copy of the data, so we do not lose it while we are unlocked
+          JointInteraction vj = active_vj_[it->second];
+          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          marker_access_lock_.unlock();
+          try
           {
-            // make a copy of the data, so we do not lose it while we are unlocked
-            JointInteraction vj = active_vj_[it->second];
-            ::robot_interaction::InteractionHandlerPtr ih = jt->second;
-            marker_access_lock_.unlock();
-            try
-            {
-              ih->handleJoint(vj, feedback);
-            }
-            catch(std::runtime_error &ex)
-            {
-              ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
-            }
-            catch(...)
-            {
-              ROS_ERROR("Exception caught while handling joint update");
-            }
-            marker_access_lock_.lock();
+            ih->handleJoint(vj, feedback);
           }
-          else
-            if (marker_class == "GG")
-            {
-              ::robot_interaction::InteractionHandlerPtr ih = jt->second;
-              GenericInteraction g = active_generic_[it->second];
-              marker_access_lock_.unlock();
-              try
-              {
-                ih->handleGeneric(g, feedback);
-              }
-              catch(std::runtime_error &ex)
-              {
-                ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
-              }
-              catch(...)
-              {
-                ROS_ERROR("Exception caught while handling joint update");
-              }
-              marker_access_lock_.lock();
-            }
-            else
-              ROS_ERROR("Unknown marker class ('%s') for marker '%s'",
-                        marker_class.c_str(),
-                        feedback->marker_name.c_str());
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
+          }
+          catch (...)
+          {
+            ROS_ERROR("Exception caught while handling joint update");
+          }
+          marker_access_lock_.lock();
+        }
+        else if (marker_class == "GG")
+        {
+          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          GenericInteraction g = active_generic_[it->second];
+          marker_access_lock_.unlock();
+          try
+          {
+            ih->handleGeneric(g, feedback);
+          }
+          catch (std::runtime_error &ex)
+          {
+            ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
+          }
+          catch (...)
+          {
+            ROS_ERROR("Exception caught while handling joint update");
+          }
+          marker_access_lock_.lock();
+        }
+        else
+          ROS_ERROR("Unknown marker class ('%s') for marker '%s'",
+                    marker_class.c_str(),
+                    feedback->marker_name.c_str());
       }
       catch (std::runtime_error &ex)
       {

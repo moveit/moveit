@@ -84,7 +84,7 @@ public:
                  const double &search_discretization_angle,
                  const int &free_angle);
 
-  ~PR2ArmIKSolver(){};
+  ~PR2ArmIKSolver() {};
 
   /**
    * @brief The PR2 inverse kinematics solver

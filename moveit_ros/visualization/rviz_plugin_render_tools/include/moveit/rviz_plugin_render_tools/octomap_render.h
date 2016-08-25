@@ -83,12 +83,12 @@ public:
   virtual ~OcTreeRender();
 
 private:
-  void setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
-  void setProbColor( double prob, rviz::PointCloud::Point* point);
+  void setColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
+  void setProbColor(double prob, rviz::PointCloud::Point* point);
 
-  void octreeDecoding (const std::shared_ptr<const octomap::OcTree> &octree,
-                       OctreeVoxelRenderMode octree_voxel_rendering,
-                       OctreeVoxelColorMode octree_color_mode);
+  void octreeDecoding(const std::shared_ptr<const octomap::OcTree> &octree,
+                      OctreeVoxelRenderMode octree_voxel_rendering,
+                      OctreeVoxelColorMode octree_color_mode);
 
   // Ogre-rviz point clouds
   std::vector<rviz::PointCloud*> cloud_;

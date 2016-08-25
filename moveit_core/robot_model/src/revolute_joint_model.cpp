@@ -112,7 +112,7 @@ void moveit::core::RevoluteJointModel::getVariableRandomPositions(random_numbers
 }
 
 void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
-                                                                        const double *near, const double distance) const
+    const double *near, const double distance) const
 {
   if (continuous_)
   {
@@ -141,9 +141,8 @@ void moveit::core::RevoluteJointModel::interpolate(const double *from, const dou
       // input states are within bounds, so the following check is sufficient
       if (state[0] > boost::math::constants::pi<double>())
         state[0] -= 2.0 * boost::math::constants::pi<double>();
-      else
-        if (state[0] < -boost::math::constants::pi<double>())
-          state[0] += 2.0 * boost::math::constants::pi<double>();
+      else if (state[0] < -boost::math::constants::pi<double>())
+        state[0] += 2.0 * boost::math::constants::pi<double>();
     }
   }
   else
@@ -178,9 +177,8 @@ bool moveit::core::RevoluteJointModel::enforcePositionBounds(double *values, con
       v = fmod(v, 2.0 * boost::math::constants::pi<double>());
       if (v <= -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
-      else
-        if (v > boost::math::constants::pi<double>())
-          v -= 2.0 * boost::math::constants::pi<double>();
+      else if (v > boost::math::constants::pi<double>())
+        v -= 2.0 * boost::math::constants::pi<double>();
       return true;
     }
   }
@@ -191,12 +189,11 @@ bool moveit::core::RevoluteJointModel::enforcePositionBounds(double *values, con
       values[0] = bounds[0].min_position_;
       return true;
     }
-    else
-      if (values[0] > bounds[0].max_position_)
-      {
-        values[0] = bounds[0].max_position_;
-        return true;
-      }
+    else if (values[0] > bounds[0].max_position_)
+    {
+      values[0] = bounds[0].max_position_;
+      return true;
+    }
   }
   return false;
 }

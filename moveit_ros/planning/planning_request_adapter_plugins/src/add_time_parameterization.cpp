@@ -145,7 +145,10 @@ public:
     }
   }
   */
-  virtual std::string getDescription() const { return "Add Time Parameterization"; }
+  virtual std::string getDescription() const
+  {
+    return "Add Time Parameterization";
+  }
 
   virtual bool adaptAndPlan(const PlannerFn &planner,
                             const planning_scene::PlanningSceneConstPtr& planning_scene,

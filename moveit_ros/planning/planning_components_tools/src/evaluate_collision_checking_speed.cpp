@@ -38,7 +38,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void runCollisionDetection(unsigned int id, unsigned int trials, const planning_scene::PlanningScene *scene, const robot_state::RobotState *state)
 {
@@ -62,10 +62,10 @@ int main(int argc, char **argv)
   unsigned int trials = 10000;
   boost::program_options::options_description desc;
   desc.add_options()
-    ("nthreads", boost::program_options::value<unsigned int>(&nthreads)->default_value(nthreads), "Number of threads to use")
-    ("trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials), "Number of collision checks to perform with each thread")
-    ("wait", "Wait for a user command (so the planning scene can be updated in thre background)")
-    ("help", "this screen");
+  ("nthreads", boost::program_options::value<unsigned int>(&nthreads)->default_value(nthreads), "Number of threads to use")
+  ("trials", boost::program_options::value<unsigned int>(&trials)->default_value(trials), "Number of collision checks to perform with each thread")
+  ("wait", "Wait for a user command (so the planning scene can be updated in thre background)")
+  ("help", "this screen");
   boost::program_options::variables_map vm;
   boost::program_options::parsed_options po = boost::program_options::parse_command_line(argc, argv, desc);
   boost::program_options::store(po, vm);
@@ -108,7 +108,8 @@ int main(int argc, char **argv)
         psm.getPlanningScene()->checkCollision(req, res);
         if (!res.collision)
           break;
-      } while (true);
+      }
+      while (true);
       states.push_back(robot_state::RobotStatePtr(state));
     }
 

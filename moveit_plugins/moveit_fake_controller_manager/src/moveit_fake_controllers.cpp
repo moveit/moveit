@@ -68,8 +68,8 @@ moveit_controller_manager::ExecutionStatus BaseFakeController::getLastExecutionS
 
 
 LastPointController::LastPointController(const std::string &name,
-                                         const std::vector<std::string> &joints,
-                                         const ros::Publisher &pub) :
+    const std::vector<std::string> &joints,
+    const ros::Publisher &pub) :
   BaseFakeController(name, joints, pub)
 {
 }
@@ -244,9 +244,9 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory 
 
   const std::vector<trajectory_msgs::JointTrajectoryPoint> &points = t.joint_trajectory.points;
   std::vector<trajectory_msgs::JointTrajectoryPoint>::const_iterator
-      prev = points.begin(), // previous via point
-      next  = points.begin()+1, // currently targetted via point
-      end  = points.end();
+  prev = points.begin(), // previous via point
+  next  = points.begin() + 1, // currently targetted via point
+  end  = points.end();
 
   ros::Time startTime = ros::Time::now();
   while (!cancelled())
@@ -264,9 +264,9 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory 
     double duration = (next->time_from_start - prev->time_from_start).toSec();
     ROS_DEBUG("elapsed: %.3f via points %td,%td / %td  alpha: %.3f",
               elapsed.toSec(),
-              prev-points.begin(),
-              next-points.begin(),
-              end-points.begin(),
+              prev - points.begin(),
+              next - points.begin(),
+              end - points.begin(),
               duration > std::numeric_limits<double>::epsilon() ? (elapsed - prev->time_from_start).toSec() / duration : 1.0);
     interpolate(js, *prev, *next, elapsed);
     js.header.stamp = ros::Time::now();
@@ -279,9 +279,9 @@ void InterpolatingController::execTrajectory(const moveit_msgs::RobotTrajectory 
   ros::Duration elapsed = ros::Time::now() - startTime;
   ROS_DEBUG("elapsed: %.3f via points %td,%td / %td  alpha: 1.0",
             elapsed.toSec(),
-            prev-points.begin(),
-            next-points.begin(),
-            end-points.begin());
+            prev - points.begin(),
+            next - points.begin(),
+            end - points.begin());
 
   // publish last point
   interpolate(js, *prev, *prev, prev->time_from_start);

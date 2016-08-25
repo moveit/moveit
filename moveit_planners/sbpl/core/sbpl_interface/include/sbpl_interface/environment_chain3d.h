@@ -59,12 +59,14 @@
 
 #include <Eigen/Core>
 
-static const double DEFAULT_INTERPOLATION_DISTANCE=.05;
-static const double DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE=.2;
+static const double DEFAULT_INTERPOLATION_DISTANCE = .05;
+static const double DEFAULT_JOINT_MOTION_PRIMITIVE_DISTANCE = .2;
 
-namespace sbpl_interface {
+namespace sbpl_interface
+{
 
-struct PlanningStatistics {
+struct PlanningStatistics
+{
 
   PlanningStatistics() :
     total_expansions_(0),
@@ -79,7 +81,8 @@ struct PlanningStatistics {
   ros::WallDuration total_planning_time_;
 };
 
-struct PlanningParameters {
+struct PlanningParameters
+{
 
   PlanningParameters() :
     use_bfs_(true),
@@ -187,7 +190,7 @@ public:
    * @param prints out a little extra information
    * @param the file pointer to print to (stdout by default)
    */
-  virtual void PrintState(int stateID, bool bVerbose, FILE* fOut=NULL);
+  virtual void PrintState(int stateID, bool bVerbose, FILE* fOut = NULL);
 
   /** @brief Not defined. */
   virtual void PrintEnv_Config(FILE* fOut);
@@ -219,15 +222,17 @@ public:
                           moveit_msgs::GetMotionPlan::Response& res,
                           const PlanningParameters& params);
 
-  const EnvChain3DPlanningData& getPlanningData() const {
+  const EnvChain3DPlanningData& getPlanningData() const
+  {
     return planning_data_;
   }
 
   bool populateTrajectoryFromStateIDSequence(const std::vector<int>& state_ids,
-                                             trajectory_msgs::JointTrajectory& traj) const;
+      trajectory_msgs::JointTrajectory& traj) const;
 
 
-  const PlanningStatistics& getPlanningStatistics() const {
+  const PlanningStatistics& getPlanningStatistics() const
+  {
     return planning_statistics_;
   }
 
@@ -235,7 +240,8 @@ public:
                          double z_val);
 
 
-  const Eigen::Affine3d& getGoalPose() const {
+  const Eigen::Affine3d& getGoalPose() const
+  {
     return goal_pose_;
   }
 
@@ -311,7 +317,7 @@ protected:
 
   inline double getEuclideanDistance(double x1, double y1, double z1, double x2, double y2, double z2) const
   {
-    return sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
   }
 
   //temp
@@ -322,21 +328,21 @@ protected:
 inline void EnvironmentChain3D::convertCoordToJointAngles(const std::vector<int> &coord, std::vector<double> &angles)
 {
   angles.resize(coord.size());
-  for(size_t i = 0; i < coord.size(); i++)
-    angles[i] = coord[i]*angle_discretization_;
+  for (size_t i = 0; i < coord.size(); i++)
+    angles[i] = coord[i] * angle_discretization_;
 }
 
 inline void EnvironmentChain3D::convertJointAnglesToCoord(const std::vector<double> &angle, std::vector<int> &coord)
 {
   coord.resize(angle.size());
-  for(unsigned int i = 0; i < angle.size(); i++)
+  for (unsigned int i = 0; i < angle.size(); i++)
   {
     //NOTE: Added 3/1/09
     double pos_angle = angle[i];
-    if(pos_angle < 0.0)
-      pos_angle += 2*M_PI;
+    if (pos_angle < 0.0)
+      pos_angle += 2 * M_PI;
 
-    coord[i] = (int)((pos_angle + angle_discretization_*0.5)/angle_discretization_);
+    coord[i] = (int)((pos_angle + angle_discretization_ * 0.5) / angle_discretization_);
   }
 }
 

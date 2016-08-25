@@ -210,7 +210,8 @@ static const char *SRDF_STR =
   "</robot>";
 
 // index of joints from URDF
-enum {
+enum
+{
   JOINT_A = 3,
   JOINT_C = 4,
   MIM_F   = 5,
@@ -242,7 +243,7 @@ TEST(LockedRobotState, load)
   robot_interaction::LockedRobotState ls2(state2);
 
   robot_interaction::LockedRobotStatePtr ls4(
-                    new robot_interaction::LockedRobotState(model));
+    new robot_interaction::LockedRobotState(model));
 }
 
 // sanity test the URDF and enum
@@ -310,8 +311,8 @@ public:
 
   // Thread that repeatedly sets state to different values
   void setThreadFunc(robot_interaction::LockedRobotState* locked_state,
-                        int* counter,
-                        double offset);
+                     int* counter,
+                     double offset);
 
   // Thread that repeatedly modifies  state with different values
   void modifyThreadFunc(robot_interaction::LockedRobotState* locked_state,
@@ -329,7 +330,7 @@ public:
 
 private:
   // helper function for modifyThreadFunc
-  void modifyFunc( robot_state::RobotState* state, double val);
+  void modifyFunc(robot_state::RobotState* state, double val);
 
   // Checks state for validity and self-consistancy.
   void checkState(robot_interaction::LockedRobotState &locked_state);
@@ -382,11 +383,11 @@ void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
 
 // spin, checking the state
 void MyInfo::checkThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter)
+  robot_interaction::LockedRobotState* locked_state,
+  int* counter)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     for (int loops = 0 ; loops < 100 ; ++loops)
     {
@@ -402,12 +403,12 @@ void MyInfo::checkThreadFunc(
 
 // spin, setting the state to different values
 void MyInfo::setThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter,
-    double offset)
+  robot_interaction::LockedRobotState* locked_state,
+  int* counter,
+  double offset)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     double val = offset;
     for (int loops = 0 ; loops < 100 ; ++loops)
@@ -435,8 +436,8 @@ void MyInfo::setThreadFunc(
 
 // modify the state in place.  Used by MyInfo::modifyThreadFunc()
 void MyInfo::modifyFunc(
-    robot_state::RobotState* state,
-    double val)
+  robot_state::RobotState* state,
+  double val)
 {
   state->setVariablePosition(JOINT_A, val + 0.00001);
   state->setVariablePosition(JOINT_C, val + 0.00002);
@@ -445,12 +446,12 @@ void MyInfo::modifyFunc(
 
 // spin, modifying the state to different values
 void MyInfo::modifyThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter,
-    double offset)
+  robot_interaction::LockedRobotState* locked_state,
+  int* counter,
+  double offset)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     double val = offset;
     for (int loops = 0 ; loops < 100 ; ++loops)
@@ -458,9 +459,9 @@ void MyInfo::modifyThreadFunc(
       val += 0.0001;
 
       locked_state->modifyState(boost::bind(&MyInfo::modifyFunc,
-                                                 this,
-                                                 _1,
-                                                 val));
+                                            this,
+                                            _1,
+                                            val));
     }
 
     cnt_lock_.lock();
@@ -476,12 +477,12 @@ void MyInfo::modifyThreadFunc(
 
 // spin until all counters reach at least max
 void MyInfo::waitThreadFunc(
-            robot_interaction::LockedRobotState* locked_state,
-            int** counters,
-            int max)
+  robot_interaction::LockedRobotState* locked_state,
+  int** counters,
+  int max)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     go = false;
     cnt_lock_.lock();
@@ -516,7 +517,7 @@ static void runThreads(int ncheck, int nset, int nmod)
   typedef int *int_ptr;
   typedef boost::thread * thread_ptr;
   int *cnt = new int[num];
-  int_ptr *counters = new int_ptr[num+1];
+  int_ptr *counters = new int_ptr[num + 1];
   thread_ptr *threads = new thread_ptr[num];
 
   int p = 0;
@@ -569,10 +570,10 @@ static void runThreads(int ncheck, int nset, int nmod)
   // this thread waits for all the other threads to make progress, then stops
   // everything.
   boost::thread wthread(&MyInfo::waitThreadFunc,
-                   &info,
-                   &ls1,
-                   counters,
-                   1000);
+                        &info,
+                        &ls1,
+                        counters,
+                        1000);
 
   // wait for all threads to finish
   for (int i = 0 ; i < p ; ++i)

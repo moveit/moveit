@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
   do
   {
-    if(!psm.getPlanningScene())
+    if (!psm.getPlanningScene())
     {
       ROS_ERROR("Planning scene did not load properly, exiting...");
       break;
@@ -81,9 +81,8 @@ int main(int argc, char **argv)
     std::cout << "Type a number and hit Enter. That number of ";
     if (valid)
       std::cout << "valid ";
-    else
-      if (invalid)
-        std::cout << "invalid ";
+    else if (invalid)
+      std::cout << "invalid ";
     std::cout << "states will be randomly generated at an interval of one second and published as a planning scene." << std::endl;
     std::size_t n;
     std::cin >> n;
@@ -102,35 +101,36 @@ int main(int argc, char **argv)
           collision_detection::CollisionResult res;
           psm.getPlanningScene()->checkCollision(req, res);
           found = !res.collision;
-        } while (!found && attempts < 100);
+        }
+        while (!found && attempts < 100);
         if (!found)
         {
           std::cout << "Unable to find valid state" << std::endl;
           continue;
         }
       }
-      else
-        if (invalid)
+      else if (invalid)
+      {
+        bool found = false;
+        unsigned int attempts = 0;
+        do
         {
-          bool found = false;
-          unsigned int attempts = 0;
-          do
-          {
-            attempts++;
-            psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
-            collision_detection::CollisionRequest req;
-            collision_detection::CollisionResult res;
-            psm.getPlanningScene()->checkCollision(req, res);
-            found = res.collision;
-          } while (!found && attempts < 100);
-          if (!found)
-          {
-            std::cout << "Unable to find invalid state" << std::endl;
-            continue;
-          }
-        }
-        else
+          attempts++;
           psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
+          collision_detection::CollisionRequest req;
+          collision_detection::CollisionResult res;
+          psm.getPlanningScene()->checkCollision(req, res);
+          found = res.collision;
+        }
+        while (!found && attempts < 100);
+        if (!found)
+        {
+          std::cout << "Unable to find invalid state" << std::endl;
+          continue;
+        }
+      }
+      else
+        psm.getPlanningScene()->getCurrentStateNonConst().setToRandomPositions();
 
       moveit_msgs::PlanningScene psmsg;
       psm.getPlanningScene()->getPlanningSceneMsg(psmsg);
@@ -139,7 +139,8 @@ int main(int argc, char **argv)
 
       sleep(1);
     }
-  } while (nh.ok());
+  }
+  while (nh.ok());
 
   ros::shutdown();
   return 0;

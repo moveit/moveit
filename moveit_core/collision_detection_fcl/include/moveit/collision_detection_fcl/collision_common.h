@@ -143,7 +143,7 @@ struct CollisionData
   /// If the collision request includes a group name, this set contains the pointers to the link models that are considered for collision;
   /// If the pointer is NULL, all collisions are considered.
   const std::set<const robot_model::LinkModel*>
-                               *active_components_only_;
+  *active_components_only_;
 
   /// The user specified response location
   CollisionResult              *res_;
@@ -220,20 +220,20 @@ bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void 
 bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void *data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_model::LinkModel *link,
-                                            int shape_index);
+    const robot_model::LinkModel *link,
+    int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const robot_state::AttachedBody *ab,
-                                            int shape_index);
+    const robot_state::AttachedBody *ab,
+    int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape,
-                                            const World::Object *obj);
+    const World::Object *obj);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_model::LinkModel *link, int shape_index);
+    const robot_model::LinkModel *link, int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_state::AttachedBody *ab, int shape_index);
+    const robot_state::AttachedBody *ab, int shape_index);
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const World::Object *obj);
+    const World::Object *obj);
 void cleanCollisionGeometryCache();
 
 inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)

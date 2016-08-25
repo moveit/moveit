@@ -96,7 +96,7 @@ private:
     {
       capability_plugin_loader_.reset(new pluginlib::ClassLoader<MoveGroupCapability>("moveit_ros_move_group", "move_group::MoveGroupCapability"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_FATAL_STREAM("Exception while creating plugin loader for move_group capabilities: " << ex.what());
       return;
@@ -108,7 +108,7 @@ private:
     {
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(capability_plugins, sep);
-      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
       {
         std::string plugin = *beg;
         try
@@ -119,7 +119,7 @@ private:
           cap->initialize();
           capabilities_.push_back(boost::shared_ptr<MoveGroupCapability>(cap));
         }
-        catch(pluginlib::PluginlibException& ex)
+        catch (pluginlib::PluginlibException& ex)
         {
           ROS_ERROR_STREAM("Exception while loading move_group capability '" << plugin << "': " << ex.what() << std::endl
                            << "Available capabilities: " << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));

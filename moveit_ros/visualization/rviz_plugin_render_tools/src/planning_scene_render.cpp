@@ -64,11 +64,11 @@ void PlanningSceneRender::clear()
 }
 
 void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene,
-                                              const rviz::Color &default_env_color,
-                                              const rviz::Color &default_attached_color,
-                                              OctreeVoxelRenderMode octree_voxel_rendering,
-                                              OctreeVoxelColorMode octree_color_mode,
-                                              float default_scene_alpha)
+    const rviz::Color &default_env_color,
+    const rviz::Color &default_attached_color,
+    OctreeVoxelRenderMode octree_voxel_rendering,
+    OctreeVoxelColorMode octree_color_mode,
+    float default_scene_alpha)
 {
   if (!scene)
     return;
@@ -99,7 +99,9 @@ void PlanningSceneRender::renderPlanningScene(const planning_scene::PlanningScen
     if (scene->hasObjectColor(ids[i]))
     {
       const std_msgs::ColorRGBA &c = scene->getObjectColor(ids[i]);
-      color.r_ = c.r; color.g_ = c.g; color.b_ = c.b;
+      color.r_ = c.r;
+      color.g_ = c.g;
+      color.b_ = c.b;
       alpha = c.a;
     }
     for (std::size_t j = 0 ; j < o->shapes_.size() ; ++j)

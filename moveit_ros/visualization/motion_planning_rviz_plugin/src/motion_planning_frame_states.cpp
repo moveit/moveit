@@ -91,7 +91,7 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
   // Clear the current list
   clearStatesButtonClicked();
 
-  for ( std::size_t i = 0 ; i < names.size() ; ++i )
+  for (std::size_t i = 0 ; i < names.size() ; ++i)
   {
     moveit_warehouse::RobotStateWithMetadata rs;
     bool got_state = false;
@@ -99,7 +99,7 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
     {
       got_state = robot_state_storage_->getRobotState(rs, names[i]);
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -216,24 +216,24 @@ void MotionPlanningFrame::removeStateButtonClicked()
 
     switch (ret)
     {
-      case QMessageBox::Yes:
+    case QMessageBox::Yes:
+    {
+      QList<QListWidgetItem*> found_items =  ui_->list_states->selectedItems();
+      for (std::size_t i = 0; i < found_items.size() ; ++i)
       {
-        QList<QListWidgetItem*> found_items =  ui_->list_states->selectedItems();
-        for (std::size_t i = 0; i < found_items.size() ; ++i)
+        const std::string &name = found_items[i]->text().toStdString();
+        try
         {
-          const std::string &name = found_items[i]->text().toStdString();
-          try
-          {
-            robot_state_storage_->removeRobotState(name);
-            robot_states_.erase(name);
-          }
-          catch (std::runtime_error &ex)
-          {
-            ROS_ERROR("%s", ex.what());
-          }
+          robot_state_storage_->removeRobotState(name);
+          robot_states_.erase(name);
         }
-        break;
+        catch (std::runtime_error &ex)
+        {
+          ROS_ERROR("%s", ex.what());
+        }
       }
+      break;
+    }
     }
   }
   populateRobotStatesList();

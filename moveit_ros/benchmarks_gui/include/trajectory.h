@@ -127,9 +127,9 @@ public:
 
 protected:
   void createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                         const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                         const GripperMarker::GripperMarkerState &state, bool is_selected = true,
-                         bool visible_x = true, bool visible_y = true, bool visible_z = true);
+                           const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
+                           const GripperMarker::GripperMarkerState &state, bool is_selected = true,
+                           bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
   void createHandMarker();
   void createStartMarker();

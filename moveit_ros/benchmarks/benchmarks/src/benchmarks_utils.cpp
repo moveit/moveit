@@ -53,7 +53,7 @@ std::vector<std::string> benchmarkGetAvailablePluginNames()
   {
     planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     std::cerr << "Exception while creating planning plugin loader " << ex.what() << std::endl;
   }

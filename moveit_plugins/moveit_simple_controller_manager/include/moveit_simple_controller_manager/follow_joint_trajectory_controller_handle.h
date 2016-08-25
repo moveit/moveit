@@ -77,9 +77,9 @@ public:
     control_msgs::FollowJointTrajectoryGoal goal;
     goal.trajectory = trajectory.joint_trajectory;
     controller_action_client_->sendGoal(goal,
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
+                                        boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
+                                        boost::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
+                                        boost::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
     return true;
@@ -91,23 +91,23 @@ protected:
                               const control_msgs::FollowJointTrajectoryResultConstPtr& result)
   {
     // Output custom error message for FollowJointTrajectoryResult if necessary
-    switch( result->error_code )
+    switch (result->error_code)
     {
-      case control_msgs::FollowJointTrajectoryResult::INVALID_GOAL:
-        ROS_WARN_STREAM("Controller " << name_ << " failed with error code INVALID_GOAL");
-        break;
-      case control_msgs::FollowJointTrajectoryResult::INVALID_JOINTS:
-        ROS_WARN_STREAM("Controller " << name_ << " failed with error code INVALID_JOINTS");
-        break;
-      case control_msgs::FollowJointTrajectoryResult::OLD_HEADER_TIMESTAMP:
-        ROS_WARN_STREAM("Controller " << name_ << " failed with error code OLD_HEADER_TIMESTAMP");
-        break;
-      case control_msgs::FollowJointTrajectoryResult::PATH_TOLERANCE_VIOLATED:
-        ROS_WARN_STREAM("Controller " << name_ << " failed with error code PATH_TOLERANCE_VIOLATED");
-        break;
-      case control_msgs::FollowJointTrajectoryResult::GOAL_TOLERANCE_VIOLATED:
-        ROS_WARN_STREAM("Controller " << name_ << " failed with error code GOAL_TOLERANCE_VIOLATED");
-        break;
+    case control_msgs::FollowJointTrajectoryResult::INVALID_GOAL:
+      ROS_WARN_STREAM("Controller " << name_ << " failed with error code INVALID_GOAL");
+      break;
+    case control_msgs::FollowJointTrajectoryResult::INVALID_JOINTS:
+      ROS_WARN_STREAM("Controller " << name_ << " failed with error code INVALID_JOINTS");
+      break;
+    case control_msgs::FollowJointTrajectoryResult::OLD_HEADER_TIMESTAMP:
+      ROS_WARN_STREAM("Controller " << name_ << " failed with error code OLD_HEADER_TIMESTAMP");
+      break;
+    case control_msgs::FollowJointTrajectoryResult::PATH_TOLERANCE_VIOLATED:
+      ROS_WARN_STREAM("Controller " << name_ << " failed with error code PATH_TOLERANCE_VIOLATED");
+      break;
+    case control_msgs::FollowJointTrajectoryResult::GOAL_TOLERANCE_VIOLATED:
+      ROS_WARN_STREAM("Controller " << name_ << " failed with error code GOAL_TOLERANCE_VIOLATED");
+      break;
     }
 
     finishControllerExecution(state);

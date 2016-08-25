@@ -54,16 +54,16 @@ class GroupEditWidget : public QWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
   /// Constructor
-  GroupEditWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Set the previous data
-  void setSelected( const std::string &group_name );
+  void setSelected(const std::string &group_name);
 
   /// Populate the combo dropdown box with kinematic planners
   void loadKinematicPlannersComboBox();

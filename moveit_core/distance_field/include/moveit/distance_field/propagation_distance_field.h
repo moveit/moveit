@@ -56,12 +56,12 @@ struct compareEigen_Vector3i
 {
   bool operator()(Eigen::Vector3i loc_1, Eigen::Vector3i loc_2) const
   {
-    if( loc_1.z() != loc_2.z() )
-      return ( loc_1.z() < loc_2.z() );
-    else if( loc_1.y() != loc_2.y() )
-      return ( loc_1.y() < loc_2.y() );
-    else if( loc_1.x() != loc_2.x() )
-      return ( loc_1.x() < loc_2.x() );
+    if (loc_1.z() != loc_2.z())
+      return (loc_1.z() < loc_2.z());
+    else if (loc_1.y() != loc_2.y())
+      return (loc_1.y() < loc_2.y());
+    else if (loc_1.x() != loc_2.x())
+      return (loc_1.x() < loc_2.x());
     return false;
   }
 };
@@ -102,7 +102,7 @@ struct PropDistanceFieldVoxel
   int update_direction_;        /**< \brief Direction from which this voxel was updated for occupied distance propagation */
   int negative_update_direction_;        /**< \brief Direction from which this voxel was updated  for negative distance propagation*/
 
-  static const int UNINITIALIZED=-1; /**< \brief Value that represents an unitialized voxel */
+  static const int UNINITIALIZED = -1; /**< \brief Value that represents an unitialized voxel */
 };
 
 /**
@@ -167,7 +167,7 @@ public:
                            double resolution,
                            double origin_x, double origin_y, double origin_z,
                            double max_distance,
-                           bool propagate_negative_distances=false);
+                           bool propagate_negative_distances = false);
 
   /**
    * \brief Constructor based on an OcTree and bounding box
@@ -195,7 +195,7 @@ public:
                            const octomap::point3d& bbx_min,
                            const octomap::point3d& bbx_max,
                            double max_distance,
-                           bool propagate_negative_distances=false);
+                           bool propagate_negative_distances = false);
 
   /**
    * \brief Constructor that takes an istream and reads the contents
@@ -220,13 +220,13 @@ public:
    */
   PropagationDistanceField(std::istream& stream,
                            double max_distance,
-                           bool propagate_negative_distances=false);
+                           bool propagate_negative_distances = false);
   /**
    * \brief Empty destructor
    *
    *
    */
-  virtual ~PropagationDistanceField(){}
+  virtual ~PropagationDistanceField() {}
 
   /**
    * \brief Add a set of obstacle points to the distance field,
@@ -605,7 +605,7 @@ inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
 
 inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel& object) const
 {
-  return sqrt_table_[object.distance_square_]-sqrt_table_[object.negative_distance_square_];
+  return sqrt_table_[object.distance_square_] - sqrt_table_[object.negative_distance_square_];
 }
 
 }

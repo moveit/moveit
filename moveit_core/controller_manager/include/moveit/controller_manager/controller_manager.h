@@ -51,9 +51,9 @@ namespace moveit_controller_manager
 struct ExecutionStatus
 {
   enum Value
-    {
-      UNKNOWN, RUNNING, SUCCEEDED, PREEMPTED, TIMED_OUT, ABORTED, FAILED
-    };
+  {
+    UNKNOWN, RUNNING, SUCCEEDED, PREEMPTED, TIMED_OUT, ABORTED, FAILED
+  };
 
   ExecutionStatus(Value value = UNKNOWN) : status_(value)
   {
@@ -152,7 +152,7 @@ public:
   struct ControllerState
   {
     ControllerState() : active_(false),
-                        default_(false)
+      default_(false)
     {
     }
 

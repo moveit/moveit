@@ -94,7 +94,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
 
     if (ji.min_bound_ > ji.max_bound_ + std::numeric_limits<double>::epsilon())
     {
-      std::stringstream cs; jc[i].print(cs);
+      std::stringstream cs;
+      jc[i].print(cs);
       logError("The constraints for joint '%s' are such that there are no possible values for the joint: min_bound: %g, max_bound: %g. Failing.\n", jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
       clear();
       return false;
@@ -141,8 +142,8 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
 }
 
 bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState &state,
-                                                         const robot_state::RobotState & /* reference_state */,
-                                                         unsigned int /* max_attempts */)
+    const robot_state::RobotState & /* reference_state */,
+    unsigned int /* max_attempts */)
 {
   if (!is_valid_)
   {
@@ -171,7 +172,7 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState
 }
 
 bool constraint_samplers::JointConstraintSampler::project(robot_state::RobotState &state,
-                                                          unsigned int max_attempts)
+    unsigned int max_attempts)
 {
   return sample(state, state, max_attempts);
 }
@@ -225,11 +226,12 @@ void constraint_samplers::IKConstraintSampler::clear()
 bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose &sp)
 {
   clear();
-  if(!sp.position_constraint_ && !sp.orientation_constraint_) return false;
-  if((!sp.orientation_constraint_ && !sp.position_constraint_->enabled()) ||
-     (!sp.position_constraint_ && !sp.orientation_constraint_->enabled()) ||
-     (sp.position_constraint_ && sp.orientation_constraint_ &&
-      !sp.position_constraint_->enabled() && !sp.orientation_constraint_->enabled())) {
+  if (!sp.position_constraint_ && !sp.orientation_constraint_) return false;
+  if ((!sp.orientation_constraint_ && !sp.position_constraint_->enabled()) ||
+      (!sp.position_constraint_ && !sp.orientation_constraint_->enabled()) ||
+      (sp.position_constraint_ && sp.orientation_constraint_ &&
+       !sp.position_constraint_->enabled() && !sp.orientation_constraint_->enabled()))
+  {
     logWarn("No enabled constraints in sampling pose");
     return false;
   }
@@ -281,7 +283,7 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
   {
     kinematic_constraints::OrientationConstraintPtr oc(new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
     if (oc->configure(constr.orientation_constraints[o], scene_->getTransforms()))
-        return configure(IKSamplingPose(oc));
+      return configure(IKSamplingPose(oc));
   }
   return false;
 }
@@ -377,8 +379,8 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
 }
 
 bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, Eigen::Quaterniond &quat,
-                                                          const robot_state::RobotState &ks,
-                                                          unsigned int max_attempts)
+    const robot_state::RobotState &ks,
+    unsigned int max_attempts)
 {
   if (sampling_pose_.position_constraint_)
   {
@@ -388,7 +390,7 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
       bool found = false;
       std::size_t k = random_number_generator_.uniformInteger(0, b.size() - 1);
       for (std::size_t i = 0 ; i < b.size() ; ++i)
-        if (b[(i+k) % b.size()]->samplePointInside(random_number_generator_, max_attempts, pos))
+        if (b[(i + k) % b.size()]->samplePointInside(random_number_generator_, max_attempts, pos))
         {
           found = true;
           break;
@@ -420,9 +422,9 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
   if (sampling_pose_.orientation_constraint_)
   {
     // sample a rotation matrix within the allowed bounds
-    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getXAxisTolerance()-std::numeric_limits<double>::epsilon());
-    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getYAxisTolerance()-std::numeric_limits<double>::epsilon());
-    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getZAxisTolerance()-std::numeric_limits<double>::epsilon());
+    double angle_x = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getXAxisTolerance() - std::numeric_limits<double>::epsilon());
+    double angle_y = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getYAxisTolerance() - std::numeric_limits<double>::epsilon());
+    double angle_z = 2.0 * (random_number_generator_.uniform01() - 0.5) * (sampling_pose_.orientation_constraint_->getZAxisTolerance() - std::numeric_limits<double>::epsilon());
     Eigen::Affine3d diff(Eigen::AngleAxisd(angle_x, Eigen::Vector3d::UnitX())
                          * Eigen::AngleAxisd(angle_y, Eigen::Vector3d::UnitY())
                          * Eigen::AngleAxisd(angle_z, Eigen::Vector3d::UnitZ()));
@@ -529,7 +531,7 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotSt
 }
 
 bool constraint_samplers::IKConstraintSampler::project(robot_state::RobotState &state,
-                                                       unsigned int max_attempts)
+    unsigned int max_attempts)
 {
   return sampleHelper(state, state, max_attempts, true);
 }
@@ -538,11 +540,11 @@ bool constraint_samplers::IKConstraintSampler::validate(robot_state::RobotState 
 {
   state.update();
   return (!sampling_pose_.orientation_constraint_ || sampling_pose_.orientation_constraint_->decide(state, verbose_).satisfied)
-    && (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
+         && (!sampling_pose_.position_constraint_ || sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
 }
 
 bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose &ik_query, const kinematics::KinematicsBase::IKCallbackFn &adapted_ik_validity_callback,
-                                                      double timeout, robot_state::RobotState &state, bool use_as_seed)
+    double timeout, robot_state::RobotState &state, bool use_as_seed)
 {
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);
@@ -576,12 +578,11 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   else
   {
     if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION &&
-    error.val != moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE &&
+        error.val != moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE &&
         error.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT)
       logError("IK solver failed with error %d", error.val);
-    else
-      if (verbose_)
-        logInform("IK failed");
+    else if (verbose_)
+      logInform("IK failed");
   }
   return false;
 }

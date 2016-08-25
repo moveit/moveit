@@ -58,7 +58,7 @@ void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d &tra
 {
   joint_origin_transform_ = transform;
   joint_origin_transform_is_identity_ = joint_origin_transform_.rotation().isIdentity() &&
-    joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
+                                        joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
 }
 
 void moveit::core::LinkModel::setParentJointModel(const JointModel *joint)
@@ -79,7 +79,7 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
   for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
   {
     collision_origin_transform_is_identity_[i] = (collision_origin_transform_[i].rotation().isIdentity() &&
-                                                  collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ? 1 : 0;
+        collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ? 1 : 0;
     Eigen::Vector3d ei = shapes::computeShapeExtents(shapes_[i].get());
     Eigen::Vector3d p1 = collision_origin_transform_[i] * (-ei / 2.0);
     Eigen::Vector3d p2 = collision_origin_transform_[i] * (-p1);

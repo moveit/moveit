@@ -83,14 +83,14 @@ class MotionPlanningDisplay : public PlanningSceneDisplay
 {
   Q_OBJECT
 
-  public:
+public:
 
   MotionPlanningDisplay();
 
   virtual ~MotionPlanningDisplay();
 
-  virtual void load( const rviz::Config& config );
-  virtual void save( rviz::Config config ) const;
+  virtual void load(const rviz::Config& config);
+  virtual void save(rviz::Config config) const;
 
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();

@@ -41,8 +41,8 @@
 #include <ros/console.h>
 
 pick_place::ReachableAndValidPoseFilter::ReachableAndValidPoseFilter(const planning_scene::PlanningSceneConstPtr &scene,
-                                                                     const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                                                                     const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager) :
+    const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
+    const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager) :
   ManipulationStage("reachable & valid pose filter"),
   planning_scene_(scene),
   collision_matrix_(collision_matrix),
@@ -128,16 +128,15 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
     if (plan->goal_sampler_)
     {
       plan->goal_sampler_->setGroupStateValidityCallback(boost::bind(&isStateCollisionFree, planning_scene_.get(), collision_matrix_.get(),
-                                                                     verbose_, plan.get(), _1, _2, _3));
+          verbose_, plan.get(), _1, _2, _3));
       plan->goal_sampler_->setVerbose(verbose_);
       if (plan->goal_sampler_->sample(*token_state, plan->shared_data_->max_goal_sampling_attempts_))
       {
         plan->possible_goal_states_.push_back(token_state);
         return true;
       }
-      else
-        if (verbose_)
-          ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state");
+      else if (verbose_)
+        ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state");
     }
     else
       ROS_ERROR_THROTTLE_NAMED(1, "manipulation", "No sampler was constructed");

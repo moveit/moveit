@@ -81,7 +81,8 @@ bool PlacePlan::plan(const planning_scene::PlanningSceneConstPtr &planning_scene
   {
     eef = planning_scene->getRobotModel()->getEndEffector(goal.group_name);
     if (eef)
-    { // if we correctly found the eef, then we try to find out what the planning group is
+    {
+      // if we correctly found the eef, then we try to find out what the planning group is
       const std::string &eef_parent = eef->getEndEffectorParentGroup().first;
       if (eef_parent.empty())
       {
