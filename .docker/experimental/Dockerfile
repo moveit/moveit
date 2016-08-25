@@ -3,7 +3,7 @@
 
 FROM moveit/moveit:kinetic-source
 
-ENV CATKIN_WS=/root/ws_warehouse
+ENV CATKIN_WS=/root/ws_moveit
 RUN mkdir -p $CATKIN_WS/src
 WORKDIR $CATKIN_WS/src
 
@@ -18,8 +18,7 @@ RUN git clone -b 26compat https://github.com/mongodb/mongo-cxx-driver.git && \
     rm -rf /var/lib/apt/lists/*
 
 # Download warehouse source
-RUN wstool init . && \
-    wstool set -yu warehouse_ros_mongo --git https://github.com/TheBrewCrew/warehouse_ros_mongo.git -v jade-devel && \
+RUN wstool set -yu warehouse_ros_mongo --git https://github.com/TheBrewCrew/warehouse_ros_mongo.git -v jade-devel && \
     wstool set -yu warehouse_ros --git https://github.com/ros-planning/warehouse_ros.git -v jade-devel
 
 # build the workspace
