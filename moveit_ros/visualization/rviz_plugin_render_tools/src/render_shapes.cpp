@@ -160,7 +160,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
 
   case shapes::OCTREE:
     {
-      boost::shared_ptr<OcTreeRender> octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
+      OcTreeRenderPtr octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree,
                                                               octree_voxel_rendering,
                                                               octree_color_mode,
                                                               0u,

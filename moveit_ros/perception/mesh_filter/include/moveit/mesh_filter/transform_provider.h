@@ -41,6 +41,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
 #include <map>
@@ -118,6 +119,8 @@ class TransformProvider
      */
     void updateTransforms ();
 
+    MOVEIT_CLASS_FORWARD(TransformContext);
+
     /**
      * \brief Context Object for registered frames
      * \author Suat Gedikli (gedikli@willowgarage.com)
@@ -141,7 +144,7 @@ class TransformProvider
     void run ();
 
     /** \brief mapping between the mesh handle and its context*/
-    std:: map<mesh_filter::MeshHandle, boost::shared_ptr<TransformContext> > handle2context_;
+    std:: map<mesh_filter::MeshHandle, TransformContextPtr> handle2context_;
 
     /** \brief TransformListener used to listen and update transformations*/
     boost::shared_ptr<tf::TransformListener> tf_;

@@ -38,10 +38,12 @@
 #define MOVEIT_CONSTRAINT_SAMPLER_MANAGER_LOADER_
 
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 
 namespace constraint_sampler_manager_loader
 {
+
+MOVEIT_CLASS_FORWARD(ConstraintSamplerManagerLoader);
 
 class ConstraintSamplerManagerLoader
 {
@@ -58,13 +60,10 @@ private:
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
-  class Helper;
-  boost::shared_ptr<Helper> impl_;
+  MOVEIT_CLASS_FORWARD(Helper)
+  HelperPtr impl_;
 
 };
-
-typedef boost::shared_ptr<ConstraintSamplerManagerLoader> ConstraintSamplerManagerLoaderPtr;
-typedef boost::shared_ptr<const ConstraintSamplerManagerLoader> ConstraintSamplerManagerLoaderConstPtr;
 
 }
 

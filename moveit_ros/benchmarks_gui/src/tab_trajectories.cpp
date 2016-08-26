@@ -351,7 +351,7 @@ void MainWindow::trajectoryExecuteButtonClicked()
   }
 }
 
-void MainWindow::animateTrajectory(const std::vector<boost::shared_ptr<robot_state::RobotState> > &traj)
+void MainWindow::animateTrajectory(const std::vector<robot_state::RobotStatePtr> &traj)
 {
   for (std::size_t i = 0; i < traj.size(); ++i)
   {
