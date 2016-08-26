@@ -6,8 +6,9 @@ This repo hosts the Dockerfiles used to generate images for [MoveIt!](moveit.ros
 
 ## Available Images
 
-For each ROS distribution there are 3 images, built on top of a standard [osrf/ros:jade-desktop](https://github.com/osrf/docker_images/blob/master/ros/jade/jade-desktop/Dockerfile) (or other distro version) image:
+For each ROS distribution there are 4 images, built on top of a standard [osrf/ros:jade-desktop](https://github.com/osrf/docker_images/blob/master/ros/kinetic/kinetic-desktop/Dockerfile) (or other distro version) image:
 
- - **source image**: contains all dependencies and a full MoveIt! workspace downloaded and built to ~/ws_moveit/src
+v - **source image**: contains all dependencies and a full MoveIt! workspace downloaded and built to ~/ws_moveit/src
  - **release image**: the full debian-based install of MoveIt! using apt-get
  - **ci image**: an image optimized for running continuous integration with Travis and [moveit_ci](https://github.com/ros-planning/moveit_ci)
+ - **experimental image**: adds experimental packages to the source install. Use this if you want a working warehouse database.
