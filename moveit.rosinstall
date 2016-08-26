@@ -12,3 +12,7 @@
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git
     version: master
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: indigo-devel
