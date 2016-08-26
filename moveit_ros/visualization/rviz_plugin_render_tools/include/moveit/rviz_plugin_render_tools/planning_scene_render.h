@@ -37,6 +37,7 @@
 #ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
 #define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
 #include <rviz/helpers/color.h>
@@ -55,11 +56,9 @@ class DisplayContext;
 namespace moveit_rviz_plugin
 {
 
-class RobotStateVisualization;
-typedef boost::shared_ptr<RobotStateVisualization> RobotStateVisualizationPtr;
-
-class RenderShapes;
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
+MOVEIT_CLASS_FORWARD(RobotStateVisualization);
+MOVEIT_CLASS_FORWARD(RenderShapes);
+MOVEIT_CLASS_FORWARD(PlanningSceneRender);
 
 class PlanningSceneRender
 {
@@ -94,9 +93,6 @@ private:
   RobotStateVisualizationPtr scene_robot_;
 
 };
-
-typedef boost::shared_ptr<PlanningSceneRender> PlanningSceneRenderPtr;
-typedef boost::shared_ptr<const PlanningSceneRender> PlanningSceneRenderConstPtr;
 
 }
 

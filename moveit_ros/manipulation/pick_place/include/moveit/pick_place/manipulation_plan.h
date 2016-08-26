@@ -37,7 +37,7 @@
 #ifndef MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
 #define MOVEIT_PICK_PLACE_MANIPULATION_PLAN_
 
-#include <boost/shared_ptr.hpp>
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
 #include <moveit/plan_execution/plan_representation.h>
@@ -51,6 +51,8 @@
 
 namespace pick_place
 {
+
+MOVEIT_CLASS_FORWARD(ManipulationPlanSharedData);
 
 struct ManipulationPlanSharedData
 {
@@ -80,8 +82,7 @@ struct ManipulationPlanSharedData
   ros::WallTime timeout_;
 };
 
-typedef boost::shared_ptr<ManipulationPlanSharedData> ManipulationPlanSharedDataPtr;
-typedef boost::shared_ptr<const ManipulationPlanSharedData> ManipulationPlanSharedDataConstPtr;
+MOVEIT_CLASS_FORWARD(ManipulationPlan);
 
 struct ManipulationPlan
 {
@@ -142,9 +143,6 @@ struct ManipulationPlan
   std::size_t id_;
 
 };
-
-typedef boost::shared_ptr<ManipulationPlan> ManipulationPlanPtr;
-typedef boost::shared_ptr<const ManipulationPlan> ManipulationPlanConstPtr;
 
 }
 

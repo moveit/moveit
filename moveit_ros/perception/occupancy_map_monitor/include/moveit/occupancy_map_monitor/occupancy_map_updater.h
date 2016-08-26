@@ -37,6 +37,7 @@
 #ifndef MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
 #define MOVEIT_OCCUPANCY_MAP_MONITOR_OCCUPANCY_MAP_UPDATER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <geometric_shapes/shapes.h>
 #include <boost/shared_ptr.hpp>
@@ -52,6 +53,8 @@ typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>,
 typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
 
 class OccupancyMapMonitor;
+
+MOVEIT_CLASS_FORWARD(OccupancyMapUpdater);
 
 /** \brief Base class for classes which update the occupancy map.
  */
@@ -109,9 +112,6 @@ protected:
   static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value);
 
 };
-
-typedef boost::shared_ptr<OccupancyMapUpdater> OccupancyMapUpdaterPtr;
-typedef boost::shared_ptr<const OccupancyMapUpdater> OccupancyMapUpdaterConstPtr;
 
 }
 
