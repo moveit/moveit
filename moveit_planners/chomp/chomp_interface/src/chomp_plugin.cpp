@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
@@ -45,32 +44,31 @@
 
 namespace chomp_interface
 {
-
 class CHOMPPlannerManager : public planning_interface::PlannerManager
 {
 public:
   CHOMPPlannerManager() : planning_interface::PlannerManager()
   {
-
   }
 
-  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns)
+  bool initialize(const robot_model::RobotModelConstPtr &model, const std::string &ns)
   {
-    //model->printModelInfo(std::cout);
-    std::vector <std::string> groups = model->getJointModelGroupNames();
+    // model->printModelInfo(std::cout);
+    std::vector<std::string> groups = model->getJointModelGroupNames();
     ROS_INFO_STREAM("Following groups exist:");
-    for(int i = 0; i < groups.size(); i++) {
+    for (int i = 0; i < groups.size(); i++)
+    {
       ROS_INFO("%s", groups[i].c_str());
-      planning_contexts_[groups[i]] = ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[i], model));
+      planning_contexts_[groups[i]] =
+          ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[i], model));
     }
     return true;
   }
 
-  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
                                                             const planning_interface::MotionPlanRequest &req,
                                                             moveit_msgs::MoveItErrorCodes &error_code) const
   {
-
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
     if (req.group_name.empty())
@@ -99,7 +97,10 @@ public:
     return true;
   }
 
-  std::string getDescription() const { return "CHOMP"; }
+  std::string getDescription() const
+  {
+    return "CHOMP";
+  }
 
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -108,10 +109,9 @@ public:
   }
 
 protected:
-
-  std::map <std::string, ChompPlanningContextPtr> planning_contexts_;
+  std::map<std::string, ChompPlanningContextPtr> planning_contexts_;
 };
 
-} // ompl_interface_ros
+}  // ompl_interface_ros
 
 PLUGINLIB_EXPORT_CLASS(chomp_interface::CHOMPPlannerManager, planning_interface::PlannerManager);

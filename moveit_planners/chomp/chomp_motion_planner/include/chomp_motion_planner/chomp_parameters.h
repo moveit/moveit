@@ -41,7 +41,6 @@
 
 namespace chomp
 {
-
 class ChompParameters
 {
 public:
@@ -254,6 +253,6 @@ inline std::string ChompParameters::getAnimateEndeffectorSegment() const
   return animate_endeffector_segment_;
 }
 
-} // namespace chomp
+}  // namespace chomp
 
 #endif /* CHOMP_PARAMETERS_H_ */

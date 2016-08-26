@@ -38,14 +38,13 @@
 
 namespace chomp_interface
 {
-
-CHOMPInterface::CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel) :
-    ChompPlanner(kmodel)
+CHOMPInterface::CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel) : ChompPlanner(kmodel)
 {
   loadParams();
 }
 
-void CHOMPInterface::loadParams() {
+void CHOMPInterface::loadParams()
+{
   nh_.param("planning_time_limit", params_.planning_time_limit_, 6.0);
   nh_.param("max_iterations", params_.max_iterations_, 50);
   nh_.param("max_iterations_after_collision_free", params_.max_iterations_after_collision_free_, 5);
@@ -71,8 +70,6 @@ void CHOMPInterface::loadParams() {
   nh_.param("collision_threshold", params_.collision_threshold_, 0.07);
   nh_.param("random_jump_amount", params_.random_jump_amount_, 1.0);
   nh_.param("use_stochastic_descent", params_.use_stochastic_descent_, true);
-  //filter_mode_ = false;
+  // filter_mode_ = false;
 }
-
-
 }

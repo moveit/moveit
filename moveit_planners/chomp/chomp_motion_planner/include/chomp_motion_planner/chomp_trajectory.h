@@ -46,7 +46,6 @@
 
 namespace chomp
 {
-
 /**
  * \brief Represents a discretized joint-space trajectory for CHOMP
  */
@@ -56,12 +55,14 @@ public:
   /**
    * \brief Constructs a trajectory for a given robot model, trajectory duration, and discretization
    */
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration, double discretization, std::string groupName);
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, double duration, double discretization,
+                  std::string groupName);
 
   /**
    * \brief Constructs a trajectory for a given robot model, number of trajectory points, and discretization
    */
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points, double discretization, std::string groupName);
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points, double discretization,
+                  std::string groupName);
 
   /**
    * \brief Creates a new containing only the joints of interest, and adds padding to the start
@@ -69,8 +70,7 @@ public:
    */
   ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group, int diff_rule_length);
 
-  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model,
-                  const std::string& planning_group,
+  ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, const std::string& planning_group,
                   const trajectory_msgs::JointTrajectory& traj);
 
   /**
@@ -78,12 +78,11 @@ public:
    */
   virtual ~ChompTrajectory();
 
-  double& operator() (int traj_point, int joint);
+  double& operator()(int traj_point, int joint);
 
-  double operator() (int traj_point, int joint) const;
+  double operator()(int traj_point, int joint) const;
 
   Eigen::MatrixXd::RowXpr getTrajectoryPoint(int traj_point);
-
 
   Eigen::MatrixXd::ColXpr getJointTrajectory(int joint);
 
@@ -142,7 +141,7 @@ public:
   /**
    * \brief Gets the block of the trajectory which can be optimized
    */
-  Eigen::Block<Eigen::MatrixXd, Eigen::Dynamic, Eigen::Dynamic>  getFreeTrajectoryBlock();
+  Eigen::Block<Eigen::MatrixXd, Eigen::Dynamic, Eigen::Dynamic> getFreeTrajectoryBlock();
 
   /**
    * \brief Gets the block of free (optimizable) trajectory for a single joint
@@ -168,28 +167,30 @@ public:
   double getDuration() const;
 
 private:
+  void init(); /**< \brief Allocates memory for the trajectory */
 
-  void init();                                          /**< \brief Allocates memory for the trajectory */
-
-  std::string planning_group_name_;    /**< Planning group that this trajectory corresponds to, if any */
-  int num_points_;                                      /**< Number of points in the trajectory */
-  int num_joints_;                                      /**< Number of joints in each trajectory point */
-  double discretization_;                               /**< Discretization of the trajectory */
-  double duration_;                                     /**< Duration of the trajectory */
-  Eigen::MatrixXd trajectory_;                          /**< Storage for the actual trajectory */
-  int start_index_;                                     /**< Start index (inclusive) of trajectory to be optimized (everything before it will not be modified) */
-  int end_index_;                                       /**< End index (inclusive) of trajectory to be optimized (everything after it will not be modified) */
-  std::vector<int> full_trajectory_index_;              /**< If this is a "group" trajectory, the index from the original traj which each element here was copied */
+  std::string planning_group_name_; /**< Planning group that this trajectory corresponds to, if any */
+  int num_points_;                  /**< Number of points in the trajectory */
+  int num_joints_;                  /**< Number of joints in each trajectory point */
+  double discretization_;           /**< Discretization of the trajectory */
+  double duration_;                 /**< Duration of the trajectory */
+  Eigen::MatrixXd trajectory_;      /**< Storage for the actual trajectory */
+  int start_index_; /**< Start index (inclusive) of trajectory to be optimized (everything before it will not be
+                       modified) */
+  int end_index_; /**< End index (inclusive) of trajectory to be optimized (everything after it will not be modified) */
+  std::vector<
+      int> full_trajectory_index_; /**< If this is a "group" trajectory, the index from the original traj which each
+                                      element here was copied */
 };
 
 ///////////////////////// inline functions follow //////////////////////
 
-inline double& ChompTrajectory::operator() (int traj_point, int joint)
+inline double& ChompTrajectory::operator()(int traj_point, int joint)
 {
   return trajectory_(traj_point, joint);
 }
 
-inline double ChompTrajectory::operator() (int traj_point, int joint) const
+inline double ChompTrajectory::operator()(int traj_point, int joint) const
 {
   return trajectory_(traj_point, joint);
 }
@@ -211,7 +212,7 @@ inline int ChompTrajectory::getNumPoints() const
 
 inline int ChompTrajectory::getNumFreePoints() const
 {
-  return (end_index_ - start_index_)+1;
+  return (end_index_ - start_index_) + 1;
 }
 
 inline int ChompTrajectory::getNumJoints() const
@@ -250,7 +251,8 @@ inline Eigen::Block<Eigen::MatrixXd, Eigen::Dynamic, Eigen::Dynamic> ChompTrajec
   return trajectory_.block(start_index_, 0, getNumFreePoints(), getNumJoints());
 }
 
-inline Eigen::Block<Eigen::MatrixXd, Eigen::Dynamic, Eigen::Dynamic> ChompTrajectory::getFreeJointTrajectoryBlock(int joint)
+inline Eigen::Block<Eigen::MatrixXd, Eigen::Dynamic, Eigen::Dynamic>
+ChompTrajectory::getFreeJointTrajectoryBlock(int joint)
 {
   return trajectory_.block(start_index_, joint, getNumFreePoints(), 1);
 }
@@ -266,17 +268,16 @@ void ChompTrajectory::getJointVelocities(int traj_point, Eigen::MatrixBase<Deriv
   velocities.setZero();
   double invTime = 1.0 / discretization_;
 
-  for (int k=-DIFF_RULE_LENGTH/2; k<=DIFF_RULE_LENGTH/2; k++)
+  for (int k = -DIFF_RULE_LENGTH / 2; k <= DIFF_RULE_LENGTH / 2; k++)
   {
-    velocities += (invTime * DIFF_RULES[0][k+DIFF_RULE_LENGTH/2]) * trajectory_.row(traj_point+k).transpose();
+    velocities += (invTime * DIFF_RULES[0][k + DIFF_RULE_LENGTH / 2]) * trajectory_.row(traj_point + k).transpose();
   }
 }
 
-inline double ChompTrajectory::getDuration() const {
+inline double ChompTrajectory::getDuration() const
+{
   return duration_;
 }
-
-
 }
 
 #endif /* CHOMP_TRAJECTORY_H_ */

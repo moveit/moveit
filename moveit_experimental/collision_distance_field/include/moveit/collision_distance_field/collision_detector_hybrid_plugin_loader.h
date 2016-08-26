@@ -13,10 +13,10 @@
 
 namespace collision_detection
 {
-  class CollisionDetectorHybridPluginLoader : public CollisionPlugin
-  {
-  public:
-    virtual bool initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const;
-  };
+class CollisionDetectorHybridPluginLoader : public CollisionPlugin
+{
+public:
+  virtual bool initialize(const planning_scene::PlanningScenePtr &scene, bool exclusive) const;
+};
 }
-#endif // MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_DETECTOR_HYBRID_PLUGIN_LOADER_H_
+#endif  // MOVEIT_COLLISION_DISTANCE_FIELD_COLLISION_DETECTOR_HYBRID_PLUGIN_LOADER_H_

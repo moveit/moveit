@@ -38,13 +38,12 @@
 
 namespace chomp
 {
-
 ChompParameters::ChompParameters()
 {
   planning_time_limit_ = 6.0;
   max_iterations_ = 50;
   max_iterations_after_collision_free_ = 5;
-  smoothness_cost_weight_= 0.1;
+  smoothness_cost_weight_ = 0.1;
   obstacle_cost_weight_ = 1.0;
   learning_rate_ = 0.01;
   animate_path_ = true;
@@ -67,11 +66,10 @@ ChompParameters::ChompParameters()
   random_jump_amount_ = 1.0;
   use_stochastic_descent_ = true;
   filter_mode_ = false;
-
 }
 
 ChompParameters::~ChompParameters()
 {
 }
 
-} // namespace chomp
+}  // namespace chomp

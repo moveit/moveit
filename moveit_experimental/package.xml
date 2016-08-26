@@ -1,25 +1,21 @@
 <package>
   <name>moveit_experimental</name>
-  <version>0.6.15</version>
-  <description>Core libraries used by MoveIt!</description>
+  <version>0.7.2</version>
+  <description>Experimental packages for moveit.</description>
   <author email="isucan@gmail.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
   <author email="acorn.pooley@sri.com">Acorn Pooley</author>
   <author email="jnicho@swri.org">Jorge Nicho</author>
 
   <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
-  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
-  <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+  <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
 
   <license>BSD</license>  
   <url type="website">http://moveit.ros.org</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
-
-  <test_depend>moveit_resources</test_depend>
-  <test_depend>orocos_kdl</test_depend>
 
   <build_depend>pluginlib</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
@@ -51,9 +47,6 @@
   <build_depend>cmake_modules</build_depend>
   <build_depend>moveit_core</build_depend>
   
-  <test_depend>angles</test_depend>
-  <test_depend>tf_conversions</test_depend>
-
   <run_depend>pluginlib</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
   <run_depend>liburdfdom-dev</run_depend>
@@ -81,10 +74,14 @@
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
+  
+  <test_depend>moveit_resources</test_depend>
+  <test_depend>orocos_kdl</test_depend>
+  <test_depend>angles</test_depend>
+  <test_depend>tf_conversions</test_depend>
 
-	<export>
-		<moveit_core
-			plugin="${prefix}/collision_distance_field/collision_detector_hybrid_description.xml" />
-	</export>
+  <export>
+    <moveit_core plugin="${prefix}/collision_distance_field/collision_detector_hybrid_description.xml" />
+  </export>
 
 </package>

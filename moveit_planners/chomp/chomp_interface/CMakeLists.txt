@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.3)
 project(chomp_interface)
 
 find_package(catkin REQUIRED COMPONENTS

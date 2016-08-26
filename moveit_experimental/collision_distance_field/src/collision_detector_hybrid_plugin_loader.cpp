@@ -3,11 +3,12 @@
 
 namespace collision_detection
 {
-  bool CollisionDetectorHybridPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene, bool exclusive) const
-  {
-    scene->setActiveCollisionDetector(CollisionDetectorAllocatorHybrid::create(), exclusive);
-    return true;
-  }
+bool CollisionDetectorHybridPluginLoader::initialize(const planning_scene::PlanningScenePtr &scene,
+                                                     bool exclusive) const
+{
+  scene->setActiveCollisionDetector(CollisionDetectorAllocatorHybrid::create(), exclusive);
+  return true;
+}
 }
 
 PLUGINLIB_EXPORT_CLASS(collision_detection::CollisionDetectorHybridPluginLoader, collision_detection::CollisionPlugin)

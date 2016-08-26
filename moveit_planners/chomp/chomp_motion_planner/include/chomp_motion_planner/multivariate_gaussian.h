@@ -46,7 +46,6 @@
 
 namespace chomp
 {
-
 /**
  * \brief Generates samples from a multivariate gaussian distribution
  */
@@ -73,12 +72,13 @@ private:
 //////////////////////// template function definitions follow //////////////////////////////
 
 template <typename Derived1, typename Derived2>
-MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& mean, const Eigen::MatrixBase<Derived2>& covariance):
-  mean_(mean),
-  covariance_(covariance),
-  covariance_cholesky_(covariance_.llt().matrixL()),
-  normal_dist_(0.0,1.0),
-  gaussian_(rng_, normal_dist_)
+MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& mean,
+                                           const Eigen::MatrixBase<Derived2>& covariance)
+  : mean_(mean)
+  , covariance_(covariance)
+  , covariance_cholesky_(covariance_.llt().matrixL())
+  , normal_dist_(0.0, 1.0)
+  , gaussian_(rng_, normal_dist_)
 {
   rng_.seed(rand());
   size_ = mean.rows();
@@ -87,11 +87,10 @@ MultivariateGaussian::MultivariateGaussian(const Eigen::MatrixBase<Derived1>& me
 template <typename Derived>
 void MultivariateGaussian::sample(Eigen::MatrixBase<Derived>& output)
 {
-  for (int i=0; i<size_; ++i)
+  for (int i = 0; i < size_; ++i)
     output(i) = gaussian_();
-  output = mean_ + covariance_cholesky_*output;
+  output = mean_ + covariance_cholesky_ * output;
 }
-
 }
 
 #endif /* MULTIVARIATE_GAUSSIAN_H_ */

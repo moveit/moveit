@@ -5,9 +5,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp moveit_experimental moveit_core)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES  ${PROJECT_NAME}
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  LIBRARIES ${PROJECT_NAME}
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})

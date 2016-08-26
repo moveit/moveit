@@ -43,17 +43,17 @@
 
 namespace chomp
 {
-
 /**
  * \brief Represents the smoothness cost for CHOMP, for a single joint
  */
 class ChompCost
 {
 public:
-  ChompCost(const ChompTrajectory& trajectory, int joint_number, const std::vector<double>& derivative_costs, double ridge_factor=0.0);
+  ChompCost(const ChompTrajectory& trajectory, int joint_number, const std::vector<double>& derivative_costs,
+            double ridge_factor = 0.0);
   virtual ~ChompCost();
 
-  template<typename Derived>
+  template <typename Derived>
   void getDerivative(Eigen::MatrixXd::ColXpr joint_trajectory, Eigen::MatrixBase<Derived>& derivative) const;
 
   const Eigen::MatrixXd& getQuadraticCostInverse() const;
@@ -69,13 +69,13 @@ public:
 private:
   Eigen::MatrixXd quad_cost_full_;
   Eigen::MatrixXd quad_cost_;
-  //Eigen::VectorXd linear_cost_;
+  // Eigen::VectorXd linear_cost_;
   Eigen::MatrixXd quad_cost_inv_;
 
   Eigen::MatrixXd getDiffMatrix(int size, const double* diff_rule) const;
 };
 
-template<typename Derived>
+template <typename Derived>
 void ChompCost::getDerivative(Eigen::MatrixXd::ColXpr joint_trajectory, Eigen::MatrixBase<Derived>& derivative) const
 {
   derivative = (quad_cost_full_ * (2.0 * joint_trajectory));
@@ -96,6 +96,6 @@ inline double ChompCost::getCost(Eigen::MatrixXd::ColXpr joint_trajectory) const
   return joint_trajectory.dot(quad_cost_full_ * joint_trajectory);
 }
 
-} // namespace chomp
+}  // namespace chomp
 
 #endif /* CHOMP_COST_H_ */

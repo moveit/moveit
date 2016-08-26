@@ -34,8 +34,8 @@
 
 /* Author: E. Gil Jones */
 
-#ifndef _CHOMP_INTERFACE_ROS_H_
-#define _CHOMP_INTERFACE_ROS_H_
+#ifndef CHOMP_INTERFACE_CHOMP_INTERFACE_H
+#define CHOMP_INTERFACE_CHOMP_INTERFACE_H
 
 #include <chomp_motion_planner/chomp_planner.h>
 #include <chomp_motion_planner/chomp_parameters.h>
@@ -43,26 +43,26 @@
 
 namespace chomp_interface
 {
-/** @class CHOMPInterfaceROS */
 class CHOMPInterface : public chomp::ChompPlanner
 {
 public:
   CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel);
 
-  const chomp::ChompParameters& getParams() const {
+  const chomp::ChompParameters& getParams() const
+  {
     return params_;
   }
 
 protected:
-
   /** @brief Configure everything using the param server */
   void loadParams();
 
-  ros::NodeHandle nh_; /// The ROS node handle
+  ros::NodeHandle nh_;  /// The ROS node handle
 
   chomp::ChompParameters params_;
 };
 
+typedef boost::shared_ptr<CHOMPInterface> CHOMPInterfacePtr;
 }
 
 #endif
