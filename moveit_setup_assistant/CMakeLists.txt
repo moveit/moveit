@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   rosconsole
   roscpp
+  srdfdom
 )
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
@@ -67,7 +68,6 @@ add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
   src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
-  src/tools/srdf_writer.cpp
 )
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAML}

@@ -39,8 +39,8 @@
 
 #include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h> // use their struct datastructures
+#include <srdfdom/srdf_writer.h> // for writing srdf data
 #include <urdf/model.h> // to share throughout app
-#include <moveit/setup_assistant/tools/srdf_writer.h> // for writing srdf data
 #include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
 #include <moveit/setup_assistant/tools/compute_default_collisions.h> // for LinkPairMap
@@ -164,7 +164,7 @@ public:
   std::string srdf_pkg_relative_path_;
 
   /// SRDF Data and Writer
-  SRDFWriterPtr srdf_;
+  srdf::SRDFWriterPtr srdf_;
 
   // ******************************************************************************************
   // Other Data
