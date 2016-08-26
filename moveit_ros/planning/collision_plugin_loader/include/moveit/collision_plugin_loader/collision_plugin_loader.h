@@ -36,6 +36,7 @@
 #define MOVEIT_COLLISION_PLUGIN_LOADER_COLLISION_PLUGIN_LOADER_H
 
 #include <ros/ros.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/collision_detection/collision_plugin.h>
 
 namespace collision_detection
@@ -65,8 +66,8 @@ public:
     bool exclusive);
 
 private:
-  class CollisionPluginLoaderImpl;
-  boost::shared_ptr<CollisionPluginLoaderImpl> loader_;
+  MOVEIT_CLASS_FORWARD(CollisionPluginLoaderImpl);
+  CollisionPluginLoaderImplPtr loader_;
 };
 
 }  // namespace collision_detection

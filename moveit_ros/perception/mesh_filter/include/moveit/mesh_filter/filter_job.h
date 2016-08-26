@@ -35,14 +35,18 @@
 /* Author: Suat Gedikli */
 
 #ifndef MOVEIT_MESH_FILTER_FILTER_JOB_
-#define    MOVEIT_MESH_FILTER_FILTER_JOB_
+#define MOVEIT_MESH_FILTER_FILTER_JOB_
 
+#include <moveit/macros/class_forward.h>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/locks.hpp>
 
 namespace mesh_filter
 {
+
+MOVEIT_CLASS_FORWARD(Job);
+
 /**
  * \brief This class is used to execute functions within the thread that holds the OpenGL context.
  */

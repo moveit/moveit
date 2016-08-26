@@ -38,6 +38,7 @@
 #define MOVEIT_MOVEIT_WAREHOUSE_STATE_STORAGE_
 
 #include <moveit/warehouse/moveit_message_storage.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/RobotState.h>
 
 namespace moveit_warehouse
@@ -45,6 +46,8 @@ namespace moveit_warehouse
 
 typedef warehouse_ros::MessageWithMetadata<moveit_msgs::RobotState>::ConstPtr RobotStateWithMetadata;
 typedef warehouse_ros::MessageCollection<moveit_msgs::RobotState>::Ptr RobotStateCollection;
+
+MOVEIT_CLASS_FORWARD(RobotStateStorage);
 
 class RobotStateStorage : public MoveItMessageStorage
 {

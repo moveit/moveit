@@ -37,6 +37,7 @@
 #ifndef MOVEIT_MESH_FILTER_GLRENDERER_
 #define MOVEIT_MESH_FILTER_GLRENDERER_
 
+#include <moveit/macros/class_forward.h>
 #include <GL/glew.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -48,6 +49,9 @@
 
 namespace mesh_filter
 {
+
+MOVEIT_CLASS_FORWARD(GLRenderer);
+
 /** \brief Abstracts the OpenGL frame buffer objects, and provides an interface to render meshes, and retrieve the color and depth ap from opengl.
  *  \author Suat Gedikli (gedikli@willowgarage.com)
  */

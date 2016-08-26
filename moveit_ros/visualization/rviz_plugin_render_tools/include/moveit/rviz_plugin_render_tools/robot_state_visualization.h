@@ -37,6 +37,7 @@
 #ifndef MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
 #define MOVEIT_PLANNING_SCENE_RVIZ_PLUGIN_ROBOT_STATE_VISUALIZATION_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/rviz_plugin_render_tools/octomap_render.h>
 #include <rviz/robot/robot.h>
@@ -44,8 +45,8 @@
 namespace moveit_rviz_plugin
 {
 
-class RenderShapes;
-typedef boost::shared_ptr<RenderShapes> RenderShapesPtr;
+MOVEIT_CLASS_FORWARD(RenderShapes);
+MOVEIT_CLASS_FORWARD(RobotStateVisualization);
 
 /** \brief Update the links of an rviz::Robot using a robot_state::RobotState */
 class RobotStateVisualization
@@ -105,9 +106,6 @@ private:
   bool collision_visible_;
 
 };
-
-typedef boost::shared_ptr<RobotStateVisualization> RobotStateVisualizationPtr;
-typedef boost::shared_ptr<const RobotStateVisualization> RobotStateVisualizationConstPtr;
 
 }
 

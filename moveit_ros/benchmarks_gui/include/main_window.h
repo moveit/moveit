@@ -48,6 +48,7 @@
 
 #ifndef Q_MOC_RUN
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
@@ -176,10 +177,10 @@ private:
   //Warehouse
   std::string database_host_;
   std::size_t database_port_;
-  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage_;
-  boost::shared_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
-  boost::shared_ptr<moveit_warehouse::TrajectoryConstraintsStorage> trajectory_constraints_storage_;
-  boost::shared_ptr<moveit_warehouse::RobotStateStorage> robot_state_storage_;
+  moveit_warehouse::PlanningSceneStoragePtr planning_scene_storage_;
+  moveit_warehouse::ConstraintsStoragePtr constraints_storage_;
+  moveit_warehouse::TrajectoryConstraintsStoragePtr trajectory_constraints_storage_;
+  moveit_warehouse::RobotStateStoragePtr robot_state_storage_;
 
   void populatePlanningSceneList(void);
 
@@ -196,6 +197,8 @@ private:
   typedef std::pair<std::string, GripperMarkerPtr> GoalPosePair;
   GoalPoseMap goal_poses_;
 
+  MOVEIT_CLASS_FORWARD(StartState);
+
   class StartState
   {
   public:
@@ -206,7 +209,6 @@ private:
     StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
     StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
   };
-  typedef boost::shared_ptr<StartState> StartStatePtr;
 
   typedef std::map<std::string, StartStatePtr> StartStateMap;
   typedef std::pair<std::string, StartStatePtr> StartStatePair;
@@ -235,7 +237,7 @@ private:
 
   //Trajectories
   void switchTrajectorySelection(const std::string &marker_name);
-  void animateTrajectory(const std::vector<boost::shared_ptr<robot_state::RobotState> > &traj);
+  void animateTrajectory(const std::vector<robot_state::RobotStatePtr> &traj);
 
   typedef std::map<std::string, TrajectoryPtr> TrajectoryMap;
   typedef std::pair<std::string, TrajectoryPtr> TrajectoryPair;

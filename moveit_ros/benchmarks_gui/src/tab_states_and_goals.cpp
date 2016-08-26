@@ -971,7 +971,7 @@ void MainWindow::runBenchmark(void)
       ROS_DEBUG("Attempting to load and configure %s", classes[i].c_str());
       try
       {
-        boost::shared_ptr<planning_interface::PlannerManager> p = planner_plugin_loader->createInstance(classes[i]);
+        planning_interface::PlannerManagerPtr p = planner_plugin_loader->createInstance(classes[i]);
         p->initialize(scene_display_->getPlanningSceneRO()->getRobotModel(), "");
         planner_interfaces[classes[i]] = p;
       }
@@ -985,7 +985,7 @@ void MainWindow::runBenchmark(void)
     if (! planner_interfaces.empty())
     {
       std::stringstream interfaces_ss, algorithms_ss;
-      for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces.begin() ;
+      for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces.begin() ;
           it != planner_interfaces.end(); ++it)
       {
         interfaces_ss << it->first << " ";

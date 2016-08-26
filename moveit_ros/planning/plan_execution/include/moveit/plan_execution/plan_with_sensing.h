@@ -37,6 +37,7 @@
 #ifndef MOVEIT_PLAN_EXECUTION_PLAN_WITH_SENSING_
 #define MOVEIT_PLAN_EXECUTION_PLAN_WITH_SENSING_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/plan_execution/plan_representation.h>
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 
@@ -47,6 +48,8 @@
 
 namespace plan_execution
 {
+
+MOVEIT_CLASS_FORWARD(PlanWithSensing);
 
 class PlanWithSensing
 {
@@ -132,9 +135,6 @@ private:
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };
-
-typedef boost::shared_ptr<PlanWithSensing> PlanWithSensingPtr;
-typedef boost::shared_ptr<const PlanWithSensing> PlanWithSensingConstPtr;
 
 }
 #endif

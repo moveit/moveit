@@ -138,7 +138,7 @@ mesh_filter::MeshFilterBase::~MeshFilterBase ()
   filter_thread_.join();
 }
 
-void mesh_filter::MeshFilterBase::addJob (const boost::shared_ptr<Job> &job) const
+void mesh_filter::MeshFilterBase::addJob (const JobPtr &job) const
 {
   {
     unique_lock<mutex> _(jobs_mutex_);
