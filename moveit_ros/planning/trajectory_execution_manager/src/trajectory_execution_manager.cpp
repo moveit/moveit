@@ -872,6 +872,9 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &context) const
 {
+  if (allowed_start_tolerance_ == 0) // skip validation on this magic number
+    return true;
+
   ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
 
   robot_state::RobotStatePtr current_state;
