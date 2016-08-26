@@ -57,7 +57,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   if (!umodel->initString(content))
   {
     ROS_ERROR("Unable to parse URDF from parameter '%s'", robot_description_.c_str());
-	 return;
+    return;
   }
   urdf_.reset(umodel);
 
@@ -66,7 +66,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   if (!nh.getParam(srdf_description, scontent))
   {
     ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
-	 return;
+    return;
   }
 
   srdf_.reset(new srdf::Model());
@@ -74,7 +74,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   {
     ROS_ERROR("Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
     srdf_.reset();
-	 return;
+    return;
   }
 
   ROS_DEBUG_STREAM_NAMED("rdf",  "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
