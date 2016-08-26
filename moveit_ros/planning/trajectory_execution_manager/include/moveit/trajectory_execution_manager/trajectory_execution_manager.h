@@ -231,7 +231,7 @@ private:
   void reloadControllerInformation();
 
   /// Validate first point of trajectory matches current robot state
-  bool validate(const moveit_msgs::RobotTrajectory &trajectory) const;
+  bool validate(const TrajectoryExecutionContext &context) const;
   bool configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers);
 
   void updateControllersState(const ros::Duration &age);

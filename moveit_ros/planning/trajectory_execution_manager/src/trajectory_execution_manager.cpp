@@ -870,12 +870,9 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
   return true;
 }
 
-bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &trajectory) const
+bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &context) const
 {
   ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
-
-  if (trajectory.joint_trajectory.points.empty())
-    return true;
 
   robot_state::RobotStatePtr current_state;
   if (!csm_->waitForCurrentState(1.0) || !(current_state = csm_->getCurrentState()))
@@ -884,32 +881,35 @@ bool TrajectoryExecutionManager::validate(const moveit_msgs::RobotTrajectory &tr
     return false;
   }
 
-  const std::vector<double> &positions = trajectory.joint_trajectory.points.front().positions;
-  const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
-  const std::size_t n = joint_names.size();
-  if (positions.size() != n)
+  for (auto& trajectory : context.trajectory_parts_)
   {
-    ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
-    return false;
-  }
-
-  for (std::size_t i = 0; i < n; ++i)
-  {
-    const robot_model::JointModel *jm = current_state->getJointModel(joint_names[i]);
-    if (!jm)
+    const std::vector<double> &positions = trajectory.joint_trajectory.points.front().positions;
+    const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
+    const std::size_t n = joint_names.size();
+    if (positions.size() != n)
     {
-      ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
+      ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
       return false;
     }
-    // TODO: check multi-DoF joints ?
-    if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
+
+    for (std::size_t i = 0; i < n; ++i)
     {
-      ROS_ERROR_NAMED("traj_execution",
-                      "\nInvalid Trajectory: start point deviates from current robot state more than %g"
-                      "\njoint '%s': expected: %g, current: %g",
-                      allowed_start_tolerance_,
-                      joint_names[i].c_str(), positions[i], current_state->getJointPositions(jm)[0]);
-      return false;
+      const robot_model::JointModel *jm = current_state->getJointModel(joint_names[i]);
+      if (!jm)
+      {
+        ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
+        return false;
+      }
+      // TODO: check multi-DoF joints ?
+      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
+      {
+        ROS_ERROR_NAMED("traj_execution",
+                        "\nInvalid Trajectory: start point deviates from current robot state more than %g"
+                        "\njoint '%s': expected: %g, current: %g",
+                        allowed_start_tolerance_,
+                        joint_names[i].c_str(), positions[i], current_state->getJointPositions(jm)[0]);
+        return false;
+      }
     }
   }
   return true;
@@ -932,9 +932,6 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, 
     ROS_WARN_NAMED("traj_execution","The trajectory to execute specifies no joints");
     return false;
   }
-
-  if (!validate(trajectory))
-    return false;
 
   if (controllers.empty())
   {
@@ -1121,6 +1118,14 @@ void TrajectoryExecutionManager::clear()
 
 void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
 {
+  // check whether first trajectory starts at current robot state
+  if (!execution_complete_ && trajectories_.size() && !validate(*trajectories_.front()))
+  {
+    boost::mutex::scoped_lock lock(execution_state_mutex_);
+    execution_complete_ = true; // this will skip execution and report via callback in the following
+    execution_complete_condition_.notify_all();
+  }
+
   // if we already got a stop request before we even started anything, we abort
   if (execution_complete_)
   {
@@ -1130,7 +1135,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
     return;
   }
 
-  ROS_DEBUG_NAMED("traj_execution","Starting trajectory execution ...");
+  ROS_DEBUG_NAMED("traj_execution", "Starting trajectory execution ...");
   // assume everything will be OK
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
 
