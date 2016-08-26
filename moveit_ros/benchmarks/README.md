@@ -1,6 +1,7 @@
+
 moveit_ros_benchmarks
 ---------------------
-This package provides methods to benchmark motion planning algorithms and aggregate/plot statistics.  The core of the functionality lies in the BenchmarkExecutor class.  Using the BenchmarkExecutor requires an instance of the BenchmarkOptions class, which reads benchmark parameters from the ROS parameter server.
+This package provides methods to benchmark motion planning algorithms and aggregate/plot statistics. The core of the functionality lies in the BenchmarkExecutor class. Using the BenchmarkExecutor requires an instance of the BenchmarkOptions class, which reads benchmark parameters from the ROS parameter server.
 
 Example
 -------
@@ -10,13 +11,31 @@ for the Fanuc M10ia available from here: https://github.com/sachinchitta/moveit_
 
 To run:
 
-1. Launch the Fanuc M10ia demo.launch: roslaunch fanuc_m10ia_moveit_config demo.launch db:=true
-2. Connect to the database.
+1. Launch the Fanuc M10ia demo.launch: 
+    ```
+    roslaunch fanuc_m10ia_moveit_config demo.launch db:=true
+    ```
+2. Connect to the database in the motion planning context tab
 3. Save a scene and associated query for the Fanuc M10ia. Name the scene Kitchen1 and the 
    query Pick1.
 4. Also save a start state for the robot and name it Start1.
 5. The config file demo1.yaml refers to the scenes, queries and start states used for benchmarking. Modify them appropriately.
-6. Now, bring down your previous launch file and then run the benchmarks: roslaunch moveit_ros_benchmarks demo_fanuc_m10ia.launch
+6. Now, bring down your previous launch file and then run the benchmarks: 
+    ```
+    roslaunch moveit_ros_benchmarks demo_fanuc_m10ia.launch
+    ```
+
+Viewing Results
+-------
+The benchmarks are executed and many interesting parameters are aggregated and written to a logfile.  A script (moveit_benchmark_statistics.py) is supplied to parse this data and plot the statistics.
+Run:
+```
+python moveit_benchmark_statistics.py <path_of_logfile>
+```
+To generate a PDF of plots:
+```
+python -p <plot_filename> moveit_benchmark_statistics.py <path_of_logfile>
+```
 
 BenchmarkOptions
 ----------------
@@ -66,7 +85,7 @@ BenchmarkExecutor
 -----------------
 This class creates a set of MotionPlanRequests that respect the parameters given in the supplied instance of BenchmarkOptions and then executes the requests on each of the planners specified.  From the BenchmarkOptions, queries, goal_constraints, and trajectory_constraints are treated as separate queries.  If a set of start_states is specified, each query, goal_constraints, and trajectory_constraints is attempted with each start state (existing start states from a query are ignored).  Similarly, the (optional) set of path constraints is combined combinatorially with the start-query and start-goal_constraints pairs (existing path_constraints) from a query are ignored).  The workspace, if specified, overrides any existing workspace parameters.
 
-The benchmarks are executed and many interesting parameters are aggregated and written to a logfile.  A script (moveit_benchmark_statistics.py) is supplied to parse this data and plot the statistics.  The benchmarking pipeline does not utilize MoveGroup, and PlanningRequestAdaptors are NOT invoked.
+The benchmarking pipeline does not utilize MoveGroup, and PlanningRequestAdaptors are NOT invoked.
 
 It is possible to customize a benchmark run by deriving a class from BenchmarkExecutor and overriding one or more of the virtual functions.  Additionally, a set of functions exists for ease of customization in derived classes:
     - preRunEvent (invoked immediately before each call to solve)
@@ -75,5 +94,4 @@ It is possible to customize a benchmark run by deriving a class from BenchmarkEx
     - querySwitchEvent (invoked before a new benchmark problem begin execution)
 
 Note, in the above, a benchmark is a concrete instance of a PlanningScene, start state, goal constraints / trajectory_constraints, and (optionally) path_constraints.  A run is one attempt by a specific planner to solve the benchmark.
-
 
