@@ -44,12 +44,14 @@
 #include "moveit/benchmarks/BenchmarkOptions.h"
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+
 #include <moveit/warehouse/planning_scene_storage.h>
 #include <moveit/warehouse/planning_scene_world_storage.h>
 #include <moveit/warehouse/state_storage.h>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <warehouse_ros/database_loader.h>
 #include <pluginlib/class_loader.h>
 
 #include <map>
@@ -182,6 +184,7 @@ protected:
     moveit_warehouse::ConstraintsStorage* cs_;
     moveit_warehouse::TrajectoryConstraintsStorage* tcs_;
 
+    warehouse_ros::DatabaseLoader dbloader;
     planning_scene::PlanningScenePtr planning_scene_;
 
     BenchmarkOptions options_;

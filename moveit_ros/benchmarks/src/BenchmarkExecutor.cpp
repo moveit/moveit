@@ -287,15 +287,25 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
     if (!plannerConfigurationsExist(opts.getPlannerConfigurations(), opts.getGroupName()))
         return false;
 
+
+
     try
     {
-	warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
-	conn->setParams(opts.getHostName(), opts.getPort(), 5.0);
+      warehouse_ros::DatabaseConnection::Ptr conn = dbloader.loadDatabase();
+      conn->setParams(opts.getHostName(), opts.getPort(), 20);
+      if (conn->connect())
+      {
         pss_ = new moveit_warehouse::PlanningSceneStorage(conn);
         psws_ = new moveit_warehouse::PlanningSceneWorldStorage(conn);
         rs_ = new moveit_warehouse::RobotStateStorage(conn);
         cs_ = new moveit_warehouse::ConstraintsStorage(conn);
         tcs_ = new moveit_warehouse::TrajectoryConstraintsStorage(conn);
+      }
+      else
+      {
+        ROS_ERROR("Failed to connect to DB");
+	return false;
+      }
     }
     catch(std::runtime_error& e)
     {
