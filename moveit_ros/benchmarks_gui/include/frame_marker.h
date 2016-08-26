@@ -40,6 +40,7 @@
 #include <rviz/display_context.h>
 #include <rviz/default_plugin/interactive_markers/interactive_marker.h>
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/robot_interaction.h>
 #include <moveit/robot_interaction/interaction_handler.h>
 #include <moveit/robot_state/robot_state.h>
@@ -52,6 +53,8 @@ namespace benchmark_tool
 {
 
 class MotionPlanningDisplay;
+
+MOVEIT_CLASS_FORWARD(FrameMarker);
 
 /** Base class for interactive markers displaying a coordinate system
  * A basic coordinate system is composed its three axis and a small sphere at the origin
@@ -189,6 +192,8 @@ protected:
 };
 
 
+MOVEIT_CLASS_FORWARD(GripperMarker);
+
 /** A special FrameMarker that displays the robot end-effector mesh when selected.
  * It also allows defining different states (rechable, not-reachable, in-collision, not-tested and processing)
  * and will switch the mesh color according to these.
@@ -284,8 +289,6 @@ protected:
   bool display_gripper_mesh_;
   GripperMarkerState state_;
 };
-
-typedef boost::shared_ptr<GripperMarker> GripperMarkerPtr;
 
 } //namespace
 #endif

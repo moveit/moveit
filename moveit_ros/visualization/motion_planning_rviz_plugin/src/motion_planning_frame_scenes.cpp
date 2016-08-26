@@ -199,7 +199,7 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
 {
   if (item->text(column) == item->toolTip(column) || item->toolTip(column).length() == 0)
     return;
-  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
+  moveit_warehouse::PlanningSceneStoragePtr planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
     return;
 
@@ -242,7 +242,7 @@ void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int co
 
 void MotionPlanningFrame::populatePlanningSceneTreeView()
 {
-  boost::shared_ptr<moveit_warehouse::PlanningSceneStorage> planning_scene_storage = planning_scene_storage_;
+  moveit_warehouse::PlanningSceneStoragePtr planning_scene_storage = planning_scene_storage_;
   if (!planning_scene_storage)
     return;
 

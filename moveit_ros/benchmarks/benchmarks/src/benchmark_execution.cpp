@@ -117,7 +117,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
     ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
     try
     {
-      boost::shared_ptr<planning_interface::PlannerManager> p = planner_plugin_loader_->createInstance(classes[i]);
+      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createInstance(classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
       planner_interfaces_[classes[i]] = p;
     }
@@ -133,7 +133,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
   else
   {
     std::stringstream ss;
-    for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces_.begin() ;
+    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin() ;
          it != planner_interfaces_.end(); ++it)
       ss << it->first << " ";
     ROS_INFO("Available planner instances: %s", ss.str().c_str());
@@ -904,7 +904,7 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
   planning_interface::MotionPlanRequest motion_plan_req = req.motion_plan_request;
 
   // loop through each planning interface
-  for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager> >::const_iterator it = planner_interfaces_.begin() ;
+  for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin() ;
        it != planner_interfaces_.end(); ++it)
   {
     // find the plugin that the planning interface belongs to

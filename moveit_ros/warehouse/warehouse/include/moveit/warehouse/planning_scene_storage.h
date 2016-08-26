@@ -38,6 +38,7 @@
 #define MOVEIT_MOVEIT_WAREHOUSE_PLANNING_SCENE_STORAGE_
 
 #include "moveit/warehouse/moveit_message_storage.h"
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -52,6 +53,8 @@ typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotTrajectory>::ConstPtr R
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::PlanningScene> > PlanningSceneCollection;
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::MotionPlanRequest> > MotionPlanRequestCollection;
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotTrajectory> > RobotTrajectoryCollection;
+
+MOVEIT_CLASS_FORWARD(PlanningSceneStorage);
 
 class PlanningSceneStorage : public MoveItMessageStorage
 {

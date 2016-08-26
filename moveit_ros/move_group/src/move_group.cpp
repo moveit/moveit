@@ -117,7 +117,7 @@ private:
           MoveGroupCapability *cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
           cap->setContext(context_);
           cap->initialize();
-          capabilities_.push_back(boost::shared_ptr<MoveGroupCapability>(cap));
+          capabilities_.push_back(MoveGroupCapabilityPtr(cap));
         }
         catch(pluginlib::PluginlibException& ex)
         {
@@ -140,7 +140,7 @@ private:
   ros::NodeHandle node_handle_;
   MoveGroupContextPtr context_;
   boost::shared_ptr<pluginlib::ClassLoader<MoveGroupCapability> > capability_plugin_loader_;
-  std::vector<boost::shared_ptr<MoveGroupCapability> > capabilities_;
+  std::vector<MoveGroupCapabilityPtr> capabilities_;
 };
 
 }
