@@ -50,7 +50,8 @@ add_executable(list_move_group_capabilities src/list_capabilities.cpp)
 add_library(moveit_move_group_default_capabilities
   src/default_capabilities/move_action_capability.cpp
   src/default_capabilities/plan_service_capability.cpp
-  src/default_capabilities/execute_service_capability.cpp
+  src/default_capabilities/execute_trajectory_service_capability.cpp
+  src/default_capabilities/execute_trajectory_action_capability.cpp
   src/default_capabilities/query_planners_service_capability.cpp
   src/default_capabilities/kinematics_service_capability.cpp
   src/default_capabilities/state_validation_service_capability.cpp
@@ -59,7 +60,7 @@ add_library(moveit_move_group_default_capabilities
   src/default_capabilities/apply_planning_scene_service_capability.cpp
   src/default_capabilities/clear_octomap_service_capability.cpp
   )
-
+add_dependencies(moveit_move_group_default_capabilities ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(move_group moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})

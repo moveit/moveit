@@ -150,7 +150,7 @@ MoveItConfigData::MoveItConfigData() :
   config_pkg_generated_timestamp_(0)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
-  srdf_.reset( new SRDFWriter() );
+  srdf_.reset( new srdf::SRDFWriter() );
   urdf_model_.reset( new urdf::Model() );
 
   // Not in debug mode

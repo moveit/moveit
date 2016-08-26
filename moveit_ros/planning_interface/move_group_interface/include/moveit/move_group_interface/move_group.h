@@ -38,6 +38,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
+#include <moveit/macros/deprecation.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -116,18 +117,23 @@ public:
       \param opt. A MoveGroup::Options structure, if you pass a ros::NodeHandle with a specific callback queue, it has to be of type ros::CallbackQueue
         (which is the default type of callback queues used in ROS)
       \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
-      \param wait_for_server. Optional timeout for connecting to the action server. If it is not specified, the wait time is unlimited.
+      \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
     */
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-            const ros::Duration &wait_for_server = ros::Duration(0, 0));
+            const ros::WallDuration &wait_for_servers = ros::WallDuration());
+  MOVEIT_DEPRECATED MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf,
+                              const ros::Duration &wait_for_servers);
 
   /**
-      \brief Construct a client for the MoveGroup action for a particular \e group. Optionally, specify a TF instance to use.
-      If not specified, one will be constructed internally. A timeout for connecting to the action server can also be specified. If it is not specified,
-      the wait time is unlimited.
-   */
+      \brief Construct a client for the MoveGroup action for a particular \e group.
+
+      \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
+      \param wait_for_servers. Timeout for connecting to action servers. Zero time means unlimited waiting.
+    */
   MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
-            const ros::Duration &wait_for_server = ros::Duration(0, 0));
+            const ros::WallDuration &wait_for_servers = ros::WallDuration());
+  MOVEIT_DEPRECATED MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf,
+                              const ros::Duration &wait_for_servers);
 
   ~MoveGroup();
 
@@ -638,6 +644,17 @@ public:
       Return -1.0 in case of error. */
   double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
                               moveit_msgs::RobotTrajectory &trajectory, bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes *error_code = NULL);
+
+  /** \brief Compute a Cartesian path that follows specified waypoints with a step size of at most \e eef_step meters
+      between end effector configurations of consecutive points in the result \e trajectory. The reference frame for the
+      waypoints is that specified by setPoseReferenceFrame(). No more than \e jump_threshold
+      is allowed as change in distance in the configuration space of the robot (this is to prevent 'jumps' in IK solutions).
+      Kinematic constraints for the path given by \e path_constraints will be met for every point along the trajectory, if they are not met, a partial solution will be returned.
+      Constraints are checked (collision and kinematic) if \e avoid_collisions is set to true. If constraints cannot be met, the function fails.
+      Return a value that is between 0.0 and 1.0 indicating the fraction of the path achieved as described by the waypoints.
+      Return -1.0 in case of error. */
+  double computeCartesianPath(const std::vector<geometry_msgs::Pose> &waypoints, double eef_step, double jump_threshold,
+                              moveit_msgs::RobotTrajectory &trajectory, const moveit_msgs::Constraints &path_constraints, bool avoid_collisions = true, moveit_msgs::MoveItErrorCodes *error_code = NULL);
 
   /** \brief Stop any trajectory execution, if one is active */
   void stop();

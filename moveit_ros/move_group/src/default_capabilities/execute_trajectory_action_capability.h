@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2016, Kentaro Wada.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,27 +32,44 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/*
+ * Capability of execute trajectory with a ROS action.
+ * In order to allow monitoring and stopping the execution,
+ * the service should be turned into an action.
+ *
+ * Author: Kentaro Wada
+ * */
 
-#ifndef MOVEIT_MACROS_CLASS_FORWARD_
-#define MOVEIT_MACROS_CLASS_FORWARD_
+#ifndef MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_ACTION_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_ACTION_CAPABILITY_
 
-#include <moveit/macros/declare_ptr.h>
+#include <moveit/move_group/move_group_capability.h>
+#include <actionlib/server/simple_action_server.h>
+#include <moveit_msgs/ExecuteTrajectoryAction.h>
 
-/**
- * \def MOVEIT_CLASS_FORWARD
- * Macro that forward declares a class and defines two shared ptrs types:
- *  - ${Class}Ptr      = shared_ptr<${Class}>
- *  - ${Class}ConstPtr = shared_ptr<const ${Class}>
- */
+namespace move_group
+{
 
-#define MOVEIT_CLASS_FORWARD(C) class C; MOVEIT_DECLARE_PTR(C, C);
+class MoveGroupExecuteTrajectoryAction : public MoveGroupCapability
+{
+public:
 
-/**
- * \def MOVEIT_STRUCT_FORWARD
- * Like MOVEIT_CLASS_FORWARD, but forward declares the type as a struct
- * instead of a class.
- */
-#define MOVEIT_STRUCT_FORWARD(C) struct C; MOVEIT_DECLARE_PTR(C, C);
+  MoveGroupExecuteTrajectoryAction();
 
-#endif
+  virtual void initialize();
+
+private:
+
+  void executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal);
+  void executePathCallback_Execute(
+    const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
+    moveit_msgs::ExecuteTrajectoryResult &action_res);
+  void preemptExecuteTrajectoryCallback();
+  void setExecuteTrajectoryState(MoveGroupState state);
+
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
+};
+
+}  // namespace move_group
+
+#endif  // MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_ACTION_CAPABILITY_

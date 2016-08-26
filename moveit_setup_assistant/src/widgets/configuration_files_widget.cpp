@@ -231,7 +231,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_   = config_data_->srdf_pkg_relative_path_.empty() ? config_data_->urdf_model_->getName() + ".srdf" : config_data_->srdf_pkg_relative_path_;
   file.rel_path_    = config_data_->srdf_pkg_relative_path_.empty() ? config_data_->appendPaths( config_path, file.file_name_ ) : config_data_->srdf_pkg_relative_path_;
   file.description_ = "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it.";
-  file.gen_func_    = boost::bind(&SRDFWriter::writeSRDF, config_data_->srdf_, _1);
+  file.gen_func_    = boost::bind(&srdf::SRDFWriter::writeSRDF, config_data_->srdf_, _1);
   gen_files_.push_back(file);
   // special step required so the generated .setup_assistant yaml has this value
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;

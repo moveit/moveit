@@ -37,14 +37,14 @@
 #ifndef MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
 #define MOVEIT_OMPL_INTERFACE_PARAMETERIZATION_MODEL_BASED_STATE_SPACE_FACTORY_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <moveit_msgs/MotionPlanRequest.h>
 
 namespace ompl_interface
 {
 
-class ModelBasedStateSpaceFactory;
-typedef boost::shared_ptr<ModelBasedStateSpaceFactory> ModelBasedStateSpaceFactoryPtr;
+MOVEIT_CLASS_FORWARD(ModelBasedStateSpaceFactory);
 
 class ModelBasedStateSpaceFactory
 {

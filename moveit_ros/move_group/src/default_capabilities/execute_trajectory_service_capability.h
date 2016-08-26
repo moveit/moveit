@@ -34,25 +34,33 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MACROS_CLASS_FORWARD_
-#define MOVEIT_MACROS_CLASS_FORWARD_
+#ifndef MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_SERVICE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_SERVICE_CAPABILITY_
 
-#include <moveit/macros/declare_ptr.h>
+#include <moveit/move_group/move_group_capability.h>
+#include <moveit_msgs/ExecuteKnownTrajectory.h>
 
-/**
- * \def MOVEIT_CLASS_FORWARD
- * Macro that forward declares a class and defines two shared ptrs types:
- *  - ${Class}Ptr      = shared_ptr<${Class}>
- *  - ${Class}ConstPtr = shared_ptr<const ${Class}>
- */
+namespace move_group
+{
 
-#define MOVEIT_CLASS_FORWARD(C) class C; MOVEIT_DECLARE_PTR(C, C);
+class MoveGroupExecuteService : public MoveGroupCapability
+{
+public:
 
-/**
- * \def MOVEIT_STRUCT_FORWARD
- * Like MOVEIT_CLASS_FORWARD, but forward declares the type as a struct
- * instead of a class.
- */
-#define MOVEIT_STRUCT_FORWARD(C) struct C; MOVEIT_DECLARE_PTR(C, C);
+  MoveGroupExecuteService();
+  ~MoveGroupExecuteService();
+
+  virtual void initialize();
+
+private:
+
+  bool executeTrajectoryService(moveit_msgs::ExecuteKnownTrajectory::Request &req, moveit_msgs::ExecuteKnownTrajectory::Response &res);
+
+  ros::ServiceServer execute_service_;
+  ros::CallbackQueue callback_queue_;
+  ros::AsyncSpinner spinner_;
+};
+
+}
 
 #endif
