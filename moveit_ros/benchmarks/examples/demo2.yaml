@@ -21,7 +21,6 @@ benchmark_config:
     planners:
         - plugin: ompl_interface/OMPLPlanner
           planners:
-            - RRTstarkConfigDefault
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault
             - KPIECEkConfigDefault
