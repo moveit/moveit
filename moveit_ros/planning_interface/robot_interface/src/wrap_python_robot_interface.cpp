@@ -41,6 +41,7 @@
 #include <moveit/py_bindings_tools/serialize_msg.h>
 #include <moveit_msgs/RobotState.h>
 
+#include <stdexcept>
 #include <boost/python.hpp>
 #include <Python.h>
 
@@ -57,6 +58,8 @@ public:
     py_bindings_tools::ROScppInitializer()
   {
     robot_model_ = planning_interface::getSharedRobotModel(robot_description);
+    if (!robot_model_)
+      throw std::runtime_error("RobotInterfacePython: invalid robot model");
     current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
   }
 
