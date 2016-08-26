@@ -80,7 +80,7 @@ PlanningSceneDisplay::PlanningSceneDisplay(bool listen_to_planning_scene, bool s
 
   if (listen_to_planning_scene)
     planning_scene_topic_property_ =
-      new rviz::RosTopicProperty( "Planning Scene Topic", "planning_scene",
+      new rviz::RosTopicProperty( "Planning Scene Topic", "move_group/monitored_planning_scene",
                                   ros::message_traits::datatype<moveit_msgs::PlanningScene>(),
                                   "The topic on which the moveit_msgs::PlanningScene messages are received",
                                   this,
