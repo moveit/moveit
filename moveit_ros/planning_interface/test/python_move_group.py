@@ -56,6 +56,15 @@ class PythonMoveGroupTest(unittest.TestCase):
         plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
+    def test_robot_state_update(self):
+        current = np.asarray(self.group.get_current_joint_values())
+        for i in range(3):
+            target = current + np.random.uniform(-0.5, 0.5, size = current.shape)
+            # if plan was successfully executed, current state should be reported at target
+            if self.group.execute(self.plan(target)):
+                 actual = np.asarray(self.group.get_current_joint_values())
+                 self.assertTrue(np.allclose(target, actual, atol=1e-4, rtol=0.0))
+
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
