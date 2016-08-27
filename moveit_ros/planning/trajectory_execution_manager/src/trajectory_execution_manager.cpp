@@ -1072,8 +1072,18 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
 {
   stopExecution(false);
-  execution_complete_ = false;
+
+  // check whether first trajectory starts at current robot state
+  if (trajectories_.size() && !validate(*trajectories_.front()))
+  {
+    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+    if (auto_clear)
+      clear();
+    return;
+  }
+
   // start the execution thread
+  execution_complete_ = false;
   execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, part_callback, auto_clear));
 }
 
@@ -1118,14 +1128,6 @@ void TrajectoryExecutionManager::clear()
 
 void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
 {
-  // check whether first trajectory starts at current robot state
-  if (!execution_complete_ && trajectories_.size() && !validate(*trajectories_.front()))
-  {
-    boost::mutex::scoped_lock lock(execution_state_mutex_);
-    execution_complete_ = true; // this will skip execution and report via callback in the following
-    execution_complete_condition_.notify_all();
-  }
-
   // if we already got a stop request before we even started anything, we abort
   if (execution_complete_)
   {
