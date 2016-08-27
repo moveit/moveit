@@ -69,4 +69,4 @@ add_subdirectory(common_planning_interface_objects)
 add_subdirectory(planning_scene_interface)
 add_subdirectory(move_group_interface)
 add_subdirectory(robot_interface)
-
+add_subdirectory(test)
