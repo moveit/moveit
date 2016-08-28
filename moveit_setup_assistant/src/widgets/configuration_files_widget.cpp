@@ -470,7 +470,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   // Check that there is a author name
   if( config_data_->author_name_.find_first_not_of(' ') == std::string::npos )
   {
-    //There is no name or it consists of whitespaces only
+    // There is no name or it consists of whitespaces only
     dependencies << "<b>No author name added</b>";
     requiredActions = true;
   }
@@ -482,7 +482,7 @@ bool ConfigurationFilesWidget::checkDependencies()
   QString testEmail = QString::fromStdString(config_data_->author_email_);
   if( ! mailRegex.exactMatch(testEmail) )
   {
-    dependencies << "<b>No valid email adress added</b>";
+    dependencies << "<b>No valid email address added</b>";
     requiredActions = true;
   }
 
@@ -512,7 +512,8 @@ bool ConfigurationFilesWidget::checkDependencies()
       {
         return false; // abort
       }
-    } else {
+    } else
+    {
       QMessageBox::warning( this, "Incomplete MoveIt Setup Assistant Steps", dep_message );
       return false;
     }

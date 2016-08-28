@@ -834,6 +834,7 @@ bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
   }
 
   config_pkg_path_ = full_package_path;
+  return true;
 }
 
 // ******************************************************************************************

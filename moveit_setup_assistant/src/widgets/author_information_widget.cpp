@@ -60,9 +60,9 @@ namespace fs = boost::filesystem;
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data ) :
-  SetupScreenWidget( parent ),
-  config_data_(config_data)
+AuthorInformationWidget::AuthorInformationWidget( QWidget *parent,
+                                                  moveit_setup_assistant::MoveItConfigDataPtr config_data )
+  : SetupScreenWidget( parent ), config_data_(config_data)
 {
   // Basic widget container
   QVBoxLayout *layout = new QVBoxLayout();
@@ -71,7 +71,9 @@ AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_
   // Top Header Area ------------------------------------------------
 
   HeaderWidget *header = new HeaderWidget( "Author Information",
-                                           "Specify contact information of the author and initial maintainer of the generated package. catkin requires valid details in the package's package.xml",
+                                           "Specify contact information of the author and initial maintainer of the "
+                                           "generated package. catkin requires valid details in the package's "
+                                           "package.xml",
                                            this);
   layout->addWidget( header );
 
@@ -84,7 +86,7 @@ AuthorInformationWidget::AuthorInformationWidget( QWidget *parent, moveit_setup_
   layout->addWidget( name_edit_ );
 
   QLabel * email_title = new QLabel(this);
-  email_title->setText( "E-Mail of the maintainer of this MoveIt! configuration:" );
+  email_title->setText( "Email of the maintainer of this MoveIt! configuration:" );
   layout->addWidget( email_title );
 
   email_edit_ = new QLineEdit(this);
