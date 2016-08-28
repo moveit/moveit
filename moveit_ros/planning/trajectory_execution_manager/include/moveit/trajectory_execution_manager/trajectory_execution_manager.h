@@ -37,6 +37,7 @@
 #ifndef MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 #define MOVEIT_TRAJECTORY_EXECUTION_MANAGER_TRAJECTORY_EXECUTION_MANAGER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <sensor_msgs/JointState.h>
@@ -49,6 +50,8 @@
 
 namespace trajectory_execution_manager
 {
+
+MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
 
 // Two modes:
 // Managed controllers
@@ -294,9 +297,6 @@ private:
   double allowed_goal_duration_margin_;
   double execution_velocity_scaling_;
 };
-
-typedef boost::shared_ptr<TrajectoryExecutionManager> TrajectoryExecutionManagerPtr;
-typedef boost::shared_ptr<const TrajectoryExecutionManager> TrajectoryExecutionManagerConstPtr;
 
 }
 

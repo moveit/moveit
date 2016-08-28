@@ -59,8 +59,8 @@ class Shape;
 namespace moveit_rviz_plugin
 {
 
-// forward delcaration
-class OcTreeRender;
+MOVEIT_CLASS_FORWARD(OcTreeRender);
+MOVEIT_CLASS_FORWARD(RenderShapes);
 
 class RenderShapes
 {
@@ -83,10 +83,9 @@ private:
   rviz::DisplayContext *context_;
 
   std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
-  std::vector< boost::shared_ptr<OcTreeRender> > octree_voxel_grids_;
+  std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
 
-MOVEIT_CLASS_FORWARD(RenderShapes);
 
 }
 

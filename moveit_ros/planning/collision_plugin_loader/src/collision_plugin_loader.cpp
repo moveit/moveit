@@ -40,7 +40,6 @@ namespace collision_detection
 
 class CollisionPluginLoader::CollisionPluginLoaderImpl
 {
-  typedef boost::shared_ptr<CollisionPlugin> CollisionPluginPtr;
 
 public:
   CollisionPluginLoaderImpl()

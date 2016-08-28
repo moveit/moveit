@@ -38,6 +38,7 @@
 #define    MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
 
 #include <map>
+#include <moveit/macros/class_forward.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/sensor_model.h>
 #include <boost/function.hpp>
@@ -54,8 +55,8 @@ namespace shapes
 namespace mesh_filter
 {
 
-class Job;
-class GLMesh;
+MOVEIT_CLASS_FORWARD(Job);
+MOVEIT_CLASS_FORWARD(GLMesh);
 
 typedef unsigned int MeshHandle;
 typedef uint32_t LabelType;
@@ -210,7 +211,7 @@ class MeshFilterBase
      * \brief add a Job for the main thread that needs to be executed there
      * \param[in] job the job object that has the function o be executed
      */
-    void addJob (const boost::shared_ptr<Job> &job) const;
+    void addJob (const JobPtr &job) const;
 
   /**
    * \brief sets the size of the fram buffers
@@ -221,10 +222,10 @@ class MeshFilterBase
     void setSize (unsigned int width, unsigned int height);
 
     /** \brief storage for meshed to be filtered */
-    std::map<MeshHandle, boost::shared_ptr<GLMesh> > meshes_;
+    std::map<MeshHandle, GLMeshPtr> meshes_;
 
     /** \brief the parameters of the used sensor model*/
-    boost::shared_ptr<SensorModel::Parameters> sensor_parameters_;
+    SensorModel::ParametersPtr sensor_parameters_;
 
     /** \brief next handle to be used for next mesh that is added*/
     MeshHandle next_handle_;
@@ -242,7 +243,7 @@ class MeshFilterBase
     mutable boost::mutex jobs_mutex_;
 
     /** \brief OpenGL job queue that need to be processed by the worker thread*/
-    mutable std::queue<boost::shared_ptr<Job> > jobs_queue_;
+    mutable std::queue<JobPtr> jobs_queue_;
 
     /** \brief mutex for synchronization of updating filtered meshes */
     mutable boost::mutex meshes_mutex_;
@@ -254,10 +255,10 @@ class MeshFilterBase
     bool stop_;
 
     /** \brief first pass renderer for rendering the mesh*/
-    boost::shared_ptr<GLRenderer> mesh_renderer_;
+    GLRendererPtr mesh_renderer_;
 
     /** \brief second pass renderer for filtering the results of first pass*/
-    boost::shared_ptr<GLRenderer> depth_filter_;
+    GLRendererPtr depth_filter_;
 
     /** \brief canvas element (screen-filling quad) for second pass*/
     GLuint canvas_;

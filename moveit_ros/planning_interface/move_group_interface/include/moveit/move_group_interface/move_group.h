@@ -38,6 +38,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -64,6 +65,8 @@ public:
   MoveItErrorCode(const moveit_msgs::MoveItErrorCodes &code) { val = code.val; };
   operator bool() const { return val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
 };
+
+MOVEIT_CLASS_FORWARD(MoveGroup);
 
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
 class MoveGroup
@@ -96,6 +99,8 @@ public:
 
     ros::NodeHandle node_handle_;
   };
+
+  MOVEIT_STRUCT_FORWARD(Plan);
 
   /// The representation of a motion plan (as ROS messasges)
   struct Plan
@@ -187,7 +192,7 @@ public:
       Allowed values are in (0,1]. The maximum joint acceleration specified
       in the robot model is multiplied by the factor. If outside valid range
       (imporantly, this includes it being set to 0.0), the factor is set to a
-      default value of 1.0 internally (i.e. maximum joint acceleration) */  
+      default value of 1.0 internally (i.e. maximum joint acceleration) */
   void setMaxAccelerationScalingFactor(double max_acceleration_scaling_factor);
 
   /** \brief Get the number of seconds set by setPlanningTime() */

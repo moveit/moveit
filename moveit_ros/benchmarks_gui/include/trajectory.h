@@ -39,10 +39,13 @@
 
 #ifndef Q_MOC_RUN
 #include <frame_marker.h>
+#include <moveit/macros/class_forward.h>
 #endif
 
 namespace benchmark_tool
 {
+
+MOVEIT_CLASS_FORWARD(Trajectory);
 
 /* Implements functionality to create and manage straight and arc trajectories with interactive markers
  */
@@ -156,8 +159,6 @@ private:
   typedef enum {CONTROL_MARKER_FLOATING, CONTROL_MARKER_FIXED} ControlMarkerModeType;
   ControlMarkerModeType control_marker_mode_;
 };
-
-typedef boost::shared_ptr<Trajectory> TrajectoryPtr;
 
 }
 

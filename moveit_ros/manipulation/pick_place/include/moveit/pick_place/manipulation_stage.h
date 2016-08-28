@@ -37,11 +37,14 @@
 #ifndef MOVEIT_PICK_PLACE_MANIPULATION_STAGE_
 #define MOVEIT_PICK_PLACE_MANIPULATION_STAGE_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/pick_place/manipulation_plan.h>
 #include <string>
 
 namespace pick_place
 {
+
+MOVEIT_CLASS_FORWARD(ManipulationStage);
 
 class ManipulationStage
 {
@@ -86,9 +89,6 @@ protected:
   bool signal_stop_;
   bool verbose_;
 };
-
-typedef boost::shared_ptr<ManipulationStage> ManipulationStagePtr;
-typedef boost::shared_ptr<const ManipulationStage> ManipulationStageConstPtr;
 
 }
 
