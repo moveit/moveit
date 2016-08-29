@@ -401,7 +401,6 @@ void ChompOptimizer::optimize()
     // }
     handleJointLimits();
     updateFullTrajectory();
-    ROS_INFO("Safe till here?");
 
     if (iteration_ % 10 == 0)
     {
