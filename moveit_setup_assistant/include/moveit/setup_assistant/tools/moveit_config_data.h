@@ -191,6 +191,12 @@ public:
   /// Timestamp when configuration package was generated, if it was previously generated
   std::time_t config_pkg_generated_timestamp_;
 
+  /// Name of the author of this config
+  std::string author_name_;
+
+  /// Email of the author of this config
+  std::string author_email_;
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
