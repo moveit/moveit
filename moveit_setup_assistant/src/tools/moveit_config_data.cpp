@@ -955,7 +955,7 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
       // Package generation time
       if( config_node = findValue( *title_node, "CONFIG" ) )
       {
-        //Load author contact details
+        // Load author contact details
         if( author_name_node = findValue( *config_node, "author_name" ) )
         {
           *author_name_node >> author_name_;
