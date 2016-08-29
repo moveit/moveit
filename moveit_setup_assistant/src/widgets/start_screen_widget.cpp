@@ -305,6 +305,13 @@ void StartScreenWidget::loadFilesClick()
   }
   else
   {
+    if ( !create_new_package_ && config_data_->author_name_.empty() && config_data_->author_email_.empty() )
+    {
+      QMessageBox::warning( this, "Loading Project Without Author Information",
+        "The loaded configuration package does not include author information.\n"
+        "Make sure you regenerate the '.setup_assistant' and 'package.xml' files to add it.");
+    }
+
     // Hide the logo image so that other screens can resize the rviz thing properly
     right_image_label_->hide();
   }
