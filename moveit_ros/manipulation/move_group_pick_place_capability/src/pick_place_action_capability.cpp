@@ -416,41 +416,46 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
 
 void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
 {
-  planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-
   if (grasp_planning_service_)
   {
     manipulation_msgs::GraspPlanning::Request request;
     manipulation_msgs::GraspPlanning::Response response;
     bool valid = true;
+    std::string planning_frame;
 
-    collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
-    if (!object || object->shape_poses_.empty()){
-      ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
-      return;
-    }
-
-    request.arm_name = goal.group_name;
-    request.collision_object_name = goal.target_name;
-    request.target.reference_frame_id = lscene->getPlanningFrame();
-
-    if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
+    // the planning_scene should be unlocked when calling the service below
     {
-      household_objects_database_msgs::DatabaseModelPose dbp;
-      dbp.pose.header.frame_id = lscene->getPlanningFrame();
-      dbp.pose.header.stamp = ros::Time::now();
-      tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
-      dbp.type = lscene->getObjectType(goal.target_name);
-      try
-      {
-        dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
-        ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
-        request.target.potential_models.push_back(dbp);
+      planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
+      planning_frame = lscene->getPlanningFrame();
+
+      collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
+      if (!object || object->shape_poses_.empty()){
+        ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
+        return;
       }
-      catch (boost::bad_lexical_cast &)
+
+      request.arm_name = goal.group_name;
+      request.collision_object_name = goal.target_name;
+      request.target.reference_frame_id = planning_frame;
+
+      if(lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
       {
-        valid = false;
-        ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
+        household_objects_database_msgs::DatabaseModelPose dbp;
+        dbp.pose.header.frame_id = planning_frame;
+        dbp.pose.header.stamp = ros::Time::now();
+        tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
+        dbp.type = lscene->getObjectType(goal.target_name);
+        try
+        {
+          dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
+          ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(), dbp.model_id);
+          request.target.potential_models.push_back(dbp);
+        }
+        catch (boost::bad_lexical_cast &)
+        {
+          valid = false;
+          ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
+        }
       }
     }
 
@@ -493,7 +498,7 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
           goal.possible_grasps[i].post_grasp_retreat.direction.vector.z = 1.0;
           goal.possible_grasps[i].post_grasp_retreat.desired_distance = 0.1;
           goal.possible_grasps[i].post_grasp_retreat.min_distance = 0.0;
-          goal.possible_grasps[i].post_grasp_retreat.direction.header.frame_id = lscene->getPlanningFrame();
+          goal.possible_grasps[i].post_grasp_retreat.direction.header.frame_id = planning_frame;
 
           goal.possible_grasps[i].post_place_retreat.direction = response.grasps[i].retreat.direction;
           goal.possible_grasps[i].post_place_retreat.desired_distance = response.grasps[i].retreat.desired_distance;
@@ -508,6 +513,8 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
 
   if (goal.possible_grasps.empty())
   {
+    planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
+
     ROS_DEBUG_NAMED("manipulation", "Using default grasp poses");
     goal.minimize_object_distance = true;
 
