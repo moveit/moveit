@@ -1,0 +1,27 @@
+<library path="libstomp_moveit_update_filters">
+  <class name="stomp_moveit/PolynomialSmoother" type="stomp_moveit::update_filters::PolynomialSmoother" base_class_type="stomp_moveit::update_filters::StompUpdateFilter">
+    <description>
+      Applies exponential smoothing 
+    </description>
+  </class>
+  <class name="stomp_moveit/ConstrainedCartesianGoal" type="stomp_moveit::update_filters::ConstrainedCartesianGoal" base_class_type="stomp_moveit::update_filters::StompUpdateFilter">
+    <description>
+      Forces the goal into the tool task space. 
+    </description>
+  </class>
+  <class name="stomp_moveit/ControlCostProjectionMatrix" type="stomp_moveit::update_filters::ControlCostProjection" base_class_type="stomp_moveit::update_filters::StompUpdateFilter">
+    <description>
+      Applies the Control Cost Projection matrix "M" in order to smooth out the noisy parameter updates. 
+    </description>
+  </class>
+  <class name="stomp_moveit/UpdateLogger" type="stomp_moveit::update_filters::UpdateLogger" base_class_type="stomp_moveit::update_filters::StompUpdateFilter">
+    <description>
+      Saves the updates to a file for post analisys 
+    </description>
+  </class>
+  <class name="stomp_moveit/TrajectoryVisualization" type="stomp_moveit::update_filters::TrajectoryVisualization" base_class_type="stomp_moveit::update_filters::StompUpdateFilter">
+    <description>
+      Visualizes the updated trajectory
+    </description>
+  </class>
+</library>

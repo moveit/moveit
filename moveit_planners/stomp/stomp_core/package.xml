@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package>
+  <name>stomp_core</name>
+  <version>0.0.1</version>
+  <description>The stomp_core package</description>
+
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <license>Apache 2.0</license>
+  <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>roscpp</run_depend>
+
+  <export>
+  </export>
+</package>

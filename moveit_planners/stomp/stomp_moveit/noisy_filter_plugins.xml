@@ -1,0 +1,17 @@
+<library path="libstomp_moveit_noisy_filters">
+  <class name="stomp_moveit/JointLimits" type="stomp_moveit::noisy_filters::JointLimits" base_class_type="stomp_moveit::noisy_filters::StompNoisyFilter">
+    <description>
+      Enforces joint limits  
+    </description>
+  </class>
+  <class name="stomp_moveit/MultiTrajectoryVisualization" type="stomp_moveit::noisy_filters::MultiTrajectoryVisualization" base_class_type="stomp_moveit::noisy_filters::StompNoisyFilter">
+    <description>
+      Visualizes the noisy trajectories
+    </description>
+  </class>
+  <class name="stomp_moveit/UnderconstrainedGoal" type="stomp_moveit::noisy_filters::UnderconstrainedGoal" base_class_type="stomp_moveit::noisy_filters::StompNoisyFilter">
+    <description>
+      Sets the tool goal pose to the underconstrained task space 
+    </description>
+  </class>
+</library>

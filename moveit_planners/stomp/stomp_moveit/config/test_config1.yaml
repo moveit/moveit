@@ -1,0 +1,4 @@
+parent_ns/config1:
+  param1: 2
+  param2: fifo
+  param3: False
