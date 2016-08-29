@@ -125,7 +125,7 @@ void ChompOptimizer::initialize()
 
   joint_model_group_ = planning_scene_->getRobotModel()->getJointModelGroup(planning_group_);
 
-  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getActiveJointModels();
   for (size_t i = 0; i < joint_models.size(); i++)
   {
     const moveit::core::JointModel* model = joint_models[i];
@@ -195,9 +195,9 @@ void ChompOptimizer::initialize()
   std::map<std::string, std::string> fixed_link_resolution_map;
   for (int i = 0; i < num_joints_; i++)
   {
-    joint_names_.push_back(joint_model_group_->getJointModels()[i]->getName());
+    joint_names_.push_back(joint_model_group_->getActiveJointModels()[i]->getName());
     // ROS_INFO("Got joint %s", joint_names_[i].c_str());
-    registerParents(joint_model_group_->getJointModels()[i]);
+    registerParents(joint_model_group_->getActiveJointModels()[i]);
     fixed_link_resolution_map[joint_names_[i]] = joint_names_[i];
   }
 
@@ -563,6 +563,7 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
 {
   moveit_msgs::RobotTrajectory traj;
   traj.joint_trajectory.joint_names = joint_names_;
+
   for (int i = 0; i < group_trajectory_.getNumPoints(); i++)
   {
     trajectory_msgs::JointTrajectoryPoint point;
@@ -714,7 +715,7 @@ void ChompOptimizer::calculateTotalIncrements()
 
 void ChompOptimizer::addIncrementsToTrajectory()
 {
-  const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joint_models = joint_model_group_->getActiveJointModels();
   for (size_t i = 0; i < joint_models.size(); i++)
   {
     double scale = 1.0;
@@ -853,7 +854,7 @@ void ChompOptimizer::getJacobian(int trajectory_point, Eigen::Vector3d& collisio
 
 void ChompOptimizer::handleJointLimits()
 {
-  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getJointModels();
+  const std::vector<const moveit::core::JointModel*> joint_models = joint_model_group_->getActiveJointModels();
   for (size_t joint_i = 0; joint_i < joint_models.size(); joint_i++)
   {
     const moveit::core::JointModel* joint_model = joint_models[joint_i];
@@ -1043,6 +1044,7 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   // moveit::core::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
   // group->setStateValues(joint_states);
   state_.setJointGroupPositions(planning_group_, joint_states);
+  state_.update();
   // timer = ros::WallTime::now();
 }
 

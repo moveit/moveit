@@ -57,7 +57,7 @@ static inline void jointStateToArray(const moveit::core::RobotModelConstPtr& kmo
                                      Eigen::MatrixXd::RowXpr joint_array)
 {
   const moveit::core::JointModelGroup* group = kmodel->getJointModelGroup(planning_group_name);
-  std::vector<const moveit::core::JointModel*> models = group->getJointModels();
+  std::vector<const moveit::core::JointModel*> models = group->getActiveJointModels();
 
   for (unsigned int i = 0; i < joint_state.position.size(); i++)
   {

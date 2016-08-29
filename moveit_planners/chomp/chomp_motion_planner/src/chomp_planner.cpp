@@ -77,9 +77,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   const moveit::core::JointModelGroup* model_group =
       planning_scene->getRobotModel()->getJointModelGroup(req.group_name);
   // fix the goal to move the shortest angular distance for wrap-around joints:
-  for (size_t i = 0; i < model_group->getJointModels().size(); i++)
+  for (size_t i = 0; i < model_group->getActiveJointModels().size(); i++)
   {
-    const moveit::core::JointModel* model = model_group->getJointModels()[i];
+    const moveit::core::JointModel* model = model_group->getActiveJointModels()[i];
     const moveit::core::RevoluteJointModel* revolute_joint =
         dynamic_cast<const moveit::core::RevoluteJointModel*>(model);
 
@@ -122,9 +122,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   res.trajectory.resize(1);
 
-  for (size_t i = 0; i < model_group->getJointModels().size(); i++)
+  for (size_t i = 0; i < model_group->getActiveJointModels().size(); i++)
   {
-    res.trajectory[0].joint_trajectory.joint_names[i] = model_group->getJointModels()[i]->getName();
+    res.trajectory[0].joint_trajectory.joint_names.push_back(model_group->getActiveJointModels()[i]->getName());
   }
 
   res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;  // @TODO this is probably a hack

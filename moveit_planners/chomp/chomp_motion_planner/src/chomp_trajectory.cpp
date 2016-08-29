@@ -50,7 +50,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   , end_index_(num_points_ - 2)
 {
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
-  num_joints_ = model_group->getJointModels().size();
+  num_joints_ = model_group->getActiveJointModels().size();
   init();
 }
 
@@ -64,7 +64,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   , end_index_(num_points_ - 2)
 {
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
-  num_joints_ = model_group->getJointModels().size();
+  num_joints_ = model_group->getActiveJointModels().size();
   init();
 }
 
@@ -110,7 +110,7 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   : planning_group_name_(planning_group)
 {
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
-  num_joints_ = model_group->getJointModels().size();
+  num_joints_ = model_group->getActiveJointModels().size();
   double discretization = (traj.points[1].time_from_start - traj.points[0].time_from_start).toSec();
 
   double discretization2 = (traj.points[2].time_from_start - traj.points[1].time_from_start).toSec();
