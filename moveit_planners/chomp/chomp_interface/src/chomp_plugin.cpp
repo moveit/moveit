@@ -60,7 +60,7 @@ public:
     {
       ROS_INFO("%s", groups[i].c_str());
       planning_contexts_[groups[i]] =
-          ChompPlanningContextPtr(new ChompPlanningContext("chomp_planning_context", groups[i], model));
+          CHOMPPlanningContextPtr(new CHOMPPlanningContext("chomp_planning_context", groups[i], model));
     }
     return true;
   }
@@ -109,7 +109,7 @@ public:
   }
 
 protected:
-  std::map<std::string, ChompPlanningContextPtr> planning_contexts_;
+  std::map<std::string, CHOMPPlanningContextPtr> planning_contexts_;
 };
 
 }  // ompl_interface_ros

@@ -43,10 +43,13 @@
 
 namespace chomp_interface
 {
+
+MOVEIT_CLASS_FORWARD(CHOMPInterface);
+
 class CHOMPInterface : public chomp::ChompPlanner
 {
 public:
-  CHOMPInterface(const moveit::core::RobotModelConstPtr& kmodel);
+  CHOMPInterface();
 
   const chomp::ChompParameters& getParams() const
   {
@@ -61,8 +64,6 @@ protected:
 
   chomp::ChompParameters params_;
 };
-
-typedef boost::shared_ptr<CHOMPInterface> CHOMPInterfacePtr;
 }
 
 #endif

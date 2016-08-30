@@ -41,6 +41,7 @@
 #include <chomp_interface/chomp_interface.h>
 #include <chomp_interface/chomp_planning_context.h>
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include <tf/transform_listener.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
@@ -49,9 +50,10 @@
 
 namespace chomp_interface
 {
-class ChompPlanningContext : public planning_interface::PlanningContext
+MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);
+
+class CHOMPPlanningContext : public planning_interface::PlanningContext
 {
-  typedef boost::shared_ptr<ChompPlanningContext> Ptr;
 
 public:
   virtual bool solve(planning_interface::MotionPlanResponse &res);
@@ -60,9 +62,9 @@ public:
   virtual void clear();
   virtual bool terminate();
 
-  ChompPlanningContext(const std::string &name, const std::string &group, const robot_model::RobotModelConstPtr &model);
+  CHOMPPlanningContext(const std::string &name, const std::string &group, const robot_model::RobotModelConstPtr &model);
 
-  virtual ~ChompPlanningContext();
+  virtual ~CHOMPPlanningContext();
 
   void initialize();
 
@@ -72,8 +74,6 @@ private:
 
   boost::shared_ptr<tf::TransformListener> tf_;
 };
-
-typedef boost::shared_ptr<ChompPlanningContext> ChompPlanningContextPtr;
 
 } /* namespace chomp_interface */
 

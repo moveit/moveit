@@ -9,22 +9,11 @@
 
 namespace chomp_interface
 {
-ChompPlanningContext::ChompPlanningContext(const std::string &name, const std::string &group,
+CHOMPPlanningContext::CHOMPPlanningContext(const std::string &name, const std::string &group,
                                            const robot_model::RobotModelConstPtr &model)
   : planning_interface::PlanningContext(name, group), robot_model_(model)
 {
-  chomp_interface_ = boost::shared_ptr<CHOMPInterface>(new CHOMPInterface(model));
-
-  //  tf_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
-  //  planning_scene_monitor::PlanningSceneMonitorPtr psm(new
-  //  planning_scene_monitor::PlanningSceneMonitor("robot_description", tf_));
-  //  ROS_INFO_STREAM("PlanningContext " + this->name_ + " is congifured for group: " + this->group_); //,
-  //  this->group_);
-  //
-  //  planning_scene_monitor::LockedPlanningSceneRW psm_rw(psm);
-
-  // Get the planning scene and set it for the context.
-  //  this->setPlanningScene(psm_rw.operator ->());
+  chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
 
   boost::shared_ptr<collision_detection::CollisionDetectorAllocator> hybrid_cd(
       collision_detection::CollisionDetectorAllocatorHybrid::create());
@@ -40,12 +29,12 @@ ChompPlanningContext::ChompPlanningContext(const std::string &name, const std::s
   }
 }
 
-ChompPlanningContext::~ChompPlanningContext()
+CHOMPPlanningContext::~CHOMPPlanningContext()
 {
   // TODO Auto-generated destructor stub
 }
 
-bool ChompPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
+bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
 {
   moveit_msgs::MotionPlanDetailedResponse res2;
   if (chomp_interface_->solve(planning_scene_, request_, chomp_interface_->getParams(), res2))
@@ -59,15 +48,22 @@ bool ChompPlanningContext::solve(planning_interface::MotionPlanDetailedResponse 
     robot_state::robotStateMsgToRobotState(res2.trajectory_start, start_state);
     res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res2.trajectory[0]);
 
+    trajectory_processing::IterativeParabolicTimeParameterization itp;
+    itp.computeTimeStamps(*res.trajectory_[0]);
+
     res.description_.push_back("plan");
     res.processing_time_ = res2.processing_time;
+    res.error_code_ = res2.error_code;
     return true;
   }
   else
+  {
+    res.error_code_ = res2.error_code;
     return false;
+  }
 }
 
-bool ChompPlanningContext::solve(planning_interface::MotionPlanResponse &res)
+bool CHOMPPlanningContext::solve(planning_interface::MotionPlanResponse &res)
 {
   planning_interface::MotionPlanDetailedResponse res_detailed;
   bool result = solve(res_detailed);
@@ -79,13 +75,13 @@ bool ChompPlanningContext::solve(planning_interface::MotionPlanResponse &res)
   return result;
 }
 
-bool ChompPlanningContext::terminate()
+bool CHOMPPlanningContext::terminate()
 {
   // TODO - make interruptible
   return true;
 }
 
-void ChompPlanningContext::clear()
+void CHOMPPlanningContext::clear()
 {
 }
 

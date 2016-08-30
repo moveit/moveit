@@ -13,7 +13,6 @@ COMPONENTS
   moveit_core
   moveit_msgs
   resource_retriever
-  srdfdom
   kdl_parser
   geometric_shapes
   shape_tools
@@ -54,10 +53,8 @@ catkin_package(
     shape_tools
     eigen_stl_containers
     eigen_conversions
-    random_numbers
     moveit_msgs
     kdl_parser
-    srdfdom
     pluginlib
   DEPENDS
     Boost

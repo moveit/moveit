@@ -15,13 +15,11 @@
   <url type="website">http://moveit.ros.org</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>pkg-config</buildtool_depend>
 
   <build_depend>pluginlib</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
   <build_depend>liburdfdom-dev</build_depend>
   <build_depend>liburdfdom-headers-dev</build_depend>
-  <build_depend>random_numbers</build_depend>
   <build_depend>shape_tools</build_depend>
   <build_depend>octomap_msgs</build_depend>  
   <build_depend>moveit_msgs</build_depend>
@@ -33,7 +31,6 @@
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>   
   <build_depend>octomap</build_depend>
-  <build_depend>srdfdom</build_depend>
   <build_depend>kdl_parser</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>boost</build_depend>
@@ -51,10 +48,8 @@
   <run_depend>libconsole-bridge-dev</run_depend>
   <run_depend>liburdfdom-dev</run_depend>
   <run_depend>liburdfdom-headers-dev</run_depend>
-  <run_depend>random_numbers</run_depend>
   <run_depend>shape_tools</run_depend>
   <run_depend>octomap</run_depend>
-  <run_depend>srdfdom</run_depend> 
   <run_depend>kdl_parser</run_depend>
   <run_depend>eigen</run_depend>
   <run_depend>boost</run_depend>

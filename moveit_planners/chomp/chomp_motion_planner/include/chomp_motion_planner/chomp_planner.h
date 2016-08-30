@@ -47,19 +47,12 @@ namespace chomp
 class ChompPlanner
 {
 public:
-  ChompPlanner(const moveit::core::RobotModelConstPtr& kmodel);
+  ChompPlanner();
   virtual ~ChompPlanner(){};
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
              const ChompParameters& params, moveit_msgs::MotionPlanDetailedResponse& res) const;
 
-protected:
-  /** @brief Solve the planning problem but give a more detailed response */
-  // bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-  //            const moveit_msgs::GetMotionPlan::Request &req,
-  //            moveit_msgs::MotionPlanDetailedResponse &res) const;
-
-  // void terminateSolve();
 };
 }
 

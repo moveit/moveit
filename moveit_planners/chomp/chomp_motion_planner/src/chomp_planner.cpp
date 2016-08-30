@@ -43,7 +43,7 @@
 
 namespace chomp
 {
-ChompPlanner::ChompPlanner(const moveit::core::RobotModelConstPtr& kmodel)
+ChompPlanner::ChompPlanner()
 {
 }
 
