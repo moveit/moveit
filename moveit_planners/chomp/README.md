@@ -6,6 +6,12 @@
 
 > git clone https://github.com/ksatyaki/moveit.git
 
+* cd to the directory you just cloned and checkout the indigo-devel branch.
+
+> cd moveit
+
+> git checkout indigo-devel
+
 * Make the workspace with `catkin_make` and source your workspace's setup file.
 * Get the `moveit_resources` package. This package contains test robots and configs to test CHOMP.
 
