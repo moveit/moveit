@@ -39,22 +39,16 @@
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
-#include <ros/package.h>
+#include <moveit_resources/config.h>
 
 // This function needs to return void so the gtest FAIL() macro inside
 // it works right.
 void loadRobotModel(boost::shared_ptr<urdf::ModelInterface>& robot_model_out)
 {
-  std::string resource_dir = ros::package::getPath("moveit_resources");
-  if(resource_dir == "")
-  {
-    FAIL() << "Failed to find package moveit_resources.";
-    return;
-  }
-  boost::filesystem::path res_path(resource_dir);
+  boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
   std::string xml_string;
-  std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
+  std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
   while ( xml_file.good() )
   {

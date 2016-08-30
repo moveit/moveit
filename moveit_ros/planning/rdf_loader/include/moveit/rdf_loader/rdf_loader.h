@@ -37,6 +37,7 @@
 #ifndef MOVEIT_PLANNING_RDF_LOADER_
 #define MOVEIT_PLANNING_RDF_LOADER_
 
+#include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 #include <boost/shared_ptr.hpp>
@@ -44,6 +45,9 @@
 
 namespace rdf_loader
 {
+
+MOVEIT_CLASS_FORWARD(RDFLoader);
+
 /** @class RDFLoader
  *  @brief Default constructor
  *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded*/
@@ -85,9 +89,6 @@ private:
   boost::shared_ptr<urdf::ModelInterface> urdf_;
 
 };
-
-typedef boost::shared_ptr<RDFLoader> RDFLoaderPtr;
-typedef boost::shared_ptr<const RDFLoader> RDFLoaderConstPtr;
 
 }
 #endif

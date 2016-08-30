@@ -58,6 +58,7 @@
 #include "end_effectors_widget.h"
 #include "virtual_joints_widget.h"
 #include "passive_joints_widget.h"
+#include "author_information_widget.h"
 #include "configuration_files_widget.h"
 
 #ifndef Q_MOC_RUN
@@ -223,6 +224,7 @@ private:
   EndEffectorsWidget *efw_;
   VirtualJointsWidget *vjw_;
   PassiveJointsWidget *pjw_;
+  AuthorInformationWidget *aiw_;
   ConfigurationFilesWidget *cfw_;
 
   /// Contains all the configuration data for the setup assistant

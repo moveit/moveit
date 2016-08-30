@@ -37,6 +37,7 @@
 #ifndef MOVEIT_MOVE_GROUP_CAPABILITY_
 #define MOVEIT_MOVE_GROUP_CAPABILITY_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/plan_execution/plan_representation.h>
@@ -45,13 +46,15 @@
 namespace move_group
 {
 
-enum MoveGroupState
+  enum MoveGroupState
   {
     IDLE,
     PLANNING,
     MONITOR,
     LOOK
   };
+
+MOVEIT_CLASS_FORWARD(MoveGroupCapability);
 
 class MoveGroupCapability
 {

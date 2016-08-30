@@ -38,6 +38,7 @@
 #define MOVEIT_MOVEIT_WAREHOUSE_TRAJECTORY_CONSTRAINTS_STORAGE_
 
 #include "moveit/warehouse/moveit_message_storage.h"
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/TrajectoryConstraints.h>
 
 namespace moveit_warehouse
@@ -45,6 +46,8 @@ namespace moveit_warehouse
 
 typedef warehouse_ros::MessageWithMetadata<moveit_msgs::TrajectoryConstraints>::ConstPtr TrajectoryConstraintsWithMetadata;
 typedef warehouse_ros::MessageCollection<moveit_msgs::TrajectoryConstraints>::Ptr TrajectoryConstraintsCollection;
+
+MOVEIT_CLASS_FORWARD(TrajectoryConstraintsStorage);
 
 class TrajectoryConstraintsStorage : public MoveItMessageStorage
 {

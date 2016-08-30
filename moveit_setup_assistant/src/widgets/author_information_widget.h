@@ -32,68 +32,62 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Dave Coleman, Michael 'v4hn' Goerner */
 
-#ifndef MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
-#define MOVEIT_VISUALIZATION_SCENE_DISPLAY_RVIZ_PLUGIN_PLANNING_SCENE_RENDER_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_AUTHOR_INFORMATION_WIDGET_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_AUTHOR_INFORMATION_WIDGET_
 
-#include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/rviz_plugin_render_tools/render_shapes.h>
-#include <rviz/helpers/color.h>
-#include <OgreMaterial.h>
+#include <QWidget>
+#include <QString>
+#include <QLineEdit>
 
-namespace Ogre
-{
-class SceneNode;
-}
+#ifndef Q_MOC_RUN
+#include <moveit/setup_assistant/tools/moveit_config_data.h>
+#endif
 
-namespace rviz
-{
-class DisplayContext;
-}
+#include "header_widget.h"
+#include "setup_screen_widget.h" // a base class for screens in the setup assistant
 
-namespace moveit_rviz_plugin
+namespace moveit_setup_assistant
 {
 
-MOVEIT_CLASS_FORWARD(RobotStateVisualization);
-MOVEIT_CLASS_FORWARD(RenderShapes);
-MOVEIT_CLASS_FORWARD(PlanningSceneRender);
-
-class PlanningSceneRender
+class AuthorInformationWidget : public SetupScreenWidget
 {
-public:
-  PlanningSceneRender(Ogre::SceneNode *root_node, rviz::DisplayContext *context,
-                      const RobotStateVisualizationPtr &robot);
-  ~PlanningSceneRender();
+  Q_OBJECT
 
-  Ogre::SceneNode* getGeometryNode()
-  {
-    return planning_scene_geometry_node_;
-  }
+  public:
+  // ******************************************************************************************
+  // Public Functions
+  // ******************************************************************************************
 
-  const RobotStateVisualizationPtr& getRobotVisualization()
-  {
-    return scene_robot_;
-  }
+  AuthorInformationWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
 
-  void renderPlanningScene(const planning_scene::PlanningSceneConstPtr &scene,
-                           const rviz::Color &default_scene_color,
-                           const rviz::Color &default_attached_color,
-                           OctreeVoxelRenderMode voxel_render_mode,
-                           OctreeVoxelColorMode voxel_color_mode,
-                           float default_scene_alpha);
-  void clear();
+  /// Recieved when this widget is chosen from the navigation menu
+  virtual void focusGiven();
+
+  // ******************************************************************************************
+  // Qt Components
+  // ******************************************************************************************
+
+  QLineEdit *name_edit_;
+
+  QLineEdit *email_edit_;
+
+private Q_SLOTS:
+
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
+  void edited_name();
+  void edited_email();
 
 private:
 
-  Ogre::SceneNode *planning_scene_geometry_node_;
-  rviz::DisplayContext *context_;
-  RenderShapesPtr render_shapes_;
-  RobotStateVisualizationPtr scene_robot_;
+  /// Contains all the configuration data for the setup assistant
+  moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
 };
 
-}
+} //namespace moveit_setup_assistant
 
 #endif

@@ -599,53 +599,53 @@ public:
    */
   /**@{*/
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions) */
   double distanceToCollision(robot_state::RobotState &kstate) const
   {
     kstate.updateCollisionBodyTransforms();
     return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate));
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions) */
   double distanceToCollision(const robot_state::RobotState &kstate) const
   {
     return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, getAllowedCollisionMatrix());
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions), if the robot has no padding */
   double distanceToCollisionUnpadded(robot_state::RobotState &kstate) const
   {
     kstate.updateCollisionBodyTransforms();
     return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate));
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, if the robot has no padding */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions), if the robot has no padding */
   double distanceToCollisionUnpadded(const robot_state::RobotState &kstate) const
   {
     return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, getAllowedCollisionMatrix());
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions and elements that are allowed to collide. */
   double distanceToCollision(robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
     return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide. */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions and elements that are allowed to collide. */
   double distanceToCollision(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions and elements that are allowed to collide, if the robot has no padding. */
   double distanceToCollisionUnpadded(robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
     return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring distances between elements that always allowed to collide, if the robot has no padding. */
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions and elements that always allowed to collide, if the robot has no padding. */
   double distanceToCollisionUnpadded(const robot_state::RobotState &kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);

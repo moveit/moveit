@@ -41,6 +41,7 @@
 #include <tf/tf.h>
 #include <tf/message_filter.h>
 #include <message_filters/subscriber.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
@@ -52,6 +53,8 @@
 
 namespace planning_scene_monitor
 {
+
+MOVEIT_CLASS_FORWARD(PlanningSceneMonitor);
 
 /**
  * @brief PlanningSceneMonitor
@@ -521,9 +524,6 @@ private:
   DynamicReconfigureImpl *reconfigure_impl_;
 };
 
-typedef boost::shared_ptr<PlanningSceneMonitor> PlanningSceneMonitorPtr;
-typedef boost::shared_ptr<const PlanningSceneMonitor> PlanningSceneMonitorConstPtr;
-
 /** \brief This is a convenience class for obtaining access to an
  *         instance of a locked PlanningScene.
  *
@@ -589,6 +589,8 @@ protected:
       lock_.reset(new SingleUnlock(planning_scene_monitor_.get(), read_only));
   }
 
+  MOVEIT_CLASS_FORWARD(SingleUnlock);
+
   // we use this struct so that lock/unlock are called only once
   // even if the LockedPlanningScene instance is copied around
   struct SingleUnlock
@@ -613,7 +615,7 @@ protected:
   };
 
   PlanningSceneMonitorPtr planning_scene_monitor_;
-  boost::shared_ptr<SingleUnlock> lock_;
+  SingleUnlockPtr lock_;
 };
 
 /** \brief This is a convenience class for obtaining access to an

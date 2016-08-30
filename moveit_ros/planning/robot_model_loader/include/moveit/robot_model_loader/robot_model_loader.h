@@ -37,12 +37,15 @@
 #ifndef MOVEIT_PLANNING_MODELS_LOADER_ROBOT_MODEL_LOADER_
 #define MOVEIT_PLANNING_MODELS_LOADER_ROBOT_MODEL_LOADER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/kinematics_plugin_loader/kinematics_plugin_loader.h>
 
 namespace robot_model_loader
 {
+
+MOVEIT_CLASS_FORWARD(RobotModelLoader);
 
 /** @class RobotModelLoader */
 class RobotModelLoader
@@ -146,9 +149,6 @@ private:
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
 
 };
-
-typedef boost::shared_ptr<RobotModelLoader> RobotModelLoaderPtr;
-typedef boost::shared_ptr<const RobotModelLoader> RobotModelLoaderConstPtr;
 
 }
 #endif

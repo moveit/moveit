@@ -38,6 +38,7 @@
 #ifndef MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 #define MOVEIT_MOVE_GROUP_INTERFACE_MOVE_GROUP_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/macros/deprecation.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
@@ -65,6 +66,8 @@ public:
   MoveItErrorCode(const moveit_msgs::MoveItErrorCodes &code) { val = code.val; };
   operator bool() const { return val == moveit_msgs::MoveItErrorCodes::SUCCESS; }
 };
+
+MOVEIT_CLASS_FORWARD(MoveGroup);
 
 /** \brief Client class for the MoveGroup action. This class includes many default settings to make things easy to use. */
 class MoveGroup
@@ -97,6 +100,8 @@ public:
 
     ros::NodeHandle node_handle_;
   };
+
+  MOVEIT_STRUCT_FORWARD(Plan);
 
   /// The representation of a motion plan (as ROS messasges)
   struct Plan
