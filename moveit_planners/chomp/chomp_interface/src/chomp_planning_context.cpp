@@ -22,8 +22,6 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string &name, const std::s
   {
     ROS_INFO_STREAM("Configuring New Planning Scene.");
     planning_scene::PlanningScenePtr planning_scene_ptr(new planning_scene::PlanningScene(model));
-    // planning_scene_ptr->addCollisionDetector(hybrid_cd);
-    // planning_scene_ptr->setActiveCollisionDetector(hybrid_cd->getName());
     planning_scene_ptr->setActiveCollisionDetector(hybrid_cd, true);
     setPlanningScene(planning_scene_ptr);
   }
@@ -31,7 +29,6 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string &name, const std::s
 
 CHOMPPlanningContext::~CHOMPPlanningContext()
 {
-  // TODO Auto-generated destructor stub
 }
 
 bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
@@ -40,7 +37,6 @@ bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse 
   if (chomp_interface_->solve(planning_scene_, request_, chomp_interface_->getParams(), res2))
   {
     res.trajectory_.resize(1);
-    // res.trajectory_[0].trajectory_start = res2.motion_plan_response.trajectory_start;
     res.trajectory_[0] =
         robot_trajectory::RobotTrajectoryPtr(new robot_trajectory::RobotTrajectory(robot_model_, getGroupName()));
 
@@ -49,7 +45,7 @@ bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse 
     res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res2.trajectory[0]);
 
     trajectory_processing::IterativeParabolicTimeParameterization itp;
-    itp.computeTimeStamps(*res.trajectory_[0]);
+    itp.computeTimeStamps(*res.trajectory_[0], request_.max_velocity_scaling_factor, request_.max_acceleration_scaling_factor);
 
     res.description_.push_back("plan");
     res.processing_time_ = res2.processing_time;

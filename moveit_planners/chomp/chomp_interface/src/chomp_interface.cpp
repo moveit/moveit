@@ -45,8 +45,8 @@ CHOMPInterface::CHOMPInterface() : ChompPlanner()
 
 void CHOMPInterface::loadParams()
 {
-  nh_.param("planning_time_limit", params_.planning_time_limit_, 6.0);
-  nh_.param("max_iterations", params_.max_iterations_, 50);
+  nh_.param("planning_time_limit", params_.planning_time_limit_, 10.0);
+  nh_.param("max_iterations", params_.max_iterations_, 200);
   nh_.param("max_iterations_after_collision_free", params_.max_iterations_after_collision_free_, 5);
   nh_.param("smoothness_cost_weight", params_.smoothness_cost_weight_, 0.1);
   nh_.param("obstacle_cost_weight", params_.obstacle_cost_weight_, 1.0);
