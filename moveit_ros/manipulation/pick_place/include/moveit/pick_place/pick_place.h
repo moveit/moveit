@@ -45,7 +45,7 @@
 #include <moveit_msgs/PickupAction.h>
 #include <moveit_msgs/PlaceAction.h>
 #include <boost/noncopyable.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 
 namespace pick_place
 {
@@ -112,7 +112,7 @@ public:
 };
 
 class PickPlace : private boost::noncopyable,
-                  public boost::enable_shared_from_this<PickPlace>
+                  public std::enable_shared_from_this<PickPlace>
 {
 public:
 

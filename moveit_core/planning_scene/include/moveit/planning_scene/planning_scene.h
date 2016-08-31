@@ -51,7 +51,6 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/PlanningSceneComponents.h>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
@@ -83,7 +82,7 @@ typedef std::map<std::string, object_recognition_msgs::ObjectType> ObjectTypeMap
     environment as seen by a planning instance. The environment
     geometry, the robot geometry and state are maintained. */
 class PlanningScene : private boost::noncopyable,
-                      public boost::enable_shared_from_this<PlanningScene>
+                      public std::enable_shared_from_this<PlanningScene>
 {
 public:
 
