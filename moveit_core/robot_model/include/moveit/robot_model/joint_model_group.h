@@ -242,6 +242,12 @@ public:
     return updated_link_model_vector_;
   }
 
+  /** \brief Return the same data as getUpdatedLinkModels() but as a set */
+  const std::set<const LinkModel*>& getUpdatedLinkModelsSet() const
+  {
+    return updated_link_model_set_;
+  }
+
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
   const std::vector<std::string>& getUpdatedLinkModelNames() const
   {
