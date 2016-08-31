@@ -737,7 +737,7 @@ void cleanCollisionGeometryCache()
 void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr &kmodel)
 {
   if (kmodel->hasJointModelGroup(req_->group_name))
-    active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsWithGeometrySet();
+    active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
   else
     active_components_only_ = NULL;
 }
