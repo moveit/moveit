@@ -52,4 +52,19 @@
   typedef boost::shared_ptr<Type> Name##Ptr;          \
   typedef boost::shared_ptr<const Type> Name##ConstPtr;
 
+/**
+ * \def MOVEIT_DELCARE_PTR_MEMBER
+ * Macro that given a Type declares the following types:
+ * - Ptr      = shared_ptr<${Type}>
+ * - ConstPtr = shared_ptr<const ${Type}>
+ *
+ * This macro is intended for declaring the pointer typedefs as members of a
+ * class template. In other situations, MOVEIT_CLASS_FORWARD and
+ * MOVEIT_DECLARE_PTR should be preferred.
+ */
+
+#define MOVEIT_DECLARE_PTR_MEMBER(Type)         \
+  typedef boost::shared_ptr<Type> Ptr;          \
+  typedef boost::shared_ptr<const Type> ConstPtr;
+
 #endif
