@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/robot_state/attached_body.h>
+#include <geometric_shapes/shapes.h>
 
 moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
                                          const std::string &id,

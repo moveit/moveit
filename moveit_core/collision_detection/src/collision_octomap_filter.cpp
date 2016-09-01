@@ -40,7 +40,7 @@
 #include <octomap/math/Vector3.h>
 #include <octomap/math/Utils.h>
 #include <octomap/octomap.h>
-
+#include <geometric_shapes/shapes.h>
 #include <memory>
 
 //static const double ISO_VALUE  = 0.5; // TODO magic number! (though, probably a good one).

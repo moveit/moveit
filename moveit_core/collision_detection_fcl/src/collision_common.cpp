@@ -35,6 +35,7 @@
 /* Author: Ioan Sucan, Jia Pan */
 
 #include <moveit/collision_detection_fcl/collision_common.h>
+#include <geometric_shapes/shapes.h>
 #include <fcl/BVH/BVH_model.h>
 #include <fcl/shape/geometric_shapes.h>
 #include <fcl/octree.h>

@@ -38,7 +38,6 @@
 #define MOVEIT_DISTANCE_FIELD__FIND_INTERNAL_POINTS_
 
 #include <eigen_stl_containers/eigen_stl_containers.h>
-//#include <geometric_shapes/shapes.h>
 #include <geometric_shapes/bodies.h>
 
 namespace distance_field
