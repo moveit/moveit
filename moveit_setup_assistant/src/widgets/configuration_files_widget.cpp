@@ -754,7 +754,8 @@ bool ConfigurationFilesWidget::generatePackage()
     if( ! fs::is_regular_file( setup_assistant_file ) )
     {
       QMessageBox::warning( this, "Incorrect Folder/Package",
-                            QString("The chosen package location already exists but was not previously created using this MoveIt Setup Assistant. If this is a mistake, replace the missing file: ")
+                            QString("The chosen package location already exists but was not previously created using this MoveIt Setup Assistant. "
+                                    "If this is a mistake, add the missing file: ")
                             .append( setup_assistant_file.c_str() ) );
       return false;
     }
