@@ -221,7 +221,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Self-Collisions
   dcw_ = new DefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget( dcw_ );
-  connect( dcw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( dcw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( dcw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( dcw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -229,7 +229,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   vjw_ = new VirtualJointsWidget( this, config_data_ );
   main_content_->addWidget(vjw_);
   connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( vjw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
   connect( vjw_, SIGNAL( referenceFrameChanged() ), this, SLOT( virtualJointReferenceFrameChanged() ) );
@@ -238,7 +238,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
   connect( pgw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( pgw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( pgw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( pgw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( pgw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -246,7 +246,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   rpw_ = new RobotPosesWidget( this, config_data_ );
   main_content_->addWidget(rpw_);
   connect( rpw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( rpw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( rpw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( rpw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( rpw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -254,7 +254,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   efw_ = new EndEffectorsWidget( this, config_data_ );
   main_content_->addWidget(efw_);
   connect( efw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( efw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( efw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( efw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( efw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -262,7 +262,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   pjw_ = new PassiveJointsWidget( this, config_data_ );
   main_content_->addWidget(pjw_);
   connect( pjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( pjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( pjw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( pjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( pjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -270,7 +270,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   aiw_ = new AuthorInformationWidget( this, config_data_ );
   main_content_->addWidget( aiw_ );
   connect( aiw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( aiw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( aiw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( aiw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( aiw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -350,11 +350,11 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 // Highlight a robot link
 // ******************************************************************************************
-void SetupAssistantWidget::highlightLink( const std::string& link_name )
+void SetupAssistantWidget::highlightLink( const std::string& link_name, const QColor& color )
 {
   const robot_model::LinkModel *lm = config_data_->getRobotModel()->getLinkModel(link_name);
   if (!lm->getShapes().empty()) // skip links with no geometry
-    robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
+    robot_state_display_->setLinkColor( link_name, color );
 }
 
 // ******************************************************************************************
@@ -374,7 +374,7 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
     // Iterate through the links
     for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
          link_it < link_models.end(); ++link_it )
-      highlightLink( (*link_it)->getName() );
+      highlightLink( (*link_it)->getName(), QColor(255, 0, 0) );
   }
 }
 

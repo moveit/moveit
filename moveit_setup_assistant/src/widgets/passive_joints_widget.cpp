@@ -150,7 +150,7 @@ void PassiveJointsWidget::previewSelectedJoints( std::vector<std::string> joints
     }
 
     // Highlight link
-    Q_EMIT highlightLink( link );
+    Q_EMIT highlightLink( link, QColor(255, 0, 0) );
   }
 }
 
