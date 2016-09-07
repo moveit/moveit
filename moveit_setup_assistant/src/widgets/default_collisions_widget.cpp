@@ -439,53 +439,48 @@ void DefaultCollisionsWidget::collisionCheckboxToggle()
 void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
 {
   // Only accept cell changes if table is enabled, otherwise it is this program making changes
-  if( collision_table_->isEnabled() )
+  // Also make sure the change is in the checkbox column
+  if( !collision_table_->isEnabled() || column != 2 )
+    return;
+
+  // Convert row to pair
+  std::pair<std::string, std::string> link_pair;
+  link_pair.first = collision_table_->item(row, 0)->text().toStdString();
+  link_pair.second = collision_table_->item(row, 1)->text().toStdString();
+
+  // Get the state of checkbox
+  bool check_state = collision_table_->item(row, 2)->checkState();
+
+  // Check if the checkbox state has changed from original value
+  if( link_pairs_[ link_pair ].disable_check != check_state )
   {
-    // Make sure change is the checkbox column
-    if( column == 2 )
+    // Save the change
+    link_pairs_[ link_pair ].disable_check = check_state;
+
+    // Handle USER Reasons: 1) pair is disabled by user
+    if( link_pairs_[ link_pair ].disable_check == true &&
+        link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
     {
+      link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
 
-      // Convert row to pair
-      std::pair<std::string, std::string> link_pair;
-      link_pair.first = collision_table_->item(row, 0)->text().toStdString();
-      link_pair.second = collision_table_->item(row, 1)->text().toStdString();
-
-      // Get the state of checkbox
-      bool check_state = collision_table_->item(row, 2)->checkState();
-
-
-      // Check if the checkbox state has changed from original value
-      if( link_pairs_[ link_pair ].disable_check != check_state )
-      {
-
-        // Save the change
-        link_pairs_[ link_pair ].disable_check = check_state;
-
-        // Handle USER Reasons: 1) pair is disabled by user
-        if( link_pairs_[ link_pair ].disable_check == true &&
-            link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
-        {
-          link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
-
-          // Change Reason in Table
-          collision_table_->item(row, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
-        }
-        // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
-        else if( link_pairs_[ link_pair ].disable_check == false &&
-                 link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
-        {
-          link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
-
-          // Change Reason in Table
-          collision_table_->item(row, 3)->setText( "" );
-        }
-
-      }
-
-      // Copy data changes to srdf_writer object
-      linkPairsToSRDF();
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
     }
+    // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
+    else if( link_pairs_[ link_pair ].disable_check == false &&
+             link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
+    {
+      link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
+
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText( "" );
+    }
+
   }
+
+  // Copy data changes to srdf_writer object
+  linkPairsToSRDF();
+
 }
 
 // ******************************************************************************************
