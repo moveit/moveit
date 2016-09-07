@@ -180,7 +180,7 @@ private Q_SLOTS:
    *
    * @param link_name name of link to highlight
    */
-  void highlightLink( const std::string& link_name );
+  void highlightLink( const std::string& link_name, const QColor& color );
 
   /**
    * Highlight a robot group
