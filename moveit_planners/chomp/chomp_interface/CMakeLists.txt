@@ -34,3 +34,13 @@ target_link_libraries(chomp_interface ${catkin_LIBRARIES})
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
 target_link_libraries(chomp_planner_plugin chomp_interface ${catkin_LIBRARIES})
 
+install(FILES chomp_interface_plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+  
+install(TARGETS chomp_interface chomp_planner_plugin
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
