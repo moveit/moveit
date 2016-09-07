@@ -153,6 +153,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_ = new QTableWidget( this );
   collision_table_->setColumnCount(4);
   collision_table_->setSortingEnabled(true);
+  collision_table_->setSelectionMode( QAbstractItemView::SingleSelection );
   collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
   connect(collision_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
   connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
