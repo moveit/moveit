@@ -565,8 +565,9 @@ void DefaultCollisionsWidget::previewClicked( int row, int column, int _oldrow, 
   Q_EMIT unhighlightAll();
 
   // Highlight link
-  Q_EMIT highlightLink( selected[0]->text().toStdString() );
-  Q_EMIT highlightLink( selected[1]->text().toStdString() );
+  QColor color = (selected[2]->checkState() == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+  Q_EMIT highlightLink( selected[0]->text().toStdString(), color );
+  Q_EMIT highlightLink( selected[1]->text().toStdString(), color );
 }
 
 // ******************************************************************************************
