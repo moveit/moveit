@@ -481,6 +481,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
   // Copy data changes to srdf_writer object
   linkPairsToSRDF();
 
+  previewClicked(row, column, 0, 0);
 }
 
 // ******************************************************************************************
