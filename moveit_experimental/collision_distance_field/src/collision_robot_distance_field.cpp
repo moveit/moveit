@@ -1071,8 +1071,6 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
     link_body_decomposition_vector_.push_back(bd);
     link_body_decomposition_index_map_[link_models[i]->getName()] = link_body_decomposition_vector_.size() - 1;
   }
-
-  ROS_INFO("The sizes are %d, %d", link_body_decomposition_vector_.size(), link_body_decomposition_index_map_.size());
   ROS_DEBUG_STREAM(__FUNCTION__ << " Finished ");
 }
 
