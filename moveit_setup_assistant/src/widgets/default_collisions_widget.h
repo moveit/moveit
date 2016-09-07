@@ -126,7 +126,7 @@ private Q_SLOTS:
   /**
    * \breif Called when a row is clicked, to highlight links on robot
    */
-  void previewClicked( int row, int column );
+  void previewClicked( int row, int column, int _oldrow, int _oldcolumn );
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
