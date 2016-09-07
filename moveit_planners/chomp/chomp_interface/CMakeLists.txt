@@ -36,6 +36,10 @@ target_link_libraries(chomp_planner_plugin chomp_interface ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
   
 install(TARGETS chomp_interface chomp_planner_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
