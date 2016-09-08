@@ -39,7 +39,6 @@
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/macros/class_forward.h>
-#include <boost/weak_ptr.hpp>
 
 namespace collision_detection
 {
@@ -124,7 +123,7 @@ namespace collision_detection
     World::ObserverHandle observer_handle_;
 
     /* used to unregister the notifier */
-    boost::weak_ptr<World> world_;
+    WorldWeakPtr world_;
   };
 }
 
