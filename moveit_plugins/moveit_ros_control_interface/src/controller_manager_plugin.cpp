@@ -152,7 +152,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
       AllocatorsMap::iterator alloc_it = allocators_.find(type);
       if (alloc_it == allocators_.end())
       {  // create allocator is needed
-        alloc_it = allocators_.insert(std::make_pair(type, loader_.createInstance(type))).first;
+        alloc_it = allocators_.insert(std::make_pair(type, loader_.createUniqueInstance(type))).first;
       }
 
       // Collect claimed resources across different hardware interfaces

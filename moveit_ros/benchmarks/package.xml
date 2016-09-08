@@ -16,9 +16,11 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend version_gte="1.10.4">pluginlib</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>moveit_ros_warehouse</run_depend>
   <run_depend>roscpp</run_depend>
+  <run_depend version_gte="1.10.4">pluginlib</run_depend>
 
 </package>

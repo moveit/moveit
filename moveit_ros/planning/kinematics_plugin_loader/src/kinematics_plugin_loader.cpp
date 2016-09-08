@@ -142,7 +142,7 @@ public:
         {
           try
           {
-            result = kinematics_loader_->createInstance(it->second[i]);
+            result = kinematics_loader_->createUniqueInstance(it->second[i]);
             if (result)
             {
               const std::vector<const robot_model::LinkModel*> &links = jmg->getLinkModels();
