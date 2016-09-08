@@ -556,7 +556,7 @@ private:
 
   bool propagate_negative_;     /**< \brief Whether or not to propagate negative distances */
 
-  boost::shared_ptr<VoxelGrid<PropDistanceFieldVoxel> > voxel_grid_; /**< \brief Actual container for distance data */
+  VoxelGrid<PropDistanceFieldVoxel>::Ptr voxel_grid_; /**< \brief Actual container for distance data */
 
   /// \brief Structure used to hold propagation frontier
   std::vector<std::vector<Eigen::Vector3i> > bucket_queue_; /**< \brief Data member that holds points from which to propagate, where each vector holds points that are a particular integer distance from the closest obstacle points*/
