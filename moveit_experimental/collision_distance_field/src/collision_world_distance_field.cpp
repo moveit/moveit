@@ -38,8 +38,8 @@
 #include <moveit/collision_distance_field/collision_world_distance_field.h>
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
 #include <moveit/distance_field/propagation_distance_field.h>
-#include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
+#include <memory>
 
 namespace collision_detection
 {
