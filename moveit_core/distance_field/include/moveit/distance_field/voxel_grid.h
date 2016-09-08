@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <cmath>
 #include <Eigen/Core>
+#include <moveit/macros/declare_ptr.h>
 
 namespace distance_field
 {
@@ -61,6 +62,8 @@ template <typename T>
 class VoxelGrid
 {
 public:
+  MOVEIT_DECLARE_PTR_MEMBER(VoxelGrid);
+
   /**
    * \brief Constructor for the VoxelGrid.
    *

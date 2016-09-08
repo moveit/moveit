@@ -40,6 +40,7 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/macros/class_forward.h>
 
 #include <boost/shared_ptr.hpp>
 #include <vector>
@@ -222,11 +223,11 @@ protected:
 
 private:
 
-  class LastPlanningContext;
-  boost::shared_ptr<LastPlanningContext>                last_planning_context_;
+  MOVEIT_CLASS_FORWARD(LastPlanningContext);
+  LastPlanningContextPtr                                last_planning_context_;
 
-  struct CachedContexts;
-  boost::shared_ptr<CachedContexts>                     cached_contexts_;
+  MOVEIT_CLASS_FORWARD(CachedContexts);
+  CachedContextsPtr                                     cached_contexts_;
 };
 
 }

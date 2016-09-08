@@ -137,8 +137,8 @@ protected:
   boost::shared_ptr<srdf::Model>     srdf_model;
   robot_model::RobotModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
-  boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_right_arm_;
-  boost::shared_ptr<pr2_arm_kinematics::PR2ArmKinematicsPlugin> pr2_kinematics_plugin_left_arm_;
+  pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_right_arm_;
+  pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_left_arm_;
   robot_model::SolverAllocatorFn func_right_arm;
   robot_model::SolverAllocatorFn func_left_arm;
 };
