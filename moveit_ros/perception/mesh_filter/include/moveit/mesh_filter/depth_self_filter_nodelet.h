@@ -129,7 +129,7 @@ class DepthSelfFiltering : public nodelet::Nodelet
     double padding_offset_;
 
     /** mesh filter object*/
-    boost::shared_ptr<MeshFilter<StereoCameraModel> > mesh_filter_;
+    MeshFilter<StereoCameraModel>::Ptr mesh_filter_;
 };
 
 } //namespace mesh_filter

@@ -38,6 +38,7 @@
 #define MOVEIT_MESH_FILTER_MESHFILTER_
 
 #include <map>
+#include <moveit/macros/declare_ptr.h>
 #include <moveit/mesh_filter/gl_renderer.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>
 #include <boost/function.hpp>
@@ -63,6 +64,8 @@ template <typename SensorType>
 class MeshFilter : public MeshFilterBase
 {
   public:
+    MOVEIT_DECLARE_PTR_MEMBER(MeshFilter);
+
     /**
      * \brief Constructor
      * \author Suat Gedikli (gedikli@willowgarage.com)

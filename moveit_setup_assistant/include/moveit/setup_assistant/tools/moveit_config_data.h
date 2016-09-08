@@ -41,6 +41,7 @@
 #include <srdfdom/model.h> // use their struct datastructures
 #include <srdfdom/srdf_writer.h> // for writing srdf data
 #include <urdf/model.h> // to share throughout app
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
 #include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
 #include <moveit/setup_assistant/tools/compute_default_collisions.h> // for LinkPairMap
@@ -80,7 +81,7 @@ struct GroupMetaData
 /**
  * Planning parameters which may be set in the config files
  */
- struct OmplPlanningParameter
+struct OmplPlanningParameter
 {
   std::string name; // name of parameter
   std::string value; // value parameter will receive (but as a string)
@@ -88,19 +89,21 @@ struct GroupMetaData
  };
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the ompl_planning.yaml file */
- class OMPLPlannerDescription 
+class OMPLPlannerDescription
 {
  public:
 /** \brief Constructor
  *  @param name: name of planner
  *  @parameter type: type of planner
  */
-   OMPLPlannerDescription(const std::string  &name, const std::string  &type){
+   OMPLPlannerDescription(const std::string  &name, const std::string  &type)
+   {
      name_ = name;
      type_ = type;
    };
    /** \brief Destructor */
-   ~OMPLPlannerDescription(){
+   ~OMPLPlannerDescription()
+   {
      parameter_list_.clear();
    };
    /** \brief adds a parameter to the planner description 
@@ -108,7 +111,8 @@ struct GroupMetaData
     * @parameter: value: value of parameter as a string
     *  @parameter: value: value of parameter as a string
     */
-   void   addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment=""){
+   void addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment="")
+   {
      OmplPlanningParameter temp;
      temp.name =  name;
      temp.value =  value;
@@ -118,7 +122,9 @@ struct GroupMetaData
    std::vector<OmplPlanningParameter> parameter_list_;
    std::string name_; // name of planner
    std::string type_;  // type of planner (geometric)
- };
+};
+
+MOVEIT_CLASS_FORWARD(MoveItConfigData);
 
 /** \brief This class is shared with all widgets and contains the common configuration data
     needed for generating each robot's MoveIt configuration package.
@@ -316,9 +322,6 @@ private:
   // Shared planning scene
   planning_scene::PlanningScenePtr planning_scene_;
 };
-
-/// Create a shared pointer for passing this data object between widgets
-typedef boost::shared_ptr<MoveItConfigData> MoveItConfigDataPtr;
 
 
 } // namespace
