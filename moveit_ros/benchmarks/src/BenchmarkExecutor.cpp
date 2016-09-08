@@ -117,7 +117,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
     try
     {
       boost::shared_ptr<planning_interface::PlannerManager> p =
-          planner_plugin_loader_->createInstance(plugin_classes[i]);
+          planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
 
       const planning_interface::PlannerConfigurationMap& config_map = p->getPlannerConfigurations();

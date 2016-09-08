@@ -102,7 +102,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
       if (node_handle_.getParam("moveit_sensor_manager", manager))
         try
         {
-          sensor_manager_ = sensor_manager_loader_->createInstance(manager);
+          sensor_manager_ = sensor_manager_loader_->createUniqueInstance(manager);
         }
         catch(pluginlib::PluginlibException& ex)
         {

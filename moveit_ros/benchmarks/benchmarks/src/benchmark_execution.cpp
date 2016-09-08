@@ -112,7 +112,7 @@ moveit_benchmarks::BenchmarkExecution::BenchmarkExecution(const planning_scene::
     ROS_INFO("Attempting to load and configure %s", classes[i].c_str());
     try
     {
-      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createInstance(classes[i]);
+      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
       planner_interfaces_[classes[i]] = p;
     }

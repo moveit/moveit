@@ -21,11 +21,13 @@
   <build_depend>tf</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>interactive_markers</build_depend>
+  <build_depend version_gte="1.10.4">pluginlib</build_depend>
 
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend>interactive_markers</run_depend>
+  <run_depend version_gte="1.10.4">pluginlib</run_depend>
 
 </package>

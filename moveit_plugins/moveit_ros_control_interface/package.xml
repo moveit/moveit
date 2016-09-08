@@ -14,7 +14,7 @@
   <depend>controller_manager_msgs</depend>
   <depend>moveit_core</depend>
   <depend>moveit_simple_controller_manager</depend>
-  <depend>pluginlib</depend>
+  <depend version_gte="1.10.4">pluginlib</depend>
   <depend>trajectory_msgs</depend>
 
   <export>
