@@ -42,7 +42,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <type_traits>
 #include <memory>
 #include <boost/function.hpp>
 #include <Eigen/Geometry>
