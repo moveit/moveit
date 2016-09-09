@@ -222,7 +222,7 @@ static moveit::core::RobotModelPtr getModel()
   static moveit::core::RobotModelPtr model;
   if (!model)
   {
-    boost::shared_ptr<urdf::ModelInterface> urdf(urdf::parseURDF(URDF_STR));
+    urdf::ModelInterfaceSharedPtr urdf(urdf::parseURDF(URDF_STR));
     boost::shared_ptr<srdf::Model> srdf(new srdf::Model());
     srdf->initString(*urdf, SRDF_STR);
     model.reset(new moveit::core::RobotModel(urdf, srdf));

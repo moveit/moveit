@@ -78,7 +78,7 @@ protected:
 
 protected:
 
-  boost::shared_ptr<urdf::ModelInterface>     urdf_model;
+  urdf::ModelInterfaceSharedPtr      urdf_model;
   boost::shared_ptr<srdf::Model>     srdf_model;
   robot_model::RobotModelPtr kmodel;
 };

@@ -261,7 +261,7 @@ bool PR2ArmKinematicsPlugin::isActive()
   return false;
 }
 
-void PR2ArmKinematicsPlugin::setRobotModel(boost::shared_ptr<urdf::ModelInterface>& robot_model)
+void PR2ArmKinematicsPlugin::setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model)
 {
   robot_model_ = robot_model;
 }

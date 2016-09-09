@@ -39,6 +39,7 @@
 
 #include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
+#include <urdf_world/types.h>
 #include <srdfdom/model.h>
 #include <boost/shared_ptr.hpp>
 #include <tinyxml.h>
@@ -71,7 +72,7 @@ public:
   }
 
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
+  const urdf::ModelInterfaceSharedPtr& getURDF() const
   {
     return urdf_;
   }
@@ -86,7 +87,7 @@ private:
 
   std::string                             robot_description_;
   boost::shared_ptr<srdf::Model>          srdf_;
-  boost::shared_ptr<urdf::ModelInterface> urdf_;
+  urdf::ModelInterfaceSharedPtr           urdf_;
 
 };
 

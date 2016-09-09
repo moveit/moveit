@@ -135,7 +135,7 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   ros::NodeHandle private_handle("~");
   rdf_loader::RDFLoader rdf_loader(robot_description_);
   const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
+  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
 
   if (!urdf_model || !srdf)
   {
