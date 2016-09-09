@@ -41,6 +41,7 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <boost/filesystem/path.hpp>
+#include <geometric_shapes/shapes.h>
 #include <moveit/profiler/profiler.h>
 #include <moveit_resources/config.h>
 
