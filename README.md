@@ -1,4 +1,4 @@
-![](http://moveit.ros.org/wordpress/wp-content/uploads/2014/01/moveit-title-small.png)
+![](moveit/logo/moveit_logo.png)
 
 The MoveIt! Motion Planning Framework
 
