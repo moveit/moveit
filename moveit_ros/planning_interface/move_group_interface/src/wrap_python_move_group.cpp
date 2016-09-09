@@ -74,7 +74,7 @@ public:
     return setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
   }
 
-  bool setJointValueTargetPythonList(bp::list &values)
+  bool setJointValueTargetPythonIterable(bp::object &values)
   {
     return setJointValueTarget(py_bindings_tools::doubleFromList(values));
   }
@@ -108,6 +108,15 @@ public:
     sensor_msgs::JointState js_msg;
     py_bindings_tools::deserializeMsg(js_str, js_msg);
     return setJointValueTarget(js_msg);
+  }
+
+  bp::list getJointValueTargetPythonList()
+  {
+    const robot_state::RobotState& values = moveit::planning_interface::MoveGroup::getJointValueTarget();
+    bp::list l;
+    for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
+      l.append(*it);
+    return l;
   }
 
   void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
@@ -512,7 +521,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("clear_pose_target", &MoveGroupWrapper::clearPoseTarget);
   MoveGroupClass.def("clear_pose_targets", &MoveGroupWrapper::clearPoseTargets);
 
-  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonList);
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonIterable);
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
 
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
@@ -522,6 +531,8 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_joint_value_target_from_pose", &MoveGroupWrapper::setJointValueTargetFromPosePython);
   MoveGroupClass.def("set_joint_value_target_from_pose_stamped", &MoveGroupWrapper::setJointValueTargetFromPoseStampedPython);
   MoveGroupClass.def("set_joint_value_target_from_joint_state_message", &MoveGroupWrapper::setJointValueTargetFromJointStatePython);
+
+  MoveGroupClass.def("get_joint_value_target", &MoveGroupWrapper::getJointValueTargetPythonList);
 
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget);
   MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget);

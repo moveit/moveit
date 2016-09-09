@@ -128,6 +128,9 @@ class MoveGroupCommander(object):
     def set_start_state(self, msg):
         self._g.set_start_state(conversions.msg_to_string(msg))
 
+    def get_joint_value_target(self):
+        return self._g.get_joint_value_target()
+
     def set_joint_value_target(self, arg1, arg2 = None, arg3 = None):
         """
         Specify a target joint configuration for the group.
@@ -142,25 +145,21 @@ class MoveGroupCommander(object):
         allows setting the joint target of the group by calling IK. This does not send a pose to the planner and the planner will do no IK.
         Instead, one IK solution will be computed first, and that will be sent to the planner. 
         """
-        if (type(arg1) is dict) or (type(arg1) is list):
-            if (arg2 != None or arg3 != None):
-                raise MoveItCommanderException("Too many arguments specified")
-            if not self._g.set_joint_value_target(arg1):
-                raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
-            return
         if type(arg1) is JointState:
             if (arg2 != None or arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target_from_joint_state_message(conversions.msg_to_string(arg1)):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
-        if (type(arg1) is str):
+
+        elif (type(arg1) is str):
             if (arg2 == None):
                 raise MoveItCommanderException("Joint value expected when joint name specified")
             if (arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target(arg1, arg2):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
-        if (type(arg1) is PoseStamped) or (type(arg1) is Pose):
+
+        elif (type(arg1) is PoseStamped) or (type(arg1) is Pose):
             approx = False
             eef = ""
             if (arg2 != None):
@@ -189,6 +188,16 @@ class MoveGroupCommander(object):
                     raise MoveItCommanderException("Error setting joint target. Does your IK solver support approximate IK?")
                 else:
                     raise MoveItCommanderException("Error setting joint target. Is IK running?")
+
+        elif (hasattr(arg1, '__iter__')):
+            if (arg2 != None or arg3 != None):
+                raise MoveItCommanderException("Too many arguments specified")
+            if not self._g.set_joint_value_target(arg1):
+                raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
+
+        else:
+            raise MoveItCommanderException("Unsupported argument of type %s" % type(arg1))
+
 
     def set_rpy_target(self, rpy, end_effector_link = ""):
         """ Specify a target orientation for the end-effector. Any position of the end-effector is acceptable."""

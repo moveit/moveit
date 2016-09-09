@@ -45,6 +45,7 @@
 #include <angles/angles.h>
 #include <tf_conversions/tf_kdl.h>
 
+#include <moveit/macros/class_forward.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
 #include <moveit_msgs/GetKinematicSolverInfo.h>
@@ -63,6 +64,8 @@ namespace pr2_arm_kinematics
 
 static const int NO_IK_SOLUTION = -1;
 static const int TIMED_OUT = -2;
+
+MOVEIT_CLASS_FORWARD(PR2ArmIKSolver);
 
 //minimal stuff necessary
 class PR2ArmIKSolver : public KDL::ChainIkSolverPos
@@ -126,6 +129,7 @@ double computeEuclideanDistance(const std::vector<double> &array_1, const KDL::J
 void getKDLChainInfo(const KDL::Chain &chain,
                      moveit_msgs::KinematicSolverInfo &chain_info);
 
+MOVEIT_CLASS_FORWARD(PR2ArmKinematicsPlugin);
 
 class PR2ArmKinematicsPlugin : public kinematics::KinematicsBase
 {
@@ -258,7 +262,7 @@ protected:
   bool active_;
   int free_angle_;
   boost::shared_ptr<urdf::ModelInterface> robot_model_;
-  boost::shared_ptr<pr2_arm_kinematics::PR2ArmIKSolver> pr2_arm_ik_solver_;
+  pr2_arm_kinematics::PR2ArmIKSolverPtr pr2_arm_ik_solver_;
   std::string root_name_;
   int dimension_;
   boost::shared_ptr<KDL::ChainFkSolverPos_recursive> jnt_to_pose_solver_;
