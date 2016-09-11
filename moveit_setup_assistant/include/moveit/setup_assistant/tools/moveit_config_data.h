@@ -157,11 +157,7 @@ public:
   bool urdf_from_xacro_;
 
   /// URDF robot model
-#if __cplusplus <= 199711L
   boost::shared_ptr<urdf::Model> urdf_model_;
-#else
-  std::shared_ptr<urdf::Model> urdf_model_;
-#endif
 
   // ******************************************************************************************
   // SRDF Data
