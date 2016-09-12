@@ -44,7 +44,6 @@
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include <tf/transform_listener.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 #include <moveit/robot_state/conversions.h>
 
