@@ -155,7 +155,9 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_->setSortingEnabled(true);
   collision_table_->setSelectionMode( QAbstractItemView::SingleSelection );
   collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
-  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewClicked(int, int, int, int)));
+  connect(collision_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)),
+          this, SLOT(previewClicked(int, int, int, int)));
   connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
   layout_->addWidget(collision_table_);
 
@@ -481,7 +483,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
   // Copy data changes to srdf_writer object
   linkPairsToSRDF();
 
-  previewClicked(row, column, 0, 0);
+  previewClicked(row, column);
 }
 
 // ******************************************************************************************
@@ -554,6 +556,11 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // Preview whatever element is selected
 // ******************************************************************************************
 void DefaultCollisionsWidget::previewClicked( int row, int column, int _oldrow, int _oldcolumn)
+{
+  this->previewClicked(row, column);
+}
+
+void DefaultCollisionsWidget::previewClicked( int row, int column )
 {
   // Get list of all selected items
   QList<QTableWidgetItem*> selected = collision_table_->selectedItems();
