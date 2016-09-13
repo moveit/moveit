@@ -31,7 +31,8 @@ RUN wstool init . && \
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
     # Remove the source code from this container. TODO: in the future we may want to keep this here for further optimization of later containers
-    rm -rf * .* && \
+    cd .. && \
+    rm -rf src/ && \
     # Clear apt-cache to reduce image size
     rm -rf /var/lib/apt/lists/*
 
