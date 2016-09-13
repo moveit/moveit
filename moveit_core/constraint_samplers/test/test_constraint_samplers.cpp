@@ -582,6 +582,7 @@ TEST_F(LoadPlanningModelsPr2, UnionConstraintSampler)
   {
     EXPECT_TRUE(ucs.sample(ks, ks_const, 100));
     ks.update();
+    ks.updateLinkTransforms(); //Returned samples have dirty link transforms.
     ks_const.update();
     EXPECT_TRUE(jc1.decide(ks).satisfied);
     EXPECT_TRUE(jc2.decide(ks).satisfied);
