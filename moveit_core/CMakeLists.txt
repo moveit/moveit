@@ -23,7 +23,7 @@ set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 find_package(octomap REQUIRED)
 
 find_package(urdfdom REQUIRED)
-find_package(urdfdom_headers REQUIRED)
+find_package(urdfdom_headers 0.4 REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
