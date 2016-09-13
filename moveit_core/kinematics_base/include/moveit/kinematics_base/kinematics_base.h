@@ -439,9 +439,9 @@ public:
    * @param group_name The group for which this solver is being configured
    * @param base_frame The base frame in which all input poses are expected.
    * This may (or may not) be the root frame of the chain that the solver operates on
-   * @param tip_frame The tip of the chain
+   * @param tip_frames The tip of the chain
    * @param search_discretization The discretization of the search when the solver steps through the redundancy
-   * @return True if initialization was successful, false otherwise
+   * @return true if initialization was successful, false otherwise
    */
   virtual bool initialize(const moveit::core::RobotModel* robot_model,
                           const std::string& group_name,
