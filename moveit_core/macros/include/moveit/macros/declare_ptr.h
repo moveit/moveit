@@ -36,35 +36,44 @@
 #define MOVEIT_MACROS_DECLARE_PTR_
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 /**
  * \def MOVEIT_DELCARE_PTR
  * Macro that given a Name and a Type declares the following types:
- * - ${Name}Ptr      = shared_ptr<${Type}>
- * - ${Name}ConstPtr = shared_ptr<const ${Type}>
+ * - ${Name}Ptr          = shared_ptr<${Type}>
+ * - ${Name}ConstPtr     = shared_ptr<const ${Type}>
+ * - ${Name}WeakPtr      = weak_ptr<${Type}>
+ * - ${Name}WeakConstPtr = weak_ptr<const ${Type}>
  *
  * For best portability the exact type of shared_ptr declared by the macro
  * should be considered to be an implementation detail, liable to change in
  * future releases.
  */
 
-#define MOVEIT_DECLARE_PTR(Name, Type)                \
-  typedef boost::shared_ptr<Type> Name##Ptr;          \
-  typedef boost::shared_ptr<const Type> Name##ConstPtr;
+#define MOVEIT_DECLARE_PTR(Name, Type)                  \
+  typedef boost::shared_ptr<Type> Name##Ptr;            \
+  typedef boost::shared_ptr<const Type> Name##ConstPtr; \
+  typedef boost::weak_ptr<Type> Name##WeakPtr;          \
+  typedef boost::weak_ptr<const Type> Name##WeakConstPtr;
 
 /**
  * \def MOVEIT_DELCARE_PTR_MEMBER
  * Macro that given a Type declares the following types:
- * - Ptr      = shared_ptr<${Type}>
- * - ConstPtr = shared_ptr<const ${Type}>
+ * - Ptr          = shared_ptr<${Type}>
+ * - ConstPtr     = shared_ptr<const ${Type}>
+ * - WeakPtr      = weak_ptr<${Type}>
+ * - WeakConstPtr = weak_ptr<const ${Type}>
  *
  * This macro is intended for declaring the pointer typedefs as members of a
  * class template. In other situations, MOVEIT_CLASS_FORWARD and
  * MOVEIT_DECLARE_PTR should be preferred.
  */
 
-#define MOVEIT_DECLARE_PTR_MEMBER(Type)         \
-  typedef boost::shared_ptr<Type> Ptr;          \
-  typedef boost::shared_ptr<const Type> ConstPtr;
+#define MOVEIT_DECLARE_PTR_MEMBER(Type)           \
+  typedef boost::shared_ptr<Type> Ptr;            \
+  typedef boost::shared_ptr<const Type> ConstPtr; \
+  typedef boost::weak_ptr<Type> WeakPtr;          \
+  typedef boost::weak_ptr<const Type> WeakConstPtr;
 
 #endif
