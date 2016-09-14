@@ -55,6 +55,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <urdf_world/types.h>
+
 #include <moveit/kinematics_base/kinematics_base.h>
 
 #include "pr2_arm_ik.h"
