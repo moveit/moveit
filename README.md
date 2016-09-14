@@ -17,7 +17,7 @@ Indigo | Jade | Kinetic
 
 ## Docker Containers
 
-[![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit_docker.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit_docker/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit_docker.svg)](https://registry.hub.docker.com/moveit/moveit_docker/)
+[![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit/)
 
 ## ROS Buildfarm
 

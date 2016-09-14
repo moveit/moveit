@@ -23,8 +23,13 @@ RUN wstool init . && \
     apt-get -qq dist-upgrade && \
     # Install some base dependencies
     apt-get -qq install -y \
+        # Required for rosdep command
+        sudo \
+        # Required for installing dependencies
         python-rosdep \
+        # Preferred build tool
         python-catkin-tools \
+        # Not sure if necessary:
         ros-$ROS_DISTRO-rosbash \
         ros-$ROS_DISTRO-rospack && \
     # Download all dependencies of MoveIt!
