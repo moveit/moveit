@@ -114,7 +114,7 @@ void TrajectoryExecutionManager::initialize()
   run_continuous_execution_thread_ = true;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
-  allowed_start_tolerance_ = 1e-3;
+  allowed_start_tolerance_ = 0.01;
 
   // TODO: Reading from old param location should be removed in L-turtle. Handled by DynamicReconfigure.
   if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
