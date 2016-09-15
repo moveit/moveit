@@ -155,7 +155,8 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_->setSortingEnabled(true);
   collision_table_->setSelectionMode( QAbstractItemView::SingleSelection );
   collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
-  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewClicked(int, int, int, int)));
+  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)),
+          this, SLOT(previewSelected(int)));
   connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
   layout_->addWidget(collision_table_);
 
@@ -481,7 +482,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
   // Copy data changes to srdf_writer object
   linkPairsToSRDF();
 
-  previewClicked(row, column, 0, 0);
+  previewSelected(row);
 }
 
 // ******************************************************************************************
@@ -553,22 +554,23 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void DefaultCollisionsWidget::previewClicked( int row, int column, int _oldrow, int _oldcolumn)
+void DefaultCollisionsWidget::previewSelected( int row )
 {
-  // Get list of all selected items
-  QList<QTableWidgetItem*> selected = collision_table_->selectedItems();
-
-  // Check that an element was selected
-  if( !selected.size() )
-    return;
-
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
   // Highlight link
-  QColor color = (selected[2]->checkState() == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
-  Q_EMIT highlightLink( selected[0]->text().toStdString(), color );
-  Q_EMIT highlightLink( selected[1]->text().toStdString(), color );
+  QTableWidgetItem* first_link_item = collision_table_->item(row, 0);
+  if (!first_link_item)
+    return; // nothing to highlight
+
+  const QString &first_link = first_link_item->text();
+  const QString &second_link = collision_table_->item(row, 1)->text();
+  Qt::CheckState check_state = collision_table_->item(row, 2)->checkState();
+
+  QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+  Q_EMIT highlightLink( first_link.toStdString(), color );
+  Q_EMIT highlightLink( second_link.toStdString(), color );
 }
 
 // ******************************************************************************************
