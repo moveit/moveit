@@ -47,7 +47,7 @@
 
 /* ------------------------ RobotModel ------------------------ */
 
-moveit::core::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                      const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   root_joint_ = NULL;
@@ -935,8 +935,8 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
 {
   LinkModel *result = new LinkModel(urdf_link->name);
 
-  const std::vector<boost::shared_ptr<urdf::Collision> > &col_array = urdf_link->collision_array.empty() ?
-    std::vector<boost::shared_ptr<urdf::Collision> >(1, urdf_link->collision) : urdf_link->collision_array;
+  const std::vector<urdf::CollisionSharedPtr > &col_array = urdf_link->collision_array.empty() ?
+    std::vector<urdf::CollisionSharedPtr >(1, urdf_link->collision) : urdf_link->collision_array;
 
   std::vector<shapes::ShapeConstPtr> shapes;
   EigenSTL::vector_Affine3d poses;
@@ -953,8 +953,8 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
     }
   if (shapes.empty())
   {
-    const std::vector<boost::shared_ptr<urdf::Visual> > &vis_array = urdf_link->visual_array.empty() ?
-      std::vector<boost::shared_ptr<urdf::Visual> >(1, urdf_link->visual) : urdf_link->visual_array;
+    const std::vector<urdf::VisualSharedPtr > &vis_array = urdf_link->visual_array.empty() ?
+      std::vector<urdf::VisualSharedPtr >(1, urdf_link->visual) : urdf_link->visual_array;
     for (std::size_t i = 0 ; i < vis_array.size() ; ++i)
       if (vis_array[i] && vis_array[i]->geometry)
       {

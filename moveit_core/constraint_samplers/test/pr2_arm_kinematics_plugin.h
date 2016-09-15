@@ -55,6 +55,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <urdf_world/types.h>
+
 #include <moveit/kinematics_base/kinematics_base.h>
 
 #include "pr2_arm_ik.h"
@@ -140,7 +142,7 @@ public:
    */
   PR2ArmKinematicsPlugin();
 
-  void setRobotModel(boost::shared_ptr<urdf::ModelInterface>& robot_model);
+  void setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model);
 
   /**
    *  @brief Specifies if the node is active or not
@@ -261,7 +263,7 @@ protected:
 
   bool active_;
   int free_angle_;
-  boost::shared_ptr<urdf::ModelInterface> robot_model_;
+  urdf::ModelInterfaceSharedPtr robot_model_;
   pr2_arm_kinematics::PR2ArmIKSolverPtr pr2_arm_ik_solver_;
   std::string root_name_;
   int dimension_;

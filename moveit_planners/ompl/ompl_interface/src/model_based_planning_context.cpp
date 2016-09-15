@@ -34,6 +34,8 @@
 
 /* Author: Ioan Sucan */
 
+#include <boost/algorithm/string/trim.hpp>
+
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/ompl_interface/detail/constrained_sampler.h>

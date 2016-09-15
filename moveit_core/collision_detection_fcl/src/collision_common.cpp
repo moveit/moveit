@@ -40,6 +40,7 @@
 #include <fcl/shape/geometric_shapes.h>
 #include <fcl/octree.h>
 #include <boost/thread/mutex.hpp>
+#include <boost/weak_ptr.hpp>
 
 namespace collision_detection
 {

@@ -102,7 +102,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
   tip_name_ = joint_model_group_->getLinkModelNames().back();
   logDebug("moveit.dynamics_solver: Base name: '%s', Tip name: '%s'", base_name_.c_str(), tip_name_.c_str());
 
-  const boost::shared_ptr<const urdf::ModelInterface> urdf_model = robot_model_->getURDF();
+  const urdf::ModelInterfaceSharedPtr urdf_model = robot_model_->getURDF();
   const boost::shared_ptr<const srdf::Model> srdf_model = robot_model_->getSRDF();
   KDL::Tree tree;
 

@@ -130,7 +130,7 @@ planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelConstP
   initialize();
 }
 
-planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+planning_scene::PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
                                              collision_detection::WorldPtr world) :
   world_(world),
@@ -178,7 +178,7 @@ void planning_scene::PlanningScene::initialize()
 }
 
 /* return NULL on failure */
-robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                                                            const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
