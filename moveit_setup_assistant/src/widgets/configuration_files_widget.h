@@ -59,11 +59,12 @@ namespace moveit_setup_assistant
 struct GenerateFile
 {
   GenerateFile() :
-    generate_(true)
+    generate_(true), write_on_changes(0)
   {}
   std::string file_name_;
   std::string rel_path_;
   std::string description_;
+  unsigned long write_on_changes;
   bool generate_;
   boost::function<bool(std::string)> gen_func_;
 };

@@ -138,6 +138,18 @@ public:
   MoveItConfigData();
   ~MoveItConfigData();
 
+  // bits of information that can be entered in Setup Assistant
+  enum InformationFields {
+    COLLISIONS     = 1 << 1,
+    VIRTUAL_JOINTS = 1 << 2,
+    GROUPS         = 1 << 3,
+    POSES          = 1 << 4,
+    END_EFFECTORS  = 1 << 5,
+    PASSIVE_JOINTS = 1 << 6,
+    AUTHOR_INFO    = 1 << 7
+  };
+  unsigned long changes; // bitfield of changes (composed of InformationFields)
+
   // All of the data needed for creating a MoveIt Configuration Files
 
   // ******************************************************************************************
