@@ -106,17 +106,18 @@ void AuthorInformationWidget::focusGiven()
   // Allow list box to populate
   this->name_edit_->setText(QString::fromStdString(config_data_->author_name_));
   this->email_edit_->setText(QString::fromStdString(config_data_->author_email_));
-  QApplication::processEvents();
 }
 
 void AuthorInformationWidget::edited_name()
 {
   config_data_->author_name_ = this->name_edit_->text().toStdString();
+  config_data_->changes |= MoveItConfigData::AUTHOR_INFO;
 }
 
 void AuthorInformationWidget::edited_email()
 {
   config_data_->author_email_ = this->email_edit_->text().toStdString();
+  config_data_->changes |= MoveItConfigData::AUTHOR_INFO;
 }
 
 } // namespace
