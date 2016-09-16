@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_trajectory_execution_manager)
 
 add_library(${MOVEIT_LIB_NAME} src/trajectory_execution_manager.cpp)
-target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(${MOVEIT_LIB_NAME} moveit_planning_scene_monitor moveit_robot_model_loader ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${moveit_ros_planning_EXPORTED_TARGETS}) # don't build until necessary msgs are finish
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
