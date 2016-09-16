@@ -75,6 +75,11 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr &kmodel)
+  : TrajectoryExecutionManager(kmodel, planning_scene_monitor::CurrentStateMonitorPtr())
+{
+}
+
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr &csm) :
   robot_model_(kmodel), csm_(csm), node_handle_("~")
@@ -83,6 +88,11 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
     manage_controllers_ = false;
 
   initialize();
+}
+
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr &kmodel, bool manage_controllers)
+  : TrajectoryExecutionManager(kmodel, planning_scene_monitor::CurrentStateMonitorPtr(), manage_controllers)
+{
 }
 
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
@@ -170,6 +180,9 @@ void TrajectoryExecutionManager::initialize()
   event_topic_subscriber_ = root_node_handle_.subscribe(EXECUTION_EVENT_TOPIC, 100, &TrajectoryExecutionManager::receiveEvent, this);
 
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
+
+  if (!csm_)
+    ROS_WARN_NAMED("traj_execution","Trajectory validation is disabled, because no CurrentStateMonitor was provided in constructor.");
 
   if (manage_controllers_)
     ROS_INFO_NAMED("traj_execution","Trajectory execution is managing controllers");
@@ -872,7 +885,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &context) const
 {
-  if (allowed_start_tolerance_ == 0) // skip validation on this magic number
+  if (!csm_ || allowed_start_tolerance_ == 0) // skip validation if csm is nil or on this magic number
     return true;
 
   ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
