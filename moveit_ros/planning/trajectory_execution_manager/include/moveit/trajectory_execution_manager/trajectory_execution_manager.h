@@ -45,6 +45,7 @@
 #include <std_msgs/String.h>
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
+#include <moveit/macros/deprecation.h>
 #include <boost/thread.hpp>
 #include <pluginlib/class_loader.h>
 #include <boost/scoped_ptr.hpp>
@@ -80,9 +81,11 @@ public:
   };
 
   /// Load the controller manager plugin, start listening for events on a topic.
+  MOVEIT_DEPRECATED TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel); // switch to following constructor!
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, const planning_scene_monitor::CurrentStateMonitorPtr &csm);
 
   /// Load the controller manager plugin, start listening for events on a topic.
+  MOVEIT_DEPRECATED TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers); // switch to following constructor!
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, const planning_scene_monitor::CurrentStateMonitorPtr &csm, bool manage_controllers);
 
   /// Destructor. Cancels all running trajectories (if any)
