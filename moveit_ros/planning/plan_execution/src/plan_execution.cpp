@@ -77,7 +77,8 @@ plan_execution::PlanExecution::PlanExecution(const planning_scene_monitor::Plann
   trajectory_execution_manager_(trajectory_execution)
 {
   if (!trajectory_execution_manager_)
-    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
+    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel(),
+                                                                                                     planning_scene_monitor_->getStateMonitor()));
 
   default_max_replan_attempts_ = 5;
 
