@@ -884,10 +884,11 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &cont
     return false;
   }
 
-  for (auto& trajectory : context.trajectory_parts_)
+  for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator traj_it = context.trajectory_parts_.begin();
+       traj_it != context.trajectory_parts_.end(); ++traj_it)
   {
-    const std::vector<double> &positions = trajectory.joint_trajectory.points.front().positions;
-    const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
+    const std::vector<double> &positions = traj_it->joint_trajectory.points.front().positions;
+    const std::vector<std::string> &joint_names = traj_it->joint_trajectory.joint_names;
     const std::size_t n = joint_names.size();
     if (positions.size() != n)
     {
