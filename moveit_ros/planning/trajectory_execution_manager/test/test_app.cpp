@@ -36,6 +36,7 @@
 
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 int main(int argc, char **argv)
 {
@@ -44,8 +45,9 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  robot_model_loader::RobotModelLoader rml;
-  trajectory_execution_manager::TrajectoryExecutionManager tem(rml.getModel(), true);
+  robot_model_loader::RobotModelLoaderPtr rml(new robot_model_loader::RobotModelLoader);
+  planning_scene_monitor::PlanningSceneMonitor psm(rml);
+  trajectory_execution_manager::TrajectoryExecutionManager tem(rml->getModel(), psm.getStateMonitor(), true);
 
   std::cout << "1:\n";
   if (!tem.ensureActiveControllersForJoints(std::vector<std::string>(1, "basej")))
