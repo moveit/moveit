@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
-#include <moveit/robot_state/robot_state.h>
 #include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
 #include <dynamic_reconfigure/server.h>
 
@@ -68,16 +67,14 @@ private:
     owner_->setAllowedExecutionDurationScaling(config.allowed_execution_duration_scaling);
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
-    owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
   }
 
   TrajectoryExecutionManager *owner_;
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr &csm) :
-  robot_model_(kmodel), csm_(csm), node_handle_("~")
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel) :
+  robot_model_(kmodel), node_handle_("~")
 {
   if (!node_handle_.getParam("moveit_manage_controllers", manage_controllers_))
     manage_controllers_ = false;
@@ -85,10 +82,8 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   initialize();
 }
 
-TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel,
-                                                       const planning_scene_monitor::CurrentStateMonitorPtr &csm,
-                                                       bool manage_controllers) :
-  robot_model_(kmodel), csm_(csm), node_handle_("~"), manage_controllers_(manage_controllers)
+TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr &kmodel, bool manage_controllers) :
+  robot_model_(kmodel), node_handle_("~"), manage_controllers_(manage_controllers)
 {
   initialize();
 }
@@ -114,7 +109,6 @@ void TrajectoryExecutionManager::initialize()
   run_continuous_execution_thread_ = true;
   execution_duration_monitoring_ = true;
   execution_velocity_scaling_ = 1.0;
-  allowed_start_tolerance_ = 0.01;
 
   // TODO: Reading from old param location should be removed in L-turtle. Handled by DynamicReconfigure.
   if (node_handle_.getParam("allowed_execution_duration_scaling", allowed_execution_duration_scaling_))
@@ -195,11 +189,6 @@ void TrajectoryExecutionManager::setAllowedGoalDurationMargin(double margin)
 void TrajectoryExecutionManager::setExecutionVelocityScaling(double scaling)
 {
   execution_velocity_scaling_ = scaling;
-}
-
-void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
-{
-  allowed_start_tolerance_ = tolerance;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -870,54 +859,6 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
   return true;
 }
 
-bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &context) const
-{
-  if (allowed_start_tolerance_ == 0) // skip validation on this magic number
-    return true;
-
-  ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
-
-  robot_state::RobotStatePtr current_state;
-  if (!csm_->waitForCurrentState(1.0) || !(current_state = csm_->getCurrentState()))
-  {
-    ROS_WARN_NAMED("traj_execution", "Failed to validate trajectory: couldn't receive full current joint state within 1s");
-    return false;
-  }
-
-  for (auto& trajectory : context.trajectory_parts_)
-  {
-    const std::vector<double> &positions = trajectory.joint_trajectory.points.front().positions;
-    const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
-    const std::size_t n = joint_names.size();
-    if (positions.size() != n)
-    {
-      ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
-      return false;
-    }
-
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      const robot_model::JointModel *jm = current_state->getJointModel(joint_names[i]);
-      if (!jm)
-      {
-        ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
-        return false;
-      }
-      // TODO: check multi-DoF joints ?
-      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
-      {
-        ROS_ERROR_NAMED("traj_execution",
-                        "\nInvalid Trajectory: start point deviates from current robot state more than %g"
-                        "\njoint '%s': expected: %g, current: %g",
-                        allowed_start_tolerance_,
-                        joint_names[i].c_str(), positions[i], current_state->getJointPositions(jm)[0]);
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext &context, const moveit_msgs::RobotTrajectory &trajectory, const std::vector<std::string> &controllers)
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() &&  trajectory.joint_trajectory.points.empty())
@@ -1075,18 +1016,8 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
 void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callback, const PathSegmentCompleteCallback &part_callback, bool auto_clear)
 {
   stopExecution(false);
-
-  // check whether first trajectory starts at current robot state
-  if (trajectories_.size() && !validate(*trajectories_.front()))
-  {
-    last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-    if (auto_clear)
-      clear();
-    return;
-  }
-
-  // start the execution thread
   execution_complete_ = false;
+  // start the execution thread
   execution_thread_.reset(new boost::thread(&TrajectoryExecutionManager::executeThread, this, callback, part_callback, auto_clear));
 }
 
@@ -1140,7 +1071,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback &
     return;
   }
 
-  ROS_DEBUG_NAMED("traj_execution", "Starting trajectory execution ...");
+  ROS_DEBUG_NAMED("traj_execution","Starting trajectory execution ...");
   // assume everything will be OK
   last_execution_status_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
 

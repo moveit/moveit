@@ -50,8 +50,7 @@ move_group::MoveGroupContext::MoveGroupContext(const planning_scene_monitor::Pla
 
   if (allow_trajectory_execution_)
   {
-    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel(),
-                                                                                                     planning_scene_monitor_->getStateMonitor()));
+    trajectory_execution_manager_.reset(new trajectory_execution_manager::TrajectoryExecutionManager(planning_scene_monitor_->getRobotModel()));
     plan_execution_.reset(new plan_execution::PlanExecution(planning_scene_monitor_, trajectory_execution_manager_));
     plan_with_sensing_.reset(new plan_execution::PlanWithSensing(trajectory_execution_manager_));
     if (debug)
