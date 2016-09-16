@@ -17,10 +17,7 @@ RUN wstool init . && \
     wstool merge https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
     wstool update && \
     # Update apt-get because previous images clear this cache
-    echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros-latest.list && \
     apt-get -qq update && \
-    # Do a dist-upgrade to ensure our CI is building on top of the latest version of packages
-    apt-get -qq dist-upgrade && \
     # Install some base dependencies
     apt-get -qq install -y \
         # Required for rosdep command
