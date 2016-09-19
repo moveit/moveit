@@ -15,7 +15,7 @@ benchmark_config:
         runs: 50
         group: manipulator       # Required
         timeout: 10.0
-        output_directory: /home/benchmarks/
+        output_directory: /tmp/moveit_benchmarks/
         queries: Pick1
         start_states: Start1
     planners:

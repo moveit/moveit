@@ -11,20 +11,12 @@ endif()
 
 find_package(Boost REQUIRED filesystem)
 
-# In ROS Hydro, MoveIt links against version 2 of Boost Filesystem
-# Force everything to use this version to prevent compile error
-if ($ENV{ROS_DISTRO} STREQUAL "hydro")
-  message("Explicitly linking against Boost.Filesystem v2")
-  add_definitions(-DUSE_BOOST_FILESYSTEM_V2)
-endif()
-
-find_package(catkin COMPONENTS
+find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_warehouse
   roscpp
-  REQUIRED)
+)
 
-# catkin_package defines the env vars used in install later
 catkin_package(
   LIBRARIES ${MOVEIT_LIB_NAME}
   CATKIN_DEPENDS
@@ -51,4 +43,4 @@ install(
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(DIRECTORY include/ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
