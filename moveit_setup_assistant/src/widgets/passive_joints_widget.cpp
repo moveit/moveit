@@ -120,6 +120,7 @@ void PassiveJointsWidget::selectionUpdated()
     pj.name_ = joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString();
     config_data_->srdf_->passive_joints_.push_back(pj);
   }
+  config_data_->changes |= MoveItConfigData::PASSIVE_JOINTS;
 }
 
 // ******************************************************************************************

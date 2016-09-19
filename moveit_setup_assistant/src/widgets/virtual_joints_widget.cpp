@@ -443,7 +443,7 @@ void VirtualJointsWidget::deleteSelected()
 
   // Reload main screen table
   loadDataTable();
-
+  config_data_->changes |= MoveItConfigData::VIRTUAL_JOINTS;
 }
 
 // ******************************************************************************************
@@ -507,6 +507,8 @@ void VirtualJointsWidget::doneEditing()
     QMessageBox::warning( this, "Error Saving", "A child link must be chosen!" );
     return;
   }
+
+  config_data_->changes |= MoveItConfigData::VIRTUAL_JOINTS;
 
   // Save the new vjoint name or create the new vjoint ----------------------------
   bool isNew = false;

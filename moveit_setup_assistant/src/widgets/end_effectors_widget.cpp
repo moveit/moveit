@@ -464,7 +464,7 @@ void EndEffectorsWidget::deleteSelected()
 
   // Reload main screen table
   loadDataTable();
-
+  config_data_->changes |= MoveItConfigData::END_EFFECTORS;
 }
 
 // ******************************************************************************************
@@ -539,6 +539,8 @@ void EndEffectorsWidget::doneEditing()
       return;
     }
   }
+
+  config_data_->changes |= MoveItConfigData::END_EFFECTORS;
 
   // Save the new effector name or create the new effector ----------------------------
   bool isNew = false;
