@@ -583,7 +583,7 @@ void ConfigurationFilesWidget::changeActionDesc(int id)
 // ******************************************************************************************
 void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 {
-  size_t index = item->data(Qt::UserRole).toUInt();
+  std::size_t index = item->data(Qt::UserRole).toUInt();
   bool generate = (item->checkState() == Qt::Checked);
 
   if (!generate &&
@@ -691,7 +691,7 @@ void ConfigurationFilesWidget::showGenFiles()
 {
 
   // Display this list in the GUI
-  for (size_t i = 0; i < gen_files_.size(); ++i)
+  for (std::size_t i = 0; i < gen_files_.size(); ++i)
   {
     GenerateFile* file = &gen_files_[i];
 
