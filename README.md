@@ -7,7 +7,6 @@ This is the new unified repository for MoveIt! code. See the [Migration Notes](h
 - [Overview of MoveIt!](http://moveit.ros.org)
 - [Installation Instructions](http://moveit.ros.org/install/)
 - [Documentation](http://moveit.ros.org/documentation/)
-- [Docker Containers](http://moveit.ros.org/install/docker)
 - [Get Involved](http://moveit.ros.org/documentation/contributing/)
 
 ## Travis - Continuous Integration
@@ -15,6 +14,10 @@ This is the new unified repository for MoveIt! code. See the [Migration Notes](h
 Indigo | Jade | Kinetic
 ------ | ---- | -------
 [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=jade-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) |
+
+## Docker Containers
+
+[![Docker Automated build](https://img.shields.io/docker/automated/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Pulls](https://img.shields.io/docker/pulls/moveit/moveit.svg?maxAge=2592000)](https://hub.docker.com/r/moveit/moveit/) [![Docker Stars](https://img.shields.io/docker/stars/moveit/moveit.svg)](https://registry.hub.docker.com/moveit/moveit/)
 
 ## ROS Buildfarm
 
