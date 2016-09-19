@@ -602,19 +602,24 @@ void ConfigurationFilesWidget::changeCheckedState(QListWidgetItem* item)
 // ******************************************************************************************
 void ConfigurationFilesWidget::focusGiven()
 {
-  if( !first_focusGiven_ ) // only run this function once
-    return;
-  else
+  if( first_focusGiven_ )
+  {
+    // only generate list once
     first_focusGiven_ = false;
 
-  // Load this list of all files to be generated
-  loadGenFiles();
+    // Load this list of all files to be generated
+    loadGenFiles();
+  }
 
   // Which files have been modified outside the Setup Assistant?
   bool files_already_modified = checkGenFiles();
 
+  // disable reaction to checkbox changes
+  disconnect( action_list_, SIGNAL( itemChanged(QListWidgetItem*) ), this, SLOT( changeCheckedState(QListWidgetItem*) ) );
+
   // Show files in GUI
-  showGenFiles();
+  bool have_conflicting_changes = showGenFiles();
+
   // react to manual changes only (not programmatic ones)
   connect( action_list_, SIGNAL( itemChanged(QListWidgetItem*) ), this, SLOT( changeCheckedState(QListWidgetItem*) ) );
 
@@ -624,9 +629,12 @@ void ConfigurationFilesWidget::focusGiven()
   if(files_already_modified)
   {
     // Some were found to be modified
-    QMessageBox::information( this, "Files Modified", QString("Some files have been detected to have been modified outside of the Setup Assistant (based on timestamp). "
-                                                              "The Setup Assistant will not overwrite these changes by default because often changing configuration files manually is necessary, "
-                                                              "but we recommend you check the list and enable the checkbox next to files you would like to overwrite."));
+    QString msg("Some files have been modified outside of the Setup Assistant (according to timestamp). "
+                "The Setup Assistant will not overwrite these changes by default because often changing configuration files manually is necessary, "
+                "but we recommend you check the list and enable the checkbox next to files you would like to overwrite. ");
+    if (have_conflicting_changes)
+      msg += "<br/><font color='red'>Attention:</font> Some files (<font color='red'>marked red</font>) are changed both, externally and in Setup Assistant.";
+    QMessageBox::information( this, "Files Modified", msg );
   }
 }
 
@@ -673,10 +681,14 @@ bool ConfigurationFilesWidget::checkGenFiles()
           ROS_WARN_STREAM("Editing in Setup Assistant conflicts with external editing of file " << file->file_name_);
 
         file->generate_ = false; // do not overwrite by default
+        file->modified_ = true;
         found_modified = true;
       }
+      else
+      {
+        file->modified_ = false;
+      }
     }
-
   }
 
   // Warn user if files have been modified outside Setup Assistant
@@ -687,8 +699,10 @@ bool ConfigurationFilesWidget::checkGenFiles()
 // ******************************************************************************************
 // Show the list of files to be generated
 // ******************************************************************************************
-void ConfigurationFilesWidget::showGenFiles()
+bool ConfigurationFilesWidget::showGenFiles()
 {
+  bool have_conflicting_changes = false;
+  action_list_->clear();
 
   // Display this list in the GUI
   for (std::size_t i = 0; i < gen_files_.size(); ++i)
@@ -701,14 +715,17 @@ void ConfigurationFilesWidget::showGenFiles()
     fs::path file_path = config_data_->appendPaths(config_data_->config_pkg_path_, file->rel_path_);
 
     // Checkbox
-    if( file->generate_ )
+    item->setCheckState(file->generate_ ? Qt::Checked : Qt::Unchecked);
+    // externally modified?
+    if (file->modified_)
     {
-      item->setCheckState(Qt::Checked);
-    }
-    else
-    {
-      item->setCheckState(Qt::Unchecked);
-      item->setForeground( QBrush(QColor(255, 135, 0)));
+      if (file->write_on_changes & config_data_->changes)
+      {
+        have_conflicting_changes = true;
+        item->setForeground( QBrush(QColor(255, 0, 0)));
+      }
+      else
+        item->setForeground( QBrush(QColor(255, 135, 0)));
     }
 
     // Don't allow folders to be disabled
@@ -728,7 +745,7 @@ void ConfigurationFilesWidget::showGenFiles()
 
   // Select the first item in the list so that a description is visible
   action_list_->setCurrentRow( 0 );
-
+  return have_conflicting_changes;
 }
 
 // ******************************************************************************************

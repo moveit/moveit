@@ -59,13 +59,14 @@ namespace moveit_setup_assistant
 struct GenerateFile
 {
   GenerateFile() :
-    generate_(true), write_on_changes(0)
+    write_on_changes(0), generate_(true), modified_(false)
   {}
   std::string file_name_;
   std::string rel_path_;
   std::string description_;
-  unsigned long write_on_changes;
-  bool generate_;
+  unsigned long write_on_changes; // bitfield indicating required rewrite
+  bool generate_; // "generate" checkbox ticked?
+  bool modified_; // file externally modified?
   boost::function<bool(std::string)> gen_func_;
 };
 
@@ -159,7 +160,7 @@ private:
   bool checkGenFiles();
 
   /// Show the list of files to be generated
-  void showGenFiles();
+  bool showGenFiles();
 
   /// Verify with user if certain screens have not been completed
   bool checkDependencies();
