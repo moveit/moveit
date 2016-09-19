@@ -237,7 +237,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->srdf_pkg_relative_path_.empty() ? config_data_->appendPaths( config_path, file.file_name_ ) : config_data_->srdf_pkg_relative_path_;
   file.description_ = "SRDF (<a href='http://www.ros.org/wiki/srdf'>Semantic Robot Description Format</a>) is a representation of semantic information about robots. This format is intended to represent information about the robot that is not in the URDF file, but it is useful for a variety of applications. The intention is to include information that has a semantic aspect to it.";
   file.gen_func_    = boost::bind(&srdf::SRDFWriter::writeSRDF, config_data_->srdf_, _1);
-  file.write_on_changes = 0;
+  file.write_on_changes = MoveItConfigData::SRDF;
   gen_files_.push_back(file);
   // special step required so the generated .setup_assistant yaml has this value
   config_data_->srdf_pkg_relative_path_ = file.rel_path_;
@@ -247,7 +247,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->appendPaths( config_path, file.file_name_ );
   file.description_ = "Configures the OMPL (<a href='http://ompl.kavrakilab.org/'>Open Motion Planning Library</a>) planning plugin. For every planning group defined in the SRDF, a number of planning configurations are specified (under planner_configs). Additionally, default settings for the state space to plan in for a particular group can be specified, such as the collision checking resolution. Each planning configuration specified for a group must be defined under the planner_configs tag. While defining a planner configuration, the only mandatory parameter is 'type', which is the name of the motion planner to be used. Any other planner-specific parameters can be defined but are optional.";
   file.gen_func_    = boost::bind(&MoveItConfigData::outputOMPLPlanningYAML, config_data_, _1);
-  file.write_on_changes = 0;
+  file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
   // kinematics.yaml  --------------------------------------------------------------------------------------
@@ -255,7 +255,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->appendPaths( config_path, file.file_name_ );
   file.description_ = "Specifies which kinematic solver plugin to use for each planning group in the SRDF, as well as the kinematic solver search resolution.";
   file.gen_func_    = boost::bind(&MoveItConfigData::outputKinematicsYAML, config_data_, _1);
-  file.write_on_changes = 0;
+  file.write_on_changes = MoveItConfigData::GROUPS | MoveItConfigData::GROUP_KINEMATICS;
   gen_files_.push_back(file);
 
   // joint_limits.yaml --------------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->appendPaths( config_path, file.file_name_ );
   file.description_ = "Contains additional information about joints that appear in your planning groups that is not contained in the URDF, as well as allowing you to set maximum and minimum limits for velocity and acceleration than those contained in your URDF. This information is used by our trajectory filtering system to assign reasonable velocities and timing for the trajectory before it is passed to the robots controllers.";
   file.gen_func_    = boost::bind(&MoveItConfigData::outputJointLimitsYAML, config_data_, _1);
-  file.write_on_changes = 0;
+  file.write_on_changes = 0; // Can they be changed?
   gen_files_.push_back(file);
 
   // fake_controllers.yaml --------------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.rel_path_    = config_data_->appendPaths( config_path, file.file_name_ );
   file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly useful for testing.";
   file.gen_func_    = boost::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, _1);
-  file.write_on_changes = 0;
+  file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
   // -------------------------------------------------------------------------------------------------------------------

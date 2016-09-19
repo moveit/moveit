@@ -140,13 +140,16 @@ public:
 
   // bits of information that can be entered in Setup Assistant
   enum InformationFields {
-    COLLISIONS     = 1 << 1,
-    VIRTUAL_JOINTS = 1 << 2,
-    GROUPS         = 1 << 3,
-    POSES          = 1 << 4,
-    END_EFFECTORS  = 1 << 5,
-    PASSIVE_JOINTS = 1 << 6,
-    AUTHOR_INFO    = 1 << 7
+    COLLISIONS       = 1 << 1,
+    VIRTUAL_JOINTS   = 1 << 2,
+    GROUPS           = 1 << 3,
+    GROUP_CONTENTS   = 1 << 4,
+    GROUP_KINEMATICS = 1 << 5,
+    POSES            = 1 << 6,
+    END_EFFECTORS    = 1 << 7,
+    PASSIVE_JOINTS   = 1 << 8,
+    AUTHOR_INFO      = 1 << 9,
+    SRDF             = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
   unsigned long changes; // bitfield of changes (composed of InformationFields)
 
