@@ -261,6 +261,8 @@ void DefaultCollisionsWidget::generateCollisionTable()
 
   // Hide the progress bar
   disableControls(false); // enable everything else
+
+  config_data_->changes |= MoveItConfigData::COLLISIONS;
 }
 
 // ******************************************************************************************
@@ -477,6 +479,7 @@ void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
       collision_table_->item(row, 3)->setText( "" );
     }
 
+    config_data_->changes |= MoveItConfigData::COLLISIONS;
   }
 
   // Copy data changes to srdf_writer object
