@@ -127,7 +127,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   connect( chain_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( chain_widget_, SIGNAL( doneEditing() ), this, SLOT( saveChainScreen() ) );
   connect( chain_widget_, SIGNAL( unhighlightAll() ), this, SIGNAL( unhighlightAll() ) );
-  connect( chain_widget_, SIGNAL( highlightLink(const std::string&)), this, SIGNAL(highlightLink(const std::string&)) );
+  connect( chain_widget_, SIGNAL( highlightLink(const std::string&, const QColor&)), this, SIGNAL(highlightLink(const std::string&, const QColor&)) );
 
   // Subgroups Widget
   subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );
@@ -1422,7 +1422,7 @@ void PlanningGroupsWidget::previewSelectedLink( std::vector<std::string> links )
     }
 
     // Highlight link
-    Q_EMIT highlightLink( links[i] );
+    Q_EMIT highlightLink( links[i], QColor(255, 0, 0) );
   }
 }
 
@@ -1454,7 +1454,7 @@ void PlanningGroupsWidget::previewSelectedJoints( std::vector<std::string> joint
     }
 
     // Highlight link
-    Q_EMIT highlightLink( link );
+    Q_EMIT highlightLink( link, QColor(255, 0, 0) );
   }
 }
 
