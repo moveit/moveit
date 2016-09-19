@@ -96,16 +96,15 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   connect( ssw_, SIGNAL( loadRviz() ), this, SLOT( loadRviz() ) );
   main_content_->addWidget(ssw_);
 
-  // Pass command arg values to start screen
+  // Pass command arg values to start screen and show appropriate part of screen
   if (args.count( "urdf_path" ))
   {
     ssw_->urdf_file_->setPath( args["urdf_path"].as<std::string>() );
+    ssw_->select_mode_->btn_new_->click();
   }
   if (args.count( "config_pkg" ))
   {
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
-
-    // Show this part of screen
     ssw_->select_mode_->btn_exist_->click();
   }
 

@@ -239,10 +239,9 @@ StartScreenWidget::~StartScreenWidget()
 void StartScreenWidget::showNewOptions()
 {
   // Do GUI stuff
-  select_mode_->btn_exist_->setFlat( false );
-  select_mode_->btn_new_->setFlat( true );
+  select_mode_->btn_exist_->setChecked(false);
+  select_mode_->btn_new_->setChecked(true);
   urdf_file_->show();
-  //  srdf_file_->show();
   stack_path_->hide();
   btn_load_->show();
 
@@ -256,10 +255,9 @@ void StartScreenWidget::showNewOptions()
 void StartScreenWidget::showExistingOptions()
 {
   // Do GUI stuff
-  select_mode_->btn_exist_->setFlat( true );
-  select_mode_->btn_new_->setFlat( false );
+  select_mode_->btn_exist_->setChecked(true);
+  select_mode_->btn_new_->setChecked(false);
   urdf_file_->hide();
-  //srdf_file_->hide();
   stack_path_->show();
   btn_load_->show();
 
@@ -843,11 +841,13 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   // Exist Button
   btn_exist_ = new QPushButton(this);
   btn_exist_->setText("&Edit Existing MoveIt\nConfiguration Package");
+  btn_exist_->setCheckable(true);
   hlayout->addWidget( btn_exist_ );
 
   // Add horizontal layer to verticle layer
   layout->addLayout(hlayout);
   setLayout(layout);
+  btn_new_->setCheckable(true);
 }
 
 
