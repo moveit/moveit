@@ -41,39 +41,17 @@
 #include <QFont>
 #include <QApplication>
 #include "default_collisions_widget.h"
-#include <boost/unordered_map.hpp>
-#include <boost/assign.hpp>
+#include "collision_matrix_model.h"
+#include "collision_linear_model.h"
 #include <ros/console.h>
 
 namespace moveit_setup_assistant
 {
-/// Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char *> longReasonsToString =
-    boost::assign::map_list_of(moveit_setup_assistant::NEVER, "Never in Collision")(moveit_setup_assistant::DEFAULT,
-                                                                                    "Collision by Default")(
-        moveit_setup_assistant::ADJACENT, "Adjacent Links")(moveit_setup_assistant::ALWAYS, "Always in Collision")(
-        moveit_setup_assistant::USER, "User Disabled")(moveit_setup_assistant::NOT_DISABLED, "");
-
-/**
- * \brief Subclass QTableWidgetItem for checkboxes to allow custom sorting by implementing the < operator
- */
-class CheckboxSortWidgetItem : public QTableWidgetItem
-{
-public:
-  /**
-   * \brief Override the standard comparision operator
-   */
-  bool operator<(const QTableWidgetItem &other) const
-  {
-    return checkState() < other.checkState();
-  }
-};
-
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
 DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDataPtr config_data)
-  : SetupScreenWidget(parent), config_data_(config_data)
+  : SetupScreenWidget(parent), config_data_(config_data), model_(NULL), selection_model_(NULL)
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
@@ -150,27 +128,8 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   // Table Area --------------------------------------------
 
   // Table
-  collision_table_ = new QTableWidget(this);
-  collision_table_->setColumnCount(4);
-  collision_table_->setSortingEnabled(true);
-  collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
-  collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
-  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewSelected(int)));
-  connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
+  collision_table_ = new QTableView(this);
   layout_->addWidget(collision_table_);
-
-  QStringList header_list;
-  header_list.append("Link A");
-  header_list.append("Link B");
-  header_list.append("Disabled");
-  header_list.append("Reason To Disable");
-  collision_table_->setHorizontalHeaderLabels(header_list);
-
-  // Resize headers
-  collision_table_->resizeColumnToContents(0);
-  collision_table_->resizeColumnToContents(1);
-  collision_table_->resizeColumnToContents(2);
-  collision_table_->resizeColumnToContents(3);
 
   // Bottom Area ----------------------------------------
   controls_box_bottom_ = new QGroupBox(this);
@@ -197,8 +156,12 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
 
   setLayout(layout_);
-
   setWindowTitle("Default Collision Matrix");
+}
+
+DefaultCollisionsWidget::~DefaultCollisionsWidget()
+{
+  delete model_;
 }
 
 // ******************************************************************************************
@@ -296,91 +259,34 @@ void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int *collisi
 // ******************************************************************************************
 void DefaultCollisionsWidget::loadCollisionTable()
 {
-  int row = 0;
-  int progress_counter = 0;
+  CollisionMatrixModel *matrix_model = new CollisionMatrixModel(
+      link_pairs_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
+  CollisionLinearModel *linear_model = new CollisionLinearModel(matrix_model);
+  collision_table_->setModel(linear_model);
+  // delete old and remember new model
+  delete model_;
+  model_ = linear_model;
 
-  // Show Progress Bar
-  progress_bar_->setValue(0);
+  // delete old and fetch new selection model
+  delete selection_model_;
+  selection_model_ = collision_table_->selectionModel();
 
-  QApplication::processEvents();  // allow the progress bar to be shown
-  progress_label_->setText("Loading table...");
+  connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(previewSelected(QModelIndex)));
 
-  // Setup Collision Table
-  collision_table_->setUpdatesEnabled(false);  // prevent table from updating until we are completely done
-  collision_table_->setDisabled(true);         // make sure we disable it so that the cellChanged event is not called
-  collision_table_->clearContents();
+  collision_table_->setSortingEnabled(true);
+  collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  // collision_table_->setHorizontalHeader(new RotatedHeaderView(Qt::Horizontal));
+  // collision_table_->setVerticalHeader(new RotatedHeaderView(Qt::Vertical));
 
-  // Check if there are no disabled collisions (unprobable?)
-  if (link_pairs_.empty())
-  {
-    collision_table_->setRowCount(1);
-    QTableWidgetItem *no_collide = new QTableWidgetItem("No Link Pairs Of This Kind");
-    collision_table_->setItem(0, 0, no_collide);
-  }
-  else
-  {
-    // The table will be populated, so indicate it on the button
-    btn_generate_->setText("Regenerate Default Collision Matrix");
-  }
+  connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this,
+          SLOT(collisionsChanged(QModelIndex)));
+}
 
-  // Intially set the table to be worst-case scenario of every possible element pair
-  collision_table_->setRowCount(link_pairs_.size());
-
-  for (moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); pair_it != link_pairs_.end();
-       ++pair_it)
-  {
-    // Add link pair row if 1) it is disabled from collision checking or 2) the SHOW ALL LINK PAIRS checkbox is checked
-    if (pair_it->second.disable_check || collision_checkbox_->isChecked())
-    {
-      // Create row elements
-      QTableWidgetItem *linkA = new QTableWidgetItem(pair_it->first.first.c_str());
-      linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-      QTableWidgetItem *linkB = new QTableWidgetItem(pair_it->first.second.c_str());
-      linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-      CheckboxSortWidgetItem *disable_check = new CheckboxSortWidgetItem();
-      disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-      if (pair_it->second.disable_check)  // Checked means no collision checking
-        disable_check->setCheckState(Qt::Checked);
-      else
-        disable_check->setCheckState(Qt::Unchecked);
-
-      QTableWidgetItem *reason = new QTableWidgetItem(longReasonsToString.at(pair_it->second.reason));
-      reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-      // Insert row elements into collision table
-      collision_table_->setItem(row, 0, linkA);
-      collision_table_->setItem(row, 1, linkB);
-      collision_table_->setItem(row, 2, disable_check);
-      collision_table_->setItem(row, 3, reason);
-
-      // Increment row count
-      ++row;
-    }
-
-    ++progress_counter;  // for calculating progress bar
-
-    if (progress_counter % 200 == 0)
-    {
-      // Update Progress Bar
-      progress_bar_->setValue(progress_counter * 100 / link_pairs_.size());
-      QApplication::processEvents();  // allow the progress bar to be shown
-    }
-  }
-
-  // Reduce the table size to only the number of used rows.
-  collision_table_->setRowCount(row);
-
-  // Resize headers. The hiding is a hack so that it resizes correctly
-  collision_table_->setVisible(false);
-  collision_table_->resizeColumnToContents(0);
-  collision_table_->resizeColumnToContents(1);
-  collision_table_->resizeColumnToContents(2);
-  collision_table_->resizeColumnToContents(3);
-  collision_table_->setVisible(true);
-
-  collision_table_->setUpdatesEnabled(true);  // prevent table from updating until we are completely done
+void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
+{
+  selection_model_->setCurrentIndex(index, QItemSelectionModel::Select | QItemSelectionModel::Current |
+                                               QItemSelectionModel::Rows);
 }
 
 // ******************************************************************************************
@@ -427,58 +333,6 @@ void DefaultCollisionsWidget::collisionCheckboxToggle()
 
   // Hide Progress bar
   disableControls(false);
-}
-
-// ******************************************************************************************
-// Called when user changes data in table, really just the checkbox
-// ******************************************************************************************
-void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
-{
-  // Only accept cell changes if table is enabled, otherwise it is this program making changes
-  // Also make sure the change is in the checkbox column
-  if (!collision_table_->isEnabled() || column != 2)
-    return;
-
-  // Convert row to pair
-  std::pair<std::string, std::string> link_pair;
-  link_pair.first = collision_table_->item(row, 0)->text().toStdString();
-  link_pair.second = collision_table_->item(row, 1)->text().toStdString();
-
-  // Get the state of checkbox
-  bool check_state = collision_table_->item(row, 2)->checkState();
-
-  // Check if the checkbox state has changed from original value
-  if (link_pairs_[link_pair].disable_check != check_state)
-  {
-    // Save the change
-    link_pairs_[link_pair].disable_check = check_state;
-
-    // Handle USER Reasons: 1) pair is disabled by user
-    if (link_pairs_[link_pair].disable_check == true &&
-        link_pairs_[link_pair].reason == moveit_setup_assistant::NOT_DISABLED)
-    {
-      link_pairs_[link_pair].reason = moveit_setup_assistant::USER;
-
-      // Change Reason in Table
-      collision_table_->item(row, 3)->setText(longReasonsToString.at(link_pairs_[link_pair].reason));
-    }
-    // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
-    else if (link_pairs_[link_pair].disable_check == false &&
-             link_pairs_[link_pair].reason == moveit_setup_assistant::USER)
-    {
-      link_pairs_[link_pair].reason = moveit_setup_assistant::NOT_DISABLED;
-
-      // Change Reason in Table
-      collision_table_->item(row, 3)->setText("");
-    }
-
-    config_data_->changes |= MoveItConfigData::COLLISIONS;
-  }
-
-  // Copy data changes to srdf_writer object
-  linkPairsToSRDF();
-
-  previewSelected(row);
 }
 
 // ******************************************************************************************
@@ -549,19 +403,18 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void DefaultCollisionsWidget::previewSelected(int row)
+void DefaultCollisionsWidget::previewSelected(const QModelIndex &index)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  // Highlight link
-  QTableWidgetItem *first_link_item = collision_table_->item(row, 0);
-  if (!first_link_item)
-    return;  // nothing to highlight
+  if (!index.isValid())
+    return;
 
-  const QString &first_link = first_link_item->text();
-  const QString &second_link = collision_table_->item(row, 1)->text();
-  Qt::CheckState check_state = collision_table_->item(row, 2)->checkState();
+  // Highlight link pair
+  const QString &first_link = model_->data(model_->index(index.row(), 0), Qt::DisplayRole).toString();
+  const QString &second_link = model_->data(model_->index(index.row(), 1), Qt::DisplayRole).toString();
+  uint check_state = model_->data(model_->index(index.row(), 2), Qt::CheckStateRole).toUInt();
 
   QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
   Q_EMIT highlightLink(first_link.toStdString(), color);

@@ -67,6 +67,9 @@ set(HEADERS
   src/widgets/kinematic_chain_widget.h
   src/widgets/group_edit_widget.h
   src/widgets/default_collisions_widget.h
+  src/widgets/collision_linear_model.h
+  src/widgets/collision_matrix_model.h
+  src/widgets/rotated_header_view.h
   src/widgets/robot_poses_widget.h
   src/widgets/end_effectors_widget.h
   src/widgets/virtual_joints_widget.h
@@ -97,6 +100,9 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/kinematic_chain_widget.cpp
   src/widgets/group_edit_widget.cpp
   src/widgets/default_collisions_widget.cpp
+  src/widgets/collision_linear_model.cpp
+  src/widgets/collision_matrix_model.cpp
+  src/widgets/rotated_header_view.cpp
   src/widgets/robot_poses_widget.cpp
   src/widgets/end_effectors_widget.cpp
   src/widgets/virtual_joints_widget.cpp
