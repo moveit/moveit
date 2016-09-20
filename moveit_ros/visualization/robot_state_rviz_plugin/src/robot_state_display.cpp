@@ -381,6 +381,14 @@ void RobotStateDisplay::loadRobotModel()
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
+
+  // Do not load robot on first onEnable() call because the robot_description property will not be loaded yet
+  if (!first_enable_)
+    onEnableHelper();
+}
+
+void RobotStateDisplay::onEnableHelper()
+{
   loadRobotModel();
   if (robot_)
   {
@@ -399,6 +407,15 @@ void RobotStateDisplay::onDisable()
   if (robot_)
     robot_->setVisible(false);
   Display::onDisable();
+}
+
+void RobotStateDisplay::load(const rviz::Config& config)
+{
+  Property::load(config);
+
+  if (isEnabled())
+    onEnableHelper();
+  first_enable_ = false;
 }
 
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
