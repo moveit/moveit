@@ -40,7 +40,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QTableWidget>
+#include <QTableView>
 #include <QSlider>
 #include <QPushButton>
 #include <QGroupBox>
@@ -76,6 +76,7 @@ public:
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
   DefaultCollisionsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  ~DefaultCollisionsWidget();
 
   /**
    * \brief Output Link Pairs to SRDF Format
@@ -111,19 +112,19 @@ private Q_SLOTS:
   void loadCollisionTable();
 
   /**
+   * \brief Collision model changed
+   */
+  void collisionsChanged(const QModelIndex &index);
+
+  /**
    * \brief Changes the table to show or hide collisions that are not disabled (that have collision checking enabled
    */
   void collisionCheckboxToggle();
 
   /**
-   * \brief Called when user changes data in table, really just the checkbox
-   */
-  void toggleCheckBox(int row, int column);
-
-  /**
   * \brief Called when current row has changed
   */
-  void previewSelected(int row);
+  void previewSelected(const QModelIndex &index);
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
@@ -135,7 +136,9 @@ private:
   // Qt Components
   // ******************************************************************************************
   QLabel *page_title_;
-  QTableWidget *collision_table_;
+  QTableView *collision_table_;
+  QAbstractItemModel *model_;
+  QItemSelectionModel *selection_model_;
   QVBoxLayout *layout_;
   QLabel *density_value_label_;
   QSlider *density_slider_;

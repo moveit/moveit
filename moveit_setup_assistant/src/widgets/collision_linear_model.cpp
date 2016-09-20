@@ -1,0 +1,177 @@
+/*********************************************************************
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2016, CITEC, Bielefeld University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
+
+/* Author: Robert Haschke */
+
+#include "collision_linear_model.h"
+#include "collision_matrix_model.h"
+
+#include "default_collisions_widget.h"
+#include <QVector>
+#include <QDebug>
+#include <QPainter>
+
+using namespace moveit_setup_assistant;
+
+CollisionLinearModel::CollisionLinearModel(CollisionMatrixModel *src, QObject *parent) : QAbstractProxyModel(parent)
+{
+  setSourceModel(src);
+}
+CollisionLinearModel::~CollisionLinearModel()
+{
+  delete sourceModel();
+}
+
+QModelIndex CollisionLinearModel::mapFromSource(const QModelIndex &sourceIndex) const
+{
+  // map (row,column) index to linear index k
+  // http://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
+  int r = sourceIndex.row(), c = sourceIndex.column();
+  int n = this->sourceModel()->columnCount();
+  if (r == c)
+    return QModelIndex();  // main diagonal elements are invalid
+  if (r > c)               // only consider upper triagonal matrix
+    std::swap(r, c);       // swap r,c if below diagonal
+
+  int k = (n * (n - 1) / 2) - (n - r) * ((n - r) - 1) / 2 + c - r - 1;
+  return createIndex(k, 2);
+}
+
+QModelIndex CollisionLinearModel::mapToSource(const QModelIndex &proxyIndex) const
+{
+  // map linear index k to (row, column)
+  // http://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
+  int n = this->sourceModel()->columnCount();
+  int k = proxyIndex.row();  // linear (row) index
+  int r = n - 2 - (int)(sqrt(-8 * k + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
+  int c = k + r + 1 - n * (n - 1) / 2 + (n - r) * ((n - r) - 1) / 2;
+  return createIndex(r, c);
+}
+
+int CollisionLinearModel::rowCount(const QModelIndex &parent) const
+{
+  int n = this->sourceModel()->rowCount();
+  return (n * (n - 1) / 2);
+}
+
+int CollisionLinearModel::columnCount(const QModelIndex &parent) const
+{
+  return 4;
+}
+
+QModelIndex CollisionLinearModel::index(int row, int column, const QModelIndex &parent) const
+{
+  return createIndex(row, column);
+}
+
+QModelIndex CollisionLinearModel::parent(const QModelIndex &child) const
+{
+  return QModelIndex();
+}
+
+QVariant CollisionLinearModel::data(const QModelIndex &index, int role) const
+{
+  QModelIndex srcIndex = this->mapToSource(index);
+  switch (index.column())
+  {
+    case 0:  // link name 1
+      if (role != Qt::DisplayRole)
+        return QVariant();
+      else
+        return this->sourceModel()->headerData(srcIndex.row(), Qt::Horizontal, Qt::DisplayRole);
+    case 1:  // link name 2
+      if (role != Qt::DisplayRole)
+        return QVariant();
+      return this->sourceModel()->headerData(srcIndex.column(), Qt::Vertical, Qt::DisplayRole);
+    case 2:  // checkbox
+      if (role != Qt::CheckStateRole)
+        return QVariant();
+      else
+        return this->sourceModel()->data(srcIndex, Qt::CheckStateRole);
+    case 3:  // reason
+      if (role != Qt::DisplayRole)
+        return QVariant();
+      else
+        return this->sourceModel()->data(srcIndex, Qt::ToolTipRole);
+  }
+  return QVariant();
+}
+
+bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  QModelIndex srcIndex = this->mapToSource(index);
+
+  if (role == Qt::CheckStateRole)
+  {
+    sourceModel()->setData(srcIndex, value, role);
+    int r = index.row();
+    Q_EMIT dataChanged(createIndex(r, 2), createIndex(r, 3));  // reason changed too
+    return true;
+  }
+  return false;  // reject all other changes
+}
+
+Qt::ItemFlags CollisionLinearModel::flags(const QModelIndex &index) const
+{
+  if (index.column() == 2)
+    return Qt::ItemIsUserCheckable | QAbstractItemModel::flags(index);
+  else
+    return QAbstractItemModel::flags(index);
+}
+
+QVariant CollisionLinearModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (role != Qt::DisplayRole)
+    return QVariant();
+
+  if (orientation == Qt::Horizontal)
+  {
+    switch (section)
+    {
+      case 0:
+        return "Link A";
+      case 1:
+        return "Link B";
+      case 2:
+        return "Disabled";
+      case 3:
+        return "Reason to Disable";
+    }
+  }
+  else if (orientation == Qt::Vertical)
+  {
+    return section + 1;
+  }
+  return QVariant();
+}
