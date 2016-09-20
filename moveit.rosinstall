@@ -1,4 +1,4 @@
-# This file is primarilly intended for the users who want to build MoveIt! from source.
+# This file is intended for users who want to build MoveIt! from source.
 # Used with wstool, users can download source of all packages of MoveIt!.
 - git:
     local-name: moveit
@@ -13,6 +13,10 @@
     uri: https://github.com/ros-planning/moveit_resources.git
     version: master
 - git:
-    local-name: warehouse_ros
-    uri: https://github.com/ros-planning/warehouse_ros.git
-    version: jade-devel
+    local-name: geometric_shapes
+    uri: https://github.com/ros-planning/geometric_shapes.git
+    version: indigo-devel
+- git:
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: indigo-devel
