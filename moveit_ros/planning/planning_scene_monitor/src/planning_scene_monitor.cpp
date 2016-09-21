@@ -863,7 +863,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   {
     ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "last robot motion: " << (t-last_robot_motion_time_).toSec() << " ago");
     new_scene_update_condition_.wait_for(lock, boost::chrono::nanoseconds(timeout.toNSec()));
-    timeout -= ros::WallTime::now()-start; // compute remaining wait_time
+    timeout -= ros::WallTime::now() - start; // compute remaining wait_time
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
