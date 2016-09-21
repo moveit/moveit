@@ -1053,7 +1053,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
   {
     if (link_models[i]->getShapes().empty())
     {
-      ROS_INFO_STREAM("Skipping model generation for link " << link_models[i]->getName() << " since it contains no "
+      ROS_WARN_STREAM("Skipping model generation for link " << link_models[i]->getName() << " since it contains no "
                                                                                             "geometries");
       continue;
     }
@@ -1062,7 +1062,7 @@ void CollisionRobotDistanceField::addLinkBodyDecompositions(
                                                   link_models[i]->getCollisionOriginTransforms(), resolution,
                                                   getLinkPadding(link_models[i]->getName())));
 
-    ROS_INFO("Generated model for %s", link_models[i]->getName().c_str());
+    ROS_DEBUG("Generated model for %s", link_models[i]->getName().c_str());
 
     if (link_spheres.find(link_models[i]->getName()) != link_spheres.end())
     {
