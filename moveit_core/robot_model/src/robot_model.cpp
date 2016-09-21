@@ -876,7 +876,17 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
   {
     const std::vector<srdf::Model::VirtualJoint> &vjoints = srdf_model.getVirtualJoints();
     for (std::size_t i = 0 ; i < vjoints.size() ; ++i)
-      if (vjoints[i].child_link_ == child_link->name && !vjoints[i].parent_frame_.empty())
+    {
+      if (vjoints[i].child_link_ != child_link->name)
+      {
+        logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame '%s'",
+                vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
+      }
+      else if (vjoints[i].parent_frame_.empty())
+      {
+        logWarn("Skipping virtual joint '%s' because its parent frame is empty", vjoints[i].name_.c_str());
+      }
+      else
       {
         if (vjoints[i].type_ == "fixed")
           result = new FixedJointModel(vjoints[i].name_);
@@ -896,9 +906,10 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
           break;
         }
       }
+    }
     if (!result)
     {
-      logInform("No root joint specified. Assuming fixed joint");
+      logInform("No root/virtual joint specified in SRDF. Assuming fixed joint");
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
