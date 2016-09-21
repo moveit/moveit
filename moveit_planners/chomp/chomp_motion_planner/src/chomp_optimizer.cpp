@@ -1040,12 +1040,8 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
     joint_states.push_back(point(0, j));
   }
 
-  // ros::WallTime timer = ros::WallTime::now();
-  // moveit::core::JointStateGroup* group = state_.getJointStateGroup(planning_group_);
-  // group->setStateValues(joint_states);
   state_.setJointGroupPositions(planning_group_, joint_states);
   state_.update();
-  // timer = ros::WallTime::now();
 }
 
 void ChompOptimizer::perturbTrajectory()
