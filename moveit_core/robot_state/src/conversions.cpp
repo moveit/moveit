@@ -320,7 +320,8 @@ static void _msgToAttachedBody(const Transforms *tf, const moveit_msgs::Attached
   else
     if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
     {
-      state.clearAttachedBody(aco.object.id);
+      if(!state.clearAttachedBody(aco.object.id))
+        logError("The attached body '%s' can not be removed because it does not exist", aco.link_name.c_str());
     }
     else
       logError("Unknown collision object operation: %d", aco.object.operation);
