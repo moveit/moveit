@@ -133,7 +133,7 @@ private:
   // Variables
   // ******************************************************************************************
 
-  /// Create new config files, or load previos one?
+  /// Create new config files, or load existing one?
   bool create_new_package_;
 
   // ******************************************************************************************

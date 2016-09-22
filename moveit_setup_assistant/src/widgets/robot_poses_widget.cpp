@@ -648,7 +648,7 @@ void RobotPosesWidget::deleteSelected()
 
   // Reload main screen table
   loadDataTable();
-
+  config_data_->changes |= MoveItConfigData::POSES;
 }
 
 // ******************************************************************************************
@@ -697,6 +697,8 @@ void RobotPosesWidget::doneEditing()
     QMessageBox::warning( this, "Error Saving", "A planning group must be chosen!" );
     return;
   }
+
+  config_data_->changes |= MoveItConfigData::POSES;
 
   // Save the new pose name or create the new pose ----------------------------
   bool isNew = false;
