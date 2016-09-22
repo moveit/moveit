@@ -41,33 +41,27 @@
 #include <collision_distance_field_ros/collision_distance_field_ros_helpers.h>
 #include <collision_distance_field/hybrid_collision_robot.h>
 
-namespace collision_detection {
-
+namespace collision_detection
+{
 class CollisionRobotHybridROS : public CollisionRobotHybrid
 {
 public:
-  
-  CollisionRobotHybridROS(const planning_models::RobotModelConstPtr& kmodel, 
-                          double size_x = DEFAULT_SIZE_X, 
-                          double size_y = DEFAULT_SIZE_Y,
-                          double size_z = DEFAULT_SIZE_Z,
+  CollisionRobotHybridROS(const planning_models::RobotModelConstPtr& kmodel, double size_x = DEFAULT_SIZE_X,
+                          double size_y = DEFAULT_SIZE_Y, double size_z = DEFAULT_SIZE_Z,
                           bool use_signed_distance_field = DEFAULT_USE_SIGNED_DISTANCE_FIELD,
                           double resolution = DEFAULT_RESOLUTION,
                           double collision_tolerance = DEFAULT_COLLISION_TOLERANCE,
-                          double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE,
-                          double padding = 0.0, 
-                          double scale = 1.0) :
-    CollisionRobotHybrid(kmodel)
+                          double max_propogation_distance = DEFAULT_MAX_PROPOGATION_DISTANCE, double padding = 0.0,
+                          double scale = 1.0)
+    : CollisionRobotHybrid(kmodel)
   {
     ros::NodeHandle nh;
     std::map<std::string, std::vector<CollisionSphere> > coll_spheres;
-    collision_detection::loadLinkBodySphereDecompositions(nh,
-                                                          getRobotModel(),
-                                                          coll_spheres);
-    initializeRobotDistanceField(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
+    collision_detection::loadLinkBodySphereDecompositions(nh, getRobotModel(), coll_spheres);
+    initializeRobotDistanceField(coll_spheres, size_x, size_y, size_z, use_signed_distance_field, resolution,
+                                 collision_tolerance, max_propogation_distance);
   }
 };
-
 }
 
 #endif
