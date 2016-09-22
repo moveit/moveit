@@ -116,7 +116,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
 
     try
     {
-      boost::shared_ptr<planning_interface::PlannerManager> p =
+      planning_interface::PlannerManagerPtr p =
           planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
 
@@ -136,7 +136,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
   else
   {
     std::stringstream ss;
-    for (std::map<std::string, boost::shared_ptr<planning_interface::PlannerManager>>::const_iterator it =
+    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it =
              planner_interfaces_.begin();
          it != planner_interfaces_.end(); ++it)
       ss << it->first << " ";
