@@ -503,7 +503,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
 
   if (urdf_file_path.find(".xacro") != std::string::npos)
   {
-    std::string cmd("rosrun xacro xacro.py ");
+    std::string cmd("rosrun xacro xacro --inorder ");
     cmd += urdf_file_path;
     ROS_INFO( "Running '%s'...", cmd.c_str() );
 
@@ -520,7 +520,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
         urdf_string += buffer;
     }
     pclose(pipe);
-    
+
     if (urdf_string.empty())
     {
       QMessageBox::warning( this, "Error Loading Files", QString( "Unable to parse XACRO file: " ).append( urdf_file_path.c_str() ) );
@@ -647,7 +647,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   // Copy path into vector of parts
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
     path_parts.push_back( it->native() );
-  
+
   bool packageFound = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
