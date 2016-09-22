@@ -122,7 +122,9 @@ protected:
   // overrides from Display
   virtual void onInitialize();
   virtual void onEnable();
+  virtual void onEnableHelper();
   virtual void onDisable();
+  virtual void load(const rviz::Config& config);
   virtual void fixedFrameChanged();
 
   // render the robot
@@ -135,6 +137,9 @@ protected:
   robot_state::RobotStatePtr kstate_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
+
+  // Do not load robot on first onEnable() call because the robot_description property will not be loaded yet
+  bool first_enable_ = true;
 
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* root_link_name_property_;
