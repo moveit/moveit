@@ -25,10 +25,7 @@ RUN wstool init . && \
         # Required for installing dependencies
         python-rosdep \
         # Preferred build tool
-        python-catkin-tools \
-        # Not sure if necessary:
-        ros-$ROS_DISTRO-rosbash \
-        ros-$ROS_DISTRO-rospack && \
+        python-catkin-tools && \
     # Download all dependencies of MoveIt!
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
