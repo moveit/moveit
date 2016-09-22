@@ -158,15 +158,9 @@ void TrajectoryVisualization::reset()
   displaying_trajectory_message_.reset();
   animating_path_ = false;
 
-  display_path_robot_->clear();
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
-
-  if (!robot_model_)
-    ROS_WARN_STREAM_NAMED("trajectory_visualization","No robot model found");
-  else
-    display_path_robot_->load(*robot_model_->getURDF());
 }
 
 void TrajectoryVisualization::clearTrajectoryTrail()

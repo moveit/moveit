@@ -117,10 +117,10 @@ void TrajectoryDisplay::update(float wall_dt, float ros_dt)
 
 void TrajectoryDisplay::changedRobotDescription()
 {
-  loadRobotModel();
-
   if (isEnabled())
     reset();
+  else
+    loadRobotModel();
 }
 
 } // namespace moveit_rviz_plugin
