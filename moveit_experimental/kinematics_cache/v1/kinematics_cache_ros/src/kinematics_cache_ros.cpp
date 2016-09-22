@@ -37,7 +37,7 @@
 
 #include <kinematics_cache_ros/kinematics_cache_ros.h>
 
-//ROS
+// ROS
 #include <boost/shared_ptr.hpp>
 
 // MoveIt!
@@ -49,45 +49,40 @@
 
 namespace kinematics_cache_ros
 {
-bool KinematicsCacheROS::init(const kinematics_cache::KinematicsCache::Options &opt,
-                              const std::string& kinematics_solver_name,
-                              const std::string& group_name,
-                              const std::string& base_frame,
-                              const std::string& tip_frame,
-                              double search_discretization)
+bool KinematicsCacheROS::init(const kinematics_cache::KinematicsCache::Options& opt,
+                              const std::string& kinematics_solver_name, const std::string& group_name,
+                              const std::string& base_frame, const std::string& tip_frame, double search_discretization)
 {
-  kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::KinematicsBase"));
+  kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("kinematics_base", "kinematics::"
+                                                                                                     "KinematicsBase"));
 
   try
   {
     kinematics_solver_ = kinematics_loader_->createClassInstance(kinematics_solver_name);
   }
-  catch(pluginlib::PluginlibException& ex)//handle the class failing to load
+  catch (pluginlib::PluginlibException& ex)  // handle the class failing to load
   {
-    ROS_ERROR("The plugin failed to load. Error: %s", ex.what()); 
+    ROS_ERROR("The plugin failed to load. Error: %s", ex.what());
     return false;
   }
 
-  if(!kinematics_solver_->initialize(group_name,base_frame,tip_frame,search_discretization))
+  if (!kinematics_solver_->initialize(group_name, base_frame, tip_frame, search_discretization))
   {
     ROS_ERROR("Could not initialize solver");
-    return false;    
+    return false;
   }
-  
+
   rdf_loader::RDFLoader rdf_loader;
   const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
   kinematic_model_.reset(new planning_models::RobotModel(urdf_model, srdf));
 
-  if(!initialize((kinematics::KinematicsBaseConstPtr &)kinematics_solver_,
-                 (planning_models::RobotModelConstPtr &)kinematic_model_, 
-                 opt))
-  {    
+  if (!initialize((kinematics::KinematicsBaseConstPtr&)kinematics_solver_,
+                  (planning_models::RobotModelConstPtr&)kinematic_model_, opt))
+  {
     return false;
   }
-    
-  return true;  
-}
 
+  return true;
 }
-
+}

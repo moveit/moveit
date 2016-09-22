@@ -41,42 +41,49 @@
 #include <planning_models/robot_model.h>
 #include <collision_distance_field/collision_distance_field_types.h>
 
-namespace collision_detection 
+namespace collision_detection
 {
-
-static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
-                                                    const planning_models::RobotModelConstPtr& kmodel, 
-                                                    std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
+static inline bool loadLinkBodySphereDecompositions(
+    ros::NodeHandle& nh, const planning_models::RobotModelConstPtr& kmodel,
+    std::map<std::string, std::vector<collision_detection::CollisionSphere> >& link_body_spheres)
 {
-  if(!nh.hasParam("link_spheres")) {
+  if (!nh.hasParam("link_spheres"))
+  {
     ROS_INFO_STREAM("No parameter for link spheres");
     return false;
   }
   XmlRpc::XmlRpcValue link_spheres;
   nh.getParam("link_spheres", link_spheres);
 
-  if(link_spheres.getType() != XmlRpc::XmlRpcValue::TypeArray) {
+  if (link_spheres.getType() != XmlRpc::XmlRpcValue::TypeArray)
+  {
     ROS_WARN_STREAM("Link spheres not an array");
     return false;
   }
 
-  if(link_spheres.size() == 0) {
+  if (link_spheres.size() == 0)
+  {
     ROS_WARN_STREAM("Link spheres has no entries");
     return false;
   }
-  for(int i = 0; i < link_spheres.size(); i++) {
-    if(!link_spheres[i].hasMember("link")) {
+  for (int i = 0; i < link_spheres.size(); i++)
+  {
+    if (!link_spheres[i].hasMember("link"))
+    {
       ROS_WARN_STREAM("All link spheres must have link");
       continue;
     }
-    if(!link_spheres[i].hasMember("spheres")) {
+    if (!link_spheres[i].hasMember("spheres"))
+    {
       ROS_WARN_STREAM("All link spheres must have spheres");
       continue;
     }
     std::string link = link_spheres[i]["link"];
     XmlRpc::XmlRpcValue spheres = link_spheres[i]["spheres"];
-    if(spheres.getType() != XmlRpc::XmlRpcValue::TypeArray) {    
-      if(std::string(spheres) == "none") {
+    if (spheres.getType() != XmlRpc::XmlRpcValue::TypeArray)
+    {
+      if (std::string(spheres) == "none")
+      {
         ROS_DEBUG_STREAM("No spheres for " << link);
         std::vector<collision_detection::CollisionSphere> coll_spheres;
         link_body_spheres[link_spheres[i]["link"]] = coll_spheres;
@@ -84,33 +91,39 @@ static inline bool loadLinkBodySphereDecompositions(ros::NodeHandle& nh,
       }
     }
     std::vector<collision_detection::CollisionSphere> coll_spheres;
-    for(int j = 0; j < spheres.size(); j++) {
-      if(!spheres[j].hasMember("x")) {
+    for (int j = 0; j < spheres.size(); j++)
+    {
+      if (!spheres[j].hasMember("x"))
+      {
         ROS_WARN_STREAM("All spheres must specify a value for x");
         continue;
       }
-      if(!spheres[j].hasMember("y")) {
+      if (!spheres[j].hasMember("y"))
+      {
         ROS_WARN_STREAM("All spheres must specify a value for y");
         continue;
       }
-      if(!spheres[j].hasMember("z")) {
+      if (!spheres[j].hasMember("z"))
+      {
         ROS_WARN_STREAM("All spheres must specify a value for z");
         continue;
       }
-      if(!spheres[j].hasMember("radius")) {
+      if (!spheres[j].hasMember("radius"))
+      {
         ROS_WARN_STREAM("All spheres must specify a value for radius");
         continue;
       }
       Eigen::Vector3d rel(spheres[j]["x"], spheres[j]["y"], spheres[j]["z"]);
-      ROS_DEBUG_STREAM("Link " << link_spheres[i]["link"] << " sphere " << coll_spheres.size() << " " << rel.x() << " " << rel.y() << " " << rel.z());
+      ROS_DEBUG_STREAM("Link " << link_spheres[i]["link"] << " sphere " << coll_spheres.size() << " " << rel.x() << " "
+                               << rel.y() << " " << rel.z());
       collision_detection::CollisionSphere cs(rel, spheres[j]["radius"]);
       coll_spheres.push_back(cs);
     }
     link_body_spheres[link_spheres[i]["link"]] = coll_spheres;
-    //std::cerr << "For link " << link_spheres[i]["link"] << " adding " << coll_spheres.size() << " spheres " << std::endl;
+    // std::cerr << "For link " << link_spheres[i]["link"] << " adding " << coll_spheres.size() << " spheres " <<
+    // std::endl;
   }
   return true;
 }
-
 }
 #endif
