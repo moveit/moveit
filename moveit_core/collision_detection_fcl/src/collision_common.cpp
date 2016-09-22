@@ -399,7 +399,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          logDebug("Collision between '%s' and '%s' is always allowed. No contacts are computed.",
+          logDebug("Collision between '%s' and '%s' is always allowed. No distances are computed.",
                    cd1->getID().c_str(), cd2->getID().c_str());
       }
     }
@@ -413,7 +413,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
-        logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+        logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
                  cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
@@ -426,7 +426,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+          logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
                    cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
@@ -438,14 +438,14 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     return cdata->done_;
   }
 
-  if (cdata->req_->verbose)
-    logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(), cd2->getID().c_str());
-
   fcl::DistanceResult dist_result;
   dist_result.update(cdata->res_->distance, NULL, NULL, fcl::DistanceResult::NONE, fcl::DistanceResult::NONE); // can be faster
-  double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
+  const double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
 
-  if(d < 0)
+  if (cdata->req_->verbose)
+    logDebug("Distance between %s and %s: %f", cd1->getID().c_str(), cd2->getID().c_str(), d);
+
+  if(d < 0) // a penetration was found, no further distance calculations are necessary
   {
     cdata->done_ = true;
     cdata->res_->distance = -1;
@@ -453,7 +453,11 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   else
   {
     if(cdata->res_->distance > d)
+    {
+      if (cdata->req_->verbose)
+        logWarn("Distance between %s and %s: %f decreased", cd1->getID().c_str(), cd2->getID().c_str(), d);
       cdata->res_->distance = d;
+    }
   }
 
   min_dist = cdata->res_->distance;
