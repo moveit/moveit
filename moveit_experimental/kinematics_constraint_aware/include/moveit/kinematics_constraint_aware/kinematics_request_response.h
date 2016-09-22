@@ -58,28 +58,28 @@ namespace kinematics_constraint_aware
  */
 class KinematicsRequest
 {
-  public:
+public:
+  KinematicsRequest()
+  {
+  }
 
-  KinematicsRequest(){}
-  
-  virtual ~KinematicsRequest() {};
+  virtual ~KinematicsRequest(){};
 
   std::vector<geometry_msgs::PoseStamped> pose_stamped_vector_;
-  
-  std::vector<std::string> ik_link_names_;  
+
+  std::vector<std::string> ik_link_names_;
 
   robot_state::RobotStatePtr robot_state_;
 
-  kinematic_constraints::KinematicConstraintSetPtr constraints_;  
+  kinematic_constraints::KinematicConstraintSetPtr constraints_;
 
-  ros::Duration timeout_;  
+  ros::Duration timeout_;
 
-  std::string group_name_;  
+  std::string group_name_;
 
   bool check_for_collisions_;
 
-  robot_state::StateValidityCallbackFn constraint_callback_;  
-  
+  robot_state::StateValidityCallbackFn constraint_callback_;
 };
 
 /**
@@ -88,23 +88,22 @@ class KinematicsRequest
 class KinematicsResponse
 {
 public:
+  KinematicsResponse()
+  {
+  }
 
-  KinematicsResponse(){}
-  
-  virtual ~KinematicsResponse() {};
-    
+  virtual ~KinematicsResponse(){};
+
   robot_state::RobotStatePtr solution_;
 
   std::vector<kinematic_constraints::ConstraintEvaluationResult> constraint_eval_results_;
-  
+
   collision_detection::CollisionResult collision_result_;
 
   moveit_msgs::MoveItErrorCodes error_code_;
 
   bool result_;
-
 };
-
 }
 
 #endif

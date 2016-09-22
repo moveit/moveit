@@ -45,37 +45,29 @@
 namespace kinematics_cache_ros
 {
 class KinematicsCacheROS : public kinematics_cache::KinematicsCache
-  {
-    public:
+{
+public:
+  /** @class
+   *  @brief An implementation of a cache for fast kinematics lookups
+   *  This class inherits from KinematicsCache and provides an easy way of initializing the cache using ROS
+   */
+  KinematicsCacheROS(){};
 
-    /** @class
-     *  @brief An implementation of a cache for fast kinematics lookups
-     *  This class inherits from KinematicsCache and provides an easy way of initializing the cache using ROS
-     */
-    KinematicsCacheROS()
-    {
-    };
-    
-    /** @brief Initialization function
-     *  @param opt A set of options for setting up the cache
-     */
-    bool init(const kinematics_cache::KinematicsCache::Options &opt,
-              const std::string& kinematics_solver_name,
-              const std::string& group_name,
-              const std::string& base_frame,
-              const std::string& tip_frame,
-              double search_discretization);
+  /** @brief Initialization function
+   *  @param opt A set of options for setting up the cache
+   */
+  bool init(const kinematics_cache::KinematicsCache::Options& opt, const std::string& kinematics_solver_name,
+            const std::string& group_name, const std::string& base_frame, const std::string& tip_frame,
+            double search_discretization);
 
-  private:
+private:
+  kinematics::KinematicsBase* kinematics_solver_; /** An instance of a kinematics solver needed by this class */
 
-    kinematics::KinematicsBase* kinematics_solver_; /** An instance of a kinematics solver needed by this class */
+  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> >
+      kinematics_loader_; /** A loader needed to load the instance of a kinematics solver */
 
-    boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_; /** A loader needed to load the instance of a kinematics solver */
-
-    planning_models::RobotModelPtr kinematic_model_; /** A kinematics model */
-    
-  };
-    
+  planning_models::RobotModelPtr kinematic_model_; /** A kinematics model */
+};
 }
 
 #endif
