@@ -32,5 +32,5 @@ RUN mv /bin/sh /bin/sh-old && \
 WORKDIR $CATKIN_WS
 ENV TERM xterm
 ENV PYTHONIOENCODING UTF-8
-RUN source /ros_entrypoint.sh && \
-    catkin build --no-status
+RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+    catkin build --jobs 1
