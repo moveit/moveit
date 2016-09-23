@@ -57,6 +57,8 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <QDockWidget>
 
+#include <memory>
+
 namespace Ogre
 {
 class SceneNode;
@@ -232,7 +234,7 @@ protected:
   ros::NodeHandle private_handle_, node_handle_;
 
   // render the workspace box
-  boost::scoped_ptr<rviz::Shape> workspace_box_;
+  std::unique_ptr<rviz::Shape> workspace_box_;
 
   // the planning frame
   MotionPlanningFrame *frame_;

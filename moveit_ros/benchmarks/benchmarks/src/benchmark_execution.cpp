@@ -56,6 +56,7 @@
 #include <Eigen/Geometry>
 
 #include <fstream>
+#include <memory>
 
 namespace moveit_benchmarks
 {
@@ -246,7 +247,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
 
   unsigned int n_call = 0;
   bool have_more_start_states = true;
-  boost::scoped_ptr<moveit_msgs::RobotState> start_state_to_use;
+  std::unique_ptr<moveit_msgs::RobotState> start_state_to_use;
   while (have_more_start_states)
   {
     start_state_to_use.reset();
@@ -660,7 +661,7 @@ bool moveit_benchmarks::BenchmarkExecution::readOptions(const std::string &filen
     std::vector<std::string> unr =
         boost::program_options::collect_unrecognized(po.options, boost::program_options::exclude_positional);
 
-    boost::scoped_ptr<PlanningPluginOptions> bpo;
+    std::unique_ptr<PlanningPluginOptions> bpo;
     for (std::size_t i = 0; i < unr.size() / 2; ++i)
     {
       std::string key = boost::to_lower_copy(unr[i * 2]);

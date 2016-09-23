@@ -41,8 +41,8 @@
 #include <string>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <boost/noncopyable.hpp>
+#include <memory>
 
 namespace moveit
 {
@@ -100,7 +100,7 @@ public:
 
 private:
 
-  boost::scoped_ptr<boost::thread> processing_thread_;
+  std::unique_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
 
   mutable boost::mutex action_lock_;

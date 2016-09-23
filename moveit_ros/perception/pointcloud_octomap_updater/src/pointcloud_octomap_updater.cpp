@@ -41,6 +41,8 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <XmlRpcException.h>
 
+#include <memory>
+
 namespace occupancy_map_monitor
 {
 
@@ -204,14 +206,14 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   updateMask(*cloud_msg, sensor_origin_eigen, mask_);
 
   octomap::KeySet free_cells, occupied_cells, model_cells, clip_cells;
-  boost::scoped_ptr<sensor_msgs::PointCloud2> filtered_cloud;
+  std::unique_ptr<sensor_msgs::PointCloud2> filtered_cloud;
 
   //We only use these iterators if we are creating a filtered_cloud for
-  //publishing. We cannot default construct these, so we use scoped_ptr's
+  //publishing. We cannot default construct these, so we use unique_ptr's
   //to defer construction
-  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
-  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
-  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
+  std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
 
   if (!filtered_cloud_topic_.empty()) {
     filtered_cloud.reset(new sensor_msgs::PointCloud2());

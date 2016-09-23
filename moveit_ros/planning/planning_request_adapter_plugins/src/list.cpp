@@ -37,12 +37,13 @@
 #include <pluginlib/class_loader.h>
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <ros/ros.h>
+#include <memory>
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "list_planning_adapter_plugins");
 
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > loader;
+  std::unique_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>> loader;
   try
   {
     loader.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>("moveit_core", "planning_request_adapter::PlanningRequestAdapter"));

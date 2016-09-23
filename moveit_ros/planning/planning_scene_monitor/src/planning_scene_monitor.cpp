@@ -44,6 +44,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <moveit/profiler/profiler.h>
 
+#include <memory>
+
 namespace planning_scene_monitor
 {
 
@@ -285,7 +287,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopPublishingPlanningScene()
 {
   if (publish_planning_scene_)
   {
-    boost::scoped_ptr<boost::thread> copy;
+    std::unique_ptr<boost::thread> copy;
     copy.swap(publish_planning_scene_);
     new_scene_update_condition_.notify_all();
     copy->join();
