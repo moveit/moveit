@@ -51,7 +51,7 @@ import yaml
 from lxml import etree
 import shutil
 
-plugin_gen_pkg = 'moveit_ikfast'  # package containing this file
+plugin_gen_pkg = 'moveit_kinematics'  # package containing this file
 # Allowed search modes, see SEARCH_MODE enum in template file
 search_modes = ['OPTIMIZE_MAX_JOINT', 'OPTIMIZE_FREE_JOINT' ]
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
          print "Warning: The default search has changed from OPTIMIZE_FREE_JOINT to now %s!" % (search_mode)
          ikfast_output_file = sys.argv[4]
       else:
-         raise Exception()  
+         raise Exception()
    except:
       print("\nUsage: create_ikfast_plugin.py <yourrobot_name> <planning_group_name> <moveit_plugin_pkg> [<search_mode>] <ikfast_output_path>\n")
       sys.exit(-1)
@@ -327,11 +327,10 @@ if __name__ == '__main__':
    easy_script_file_name = "update_ikfast_plugin.sh"
    easy_script_file_path = plugin_pkg_dir + "/" + easy_script_file_name
    with open(easy_script_file_path,'w') as f:
-      f.write("rosrun moveit_ikfast create_ikfast_moveit_plugin.py" 
-              + " " + robot_name 
-              + " " + planning_group_name 
+      f.write("rosrun moveit_kinematics create_ikfast_moveit_plugin.py"
+              + " " + robot_name
+              + " " + planning_group_name
               + " " + plugin_pkg
               + " " + solver_file_name )
-              
-   print '\nCreated update plugin script at '+easy_script_file_path
 
+   print '\nCreated update plugin script at '+easy_script_file_path
