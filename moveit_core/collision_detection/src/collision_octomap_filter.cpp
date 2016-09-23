@@ -112,7 +112,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
     if(!object->shapes_.empty())
     {
       const shapes::ShapeConstPtr& shape = object->shapes_[0];
-      boost::shared_ptr<const shapes::OcTree> shape_octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
+      std::shared_ptr<const shapes::OcTree> shape_octree = std::dynamic_pointer_cast<const shapes::OcTree>(shape);
       if(shape_octree)
       {
         std::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
