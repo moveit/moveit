@@ -38,9 +38,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     planning_scene_monitor/include
     trajectory_execution_manager/include
     plan_execution/include
-    kdl_kinematics_plugin/include
-    lma_kinematics_plugin/include
-    srv_kinematics_plugin/include
     collision_plugin_loader/include
 )
 
@@ -77,9 +74,6 @@ link_directories(${catkin_LIBRARY_DIRS})
 
 add_subdirectory(rdf_loader)
 add_subdirectory(collision_plugin_loader)
-add_subdirectory(kdl_kinematics_plugin)
-add_subdirectory(lma_kinematics_plugin)
-add_subdirectory(srv_kinematics_plugin)
 add_subdirectory(kinematics_plugin_loader)
 add_subdirectory(robot_model_loader)
 add_subdirectory(constraint_sampler_manager_loader)
@@ -93,8 +87,5 @@ add_subdirectory(plan_execution)
 install(
   FILES
     planning_request_adapters_plugin_description.xml
-    kdl_kinematics_plugin_description.xml
-    lma_kinematics_plugin_description.xml
-    srv_kinematics_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})
