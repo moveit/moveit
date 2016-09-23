@@ -199,24 +199,28 @@ namespace collision_detection
 
     /** \brief Compute the shortest distance between a robot and the world
      *  @param robot The robot to check distance for
-     *  @param state The state for the robot to check distances from */
+     *  @param state The state for the robot to check distances from
+     *  @param verbose Output debug information about distance checks */
     virtual double distanceRobot(const CollisionRobot &robot,
-                                 const robot_state::RobotState &state) const = 0;
+                                 const robot_state::RobotState &state, bool verbose = false) const = 0;
 
     /** \brief Compute the shortest distance between a robot and the world
      *  @param robot The robot to check distance for
      *  @param state The state for the robot to check distances from
-     *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always allowed to be in collision. */
+     *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always allowed to be in collision.
+     *  @param verbose Output debug information about distance checks */
     virtual double distanceRobot(const CollisionRobot &robot,
                                  const robot_state::RobotState &state,
-                                 const AllowedCollisionMatrix &acm) const = 0;
+                                 const AllowedCollisionMatrix &acm, bool verbose = false) const = 0;
 
-    /** \brief The shortest distance to another world instance (\e world) */
-    virtual double distanceWorld(const CollisionWorld &world) const = 0;
+    /** \brief The shortest distance to another world instance (\e world)
+     *  @param verbose Output debug information about distance checks */
+    virtual double distanceWorld(const CollisionWorld &world, bool verbose = false) const = 0;
 
-    /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements that are allowed to collide (as specified by \e acm) */
+    /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements that are allowed to collide (as specified by \e acm)
+     *  @param verbose Output debug information about distance checks */
     virtual double distanceWorld(const CollisionWorld &world,
-                                 const AllowedCollisionMatrix &acm) const = 0;
+                                 const AllowedCollisionMatrix &acm, bool verbose = false) const = 0;
     /** set the world to use.
      * This can be expensive unless the new and old world are empty.
      * Passing NULL will result in a new empty world being created. */
