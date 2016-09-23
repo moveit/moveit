@@ -44,7 +44,7 @@
 #include <moveit/mesh_filter/stereo_camera_model.h>
 #include <moveit/lazy_free_space_updater/lazy_free_space_updater.h>
 #include <image_transport/image_transport.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace occupancy_map_monitor
 {
@@ -97,8 +97,8 @@ private:
   unsigned int good_tf_;
   unsigned int failed_tf_;
 
-  boost::scoped_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
-  boost::scoped_ptr<LazyFreeSpaceUpdater> free_space_updater_;
+  std::unique_ptr<mesh_filter::MeshFilter<mesh_filter::StereoCameraModel> > mesh_filter_;
+  std::unique_ptr<LazyFreeSpaceUpdater> free_space_updater_;
 
   std::vector<float> x_cache_, y_cache_;
   double inv_fx_, inv_fy_, K0_, K2_, K4_, K5_;

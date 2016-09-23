@@ -40,8 +40,9 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <pluginlib/class_loader.h>
-#include <boost/scoped_ptr.hpp>
 #include <ros/ros.h>
+
+#include <memory>
 
 /** \brief Planning pipeline */
 namespace planning_pipeline
@@ -175,12 +176,12 @@ private:
   bool publish_received_requests_;
   ros::Publisher received_request_publisher_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
   planning_interface::PlannerManagerPtr planner_instance_;
   std::string planner_plugin_name_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
-  boost::scoped_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
+  std::unique_ptr<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter> > adapter_plugin_loader_;
+  std::unique_ptr<planning_request_adapter::PlanningRequestAdapterChain> adapter_chain_;
   std::vector<std::string> adapter_plugin_names_;
 
   robot_model::RobotModelConstPtr kmodel_;

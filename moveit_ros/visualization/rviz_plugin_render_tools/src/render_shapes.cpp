@@ -51,7 +51,8 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <boost/scoped_ptr.hpp>
+
+#include <memory>
 
 namespace moveit_rviz_plugin
 {
@@ -85,7 +86,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
   // we don't know how to render cones directly, but we can convert them to a mesh
   if (s->type == shapes::CONE)
   {
-    boost::scoped_ptr<shapes::Mesh> m(shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*s)));
+    std::unique_ptr<shapes::Mesh> m(shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*s)));
     if (m)
       renderShape(node, m.get(), p, octree_voxel_rendering, octree_color_mode, color, alpha);
     return;

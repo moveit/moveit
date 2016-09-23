@@ -38,6 +38,7 @@
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <ros/rate.h>
 #include <limits>
+#include <memory>
 
 planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
   current_state_monitor_(state_monitor),
@@ -78,7 +79,7 @@ void planning_scene_monitor::TrajectoryMonitor::stopTrajectoryMonitor()
 {
   if (record_states_thread_)
   {
-    boost::scoped_ptr<boost::thread> copy;
+    std::unique_ptr<boost::thread> copy;
     copy.swap(record_states_thread_);
     copy->join();
     ROS_DEBUG("Stopped trajectory monitor");

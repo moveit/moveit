@@ -121,8 +121,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
         if (waypoints.size() > 0)
         {
           robot_state::GroupStateValidityCallbackFn constraint_fn;
-          boost::scoped_ptr<planning_scene_monitor::LockedPlanningSceneRO> ls;
-          boost::scoped_ptr<kinematic_constraints::KinematicConstraintSet> kset;
+          std::unique_ptr<planning_scene_monitor::LockedPlanningSceneRO> ls;
+          std::unique_ptr<kinematic_constraints::KinematicConstraintSet> kset;
           if (req.avoid_collisions || !kinematic_constraints::isEmpty(req.path_constraints))
           {
             ls.reset(new planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_));

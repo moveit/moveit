@@ -38,6 +38,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <memory>
 #include <moveit/warehouse/constraints_storage.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
@@ -1134,10 +1135,10 @@ private:
   boost::shared_ptr<tf::Transformer> tf_;
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
-  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
-  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
-  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
-  boost::scoped_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction> > execute_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PickupAction> > pick_action_client_;
+  std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::PlaceAction> > place_action_client_;
 
   // general planning params
   robot_state::RobotStatePtr considered_start_state_;
@@ -1164,7 +1165,7 @@ private:
 
   // common properties for goals
   ActiveTargetType active_target_;
-  boost::scoped_ptr<moveit_msgs::Constraints> path_constraints_;
+  std::unique_ptr<moveit_msgs::Constraints> path_constraints_;
   std::string end_effector_link_;
   std::string pose_reference_frame_;
   std::string support_surface_;
@@ -1177,8 +1178,8 @@ private:
   ros::ServiceClient get_params_service_;
   ros::ServiceClient set_params_service_;
   ros::ServiceClient cartesian_path_service_;
-  boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
-  boost::scoped_ptr<boost::thread> constraints_init_thread_;
+  std::unique_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
+  std::unique_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
 };
 }

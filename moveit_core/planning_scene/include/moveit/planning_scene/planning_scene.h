@@ -953,10 +953,10 @@ private:
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
 
-  boost::scoped_ptr<ObjectColorMap>              object_colors_;
+  std::unique_ptr<ObjectColorMap>                object_colors_;
 
   // a map of object types
-  boost::scoped_ptr<ObjectTypeMap>               object_types_;
+  std::unique_ptr<ObjectTypeMap>                 object_types_;
 
 
 };

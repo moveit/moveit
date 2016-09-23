@@ -44,7 +44,8 @@
 #include <moveit/planning_scene_monitor/trajectory_monitor.h>
 #include <moveit/sensor_manager/sensor_manager.h>
 #include <pluginlib/class_loader.h>
-#include <boost/scoped_ptr.hpp>
+
+#include <memory>
 
 namespace plan_execution
 {
@@ -119,7 +120,7 @@ private:
   ros::NodeHandle node_handle_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager> > sensor_manager_loader_;
   moveit_sensor_manager::MoveItSensorManagerPtr sensor_manager_;
   unsigned int default_max_look_attempts_;
   double default_max_safe_path_cost_;

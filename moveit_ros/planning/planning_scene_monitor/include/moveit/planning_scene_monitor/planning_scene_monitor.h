@@ -50,6 +50,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+#include <memory>
 
 namespace planning_scene_monitor
 {
@@ -437,7 +438,7 @@ protected:
 
   // variables for planning scene publishing
   ros::Publisher                        planning_scene_publisher_;
-  boost::scoped_ptr<boost::thread>      publish_planning_scene_;
+  std::unique_ptr<boost::thread>        publish_planning_scene_;
   double                                publish_planning_scene_frequency_;
   SceneUpdateType                       publish_update_types_;
   SceneUpdateType                       new_scene_update_;
@@ -449,11 +450,11 @@ protected:
 
   ros::Subscriber                       attached_collision_object_subscriber_;
 
-  boost::scoped_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
-  boost::scoped_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
+  std::unique_ptr<message_filters::Subscriber<moveit_msgs::CollisionObject> > collision_object_subscriber_;
+  std::unique_ptr<tf::MessageFilter<moveit_msgs::CollisionObject> > collision_object_filter_;
 
   // include a octomap monitor
-  boost::scoped_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
+  std::unique_ptr<occupancy_map_monitor::OccupancyMapMonitor> octomap_monitor_;
 
   // include a current state monitor
   CurrentStateMonitorPtr current_state_monitor_;

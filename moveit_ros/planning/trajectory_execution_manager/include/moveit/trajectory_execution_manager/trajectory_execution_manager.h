@@ -47,7 +47,8 @@
 #include <moveit/controller_manager/controller_manager.h>
 #include <boost/thread.hpp>
 #include <pluginlib/class_loader.h>
-#include <boost/scoped_ptr.hpp>
+
+#include <memory>
 
 namespace trajectory_execution_manager
 {
@@ -266,10 +267,10 @@ private:
   bool manage_controllers_;
 
   // thread used to execute trajectories using the execute() command
-  boost::scoped_ptr<boost::thread> execution_thread_;
+  std::unique_ptr<boost::thread> execution_thread_;
 
   // thread used to execute trajectories using pushAndExecute()
-  boost::scoped_ptr<boost::thread> continuous_execution_thread_;
+  std::unique_ptr<boost::thread> continuous_execution_thread_;
 
   boost::mutex execution_state_mutex_;
   boost::mutex continuous_execution_mutex_;
@@ -291,7 +292,7 @@ private:
   std::vector<TrajectoryExecutionContext*> trajectories_;
   std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
 
-  boost::scoped_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> > controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 
   bool verbose_;
