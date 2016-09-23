@@ -510,48 +510,6 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
       }
     }
   }
-
-  if (goal.possible_grasps.empty())
-  {
-    planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
-
-    ROS_DEBUG_NAMED("manipulation", "Using default grasp poses");
-    goal.minimize_object_distance = true;
-
-    // add a number of default grasp points
-    // \todo add more!
-    moveit_msgs::Grasp g;
-    g.grasp_pose.header.frame_id = goal.target_name;
-    g.grasp_pose.pose.position.x = -0.2;
-    g.grasp_pose.pose.position.y = 0.0;
-    g.grasp_pose.pose.position.z = 0.0;
-    g.grasp_pose.pose.orientation.x = 0.0;
-    g.grasp_pose.pose.orientation.y = 0.0;
-    g.grasp_pose.pose.orientation.z = 0.0;
-    g.grasp_pose.pose.orientation.w = 1.0;
-
-    g.pre_grasp_approach.direction.header.frame_id = lscene->getPlanningFrame();
-    g.pre_grasp_approach.direction.vector.x = 1.0;
-    g.pre_grasp_approach.min_distance = 0.1;
-    g.pre_grasp_approach.desired_distance = 0.2;
-
-    g.post_grasp_retreat.direction.header.frame_id = lscene->getPlanningFrame();
-    g.post_grasp_retreat.direction.vector.z = 1.0;
-    g.post_grasp_retreat.min_distance = 0.1;
-    g.post_grasp_retreat.desired_distance = 0.2;
-
-    if (lscene->getRobotModel()->hasEndEffector(goal.end_effector))
-    {
-      g.pre_grasp_posture.joint_names = lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
-      g.pre_grasp_posture.points.resize(1);
-      g.pre_grasp_posture.points[0].positions.resize(g.pre_grasp_posture.joint_names.size(), std::numeric_limits<double>::max());
-
-      g.grasp_posture.joint_names = g.pre_grasp_posture.joint_names;
-      g.grasp_posture.points.resize(1);
-      g.grasp_posture.points[0].positions.resize(g.grasp_posture.joint_names.size(), -std::numeric_limits<double>::max());
-    }
-    goal.possible_grasps.push_back(g);
-  }
 }
 
 #include <class_loader/class_loader.h>
