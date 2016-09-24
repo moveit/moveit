@@ -39,13 +39,13 @@
 
 #include <nodelet/nodelet.h>
 #include <image_transport/image_transport.h>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <moveit/mesh_filter/transform_provider.h>
 #include <moveit/mesh_filter/mesh_filter.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
 #include <cv_bridge/cv_bridge.h>
+#include <memory>
 
 namespace mesh_filter
 {
@@ -93,11 +93,11 @@ class DepthSelfFiltering : public nodelet::Nodelet
 
   private:
     // member variables to handle ros messages
-    boost::shared_ptr<image_transport::ImageTransport> input_depth_transport_;
-    boost::shared_ptr<image_transport::ImageTransport> filtered_label_transport_;
-    boost::shared_ptr<image_transport::ImageTransport> filtered_depth_transport_;
-    boost::shared_ptr<image_transport::ImageTransport> model_depth_transport_;
-    boost::shared_ptr<image_transport::ImageTransport> model_label_transport_;
+    std::shared_ptr<image_transport::ImageTransport> input_depth_transport_;
+    std::shared_ptr<image_transport::ImageTransport> filtered_label_transport_;
+    std::shared_ptr<image_transport::ImageTransport> filtered_depth_transport_;
+    std::shared_ptr<image_transport::ImageTransport> model_depth_transport_;
+    std::shared_ptr<image_transport::ImageTransport> model_label_transport_;
     image_transport::CameraSubscriber sub_depth_image_;
     image_transport::CameraPublisher pub_filtered_depth_image_;
     image_transport::CameraPublisher pub_filtered_label_image_;

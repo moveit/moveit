@@ -125,7 +125,7 @@ protected:
   moveit_warehouse::ConstraintsStoragePtr constraints_storage_;
   moveit_warehouse::RobotStateStoragePtr robot_state_storage_;
 
-  boost::shared_ptr<rviz::InteractiveMarker> scene_marker_;
+  std::shared_ptr<rviz::InteractiveMarker> scene_marker_;
 
   typedef std::map<std::string, moveit_msgs::RobotState> RobotStateMap;
   typedef std::pair<std::string, moveit_msgs::RobotState> RobotStatePair;

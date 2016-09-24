@@ -136,7 +136,7 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description,
 
   // Create the ROS service client
   ros::NodeHandle nonprivate_handle("");
-  ik_service_client_ = boost::make_shared<ros::ServiceClient>(nonprivate_handle.serviceClient
+  ik_service_client_ = std::make_shared<ros::ServiceClient>(nonprivate_handle.serviceClient
                        <moveit_msgs::GetPositionIK>(ik_service_name));
   if (!ik_service_client_->waitForExistence(ros::Duration(0.1))) // wait 0.1 seconds, blocking
     ROS_WARN_STREAM_NAMED("srv","Unable to connect to ROS service client with name: " << ik_service_client_->getService());
