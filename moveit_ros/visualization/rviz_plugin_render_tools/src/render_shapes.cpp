@@ -194,7 +194,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node,
 
     ogre_shape->setPosition(position);
     ogre_shape->setOrientation(orientation);
-    scene_shapes_.push_back(boost::shared_ptr<rviz::Shape>(ogre_shape));
+    scene_shapes_.emplace_back(ogre_shape);
   }
 }
 

@@ -46,7 +46,7 @@
 #include <ros/ros.h>
 
 // System
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 // ROS msgs
 #include <geometry_msgs/PoseStamped.h>
@@ -192,7 +192,7 @@ namespace srv_kinematics_plugin
 
     int num_possible_redundant_joints_;
 
-    boost::shared_ptr<ros::ServiceClient> ik_service_client_;
+    std::shared_ptr<ros::ServiceClient> ik_service_client_;
 
 
   };

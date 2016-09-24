@@ -41,6 +41,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <memory>
 #include <ros/ros.h>
 #include <moveit/profiler/profiler.h>
 
@@ -227,7 +228,7 @@ private:
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
   std::map<std::string, std::vector<std::string> >                       iksolver_to_tip_links_;  // a map between each ik solver and a vector of custom-specified tip link(s)
-  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+  std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> >   kinematics_loader_;
   std::map<const robot_model::JointModelGroup*,
            std::vector<kinematics::KinematicsBasePtr> >                  instances_;
   boost::mutex                                                           lock_;

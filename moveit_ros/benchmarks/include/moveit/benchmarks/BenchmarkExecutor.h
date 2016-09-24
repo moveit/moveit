@@ -54,6 +54,7 @@
 #include <vector>
 #include <string>
 #include <boost/function.hpp>
+#include <memory>
 
 namespace moveit_ros_benchmarks
 {
@@ -190,7 +191,7 @@ protected:
 
   BenchmarkOptions options_;
 
-  boost::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader_;
+  std::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader_;
   std::map<std::string, planning_interface::PlannerManagerPtr> planner_interfaces_;
 
   std::vector<PlannerBenchmarkData> benchmark_data_;

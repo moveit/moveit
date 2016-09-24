@@ -587,7 +587,7 @@ void RobotInteraction::addInteractiveMarkers(
                                                 _1));
 
     // Add menu handler to all markers that this interaction handler creates.
-    if (boost::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
+    if (std::shared_ptr<interactive_markers::MenuHandler> mh = handler->getMenuHandler())
       mh->apply(*int_marker_server_, ims[i].name);
   }
 }

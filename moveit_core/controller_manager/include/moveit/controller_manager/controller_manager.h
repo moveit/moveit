@@ -39,7 +39,6 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit/macros/class_forward.h>
 
