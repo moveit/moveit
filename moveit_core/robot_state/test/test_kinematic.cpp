@@ -85,7 +85,7 @@ TEST(Loading, SimpleRobot)
         "</robot>";
 
     urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL0);
-    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdf::ModelSharedPtr srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL0);
 
     EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
@@ -150,7 +150,7 @@ TEST(LoadingAndFK, SimpleRobot)
 
     urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL1);
 
-    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdf::ModelSharedPtr srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL1);
 
     moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
@@ -375,7 +375,7 @@ TEST(FK, OneRobot)
 
     urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL2);
 
-    boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+    srdf::ModelSharedPtr srdfModel(new srdf::Model());
     srdfModel->initString(*urdfModel, SMODEL2);
 
     moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));

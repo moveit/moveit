@@ -73,7 +73,7 @@ bool KinematicsCacheROS::init(const kinematics_cache::KinematicsCache::Options& 
   }
 
   rdf_loader::RDFLoader rdf_loader;
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
+  const srdf::ModelSharedPtr &srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
   kinematic_model_.reset(new planning_models::RobotModel(urdf_model, srdf));
 

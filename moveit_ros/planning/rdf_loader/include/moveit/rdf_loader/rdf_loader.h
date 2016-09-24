@@ -41,7 +41,6 @@
 #include <urdf/model.h>
 #include <urdf_world/types.h>
 #include <srdfdom/model.h>
-#include <boost/shared_ptr.hpp>
 #include <tinyxml.h>
 
 namespace rdf_loader
@@ -78,16 +77,16 @@ public:
   }
 
   /** @brief Get the parsed SRDF model*/
-  const boost::shared_ptr<srdf::Model>& getSRDF() const
+  const srdf::ModelSharedPtr& getSRDF() const
   {
     return srdf_;
   }
 
 private:
 
-  std::string                             robot_description_;
-  boost::shared_ptr<srdf::Model>          srdf_;
-  urdf::ModelInterfaceSharedPtr           urdf_;
+  std::string                   robot_description_;
+  srdf::ModelSharedPtr          srdf_;
+  urdf::ModelInterfaceSharedPtr urdf_;
 
 };
 

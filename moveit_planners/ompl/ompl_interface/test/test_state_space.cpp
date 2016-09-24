@@ -77,11 +77,11 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr robot_model_;
-  urdf::ModelInterfaceSharedPtr      urdf_model_;
-  boost::shared_ptr<srdf::Model>     srdf_model_;
-  bool                               urdf_ok_;
-  bool                               srdf_ok_;
+  robot_model::RobotModelPtr    robot_model_;
+  urdf::ModelInterfaceSharedPtr urdf_model_;
+  srdf::ModelSharedPtr          srdf_model_;
+  bool                          urdf_ok_;
+  bool                          srdf_ok_;
 
 };
 
