@@ -50,7 +50,7 @@ protected:
     srdf_model_.reset(new srdf::Model());
 
     std::string xml_string;
-    std::fstream xml_file("test/urdf/robot.xml", std::fstream::in);
+    std::fstream xml_file("pr2_description/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
       while ( xml_file.good() )
@@ -65,7 +65,7 @@ protected:
     }
     else
       urdf_ok_ = false;
-    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "test/srdf/robot.xml");
+    srdf_ok_ = srdf_model_->initFile(*urdf_model_, "pr2_description/srdf/robot.xml");
   };
 
   virtual void TearDown()
@@ -74,7 +74,7 @@ protected:
 
 protected:
 
-  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
+  urdf::ModelInterfaceSharedPtr urdf_model_;
   boost::shared_ptr<srdf::Model> srdf_model_;
   bool                           urdf_ok_;
   bool                           srdf_ok_;

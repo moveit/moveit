@@ -37,6 +37,7 @@
 #ifndef MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
 #define MOVEIT_PLANNING_INTERFACE_PLANNING_SCENE_INTERFACE_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
@@ -45,6 +46,8 @@ namespace moveit
 {
 namespace planning_interface
 {
+
+MOVEIT_CLASS_FORWARD(PlanningSceneInterface);
 
 class PlanningSceneInterface
 {

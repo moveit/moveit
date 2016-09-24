@@ -119,9 +119,9 @@ public:
     return tips;
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolver(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolver(const robot_model::JointModelGroup *jmg)
   {
-    boost::shared_ptr<kinematics::KinematicsBase> result;
+    kinematics::KinematicsBasePtr result;
     if (!jmg)
     {
       ROS_ERROR("Specified group is NULL. Cannot allocate kinematics solver.");
@@ -192,11 +192,11 @@ public:
     return result;
   }
 
-  boost::shared_ptr<kinematics::KinematicsBase> allocKinematicsSolverWithCache(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const robot_model::JointModelGroup *jmg)
   {
     {
       boost::mutex::scoped_lock slock(lock_);
-      const std::vector<boost::shared_ptr<kinematics::KinematicsBase> > &vi = instances_[jmg];
+      const std::vector<kinematics::KinematicsBasePtr> &vi = instances_[jmg];
       for (std::size_t i = 0 ;  i < vi.size() ; ++i)
         if (vi[i].unique())
         {
@@ -205,7 +205,7 @@ public:
         }
     }
 
-    boost::shared_ptr<kinematics::KinematicsBase> res = allocKinematicsSolver(jmg);
+    kinematics::KinematicsBasePtr res = allocKinematicsSolver(jmg);
 
     {
       boost::mutex::scoped_lock slock(lock_);
@@ -229,7 +229,7 @@ private:
   std::map<std::string, std::vector<std::string> >                       iksolver_to_tip_links_;  // a map between each ik solver and a vector of custom-specified tip link(s)
   boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
   std::map<const robot_model::JointModelGroup*,
-           std::vector<boost::shared_ptr<kinematics::KinematicsBase> > > instances_;
+           std::vector<kinematics::KinematicsBasePtr> >                  instances_;
   boost::mutex                                                           lock_;
 };
 

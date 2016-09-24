@@ -130,7 +130,7 @@ planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelConstP
   initialize();
 }
 
-planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+planning_scene::PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                              const boost::shared_ptr<const srdf::Model> &srdf_model,
                                              collision_detection::WorldPtr world) :
   world_(world),
@@ -178,7 +178,7 @@ void planning_scene::PlanningScene::initialize()
 }
 
 /* return NULL on failure */
-robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const boost::shared_ptr<const urdf::ModelInterface> &urdf_model,
+robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
                                                                            const boost::shared_ptr<const srdf::Model> &srdf_model)
 {
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
@@ -1063,6 +1063,11 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream &in, con
 
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState &state)
 {
+  // The attached bodies will be processed separately by processAttachedCollisionObjectMsgs
+  // after kstate_ has been updated
+  moveit_msgs::RobotState state_no_attached(state);
+  state_no_attached.attached_collision_objects.clear();
+
   if (parent_)
   {
     if (!kstate_)
@@ -1070,17 +1075,19 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
       kstate_.reset(new robot_state::RobotState(parent_->getCurrentState()));
       kstate_->setAttachedBodyUpdateCallback(current_state_attached_body_callback_);
     }
-    robot_state::robotStateMsgToRobotState(getTransforms(), state, *kstate_);
+    robot_state::robotStateMsgToRobotState(getTransforms(), state_no_attached, *kstate_);
   }
   else
-    robot_state::robotStateMsgToRobotState(*ftf_, state, *kstate_);
+    robot_state::robotStateMsgToRobotState(*ftf_, state_no_attached, *kstate_);
 
-  // we add object types to the planning scene, if any are specified
   for (std::size_t i = 0 ; i < state.attached_collision_objects.size() ; ++i)
   {
-    const moveit_msgs::CollisionObject &o = state.attached_collision_objects[i].object;
-    if (!o.id.empty() && o.operation == moveit_msgs::CollisionObject::ADD && (!o.type.db.empty() || !o.type.key.empty()))
-      setObjectType(o.id, o.type);
+    if(!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
+    {
+      logError("The specified RobotState is not marked as is_diff. The request to modify the object '%s' is not supported. Object is ignored.",state.attached_collision_objects[i].object.id.c_str());
+      continue;
+    }
+    processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
   }
 }
 

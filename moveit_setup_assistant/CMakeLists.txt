@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   rosconsole
   roscpp
+  srdfdom
 )
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
@@ -62,6 +63,7 @@ set(HEADERS
   src/widgets/passive_joints_widget.h
   src/widgets/configuration_files_widget.h
   src/widgets/setup_screen_widget.h
+  src/widgets/author_information_widget.h
 )
 
 # Tools Library
@@ -69,7 +71,6 @@ add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
   src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
-  src/tools/srdf_writer.cpp
 )
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAML}
@@ -95,6 +96,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/header_widget.cpp
   src/widgets/setup_assistant_widget.cpp
   src/widgets/setup_screen_widget.cpp
+  src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
 target_link_libraries(${PROJECT_NAME}_widgets

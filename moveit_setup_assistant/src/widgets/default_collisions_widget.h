@@ -119,14 +119,13 @@ private Q_SLOTS:
 
   /**
    * \brief Called when user changes data in table, really just the checkbox
-   * \param i,j Check coordinates, aka y,x (weird)
    */
-  void toggleCheckBox(int j, int i);
+  void toggleCheckBox(int row, int column);
 
   /**
-   * \breif Called when a row is clicked, to highlight links on robot
-   */
-  void previewClicked( int row, int column );
+  * \brief Called when current row has changed
+  */
+  void previewSelected(int row);
 
   /**
    * \brief Called when setup assistant navigation switches to this screen

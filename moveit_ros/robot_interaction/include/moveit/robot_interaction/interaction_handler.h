@@ -37,6 +37,7 @@
 #ifndef MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 #define MOVEIT_ROBOT_INTERACTION_INTERACTION_HANDLER_
 
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_interaction/locked_robot_state.h>
 //#include <moveit/robot_interaction/robot_interaction.h>
 #include <visualization_msgs/InteractiveMarkerFeedback.h>
@@ -46,15 +47,9 @@
 namespace robot_interaction
 {
 
-class InteractionHandler;
-typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
-typedef boost::shared_ptr<const InteractionHandler> InteractionHandlerConstPtr;
-
-class RobotInteraction;
-typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
-
-class KinematicOptionsMap;
-typedef boost::shared_ptr<KinematicOptionsMap> KinematicOptionsMapPtr;
+MOVEIT_CLASS_FORWARD(InteractionHandler);
+MOVEIT_CLASS_FORWARD(RobotInteraction);
+MOVEIT_CLASS_FORWARD(KinematicOptionsMap);
 
 class EndEffectorInteraction;
 class JointInteraction;
@@ -363,7 +358,7 @@ public:
         const robot_state::GroupStateValidityCallbackFn &callback);
   void setIKTimeout(double timeout);
   void setIKAttempts(unsigned int attempts);
-  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
+  kinematics::KinematicsQueryOptions getKinematicsQueryOptions() const;
   void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
   void setKinematicsQueryOptionsForGroup(const std::string& group_name,
            const kinematics::KinematicsQueryOptions &options);

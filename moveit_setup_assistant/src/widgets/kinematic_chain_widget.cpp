@@ -278,7 +278,7 @@ void KinematicChainWidget::itemSelected()
       return;
 
     // Check that item is not empty
-    Q_EMIT highlightLink( item->text(0).toStdString() );
+    Q_EMIT highlightLink( item->text(0).toStdString(), QColor(255, 0, 0) );
   }
 }
 

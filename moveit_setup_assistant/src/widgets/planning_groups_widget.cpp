@@ -127,7 +127,7 @@ PlanningGroupsWidget::PlanningGroupsWidget( QWidget *parent, moveit_setup_assist
   connect( chain_widget_, SIGNAL( cancelEditing() ), this, SLOT( cancelEditing() ) );
   connect( chain_widget_, SIGNAL( doneEditing() ), this, SLOT( saveChainScreen() ) );
   connect( chain_widget_, SIGNAL( unhighlightAll() ), this, SIGNAL( unhighlightAll() ) );
-  connect( chain_widget_, SIGNAL( highlightLink(const std::string&)), this, SIGNAL(highlightLink(const std::string&)) );
+  connect( chain_widget_, SIGNAL( highlightLink(const std::string&, const QColor&)), this, SIGNAL(highlightLink(const std::string&, const QColor&)) );
 
   // Subgroups Widget
   subgroups_widget_ = new DoubleListWidget( this, config_data_, "Subgroup", "Subgroup" );
@@ -734,6 +734,7 @@ void PlanningGroupsWidget::deleteGroup()
             return;
           }
         }
+        config_data_->changes |= MoveItConfigData::POSES;
 
         // the user has confirmed, now delete this group state
         config_data_->srdf_->group_states_.erase( pose_it );
@@ -768,6 +769,7 @@ void PlanningGroupsWidget::deleteGroup()
             return;
           }
         }
+        config_data_->changes |= MoveItConfigData::END_EFFECTORS;
 
         // the user has confirmed, now delete this group state
         config_data_->srdf_->end_effectors_.erase( effector_it );
@@ -776,6 +778,8 @@ void PlanningGroupsWidget::deleteGroup()
       }
     }
   }
+
+  config_data_->changes |= MoveItConfigData::GROUPS;
 
   // delete actual group
   for( std::vector<srdf::Model::Group>::iterator group_it = config_data_->srdf_->groups_.begin();
@@ -864,6 +868,7 @@ void PlanningGroupsWidget::saveJointsScreen()
 
   // Update the kinematic model with changes
   config_data_->updateRobotModel();
+  config_data_->changes |= MoveItConfigData::GROUP_CONTENTS;
 }
 
 // ******************************************************************************************
@@ -892,6 +897,7 @@ void PlanningGroupsWidget::saveLinksScreen()
 
   // Update the kinematic model with changes
   config_data_->updateRobotModel();
+  config_data_->changes |= MoveItConfigData::GROUP_CONTENTS;
 }
 
 // ******************************************************************************************
@@ -967,6 +973,7 @@ void PlanningGroupsWidget::saveChainScreen()
 
   // Update the kinematic model with changes
   config_data_->updateRobotModel();
+  config_data_->changes |= MoveItConfigData::GROUP_CONTENTS;
 }
 
 // ******************************************************************************************
@@ -1069,6 +1076,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 
   // Update the kinematic model with changes
   config_data_->updateRobotModel();
+  config_data_->changes |= MoveItConfigData::GROUP_CONTENTS;
 }
 
 // ******************************************************************************************
@@ -1178,6 +1186,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
     new_group.name_ = group_name;
     config_data_->srdf_->groups_.push_back( new_group );
     adding_new_group_ = true; // remember this group is new
+    config_data_->changes |= MoveItConfigData::GROUPS;
   }
   else
   {
@@ -1200,6 +1209,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
         if( subgroup_it->compare( old_group_name ) == 0 ) // same name
         {
           subgroup_it->assign(group_name); // updated
+          config_data_->changes |= MoveItConfigData::GROUP_CONTENTS;
         }
       }
     }
@@ -1213,6 +1223,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
       {
         ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed eef '" << eef_it->name_ << "' to new parent group name " << group_name);
         eef_it->parent_group_ = group_name; // updated
+        config_data_->changes |= MoveItConfigData::END_EFFECTORS;
       }
 
       // Check if this eef's group references old group name. if so, update it
@@ -1220,6 +1231,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
       {
         ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed eef '" << eef_it->name_ << "' to new group name " << group_name);
         eef_it->component_group_ = group_name; // updated
+        config_data_->changes |= MoveItConfigData::END_EFFECTORS;
       }
     }
 
@@ -1232,6 +1244,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
       {
         ROS_DEBUG_STREAM_NAMED("setup_assistant","Changed group state group '" << state_it->group_ << "' to new parent group name " << group_name);
         state_it->group_ = group_name; // updated
+        config_data_->changes |= MoveItConfigData::POSES;
       }
     }
 
@@ -1244,6 +1257,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[ group_name ].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[ group_name ].kinematics_solver_timeout_ = kinematics_timeout_double;
   config_data_->group_meta_data_[ group_name ].kinematics_solver_attempts_ = kinematics_attempts_int;
+  config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 
   // Reload main screen table
   loadGroupsTree();
@@ -1422,7 +1436,7 @@ void PlanningGroupsWidget::previewSelectedLink( std::vector<std::string> links )
     }
 
     // Highlight link
-    Q_EMIT highlightLink( links[i] );
+    Q_EMIT highlightLink( links[i], QColor(255, 0, 0) );
   }
 }
 
@@ -1454,7 +1468,7 @@ void PlanningGroupsWidget::previewSelectedJoints( std::vector<std::string> joint
     }
 
     // Highlight link
-    Q_EMIT highlightLink( link );
+    Q_EMIT highlightLink( link, QColor(255, 0, 0) );
   }
 }
 

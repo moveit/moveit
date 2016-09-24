@@ -45,37 +45,38 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
 
   ros::WallTime start = ros::WallTime::now();
   ros::NodeHandle nh("~");
-  if (nh.searchParam(robot_description, robot_description_))
+  std::string content;
+
+  if (!nh.searchParam(robot_description, robot_description_) || !nh.getParam(robot_description_, content))
   {
-    std::string content;
-    if (nh.getParam(robot_description_, content))
-    {
-      urdf::Model *umodel = new urdf::Model();
-      urdf_.reset(umodel);
-      if (umodel->initString(content))
-      {
-        std::string scontent;
-        if (nh.getParam(robot_description_ + "_semantic", scontent))
-        {
-          srdf_.reset(new srdf::Model());
-          if (!srdf_->initString(*urdf_, scontent))
-          {
-            ROS_ERROR("Unable to parse SRDF");
-            srdf_.reset();
-          }
-        }
-        else
-          ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s_semantic'?", robot_description_.c_str());
-      }
-      else
-      {
-        ROS_ERROR("Unable to parse URDF");
-        urdf_.reset();
-      }
-    }
-    else
-      ROS_ERROR("Robot model not found! Did you remap '%s'?", robot_description_.c_str());
+    ROS_ERROR("Robot model parameter not found! Did you remap '%s'?", robot_description.c_str());
+    return;
   }
+
+  urdf::Model *umodel = new urdf::Model();
+  if (!umodel->initString(content))
+  {
+    ROS_ERROR("Unable to parse URDF from parameter '%s'", robot_description_.c_str());
+    return;
+  }
+  urdf_.reset(umodel);
+
+  const std::string srdf_description(robot_description_ + "_semantic");
+  std::string scontent;
+  if (!nh.getParam(srdf_description, scontent))
+  {
+    ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
+    return;
+  }
+
+  srdf_.reset(new srdf::Model());
+  if (!srdf_->initString(*urdf_, scontent))
+  {
+    ROS_ERROR("Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
+    srdf_.reset();
+    return;
+  }
+
   ROS_DEBUG_STREAM_NAMED("rdf",  "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 

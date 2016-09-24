@@ -239,10 +239,9 @@ StartScreenWidget::~StartScreenWidget()
 void StartScreenWidget::showNewOptions()
 {
   // Do GUI stuff
-  select_mode_->btn_exist_->setFlat( false );
-  select_mode_->btn_new_->setFlat( true );
+  select_mode_->btn_exist_->setChecked(false);
+  select_mode_->btn_new_->setChecked(true);
   urdf_file_->show();
-  //  srdf_file_->show();
   stack_path_->hide();
   btn_load_->show();
 
@@ -256,10 +255,9 @@ void StartScreenWidget::showNewOptions()
 void StartScreenWidget::showExistingOptions()
 {
   // Do GUI stuff
-  select_mode_->btn_exist_->setFlat( true );
-  select_mode_->btn_new_->setFlat( false );
+  select_mode_->btn_exist_->setChecked(true);
+  select_mode_->btn_new_->setChecked(false);
   urdf_file_->hide();
-  //srdf_file_->hide();
   stack_path_->show();
   btn_load_->show();
 
@@ -505,7 +503,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
 
   if (urdf_file_path.find(".xacro") != std::string::npos)
   {
-    std::string cmd("rosrun xacro xacro.py ");
+    std::string cmd("rosrun xacro xacro --inorder ");
     cmd += urdf_file_path;
     ROS_INFO( "Running '%s'...", cmd.c_str() );
 
@@ -522,7 +520,7 @@ bool StartScreenWidget::loadURDFFile( const std::string& urdf_file_path )
         urdf_string += buffer;
     }
     pclose(pipe);
-    
+
     if (urdf_string.empty())
     {
       QMessageBox::warning( this, "Error Loading Files", QString( "Unable to parse XACRO file: " ).append( urdf_file_path.c_str() ) );
@@ -649,7 +647,7 @@ bool StartScreenWidget::extractPackageNameFromPath()
   // Copy path into vector of parts
   for (fs::path::iterator it = urdf_directory.begin(); it != urdf_directory.end(); ++it)
     path_parts.push_back( it->native() );
-  
+
   bool packageFound = false;
 
   // reduce the generated directoy path's folder count by 1 each loop
@@ -843,11 +841,13 @@ SelectModeWidget::SelectModeWidget( QWidget* parent )
   // Exist Button
   btn_exist_ = new QPushButton(this);
   btn_exist_->setText("&Edit Existing MoveIt\nConfiguration Package");
+  btn_exist_->setCheckable(true);
   hlayout->addWidget( btn_exist_ );
 
   // Add horizontal layer to verticle layer
   layout->addLayout(hlayout);
   setLayout(layout);
+  btn_new_->setCheckable(true);
 }
 
 

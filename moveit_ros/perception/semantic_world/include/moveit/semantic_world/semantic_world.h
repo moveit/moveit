@@ -38,18 +38,25 @@
 #define MOVEIT_SEMANTIC_WORLD_
 
 #include <ros/ros.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <object_recognition_msgs/TableArray.h>
 #include <moveit_msgs/CollisionObject.h>
-#include <geometric_shapes/shapes.h>
-
 #include <boost/thread/mutex.hpp>
+#include <moveit/macros/class_forward.h>
+
+namespace shapes
+{
+MOVEIT_CLASS_FORWARD(Shape);
+}
 
 namespace moveit
 {
 
 namespace semantic_world
 {
+
+MOVEIT_CLASS_FORWARD(SemanticWorld);
 
 /**
  * @brief A (simple) semantic world representation for pick and place and other tasks.

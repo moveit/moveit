@@ -150,7 +150,7 @@ MoveItConfigData::MoveItConfigData() :
   config_pkg_generated_timestamp_(0)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
-  srdf_.reset( new SRDFWriter() );
+  srdf_.reset( new srdf::SRDFWriter() );
   urdf_model_.reset( new urdf::Model() );
 
   // Not in debug mode
@@ -265,6 +265,8 @@ bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
   /// Package generation time
   emitter << YAML::Key << "CONFIG";
   emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "author_name" << YAML::Value << author_name_;
+  emitter << YAML::Key << "author_email" << YAML::Value << author_email_;
   emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(NULL); // TODO: is this cross-platform?
   emitter << YAML::EndMap;
 
@@ -832,6 +834,7 @@ bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
   }
 
   config_pkg_path_ = full_package_path;
+  return true;
 }
 
 // ******************************************************************************************
@@ -908,7 +911,7 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
     loadYaml(input_stream, doc);
 
     yaml_node_t title_node, urdf_node, package_node, srdf_node,
-                relative_node, config_node, timestamp_node;
+                relative_node, config_node, timestamp_node, author_name_node, author_email_node;
 
     // Get title node
     if( title_node = findValue( doc, "moveit_setup_assistant_config" ) )
@@ -952,6 +955,15 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
       // Package generation time
       if( config_node = findValue( *title_node, "CONFIG" ) )
       {
+        // Load author contact details
+        if( author_name_node = findValue( *config_node, "author_name" ) )
+        {
+          *author_name_node >> author_name_;
+        }
+        if( author_email_node = findValue( *config_node, "author_email" ) )
+        {
+          *author_email_node >> author_email_;
+        }
         // Load first property
         if( timestamp_node = findValue( *config_node, "generated_timestamp" ) )
         {

@@ -38,10 +38,10 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
+#include <moveit_resources/config.h>
 
 #include <urdf_parser/urdf_parser.h>
 #include <geometric_shapes/shape_operations.h>
-#include <ros/package.h>
 
 #include <gtest/gtest.h>
 #include <sstream>
@@ -61,16 +61,10 @@ protected:
 
   virtual void SetUp()
   {
-    std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
-    {
-      FAIL() << "Failed to find package moveit_resources.";
-      return;
-    }
-    boost::filesystem::path res_path(resource_dir);
-    std::string urdf_file = (res_path / "test/urdf/robot.xml").string();
-    std::string srdf_file = (res_path / "test/srdf/robot.xml").string();
-    kinect_dae_resource_ = "package://moveit_resources/test/urdf/meshes/sensors/kinect_v0/kinect.dae";
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+    std::string urdf_file = (res_path / "pr2_description/urdf/robot.xml").string();
+    std::string srdf_file = (res_path / "pr2_description/srdf/robot.xml").string();
+    kinect_dae_resource_ = "package://moveit_resources/pr2_description/urdf/meshes/sensors/kinect_v0/kinect.dae";
 
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
@@ -113,13 +107,13 @@ protected:
   bool urdf_ok_;
   bool srdf_ok_;
 
-  boost::shared_ptr<urdf::ModelInterface>  urdf_model_;
+  urdf::ModelInterfaceSharedPtr            urdf_model_;
   boost::shared_ptr<srdf::Model>           srdf_model_;
 
   robot_model::RobotModelPtr               kmodel_;
 
-  boost::shared_ptr<collision_detection::CollisionRobot>        crobot_;
-  boost::shared_ptr<collision_detection::CollisionWorld>        cworld_;
+  collision_detection::CollisionRobotPtr   crobot_;
+  collision_detection::CollisionWorldPtr   cworld_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 

@@ -153,8 +153,10 @@ DefaultCollisionsWidget::DefaultCollisionsWidget( QWidget *parent,
   collision_table_ = new QTableWidget( this );
   collision_table_->setColumnCount(4);
   collision_table_->setSortingEnabled(true);
+  collision_table_->setSelectionMode( QAbstractItemView::SingleSelection );
   collision_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
-  connect(collision_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)),
+          this, SLOT(previewSelected(int)));
   connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
   layout_->addWidget(collision_table_);
 
@@ -259,6 +261,8 @@ void DefaultCollisionsWidget::generateCollisionTable()
 
   // Hide the progress bar
   disableControls(false); // enable everything else
+
+  config_data_->changes |= MoveItConfigData::COLLISIONS;
 }
 
 // ******************************************************************************************
@@ -438,53 +442,50 @@ void DefaultCollisionsWidget::collisionCheckboxToggle()
 void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
 {
   // Only accept cell changes if table is enabled, otherwise it is this program making changes
-  if( collision_table_->isEnabled() )
+  // Also make sure the change is in the checkbox column
+  if( !collision_table_->isEnabled() || column != 2 )
+    return;
+
+  // Convert row to pair
+  std::pair<std::string, std::string> link_pair;
+  link_pair.first = collision_table_->item(row, 0)->text().toStdString();
+  link_pair.second = collision_table_->item(row, 1)->text().toStdString();
+
+  // Get the state of checkbox
+  bool check_state = collision_table_->item(row, 2)->checkState();
+
+  // Check if the checkbox state has changed from original value
+  if( link_pairs_[ link_pair ].disable_check != check_state )
   {
-    // Make sure change is the checkbox column
-    if( column == 2 )
+    // Save the change
+    link_pairs_[ link_pair ].disable_check = check_state;
+
+    // Handle USER Reasons: 1) pair is disabled by user
+    if( link_pairs_[ link_pair ].disable_check == true &&
+        link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
     {
+      link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
 
-      // Convert row to pair
-      std::pair<std::string, std::string> link_pair;
-      link_pair.first = collision_table_->item(row, 0)->text().toStdString();
-      link_pair.second = collision_table_->item(row, 1)->text().toStdString();
-
-      // Get the state of checkbox
-      bool check_state = collision_table_->item(row, 2)->checkState();
-
-
-      // Check if the checkbox state has changed from original value
-      if( link_pairs_[ link_pair ].disable_check != check_state )
-      {
-
-        // Save the change
-        link_pairs_[ link_pair ].disable_check = check_state;
-
-        // Handle USER Reasons: 1) pair is disabled by user
-        if( link_pairs_[ link_pair ].disable_check == true &&
-            link_pairs_[ link_pair ].reason == moveit_setup_assistant::NOT_DISABLED )
-        {
-          link_pairs_[ link_pair ].reason = moveit_setup_assistant::USER;
-
-          // Change Reason in Table
-          collision_table_->item(row, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
-        }
-        // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
-        else if( link_pairs_[ link_pair ].disable_check == false &&
-                 link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
-        {
-          link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
-
-          // Change Reason in Table
-          collision_table_->item(row, 3)->setText( "" );
-        }
-
-      }
-
-      // Copy data changes to srdf_writer object
-      linkPairsToSRDF();
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText( longReasonsToString.at( link_pairs_[ link_pair ].reason ) );
     }
+    // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
+    else if( link_pairs_[ link_pair ].disable_check == false &&
+             link_pairs_[ link_pair ].reason == moveit_setup_assistant::USER )
+    {
+      link_pairs_[ link_pair ].reason = moveit_setup_assistant::NOT_DISABLED;
+
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText( "" );
+    }
+
+    config_data_->changes |= MoveItConfigData::COLLISIONS;
   }
+
+  // Copy data changes to srdf_writer object
+  linkPairsToSRDF();
+
+  previewSelected(row);
 }
 
 // ******************************************************************************************
@@ -556,21 +557,23 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void DefaultCollisionsWidget::previewClicked( int row, int column )
+void DefaultCollisionsWidget::previewSelected( int row )
 {
-  // Get list of all selected items
-  QList<QTableWidgetItem*> selected = collision_table_->selectedItems();
-
-  // Check that an element was selected
-  if( !selected.size() )
-    return;
-
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
   // Highlight link
-  Q_EMIT highlightLink( selected[0]->text().toStdString() );
-  Q_EMIT highlightLink( selected[1]->text().toStdString() );
+  QTableWidgetItem* first_link_item = collision_table_->item(row, 0);
+  if (!first_link_item)
+    return; // nothing to highlight
+
+  const QString &first_link = first_link_item->text();
+  const QString &second_link = collision_table_->item(row, 1)->text();
+  Qt::CheckState check_state = collision_table_->item(row, 2)->checkState();
+
+  QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+  Q_EMIT highlightLink( first_link.toStdString(), color );
+  Q_EMIT highlightLink( second_link.toStdString(), color );
 }
 
 // ******************************************************************************************

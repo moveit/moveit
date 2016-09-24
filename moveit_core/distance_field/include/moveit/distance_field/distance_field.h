@@ -47,7 +47,16 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <eigen_stl_containers/eigen_stl_containers.h>
-#include <geometric_shapes/shapes.h>
+#include <moveit/macros/class_forward.h>
+
+namespace shapes
+{
+MOVEIT_CLASS_FORWARD(Shape);
+}
+namespace octomap
+{
+class OcTree;
+}
 
 /**
  * \brief Namespace for holding classes that generate distance fields.

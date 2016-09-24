@@ -96,16 +96,15 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   connect( ssw_, SIGNAL( loadRviz() ), this, SLOT( loadRviz() ) );
   main_content_->addWidget(ssw_);
 
-  // Pass command arg values to start screen
+  // Pass command arg values to start screen and show appropriate part of screen
   if (args.count( "urdf_path" ))
   {
     ssw_->urdf_file_->setPath( args["urdf_path"].as<std::string>() );
+    ssw_->select_mode_->btn_new_->click();
   }
   if (args.count( "config_pkg" ))
   {
     ssw_->stack_path_->setPath( args["config_pkg"].as<std::string>() );
-
-    // Show this part of screen
     ssw_->select_mode_->btn_exist_->click();
   }
 
@@ -117,6 +116,7 @@ SetupAssistantWidget::SetupAssistantWidget( QWidget *parent, boost::program_opti
   nav_name_list_ << "Robot Poses";
   nav_name_list_ << "End Effectors";
   nav_name_list_ << "Passive Joints";
+  nav_name_list_ << "Author Information";
   nav_name_list_ << "Configuration Files";
 
   // Navigation Left Pane --------------------------------------------------
@@ -220,7 +220,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   // Self-Collisions
   dcw_ = new DefaultCollisionsWidget( this, config_data_);
   main_content_->addWidget( dcw_ );
-  connect( dcw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( dcw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( dcw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( dcw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -228,7 +228,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   vjw_ = new VirtualJointsWidget( this, config_data_ );
   main_content_->addWidget(vjw_);
   connect( vjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( vjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( vjw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( vjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( vjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
   connect( vjw_, SIGNAL( referenceFrameChanged() ), this, SLOT( virtualJointReferenceFrameChanged() ) );
@@ -237,7 +237,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   pgw_ = new PlanningGroupsWidget( this, config_data_ );
   main_content_->addWidget(pgw_);
   connect( pgw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( pgw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( pgw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( pgw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( pgw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -245,7 +245,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   rpw_ = new RobotPosesWidget( this, config_data_ );
   main_content_->addWidget(rpw_);
   connect( rpw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( rpw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( rpw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( rpw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( rpw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -253,7 +253,7 @@ void SetupAssistantWidget::progressPastStartScreen()
   efw_ = new EndEffectorsWidget( this, config_data_ );
   main_content_->addWidget(efw_);
   connect( efw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( efw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( efw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( efw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( efw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
@@ -261,9 +261,17 @@ void SetupAssistantWidget::progressPastStartScreen()
   pjw_ = new PassiveJointsWidget( this, config_data_ );
   main_content_->addWidget(pjw_);
   connect( pjw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
-  connect( pjw_, SIGNAL( highlightLink( const std::string& ) ), this, SLOT( highlightLink( const std::string& ) ) );
+  connect( pjw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
   connect( pjw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
   connect( pjw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
+
+  // Author Information
+  aiw_ = new AuthorInformationWidget( this, config_data_ );
+  main_content_->addWidget( aiw_ );
+  connect( aiw_, SIGNAL( isModal( bool ) ), this, SLOT( setModalMode( bool ) ) );
+  connect( aiw_, SIGNAL( highlightLink( const std::string&, const QColor& ) ), this, SLOT( highlightLink( const std::string&, const QColor& ) ) );
+  connect( aiw_, SIGNAL( highlightGroup( const std::string& ) ), this, SLOT( highlightGroup( const std::string& ) ) );
+  connect( aiw_, SIGNAL( unhighlightAll() ), this, SLOT( unhighlightAll() ) );
 
   // Configuration Files
   cfw_ = new ConfigurationFilesWidget( this, config_data_ );
@@ -341,11 +349,11 @@ void SetupAssistantWidget::loadRviz()
 // ******************************************************************************************
 // Highlight a robot link
 // ******************************************************************************************
-void SetupAssistantWidget::highlightLink( const std::string& link_name )
+void SetupAssistantWidget::highlightLink( const std::string& link_name, const QColor& color )
 {
   const robot_model::LinkModel *lm = config_data_->getRobotModel()->getLinkModel(link_name);
   if (!lm->getShapes().empty()) // skip links with no geometry
-    robot_state_display_->setLinkColor( link_name, QColor(255, 0, 0) );
+    robot_state_display_->setLinkColor( link_name, color );
 }
 
 // ******************************************************************************************
@@ -365,7 +373,7 @@ void SetupAssistantWidget::highlightGroup( const std::string& group_name )
     // Iterate through the links
     for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
          link_it < link_models.end(); ++link_it )
-      highlightLink( (*link_it)->getName() );
+      highlightLink( (*link_it)->getName(), QColor(255, 0, 0) );
   }
 }
 

@@ -1,7 +1,7 @@
 # moveit/moveit:kinetic-source
 # Downloads the moveit source code, install remaining debian dependencies, and builds workspace
 
-FROM osrf/ros:kinetic-desktop
+FROM moveit/moveit:kinetic-ci
 MAINTAINER Dave Coleman dave@dav.ee
 
 ENV CATKIN_WS=/root/ws_moveit
@@ -14,17 +14,11 @@ RUN wstool init . && \
     wstool update
 
 # Update apt-get because osrf image clears this cache. download deps
-RUN echo 'deb http://packages.ros.org/ros-shadow-fixed/ubuntu xenial main' | tee --append /etc/apt/sources.list.d/ros-latest.list && \
-    rosdep update && \
-    apt-get -qq update && \
+# Note that because we're building on top of kinetic-ci, there should not be any deps installed
+# unless something has changed in the source code since the other container was made
+# (they are triggered together so should only be one-build out of sync)
+RUN apt-get -qq update && \
     apt-get -qq install -y \
-        python-catkin-tools  \
-        less \
-        ssh \
-        emacs \
-        git-core \
-        bash-completion \
-        tree \
         wget && \
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \

@@ -36,6 +36,7 @@
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space.h>
+#include <moveit_resources/config.h>
 
 #include <urdf_parser/urdf_parser.h>
 
@@ -44,7 +45,6 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include <boost/filesystem/path.hpp>
-#include <ros/package.h>
 
 class LoadPlanningModelsPr2 : public testing::Test
 {
@@ -52,17 +52,11 @@ protected:
 
   virtual void SetUp()
   {
-    std::string resource_dir = ros::package::getPath("moveit_resources");
-    if(resource_dir == "")
-    {
-      FAIL() << "Failed to find package moveit_resources.";
-      return;
-    }
-    boost::filesystem::path res_path(resource_dir);
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
     srdf_model_.reset(new srdf::Model());
     std::string xml_string;
-    std::fstream xml_file((res_path / "test/urdf/robot.xml").string().c_str(), std::fstream::in);
+    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
     {
       while (xml_file.good())
@@ -74,7 +68,7 @@ protected:
       xml_file.close();
       urdf_model_ = urdf::parseURDF(xml_string);
     }
-    srdf_model_->initFile(*urdf_model_, (res_path / "test/srdf/robot.xml").string());
+    srdf_model_->initFile(*urdf_model_, (res_path / "pr2_description/srdf/robot.xml").string());
     robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
   };
 
@@ -84,7 +78,7 @@ protected:
 
 protected:
   robot_model::RobotModelPtr robot_model_;
-  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
+  urdf::ModelInterfaceSharedPtr      urdf_model_;
   boost::shared_ptr<srdf::Model>     srdf_model_;
   bool                               urdf_ok_;
   bool                               srdf_ok_;

@@ -142,6 +142,13 @@ bool KDLKinematicsPlugin::initialize(const std::string &robot_description,
   }
 
   ros::NodeHandle private_handle("~");
+  rdf_loader::RDFLoader rdf_loader(robot_description_);
+  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
+  const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
+
+  if (!urdf_model || !srdf)
+
+  ros::NodeHandle private_handle("~");
 
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(group_name);
   if (!joint_model_group)

@@ -37,6 +37,7 @@
 #ifndef MOVEIT_MESH_FILTER_SENSOR_MODEL_
 #define MOVEIT_MESH_FILTER_SENSOR_MODEL_
 
+#include <moveit/macros/class_forward.h>
 #include <Eigen/Eigen>
 
 namespace mesh_filter
@@ -52,6 +53,9 @@ class GLRenderer;
 class SensorModel
 {
 public:
+
+  MOVEIT_CLASS_FORWARD(Parameters);
+
   /**
    * \brief Abstract Interface defining Sensor Parameters.
    * \author Suat Gedikli <gedikli@willowgarage.com>

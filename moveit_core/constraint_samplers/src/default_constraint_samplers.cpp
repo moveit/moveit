@@ -380,6 +380,13 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d &pos, 
                                                           const robot_state::RobotState &ks,
                                                           unsigned int max_attempts)
 {
+  if ( ks.dirtyLinkTransforms() )
+  {
+    // samplePose below requires accurate transforms
+    logError("IKConstraintSampler received dirty robot state, but valid transforms are required. Failing.");
+    return false;
+  }
+
   if (sampling_pose_.position_constraint_)
   {
     const std::vector<bodies::BodyPtr> &b = sampling_pose_.position_constraint_->getConstraintRegions();

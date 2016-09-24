@@ -41,6 +41,7 @@
 #include <visualization_msgs/InteractiveMarker.h>
 #include <geometry_msgs/PoseArray.h>
 #include <interactive_markers/menu_handler.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_interaction/interaction.h>
 #include <boost/function.hpp>
@@ -58,12 +59,9 @@ class InteractiveMarkerServer;
 namespace robot_interaction
 {
 
-class InteractionHandler;
-typedef boost::shared_ptr<InteractionHandler> InteractionHandlerPtr;
-
-class KinematicOptionsMap;
-typedef boost::shared_ptr<KinematicOptionsMap> KinematicOptionsMapPtr;
-
+MOVEIT_CLASS_FORWARD(InteractionHandler);
+MOVEIT_CLASS_FORWARD(KinematicOptionsMap);
+MOVEIT_CLASS_FORWARD(RobotInteraction);
 
 // Manage interactive markers for controlling a robot state.
 //
@@ -307,10 +305,6 @@ public:
             const kinematics::KinematicsQueryOptions &kinematics_query_options =
                                 kinematics::KinematicsQueryOptions());
 };
-
-typedef boost::shared_ptr<RobotInteraction> RobotInteractionPtr;
-typedef boost::shared_ptr<const RobotInteraction> RobotInteractionConstPtr;
-
 
 }
 
