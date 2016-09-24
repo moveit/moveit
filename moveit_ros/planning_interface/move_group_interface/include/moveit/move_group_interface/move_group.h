@@ -829,8 +829,7 @@ private:
 };
 
 }
+
 }
-// for backward compatibility; remove in hydro
-namespace move_group_interface=moveit::planning_interface;
 
 #endif
