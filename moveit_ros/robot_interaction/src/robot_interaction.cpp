@@ -188,7 +188,7 @@ void RobotInteraction::decideActiveJoints(const std::string &group)
   if (group.empty())
     return;
 
-  const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
+  const srdf::ModelConstSharedPtr &srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
@@ -264,7 +264,7 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
   if (group.empty())
     return;
 
-  const boost::shared_ptr<const srdf::Model> &srdf = robot_model_->getSRDF();
+  const srdf::ModelConstSharedPtr &srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup *jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)

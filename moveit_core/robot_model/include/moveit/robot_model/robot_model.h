@@ -73,7 +73,7 @@ public:
 
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
   RobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
-             const boost::shared_ptr<const srdf::Model> &srdf_model);
+             const srdf::ModelConstSharedPtr &srdf_model);
 
   /** \brief Destructor. Clear all memory. */
   ~RobotModel();
@@ -106,7 +106,7 @@ public:
   }
 
   /** \brief Get the parsed SRDF model */
-  const boost::shared_ptr<const srdf::Model>& getSRDF() const
+  const srdf::ModelConstSharedPtr& getSRDF() const
   {
     return srdf_;
   }
@@ -440,9 +440,9 @@ protected:
   /** \brief The reference frame for this model */
   std::string                                   model_frame_;
 
-  boost::shared_ptr<const srdf::Model>          srdf_;
+  srdf::ModelConstSharedPtr                     srdf_;
 
-  urdf::ModelInterfaceSharedPtr urdf_;
+  urdf::ModelInterfaceSharedPtr                 urdf_;
 
 
   // LINKS
