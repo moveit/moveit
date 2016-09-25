@@ -45,54 +45,48 @@ int main(int argc, char** argv)
   opt.origin.x = 0.0;
   opt.origin.y = -1.0;
   opt.origin.z = -1.0;
-  
+
   opt.workspace_size[0] = 2.0;
   opt.workspace_size[1] = 2.0;
   opt.workspace_size[2] = 2.0;
-    
-  opt.resolution[0] = 0.01;  
-  opt.resolution[1] = 0.01;  
-  opt.resolution[2] = 0.01;  
+
+  opt.resolution[0] = 0.01;
+  opt.resolution[1] = 0.01;
+  opt.resolution[2] = 0.01;
   opt.max_solutions_per_grid_location = 2;
 
-  kinematics_cache_ros::KinematicsCacheROS pr2_kinematics_cache;  
+  kinematics_cache_ros::KinematicsCacheROS pr2_kinematics_cache;
   ros::NodeHandle private_handle("~");
-  
 
-  if(!pr2_kinematics_cache.init(opt,"pr2_arm_kinematics/PR2ArmKinematicsPlugin",
-                                "right_arm",
-                                "torso_lift_link",
-                                "r_wrist_roll_link",
-                                0.01))
-    return(0);
-  
+  if (!pr2_kinematics_cache.init(opt, "pr2_arm_kinematics/PR2ArmKinematicsPlugin", "right_arm", "torso_lift_link",
+                                 "r_wrist_roll_link", 0.01))
+    return (0);
+
   pr2_kinematics_cache.generateCacheMap(10.0);
-  
+
   geometry_msgs::Pose point;
   point.position.x = 0.0;
   point.position.y = -1.0;
   point.position.z = -1.0;
-  
-  unsigned int max_num = 200;
-  
-  for(unsigned int i=0; i < max_num; ++i)
-  {
-    point.position.x = opt.origin.x + i/100.0;    
-    for(unsigned int j=0; j < max_num; ++j)
-    {
-      point.position.y = opt.origin.y + j/100.0;
-      for(unsigned int k=0; k < max_num; ++k)
-      {
-        point.position.z = opt.origin.z + k/100.0;
-        unsigned int num_solutions(0);  
-        if(!pr2_kinematics_cache.getNumSolutions(point,num_solutions))
-          ROS_ERROR("Outside grid");
-        else
-          if(num_solutions > 0)
-            ROS_INFO("Num solutions: %d",num_solutions);
-      }
-    }    
-  }      
-  return(0);
-}
 
+  unsigned int max_num = 200;
+
+  for (unsigned int i = 0; i < max_num; ++i)
+  {
+    point.position.x = opt.origin.x + i / 100.0;
+    for (unsigned int j = 0; j < max_num; ++j)
+    {
+      point.position.y = opt.origin.y + j / 100.0;
+      for (unsigned int k = 0; k < max_num; ++k)
+      {
+        point.position.z = opt.origin.z + k / 100.0;
+        unsigned int num_solutions(0);
+        if (!pr2_kinematics_cache.getNumSolutions(point, num_solutions))
+          ROS_ERROR("Outside grid");
+        else if (num_solutions > 0)
+          ROS_INFO("Num solutions: %d", num_solutions);
+      }
+    }
+  }
+  return (0);
+}

@@ -43,12 +43,17 @@
 
 namespace collision_detection
 {
-  /** \brief An allocator for Hybrid collision detectors */
-  class CollisionDetectorAllocatorHybrid : public CollisionDetectorAllocatorTemplate<CollisionWorldHybrid, CollisionRobotHybrid, CollisionDetectorAllocatorHybrid>
+/** \brief An allocator for Hybrid collision detectors */
+class CollisionDetectorAllocatorHybrid
+    : public CollisionDetectorAllocatorTemplate<CollisionWorldHybrid, CollisionRobotHybrid,
+                                                CollisionDetectorAllocatorHybrid>
+{
+public:
+  static const std::string NAME_;  // defined in collision_world_hybrid.cpp
+  virtual ~CollisionDetectorAllocatorHybrid()
   {
-  public:
-    static const std::string NAME_; // defined in collision_world_hybrid.cpp
-  };
+  }
+};
 }
 
 #endif
