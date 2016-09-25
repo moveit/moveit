@@ -15,7 +15,7 @@ CHOMPPlanningContext::CHOMPPlanningContext(const std::string &name, const std::s
 {
   chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
 
-  boost::shared_ptr<collision_detection::CollisionDetectorAllocator> hybrid_cd(
+  collision_detection::CollisionDetectorAllocatorPtr hybrid_cd(
       collision_detection::CollisionDetectorAllocatorHybrid::create());
 
   if (!this->getPlanningScene())
