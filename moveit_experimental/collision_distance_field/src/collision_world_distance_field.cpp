@@ -529,13 +529,13 @@ void CollisionWorldDistanceField::updateDistanceObject(
         const shapes::OcTree *octree_shape = static_cast<const shapes::OcTree *>(shape.get());
         std::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
 
-        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(octree));
+        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree));
       }
       else
       {
         BodyDecompositionConstPtr bd = getBodyDecompositionCacheEntry(shape, resolution_);
 
-        shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
+        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(bd, object->shape_poses_[i]));
       }
 
       add_points.insert(add_points.end(), shape_points.back()->getCollisionPoints().begin(),
