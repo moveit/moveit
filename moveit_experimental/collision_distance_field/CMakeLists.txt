@@ -8,8 +8,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/collision_robot_hybrid.cpp
   src/collision_world_hybrid.cpp
 )
-# This line is needed to ensure that messages are done being built before this is built
-add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
+
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
@@ -25,9 +24,9 @@ target_link_libraries(collision_detector_hybrid_plugin ${catkin_LIBRARIES} ${MOV
 
 install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_hybrid_plugin
   LIBRARY DESTINATION lib)
-  
+
 install(DIRECTORY include/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-  
+
 install(FILES collision_detector_hybrid_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
