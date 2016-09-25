@@ -527,7 +527,7 @@ void CollisionWorldDistanceField::updateDistanceObject(
       if (shape->type == shapes::OCTREE)
       {
         const shapes::OcTree *octree_shape = static_cast<const shapes::OcTree *>(shape.get());
-        boost::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
+        std::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
 
         shape_points.push_back(boost::make_shared<PosedBodyPointDecomposition>(octree));
       }

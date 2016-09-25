@@ -117,20 +117,20 @@ public:
   {
   }
 
-  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state) const
+  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, bool verbose = false) const
   {
     return 0.0;
   }
   virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state,
-                               const AllowedCollisionMatrix &acm) const
+                               const AllowedCollisionMatrix &acm, bool verbose = false) const
   {
     return 0.0;
   }
-  virtual double distanceWorld(const CollisionWorld &world) const
+  virtual double distanceWorld(const CollisionWorld &world, bool verbose = false) const
   {
     return 0.0;
   }
-  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const
+  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm, bool verbose = false) const
   {
     return 0.0;
   }

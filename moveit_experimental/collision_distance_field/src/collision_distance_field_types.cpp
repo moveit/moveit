@@ -340,7 +340,7 @@ collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
 }
 
 collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
-    boost::shared_ptr<const octomap::OcTree> octree)
+    std::shared_ptr<const octomap::OcTree> octree)
   : body_decomposition_()
 {
   int num_nodes = octree->getNumLeafNodes();
