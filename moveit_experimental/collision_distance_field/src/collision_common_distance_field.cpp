@@ -38,16 +38,20 @@
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 #include <eigen_conversions/eigen_msg.h>
+#include <memory>
 
 namespace collision_detection
 {
 struct BodyDecompositionCache
 {
+  using Comperator = std::owner_less<std::weak_ptr<const shapes::Shape>>;
+  using Map        = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
+
   BodyDecompositionCache() : clean_count_(0)
   {
   }
   static const unsigned int MAX_CLEAN_COUNT = 100;
-  std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr> map_;
+  Map map_;
   unsigned int clean_count_;
   boost::mutex lock_;
 };
@@ -62,10 +66,10 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
 {
   // TODO - deal with changing resolution?
   BodyDecompositionCache &cache = getBodyDecompositionCache();
-  boost::weak_ptr<const shapes::Shape> wptr(shape);
+  std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
-    std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr>::const_iterator cache_it =
+    BodyDecompositionCache::Map::const_iterator cache_it =
         cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {

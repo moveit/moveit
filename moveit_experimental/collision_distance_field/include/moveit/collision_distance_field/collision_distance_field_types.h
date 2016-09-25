@@ -41,6 +41,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 #include <float.h>
 
 #include <geometric_shapes/shapes.h>
