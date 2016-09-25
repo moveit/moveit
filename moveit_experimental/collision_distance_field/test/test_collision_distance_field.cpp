@@ -96,16 +96,16 @@ protected:
   bool urdf_ok_;
   bool srdf_ok_;
 
-  urdf::ModelInterfaceSharedPtr            urdf_model_;
-  boost::shared_ptr<srdf::Model>           srdf_model_;
+  urdf::ModelInterfaceSharedPtr    urdf_model_;
+  srdf::ModelSharedPtr             srdf_model_;
 
   robot_model::RobotModelPtr robot_model_;
 
   robot_state::TransformsPtr ftf_;
   robot_state::TransformsConstPtr ftf_const_;
 
-  boost::shared_ptr<collision_detection::CollisionRobot> crobot_;
-  boost::shared_ptr<collision_detection::CollisionWorld> cworld_;
+  collision_detection::CollisionRobotPtr crobot_;
+  collision_detection::CollisionWorldPtr cworld_;
 
   collision_detection::AllowedCollisionMatrixPtr acm_;
 };

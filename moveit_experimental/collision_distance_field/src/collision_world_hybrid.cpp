@@ -74,7 +74,7 @@ void CollisionWorldHybrid::checkCollisionDistanceField(const CollisionRequest &r
 void CollisionWorldHybrid::checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res,
                                                        const CollisionRobot &robot,
                                                        const robot_state::RobotState &state,
-                                                       boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                                       GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->checkCollision(req, res, robot, state, gsr);
 }
@@ -91,7 +91,7 @@ void CollisionWorldHybrid::checkCollisionDistanceField(const CollisionRequest &r
                                                        const CollisionRobot &robot,
                                                        const robot_state::RobotState &state,
                                                        const AllowedCollisionMatrix &acm,
-                                                       boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                                       GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->checkCollision(req, res, robot, state, acm, gsr);
 }
@@ -106,7 +106,7 @@ void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionReque
 void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res,
                                                             const CollisionRobot &robot,
                                                             const robot_state::RobotState &state,
-                                                            boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                                            GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->checkRobotCollision(req, res, robot, state, gsr);
 }
@@ -123,7 +123,7 @@ void CollisionWorldHybrid::checkRobotCollisionDistanceField(const CollisionReque
                                                             const CollisionRobot &robot,
                                                             const robot_state::RobotState &state,
                                                             const AllowedCollisionMatrix &acm,
-                                                            boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                                            GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->checkRobotCollision(req, res, robot, state, acm, gsr);
 }
@@ -140,7 +140,7 @@ void CollisionWorldHybrid::setWorld(const WorldPtr &world)
 void CollisionWorldHybrid::getCollisionGradients(const CollisionRequest &req, CollisionResult &res,
                                                  const CollisionRobot &robot, const robot_state::RobotState &state,
                                                  const AllowedCollisionMatrix *acm,
-                                                 boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                                 GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->getCollisionGradients(req, res, robot, state, acm, gsr);
 }
@@ -148,7 +148,7 @@ void CollisionWorldHybrid::getCollisionGradients(const CollisionRequest &req, Co
 void CollisionWorldHybrid::getAllCollisions(const CollisionRequest &req, CollisionResult &res,
                                             const CollisionRobot &robot, const robot_state::RobotState &state,
                                             const AllowedCollisionMatrix *acm,
-                                            boost::shared_ptr<GroupStateRepresentation> &gsr) const
+                                            GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->getAllCollisions(req, res, robot, state, acm, gsr);
 }

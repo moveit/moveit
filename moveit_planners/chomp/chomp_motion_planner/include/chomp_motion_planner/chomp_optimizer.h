@@ -131,7 +131,7 @@ private:
   const collision_detection::CollisionRobotHybrid* hy_robot_;
 
   std::vector<ChompCost> joint_costs_;
-  boost::shared_ptr<collision_detection::GroupStateRepresentation> gsr_;
+  collision_detection::GroupStateRepresentationPtr gsr_;
   bool initialized_;
 
   std::vector<std::vector<std::string> > collision_point_joint_names_;
