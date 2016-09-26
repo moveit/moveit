@@ -34,10 +34,10 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <ros/ros.h>
 
-void demoPick(moveit::planning_interface::MoveGroup &group)
+void demoPick(moveit::planning_interface::MoveGroupInterface &group)
 {
   std::vector<moveit_msgs::Grasp> grasps;
   for (std::size_t i = 0 ; i < 20 ; ++i)
@@ -71,7 +71,7 @@ void demoPick(moveit::planning_interface::MoveGroup &group)
   group.pick("bubu", grasps);
 }
 
-void demoPlace(moveit::planning_interface::MoveGroup &group)
+void demoPlace(moveit::planning_interface::MoveGroupInterface &group)
 {
   std::vector<moveit_msgs::PlaceLocation> loc;
   for (std::size_t i = 0 ; i < 20 ; ++i)
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  moveit::planning_interface::MoveGroup group(argc > 1 ? argv[1] : "right_arm");
+  moveit::planning_interface::MoveGroupInterface group(argc > 1 ? argv[1] : "right_arm");
   demoPlace(group);
 
   sleep(2);

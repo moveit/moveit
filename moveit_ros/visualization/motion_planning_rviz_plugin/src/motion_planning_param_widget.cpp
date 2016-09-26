@@ -35,7 +35,7 @@
 /* Author: Robert Haschke */
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_param_widget.h>
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <rviz/properties/int_property.h>
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/string_property.h>
@@ -55,7 +55,7 @@ MotionPlanningParamWidget::~MotionPlanningParamWidget()
 {
 }
 
-void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupPtr &mg)
+void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupInterfacePtr &mg)
 {
   move_group_ = mg;
   if (mg) setPlannerId(planner_id_);

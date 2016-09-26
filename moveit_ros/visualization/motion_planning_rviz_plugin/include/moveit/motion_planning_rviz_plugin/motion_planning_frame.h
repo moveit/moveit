@@ -43,7 +43,7 @@
 
 #ifndef Q_MOC_RUN
 #include <moveit/macros/class_forward.h>
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_interaction/robot_interaction.h>
@@ -115,11 +115,11 @@ protected:
   rviz::DisplayContext* context_;
   Ui::MotionPlanningUI *ui_;
 
-  moveit::planning_interface::MoveGroupPtr move_group_;
+  moveit::planning_interface::MoveGroupInterfacePtr move_group_;
   moveit::planning_interface::PlanningSceneInterfacePtr planning_scene_interface_;
   moveit::semantic_world::SemanticWorldPtr semantic_world_;
 
-  moveit::planning_interface::MoveGroup::PlanPtr current_plan_;
+  moveit::planning_interface::MoveGroupInterface::PlanPtr current_plan_;
   moveit_warehouse::PlanningSceneStoragePtr planning_scene_storage_;
   moveit_warehouse::ConstraintsStoragePtr constraints_storage_;
   moveit_warehouse::RobotStateStoragePtr robot_state_storage_;
