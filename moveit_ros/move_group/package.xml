@@ -26,6 +26,7 @@
 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_kinematics</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>pluginlib</run_depend>
