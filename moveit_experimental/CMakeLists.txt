@@ -42,6 +42,7 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
   LIBRARIES
     moveit_collision_distance_field
     collision_detector_hybrid_plugin
@@ -56,11 +57,10 @@ catkin_package(
     pluginlib
   DEPENDS
     Boost
-    Eigen3
     urdfdom
     urdfdom_headers
     console_bridge
-    )
+)
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIR}
