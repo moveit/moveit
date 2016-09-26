@@ -788,6 +788,49 @@ bool RobotState::isValidVelocityMove(const RobotState& other, const JointModelGr
         return false;
     }
   }
+  return true;
+}
+
+bool moveit::core::RobotState::isValidVelocityMove(const JointModelGroup* group,
+                                                   const std::vector<double>& from_joint_pose,
+                                                   const std::vector<double>& to_joint_pose, double dt) const
+{
+  // Check for equal sized arrays
+  if (from_joint_pose.size() != to_joint_pose.size())
+  {
+    ROS_ERROR_NAMED(LOGNAME, "To and from joint poses are of different sizes.");
+    return false;
+  }
+
+  return isValidVelocityMove(group, &from_joint_pose[0], &to_joint_pose[0], from_joint_pose.size(), dt);
+}
+
+bool moveit::core::RobotState::isValidVelocityMove(const JointModelGroup* group, const double* from_joint_pose,
+                                                   const double* to_joint_pose, std::size_t array_size, double dt) const
+{
+  const std::vector<const JointModel::Bounds*>& bounds = group->getActiveJointModelsBounds();
+  const std::vector<unsigned int>& bij = group->getKinematicsSolverJointBijection();
+
+  for (std::size_t i = 0; i < array_size; ++i)
+  {
+    double dtheta = std::abs(from_joint_pose[i] - to_joint_pose[i]);
+    const std::vector<moveit::core::VariableBounds>* var_bounds = bounds[bij[i]];
+
+    if (var_bounds->size() != 1)
+    {
+      // TODO(davetcoleman) Support multiple variables
+      ROS_ERROR_NAMED(LOGNAME, "Attempting to check velocity bounds for waypoint move with joints that have multiple variables");
+      return false;
+    }
+    const double max_velocity = (*var_bounds)[0].max_velocity_;
+
+    double max_dtheta = dt * max_velocity;
+    if (dtheta > max_dtheta)
+    {
+      ROS_DEBUG_NAMED(LOGNAME, "Not valid velocity move because of joint '%u'. ", i);
+      return false;
+    }
+  }
 
   return true;
 }

@@ -1552,6 +1552,15 @@ as the new values that correspond to the group */
    */
   bool isValidVelocityMove(const RobotState& other, const JointModelGroup* group, double dt) const;
 
+  /**
+   * \brief Check that the time to move between two waypoints is sufficient given velocity limits
+   */
+  bool isValidVelocityMove(const JointModelGroup* group, const std::vector<double>& from_joint_pose,
+                           const std::vector<double>& to_joint_pose, double dt) const;
+
+  bool isValidVelocityMove(const JointModelGroup* group, const double* from_joint_pose, const double* to_joint_pose,
+                           std::size_t array_size, double dt) const;
+
   /** @} */
 
   /** \name Managing attached bodies
