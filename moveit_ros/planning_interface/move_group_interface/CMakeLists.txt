@@ -1,6 +1,6 @@
 set(MOVEIT_LIB_NAME moveit_move_group_interface)
 
-add_library(${MOVEIT_LIB_NAME} src/move_group.cpp)
+add_library(${MOVEIT_LIB_NAME} src/move_group_interface.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_common_planning_interface_objects ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_library(${MOVEIT_LIB_NAME}_python src/wrap_python_move_group.cpp)
