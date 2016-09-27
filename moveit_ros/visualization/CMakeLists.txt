@@ -31,7 +31,8 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
   rostest
 )
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+
+find_package(Eigen3 REQUIRED)
 
 # Qt Stuff
 if(rviz_QT_VERSION VERSION_LESS "5")
@@ -65,11 +66,12 @@ catkin_package(
     planning_scene_rviz_plugin/include
     motion_planning_rviz_plugin/include
     trajectory_rviz_plugin/include
-    ${EIGEN3_INCLUDE_DIRS}
   CATKIN_DEPENDS
     moveit_ros_planning_interface
     moveit_ros_robot_interaction
-    )
+  DEPENDS
+    EIGEN3
+)
 
 catkin_install_python(PROGRAMS scripts/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 catkin_python_setup()

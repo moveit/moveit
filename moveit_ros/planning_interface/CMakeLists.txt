@@ -29,8 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rosconsole
 )
-find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+find_package(Eigen3 REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
   py_bindings_tools/include
@@ -47,14 +46,15 @@ catkin_package(
     moveit_planning_scene_interface
     moveit_move_group_interface
   INCLUDE_DIRS
-    ${EIGEN3_INCLUDE_DIRS}
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
     moveit_ros_planning
     moveit_ros_warehouse
     moveit_ros_manipulation
     moveit_ros_move_group
-    )
+  DEPENDS
+    EIGEN3
+)
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS})

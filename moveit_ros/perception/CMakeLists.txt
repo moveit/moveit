@@ -35,8 +35,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   moveit_msgs
 )
-find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+
+find_package(Eigen3 REQUIRED)
 
 find_package(OpenMP)
 find_package(octomap REQUIRED)
@@ -51,7 +51,6 @@ catkin_package(
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
     semantic_world/include
-    ${EIGEN3_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_lazy_free_space_updater
@@ -63,7 +62,10 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     image_transport
-    moveit_msgs)
+    moveit_msgs
+  DEPENDS
+    EIGEN3
+)
 
 include_directories(mesh_filter/include
                     lazy_free_space_updater/include

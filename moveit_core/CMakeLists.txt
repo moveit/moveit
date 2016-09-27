@@ -82,7 +82,6 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 
 catkin_package(
   INCLUDE_DIRS
-    ${EIGEN3_INCLUDE_DIR}
     ${THIS_PACKAGE_INCLUDE_DIRS}
   LIBRARIES
     moveit_exceptions

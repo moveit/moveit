@@ -19,8 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   actionlib
 )
-find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3)
+find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED thread system filesystem date_time program_options)
 
 generate_dynamic_reconfigure_options("pick_place/cfg/PickPlaceDynamicReconfigure.cfg")
@@ -29,13 +28,14 @@ catkin_package(
   INCLUDE_DIRS
     pick_place/include
     move_group_pick_place_capability/include
-    ${EIGEN3_INCLUDE_DIRS}
   LIBRARIES
     moveit_pick_place_planner
   CATKIN_DEPENDS
     moveit_core
     moveit_ros_planning
-    )
+  DEPENDS
+    EIGEN3
+)
 
 include_directories(pick_place/include)
 include_directories(move_group_pick_place_capability/include)
