@@ -1448,7 +1448,7 @@ private:
   Eigen::Affine3d                       *global_collision_body_transforms_;  // this points to an element in transforms_, so it is aligned
   unsigned char                         *dirty_joint_transforms_;
 
-  /** \brief The attached bodies that are part of this state (from all links) */
+  /** \brief All attached bodies that are part of this state, indexed by their name */
   std::map<std::string, AttachedBody*>   attached_body_map_;
 
   /** \brief This event is called when there is a change in the attached bodies for this state;
