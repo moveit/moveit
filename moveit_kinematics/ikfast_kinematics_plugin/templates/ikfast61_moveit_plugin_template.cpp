@@ -303,7 +303,7 @@ private:
   * @brief samples the designated redundant joint using the chosen discretization method
   * @param  method              An enumeration flag indicating the discretization method to be used
   * @param  sampled_joint_vals  Sampled joint values for the redundant joint
-  * @return True if sampling succeeded.   
+  * @return True if sampling succeeded.
   */
   bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
@@ -726,7 +726,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                            moveit_msgs::MoveItErrorCodes &error_code,
                                            const kinematics::KinematicsQueryOptions &options) const
 {
-  const IKCallbackFn solution_callback = 0; 
+  const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
 
   return searchPositionIK(ik_pose,
@@ -738,7 +738,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                           error_code,
                           options);
 }
-    
+
 bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
                                            const std::vector<double> &ik_seed_state,
                                            double timeout,
@@ -747,7 +747,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                                            moveit_msgs::MoveItErrorCodes &error_code,
                                            const kinematics::KinematicsQueryOptions &options) const
 {
-  const IKCallbackFn solution_callback = 0; 
+  const IKCallbackFn solution_callback = 0;
   return searchPositionIK(ik_pose,
                           ik_seed_state,
                           timeout,
@@ -890,7 +890,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
   ROS_DEBUG_STREAM_NAMED("ikfast","Free param is " << free_params_[0] << " initial guess is " << initial_guess << ", # positive increments: " << num_positive_increments << ", # negative increments: " << num_negative_increments);
   if ((search_mode & OPTIMIZE_MAX_JOINT) && (num_positive_increments + num_negative_increments) > 1000)
       ROS_WARN_STREAM_ONCE_NAMED("ikfast", "Large search space, consider increasing the search discretization");
-  
+
   double best_costs = -1.0;
   std::vector<double> best_solution;
   int nattempts = 0, nvalid = 0;
@@ -999,7 +999,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose,
 
   if(!active_)
   {
-    ROS_ERROR("kinematics not active");    
+    ROS_ERROR("kinematics not active");
     return false;
   }
 
