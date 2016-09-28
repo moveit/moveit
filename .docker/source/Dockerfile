@@ -1,7 +1,7 @@
 # moveit/moveit:kinetic-source
 # Downloads the moveit source code, install remaining debian dependencies, and builds workspace
 
-FROM moveit/moveit:kinetic-ci
+FROM moveit/moveit:kinetic-ci-shadow-fixed
 MAINTAINER Dave Coleman dave@dav.ee
 
 ENV CATKIN_WS=/root/ws_moveit
@@ -33,4 +33,6 @@ WORKDIR $CATKIN_WS
 ENV TERM xterm
 ENV PYTHONIOENCODING UTF-8
 RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-    catkin build --jobs 1
+    # Status rate is limited so that just enough info is shown to keep Docker from timing out, but not too much
+    # such that the Docker log gets too long (another form of timeout)
+    catkin build --jobs 1 --limit-status-rate 0.001 --no-notify

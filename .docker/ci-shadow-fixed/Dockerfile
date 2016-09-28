@@ -26,6 +26,8 @@ RUN wstool init . && \
     apt-get -qq dist-upgrade && \
     # Install some base dependencies
     apt-get -qq install -y \
+        # Some source builds require a package.xml be downloaded via wget from an external location
+        wget \
         # Required for rosdep command
         sudo \
         # Required for installing dependencies
