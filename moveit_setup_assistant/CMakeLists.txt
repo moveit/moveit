@@ -69,7 +69,6 @@ set(HEADERS
 # Tools Library
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
-  src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
 )
 target_link_libraries(${PROJECT_NAME}_tools

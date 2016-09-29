@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mathias Lüdtke, Dave Coleman */
 
 #ifndef MOVEIT_PLANNING_RDF_LOADER_
 #define MOVEIT_PLANNING_RDF_LOADER_
@@ -81,6 +81,24 @@ public:
   {
     return srdf_;
   }
+
+  /** @brief determine if given path points to a xacro file */
+  static bool isXacroFile(const std::string& path);
+
+  /** @brief load file from given path into buffer */
+  static bool loadFileToString(std::string& buffer, const std::string& path);
+
+  /** @brief run xacro with the given args on the file, return result in buffer */
+  static bool loadXacroFileToString(std::string& buffer, const std::string& path,
+                                    const std::vector<std::string>& xacro_args);
+
+  /** @brief helper that branches between loadFileToString() and loadXacroFileToString() based on result of isXacroFile() */
+  static bool loadXmlFileToString(std::string& buffer, const std::string& path,
+                                  const std::vector<std::string>& xacro_args);
+
+  /** @brief helper that generates a file path based on package name and relative file path to package */
+  static bool loadPkgFileToString(std::string& buffer, const std::string& package_name,
+                                  const std::string& relative_path, const std::vector<std::string>& xacro_args);
 
 private:
 
