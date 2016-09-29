@@ -45,6 +45,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_state/conversions.h>
@@ -57,6 +58,7 @@
 #include <moveit_msgs/GetCartesianPath.h>
 #include <moveit_msgs/GetPlannerParams.h>
 #include <moveit_msgs/SetPlannerParams.h>
+#include <moveit_msgs/GraspPlanning.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -73,6 +75,8 @@ namespace planning_interface
 {
 
 const std::string MoveGroup::ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
+
+const std::string GRASP_PLANNING_SERVICE_NAME = "plan_grasps"; // name of the service that can be used to plan grasps
 
 namespace
 {
@@ -162,6 +166,7 @@ public:
     set_params_service_ = node_handle_.serviceClient<moveit_msgs::SetPlannerParams>(move_group::SET_PLANNER_PARAMS_SERVICE_NAME);
 
     cartesian_path_service_ = node_handle_.serviceClient<moveit_msgs::GetCartesianPath>(move_group::CARTESIAN_PATH_SERVICE_NAME);
+    plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
 
     ROS_INFO_STREAM("Ready to take MoveGroup commands for group " << opt.group_name_ << ".");
   }
@@ -652,6 +657,47 @@ public:
       ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": " << pick_action_client_->getState().getText());
       return MoveItErrorCode(pick_action_client_->getResult()->error_code);
     }
+  }
+
+  MoveItErrorCode planGraspsAndPick(const std::string &object)
+  {
+    moveit::planning_interface::PlanningSceneInterface psi;
+
+    std::map<std::string, moveit_msgs::CollisionObject> objects = psi.getObjects(std::vector<std::string>(1,object));
+
+    if (objects.size() < 1)
+    {
+      ROS_ERROR_STREAM("Asked for grasps for the object '" << object << "', but the object could not be found");
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
+    }
+
+    return planGraspsAndPick(objects[object]);
+  }
+
+  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject &object)
+  {
+    if (!plan_grasps_service_)
+    {
+      ROS_ERROR_STREAM("Grasp planning service '" << GRASP_PLANNING_SERVICE_NAME << "' is not available."
+                       " This has to be implemented and started separately.");
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
+
+    moveit_msgs::GraspPlanning::Request request;
+    moveit_msgs::GraspPlanning::Response response;
+
+    request.group_name = opt_.group_name_;
+    request.target = object;
+    request.support_surfaces.push_back(support_surface_);
+
+    ROS_DEBUG("Calling grasp planner...");
+    if (!plan_grasps_service_.call(request, response) || response.error_code.val != moveit_msgs::MoveItErrorCodes::SUCCESS)
+    {
+      ROS_ERROR("Grasp planning failed. Unable to pick.");
+      return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
+    }
+
+    return pick(object.id, response.grasps);
   }
 
   MoveItErrorCode plan(Plan &plan)
@@ -1177,6 +1223,7 @@ private:
   ros::ServiceClient get_params_service_;
   ros::ServiceClient set_params_service_;
   ros::ServiceClient cartesian_path_service_;
+  ros::ServiceClient plan_grasps_service_;
   boost::scoped_ptr<moveit_warehouse::ConstraintsStorage> constraints_storage_;
   boost::scoped_ptr<boost::thread> constraints_init_thread_;
   bool initializing_constraints_;
@@ -1324,6 +1371,16 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps)
 {
   return impl_->pick(object, grasps);
+}
+
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::planGraspsAndPick(const std::string &object)
+{
+  return impl_->planGraspsAndPick(object);
+}
+
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::planGraspsAndPick(const moveit_msgs::CollisionObject &object)
+{
+  return impl_->planGraspsAndPick(object);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroup::place(const std::string &object)
