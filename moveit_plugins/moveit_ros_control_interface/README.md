@@ -1,4 +1,4 @@
-# Overview
+# MoveIt! ROS Control Plugin
 
 This package provides plugins of base class `moveit_controller_manager::MoveItControllerManager` and a new plugin base class for `moveit_controller_manager::MoveItControllerHandle` allocators.
 The allocator class is necessary because `moveit_controller_manager::MoveItControllerHandle` needs a name passed to the constructor.
