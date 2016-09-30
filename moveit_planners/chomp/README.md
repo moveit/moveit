@@ -4,7 +4,7 @@
 
 * Clone the repository into your workspace's source directory.
 
-> git clone https://github.com/ksatyaki/moveit.git
+> git clone https://github.com/ros-planning/moveit.git
 
 * cd to the directory you just cloned and checkout the indigo-devel branch.
 
