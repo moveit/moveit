@@ -46,6 +46,7 @@
 #include <QGroupBox>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QRadioButton>
 #include <QSpinBox>
 #include <QThread>
 
@@ -71,6 +72,12 @@ class DefaultCollisionsWidget : public SetupScreenWidget
   Q_OBJECT
 
 public:
+  enum ViewMode
+  {
+    MatrixMode = 0,
+    LinearMode = 1
+  };
+
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -131,7 +138,8 @@ private Q_SLOTS:
   /**
   * \brief Called when current row has changed
   */
-  void previewSelected(const QModelIndex &index);
+  void previewSelectedMatrix(const QModelIndex &index);
+  void previewSelectedLinear(const QModelIndex &index);
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
@@ -161,6 +169,7 @@ private:
   QLabel *fraction_label_;
   QSpinBox *fraction_spinbox_;
   QPushButton *btn_revert_;
+  QButtonGroup *view_mode_buttons_;
 
   // ******************************************************************************************
   // Variables

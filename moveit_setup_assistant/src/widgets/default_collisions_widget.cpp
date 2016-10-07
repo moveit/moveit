@@ -40,9 +40,12 @@
 #include <QString>
 #include <QFont>
 #include <QApplication>
+#include <QButtonGroup>
+#include <QRadioButton>
 #include "default_collisions_widget.h"
 #include "collision_matrix_model.h"
 #include "collision_linear_model.h"
+#include "rotated_header_view.h"
 #include <ros/console.h>
 
 namespace moveit_setup_assistant
@@ -154,6 +157,19 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   bottom_layout->setAlignment(Qt::AlignRight);
   layout_->addLayout(bottom_layout);
 
+  // View Mode Buttons
+  view_mode_buttons_ = new QButtonGroup(this);
+  QRadioButton *radio_btn;
+  radio_btn = new QRadioButton("linear view");
+  bottom_layout->addWidget(radio_btn);
+  view_mode_buttons_->addButton(radio_btn, LinearMode);
+  radio_btn->setChecked(true);
+
+  radio_btn = new QRadioButton("matrix view");
+  bottom_layout->addWidget(radio_btn);
+  view_mode_buttons_->addButton(radio_btn, MatrixMode);
+  connect(view_mode_buttons_, SIGNAL(buttonClicked(int)), this, SLOT(loadCollisionTable()));
+
   // Revert Button
   btn_revert_ = new QPushButton(this);
   btn_revert_->setText("&Revert");
@@ -236,33 +252,67 @@ void DefaultCollisionsWidget::loadCollisionTable()
 {
   CollisionMatrixModel *matrix_model = new CollisionMatrixModel(
       link_pairs_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
-  CollisionLinearModel *linear_model = new CollisionLinearModel(matrix_model);
-  collision_table_->setModel(linear_model);
+  QAbstractItemModel *model;
+
+  if (view_mode_buttons_->checkedId() == MatrixMode)
+    model = matrix_model;
+  else
+    model = new CollisionLinearModel(matrix_model);
+
+  collision_table_->setModel(model);
   // delete old and remember new model
   delete model_;
-  model_ = linear_model;
+  model_ = model;
 
   // delete old and fetch new selection model
   delete selection_model_;
   selection_model_ = collision_table_->selectionModel();
 
-  connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(previewSelected(QModelIndex)));
+  QHeaderView *horizontal_header, *vertical_header;
 
-  collision_table_->setSortingEnabled(true);
-  collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
-  collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
-  // collision_table_->setHorizontalHeader(new RotatedHeaderView(Qt::Horizontal));
-  // collision_table_->setVerticalHeader(new RotatedHeaderView(Qt::Vertical));
+  // activate some model-specific settings
+  if (view_mode_buttons_->checkedId() == MatrixMode)
+  {
+    connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
+            SLOT(previewSelectedMatrix(QModelIndex)));
 
+    collision_table_->setSortingEnabled(false);
+    collision_table_->setSelectionBehavior(QAbstractItemView::SelectItems);
+    collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    collision_table_->setHorizontalHeader(horizontal_header = new RotatedHeaderView(Qt::Horizontal, this));
+    collision_table_->setVerticalHeader(vertical_header = new RotatedHeaderView(Qt::Vertical, this));
+  }
+  else
+  {
+    connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
+            SLOT(previewSelectedLinear(QModelIndex)));
+
+    collision_table_->setSortingEnabled(true);
+    collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    collision_table_->setHorizontalHeader(horizontal_header = new QHeaderView(Qt::Horizontal, this));
+    collision_table_->setVerticalHeader(vertical_header = new QHeaderView(Qt::Vertical, this));
+  }
+
+  // notice changes to the model
   connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this,
           SLOT(collisionsChanged(QModelIndex)));
+
+  // configure headers
+  horizontal_header->setVisible(true);
+  vertical_header->setVisible(true);
 }
 
 void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
 {
   btn_revert_->setEnabled(true);  // enable revert button
-  selection_model_->setCurrentIndex(index, QItemSelectionModel::Select | QItemSelectionModel::Current |
-                                               QItemSelectionModel::Rows);
+  QItemSelectionModel::SelectionFlags flags = QItemSelectionModel::Select | QItemSelectionModel::Current;
+  if (view_mode_buttons_->checkedId() == LinearMode)
+    flags |= QItemSelectionModel::Rows;
+
+  selection_model_->setCurrentIndex(index, flags);
 }
 
 void DefaultCollisionsWidget::revertChanges()
@@ -370,7 +420,33 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void DefaultCollisionsWidget::previewSelected(const QModelIndex &index)
+void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex &index)
+{
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
+
+  if (!index.isValid())
+    return;
+
+  // normalize index
+  int r = index.row();
+  int c = index.column();
+  if (r == c)
+    return;
+  if (r > c)
+    std::swap(r, c);
+
+  // Highlight link pair
+  const QString &first_link = model_->headerData(r, Qt::Vertical, Qt::DisplayRole).toString();
+  const QString &second_link = model_->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+  uint check_state = model_->data(index, Qt::CheckStateRole).toUInt();
+
+  QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
+  Q_EMIT highlightLink(first_link.toStdString(), color);
+  Q_EMIT highlightLink(second_link.toStdString(), color);
+}
+
+void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex &index)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();

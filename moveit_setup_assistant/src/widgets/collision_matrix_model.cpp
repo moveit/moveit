@@ -130,6 +130,7 @@ bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &val
 
     QModelIndex mirror = createIndex(index.column(), index.row());
     Q_EMIT dataChanged(mirror, mirror);
+    Q_EMIT dataChanged(index, index);
     return true;
   }
   return false;  // reject all other changes
