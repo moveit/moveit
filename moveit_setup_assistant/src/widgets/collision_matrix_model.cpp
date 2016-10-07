@@ -52,6 +52,16 @@ static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const 
     ( moveit_setup_assistant::USER, "User Disabled" )
     ( moveit_setup_assistant::NOT_DISABLED, "");
 
+/// Boost mapping of reasons to a background color
+static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVariant> longReasonsToBrush =
+    boost::assign::map_list_of
+    ( moveit_setup_assistant::NEVER, QBrush(QColor("lightgreen")) )
+    ( moveit_setup_assistant::DEFAULT, QBrush(QColor("lightpink")) )
+    ( moveit_setup_assistant::ADJACENT, QBrush(QColor("powderblue")) )
+    ( moveit_setup_assistant::ALWAYS, QBrush(QColor("tomato")) )
+    ( moveit_setup_assistant::USER, QBrush(QColor("yellow")) )
+    ( moveit_setup_assistant::NOT_DISABLED, QBrush());
+
 CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &pairs,
                                            const std::vector<std::string> &names, QObject *parent)
   : QAbstractTableModel(parent), pairs(pairs), std_names(names)
@@ -94,6 +104,8 @@ QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
       return item->second.disable_check ? Qt::Checked : Qt::Unchecked;
     case Qt::ToolTipRole:
       return longReasonsToString.at(item->second.reason);
+    case Qt::BackgroundRole:
+      return longReasonsToBrush.at(item->second.reason);
   }
   return QVariant();
 }
