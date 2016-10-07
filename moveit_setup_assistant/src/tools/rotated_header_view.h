@@ -34,38 +34,21 @@
 
 /* Author: Robert Haschke */
 
-#ifndef COLLISIONMATRIXMODEL_H
-#define COLLISIONMATRIXMODEL_H
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H
 
-#include <QAbstractTableModel>
-#include <moveit/setup_assistant/tools/compute_default_collisions.h>
+#include <QHeaderView>
 
-class CollisionMatrixModel : public QAbstractTableModel
+namespace moveit_setup_assistant
 {
-  Q_OBJECT
+class RotatedHeaderView : public QHeaderView
+{
 public:
-  CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &pairs, const std::vector<std::string> &names,
-                       QObject *parent = NULL);
-  int rowCount(const QModelIndex &parent = QModelIndex()) const;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const;
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-  QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-  // for editing
-  Qt::ItemFlags flags(const QModelIndex &index) const;
-  bool setData(const QModelIndex &, const QVariant &value, int role);
-
-private:
-  moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex &index);
-  moveit_setup_assistant::LinkPairMap::const_iterator item(const QModelIndex &index) const
-  {
-    return const_cast<CollisionMatrixModel *>(this)->item(index);
-  }
-
-private:
-  moveit_setup_assistant::LinkPairMap &pairs;
-  const std::vector<std::string> std_names;
-  QList<QString> q_names;
+  RotatedHeaderView(Qt::Orientation orientation, QWidget *parent = NULL);
+  void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const;
+  QSize sectionSizeFromContents(int logicalIndex) const;
+  int sectionSizeHint(int logicalIndex) const;
 };
+}
 
-#endif  // COLLISIONMATRIXMODEL_H
+#endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H

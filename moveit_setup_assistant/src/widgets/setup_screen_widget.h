@@ -51,8 +51,11 @@ public:
   {
   }
 
-  /// Command to update GUI
+  /// function called when widget is activated, allows to update/initialize GUI
   virtual void focusGiven();
+
+  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
+  virtual bool focusLost();
 
 // ******************************************************************************************
 // Emitted Signal Functions
