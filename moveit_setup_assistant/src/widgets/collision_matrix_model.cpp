@@ -43,24 +43,24 @@
 using namespace moveit_setup_assistant;
 
 /// Boost mapping of reasons for disabling a link pair to strings
-static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
-    boost::assign::map_list_of
+static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char *> longReasonsToString =
+    boost::assign::map_list_of  // clang-format off
     ( moveit_setup_assistant::NEVER, "Never in Collision" )
     ( moveit_setup_assistant::DEFAULT, "Collision by Default" )
     ( moveit_setup_assistant::ADJACENT, "Adjacent Links" )
     ( moveit_setup_assistant::ALWAYS, "Always in Collision" )
     ( moveit_setup_assistant::USER, "User Disabled" )
-    ( moveit_setup_assistant::NOT_DISABLED, "");
+    ( moveit_setup_assistant::NOT_DISABLED, "");  // clang-format on
 
 /// Boost mapping of reasons to a background color
 static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVariant> longReasonsToBrush =
-    boost::assign::map_list_of
+    boost::assign::map_list_of  // clang-format off
     ( moveit_setup_assistant::NEVER, QBrush(QColor("lightgreen")) )
     ( moveit_setup_assistant::DEFAULT, QBrush(QColor("lightpink")) )
     ( moveit_setup_assistant::ADJACENT, QBrush(QColor("powderblue")) )
     ( moveit_setup_assistant::ALWAYS, QBrush(QColor("tomato")) )
     ( moveit_setup_assistant::USER, QBrush(QColor("yellow")) )
-    ( moveit_setup_assistant::NOT_DISABLED, QBrush());
+    ( moveit_setup_assistant::NOT_DISABLED, QBrush());  // clang-format on
 
 CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &pairs,
                                            const std::vector<std::string> &names, QObject *parent)

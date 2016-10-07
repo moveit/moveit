@@ -47,9 +47,11 @@
 #include <QProgressBar>
 #include <QCheckBox>
 #include <QSpinBox>
+#include <QThread>
 
 #ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
@@ -59,6 +61,8 @@
 
 namespace moveit_setup_assistant
 {
+class MonitorThread;
+
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
  */
@@ -95,10 +99,13 @@ private Q_SLOTS:
   // ******************************************************************************************
 
   /**
-   * \brief
-   Qt close event function for reminding user to saveCreates a thread and updates the GUI progress bar
+   * \brief start generating collision matrix in a worker thread
    */
-  void generateCollisionTable();
+  void startGeneratingCollisionTable();
+  /**
+   * \brief finish generating collision matrix after worker thread has finished
+   */
+  void finishGeneratingCollisionTable();
 
   /**
    * \brief GUI func for showing sampling density amount
@@ -107,7 +114,7 @@ private Q_SLOTS:
   void changeDensityLabel(int value);
 
   /**
-   * \brief Displays data in the link_pairs data structure into a QtTableWidget
+   * \brief Update view and data model for the link_pairs data structure
    */
   void loadCollisionTable();
 
@@ -117,9 +124,9 @@ private Q_SLOTS:
   void collisionsChanged(const QModelIndex &index);
 
   /**
-   * \brief Changes the table to show or hide collisions that are not disabled (that have collision checking enabled
+   * \brief Revert current changes to collision matrix
    */
-  void collisionCheckboxToggle();
+  void revertChanges();
 
   /**
   * \brief Called when current row has changed
@@ -130,6 +137,11 @@ private Q_SLOTS:
    * \brief Called when setup assistant navigation switches to this screen
    */
   void focusGiven();
+
+  /**
+   * \brief Called when setup assistant navigation switches away from this screen
+   */
+  bool focusLost();
 
 private:
   // ******************************************************************************************
@@ -146,15 +158,14 @@ private:
   QGroupBox *controls_box_;
   QProgressBar *progress_bar_;
   QLabel *progress_label_;
-  QCheckBox *collision_checkbox_;
-  QGroupBox *controls_box_bottom_;
   QLabel *fraction_label_;
   QSpinBox *fraction_spinbox_;
-  QTimer *update_timer_;
+  QPushButton *btn_revert_;
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
+  MonitorThread *worker_;
 
   /// main storage of link pair data
   moveit_setup_assistant::LinkPairMap link_pairs_;
@@ -171,13 +182,41 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
-  void generateCollisionTableThread(unsigned int *collision_progress);
+  void generateCollisionTable(unsigned int *collision_progress);
 
   /**
    * \brief Helper function to disable parts of GUI during computation
    * \param disable A command
    */
   void disableControls(bool disable);
+};
+
+/**
+ * \brief QThread to monitor progress of a boost::thread
+ */
+class MonitorThread : public QThread
+{
+  Q_OBJECT
+
+public:
+  MonitorThread(const boost::function<void(unsigned int *)> &f, QProgressBar *progress_bar = NULL);
+  void run();
+  void cancel()
+  {
+    canceled_ = true;
+  }
+  bool canceled() const
+  {
+    return canceled_;
+  }
+
+Q_SIGNALS:
+  void progress(int);
+
+private:
+  boost::thread worker_;
+  unsigned int progress_;
+  bool canceled_;
 };
 }
 

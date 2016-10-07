@@ -51,7 +51,7 @@ namespace moveit_setup_assistant
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
 DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDataPtr config_data)
-  : SetupScreenWidget(parent), config_data_(config_data), model_(NULL), selection_model_(NULL)
+  : SetupScreenWidget(parent), worker_(NULL), config_data_(config_data), model_(NULL), selection_model_(NULL)
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
@@ -70,13 +70,16 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox(this);
   layout_->addWidget(controls_box_);
-  QHBoxLayout *controls_box_layout = new QHBoxLayout(controls_box_);
-  controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  QVBoxLayout *controls_box_layout = new QVBoxLayout(controls_box_);
+
+  QHBoxLayout *slider_layout = new QHBoxLayout();
+  slider_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  controls_box_layout->addLayout(slider_layout);
 
   // Slider Label
   QLabel *density_left_label = new QLabel(this);
   density_left_label->setText("Sampling Density: Low");
-  controls_box_layout->addWidget(density_left_label);
+  slider_layout->addWidget(density_left_label);
 
   // Slider
   density_slider_ = new QSlider(this);
@@ -88,27 +91,41 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   density_slider_->setSliderPosition(9);  // 10,000 is default
   density_slider_->setTickInterval(10);
   density_slider_->setOrientation(Qt::Horizontal);
-  controls_box_layout->addWidget(density_slider_);
+  slider_layout->addWidget(density_slider_);
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Right Label
   QLabel *density_right_label = new QLabel(this);
   density_right_label->setText("High   ");
-  controls_box_layout->addWidget(density_right_label);
+  slider_layout->addWidget(density_right_label);
 
   // Slider Value Label
   density_value_label_ = new QLabel(this);
   density_value_label_->setMinimumWidth(50);
-  controls_box_layout->addWidget(density_value_label_);
+  slider_layout->addWidget(density_value_label_);
   changeDensityLabel(density_slider_->value());  // initialize label with value
+
+  QHBoxLayout *buttons_layout = new QHBoxLayout();
+  buttons_layout->setAlignment(Qt::AlignRight);
+  controls_box_layout->addLayout(buttons_layout);
+
+  // Fraction spin box
+  fraction_label_ = new QLabel(this);
+  fraction_label_->setText("Min. collisions for \"always\"-colliding pairs:");
+  buttons_layout->addWidget(fraction_label_);
+
+  fraction_spinbox_ = new QSpinBox(this);
+  fraction_spinbox_->setRange(1, 100);
+  fraction_spinbox_->setValue(95);
+  fraction_spinbox_->setSuffix("%");
+  buttons_layout->addWidget(fraction_spinbox_);
 
   // Generate Button
   btn_generate_ = new QPushButton(this);
   btn_generate_->setText("&Generate Collision Matrix");
   btn_generate_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  connect(btn_generate_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
-  layout_->addWidget(btn_generate_);
-  layout_->setAlignment(btn_generate_, Qt::AlignRight);
+  connect(btn_generate_, SIGNAL(clicked()), this, SLOT(startGeneratingCollisionTable()));
+  buttons_layout->addWidget(btn_generate_);
 
   // Progress Bar Area ---------------------------------------------
 
@@ -132,28 +149,19 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   layout_->addWidget(collision_table_);
 
   // Bottom Area ----------------------------------------
-  controls_box_bottom_ = new QGroupBox(this);
-  layout_->addWidget(controls_box_bottom_);
-  QHBoxLayout *controls_box_bottom_layout = new QHBoxLayout(controls_box_bottom_);
 
-  // Checkbox
-  collision_checkbox_ = new QCheckBox(this);
-  collision_checkbox_->setText("Show Non-Disabled Link Pairs");
-  connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
-  controls_box_bottom_layout->addWidget(collision_checkbox_);
+  QHBoxLayout *bottom_layout = new QHBoxLayout();
+  bottom_layout->setAlignment(Qt::AlignRight);
+  layout_->addLayout(bottom_layout);
 
-  fraction_label_ = new QLabel(this);
-  fraction_label_->setText("Min. collisions for \"always\"-colliding pairs:");
-
-  controls_box_bottom_layout->addWidget(fraction_label_);
-
-  fraction_spinbox_ = new QSpinBox(this);
-  fraction_spinbox_->setRange(1, 100);
-  fraction_spinbox_->setValue(95);
-  fraction_spinbox_->setSuffix("%");
-  controls_box_bottom_layout->addWidget(fraction_spinbox_);
-
-  controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
+  // Revert Button
+  btn_revert_ = new QPushButton(this);
+  btn_revert_->setText("&Revert");
+  btn_revert_->setToolTip("Revert current changes to collision matrix");
+  btn_revert_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  btn_revert_->setDisabled(true);
+  connect(btn_revert_, SIGNAL(clicked()), this, SLOT(revertChanges()));
+  bottom_layout->addWidget(btn_revert_);
 
   setLayout(layout_);
   setWindowTitle("Default Collision Matrix");
@@ -165,58 +173,27 @@ DefaultCollisionsWidget::~DefaultCollisionsWidget()
 }
 
 // ******************************************************************************************
-// Qt close event function for reminding user to save
+// start thread generating the collision table
 // ******************************************************************************************
-void DefaultCollisionsWidget::generateCollisionTable()
+void DefaultCollisionsWidget::startGeneratingCollisionTable()
 {
-  // Confirm the user wants to overwrite the current disabled collisions
-  if (!config_data_->srdf_->disabled_collisions_.empty())
-  {
-    if (QMessageBox::question(this, "Confirm Disabled Collision Overwrite", "Are you sure you want to overwrite the "
-                                                                            "current default collisions matrix with a "
-                                                                            "newly generated one?",
-                              QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
-    {
-      return;  // abort
-    }
-  }
-  QApplication::processEvents();  // allow the progress bar to be shown
-  progress_label_->setText("Computing default collision matrix for robot model...");
-
   // Disable controls on form
   disableControls(true);
+  btn_revert_->setEnabled(true);  // allow to interrupt and revert
 
-  // Create a progress variable that will be shared with the compute_default_collisions tool and its threads
-  // NOTE: be sure not to delete this variable until the subprograms have finished using it. Because of the simple
-  // use case of this variable (1 thread writes to it, the parent process reads it) it was decided a boost shared
-  // pointer is not necessary.
-  unsigned int collision_progress = 0;
-  progress_bar_->setValue(collision_progress);
+  // create a MonitorThread running generateCollisionTable() in a worker thread and monitoring the progress
+  worker_ = new MonitorThread(boost::bind(&DefaultCollisionsWidget::generateCollisionTable, this, _1), progress_bar_);
+  connect(worker_, SIGNAL(finished()), this, SLOT(finishGeneratingCollisionTable()));
+  worker_->start();  // start after having finished() signal connected
+}
 
-  QApplication::processEvents();  // allow the progress bar to be shown
-
-  // Create thread to do actual work
-  boost::thread workerThread(
-      boost::bind(&DefaultCollisionsWidget::generateCollisionTableThread, this, &collision_progress));
-  // Check interval
-  boost::posix_time::seconds check_interval(1);
-
-  // Continually loop until threaded computation is finished
-  while (collision_progress < 100)
-  {
-    // Set updated progress value.
-    progress_bar_->setValue(collision_progress);
-
-    // Allow GUI thread to do its stuff
-    QApplication::processEvents();
-
-    // 1 second sleep
-    boost::this_thread::sleep(check_interval);
-    // usleep(1000 * 1000);
-  }
-
-  // Wait for thread to finish
-  workerThread.join();
+// ******************************************************************************************
+// cleanup after worker_ thread has finished
+// ******************************************************************************************
+void DefaultCollisionsWidget::finishGeneratingCollisionTable()
+{
+  if (worker_->canceled())
+    return;
 
   // Load the results into the GUI
   loadCollisionTable();
@@ -225,12 +202,13 @@ void DefaultCollisionsWidget::generateCollisionTable()
   disableControls(false);  // enable everything else
 
   config_data_->changes |= MoveItConfigData::COLLISIONS;
+  worker_->deleteLater();
 }
 
 // ******************************************************************************************
-// The thread that is called to allow the GUI to update. Calls an external function to do calcs
+// The worker function to compute the collision matrix
 // ******************************************************************************************
-void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int *collision_progress)
+void DefaultCollisionsWidget::generateCollisionTable(unsigned int *collision_progress)
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
@@ -244,9 +222,6 @@ void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int *collisi
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = moveit_setup_assistant::computeDefaultCollisions(
       config_data_->getPlanningScene(), collision_progress, include_never_colliding, num_trials, min_frac, verbose);
-
-  // Copy data changes to srdf_writer object
-  linkPairsToSRDF();
 
   // End the progress bar loop
   *collision_progress = 100;
@@ -285,8 +260,16 @@ void DefaultCollisionsWidget::loadCollisionTable()
 
 void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
 {
+  btn_revert_->setEnabled(true);  // enable revert button
   selection_model_->setCurrentIndex(index, QItemSelectionModel::Select | QItemSelectionModel::Current |
                                                QItemSelectionModel::Rows);
+}
+
+void DefaultCollisionsWidget::revertChanges()
+{
+  linkPairsFromSRDF();
+  loadCollisionTable();
+  btn_revert_->setEnabled(false);  // no changes to revert
 }
 
 // ******************************************************************************************
@@ -304,7 +287,6 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 {
   controls_box_->setDisabled(disable);
   collision_table_->setDisabled(disable);
-  collision_checkbox_->setDisabled(disable);
 
   if (disable)
   {
@@ -318,21 +300,6 @@ void DefaultCollisionsWidget::disableControls(bool disable)
   }
 
   QApplication::processEvents();  // allow the progress bar to be shown
-}
-
-// ******************************************************************************************
-// Changes the table to show or hide collisions that are not disabled (that have collision checking enabled)
-// ******************************************************************************************
-void DefaultCollisionsWidget::collisionCheckboxToggle()
-{
-  // Show Progress bar
-  disableControls(true);
-
-  // Now update collision table with updates
-  loadCollisionTable();
-
-  // Hide Progress bar
-  disableControls(false);
 }
 
 // ******************************************************************************************
@@ -434,6 +401,54 @@ void DefaultCollisionsWidget::focusGiven()
 
   // Enable the table
   disableControls(false);
+  btn_revert_->setEnabled(false);  // no changes to revert
+}
+
+bool DefaultCollisionsWidget::focusLost()
+{
+  if (worker_)
+  {
+    if (QMessageBox::No == QMessageBox::question(this, "Collision Matrix Generation",
+                                                 "Collision Matrix Generation is sill active. Cancel computation?",
+                                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
+      return false;
+    worker_->cancel();
+    worker_->wait();
+  }
+
+  // Copy changes to srdf_writer object and config_data_->allowed_collision_matrix_
+  linkPairsToSRDF();
+  return true;
+}
+
+moveit_setup_assistant::MonitorThread::MonitorThread(const boost::function<void(unsigned int *)> &f,
+                                                     QProgressBar *progress_bar)
+  : progress_(0), canceled_(false)
+{
+  // start worker thread
+  worker_ = boost::thread(boost::bind(f, &progress_));
+  // connect progress bar for updates
+  if (progress_bar)
+    connect(this, SIGNAL(progress(int)), progress_bar, SLOT(setValue(int)));
+}
+
+void moveit_setup_assistant::MonitorThread::run()
+{
+  // loop until worker thread is finished or cancel is requested
+  while (!canceled_ && progress_ < 100)
+  {
+    Q_EMIT progress(progress_);
+    QThread::msleep(100);  // sleep 100ms
+  }
+
+  // cancel worker thread
+  if (canceled_)
+    worker_.interrupt();
+
+  worker_.join();
+
+  progress_ = 100;
+  Q_EMIT progress(progress_);
 }
 
 }  // namespace
