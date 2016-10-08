@@ -123,7 +123,17 @@ namespace lma_kinematics_plugin
                             const std::string &group_name,
                             const std::string &base_name,
                             const std::string &tip_name,
-                            double search_discretization);
+                            double search_discretization)
+    {
+      ROS_ERROR_STREAM_NAMED("lma","This initialization function is deprecated and not implemented");
+    }
+
+    virtual bool initialize(const std::string &robot_description,
+                            const std::string &group_name,
+                            const std::string &base_name,
+                            const std::string &tip_name,
+                            double search_discretization,
+                            const robot_model::RobotModel* robot_model);
 
     /**
      * @brief  Return all the joint names in the order they are used internally
@@ -221,7 +231,7 @@ namespace lma_kinematics_plugin
 
     // Storage required for when the set of redundant joints is reset
     bool position_ik_; //whether this solver is only being used for position ik
-    robot_model::JointModelGroup* joint_model_group_;
+    const robot_model::JointModelGroup* joint_model_group_;
     double max_solver_iterations_;
     double epsilon_;
     std::vector<JointMimic> mimic_joints_;

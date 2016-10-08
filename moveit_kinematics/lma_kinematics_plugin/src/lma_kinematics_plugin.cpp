@@ -127,7 +127,8 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description,
                                      const std::string& group_name,
                                      const std::string& base_frame,
                                      const std::string& tip_frame,
-                                     double search_discretization)
+                                     double search_discretization,
+                                     const robot_model::RobotModel* robot_model)
 {
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
@@ -142,12 +143,10 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description,
     return false;
   }
 
-  robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
-
-  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup(group_name);
   if (!joint_model_group)
     return false;
-  
+
   if(!joint_model_group->isChain())
   {
     ROS_ERROR_NAMED("lma","Group '%s' is not a chain", group_name.c_str());
