@@ -53,9 +53,6 @@
 #include <moveit/robot_model/revolute_joint_model.h>
 #include <moveit/robot_model/prismatic_joint_model.h>
 
-// Boost
-#include <boost/enable_shared_from_this.hpp>
-
 #include <Eigen/Geometry>
 #include <iostream>
 
@@ -70,7 +67,7 @@ MOVEIT_CLASS_FORWARD(RobotModel);
 
 /** \brief Definition of a kinematic model. This class is not thread
     safe, however multiple instances can be created */
-class RobotModel : public boost::enable_shared_from_this<RobotModel>
+class RobotModel : public std::enable_shared_from_this<RobotModel>
 {
 public:
 
@@ -85,7 +82,7 @@ public:
    * \brief Getter for the shared_ptr of this object. Note: this is not available until after the constructor is finished
    * \return shared pointer
    */
-  const boost::shared_ptr<const RobotModel> getConstPtr() const
+  const std::shared_ptr<const RobotModel> getConstPtr() const
   {
     return shared_from_this();
   }
