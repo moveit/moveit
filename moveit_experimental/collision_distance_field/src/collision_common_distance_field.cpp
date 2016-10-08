@@ -35,39 +35,48 @@
 /* Author: E. Gil Jones */
 
 #include <moveit/collision_distance_field/collision_common_distance_field.h>
+#include <ros/console.h>
 #include <boost/thread/mutex.hpp>
+#include <eigen_conversions/eigen_msg.h>
+#include <memory>
 
 namespace collision_detection
 {
-
 struct BodyDecompositionCache
 {
-  BodyDecompositionCache() : clean_count_(0) {}
+  using Comperator = std::owner_less<std::weak_ptr<const shapes::Shape>>;
+  using Map        = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
+
+  BodyDecompositionCache() : clean_count_(0)
+  {
+  }
   static const unsigned int MAX_CLEAN_COUNT = 100;
-  std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr> map_;
+  Map map_;
   unsigned int clean_count_;
   boost::mutex lock_;
 };
 
-BodyDecompositionCache& getBodyDecompositionCache() 
+BodyDecompositionCache &getBodyDecompositionCache()
 {
   static BodyDecompositionCache cache;
   return cache;
 }
 
-BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape,
-                                                         double resolution)
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr &shape, double resolution)
 {
-  //TODO - deal with changing resolution?
-  BodyDecompositionCache& cache = getBodyDecompositionCache();
-  boost::weak_ptr<const shapes::Shape> wptr(shape);
+  // TODO - deal with changing resolution?
+  BodyDecompositionCache &cache = getBodyDecompositionCache();
+  std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
-    std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr>::const_iterator cache_it = cache.map_.find(wptr);
-    if(cache_it != cache.map_.end()) {
+    BodyDecompositionCache::Map::const_iterator cache_it =
+        cache.map_.find(wptr);
+    if (cache_it != cache.map_.end())
+    {
       return cache_it->second;
     }
-  } 
+  }
+
   BodyDecompositionConstPtr bdcp(new BodyDecomposition(shape, resolution));
   {
     boost::mutex::scoped_lock slock(cache.lock_);
@@ -75,44 +84,142 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
     cache.clean_count_++;
     return bdcp;
   }
-  //TODO - clean cache
+  // TODO - clean cache
 }
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
-                                                                     double resolution)
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object &obj,
+                                                                          double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
-  for(unsigned int i = 0; i < obj.shapes_.size(); i++) {
-    PosedBodyPointDecompositionPtr pbd(new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(obj.shapes_[i], resolution)));
+  for (unsigned int i = 0; i < obj.shapes_.size(); i++)
+  {
+    PosedBodyPointDecompositionPtr pbd(
+        new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(obj.shapes_[i], resolution)));
     ret->addToVector(pbd);
-    ret->updatePose(ret->getSize()-1, obj.shape_poses_[i]);
+    ret->updatePose(ret->getSize() - 1, obj.shape_poses_[i]);
   }
   return ret;
 }
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody *att,
                                                                          double resolution)
 {
   PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
-  for(unsigned int i = 0; i < att->getShapes().size(); i++) {
-    PosedBodySphereDecompositionPtr pbd(new PosedBodySphereDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
+  for (unsigned int i = 0; i < att->getShapes().size(); i++)
+  {
+    PosedBodySphereDecompositionPtr pbd(
+        new PosedBodySphereDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
     pbd->updatePose(att->getGlobalCollisionBodyTransforms()[i]);
     ret->addToVector(pbd);
   }
   return ret;
 }
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody *att,
                                                                        double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
-  for(unsigned int i = 0; i < att->getShapes().size(); i++) {
-    PosedBodyPointDecompositionPtr pbd(new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
+  for (unsigned int i = 0; i < att->getShapes().size(); i++)
+  {
+    PosedBodyPointDecompositionPtr pbd(
+        new PosedBodyPointDecomposition(getBodyDecompositionCacheEntry(att->getShapes()[i], resolution)));
     ret->addToVector(pbd);
-    ret->updatePose(ret->getSize()-1, att->getGlobalCollisionBodyTransforms()[i]);
+    ret->updatePose(ret->getSize() - 1, att->getGlobalCollisionBodyTransforms()[i]);
   }
   return ret;
 }
 
-}
+void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr,
+                                       std::string reference_frame, visualization_msgs::MarkerArray &body_marker_array)
+{
+  // creating namespaces
+  std::string robot_ns = gsr->dfce_->group_name_ + "_sphere_decomposition";
+  std::string attached_ns = "attached_sphere_decomposition";
 
+  // creating colors
+  std_msgs::ColorRGBA robot_color;
+  robot_color.r = 0;
+  robot_color.b = 0.8f;
+  robot_color.g = 0;
+  robot_color.a = 0.5;
+
+  std_msgs::ColorRGBA attached_color;
+  attached_color.r = 1;
+  attached_color.g = 1;
+  attached_color.b = 0;
+  attached_color.a = 0.5;
+
+  // creating sphere marker
+  visualization_msgs::Marker sphere_marker;
+  sphere_marker.header.frame_id = reference_frame;
+  sphere_marker.header.stamp = ros::Time(0);
+  sphere_marker.ns = robot_ns;
+  sphere_marker.id = 0;
+  sphere_marker.type = visualization_msgs::Marker::SPHERE;
+  sphere_marker.action = visualization_msgs::Marker::ADD;
+  sphere_marker.pose.orientation.x = 0;
+  sphere_marker.pose.orientation.y = 0;
+  sphere_marker.pose.orientation.z = 0;
+  sphere_marker.pose.orientation.w = 1;
+  sphere_marker.color = robot_color;
+  sphere_marker.lifetime = ros::Duration(0);
+
+  const moveit::core::RobotState &state = *(gsr->dfce_->state_);
+  unsigned int id = 0;
+  for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
+  {
+    const moveit::core::LinkModel *ls = state.getLinkModel(gsr->dfce_->link_names_[i]);
+    if (gsr->dfce_->link_has_geometry_[i])
+    {
+      gsr->link_body_decompositions_[i]->updatePose(state.getFrameTransform(ls->getName()));
+
+      collision_detection::PosedBodySphereDecompositionConstPtr sphere_representation =
+          gsr->link_body_decompositions_[i];
+      for (unsigned int j = 0; j < sphere_representation->getCollisionSpheres().size(); j++)
+      {
+        tf::pointEigenToMsg(sphere_representation->getSphereCenters()[j], sphere_marker.pose.position);
+        sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
+            sphere_representation->getCollisionSpheres()[j].radius_;
+        sphere_marker.id = id;
+        id++;
+
+        body_marker_array.markers.push_back(sphere_marker);
+      }
+    }
+  }
+
+  sphere_marker.ns = attached_ns;
+  sphere_marker.color = attached_color;
+  for (unsigned int i = 0; i < gsr->dfce_->attached_body_names_.size(); i++)
+  {
+    int link_index = gsr->dfce_->attached_body_link_state_indices_[i];
+    const moveit::core::AttachedBody *att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
+    if (!att)
+    {
+      ROS_WARN("Attached body '%s' was not found, skipping sphere "
+               "decomposition visualization",
+               gsr->dfce_->attached_body_names_[i].c_str());
+      continue;
+    }
+
+    if (gsr->attached_body_decompositions_[i]->getSize() != att->getShapes().size())
+    {
+      ROS_WARN("Attached body size discrepancy");
+      continue;
+    }
+
+    for (unsigned int j = 0; j < att->getShapes().size(); j++)
+    {
+      PosedBodySphereDecompositionVectorPtr sphere_decp = gsr->attached_body_decompositions_[i];
+      sphere_decp->updatePose(j, att->getGlobalCollisionBodyTransforms()[j]);
+
+      tf::pointEigenToMsg(sphere_decp->getSphereCenters()[j], sphere_marker.pose.position);
+      sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
+          sphere_decp->getCollisionSpheres()[j].radius_;
+      sphere_marker.id = id;
+      body_marker_array.markers.push_back(sphere_marker);
+      id++;
+    }
+  }
+}
+}

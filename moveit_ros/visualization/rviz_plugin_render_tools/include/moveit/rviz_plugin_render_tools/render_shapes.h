@@ -41,9 +41,9 @@
 #include <moveit/macros/class_forward.h>
 #include <geometric_shapes/shapes.h>
 #include <rviz/helpers/color.h>
-#include <boost/shared_ptr.hpp>
 #include <Eigen/Geometry>
 #include <string>
+#include <memory>
 
 namespace Ogre
 {
@@ -82,7 +82,7 @@ private:
 
   rviz::DisplayContext *context_;
 
-  std::vector< boost::shared_ptr<rviz::Shape> > scene_shapes_;
+  std::vector<std::unique_ptr<rviz::Shape> > scene_shapes_;
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
 

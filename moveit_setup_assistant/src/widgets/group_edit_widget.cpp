@@ -261,7 +261,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   kinematics_solver_field_->addItem( "None" );
 
   // load all avail kin planners
-  boost::scoped_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > loader;
+  std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader;
   try
   {
     loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));

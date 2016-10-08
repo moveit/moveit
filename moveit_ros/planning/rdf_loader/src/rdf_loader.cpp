@@ -32,11 +32,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mathias Lüdtke, Dave Coleman */
 
+// MoveIt!
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/profiler/profiler.h>
+
+// ROS
 #include <ros/ros.h>
+#include <ros/package.h>
+
+// Boost
+#include <boost/filesystem.hpp>
+
+// C++
+#include <fstream>
+#include <streambuf>
+#include <algorithm>
 
 rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
 {
@@ -49,14 +61,14 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
 
   if (!nh.searchParam(robot_description, robot_description_) || !nh.getParam(robot_description_, content))
   {
-    ROS_ERROR("Robot model parameter not found! Did you remap '%s'?", robot_description.c_str());
+    ROS_ERROR_NAMED("rdf_loader", "Robot model parameter not found! Did you remap '%s'?", robot_description.c_str());
     return;
   }
 
   urdf::Model *umodel = new urdf::Model();
   if (!umodel->initString(content))
   {
-    ROS_ERROR("Unable to parse URDF from parameter '%s'", robot_description_.c_str());
+    ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
     return;
   }
   urdf_.reset(umodel);
@@ -65,14 +77,14 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   std::string scontent;
   if (!nh.getParam(srdf_description, scontent))
   {
-    ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
+    ROS_ERROR_NAMED("rdf_loader", "Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
     return;
   }
 
   srdf_.reset(new srdf::Model());
   if (!srdf_->initString(*urdf_, scontent))
   {
-    ROS_ERROR("Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
+    ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
     srdf_.reset();
     return;
   }
@@ -92,13 +104,13 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::stri
     srdf_.reset(new srdf::Model());
     if (!srdf_->initString(*urdf_, srdf_string))
     {
-      ROS_ERROR("Unable to parse SRDF");
+      ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF");
       srdf_.reset();
     }
   }
   else
   {
-    ROS_ERROR("Unable to parse URDF");
+    ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF");
     urdf_.reset();
   }
 }
@@ -115,13 +127,118 @@ rdf_loader::RDFLoader::RDFLoader(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_do
     srdf_.reset(new srdf::Model());
     if (!srdf_->initXml(*urdf_, srdf_doc))
     {
-      ROS_ERROR("Unable to parse SRDF");
+      ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF");
       srdf_.reset();
     }
   }
   else
   {
-    ROS_ERROR("Unable to parse URDF");
+    ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF");
     urdf_.reset();
   }
+}
+
+bool rdf_loader::RDFLoader::isXacroFile(const std::string& path)
+{
+  std::string lower_path = path;
+  std::transform(lower_path.begin(), lower_path.end(), lower_path.begin(), ::tolower);
+
+  return lower_path.find(".xacro") != std::string::npos;
+}
+
+bool rdf_loader::RDFLoader::loadFileToString(std::string& buffer, const std::string& path)
+{
+  if (path.empty())
+  {
+    ROS_ERROR_NAMED("rdf_loader", "Path is empty");
+    return false;
+  }
+
+  if (!boost::filesystem::exists(path))
+  {
+    ROS_ERROR_NAMED("rdf_loader", "File does not exist");
+    return false;
+  }
+
+  std::ifstream stream(path.c_str());
+  if (!stream.good())
+  {
+    ROS_ERROR_NAMED("rdf_loader", "Unable to load path");
+    return false;
+  }
+
+  // Load the file to a string using an efficient memory allocation technique
+  stream.seekg(0, std::ios::end);
+  buffer.reserve(stream.tellg());
+  stream.seekg(0, std::ios::beg);
+  buffer.assign((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+  stream.close();
+
+  return true;
+}
+
+bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+{
+  if (path.empty())
+  {
+    ROS_ERROR_NAMED("rdf_loader", "Path is empty");
+    return false;
+  }
+
+  if (!boost::filesystem::exists(path))
+  {
+    ROS_ERROR_NAMED("rdf_loader", "File does not exist");
+    return false;
+  }
+
+  std::string cmd = "rosrun xacro xacro --inorder ";
+  for (std::vector<std::string>::const_iterator it = xacro_args.begin(); it != xacro_args.end(); ++it)
+    cmd += *it + " ";
+  cmd += path;
+
+  FILE* pipe = popen(cmd.c_str(), "r");
+  if (!pipe)
+  {
+    ROS_ERROR_NAMED("rdf_loader", "Unable to load path");
+    return false;
+  }
+
+  char pipe_buffer[128];
+  while (!feof(pipe))
+  {
+    if (fgets(pipe_buffer, 128, pipe) != NULL)
+      buffer += pipe_buffer;
+  }
+  pclose(pipe);
+
+  return true;
+}
+
+bool rdf_loader::RDFLoader::loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+{
+  if (isXacroFile(path))
+  {
+    return loadXacroFileToString(buffer, path, xacro_args);
+  }
+
+  return loadFileToString(buffer, path);
+}
+
+bool rdf_loader::RDFLoader::loadPkgFileToString(std::string& buffer, const std::string& package_name,
+                                                const std::string& relative_path,
+                                                const std::vector<std::string>& xacro_args)
+{
+  std::string package_path = ros::package::getPath(package_name);
+
+  if (package_path.empty())
+  {
+    ROS_ERROR_STREAM_NAMED("rdf_loader", "ROS was unable to find the package name '" << package_name << "'");
+    return false;
+  }
+
+  boost::filesystem::path path(package_path);
+  // Use boost to cross-platform combine paths
+  path = path / relative_path;
+
+  return loadXmlFileToString(buffer, path.string(), xacro_args);
 }

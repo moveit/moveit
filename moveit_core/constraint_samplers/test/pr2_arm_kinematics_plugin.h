@@ -53,11 +53,11 @@
 
 #include <kdl/chainfksolverpos_recursive.hpp>
 
-#include <boost/shared_ptr.hpp>
-
 #include <urdf_world/types.h>
 
 #include <moveit/kinematics_base/kinematics_base.h>
+
+#include <memory>
 
 #include "pr2_arm_ik.h"
 
@@ -267,7 +267,7 @@ protected:
   pr2_arm_kinematics::PR2ArmIKSolverPtr pr2_arm_ik_solver_;
   std::string root_name_;
   int dimension_;
-  boost::shared_ptr<KDL::ChainFkSolverPos_recursive> jnt_to_pose_solver_;
+  std::shared_ptr<KDL::ChainFkSolverPos_recursive> jnt_to_pose_solver_;
   KDL::Chain kdl_chain_;
   moveit_msgs::KinematicSolverInfo ik_solver_info_, fk_solver_info_;
 

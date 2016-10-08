@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Ioan Sucan, Mathias Lüdtke, Dave Coleman */
 
 #ifndef MOVEIT_PLANNING_RDF_LOADER_
 #define MOVEIT_PLANNING_RDF_LOADER_
@@ -41,7 +41,6 @@
 #include <urdf/model.h>
 #include <urdf_world/types.h>
 #include <srdfdom/model.h>
-#include <boost/shared_ptr.hpp>
 #include <tinyxml.h>
 
 namespace rdf_loader
@@ -78,16 +77,34 @@ public:
   }
 
   /** @brief Get the parsed SRDF model*/
-  const boost::shared_ptr<srdf::Model>& getSRDF() const
+  const srdf::ModelSharedPtr& getSRDF() const
   {
     return srdf_;
   }
 
+  /** @brief determine if given path points to a xacro file */
+  static bool isXacroFile(const std::string& path);
+
+  /** @brief load file from given path into buffer */
+  static bool loadFileToString(std::string& buffer, const std::string& path);
+
+  /** @brief run xacro with the given args on the file, return result in buffer */
+  static bool loadXacroFileToString(std::string& buffer, const std::string& path,
+                                    const std::vector<std::string>& xacro_args);
+
+  /** @brief helper that branches between loadFileToString() and loadXacroFileToString() based on result of isXacroFile() */
+  static bool loadXmlFileToString(std::string& buffer, const std::string& path,
+                                  const std::vector<std::string>& xacro_args);
+
+  /** @brief helper that generates a file path based on package name and relative file path to package */
+  static bool loadPkgFileToString(std::string& buffer, const std::string& package_name,
+                                  const std::string& relative_path, const std::vector<std::string>& xacro_args);
+
 private:
 
-  std::string                             robot_description_;
-  boost::shared_ptr<srdf::Model>          srdf_;
-  urdf::ModelInterfaceSharedPtr           urdf_;
+  std::string                   robot_description_;
+  srdf::ModelSharedPtr          srdf_;
+  urdf::ModelInterfaceSharedPtr urdf_;
 
 };
 

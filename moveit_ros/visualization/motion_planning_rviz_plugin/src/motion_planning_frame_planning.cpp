@@ -115,7 +115,7 @@ void MotionPlanningFrame::computePlanButtonClicked()
   ui_->result_label->setText("Planning...");
 
   configureForPlanning();
-  current_plan_.reset(new moveit::planning_interface::MoveGroup::Plan());
+  current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
   if (move_group_->plan(*current_plan_))
   {
     ui_->execute_button->setEnabled(true);

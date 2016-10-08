@@ -41,6 +41,8 @@
 #include <XmlRpcException.h>
 #include <stdint.h>
 
+#include <memory>
+
 namespace occupancy_map_monitor
 {
 
@@ -153,7 +155,7 @@ mesh_filter::MeshHandle DepthImageOctomapUpdater::excludeShape(const shapes::Sha
       h = mesh_filter_->addMesh(static_cast<const shapes::Mesh&>(*shape));
     else
     {
-      boost::scoped_ptr<shapes::Mesh> m(shapes::createMeshFromShape(shape.get()));
+      std::unique_ptr<shapes::Mesh> m(shapes::createMeshFromShape(shape.get()));
       if (m)
         h = mesh_filter_->addMesh(*m);
     }

@@ -38,6 +38,7 @@
 #include <pluginlib/class_loader.h>
 #include <ros/ros.h>
 #include <boost/tokenizer.hpp>
+#include <memory>
 
 namespace constraint_sampler_manager_loader
 {
@@ -82,7 +83,7 @@ public:
 private:
 
   ros::NodeHandle nh_;
-  boost::scoped_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> > constraint_sampler_plugin_loader_;
+  std::unique_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> > constraint_sampler_plugin_loader_;
 };
 
 ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(const constraint_samplers::ConstraintSamplerManagerPtr &csm) :

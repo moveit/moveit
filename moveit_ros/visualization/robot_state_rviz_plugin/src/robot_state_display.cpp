@@ -62,7 +62,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 RobotStateDisplay::RobotStateDisplay() :
   Display(),
-  update_state_(false)
+  update_state_(false), load_robot_model_(false)
 {
   robot_description_property_ =
     new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -125,13 +125,9 @@ void RobotStateDisplay::reset()
 {
   robot_->clear();
   rdf_loader_.reset();
-
-  loadRobotModel();
   Display::reset();
 
-  changedEnableVisualVisible();
-  changedEnableCollisionVisible();
-  robot_->setVisible(true);
+  loadRobotModel();
 }
 
 void RobotStateDisplay::changedAllLinks()
@@ -356,12 +352,13 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
+  load_robot_model_ = false;
   if (!rdf_loader_)
     rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (rdf_loader_->getURDF())
   {
-    const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+    const srdf::ModelSharedPtr &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
     kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
@@ -371,6 +368,10 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->blockSignals(oldState);
     update_state_ = true;
     setStatus( rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully" );
+
+    changedEnableVisualVisible();
+    changedEnableCollisionVisible();
+    robot_->setVisible(true);
   }
   else
     setStatus( rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded" );
@@ -381,13 +382,7 @@ void RobotStateDisplay::loadRobotModel()
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  loadRobotModel();
-  if (robot_)
-  {
-    changedEnableVisualVisible();
-    changedEnableCollisionVisible();
-    robot_->setVisible(true);
-  }
+  load_robot_model_ = true; // allow loading of robot model in update()
   calculateOffsetPosition();
 }
 
@@ -404,6 +399,10 @@ void RobotStateDisplay::onDisable()
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
+
+  if (load_robot_model_)
+    loadRobotModel();
+
   calculateOffsetPosition();
   if (robot_ && update_state_)
   {

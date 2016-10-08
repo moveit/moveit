@@ -36,9 +36,9 @@
 
 #include <moveit/warehouse/moveit_message_storage.h>
 #include <warehouse_ros/database_loader.h>
-#include <boost/scoped_ptr.hpp>
 //#include <warehouse_ros_mongo/database_connection.h>
 #include <boost/regex.hpp>
+#include <memory>
 
 moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn) :
   conn_(conn)
@@ -61,7 +61,7 @@ void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &rege
   }
 }
 
-static boost::scoped_ptr<warehouse_ros::DatabaseLoader> dbloader;
+static std::unique_ptr<warehouse_ros::DatabaseLoader> dbloader;
 
 typename warehouse_ros::DatabaseConnection::Ptr moveit_warehouse::loadDatabase()
 {

@@ -41,6 +41,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <memory>
 #include <ros/ros.h>
 #include <moveit/profiler/profiler.h>
 
@@ -142,7 +143,7 @@ public:
         {
           try
           {
-            result = kinematics_loader_->createInstance(it->second[i]);
+            result = kinematics_loader_->createUniqueInstance(it->second[i]);
             if (result)
             {
               const std::vector<const robot_model::LinkModel*> &links = jmg->getLinkModels();
@@ -227,7 +228,7 @@ private:
   std::map<std::string, std::vector<std::string> >                       possible_kinematics_solvers_;
   std::map<std::string, std::vector<double> >                            search_res_;
   std::map<std::string, std::vector<std::string> >                       iksolver_to_tip_links_;  // a map between each ik solver and a vector of custom-specified tip link(s)
-  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+  std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> >   kinematics_loader_;
   std::map<const robot_model::JointModelGroup*,
            std::vector<kinematics::KinematicsBasePtr> >                  instances_;
   boost::mutex                                                           lock_;
@@ -256,7 +257,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
   return getLoaderFunction(rml.getSRDF());
 }
 
-robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model> &srdf_model)
+robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr &srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");

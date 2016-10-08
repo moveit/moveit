@@ -37,6 +37,7 @@
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/rviz_plugin_render_tools/planning_link_updater.h>
 #include <moveit/rviz_plugin_render_tools/render_shapes.h>
+#include <QApplication>
 
 namespace moveit_rviz_plugin
 {
@@ -63,6 +64,7 @@ void RobotStateVisualization::load(const urdf::ModelInterface &descr, bool visua
   robot_.setVisualVisible(visual_visible_);
   robot_.setCollisionVisible(collision_visible_);
   robot_.setVisible(visible_);
+  QApplication::processEvents();
 }
 
 void RobotStateVisualization::clear()

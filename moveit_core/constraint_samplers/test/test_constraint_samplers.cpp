@@ -134,7 +134,7 @@ protected:
 protected:
 
   urdf::ModelInterfaceSharedPtr      urdf_model;
-  boost::shared_ptr<srdf::Model>     srdf_model;
+  srdf::ModelSharedPtr               srdf_model;
   robot_model::RobotModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
   pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_right_arm_;

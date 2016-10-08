@@ -14,6 +14,10 @@ env:
   matrix:
     - ROS_DISTRO="kinetic"  ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO="kinetic"  ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
+# 27 Sep 2016 Kinetic branch depends on a change in pluginlib that is only in shadow-fixed and has not been synced yet. Remove after next sync
+matrix:
+  allow_failures:
+    - env: ROS_DISTRO="kinetic"  ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
 before_script:
   - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
 script:

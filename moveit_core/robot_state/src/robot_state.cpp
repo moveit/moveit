@@ -1326,65 +1326,65 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
   {
     // Make non-const
     Eigen::Affine3d pose = poses_in[i];
-    std::string tip = tips_in[i];
+    std::string pose_frame = tips_in[i];
 
     // Remove extra slash
-    if (!tip.empty() && tip[0] == '/')
-      tip = tip.substr(1);
+    if (!pose_frame.empty() && pose_frame[0] == '/')
+      pose_frame = pose_frame.substr(1);
 
     // bring the pose to the frame of the IK solver
     if (!setToIKSolverFrame(pose, solver))
       return false;
 
-    // try all of the solver's possible tip frames to see if they uniquely align with any of our passed in tip frames
+    // try all of the solver's possible tip frames to see if they uniquely align with any of our passed in pose tip frames
     bool found_valid_frame = false;
-    std::size_t tip_id; // our current index
-    for (tip_id = 0; tip_id < solver_tip_frames.size(); ++tip_id)
+    std::size_t solver_tip_id; // our current index
+    for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
     {
       // Check if this tip frame is already accounted for
-      if (tip_frames_used[tip_id] == true)
+      if (tip_frames_used[solver_tip_id] == true)
         continue; // already has a pose
 
       // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
-      std::string tip_frame = solver_tip_frames[tip_id];
+      std::string solver_tip_frame = solver_tip_frames[solver_tip_id];
 
       // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
-      if (!tip_frame.empty() && tip_frame[0] == '/')
-        tip_frame = tip_frame.substr(1);
+      if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
+        solver_tip_frame = solver_tip_frame.substr(1);
 
-      if (tip != tip_frame)
+      if (pose_frame != solver_tip_frame)
       {
-        if (hasAttachedBody(tip))
+        if (hasAttachedBody(pose_frame))
         {
-          const AttachedBody *ab = getAttachedBody(tip);
+          const AttachedBody *ab = getAttachedBody(pose_frame);
           const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
             logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a reference frame.");
             return false;
           }
-          tip = ab->getAttachedLinkName();
+          pose_frame = ab->getAttachedLinkName();
           pose = pose * ab_trans[0].inverse();
         }
-        if (tip != tip_frame)
+        if (pose_frame != solver_tip_frame)
         {
-          const robot_model::LinkModel *lm = getLinkModel(tip);
+          const robot_model::LinkModel *lm = getLinkModel(pose_frame);
           if (!lm)
             return false;
           const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
           for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
-            if (Transforms::sameFrame(it->first->getName(), tip_frame))
+            if (Transforms::sameFrame(it->first->getName(), solver_tip_frame))
             {
-              tip = tip_frame;
+              pose_frame = solver_tip_frame;
               pose = pose * it->second;
               break;
             }
         }
 
-      } // end if tip
+      } // end if pose_frame
 
-        // Check if this tip frame works
-      if (tip == tip_frame)
+        // Check if this pose frame works
+      if (pose_frame == solver_tip_frame)
       {
         found_valid_frame = true;
         break;
@@ -1395,37 +1395,37 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      logError("moveit.robot_state: Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      logError("moveit.robot_state: Cannot compute IK for query pose reference frame '%s'", pose_frame.c_str());
       return false;
     }
 
     // Remove that tip from the list of available tip frames because each can only have one pose
-    tip_frames_used[tip_id] = true;
+    tip_frames_used[solver_tip_id] = true;
 
     // Convert Eigen pose to geometry_msgs pose
     geometry_msgs::Pose ik_query;
     tf::poseEigenToMsg(pose, ik_query);
 
     // Save into vectors
-    ik_queries[tip_id] = ik_query;
+    ik_queries[solver_tip_id] = ik_query;
   } // end for poses_in
 
   // Create poses for all remaining tips a solver expects, even if not passed into this function
-  for (std::size_t tip_id = 0; tip_id < solver_tip_frames.size(); ++tip_id)
+  for (std::size_t solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
   {
     // Check if this tip frame is already accounted for
-    if (tip_frames_used[tip_id] == true)
+    if (tip_frames_used[solver_tip_id] == true)
       continue; // already has a pose
 
     // Process this tip
-    std::string tip_frame = solver_tip_frames[tip_id];
+    std::string solver_tip_frame = solver_tip_frames[solver_tip_id];
 
     // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
-    if (!tip_frame.empty() && tip_frame[0] == '/')
-      tip_frame = tip_frame.substr(1);
+    if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
+      solver_tip_frame = solver_tip_frame.substr(1);
 
     // Get the pose of a different EE tip link
-    Eigen::Affine3d current_pose = getGlobalLinkTransform(tip_frame);
+    Eigen::Affine3d current_pose = getGlobalLinkTransform(solver_tip_frame);
 
     // bring the pose to the frame of the IK solver
     if (!setToIKSolverFrame(current_pose, solver))
@@ -1436,10 +1436,10 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup *jmg, const Eigen
     tf::poseEigenToMsg(current_pose, ik_query);
 
     // Save into vectors - but this needs to be ordered in the same order as the IK solver expects its tip frames
-    ik_queries[tip_id] = ik_query;
+    ik_queries[solver_tip_id] = ik_query;
 
     // Remove that tip from the list of available tip frames because each can only have one pose
-    tip_frames_used[tip_id] = true;
+    tip_frames_used[solver_tip_id] = true;
   }
 
   // if no timeout has been specified, use the default one
@@ -1563,58 +1563,58 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
 
   // Make non-const versions
   EigenSTL::vector_Affine3d transformed_poses = poses_in;
-  std::vector<std::string> tip_names = tips_in;
+  std::vector<std::string> pose_frames = tips_in;
 
   // Each each pose's tip frame naming
   for (std::size_t i = 0 ; i < poses_in.size() ; ++i)
   {
     Eigen::Affine3d &pose = transformed_poses[i];
-    std::string &tip = tip_names[i];
+    std::string &pose_frame = pose_frames[i];
 
     // bring the pose to the frame of the IK solver
     if (!setToIKSolverFrame(pose, solvers[i]))
       return false;
 
     // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
-    std::string tip_frame = solvers[i]->getTipFrame();
+    std::string solver_tip_frame = solvers[i]->getTipFrame();
 
     // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more often that we need to
-    if (!tip_frame.empty() && tip_frame[0] == '/')
-      tip_frame = tip_frame.substr(1);
+    if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
+      solver_tip_frame = solver_tip_frame.substr(1);
 
-    if (tip != tip_frame)
+    if (pose_frame != solver_tip_frame)
     {
-      if (hasAttachedBody(tip))
+      if (hasAttachedBody(pose_frame))
       {
-        const AttachedBody *ab = getAttachedBody(tip);
+        const AttachedBody *ab = getAttachedBody(pose_frame);
         const EigenSTL::vector_Affine3d &ab_trans = ab->getFixedTransforms();
         if (ab_trans.size() != 1)
         {
           logError("Cannot use an attached body with multiple geometries as a reference frame.");
           return false;
         }
-        tip = ab->getAttachedLinkName();
+        pose_frame = ab->getAttachedLinkName();
         pose = pose * ab_trans[0].inverse();
       }
-      if (tip != tip_frame)
+      if (pose_frame != solver_tip_frame)
       {
-        const robot_model::LinkModel *lm = getLinkModel(tip);
+        const robot_model::LinkModel *lm = getLinkModel(pose_frame);
         if (!lm)
           return false;
         const robot_model::LinkTransformMap &fixed_links = lm->getAssociatedFixedTransforms();
         for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin() ; it != fixed_links.end() ; ++it)
-          if (it->first->getName() == tip_frame)
+          if (it->first->getName() == solver_tip_frame)
           {
-            tip = tip_frame;
+            pose_frame = solver_tip_frame;
             pose = pose * it->second;
             break;
           }
       }
     }
 
-    if (tip != tip_frame)
+    if (pose_frame != solver_tip_frame)
     {
-      logError("Cannot compute IK for tip reference frame '%s'", tip.c_str());
+      logError("Cannot compute IK for query pose reference frame '%s'", pose_frame.c_str());
       return false;
     }
   }

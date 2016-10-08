@@ -44,70 +44,57 @@
 
 #include <boost/thread/mutex.hpp>
 
-namespace collision_detection 
+namespace collision_detection
 {
-
 class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
 {
-  
 public:
-  
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel, 
-                       const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
-                       double size_x = 3.0, 
-                       double size_y = 3.0,
-                       double size_z = 4.0,
-                       bool use_signed_distance_field = false,
-                       double resolution = .02,
-                       double collision_tolerance = 0.0,
-                       double max_propogation_distance = .25,
-                       double padding = 0.0, 
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr &kmodel);
+
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr &kmodel,
+                       const std::map<std::string, std::vector<CollisionSphere>> &link_body_decompositions,
+                       double size_x = 3.0, double size_y = 3.0, double size_z = 4.0,
+                       bool use_signed_distance_field = false, double resolution = .02,
+                       double collision_tolerance = 0.0, double max_propogation_distance = .25, double padding = 0.0,
                        double scale = 1.0);
 
-  CollisionRobotHybrid(const CollisionRobotHybrid& other); 
+  CollisionRobotHybrid(const CollisionRobotHybrid &other);
 
-  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere> >& link_body_decompositions,
-                                    double size_x, 
-                                    double size_y,
-                                    double size_z,
-                                    bool use_signed_distance_field,
-                                    double resolution,
-                                    double collision_tolerance,
-                                    double max_propogation_distance)
+  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere>> &link_body_decompositions,
+                                    double size_x, double size_y, double size_z, bool use_signed_distance_field,
+                                    double resolution, double collision_tolerance, double max_propogation_distance)
   {
-    crobot_distance_->initialize(link_body_decompositions, size_x, size_y, size_z, use_signed_distance_field, resolution, collision_tolerance, max_propogation_distance);
+    crobot_distance_->initialize(link_body_decompositions, Eigen::Vector3d(size_x, size_y, size_z),
+                                 Eigen::Vector3d(0, 0, 0), use_signed_distance_field, resolution, collision_tolerance,
+                                 max_propogation_distance);
   }
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
-                                       collision_detection::CollisionResult &res, 
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
+                                       collision_detection::CollisionResult &res,
                                        const robot_state::RobotState &state) const;
-  
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
-                                       collision_detection::CollisionResult &res, 
-                                       const robot_state::RobotState &state,
-                                       boost::shared_ptr<GroupStateRepresentation>& gsr) const;
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
-                                       collision_detection::CollisionResult &res, 
-                                       const robot_state::RobotState &state,
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
+                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
+                                       GroupStateRepresentationPtr &gsr) const;
+
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
+                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm) const;
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req, 
-                                       collision_detection::CollisionResult &res, 
-                                       const robot_state::RobotState &state,
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
+                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
                                        const collision_detection::AllowedCollisionMatrix &acm,
-                                       boost::shared_ptr<GroupStateRepresentation>& gsr) const;
-  const boost::shared_ptr<const collision_detection::CollisionRobotDistanceField> getCollisionRobotDistanceField() const {
+                                       GroupStateRepresentationPtr &gsr) const;
+  const CollisionRobotDistanceFieldConstPtr getCollisionRobotDistanceField() const
+  {
     return crobot_distance_;
   }
 
 protected:
-    
-  boost::shared_ptr<collision_detection::CollisionRobotDistanceField> crobot_distance_;
+  CollisionRobotDistanceFieldPtr crobot_distance_;
 };
-
 }
 
 #endif

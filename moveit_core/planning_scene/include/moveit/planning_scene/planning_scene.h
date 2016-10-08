@@ -51,9 +51,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/PlanningSceneComponents.h>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 #include <memory>
@@ -83,7 +81,7 @@ typedef std::map<std::string, object_recognition_msgs::ObjectType> ObjectTypeMap
     environment as seen by a planning instance. The environment
     geometry, the robot geometry and state are maintained. */
 class PlanningScene : private boost::noncopyable,
-                      public boost::enable_shared_from_this<PlanningScene>
+                      public std::enable_shared_from_this<PlanningScene>
 {
 public:
 
@@ -94,7 +92,7 @@ public:
   /** \brief construct using a urdf and srdf.
    * A RobotModel for the PlanningScene will be created using the urdf and srdf. */
   PlanningScene(const urdf::ModelInterfaceSharedPtr &urdf_model,
-                const boost::shared_ptr<const srdf::Model> &srdf_model,
+                const srdf::ModelConstSharedPtr &srdf_model,
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   static const std::string OCTOMAP_NS;
@@ -885,7 +883,7 @@ private:
 
   /* helper function to create a RobotModel from a urdf/srdf. */
   static robot_model::RobotModelPtr createRobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
-                                                     const boost::shared_ptr<const srdf::Model> &srdf_model);
+                                                     const srdf::ModelConstSharedPtr &srdf_model);
 
   void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene &scene, const std::string &ns) const;
   void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene &scene) const;
@@ -954,10 +952,10 @@ private:
   StateFeasibilityFn                             state_feasibility_;
   MotionFeasibilityFn                            motion_feasibility_;
 
-  boost::scoped_ptr<ObjectColorMap>              object_colors_;
+  std::unique_ptr<ObjectColorMap>                object_colors_;
 
   // a map of object types
-  boost::scoped_ptr<ObjectTypeMap>               object_types_;
+  std::unique_ptr<ObjectTypeMap>                 object_types_;
 
 
 };

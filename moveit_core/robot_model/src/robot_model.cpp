@@ -43,12 +43,13 @@
 #include <limits>
 #include <queue>
 #include <cmath>
+#include <memory>
 #include "order_robot_model_items.inc"
 
 /* ------------------------ RobotModel ------------------------ */
 
 moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
-                                     const boost::shared_ptr<const srdf::Model> &srdf_model)
+                                     const srdf::ModelConstSharedPtr &srdf_model)
 {
   root_joint_ = NULL;
   urdf_ = urdf_model;

@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_DISTANCE_FIELD_COLLISION_COMMON_
 
 #include <moveit/robot_state/robot_state.h>
+#include <moveit/macros/class_forward.h>
 #include <moveit/collision_detection/collision_common.h>
 #include <moveit/collision_detection/collision_world.h>
 #include <moveit/collision_distance_field/collision_distance_field_types.h>
@@ -45,7 +46,8 @@
 namespace collision_detection
 {
 
-struct DistanceFieldCacheEntry;
+MOVEIT_CLASS_FORWARD(GroupStateRepresentation);
+MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry);
 
 /** collision volume representation for a particular pose and link group
  *
@@ -53,31 +55,48 @@ struct DistanceFieldCacheEntry;
  * link group in a particular pose.  It is associated with a particular dfce_
  * and can only be used with that dfce_ (DistanceFieldCacheEntry -- see below).
  * */
-struct GroupStateRepresentation {
-  GroupStateRepresentation() {};
-  GroupStateRepresentation(const GroupStateRepresentation& gsr) {
+struct GroupStateRepresentation
+{
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  GroupStateRepresentation(){};
+  GroupStateRepresentation(const GroupStateRepresentation &gsr)
+  {
     link_body_decompositions_.resize(gsr.link_body_decompositions_.size());
-    for(unsigned int i = 0; i < gsr.link_body_decompositions_.size(); i++) {
-      if(gsr.link_body_decompositions_[i]) {
+    for (unsigned int i = 0; i < gsr.link_body_decompositions_.size(); i++)
+    {
+      if (gsr.link_body_decompositions_[i])
+      {
         link_body_decompositions_[i].reset(new PosedBodySphereDecomposition(*gsr.link_body_decompositions_[i]));
       }
     }
+
+    link_distance_fields_.assign(gsr.link_distance_fields_.begin(), gsr.link_distance_fields_.end());
+
     attached_body_decompositions_.resize(gsr.attached_body_decompositions_.size());
-    for(unsigned int i = 0; i < gsr.attached_body_decompositions_.size(); i++) {
+    for (unsigned int i = 0; i < gsr.attached_body_decompositions_.size(); i++)
+    {
       (*attached_body_decompositions_[i]) = (*gsr.attached_body_decompositions_[i]);
     }
     gradients_ = gsr.gradients_;
   }
 
   /** dfce used to generate this GSR */
-  boost::shared_ptr<const DistanceFieldCacheEntry> dfce_;
+  DistanceFieldCacheEntryConstPtr dfce_;
+
   /** posed spheres representing collision volume for the links in the group
    * (dfce_.group_name_) and all links below the group (i.e. links that can
    * move if joints in the group move).  These are posed in the global frame
    * used for collision detection. */
   std::vector<PosedBodySphereDecompositionPtr> link_body_decompositions_;
-  /** posed spheres representing collision volume for bodies attached to group links */
+
+  /** posed spheres representing collision volume for bodies attached to group
+   * links */
   std::vector<PosedBodySphereDecompositionVectorPtr> attached_body_decompositions_;
+
+  /** */
+  std::vector<PosedDistanceFieldPtr> link_distance_fields_;
+
   /** information about detected collisions, collected during collision
    * detection.  One entry for each link and one entry for each attached
    * object. */
@@ -90,14 +109,18 @@ struct GroupStateRepresentation {
  * a particular ACM, and a particular configuration of attached objects.  It
  * assumes the poses of joints above this group have not changed, but can be
  * used with different poses of the joints within the group. */
-struct DistanceFieldCacheEntry {
+struct DistanceFieldCacheEntry
+{
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   /** for checking collisions between this group and other objects */
   std::string group_name_;
   /** RobotState that this cache entry represents */
-  boost::shared_ptr<robot_state::RobotState> state_;
+  robot_state::RobotStatePtr state_;
   /** list of indices into the state_values_ vector.  One index for each joint
    * variable which is NOT in the group or a child of the group.  In other
-   * words, variables which should not change if only joints in the group move.  */
+   * words, variables which should not change if only joints in the group move.
+   */
   std::vector<unsigned int> state_check_indices_;
   /** all the joint variables from all the joints in the entire robot (whether
    * in the group or not), excluding mimic joints.  If 2
@@ -109,12 +132,12 @@ struct DistanceFieldCacheEntry {
   collision_detection::AllowedCollisionMatrix acm_;
   /** the distance field describing all links of the robot that are not in the
    * group and their attached bodies */
-  boost::shared_ptr<distance_field::DistanceField> distance_field_;
+  distance_field::DistanceFieldPtr distance_field_;
   /** this can be used as a starting point for creating a
    * GroupStateRepresentation needed for collision checking */
-  boost::shared_ptr<GroupStateRepresentation> pregenerated_group_state_representation_;
+ GroupStateRepresentationPtr pregenerated_group_state_representation_;
   /** names of all links in the group and all links below the group (links that
-   * will move if any of the joints in the group move) 
+   * will move if any of the joints in the group move)
    */
   std::vector<std::string> link_names_;
   /** for each link in link_names_, true if the link has collision geometry */
@@ -125,7 +148,8 @@ struct DistanceFieldCacheEntry {
    * link_body_decomposition_vector_ contains the (unposed) spheres that make
    * up the collision geometry for the link */
   std::vector<unsigned int> link_body_indices_;
-  /** for each link in link_names_, index into the RobotState::link_state_vector_ */
+  /** for each link in link_names_, index into the
+   * RobotState::link_state_vector_ */
   std::vector<unsigned int> link_state_indices_;
   /** list of all bodies attached to links in link_names_ */
   std::vector<std::string> attached_body_names_;
@@ -140,21 +164,21 @@ struct DistanceFieldCacheEntry {
    * to check for collisions between this link and that object.  Size of inner
    * and outer lists are the same and equal the sum of the size of link_names_
    * and attached_body_names_ */
-  std::vector<std::vector<bool> > intra_group_collision_enabled_;
+  std::vector<std::vector<bool>> intra_group_collision_enabled_;
 };
 
-BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape,
-                                                         double resolution);
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr &shape, double resolution);
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object &obj,
                                                                           double resolution);
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody *att,
                                                                          double resolution);
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody *att,
                                                                        double resolution);
 
-
+void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr &gsr,
+                                       std::string reference_frame, visualization_msgs::MarkerArray &body_marker_array);
 }
 #endif

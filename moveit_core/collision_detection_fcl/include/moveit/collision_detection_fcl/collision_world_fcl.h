@@ -39,7 +39,7 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 #include <fcl/broadphase/broadphase.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace collision_detection
 {
@@ -79,7 +79,7 @@ namespace collision_detection
     void updateFCLObject(const std::string &id);
 
 
-    boost::scoped_ptr<fcl::BroadPhaseCollisionManager> manager_;
+    std::unique_ptr<fcl::BroadPhaseCollisionManager> manager_;
     std::map<std::string, FCLObject >                  fcl_objs_;
 
   private:

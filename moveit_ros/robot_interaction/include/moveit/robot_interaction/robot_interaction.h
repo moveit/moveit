@@ -46,6 +46,7 @@
 #include <moveit/robot_interaction/interaction.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
+#include <memory>
 
 // This is needed for legacy code that includes robot_interaction.h but not
 // interaction_handler.h
@@ -213,7 +214,7 @@ private:
   void processingThread();
   void clearInteractiveMarkersUnsafe();
 
-  boost::scoped_ptr<boost::thread> processing_thread_;
+  std::unique_ptr<boost::thread> processing_thread_;
   bool run_processing_thread_;
 
   boost::condition_variable new_feedback_condition_;
