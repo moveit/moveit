@@ -58,6 +58,9 @@ add_subdirectory(lma_kinematics_plugin)
 add_subdirectory(srv_kinematics_plugin)
 add_subdirectory(ikfast_kinematics_plugin)
 
+add_executable(kinematic_plugin_tests test/kinematic_plugin_tests.cpp)
+target_link_libraries(kinematic_plugin_tests ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
 install(
   FILES
     kdl_kinematics_plugin_description.xml
