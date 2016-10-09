@@ -127,12 +127,11 @@ namespace kdl_kinematics_plugin
       ROS_ERROR_STREAM_NAMED("kdl","This initialization function is deprecated and not implemented");
     }
 
-    virtual bool initialize(const std::string &robot_description,
+    virtual bool initialize(const robot_model::RobotModel* robot_model,
                             const std::string &group_name,
                             const std::string &base_name,
                             const std::string &tip_name,
-                            double search_discretization,
-                            const robot_model::RobotModel* robot_model);
+                            double search_discretization);
 
     /**
      * @brief  Return all the joint names in the order they are used internally

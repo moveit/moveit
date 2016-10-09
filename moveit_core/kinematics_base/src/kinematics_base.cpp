@@ -55,6 +55,21 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   setSearchDiscretization(search_discretization);
 }
 
+void kinematics::KinematicsBase::setValues(const moveit::core::RobotModel* robot_model,
+                       const std::string& group_name,
+                       const std::string& base_frame,
+                       const std::string& tip_frame,
+                       double search_discretization)
+{
+  robot_model_ = robot_model;
+  group_name_ = group_name;
+  base_frame_ = removeSlash(base_frame);
+  tip_frame_ = removeSlash(tip_frame); // for backwards compatibility
+  tip_frames_.push_back(removeSlash(tip_frame));
+  search_discretization_ = search_discretization;
+  setSearchDiscretization(search_discretization);
+}
+
 void kinematics::KinematicsBase::setValues(const std::string& robot_description,
                        const std::string& group_name,
                        const std::string& base_frame,
@@ -66,7 +81,25 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
   base_frame_ = removeSlash(base_frame);
   search_discretization_ = search_discretization;
   setSearchDiscretization(search_discretization);
+  setTipFrames(tip_frames);
+}
 
+void kinematics::KinematicsBase::setValues(const moveit::core::RobotModel* robot_model,
+                       const std::string& group_name,
+                       const std::string& base_frame,
+                       const std::vector<std::string>& tip_frames,
+                       double search_discretization)
+{
+  robot_model_ = robot_model;
+  group_name_ = group_name;
+  base_frame_ = removeSlash(base_frame);
+  search_discretization_ = search_discretization;
+  setSearchDiscretization(search_discretization);
+  setTipFrames(tip_frames);
+}
+
+void kinematics::KinematicsBase::setTipFrames(const std::vector<std::string>& tip_frames)
+{
   // Copy tip frames to local vector after stripping slashes
   tip_frames_.clear();
   for (std::size_t i = 0; i < tip_frames.size(); ++i)
