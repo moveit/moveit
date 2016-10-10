@@ -157,6 +157,12 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   bottom_layout->setAlignment(Qt::AlignRight);
   layout_->addLayout(bottom_layout);
 
+  // Collision Filter Checkbox
+  collision_checkbox_ = new QCheckBox(this);
+  collision_checkbox_->setText("Show all link pairs");
+  connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(checkedFilterChanged()));
+  bottom_layout->addWidget(collision_checkbox_);
+
   // View Mode Buttons
   view_mode_buttons_ = new QButtonGroup(this);
   QRadioButton *radio_btn;
@@ -257,7 +263,12 @@ void DefaultCollisionsWidget::loadCollisionTable()
   if (view_mode_buttons_->checkedId() == MatrixMode)
     model = matrix_model;
   else
-    model = new CollisionLinearModel(matrix_model);
+  {
+    CollisionLinearModel *linear_model = new CollisionLinearModel(matrix_model);
+    SortFilterProxyModel *sorted_model = new SortFilterProxyModel();
+    model = sorted_model;
+    sorted_model->setSourceModel(linear_model);
+  }
 
   collision_table_->setModel(model);
   // delete old and remember new model
@@ -276,33 +287,43 @@ void DefaultCollisionsWidget::loadCollisionTable()
     connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
             SLOT(previewSelectedMatrix(QModelIndex)));
 
-    collision_table_->setSortingEnabled(false);
     collision_table_->setSelectionBehavior(QAbstractItemView::SelectItems);
     collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
 
     collision_table_->setHorizontalHeader(horizontal_header = new RotatedHeaderView(Qt::Horizontal, this));
     collision_table_->setVerticalHeader(vertical_header = new RotatedHeaderView(Qt::Vertical, this));
+    collision_table_->setSortingEnabled(false);
+
+    collision_checkbox_->hide();
+    horizontal_header->setVisible(true);
+    vertical_header->setVisible(true);
   }
   else
   {
     connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
             SLOT(previewSelectedLinear(QModelIndex)));
 
-    collision_table_->setSortingEnabled(true);
     collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
     collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
 
     collision_table_->setHorizontalHeader(horizontal_header = new QHeaderView(Qt::Horizontal, this));
     collision_table_->setVerticalHeader(vertical_header = new QHeaderView(Qt::Vertical, this));
+    collision_table_->sortByColumn(0, Qt::AscendingOrder);
+    collision_table_->setSortingEnabled(true);
+
+    collision_checkbox_->show();
+    horizontal_header->setVisible(true);
+    vertical_header->setVisible(true);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+    horizontal_header->setSectionsClickable(true);
+#else
+    horizontal_header->setClickable(true);
+#endif
   }
 
   // notice changes to the model
   connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this,
           SLOT(collisionsChanged(QModelIndex)));
-
-  // configure headers
-  horizontal_header->setVisible(true);
-  vertical_header->setVisible(true);
 }
 
 void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
@@ -353,6 +374,14 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 }
 
 // ******************************************************************************************
+// Changes the table to show or hide collisions that are not disabled (that have collision checking enabled)
+// ******************************************************************************************
+void DefaultCollisionsWidget::checkedFilterChanged()
+{
+  SortFilterProxyModel *m = qobject_cast<SortFilterProxyModel *>(model_);
+  m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
+}
+
 // Output Link Pairs to SRDF Format and update the collision matrix
 // ******************************************************************************************
 void DefaultCollisionsWidget::linkPairsToSRDF()

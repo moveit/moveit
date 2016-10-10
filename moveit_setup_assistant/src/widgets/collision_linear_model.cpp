@@ -38,8 +38,6 @@
 #include "collision_matrix_model.h"
 
 #include "default_collisions_widget.h"
-#include <QVector>
-#include <QDebug>
 #include <QPainter>
 
 using namespace moveit_setup_assistant;
@@ -128,6 +126,12 @@ QVariant CollisionLinearModel::data(const QModelIndex &index, int role) const
   return QVariant();
 }
 
+DisabledReason CollisionLinearModel::reason(int row) const
+{
+  QModelIndex srcIndex = this->mapToSource(createIndex(row, 0));
+  return qobject_cast<CollisionMatrixModel *>(sourceModel())->reason(srcIndex);
+}
+
 bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
   QModelIndex srcIndex = this->mapToSource(index);
@@ -174,4 +178,88 @@ QVariant CollisionLinearModel::headerData(int section, Qt::Orientation orientati
     return section + 1;
   }
   return QVariant();
+}
+
+SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyModel(parent), show_all_(false)
+{
+  connect(this, SIGNAL(sourceModelChanged()), this, SLOT(initSorting()));
+
+  // by default: sort by link A (col 0), then link B (col 1)
+  sort_columns_ << 0 << 1;
+  sort_orders_ << Qt::AscendingOrder << Qt::AscendingOrder;
+}
+
+void SortFilterProxyModel::initSorting()
+{
+  int cols = sourceModel()->columnCount();
+  int prev_size = sort_columns_.size();
+  sort_columns_.resize(cols);
+  sort_orders_.resize(cols);
+
+  // initialize new entries to -1
+  for (int i = prev_size, end = sort_columns_.size(); i < end; ++i)
+    sort_columns_[i] = -1;
+}
+
+void SortFilterProxyModel::setShowAll(bool show_all)
+{
+  if (show_all_ == show_all)
+    return;
+
+  show_all_ = show_all;
+  invalidateFilter();
+}
+
+bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+  if (show_all_)
+    return true;
+
+  CollisionLinearModel *m = qobject_cast<CollisionLinearModel *>(sourceModel());
+  moveit_setup_assistant::DisabledReason reason = m->reason(source_row);
+  return reason <= moveit_setup_assistant::ALWAYS;
+}
+
+bool SortFilterProxyModel::lessThan(const QModelIndex &src_left, const QModelIndex &src_right) const
+{
+  int row_left = src_left.row();
+  int row_right = src_right.row();
+  QAbstractItemModel *m = sourceModel();
+
+  for (int i = 0, end = sort_columns_.size(); i < end && sort_columns_[i] >= 0; ++i)
+  {
+    QVariant value_left = m->data(m->index(row_left, sort_columns_[i]));
+    QVariant value_right = m->data(m->index(row_right, sort_columns_[i]));
+
+    if (value_left == value_right)
+      continue;
+
+    bool smaller = (value_left < value_right);
+    if (sort_orders_[i] == Qt::DescendingOrder)
+      smaller = !smaller;
+    return smaller;
+  }
+  return false;
+}
+
+void SortFilterProxyModel::sort(int column, Qt::SortOrder order)
+{
+  beginResetModel();
+  if (column < 0)
+    initSorting();
+  else
+  {
+    // remember sorting history
+    int prev_idx = sort_columns_.indexOf(column);
+    if (prev_idx < 0)
+      prev_idx = sort_columns_.size() - 1;
+    // remove old entries
+    sort_columns_.takeAt(prev_idx);
+    sort_orders_.remove(prev_idx);
+    // add new entries at front
+    sort_columns_.insert(0, column);
+    sort_orders_.insert(0, order);
+  }
+  QSortFilterProxyModel::sort(column, Qt::AscendingOrder);
+  endResetModel();
 }

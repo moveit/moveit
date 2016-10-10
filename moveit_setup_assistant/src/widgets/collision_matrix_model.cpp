@@ -110,6 +110,14 @@ QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
   return QVariant();
 }
 
+moveit_setup_assistant::DisabledReason CollisionMatrixModel::reason(const QModelIndex &index) const
+{
+  moveit_setup_assistant::LinkPairMap::const_iterator item = this->item(index);
+  if (item == pairs.end())
+    return moveit_setup_assistant::NOT_DISABLED;
+  return item->second.reason;
+}
+
 bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
   if (role == Qt::CheckStateRole)

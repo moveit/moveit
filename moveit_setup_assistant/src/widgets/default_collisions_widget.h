@@ -126,6 +126,11 @@ private Q_SLOTS:
   void loadCollisionTable();
 
   /**
+   * \brief Change filter settings to show/hide enabled collisions
+   */
+  void checkedFilterChanged();
+
+  /**
    * \brief Collision model changed
    */
   void collisionsChanged(const QModelIndex &index);
@@ -166,6 +171,7 @@ private:
   QGroupBox *controls_box_;
   QProgressBar *progress_bar_;
   QLabel *progress_label_;
+  QCheckBox *collision_checkbox_;
   QLabel *fraction_label_;
   QSpinBox *fraction_spinbox_;
   QPushButton *btn_revert_;
