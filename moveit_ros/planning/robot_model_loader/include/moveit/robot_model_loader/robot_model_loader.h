@@ -144,9 +144,9 @@ private:
 
   void configure(const Options &opt);
 
-  robot_model::RobotModelPtr model_;
   rdf_loader::RDFLoaderPtr rdf_loader_;
   kinematics_plugin_loader::KinematicsPluginLoaderPtr kinematics_loader_;
+  robot_model::RobotModelPtr model_;
 
 };
 
