@@ -80,4 +80,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
 
+install(FILES collision_detector_hybrid_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
 # Generate and install version.h
