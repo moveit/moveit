@@ -27,6 +27,3 @@ install(TARGETS ${MOVEIT_LIB_NAME} collision_detector_hybrid_plugin
 
 install(DIRECTORY include/
   DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
-
-install(FILES collision_detector_hybrid_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

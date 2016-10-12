@@ -74,7 +74,7 @@
   <test_depend>tf_conversions</test_depend>
 
   <export>
-    <moveit_core plugin="${prefix}/collision_distance_field/collision_detector_hybrid_description.xml" />
+    <moveit_core plugin="${prefix}/collision_detector_hybrid_description.xml" />
   </export>
 
 </package>
