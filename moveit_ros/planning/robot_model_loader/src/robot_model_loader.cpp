@@ -51,6 +51,13 @@ robot_model_loader::RobotModelLoader::RobotModelLoader(const Options &opt)
   configure(opt);
 }
 
+robot_model_loader::RobotModelLoader::~RobotModelLoader()
+{
+  model_.reset();
+  rdf_loader_.reset();
+  kinematics_loader_.reset();
+}
+
 namespace
 {
 
