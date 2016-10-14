@@ -857,7 +857,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   // However, scene updates are only published if the robot actually moves. Hence we need a timeout!
   // As publishing planning scene updates is throttled (2Hz by default), a 1s timeout is a suitable default.
   boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
-  ros::Time prev_robot_motion_time_ = last_robot_motion_time_;
+  ros::Time prev_robot_motion_time = last_robot_motion_time_;
   while (last_robot_motion_time_ < t && // Wait until the state update actually reaches the scene.
          timeout > ros::WallDuration())
   {
@@ -867,7 +867,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
-  if (!success && prev_robot_motion_time_ != last_robot_motion_time_)
+  if (!success && prev_robot_motion_time != last_robot_motion_time_)
     ROS_WARN_NAMED("planning_scene_monitor", "Maybe failed to update robot state, time diff: %.3fs",
                    (t - last_robot_motion_time_).toSec());
 
