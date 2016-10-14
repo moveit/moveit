@@ -218,7 +218,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
   new_scene_update_ = UPDATE_NONE;
 
   last_update_time_ = last_robot_motion_time_ = ros::Time::now();
-  wall_last_state_update_ = ros::WallTime::now();
+  last_robot_state_update_wall_time_ = ros::WallTime::now();
   dt_state_update_ = ros::WallDuration(0.1);
 
   double temp_wait_time = 0.05;
@@ -1086,7 +1086,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stopStateMonitor()
 void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_msgs::JointStateConstPtr & /* joint_state */ )
 {
   const ros::WallTime &n = ros::WallTime::now();
-  ros::WallDuration dt = n - wall_last_state_update_;
+  ros::WallDuration dt = n - last_robot_state_update_wall_time_;
 
   bool update = enforce_next_state_update_;
   {
@@ -1099,7 +1099,7 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(const sensor_ms
     else
     {
       state_update_pending_ = false;
-      wall_last_state_update_ = n;
+      last_robot_state_update_wall_time_ = n;
       update = true;
     }
   }
@@ -1115,7 +1115,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
     bool update = false;
 
     const ros::WallTime &n = ros::WallTime::now();
-    ros::WallDuration dt = n - wall_last_state_update_;
+    ros::WallDuration dt = n - last_robot_state_update_wall_time_;
 
     {
       // lock for access to dt_state_update_ and state_update_pending_
@@ -1123,9 +1123,9 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
       if (state_update_pending_ && dt >= dt_state_update_)
       {
         state_update_pending_ = false;
-        wall_last_state_update_ = ros::WallTime::now();
+        last_robot_state_update_wall_time_ = ros::WallTime::now();
         update = true;
-        ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "performPendingStateUpdate: " << fmod(wall_last_state_update_.toSec(), 10));
+        ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.toSec(), 10));
       }
     }
 
