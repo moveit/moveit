@@ -345,7 +345,7 @@ public:
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 
-  /** \brief Wait for robot state to become more recent than t.
+  /** \brief Wait for robot state to become more recent than time t.
    *
    * If there is no state monitor active, there will be no scene updates.
    * Hence, you can specify a timeout to wait for those updates. Default is 1s.
@@ -426,7 +426,7 @@ protected:
   boost::shared_mutex                   scene_update_mutex_; /// mutex for stored scene
   ros::Time                             last_update_time_; /// Last time the state was updated
   ros::Time                             last_robot_motion_time_; /// Last time the robot has moved
-  bool                                  enforce_next_state_update_;
+  bool                                  enforce_next_state_update_; /// flag to enforce immediate state update in onStateUpdate()
 
   ros::NodeHandle                       nh_;
   ros::NodeHandle                       root_nh_;

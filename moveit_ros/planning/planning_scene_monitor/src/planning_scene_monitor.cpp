@@ -841,7 +841,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
     // Wait for next robot update in state monitor. Those updates are only passed to PSM when robot actually moved!
     enforce_next_state_update_ = true; // enforce potential updates to be directly applied
     bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
-    enforce_next_state_update_ = false; // enforce potential updates to be directly applied
+    enforce_next_state_update_ = false; // back to normal throttling behavior, not applying incoming updates immediately
 
     /* If the robot doesn't move, we will never receive an update from CSM in planning scene.
        As we ensured that an update, if it is triggered by CSM, is directly passed to the scene,
