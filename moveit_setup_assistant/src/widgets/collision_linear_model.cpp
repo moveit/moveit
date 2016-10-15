@@ -146,6 +146,16 @@ bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &val
   return false;  // reject all other changes
 }
 
+void CollisionLinearModel::setEnabled(const QItemSelection &selection, bool value)
+{
+  for (const auto idx : selection.indexes())
+  {
+    if (idx.column() != 2)  // only consider checkbox indexes
+      continue;
+    setData(idx, value ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+  }
+}
+
 Qt::ItemFlags CollisionLinearModel::flags(const QModelIndex &index) const
 {
   if (index.column() == 2)
@@ -187,6 +197,11 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
   // by default: sort by link A (col 0), then link B (col 1)
   sort_columns_ << 0 << 1;
   sort_orders_ << Qt::AscendingOrder << Qt::AscendingOrder;
+}
+
+void SortFilterProxyModel::setEnabled(const QItemSelection &selection, bool value)
+{
+  static_cast<CollisionLinearModel *>(sourceModel())->setEnabled(mapSelectionToSource(selection), value);
 }
 
 void SortFilterProxyModel::initSorting()

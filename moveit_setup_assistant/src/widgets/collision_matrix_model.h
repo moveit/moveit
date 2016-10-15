@@ -40,6 +40,8 @@
 #include <QAbstractTableModel>
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
 
+class QItemSelection;
+
 class CollisionMatrixModel : public QAbstractTableModel
 {
   Q_OBJECT
@@ -55,6 +57,8 @@ public:
   // for editing
   Qt::ItemFlags flags(const QModelIndex &index) const;
   bool setData(const QModelIndex &, const QVariant &value, int role);
+  void setEnabled(const QItemSelection &selection, bool value);
+  void setEnabled(const QModelIndexList &indexes, bool value);
 
 private:
   moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex &index);

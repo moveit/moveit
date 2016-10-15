@@ -42,6 +42,7 @@
 #include <QApplication>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QKeyEvent>
 #include "default_collisions_widget.h"
 #include "collision_matrix_model.h"
 #include "collision_linear_model.h"
@@ -187,6 +188,8 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
 
   setLayout(layout_);
   setWindowTitle("Default Collision Matrix");
+
+  collision_table_->installEventFilter(this);
 }
 
 DefaultCollisionsWidget::~DefaultCollisionsWidget()
@@ -288,7 +291,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
             SLOT(previewSelectedMatrix(QModelIndex)));
 
     collision_table_->setSelectionBehavior(QAbstractItemView::SelectItems);
-    collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+    collision_table_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     collision_table_->setHorizontalHeader(horizontal_header = new RotatedHeaderView(Qt::Horizontal, this));
     collision_table_->setVerticalHeader(vertical_header = new RotatedHeaderView(Qt::Vertical, this));
@@ -304,7 +307,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
             SLOT(previewSelectedLinear(QModelIndex)));
 
     collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
-    collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+    collision_table_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
     collision_table_->setHorizontalHeader(horizontal_header = new QHeaderView(Qt::Horizontal, this));
     collision_table_->setVerticalHeader(vertical_header = new QHeaderView(Qt::Vertical, this));
@@ -329,11 +332,22 @@ void DefaultCollisionsWidget::loadCollisionTable()
 void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
 {
   btn_revert_->setEnabled(true);  // enable revert button
-  QItemSelectionModel::SelectionFlags flags = QItemSelectionModel::Select | QItemSelectionModel::Current;
-  if (view_mode_buttons_->checkedId() == LinearMode)
-    flags |= QItemSelectionModel::Rows;
 
-  selection_model_->setCurrentIndex(index, flags);
+  if (!index.isValid())
+    return;
+  // Hm. For some reason, QTableView doesn't change selection if we click a checkbox
+  bool linear_mode = (view_mode_buttons_->checkedId() == LinearMode);
+  const QItemSelection &selection = selection_model_->selection();
+  if ((linear_mode && !selection.contains(index)) ||  // in linear mode: index not in selection
+      (!linear_mode &&
+       !(selection.contains(index) ||  // in matrix mode: index or symmetric index not in selection
+         selection.contains(model_->index(index.column(), index.row())))))
+  {
+    QItemSelectionModel::SelectionFlags flags = QItemSelectionModel::Select | QItemSelectionModel::Current;
+    if (linear_mode)
+      flags |= QItemSelectionModel::Rows;
+    selection_model_->setCurrentIndex(index, flags);
+  }
 }
 
 void DefaultCollisionsWidget::revertChanges()
@@ -341,6 +355,62 @@ void DefaultCollisionsWidget::revertChanges()
   linkPairsFromSRDF();
   loadCollisionTable();
   btn_revert_->setEnabled(false);  // no changes to revert
+}
+
+bool DefaultCollisionsWidget::eventFilter(QObject *object, QEvent *event)
+{
+  if (object != collision_table_)
+    return false;  // leave event unhandled
+
+  if (event->type() == QEvent::Enter)
+  {
+    // grab focus as soon as mouse enters to allow for <space> to work in all cases
+    collision_table_->setFocus();
+    return false;
+  }
+  else if (event->type() == QEvent::KeyPress)
+  {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    if (keyEvent->key() != Qt::Key_Space)
+      return false;
+
+    // set all selected items to inverse value of current item
+    const QModelIndex &cur_idx = selection_model_->currentIndex();
+    if (view_mode_buttons_->checkedId() == MatrixMode)
+    {
+      const QItemSelection selection = selection_model_->selection();
+
+      QModelIndex input_index;
+      if (cur_idx.flags() & Qt::ItemIsUserCheckable)
+        input_index = cur_idx;  // if current index is checkable, this serves as input
+      else
+      {  // search for first checkable index in selection that can serve as input
+        for (const auto idx : selection.indexes())
+        {
+          if (idx.flags() & Qt::ItemIsUserCheckable)
+          {
+            input_index = idx;
+            break;
+          }
+        }
+        if (!input_index.isValid())
+          return true;  // no valid selection
+      }
+
+      bool current = model_->data(input_index, Qt::CheckStateRole) == Qt::Checked;
+      CollisionMatrixModel *m = static_cast<CollisionMatrixModel *>(model_);
+      m->setEnabled(selection, !current);
+    }
+    else
+    {
+      bool current = model_->data(model_->index(cur_idx.row(), 2), Qt::CheckStateRole) == Qt::Checked;
+      SortFilterProxyModel *m = static_cast<SortFilterProxyModel *>(model_);
+      m->setEnabled(selection_model_->selection(), !current);
+    }
+    return true;  // no need for further processing
+  }
+
+  return false;
 }
 
 // ******************************************************************************************

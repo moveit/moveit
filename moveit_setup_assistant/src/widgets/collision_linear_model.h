@@ -66,6 +66,8 @@ public:
   moveit_setup_assistant::DisabledReason reason(int row) const;
 
   bool setData(const QModelIndex &index, const QVariant &value, int role);
+  void setEnabled(const QItemSelection &selection, bool value);
+
   Qt::ItemFlags flags(const QModelIndex &index) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
@@ -79,6 +81,7 @@ public:
   SortFilterProxyModel(QObject *parent = 0);
   void sort(int column, Qt::SortOrder order);
   void setShowAll(bool show_all);
+  void setEnabled(const QItemSelection &selection, bool value);
 
 protected:
   bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;

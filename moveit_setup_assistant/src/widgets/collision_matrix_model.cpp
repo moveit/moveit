@@ -126,7 +126,11 @@ bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &val
     if (item == pairs.end())
       return false;
 
-    item->second.disable_check = (value.toInt() == Qt::Checked);
+    bool new_value = (value.toInt() == Qt::Checked);
+    if (item->second.disable_check == new_value)
+      return true;
+
+    item->second.disable_check = new_value;
 
     // Handle USER Reasons: 1) pair is disabled by user
     if (item->second.disable_check == true && item->second.reason == moveit_setup_assistant::NOT_DISABLED)
@@ -137,11 +141,39 @@ bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &val
       item->second.reason = moveit_setup_assistant::NOT_DISABLED;
 
     QModelIndex mirror = this->index(index.column(), index.row());
-    Q_EMIT dataChanged(mirror, mirror);
     Q_EMIT dataChanged(index, index);
+    Q_EMIT dataChanged(mirror, mirror);
     return true;
   }
   return false;  // reject all other changes
+}
+
+void CollisionMatrixModel::setEnabled(const QItemSelection &selection, bool value)
+{
+  // perform changes without signalling
+  QItemSelection changes;
+  blockSignals(true);
+  for (const auto range : selection)
+  {
+    setEnabled(range.indexes(), value);
+
+    const QModelIndex &top_left = range.topLeft();
+    const QModelIndex &bottom_right = range.bottomRight();
+    changes.select(top_left, bottom_right);
+    changes.select(createIndex(top_left.column(), top_left.row()),
+                   createIndex(bottom_right.column(), bottom_right.row()));
+  }
+  blockSignals(false);
+
+  // emit changes
+  for (const auto range : changes)
+    Q_EMIT dataChanged(range.topLeft(), range.bottomRight());
+}
+
+void CollisionMatrixModel::setEnabled(const QModelIndexList &indexes, bool value)
+{
+  for (const auto idx : indexes)
+    setData(idx, value ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 }
 
 QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation, int role) const
@@ -156,5 +188,8 @@ Qt::ItemFlags CollisionMatrixModel::flags(const QModelIndex &index) const
   if (!index.isValid())
     return 0;
 
-  return Qt::ItemIsUserCheckable | QAbstractTableModel::flags(index);
+  Qt::ItemFlags f = QAbstractTableModel::flags(index);
+  if (index.row() != index.column())
+    f |= Qt::ItemIsUserCheckable;
+  return f;
 }

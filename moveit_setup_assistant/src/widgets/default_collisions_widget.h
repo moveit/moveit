@@ -204,6 +204,11 @@ private:
    * \param disable A command
    */
   void disableControls(bool disable);
+
+  /**
+   * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
+   */
+  bool eventFilter(QObject *object, QEvent *event);
 };
 
 /**
