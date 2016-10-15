@@ -63,18 +63,18 @@ QModelIndex CollisionLinearModel::mapFromSource(const QModelIndex &sourceIndex) 
     std::swap(r, c);       // swap r,c if below diagonal
 
   int k = (n * (n - 1) / 2) - (n - r) * ((n - r) - 1) / 2 + c - r - 1;
-  return createIndex(k, 2);
+  return index(k, 2);
 }
 
 QModelIndex CollisionLinearModel::mapToSource(const QModelIndex &proxyIndex) const
 {
   // map linear index k to (row, column)
   // http://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
-  int n = this->sourceModel()->columnCount();
+  int n = sourceModel()->columnCount();
   int k = proxyIndex.row();  // linear (row) index
   int r = n - 2 - (int)(sqrt(-8 * k + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
   int c = k + r + 1 - n * (n - 1) / 2 + (n - r) * ((n - r) - 1) / 2;
-  return createIndex(r, c);
+  return sourceModel()->index(r, c);
 }
 
 int CollisionLinearModel::rowCount(const QModelIndex &parent) const
@@ -128,7 +128,7 @@ QVariant CollisionLinearModel::data(const QModelIndex &index, int role) const
 
 DisabledReason CollisionLinearModel::reason(int row) const
 {
-  QModelIndex srcIndex = this->mapToSource(createIndex(row, 0));
+  QModelIndex srcIndex = this->mapToSource(index(row, 0));
   return qobject_cast<CollisionMatrixModel *>(sourceModel())->reason(srcIndex);
 }
 
@@ -140,7 +140,7 @@ bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &val
   {
     sourceModel()->setData(srcIndex, value, role);
     int r = index.row();
-    Q_EMIT dataChanged(createIndex(r, 2), createIndex(r, 3));  // reason changed too
+    Q_EMIT dataChanged(this->index(r, 2), this->index(r, 3));  // reason changed too
     return true;
   }
   return false;  // reject all other changes

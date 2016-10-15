@@ -136,7 +136,7 @@ bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &val
     else if (item->second.disable_check == false && item->second.reason == moveit_setup_assistant::USER)
       item->second.reason = moveit_setup_assistant::NOT_DISABLED;
 
-    QModelIndex mirror = createIndex(index.column(), index.row());
+    QModelIndex mirror = this->index(index.column(), index.row());
     Q_EMIT dataChanged(mirror, mirror);
     Q_EMIT dataChanged(index, index);
     return true;
