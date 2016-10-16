@@ -1077,7 +1077,10 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback &callba
   stopExecution(false);
 
   // check whether first trajectory starts at current robot state
-  if (trajectories_.size() && !validate(*trajectories_.front()))
+  // TODO(rhaschke): Issues were found with continuous joints and this new validate() feature.
+  // It has been disabled temporarily for the first Kinetic release
+  // See https://github.com/ros-planning/moveit/issues/283
+  if (false && trajectories_.size() && !validate(*trajectories_.front()))
   {
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     if (auto_clear)
