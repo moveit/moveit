@@ -20,6 +20,12 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
 )
 find_package(Eigen3 REQUIRED)
+
+# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
+if(NOT EIGEN3_INCLUDE_DIRS)
+  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
+
 find_package(Boost REQUIRED thread system filesystem date_time program_options)
 
 generate_dynamic_reconfigure_options("pick_place/cfg/PickPlaceDynamicReconfigure.cfg")

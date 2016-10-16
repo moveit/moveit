@@ -25,6 +25,11 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 
+# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
+if(NOT EIGEN3_INCLUDE_DIRS)
+  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
+
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
   "trajectory_execution_manager/cfg/TrajectoryExecutionDynamicReconfigure.cfg"
