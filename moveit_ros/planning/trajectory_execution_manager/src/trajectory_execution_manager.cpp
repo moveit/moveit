@@ -896,6 +896,34 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &cont
     ROS_WARN_NAMED("traj_execution", "Failed to validate trajectory: couldn't receive full current joint state within 1s");
     return false;
   }
+  current_state->enforceBounds();
+
+  // build a RobotState that can be used to compare current_state and the start state with enforced bounds
+  robot_state::RobotState bounded_start_state(*current_state);
+  for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator traj_it = context.trajectory_parts_.begin();
+       traj_it != context.trajectory_parts_.end(); ++traj_it)
+  {
+    const std::vector<double> &positions = traj_it->joint_trajectory.points.front().positions;
+    const std::vector<std::string> &joint_names = traj_it->joint_trajectory.joint_names;
+    const std::size_t n = joint_names.size();
+
+    if (positions.size() != n)
+    {
+      ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
+      return false;
+    }
+
+    try
+    {
+      bounded_start_state.setVariablePositions(joint_names, positions);
+    }
+    catch(moveit::Exception& e)
+    {
+      ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << e.what());
+      return false;
+    }
+  }
+  bounded_start_state.enforceBounds();
 
   for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator traj_it = context.trajectory_parts_.begin();
        traj_it != context.trajectory_parts_.end(); ++traj_it)
@@ -903,22 +931,14 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &cont
     const std::vector<double> &positions = traj_it->joint_trajectory.points.front().positions;
     const std::vector<std::string> &joint_names = traj_it->joint_trajectory.joint_names;
     const std::size_t n = joint_names.size();
-    if (positions.size() != n)
-    {
-      ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
-      return false;
-    }
 
     for (std::size_t i = 0; i < n; ++i)
     {
       const robot_model::JointModel *jm = current_state->getJointModel(joint_names[i]);
-      if (!jm)
-      {
-        ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
-        return false;
-      }
+      const robot_model::JointModel *jm_start = bounded_start_state.getJointModel(joint_names[i]);
+
       // TODO: check multi-DoF joints ?
-      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
+      if (fabs(current_state->getJointPositions(jm)[0] - bounded_start_state.getJointPositions(jm_start)[0]) > allowed_start_tolerance_)
       {
         ROS_ERROR_NAMED("traj_execution",
                         "\nInvalid Trajectory: start point deviates from current robot state more than %g"
