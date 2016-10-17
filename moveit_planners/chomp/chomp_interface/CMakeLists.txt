@@ -4,7 +4,7 @@ project(chomp_interface)
 add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  cmake_modules 
+  cmake_modules
   roscpp
   moveit_core
   pluginlib
@@ -14,17 +14,22 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 
+# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
+if(NOT EIGEN3_INCLUDE_DIRS)
+  set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
+
 find_package(Boost REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES chomp_interface
   CATKIN_DEPENDS roscpp moveit_core pluginlib
-) 
+)
 
-include_directories( 
+include_directories(
   include
-  ${catkin_INCLUDE_DIRS} 
+  ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
 )
 
@@ -40,11 +45,9 @@ install(FILES chomp_interface_plugin_description.xml
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
-  
+
 install(TARGETS chomp_interface chomp_planner_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
-

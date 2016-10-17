@@ -39,6 +39,7 @@
 #include <moveit/kinematics_constraint_aware/kinematics_constraint_aware.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/planning_scene/planning_scene.h>
+#include <Eigen/Geometry.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
