@@ -51,6 +51,18 @@ robot_model_loader::RobotModelLoader::RobotModelLoader(const Options &opt)
   configure(opt);
 }
 
+robot_model_loader::RobotModelLoader::~RobotModelLoader()
+{
+  // Make sure we destroy the robot model first. It contains the loaded
+  // kinematics plugins, and those must be destroyed before the pluginlib class
+  // that implements them is destroyed (that happens when kinematics_loader_ is
+  // destroyed below). This is a workaround - ideally pluginlib would handle
+  // this better.
+  model_.reset();
+  rdf_loader_.reset();
+  kinematics_loader_.reset();
+}
+
 namespace
 {
 
