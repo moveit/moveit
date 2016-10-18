@@ -849,7 +849,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
     if (success)
       return true;
 
-    ROS_WARN("Failed to fetch current robot state.");
+    ROS_WARN_NAMED("planning_scene_monitor", "Failed to fetch current robot state.");
     return false;
   }
 
