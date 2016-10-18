@@ -917,14 +917,19 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext &cont
         ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
         return false;
       }
+
       // TODO: check multi-DoF joints ?
-      if (fabs(current_state->getJointPositions(jm)[0] - positions[i]) > allowed_start_tolerance_)
+      double cur_position = current_state->getJointPositions(jm)[0];
+      double traj_position = positions[i];
+      // normalize positions and compare
+      jm->enforcePositionBounds(&cur_position);
+      jm->enforcePositionBounds(&traj_position);
+      if (fabs(cur_position - traj_position) > allowed_start_tolerance_)
       {
         ROS_ERROR_NAMED("traj_execution",
                         "\nInvalid Trajectory: start point deviates from current robot state more than %g"
                         "\njoint '%s': expected: %g, current: %g",
-                        allowed_start_tolerance_,
-                        joint_names[i].c_str(), positions[i], current_state->getJointPositions(jm)[0]);
+                        allowed_start_tolerance_, joint_names[i].c_str(), traj_position, cur_position);
         return false;
       }
     }
