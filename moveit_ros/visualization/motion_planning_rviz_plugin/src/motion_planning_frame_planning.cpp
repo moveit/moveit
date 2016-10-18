@@ -181,12 +181,22 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
 
 void MotionPlanningFrame::useStartStateButtonClicked()
 {
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this), "update start state");
+}
+
+void MotionPlanningFrame::useStartStateButtonExec()
+{
   robot_state::RobotState start = *planning_display_->getQueryStartState();
   updateQueryStateHelper(start, ui_->start_state_selection->currentText().toStdString());
   planning_display_->setQueryStartState(start);
 }
 
 void MotionPlanningFrame::useGoalStateButtonClicked()
+{
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this), "update goal state");
+}
+
+void MotionPlanningFrame::useGoalStateButtonExec()
 {
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
   updateQueryStateHelper(goal, ui_->goal_state_selection->currentText().toStdString());
@@ -239,6 +249,7 @@ void MotionPlanningFrame::updateQueryStateHelper(robot_state::RobotState &state,
 
   if (v == "<current>")
   {
+    planning_display_->waitForCurrentRobotState();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
       state = ps->getCurrentState();
@@ -402,11 +413,11 @@ void MotionPlanningFrame::remoteUpdateStartStateCallback(const std_msgs::EmptyCo
 {
   if (move_group_ && planning_display_)
   {
-    robot_state::RobotState state = *planning_display_->getQueryStartState();
+    planning_display_->waitForCurrentRobotState();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
-      state = ps->getCurrentState();
+      robot_state::RobotState state = ps->getCurrentState();
       planning_display_->setQueryStartState(state);
     }
   }
@@ -416,11 +427,11 @@ void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyCon
 {
   if (move_group_ && planning_display_)
   {
-    robot_state::RobotState state = *planning_display_->getQueryStartState();
+    planning_display_->waitForCurrentRobotState();
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
-      state = ps->getCurrentState();
+      robot_state::RobotState state = ps->getCurrentState();
       planning_display_->setQueryGoalState(state);
     }
   }

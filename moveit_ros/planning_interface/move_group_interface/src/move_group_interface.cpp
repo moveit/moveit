@@ -530,7 +530,7 @@ public:
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
 
-    current_state_monitor_->waitForCurrentState(opt_.group_name_, wait);
+    current_state_monitor_->waitForCompleteState(opt_.group_name_, wait);
     return true;
   }
 
@@ -546,8 +546,11 @@ public:
     if (!current_state_monitor_->isActive())
       current_state_monitor_->startStateMonitor();
 
-    if (!current_state_monitor_->waitForCurrentState(opt_.group_name_, wait_seconds))
-      ROS_WARN("Joint values for monitored state are requested but the full state is not known");
+    if (!current_state_monitor_->waitForCurrentState(ros::Time::now(), wait_seconds))
+    {
+      ROS_ERROR("Failed to fetch current robot state");
+      return false;
+    }
 
     current_state = current_state_monitor_->getCurrentState();
     return true;

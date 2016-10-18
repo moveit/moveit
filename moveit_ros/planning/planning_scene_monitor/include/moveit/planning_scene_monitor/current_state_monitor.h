@@ -44,6 +44,8 @@
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <moveit/macros/deprecation.h>
 
 namespace planning_scene_monitor
 {
@@ -136,11 +138,20 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
 
-  /** @brief Wait for at most \e wait_time seconds until the complete current state is known. Return true if the full state is known */
-  bool waitForCurrentState(double wait_time) const;
+  /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
+   *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
+  */
+  bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+
+  /** @brief Wait for at most \e wait_time seconds until the complete robot state is known. Return true if the full state is known */
+  bool waitForCompleteState(double wait_time) const;
+  /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
+  MOVEIT_DEPRECATED bool waitForCurrentState(double wait_time) const;
 
   /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true if values for all joints in \e group are known */
-  bool waitForCurrentState(const std::string &group, double wait_time) const;
+  bool waitForCompleteState(const std::string &group, double wait_time) const;
+  /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
+  MOVEIT_DEPRECATED bool waitForCurrentState(const std::string &group, double wait_time) const;
 
   /** @brief Get the time point when the monitor was started */
   const ros::Time& getMonitorStartTime() const
@@ -199,6 +210,7 @@ private:
   ros::Time                                    last_tf_update_;
 
   mutable boost::mutex                         state_update_lock_;
+  mutable boost::condition_variable            state_update_condition_;
   std::vector< JointStateUpdateCallback >      update_callbacks_;
 };
 
