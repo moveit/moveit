@@ -6,4 +6,5 @@ if (CATKIN_ENABLE_TESTING)
   #target_link_libraries(test_cleanup moveit_move_group_interface)
 
   add_rostest(python_move_group.test)
+  add_rostest(robot_state_update.test)
 endif()
