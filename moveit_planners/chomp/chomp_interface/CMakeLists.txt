@@ -33,10 +33,12 @@ include_directories(
   ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_library(chomp_interface src/chomp_interface.cpp src/chomp_planning_context.cpp)
+add_library(${PROJECT_NAME} src/chomp_interface.cpp src/chomp_planning_context.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(chomp_interface ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
+set_target_properties(chomp_planner_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(chomp_planner_plugin chomp_interface ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml
