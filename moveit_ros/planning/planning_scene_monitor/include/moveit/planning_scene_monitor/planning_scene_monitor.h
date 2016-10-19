@@ -489,6 +489,8 @@ private:
   // Callback for a new planning scene msg
   void newPlanningSceneCallback(const moveit_msgs::PlanningSceneConstPtr &scene);
 
+  // Name of this class
+  const std::string name_ = "planning_scene_monitor";
 
   // Lock for state_update_pending_ and dt_state_update_
   boost::mutex state_pending_mutex_;
