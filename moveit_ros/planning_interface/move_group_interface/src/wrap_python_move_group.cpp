@@ -477,7 +477,7 @@ public:
   MoveGroupWrapper(const std::string &group_name, const std::string &robot_description) :
     MoveGroupInterfaceWrapper(group_name, robot_description)
   {
-    ROS_WARN("The MoveGroup class is deprecated and will go away in ROS lunar. Please use MoveGroupInterface instead.");
+    ROS_WARN("The MoveGroup class is deprecated and will be removed in ROS lunar. Please use MoveGroupInterface instead.");
   }
 
 };
