@@ -202,7 +202,7 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
 QVariant SortFilterProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (role == Qt::DisplayRole && orientation == Qt::Vertical)
-    return section + 1; // simply enumerate rows
+    return section + 1;  // simply enumerate rows
   else
     return QSortFilterProxyModel::headerData(section, orientation, role);
 }
@@ -236,7 +236,8 @@ void SortFilterProxyModel::setShowAll(bool show_all)
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
   CollisionLinearModel *m = qobject_cast<CollisionLinearModel *>(sourceModel());
-  if (!show_all_ && m->reason(source_row) > moveit_setup_assistant::ALWAYS)
+  if (!(show_all_ || m->reason(source_row) <= moveit_setup_assistant::ALWAYS ||
+        m->data(m->index(source_row, 2), Qt::CheckStateRole) == Qt::Checked))
     return false;  // not accepted due to check state
 
   const QRegExp regexp = this->filterRegExp();
