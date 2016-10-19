@@ -79,6 +79,7 @@ class SortFilterProxyModel : public QSortFilterProxyModel
 
 public:
   SortFilterProxyModel(QObject *parent = 0);
+  QVariant headerData(int section, Qt::Orientation orientation, int role) const;
   void sort(int column, Qt::SortOrder order);
   void setShowAll(bool show_all);
   void setEnabled(const QItemSelection &selection, bool value);

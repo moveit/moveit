@@ -199,6 +199,14 @@ SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyMo
   sort_orders_ << Qt::AscendingOrder << Qt::AscendingOrder;
 }
 
+QVariant SortFilterProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (role == Qt::DisplayRole && orientation == Qt::Vertical)
+    return section + 1; // simply enumerate rows
+  else
+    return QSortFilterProxyModel::headerData(section, orientation, role);
+}
+
 void SortFilterProxyModel::setEnabled(const QItemSelection &selection, bool value)
 {
   static_cast<CollisionLinearModel *>(sourceModel())->setEnabled(mapSelectionToSource(selection), value);
