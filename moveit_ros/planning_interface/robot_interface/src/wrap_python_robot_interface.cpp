@@ -190,7 +190,7 @@ public:
     if (!current_state_monitor_->isActive())
     {
       current_state_monitor_->startStateMonitor();
-      if (!current_state_monitor_->waitForCurrentState(wait))
+      if (!current_state_monitor_->waitForCompleteState(wait))
         ROS_WARN("Joint values for monitored state are requested but the full state is not known");
     }
     return true;
