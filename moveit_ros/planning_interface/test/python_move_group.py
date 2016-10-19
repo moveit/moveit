@@ -6,7 +6,7 @@ import rospy
 import rostest
 import os
 
-from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroup
+from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroupInterface
 
 
 class PythonMoveGroupTest(unittest.TestCase):
@@ -14,7 +14,7 @@ class PythonMoveGroupTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.group = MoveGroup(self.PLANNING_GROUP, "robot_description")
+        self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description")
 
     @classmethod
     def tearDown(self):
