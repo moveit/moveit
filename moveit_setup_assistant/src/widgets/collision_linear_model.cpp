@@ -227,12 +227,16 @@ void SortFilterProxyModel::setShowAll(bool show_all)
 
 bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-  if (show_all_)
+  CollisionLinearModel *m = qobject_cast<CollisionLinearModel *>(sourceModel());
+  if (!show_all_ && m->reason(source_row) > moveit_setup_assistant::ALWAYS)
+    return false;  // not accepted due to check state
+
+  const QRegExp regexp = this->filterRegExp();
+  if (regexp.isEmpty())
     return true;
 
-  CollisionLinearModel *m = qobject_cast<CollisionLinearModel *>(sourceModel());
-  moveit_setup_assistant::DisabledReason reason = m->reason(source_row);
-  return reason <= moveit_setup_assistant::ALWAYS;
+  return m->data(m->index(source_row, 0, source_parent), Qt::DisplayRole).toString().contains(regexp) ||
+         m->data(m->index(source_row, 1, source_parent), Qt::DisplayRole).toString().contains(regexp);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex &src_left, const QModelIndex &src_right) const

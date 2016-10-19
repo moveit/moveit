@@ -49,6 +49,7 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QThread>
+#include <QLineEdit>
 
 #ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
@@ -171,6 +172,7 @@ private:
   QGroupBox *controls_box_;
   QProgressBar *progress_bar_;
   QLabel *progress_label_;
+  QLineEdit *link_name_filter_;
   QCheckBox *collision_checkbox_;
   QLabel *fraction_label_;
   QSpinBox *fraction_spinbox_;

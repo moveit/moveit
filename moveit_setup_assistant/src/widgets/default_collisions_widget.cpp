@@ -158,9 +158,14 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   bottom_layout->setAlignment(Qt::AlignRight);
   layout_->addLayout(bottom_layout);
 
+  // Link Filter QLineEdit
+  link_name_filter_ = new QLineEdit(this);
+  link_name_filter_->setPlaceholderText("link name filter");
+  bottom_layout->addWidget(link_name_filter_);
+
   // Collision Filter Checkbox
   collision_checkbox_ = new QCheckBox(this);
-  collision_checkbox_->setText("Show all link pairs");
+  collision_checkbox_->setText("show enabled pairs");
   connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(checkedFilterChanged()));
   bottom_layout->addWidget(collision_checkbox_);
 
@@ -271,6 +276,8 @@ void DefaultCollisionsWidget::loadCollisionTable()
     SortFilterProxyModel *sorted_model = new SortFilterProxyModel();
     model = sorted_model;
     sorted_model->setSourceModel(linear_model);
+    connect(link_name_filter_, SIGNAL(textChanged(QString)), sorted_model, SLOT(setFilterRegExp(QString)));
+    sorted_model->setFilterRegExp(link_name_filter_->text());
   }
 
   collision_table_->setModel(model);
@@ -297,6 +304,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_table_->setVerticalHeader(vertical_header = new RotatedHeaderView(Qt::Vertical, this));
     collision_table_->setSortingEnabled(false);
 
+    link_name_filter_->hide();
     collision_checkbox_->hide();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
@@ -314,6 +322,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_table_->sortByColumn(0, Qt::AscendingOrder);
     collision_table_->setSortingEnabled(true);
 
+    link_name_filter_->show();
     collision_checkbox_->show();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
