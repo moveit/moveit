@@ -44,6 +44,16 @@ endif(NEW_YAMLCPP_FOUND)
 
 find_library(YAML yaml-cpp REQUIRED)
 
+catkin_package(
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    ${PROJECT_NAME}_tools
+  CATKIN_DEPENDS
+    moveit_ros_planning
+    moveit_ros_visualization
+)
+
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set(HEADERS
   src/widgets/navigation_widget.h
@@ -70,6 +80,7 @@ add_library(${PROJECT_NAME}_tools
   src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
 )
+set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION 0.7.3)
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAML}
   ${catkin_LIBRARIES}
@@ -97,21 +108,12 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
+set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION 0.7.3)
 target_link_libraries(${PROJECT_NAME}_widgets
   ${PROJECT_NAME}_tools
   ${QT_LIBRARIES}
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
-)
-
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    ${PROJECT_NAME}_tools
-  CATKIN_DEPENDS
-    moveit_ros_planning
-    moveit_ros_visualization
 )
 
 # executables

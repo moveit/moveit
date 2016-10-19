@@ -7,6 +7,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/default_constraint_samplers.cpp
   src/union_constraint_sampler.cpp
 )
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
 
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_state

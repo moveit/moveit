@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
   src/chomp_optimizer.cpp
   src/chomp_planner.cpp
 )
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

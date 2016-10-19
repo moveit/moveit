@@ -5,6 +5,7 @@ include_directories(src)
 add_library(${MOVEIT_LIB_NAME}
   src/pick_place_action_capability.cpp
   )
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_pick_place_planner ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

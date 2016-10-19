@@ -29,9 +29,11 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} src/chomp_interface.cpp src/chomp_planning_context.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
+set_target_properties(chomp_planner_plugin PROPERTIES VERSION 0.7.3)
 target_link_libraries(chomp_planner_plugin ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml
