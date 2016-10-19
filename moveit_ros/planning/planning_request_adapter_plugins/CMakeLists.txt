@@ -9,6 +9,7 @@ set(SOURCE_FILES
   src/add_time_parameterization.cpp)
 
 add_library(${MOVEIT_LIB_NAME} ${SOURCE_FILES})
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_list_request_adapter_plugins src/list.cpp)
