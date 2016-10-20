@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(chomp_interface)
+project(moveit_planners_chomp)
 
 add_definitions(-std=c++11)
 
@@ -23,7 +23,7 @@ find_package(Boost REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES chomp_interface
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp moveit_core pluginlib
 )
 
@@ -35,20 +35,20 @@ include_directories(
 
 add_library(${PROJECT_NAME} src/chomp_interface.cpp src/chomp_planning_context.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
-target_link_libraries(chomp_interface ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
 set_target_properties(chomp_planner_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
-target_link_libraries(chomp_planner_plugin chomp_interface ${catkin_LIBRARIES})
+target_link_libraries(chomp_planner_plugin ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
-install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/chomp_interface/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
-install(TARGETS chomp_interface chomp_planner_plugin
+install(TARGETS ${PROJECT_NAME} chomp_planner_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
