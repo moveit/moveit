@@ -56,12 +56,10 @@ TEST(Transforms, Simple)
   t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
   tf.setTransform(t3, "some_frame_3");
 
-
   EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
   EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
   EXPECT_TRUE(tf.isFixedFrame("global"));
 }
-
 
 int main(int argc, char **argv)
 {

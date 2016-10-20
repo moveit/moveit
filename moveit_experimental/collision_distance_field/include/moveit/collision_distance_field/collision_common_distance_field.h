@@ -45,7 +45,6 @@
 
 namespace collision_detection
 {
-
 MOVEIT_CLASS_FORWARD(GroupStateRepresentation);
 MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry);
 
@@ -135,7 +134,7 @@ struct DistanceFieldCacheEntry
   distance_field::DistanceFieldPtr distance_field_;
   /** this can be used as a starting point for creating a
    * GroupStateRepresentation needed for collision checking */
- GroupStateRepresentationPtr pregenerated_group_state_representation_;
+  GroupStateRepresentationPtr pregenerated_group_state_representation_;
   /** names of all links in the group and all links below the group (links that
    * will move if any of the joints in the group move)
    */
@@ -178,7 +177,7 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const r
 PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody *att,
                                                                        double resolution);
 
-void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr &gsr,
-                                       std::string reference_frame, visualization_msgs::MarkerArray &body_marker_array);
+void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr &gsr, std::string reference_frame,
+                                       visualization_msgs::MarkerArray &body_marker_array);
 }
 #endif

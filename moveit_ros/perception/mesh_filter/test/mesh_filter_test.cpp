@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #include <gtest/gtest.h>
 #include <moveit/mesh_filter/mesh_filter.h>
 #include <moveit/mesh_filter/stereo_camera_model.h>
@@ -48,239 +47,247 @@ using namespace boost;
 
 namespace mesh_filter_test
 {
-
-template<typename Type> inline const Type getRandomNumber (const Type& min, const Type& max)
+template <typename Type>
+inline const Type getRandomNumber(const Type& min, const Type& max)
 {
-  return Type(min + (max-min) * double(rand ()) / double(RAND_MAX));
+  return Type(min + (max - min) * double(rand()) / double(RAND_MAX));
 }
 
-template<typename Type>
+template <typename Type>
 class FilterTraits
 {
-  public:
-    static const GLushort FILTER_GL_TYPE = GL_ZERO;
+public:
+  static const GLushort FILTER_GL_TYPE = GL_ZERO;
 };
 
-template<>
+template <>
 class FilterTraits<unsigned short>
 {
-  public:
-    static const GLushort FILTER_GL_TYPE = GL_UNSIGNED_SHORT;
-    static constexpr double ToMetricScale = 0.001;
+public:
+  static const GLushort FILTER_GL_TYPE = GL_UNSIGNED_SHORT;
+  static constexpr double ToMetricScale = 0.001;
 };
 
-template<>
+template <>
 class FilterTraits<float>
 {
-  public:
-    static const GLushort FILTER_GL_TYPE = GL_FLOAT;
-    static constexpr double ToMetricScale = 1.0f;
+public:
+  static const GLushort FILTER_GL_TYPE = GL_FLOAT;
+  static constexpr double ToMetricScale = 1.0f;
 };
 
-template<typename Type>
-class MeshFilterTest : public testing::TestWithParam <double>
+template <typename Type>
+class MeshFilterTest : public testing::TestWithParam<double>
 {
-  BOOST_STATIC_ASSERT_MSG (FilterTraits<Type>::FILTER_GL_TYPE != GL_ZERO, "Only \"float\" and \"unsigned short int\" are allowed.");
-  public:
-    MeshFilterTest (unsigned width = 500, unsigned height = 500, double near = 0.5, double far = 5.0, double shadow = 0.1, double epsilon = 1e-7);
-    void test ();
-    void setMeshDistance (double distance) { distance_ = distance; }
-  private:
-    shapes::Mesh createMesh (double z) const;
-    bool transform_callback (MeshHandle handle, Affine3d& transform) const;
-    void getGroundTruth (unsigned int* labels, float* depth) const;
-    const unsigned int width_;
-    const unsigned int height_;
-    const double near_;
-    const double far_;
-    const double shadow_;
-    const double epsilon_;
-    StereoCameraModel::Parameters sensor_parameters_;
-    MeshFilter<StereoCameraModel> filter_;
-    MeshHandle handle_;
-    vector<Type> sensor_data_;
-    double distance_;
+  BOOST_STATIC_ASSERT_MSG(FilterTraits<Type>::FILTER_GL_TYPE != GL_ZERO, "Only \"float\" and \"unsigned short int\" "
+                                                                         "are allowed.");
+
+public:
+  MeshFilterTest(unsigned width = 500, unsigned height = 500, double near = 0.5, double far = 5.0, double shadow = 0.1,
+                 double epsilon = 1e-7);
+  void test();
+  void setMeshDistance(double distance)
+  {
+    distance_ = distance;
+  }
+
+private:
+  shapes::Mesh createMesh(double z) const;
+  bool transform_callback(MeshHandle handle, Affine3d& transform) const;
+  void getGroundTruth(unsigned int* labels, float* depth) const;
+  const unsigned int width_;
+  const unsigned int height_;
+  const double near_;
+  const double far_;
+  const double shadow_;
+  const double epsilon_;
+  StereoCameraModel::Parameters sensor_parameters_;
+  MeshFilter<StereoCameraModel> filter_;
+  MeshHandle handle_;
+  vector<Type> sensor_data_;
+  double distance_;
 };
 
-template<typename Type>
-MeshFilterTest<Type>::MeshFilterTest (unsigned width, unsigned height, double near, double far, double shadow, double epsilon)
-: width_ (width)
-, height_ (height)
-, near_ (near)
-, far_ (far)
-, shadow_ (shadow)
-, epsilon_ (epsilon)
-, sensor_parameters_ (width, height, near_, far_, width >> 1, height >> 1, width >> 1, height >> 1, 0.1, 0.1)
-, filter_ (boost::bind(&MeshFilterTest<Type>::transform_callback, this, _1, _2), sensor_parameters_)
-, sensor_data_ (width_ * height_)
-, distance_ (0.0)
+template <typename Type>
+MeshFilterTest<Type>::MeshFilterTest(unsigned width, unsigned height, double near, double far, double shadow,
+                                     double epsilon)
+  : width_(width)
+  , height_(height)
+  , near_(near)
+  , far_(far)
+  , shadow_(shadow)
+  , epsilon_(epsilon)
+  , sensor_parameters_(width, height, near_, far_, width >> 1, height >> 1, width >> 1, height >> 1, 0.1, 0.1)
+  , filter_(boost::bind(&MeshFilterTest<Type>::transform_callback, this, _1, _2), sensor_parameters_)
+  , sensor_data_(width_ * height_)
+  , distance_(0.0)
 {
-  filter_.setShadowThreshold (shadow_);
+  filter_.setShadowThreshold(shadow_);
   // no padding
-  filter_.setPaddingOffset (0.0);
-  filter_.setPaddingScale (0.0);
+  filter_.setPaddingOffset(0.0);
+  filter_.setPaddingScale(0.0);
 
   // create a large plane that covers the whole visible area -> no boundaries
 
-  shapes::Mesh mesh = createMesh (0);
-  handle_ = filter_.addMesh (mesh);
+  shapes::Mesh mesh = createMesh(0);
+  handle_ = filter_.addMesh(mesh);
 
   // make it random but reproducable
-  srand (0);
+  srand(0);
   Type t_near = near_ / FilterTraits<Type>::ToMetricScale;
   Type t_far = far_ / FilterTraits<Type>::ToMetricScale;
-  for (typename vector<Type>::iterator sIt = sensor_data_.begin (); sIt != sensor_data_.end (); ++sIt)
+  for (typename vector<Type>::iterator sIt = sensor_data_.begin(); sIt != sensor_data_.end(); ++sIt)
   {
-    do {
-      *sIt = getRandomNumber<Type> (0.0, 10.0 / FilterTraits<Type>::ToMetricScale);
+    do
+    {
+      *sIt = getRandomNumber<Type>(0.0, 10.0 / FilterTraits<Type>::ToMetricScale);
     } while (*sIt == t_near || *sIt == t_far);
   }
 }
 
-template<typename Type>
-shapes::Mesh MeshFilterTest<Type>::createMesh (double z) const
+template <typename Type>
+shapes::Mesh MeshFilterTest<Type>::createMesh(double z) const
 {
-  shapes::Mesh mesh (4, 4);
-  mesh.vertices [0]  = -5;
-  mesh.vertices [1]  = -5;
-  mesh.vertices [2]  =  z;
+  shapes::Mesh mesh(4, 4);
+  mesh.vertices[0] = -5;
+  mesh.vertices[1] = -5;
+  mesh.vertices[2] = z;
 
-  mesh.vertices [3]  = -5;
-  mesh.vertices [4]  =  5;
-  mesh.vertices [5]  =  z;
+  mesh.vertices[3] = -5;
+  mesh.vertices[4] = 5;
+  mesh.vertices[5] = z;
 
-  mesh.vertices [6]  =  5;
-  mesh.vertices [7]  =  5;
-  mesh.vertices [8]  =  z;
+  mesh.vertices[6] = 5;
+  mesh.vertices[7] = 5;
+  mesh.vertices[8] = z;
 
-  mesh.vertices [9]  =  5;
-  mesh.vertices [10] = -5;
-  mesh.vertices [11] =  z;
+  mesh.vertices[9] = 5;
+  mesh.vertices[10] = -5;
+  mesh.vertices[11] = z;
 
-  mesh.triangles [0] = 0;
-  mesh.triangles [1] = 3;
-  mesh.triangles [2] = 2;
+  mesh.triangles[0] = 0;
+  mesh.triangles[1] = 3;
+  mesh.triangles[2] = 2;
 
-  mesh.triangles [3] = 0;
-  mesh.triangles [4] = 2;
-  mesh.triangles [5] = 1;
+  mesh.triangles[3] = 0;
+  mesh.triangles[4] = 2;
+  mesh.triangles[5] = 1;
 
-  mesh.triangles [6] = 0;
-  mesh.triangles [7] = 2;
-  mesh.triangles [8] = 3;
+  mesh.triangles[6] = 0;
+  mesh.triangles[7] = 2;
+  mesh.triangles[8] = 3;
 
-  mesh.triangles [9] = 0;
-  mesh.triangles [10] = 1;
-  mesh.triangles [11] = 2;
+  mesh.triangles[9] = 0;
+  mesh.triangles[10] = 1;
+  mesh.triangles[11] = 2;
 
-  mesh.vertex_normals [0] = 0;
-  mesh.vertex_normals [1] = 0;
-  mesh.vertex_normals [2] = 1;
+  mesh.vertex_normals[0] = 0;
+  mesh.vertex_normals[1] = 0;
+  mesh.vertex_normals[2] = 1;
 
-  mesh.vertex_normals [3] = 0;
-  mesh.vertex_normals [4] = 0;
-  mesh.vertex_normals [5] = 1;
+  mesh.vertex_normals[3] = 0;
+  mesh.vertex_normals[4] = 0;
+  mesh.vertex_normals[5] = 1;
 
-  mesh.vertex_normals [6] = 0;
-  mesh.vertex_normals [7] = 0;
-  mesh.vertex_normals [8] = 1;
+  mesh.vertex_normals[6] = 0;
+  mesh.vertex_normals[7] = 0;
+  mesh.vertex_normals[8] = 1;
 
-  mesh.vertex_normals [9] = 0;
-  mesh.vertex_normals [10] = 0;
-  mesh.vertex_normals [11] = 1;
+  mesh.vertex_normals[9] = 0;
+  mesh.vertex_normals[10] = 0;
+  mesh.vertex_normals[11] = 1;
 
   return mesh;
 }
 
-template<typename Type>
-bool MeshFilterTest<Type>::transform_callback (MeshHandle handle, Affine3d& transform) const
+template <typename Type>
+bool MeshFilterTest<Type>::transform_callback(MeshHandle handle, Affine3d& transform) const
 {
   transform = Affine3d::Identity();
   if (handle == handle_)
-    transform.translation () = Vector3d (0, 0, distance_);
+    transform.translation() = Vector3d(0, 0, distance_);
   return true;
 }
 
-template<typename Type>
-void MeshFilterTest<Type>::test ()
+template <typename Type>
+void MeshFilterTest<Type>::test()
 {
-  shapes::Mesh mesh = createMesh (0);
-  mesh_filter::MeshHandle handle = filter_.addMesh (mesh);
-  filter_.filter (&sensor_data_[0], FilterTraits<Type>::FILTER_GL_TYPE, false);
+  shapes::Mesh mesh = createMesh(0);
+  mesh_filter::MeshHandle handle = filter_.addMesh(mesh);
+  filter_.filter(&sensor_data_[0], FilterTraits<Type>::FILTER_GL_TYPE, false);
 
-  vector<float> gt_depth (width_ * height_);
-  vector<unsigned int> gt_labels (width_ * height_);
-  getGroundTruth (&gt_labels [0], &gt_depth [0]);
+  vector<float> gt_depth(width_ * height_);
+  vector<unsigned int> gt_labels(width_ * height_);
+  getGroundTruth(&gt_labels[0], &gt_depth[0]);
 
-  vector<float> filtered_depth (width_ * height_);
-  vector<unsigned int> filtered_labels (width_ * height_);
-  filter_.getFilteredDepth (& filtered_depth[0]);
-  filter_.getFilteredLabels (& filtered_labels[0]);
+  vector<float> filtered_depth(width_ * height_);
+  vector<unsigned int> filtered_labels(width_ * height_);
+  filter_.getFilteredDepth(&filtered_depth[0]);
+  filter_.getFilteredLabels(&filtered_labels[0]);
 
   for (unsigned idx = 0; idx < width_ * height_; ++idx)
   {
     // Only test if we are not very close to boundaries of object meshes and shadow-boundaries.
-    float sensor_depth = sensor_data_ [idx] * FilterTraits<Type>::ToMetricScale;
+    float sensor_depth = sensor_data_[idx] * FilterTraits<Type>::ToMetricScale;
     if (fabs(sensor_depth - distance_ - shadow_) > epsilon_ && fabs(sensor_depth - distance_) > epsilon_)
     {
-      ASSERT_FLOAT_EQ (filtered_depth [idx], gt_depth [idx]);
-      ASSERT_EQ (filtered_labels [idx], gt_labels [idx]);
+      ASSERT_FLOAT_EQ(filtered_depth[idx], gt_depth[idx]);
+      ASSERT_EQ(filtered_labels[idx], gt_labels[idx]);
     }
   }
-  filter_.removeMesh (handle);
+  filter_.removeMesh(handle);
 }
 
-template<typename Type>
-void MeshFilterTest<Type>::getGroundTruth (unsigned int *labels, float* depth) const
+template <typename Type>
+void MeshFilterTest<Type>::getGroundTruth(unsigned int* labels, float* depth) const
 {
   const double scale = FilterTraits<Type>::ToMetricScale;
-    if (distance_ <= near_ || distance_ >= far_)
+  if (distance_ <= near_ || distance_ >= far_)
   {
     // no filtering is done -> no shadow values or label values
     for (unsigned yIdx = 0, idx = 0; yIdx < height_; ++yIdx)
     {
       for (unsigned xIdx = 0; xIdx < width_; ++xIdx, ++idx)
       {
-        depth[idx] = double(sensor_data_ [idx]) * scale;
+        depth[idx] = double(sensor_data_[idx]) * scale;
         if (depth[idx] < near_)
-          labels [idx] = MeshFilterBase::NearClip;
+          labels[idx] = MeshFilterBase::NearClip;
         else if (depth[idx] >= far_)
-          labels [idx] = MeshFilterBase::FarClip;
+          labels[idx] = MeshFilterBase::FarClip;
         else
-          labels [idx] = MeshFilterBase::Background;
+          labels[idx] = MeshFilterBase::Background;
 
-        if (depth [idx] <= near_ || depth [idx] >= far_)
-          depth [idx] = 0;
+        if (depth[idx] <= near_ || depth[idx] >= far_)
+          depth[idx] = 0;
       }
     }
   }
   else
   {
-
     for (unsigned yIdx = 0, idx = 0; yIdx < height_; ++yIdx)
     {
       for (unsigned xIdx = 0; xIdx < width_; ++xIdx, ++idx)
       {
-        depth[idx] =  double(sensor_data_ [idx]) * scale;
+        depth[idx] = double(sensor_data_[idx]) * scale;
 
-        if (depth [idx] < near_)
+        if (depth[idx] < near_)
         {
-          labels [idx] = MeshFilterBase::NearClip;
-          depth [idx] = 0;
+          labels[idx] = MeshFilterBase::NearClip;
+          depth[idx] = 0;
         }
         else
         {
-          double diff = depth [idx] - distance_;
+          double diff = depth[idx] - distance_;
           if (diff < 0 && depth[idx] < far_)
-            labels [idx] = MeshFilterBase::Background;
+            labels[idx] = MeshFilterBase::Background;
           else if (diff > shadow_)
-            labels [idx] = MeshFilterBase::Shadow;
+            labels[idx] = MeshFilterBase::Shadow;
           else if (depth[idx] >= far_)
-            labels [idx] = MeshFilterBase::FarClip;
+            labels[idx] = MeshFilterBase::FarClip;
           else
           {
-            labels [idx] = MeshFilterBase::FirstLabel;
-            depth [idx] = 0;
+            labels[idx] = MeshFilterBase::FirstLabel;
+            depth[idx] = 0;
           }
 
           if (depth[idx] >= far_)
@@ -291,26 +298,25 @@ void MeshFilterTest<Type>::getGroundTruth (unsigned int *labels, float* depth) c
   }
 }
 
-} // namespace mesh_filter_test
+}  // namespace mesh_filter_test
 
 typedef mesh_filter_test::MeshFilterTest<float> MeshFilterTestFloat;
-TEST_P (MeshFilterTestFloat, float)
+TEST_P(MeshFilterTestFloat, float)
 {
-  this->setMeshDistance (this->GetParam ());
-  this->test ();
+  this->setMeshDistance(this->GetParam());
+  this->test();
 }
 INSTANTIATE_TEST_CASE_P(float_test, MeshFilterTestFloat, ::testing::Range<double>(0.0f, 6.0f, 0.5f));
 
 typedef mesh_filter_test::MeshFilterTest<unsigned short> MeshFilterTestUnsignedShort;
-TEST_P (MeshFilterTestUnsignedShort, unsigned_short)
+TEST_P(MeshFilterTestUnsignedShort, unsigned_short)
 {
-  this->setMeshDistance (this->GetParam ());
-  this->test ();
+  this->setMeshDistance(this->GetParam());
+  this->test();
 }
 INSTANTIATE_TEST_CASE_P(ushort_test, MeshFilterTestUnsignedShort, ::testing::Range<double>(0.0f, 6.0f, 0.5f));
 
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   int arg;

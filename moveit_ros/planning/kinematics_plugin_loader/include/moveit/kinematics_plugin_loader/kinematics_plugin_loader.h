@@ -44,23 +44,20 @@
 
 namespace kinematics_plugin_loader
 {
-
 MOVEIT_CLASS_FORWARD(KinematicsPluginLoader);
 
 /** \brief Helper class for loading kinematics solvers */
 class KinematicsPluginLoader
 {
 public:
-
   /** \brief Load the kinematics solvers based on information on the
       ROS parameter server. Take as optional argument the name of the
       ROS parameter under which the robot description can be
       found. This is passed to the kinematics solver initialization as
       well as used to read the SRDF document when needed. */
   KinematicsPluginLoader(const std::string &robot_description = "robot_description",
-                         double default_search_resolution = 0.0) :
-    robot_description_(robot_description),
-    default_search_resolution_(default_search_resolution)
+                         double default_search_resolution = 0.0)
+    : robot_description_(robot_description), default_search_resolution_(default_search_resolution)
   {
   }
 
@@ -73,35 +70,37 @@ public:
       used to read the SRDF document when needed. */
   KinematicsPluginLoader(const std::string &solver_plugin, double solve_timeout, unsigned int ik_attempts,
                          const std::string &robot_description = "robot_description",
-                         double default_search_resolution = 0.0) :
-    robot_description_(robot_description),
-    default_search_resolution_(default_search_resolution),
-    default_solver_plugin_(solver_plugin),
-    default_solver_timeout_(solve_timeout),
-    default_ik_attempts_(ik_attempts)
+                         double default_search_resolution = 0.0)
+    : robot_description_(robot_description)
+    , default_search_resolution_(default_search_resolution)
+    , default_solver_plugin_(solver_plugin)
+    , default_solver_timeout_(solve_timeout)
+    , default_ik_attempts_(ik_attempts)
   {
   }
 
-  /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this function reads the SRDF and calls the variant below. */
+  /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this
+   * function reads the SRDF and calls the variant below. */
   robot_model::SolverAllocatorFn getLoaderFunction();
 
-  /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this function reads ROS parameters for the groups defined in the SRDF. */
+  /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this
+   * function reads ROS parameters for the groups defined in the SRDF. */
   robot_model::SolverAllocatorFn getLoaderFunction(const srdf::ModelSharedPtr &srdf_model);
 
   /** \brief Get the groups for which the function pointer returned by getLoaderFunction() can allocate a solver */
-  const std::vector<std::string>& getKnownGroups() const
+  const std::vector<std::string> &getKnownGroups() const
   {
     return groups_;
   }
 
   /** \brief Get a map from group name to default IK timeout */
-  const std::map<std::string, double>& getIKTimeout() const
+  const std::map<std::string, double> &getIKTimeout() const
   {
     return ik_timeout_;
   }
 
   /** \brief Get a map from group name to default IK attempts */
-  const std::map<std::string, unsigned int>& getIKAttempts() const
+  const std::map<std::string, unsigned int> &getIKAttempts() const
   {
     return ik_attempts_;
   }
@@ -109,7 +108,6 @@ public:
   void status() const;
 
 private:
-
   std::string robot_description_;
   double default_search_resolution_;
 
@@ -125,7 +123,6 @@ private:
   double default_solver_timeout_;
   unsigned int default_ik_attempts_;
 };
-
 }
 
 #endif

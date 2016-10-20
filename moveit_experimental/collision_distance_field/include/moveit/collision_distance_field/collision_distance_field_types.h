@@ -339,7 +339,6 @@ protected:
   EigenSTL::vector_Vector3d sphere_centers_;
 };
 
-
 class PosedBodyPointDecomposition
 {
 public:
@@ -493,7 +492,6 @@ private:
   PosedBodyPointDecompositionPtr empty_ptr_;
   std::vector<PosedBodyPointDecompositionPtr> decomp_vector_;
 };
-
 
 struct ProximityInfo
 {

@@ -40,13 +40,13 @@
 #include <ros/ros.h>
 #include <memory>
 
-static std::vector<std::string>& ROScppArgs()
+static std::vector<std::string> &ROScppArgs()
 {
   static std::vector<std::string> args;
   return args;
 }
 
-static std::string& ROScppNodeName()
+static std::string &ROScppNodeName()
 {
   static std::string node_name("moveit_python_wrappers");
   return node_name;
@@ -60,19 +60,19 @@ void moveit::py_bindings_tools::roscpp_set_arguments(const std::string &node_nam
 
 namespace
 {
-
 struct InitProxy
 {
   InitProxy()
   {
     const std::vector<std::string> &args = ROScppArgs();
     int fake_argc = args.size();
-    char **fake_argv = new char*[args.size()];
-    for (std::size_t i = 0 ; i < args.size() ; ++i)
+    char **fake_argv = new char *[args.size()];
+    for (std::size_t i = 0; i < args.size(); ++i)
       fake_argv[i] = strdup(args[i].c_str());
 
-    ros::init(fake_argc, fake_argv, ROScppNodeName(), ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
-    for (int i = 0 ; i < fake_argc ; ++i)
+    ros::init(fake_argc, fake_argv, ROScppNodeName(),
+              ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
+    for (int i = 0; i < fake_argc; ++i)
       delete[] fake_argv[i];
     delete[] fake_argv;
   }
@@ -83,7 +83,6 @@ struct InitProxy
       ros::shutdown();
   }
 };
-
 }
 
 static void roscpp_init_or_stop(bool init)

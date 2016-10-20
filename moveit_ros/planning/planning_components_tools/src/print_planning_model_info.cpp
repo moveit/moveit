@@ -41,15 +41,15 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "print_model_info_to_console");
+  ros::init(argc, argv, "print_model_info_to_console");
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
 
-    robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
-    ros::Duration(0.5).sleep();
-    rml.getModel()->printModelInfo(std::cout);
+  robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
+  ros::Duration(0.5).sleep();
+  rml.getModel()->printModelInfo(std::cout);
 
-    ros::shutdown();
-    return 0;
+  ros::shutdown();
+  return 0;
 }

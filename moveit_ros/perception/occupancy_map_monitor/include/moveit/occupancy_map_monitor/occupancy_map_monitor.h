@@ -54,13 +54,11 @@
 
 namespace occupancy_map_monitor
 {
-
 class OccupancyMapMonitor
 {
 public:
-
-  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf,
-                      const std::string &map_frame = "", double map_resolution = 0.0);
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame = "",
+                      double map_resolution = 0.0);
   OccupancyMapMonitor(double map_resolution = 0.0);
   OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, ros::NodeHandle &nh,
                       const std::string &map_frame = "", double map_resolution = 0.0);
@@ -74,19 +72,19 @@ public:
 
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
    *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
-  const OccMapTreePtr& getOcTreePtr()
+  const OccMapTreePtr &getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  const OccMapTreeConstPtr& getOcTreePtr() const
+  const OccMapTreeConstPtr &getOcTreePtr() const
   {
     return tree_const_;
   }
 
-  const std::string& getMapFrame() const
+  const std::string &getMapFrame() const
   {
     return map_frame_;
   }
@@ -98,7 +96,7 @@ public:
     return map_resolution_;
   }
 
-  const boost::shared_ptr<tf::Transformer>& getTFClient() const
+  const boost::shared_ptr<tf::Transformer> &getTFClient() const
   {
     return tf_;
   }
@@ -127,16 +125,16 @@ public:
   }
 
 private:
-
   void initialize();
 
   /** @brief Save the current octree to a binary file */
-  bool saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response);
+  bool saveMapCallback(moveit_msgs::SaveMap::Request &request, moveit_msgs::SaveMap::Response &response);
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
-  bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
+  bool loadMapCallback(moveit_msgs::LoadMap::Request &request, moveit_msgs::LoadMap::Response &response);
 
-  bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache) const;
+  bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time,
+                              ShapeTransformCache &cache) const;
 
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;
@@ -160,9 +158,7 @@ private:
   ros::ServiceServer load_map_srv_;
 
   bool active_;
-
 };
-
 }
 
 #endif

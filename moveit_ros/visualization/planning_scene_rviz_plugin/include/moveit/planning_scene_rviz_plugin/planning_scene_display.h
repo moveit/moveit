@@ -65,15 +65,12 @@ class EnumProperty;
 
 namespace moveit_rviz_plugin
 {
-
 class PlanningSceneDisplay : public rviz::Display
 {
   Q_OBJECT
 
 public:
-
-  PlanningSceneDisplay(bool listen_to_planning_scene = true,
-                       bool show_scene_robot = true);
+  PlanningSceneDisplay(bool listen_to_planning_scene = true, bool show_scene_robot = true);
   virtual ~PlanningSceneDisplay();
 
   virtual void load(const rviz::Config& config);
@@ -82,22 +79,23 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
-  void setLinkColor(const std::string &link_name, const QColor &color);
+  void setLinkColor(const std::string& link_name, const QColor& color);
   void unsetLinkColor(const std::string& link_name);
 
   void queueRenderSceneGeometry();
 
   /** Queue this function call for execution within the background thread
       All jobs are queued and processed in order by a single background thread. */
-  void addBackgroundJob(const boost::function<void()> &job, const std::string &name);
+  void addBackgroundJob(const boost::function<void()>& job, const std::string& name);
 
   /** Directly spawn a (detached) background thread for execution of this function call
       Should be used, when order of processing is not relevant / job can run in parallel.
-      Must be used, when job will be blocking. Using addBackgroundJob() in this case will block other queued jobs as well */
-  void spawnBackgroundJob(const boost::function<void()> &job);
+      Must be used, when job will be blocking. Using addBackgroundJob() in this case will block other queued jobs as
+     well */
+  void spawnBackgroundJob(const boost::function<void()>& job);
 
   /// queue the execution of this function for the next time the main update() loop gets called
-  void addMainLoopJob(const boost::function<void()> &job);
+  void addMainLoopJob(const boost::function<void()>& job);
 
   void waitForAllMainLoopJobs();
 
@@ -131,7 +129,6 @@ private Q_SLOTS:
   void changedOctreeColorMode();
 
 protected:
-
   /// This function reloads the robot model and reinitializes the PlanningSceneMonitor
   /// It can be called either from the Main Loop or from a Background thread
   void loadRobotModel();
@@ -155,9 +152,9 @@ protected:
   void executeMainLoopJobs();
   void sceneMonitorReceivedUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type);
   void renderPlanningScene();
-  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
+  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
-  void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor &color);
+  void setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor& color);
   void unsetGroupColor(rviz::Robot* robot, const std::string& group_name);
   void unsetAllColors(rviz::Robot* robot);
 
@@ -180,7 +177,7 @@ protected:
   boost::mutex main_loop_jobs_lock_;
   boost::condition_variable main_loop_jobs_empty_condition_;
 
-  Ogre::SceneNode* planning_scene_node_;            ///< displays planning scene with everything in it
+  Ogre::SceneNode* planning_scene_node_;  ///< displays planning scene with everything in it
 
   // render the planning scene
   RobotStateVisualizationPtr planning_scene_robot_;
@@ -208,6 +205,6 @@ protected:
   rviz::EnumProperty* octree_coloring_property_;
 };
 
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin
 
 #endif

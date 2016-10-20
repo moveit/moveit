@@ -43,17 +43,15 @@
 #include <moveit/move_group/node_name.h>
 #include <memory>
 
-static const std::string ROBOT_DESCRIPTION = "robot_description";    // name of the robot description (a param name, so it can be changed externally)
+static const std::string ROBOT_DESCRIPTION =
+    "robot_description";  // name of the robot description (a param name, so it can be changed externally)
 
 namespace move_group
 {
-
 class MoveGroupExe
 {
 public:
-
-  MoveGroupExe(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) :
-    node_handle_("~")
+  MoveGroupExe(const planning_scene_monitor::PlanningSceneMonitorPtr& psm, bool debug) : node_handle_("~")
   {
     // if the user wants to be able to disable execution of paths, they can just set this ROS param to false
     bool allow_trajectory_execution;
@@ -79,7 +77,8 @@ public:
       if (context_->status())
       {
         if (capabilities_.empty())
-          printf(MOVEIT_CONSOLE_COLOR_BLUE "\nmove_group is running but no capabilities are loaded.\n\n" MOVEIT_CONSOLE_COLOR_RESET);
+          printf(MOVEIT_CONSOLE_COLOR_BLUE "\nmove_group is running but no capabilities are "
+                                           "loaded.\n\n" MOVEIT_CONSOLE_COLOR_RESET);
         else
           printf(MOVEIT_CONSOLE_COLOR_GREEN "\nYou can start planning now!\n\n" MOVEIT_CONSOLE_COLOR_RESET);
         fflush(stdout);
@@ -90,14 +89,14 @@ public:
   }
 
 private:
-
   void configureCapabilities()
   {
     try
     {
-      capability_plugin_loader_.reset(new pluginlib::ClassLoader<MoveGroupCapability>("moveit_ros_move_group", "move_group::MoveGroupCapability"));
+      capability_plugin_loader_.reset(
+          new pluginlib::ClassLoader<MoveGroupCapability>("moveit_ros_move_group", "move_group::MoveGroupCapability"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_FATAL_STREAM("Exception while creating plugin loader for move_group capabilities: " << ex.what());
       return;
@@ -109,21 +108,23 @@ private:
     {
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(capability_plugins, sep);
-      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
       {
         std::string plugin = *beg;
         try
         {
           printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin.c_str());
-          MoveGroupCapability *cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
+          MoveGroupCapability* cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
           cap->setContext(context_);
           cap->initialize();
           capabilities_.push_back(MoveGroupCapabilityPtr(cap));
         }
-        catch(pluginlib::PluginlibException& ex)
+        catch (pluginlib::PluginlibException& ex)
         {
-          ROS_ERROR_STREAM("Exception while loading move_group capability '" << plugin << "': " << ex.what() << std::endl
-                           << "Available capabilities: " << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
+          ROS_ERROR_STREAM("Exception while loading move_group capability '"
+                           << plugin << "': " << ex.what() << std::endl
+                           << "Available capabilities: "
+                           << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
         }
       }
     }
@@ -132,7 +133,7 @@ private:
     ss << std::endl;
     ss << "********************************************************" << std::endl;
     ss << "* MoveGroup using: " << std::endl;
-    for (std::size_t i = 0 ; i < capabilities_.size() ; ++i)
+    for (std::size_t i = 0; i < capabilities_.size(); ++i)
       ss << "*     - " << capabilities_[i]->getName() << std::endl;
     ss << "********************************************************" << std::endl;
     ROS_INFO_STREAM(ss.str());
@@ -143,10 +144,9 @@ private:
   std::shared_ptr<pluginlib::ClassLoader<MoveGroupCapability> > capability_plugin_loader_;
   std::vector<MoveGroupCapabilityPtr> capabilities_;
 };
-
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, move_group::NODE_NAME);
 
@@ -155,12 +155,13 @@ int main(int argc, char **argv)
 
   boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener(ros::Duration(10.0)));
 
-  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf));
+  planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor(
+      new planning_scene_monitor::PlanningSceneMonitor(ROBOT_DESCRIPTION, tf));
 
   if (planning_scene_monitor->getPlanningScene())
   {
     bool debug = false;
-    for (int i = 1 ; i < argc ; ++i)
+    for (int i = 1; i < argc; ++i)
       if (strncmp(argv[i], "--debug", 7) == 0)
       {
         debug = true;

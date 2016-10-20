@@ -44,7 +44,6 @@
 
 namespace collision_detection
 {
-
 MOVEIT_CLASS_FORWARD(CollisionWorldDistanceField)
 
 class CollisionWorldDistanceField : public CollisionWorld
@@ -81,8 +80,7 @@ public:
                               const robot_state::RobotState &state) const;
 
   virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                              const robot_state::RobotState &state,
-                              GroupStateRepresentationPtr &gsr) const;
+                              const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
 
   virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
                               const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
@@ -95,8 +93,7 @@ public:
                                    const robot_state::RobotState &state) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state,
-                                   GroupStateRepresentationPtr &gsr) const;
+                                   const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
 
   virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
                                    const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
@@ -123,7 +120,8 @@ public:
   {
   }
 
-  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, bool verbose = false) const
+  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state,
+                               bool verbose = false) const
   {
     return 0.0;
   }
@@ -136,7 +134,8 @@ public:
   {
     return 0.0;
   }
-  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm, bool verbose = false) const
+  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm,
+                               bool verbose = false) const
   {
     return 0.0;
   }
@@ -166,17 +165,15 @@ public:
 protected:
   DistanceFieldCacheEntryPtr generateDistanceFieldCacheEntry();
 
-  void updateDistanceObject(const std::string &id,
-                            CollisionWorldDistanceField::DistanceFieldCacheEntryPtr &dfce,
+  void updateDistanceObject(const std::string &id, CollisionWorldDistanceField::DistanceFieldCacheEntryPtr &dfce,
                             EigenSTL::vector_Vector3d &add_points, EigenSTL::vector_Vector3d &subtract_points);
 
   bool getEnvironmentCollisions(const CollisionRequest &req, CollisionResult &res,
                                 const distance_field::DistanceFieldConstPtr &env_distance_field,
                                 GroupStateRepresentationPtr &gsr) const;
 
-  bool
-  getEnvironmentProximityGradients(const distance_field::DistanceFieldConstPtr &env_distance_field,
-                                   GroupStateRepresentationPtr &gsr) const;
+  bool getEnvironmentProximityGradients(const distance_field::DistanceFieldConstPtr &env_distance_field,
+                                        GroupStateRepresentationPtr &gsr) const;
 
   static void notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr &obj, World::Action action);
 

@@ -38,34 +38,30 @@
 
 #include <moveit/robot_interaction/locked_robot_state.h>
 
-robot_interaction::LockedRobotState::LockedRobotState(
-      const robot_state::RobotState& state)
-: state_(new robot_state::RobotState(state))
+robot_interaction::LockedRobotState::LockedRobotState(const robot_state::RobotState& state)
+  : state_(new robot_state::RobotState(state))
 {
   state_->update();
 }
 
-robot_interaction::LockedRobotState::LockedRobotState(
-      const robot_model::RobotModelPtr& model)
-: state_(new robot_state::RobotState(model))
+robot_interaction::LockedRobotState::LockedRobotState(const robot_model::RobotModelPtr& model)
+  : state_(new robot_state::RobotState(model))
 {
   state_->setToDefaultValues();
   state_->update();
 }
 
 robot_interaction::LockedRobotState::~LockedRobotState()
-{}
+{
+}
 
-
-robot_state::RobotStateConstPtr
-  robot_interaction::LockedRobotState::getState() const
+robot_state::RobotStateConstPtr robot_interaction::LockedRobotState::getState() const
 {
   boost::mutex::scoped_lock lock(state_lock_);
   return state_;
 }
 
-void robot_interaction::LockedRobotState::setState(
-      const robot_state::RobotState& state)
+void robot_interaction::LockedRobotState::setState(const robot_state::RobotState& state)
 {
   {
     boost::mutex::scoped_lock lock(state_lock_);
@@ -82,8 +78,7 @@ void robot_interaction::LockedRobotState::setState(
   robotStateChanged();
 }
 
-void robot_interaction::LockedRobotState::modifyState(
-      const ModifyStateFunction& modify)
+void robot_interaction::LockedRobotState::modifyState(const ModifyStateFunction& modify)
 {
   {
     boost::mutex::scoped_lock lock(state_lock_);
@@ -100,4 +95,5 @@ void robot_interaction::LockedRobotState::modifyState(
 }
 
 void robot_interaction::LockedRobotState::robotStateChanged()
-{}
+{
+}

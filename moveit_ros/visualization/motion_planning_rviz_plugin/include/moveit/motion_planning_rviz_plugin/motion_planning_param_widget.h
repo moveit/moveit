@@ -39,16 +39,19 @@
 
 #include <rviz/properties/property_tree_widget.h>
 #include <moveit/macros/class_forward.h>
-namespace moveit { namespace planning_interface {
+namespace moveit
+{
+namespace planning_interface
+{
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);
-}}
+}
+}
 
 namespace moveit_rviz_plugin
 {
-
 class MotionPlanningParamWidget : public rviz::PropertyTreeWidget
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
   MotionPlanningParamWidget(QWidget *parent = 0);
   ~MotionPlanningParamWidget();
@@ -61,6 +64,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
   void changedValue();
+
 private:
   rviz::Property *createPropertyTree();
 
@@ -71,7 +75,6 @@ private:
   std::string group_name_;
   std::string planner_id_;
 };
-
 }
 
 #endif

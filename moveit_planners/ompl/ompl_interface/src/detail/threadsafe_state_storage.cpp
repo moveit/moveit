@@ -47,15 +47,17 @@ ompl_interface::TSStateStorage::TSStateStorage(const robot_state::RobotState &st
 
 ompl_interface::TSStateStorage::~TSStateStorage()
 {
-  for (std::map<boost::thread::id, robot_state::RobotState*>::iterator it = thread_states_.begin() ; it != thread_states_.end() ; ++it)
+  for (std::map<boost::thread::id, robot_state::RobotState *>::iterator it = thread_states_.begin();
+       it != thread_states_.end(); ++it)
     delete it->second;
 }
 
-robot_state::RobotState* ompl_interface::TSStateStorage::getStateStorage() const
+robot_state::RobotState *ompl_interface::TSStateStorage::getStateStorage() const
 {
   robot_state::RobotState *st = NULL;
-  boost::mutex::scoped_lock slock(lock_);/// \todo use Thread Local Storage?
-  std::map<boost::thread::id, robot_state::RobotState*>::const_iterator it = thread_states_.find(boost::this_thread::get_id());
+  boost::mutex::scoped_lock slock(lock_);  /// \todo use Thread Local Storage?
+  std::map<boost::thread::id, robot_state::RobotState *>::const_iterator it =
+      thread_states_.find(boost::this_thread::get_id());
   if (it == thread_states_.end())
   {
     st = new robot_state::RobotState(start_state_);

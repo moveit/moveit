@@ -42,22 +42,18 @@
 
 namespace move_group
 {
-
 class ClearOctomapService : public MoveGroupCapability
 {
 public:
-
   ClearOctomapService();
 
   virtual void initialize();
 
 private:
-
   bool clearOctomap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
   ros::ServiceServer service_;
 };
-
 }
 
-#endif // MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_
+#endif  // MOVEIT_MOVE_GROUP_CLEAR_OCTOMAP_SERVICE_CAPABILITY_

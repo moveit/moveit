@@ -42,14 +42,12 @@
 
 namespace moveit_warehouse
 {
-
 typedef warehouse_ros::MessageWithMetadata<moveit_msgs::PlanningSceneWorld>::ConstPtr PlanningSceneWorldWithMetadata;
 typedef warehouse_ros::MessageCollection<moveit_msgs::PlanningSceneWorld>::Ptr PlanningSceneWorldCollection;
 
 class PlanningSceneWorldStorage : public MoveItMessageStorage
 {
 public:
-
   static const std::string DATABASE_NAME;
   static const std::string PLANNING_SCENE_WORLD_ID_NAME;
 
@@ -70,13 +68,10 @@ public:
   void reset();
 
 private:
-
   void createCollections();
 
   PlanningSceneWorldCollection planning_scene_world_collection_;
-
 };
-
 }
 
 #endif

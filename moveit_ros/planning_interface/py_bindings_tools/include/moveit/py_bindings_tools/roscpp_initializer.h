@@ -42,11 +42,9 @@
 
 namespace moveit
 {
-
 /** \brief Tools for creating python bindings for MoveIt */
 namespace py_bindings_tools
 {
-
 /** \brief The constructor of this class ensures that ros::init() has
     been called.  Thread safety and multiple initialization is
     properly handled. When the process terminates, ros::shotdown() is
@@ -73,9 +71,7 @@ void roscpp_init(boost::python::list &argv);
 void roscpp_init();
 
 void roscpp_shutdown();
-
 }
 }
-
 
 #endif

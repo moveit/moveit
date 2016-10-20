@@ -44,34 +44,31 @@
 
 namespace move_group
 {
-
 class MoveGroupMoveAction : public MoveGroupCapability
 {
 public:
-
   MoveGroupMoveAction();
 
   virtual void initialize();
 
 private:
-
-  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr& goal);
-  void executeMoveCallback_PlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr& goal, moveit_msgs::MoveGroupResult &action_res);
-  void executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal, moveit_msgs::MoveGroupResult &action_res);
+  void executeMoveCallback(const moveit_msgs::MoveGroupGoalConstPtr &goal);
+  void executeMoveCallback_PlanAndExecute(const moveit_msgs::MoveGroupGoalConstPtr &goal,
+                                          moveit_msgs::MoveGroupResult &action_res);
+  void executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr &goal,
+                                    moveit_msgs::MoveGroupResult &action_res);
   void startMoveExecutionCallback();
   void startMoveLookCallback();
   void preemptMoveCallback();
   void setMoveState(MoveGroupState state);
-  bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest &req, plan_execution::ExecutableMotionPlan &plan);
+  bool planUsingPlanningPipeline(const planning_interface::MotionPlanRequest &req,
+                                 plan_execution::ExecutableMotionPlan &plan);
 
   std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::MoveGroupAction> > move_action_server_;
   moveit_msgs::MoveGroupFeedback move_feedback_;
 
   MoveGroupState move_state_;
 };
-
-
-
 }
 
 #endif

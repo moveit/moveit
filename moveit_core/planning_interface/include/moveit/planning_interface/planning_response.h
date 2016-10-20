@@ -44,11 +44,9 @@
 
 namespace planning_interface
 {
-
 struct MotionPlanResponse
 {
-  MotionPlanResponse() :
-    planning_time_(0.0)
+  MotionPlanResponse() : planning_time_(0.0)
   {
   }
 
@@ -69,6 +67,6 @@ struct MotionPlanDetailedResponse
   moveit_msgs::MoveItErrorCodes error_code_;
 };
 
-} // planning_interface
+}  // planning_interface
 
 #endif

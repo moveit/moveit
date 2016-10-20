@@ -42,22 +42,18 @@
 
 namespace move_group
 {
-
 class MoveGroupPlanService : public MoveGroupCapability
 {
 public:
-
   MoveGroupPlanService();
 
   virtual void initialize();
 
 private:
-
   bool computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res);
 
   ros::ServiceServer plan_service_;
 };
-
 }
 
 #endif

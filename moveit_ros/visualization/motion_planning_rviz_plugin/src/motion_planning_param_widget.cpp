@@ -44,9 +44,7 @@ namespace mpi = moveit::planning_interface;
 
 namespace moveit_rviz_plugin
 {
-
-MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget *parent) :
-   rviz::PropertyTreeWidget(parent)
+MotionPlanningParamWidget::MotionPlanningParamWidget(QWidget *parent) : rviz::PropertyTreeWidget(parent)
 {
   property_tree_model_ = NULL;
 }
@@ -58,14 +56,16 @@ MotionPlanningParamWidget::~MotionPlanningParamWidget()
 void MotionPlanningParamWidget::setMoveGroup(const mpi::MoveGroupInterfacePtr &mg)
 {
   move_group_ = mg;
-  if (mg) setPlannerId(planner_id_);
+  if (mg)
+    setPlannerId(planner_id_);
 }
 
 void MotionPlanningParamWidget::setGroupName(const std::string &group_name)
 {
   group_name_ = group_name;
   this->setModel(NULL);
-  if (property_tree_model_) delete property_tree_model_;
+  if (property_tree_model_)
+    delete property_tree_model_;
   property_tree_model_ = NULL;
 }
 
@@ -83,40 +83,39 @@ bool try_lexical_convert(const QString &value, double &dvalue)
   return ok;
 }
 
-rviz::Property*
-MotionPlanningParamWidget::createPropertyTree()
+rviz::Property *MotionPlanningParamWidget::createPropertyTree()
 {
-  if (planner_id_.empty()) return NULL;
-  const std::map<std::string, std::string> &params
-      = move_group_->getPlannerParams(planner_id_, group_name_);
+  if (planner_id_.empty())
+    return NULL;
+  const std::map<std::string, std::string> &params = move_group_->getPlannerParams(planner_id_, group_name_);
 
-  rviz::Property *root = new rviz::Property
-      (QString::fromStdString(planner_id_ + " parameters"));
-  for (std::map<std::string, std::string>::const_iterator
-       it = params.begin(), end = params.end(); it != end; ++it) {
+  rviz::Property *root = new rviz::Property(QString::fromStdString(planner_id_ + " parameters"));
+  for (std::map<std::string, std::string>::const_iterator it = params.begin(), end = params.end(); it != end; ++it)
+  {
     const QString key = QString::fromStdString(it->first);
     const QString value = QString::fromStdString(it->second);
     long value_long;
     double value_double;
 
-    if (try_lexical_convert(value, value_long)) {
-      new rviz::IntProperty(key, value_long, QString(), root,
-                            SLOT(changedValue()), this);
-    } else if (try_lexical_convert(value, value_double)) {
-      new rviz::FloatProperty(key, value_double, QString(), root,
-                              SLOT(changedValue()), this);
-    } else
-      new rviz::StringProperty (key, value, QString(), root,
-                                SLOT(changedValue()), this);
+    if (try_lexical_convert(value, value_long))
+    {
+      new rviz::IntProperty(key, value_long, QString(), root, SLOT(changedValue()), this);
+    }
+    else if (try_lexical_convert(value, value_double))
+    {
+      new rviz::FloatProperty(key, value_double, QString(), root, SLOT(changedValue()), this);
+    }
+    else
+      new rviz::StringProperty(key, value, QString(), root, SLOT(changedValue()), this);
   }
   return root;
 }
 
 void MotionPlanningParamWidget::changedValue()
 {
-  if (!move_group_) return;
-  rviz::Property *source
-      = qobject_cast<rviz::Property *>(QObject::sender());
+  if (!move_group_)
+    return;
+  rviz::Property *source = qobject_cast<rviz::Property *>(QObject::sender());
   std::map<std::string, std::string> params;
   params[source->getName().toStdString()] = source->getValue().toString().toStdString();
   move_group_->setPlannerParams(planner_id_, group_name_, params);
@@ -125,13 +124,14 @@ void MotionPlanningParamWidget::changedValue()
 void MotionPlanningParamWidget::setPlannerId(const std::string &planner_id)
 {
   planner_id_ = planner_id;
-  if (!move_group_) return;
+  if (!move_group_)
+    return;
 
   rviz::PropertyTreeModel *old_model = property_tree_model_;
   rviz::Property *root = createPropertyTree();
   property_tree_model_ = root ? new rviz::PropertyTreeModel(root) : NULL;
   this->setModel(property_tree_model_);
-  if (old_model) delete old_model;
+  if (old_model)
+    delete old_model;
 }
-
 }

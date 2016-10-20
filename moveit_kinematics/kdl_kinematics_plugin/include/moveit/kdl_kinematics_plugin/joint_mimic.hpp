@@ -39,7 +39,6 @@
 
 namespace kdl_kinematics_plugin
 {
-
 /** \brief A model of a mimic joint. Mimic joints are typically unactuated joints
 that are constrained to follow the motion of another joint. The constraint is linear, i.e.
 joint_angle_constrained_joint = joint_angle_mimicked_joint*multiplier + offset
@@ -47,8 +46,10 @@ joint_angle_constrained_joint = joint_angle_mimicked_joint*multiplier + offset
 class JointMimic
 {
 public:
-
-  JointMimic() { this->reset(0); };
+  JointMimic()
+  {
+    this->reset(0);
+  };
 
   /** \brief Offset for this joint value from the joint that it mimics */
   double offset;
@@ -69,7 +70,6 @@ public:
     active = false;
   };
 };
-
 }
 
 #endif

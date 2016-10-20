@@ -59,7 +59,7 @@ void planning_interface::MotionPlanDetailedResponse::getMessage(moveit_msgs::Mot
 
   bool first = true;
 
-  for (std::size_t i = 0 ; i < trajectory_.size() ; ++i)
+  for (std::size_t i = 0; i < trajectory_.size(); ++i)
   {
     if (trajectory_[i]->empty())
       continue;

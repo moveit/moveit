@@ -48,8 +48,8 @@
  * future releases.
  */
 
-#define MOVEIT_DECLARE_PTR(Name, Type)                \
-  typedef std::shared_ptr<Type> Name##Ptr;          \
+#define MOVEIT_DECLARE_PTR(Name, Type)                                                                                 \
+  typedef std::shared_ptr<Type> Name##Ptr;                                                                             \
   typedef std::shared_ptr<const Type> Name##ConstPtr;
 
 /**
@@ -63,8 +63,8 @@
  * MOVEIT_DECLARE_PTR should be preferred.
  */
 
-#define MOVEIT_DECLARE_PTR_MEMBER(Type)         \
-  typedef std::shared_ptr<Type> Ptr;          \
+#define MOVEIT_DECLARE_PTR_MEMBER(Type)                                                                                \
+  typedef std::shared_ptr<Type> Ptr;                                                                                   \
   typedef std::shared_ptr<const Type> ConstPtr;
 
 #endif

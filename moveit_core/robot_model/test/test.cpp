@@ -45,7 +45,6 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-
   virtual void SetUp()
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
@@ -73,7 +72,6 @@ protected:
   }
 
 protected:
-
   urdf::ModelInterfaceSharedPtr urdf_model;
   srdf::ModelSharedPtr srdf_model;
   moveit::core::RobotModelConstPtr robot_model;
@@ -87,28 +85,25 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
 TEST_F(LoadPlanningModelsPr2, Model)
 {
-  //robot_model->printModelInfo(std::cout);
+  // robot_model->printModelInfo(std::cout);
 
-  const std::vector<const moveit::core::JointModel*> &joints = robot_model->getJointModels();
-  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  const std::vector<const moveit::core::JointModel *> &joints = robot_model->getJointModels();
+  for (std::size_t i = 0; i < joints.size(); ++i)
   {
     ASSERT_EQ(joints[i]->getJointIndex(), i);
     ASSERT_EQ(robot_model->getJointModel(joints[i]->getName()), joints[i]);
   }
-  const std::vector<const moveit::core::LinkModel*> &links = robot_model->getLinkModels();
-  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  const std::vector<const moveit::core::LinkModel *> &links = robot_model->getLinkModels();
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     ASSERT_EQ(links[i]->getLinkIndex(), i);
     //    std::cout << joints[i]->getName() << std::endl;
-
   }
   moveit::tools::Profiler::Status();
-
 }
-
 
 int main(int argc, char **argv)
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

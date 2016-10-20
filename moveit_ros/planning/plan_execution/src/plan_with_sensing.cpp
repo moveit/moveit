@@ -49,15 +49,14 @@ using namespace moveit_ros_planning;
 class PlanWithSensing::DynamicReconfigureImpl
 {
 public:
-
-  DynamicReconfigureImpl(PlanWithSensing *owner) : owner_(owner),
-                                                   dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
+  DynamicReconfigureImpl(PlanWithSensing *owner)
+    : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
-    dynamic_reconfigure_server_.setCallback(boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+    dynamic_reconfigure_server_.setCallback(
+        boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
   }
 
 private:
-
   void dynamicReconfigureCallback(SenseForPlanDynamicReconfigureConfig &config, uint32_t level)
   {
     owner_->setMaxSafePathCost(config.max_safe_path_cost);
@@ -69,12 +68,11 @@ private:
   PlanWithSensing *owner_;
   dynamic_reconfigure::Server<SenseForPlanDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
-
 }
 
-plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution) :
-  node_handle_("~"),
-  trajectory_execution_manager_(trajectory_execution)
+plan_execution::PlanWithSensing::PlanWithSensing(
+    const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution)
+  : node_handle_("~"), trajectory_execution_manager_(trajectory_execution)
 {
   default_max_look_attempts_ = 3;
   default_max_safe_path_cost_ = 0.5;
@@ -90,9 +88,10 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
   {
     try
     {
-      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>("moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
+      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>(
+          "moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
     }
-    catch(pluginlib::PluginlibException& ex)
+    catch (pluginlib::PluginlibException &ex)
     {
       ROS_ERROR_STREAM("Exception while creating sensor manager plugin loader: " << ex.what());
     }
@@ -104,7 +103,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(const trajectory_execution_mana
         {
           sensor_manager_ = sensor_manager_loader_->createUniqueInstance(manager);
         }
-        catch(pluginlib::PluginlibException& ex)
+        catch (pluginlib::PluginlibException &ex)
         {
           ROS_ERROR_STREAM("Exception while loading sensor manager '" << manager << "': " << ex.what());
         }
@@ -130,14 +129,16 @@ void plan_execution::PlanWithSensing::displayCostSources(bool flag)
 {
   if (flag && !display_cost_sources_)
     // publisher for cost sources
-    cost_sources_publisher_ = node_handle_.advertise<visualization_msgs::MarkerArray>("display_cost_sources", 100, true);
-  else
-    if (!flag && display_cost_sources_)
-      cost_sources_publisher_.shutdown();
+    cost_sources_publisher_ =
+        node_handle_.advertise<visualization_msgs::MarkerArray>("display_cost_sources", 100, true);
+  else if (!flag && display_cost_sources_)
+    cost_sources_publisher_.shutdown();
   display_cost_sources_ = flag;
 }
 
-bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner, unsigned int max_look_attempts, double max_safe_path_cost)
+bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan,
+                                                  const ExecutableMotionPlanComputationFn &motion_planner,
+                                                  unsigned int max_look_attempts, double max_safe_path_cost)
 {
   if (max_safe_path_cost <= std::numeric_limits<double>::epsilon())
     max_safe_path_cost = default_max_safe_path_cost_;
@@ -168,20 +169,23 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
     // determine the sources of cost for this path
     std::set<collision_detection::CostSource> cost_sources;
     {
-      planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_); // it is ok if planning_scene_monitor_ is null; there just will be no locking done
-      for (std::size_t i = 0 ; i < plan.plan_components_.size() ; ++i)
+      planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // it is ok if
+                                                                                           // planning_scene_monitor_ is
+                                                                                           // null; there just will be
+                                                                                           // no locking done
+      for (std::size_t i = 0; i < plan.plan_components_.size(); ++i)
       {
         std::set<collision_detection::CostSource> cost_sources_i;
         plan.planning_scene_->getCostSources(*plan.plan_components_[i].trajectory_, max_cost_sources_,
-                                             plan.plan_components_[i].trajectory_->getGroupName(),
-                                             cost_sources_i, discard_overlapping_cost_sources_);
+                                             plan.plan_components_[i].trajectory_->getGroupName(), cost_sources_i,
+                                             discard_overlapping_cost_sources_);
         cost_sources.insert(cost_sources_i.begin(), cost_sources_i.end());
         if (cost_sources.size() > max_cost_sources_)
         {
           std::set<collision_detection::CostSource> other;
           other.swap(cost_sources);
           std::size_t j = 0;
-          for (std::set<collision_detection::CostSource>::iterator it = other.begin() ; j < max_cost_sources_ ; ++it, ++j)
+          for (std::set<collision_detection::CostSource>::iterator it = other.begin(); j < max_cost_sources_; ++it, ++j)
             cost_sources.insert(*it);
         }
       }
@@ -202,7 +206,9 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
     if (cost > max_safe_path_cost && look_attempts < max_look_attempts)
     {
       ++look_attempts;
-      ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most %u) at looking around.", cost, max_safe_path_cost, look_attempts, max_look_attempts);
+      ROS_INFO("The cost of the trajectory is %lf, which is above the maximum safe cost of %lf. Attempt %u (of at most "
+               "%u) at looking around.",
+               cost, max_safe_path_cost, look_attempts, max_look_attempts);
 
       bool looked_at_result = lookAt(cost_sources, plan.planning_scene_->getPlanningFrame());
       if (looked_at_result)
@@ -237,11 +243,13 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan, co
   return false;
 }
 
-bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection::CostSource> &cost_sources, const std::string &frame_id)
+bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection::CostSource> &cost_sources,
+                                             const std::string &frame_id)
 {
   if (!sensor_manager_)
   {
-    ROS_WARN("It seems looking around would be useful, but no MoveIt Sensor Manager is loaded. Did you set ~moveit_sensor_manager ?");
+    ROS_WARN("It seems looking around would be useful, but no MoveIt Sensor Manager is loaded. Did you set "
+             "~moveit_sensor_manager ?");
     return false;
   }
 
@@ -251,7 +259,7 @@ bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection:
   std::vector<std::string> names;
   sensor_manager_->getSensorsList(names);
   geometry_msgs::PointStamped point;
-  for (std::size_t i = 0 ; i < names.size() ; ++i)
+  for (std::size_t i = 0; i < names.size(); ++i)
     if (collision_detection::getSensorPositioning(point.point, cost_sources))
     {
       point.header.stamp = ros::Time::now();
@@ -261,7 +269,8 @@ bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection:
       if (sensor_manager_->pointSensorTo(names[i], point, sensor_trajectory))
       {
         if (!trajectory_processing::isTrajectoryEmpty(sensor_trajectory))
-          return trajectory_execution_manager_->push(sensor_trajectory) && trajectory_execution_manager_->executeAndWait();
+          return trajectory_execution_manager_->push(sensor_trajectory) &&
+                 trajectory_execution_manager_->executeAndWait();
         else
           return true;
       }

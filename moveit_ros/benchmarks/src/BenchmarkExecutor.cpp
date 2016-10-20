@@ -116,8 +116,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
 
     try
     {
-      planning_interface::PlannerManagerPtr p =
-          planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
+      planning_interface::PlannerManagerPtr p = planner_plugin_loader_->createUniqueInstance(plugin_classes[i]);
       p->initialize(planning_scene_->getRobotModel(), "");
 
       const planning_interface::PlannerConfigurationMap& config_map = p->getPlannerConfigurations();
@@ -136,8 +135,7 @@ void BenchmarkExecutor::initialize(const std::vector<std::string>& plugin_classe
   else
   {
     std::stringstream ss;
-    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it =
-             planner_interfaces_.begin();
+    for (std::map<std::string, planning_interface::PlannerManagerPtr>::const_iterator it = planner_interfaces_.begin();
          it != planner_interfaces_.end(); ++it)
       ss << it->first << " ";
     ROS_INFO("Available planner instances: %s", ss.str().c_str());

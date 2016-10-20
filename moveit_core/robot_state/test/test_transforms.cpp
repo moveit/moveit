@@ -44,7 +44,6 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-
   virtual void SetUp()
   {
     srdf_model_.reset(new srdf::Model());
@@ -53,10 +52,10 @@ protected:
     std::fstream xml_file("pr2_description/urdf/robot.xml", std::fstream::in);
     if (xml_file.is_open())
     {
-      while ( xml_file.good() )
+      while (xml_file.good())
       {
         std::string line;
-        std::getline( xml_file, line);
+        std::getline(xml_file, line);
         xml_string += (line + "\n");
       }
       xml_file.close();
@@ -73,12 +72,10 @@ protected:
   }
 
 protected:
-
   urdf::ModelInterfaceSharedPtr urdf_model_;
-  srdf::ModelSharedPtr          srdf_model_;
-  bool                          urdf_ok_;
-  bool                          srdf_ok_;
-
+  srdf::ModelSharedPtr srdf_model_;
+  bool urdf_ok_;
+  bool srdf_ok_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
@@ -91,7 +88,6 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   ks.setToRandomValues();
   ks.setToDefaultValues();
 
-
   robot_state::Transforms tf(kmodel->getModelFrame());
 
   Eigen::Affine3d t1;
@@ -99,14 +95,13 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   t1.translation() = Eigen::Vector3d(10.0, 1.0, 0.0);
   tf.setTransform(t1, "some_frame_1");
 
-  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0)*Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
+  Eigen::Affine3d t2(Eigen::Translation3d(10.0, 1.0, 0.0) * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitY()));
   tf.setTransform(t2, "some_frame_2");
 
   Eigen::Affine3d t3;
   t3.setIdentity();
   t3.translation() = Eigen::Vector3d(0.0, 1.0, -1.0);
   tf.setTransform(t3, "some_frame_3");
-
 
   EXPECT_TRUE(tf.isFixedFrame("some_frame_1"));
   EXPECT_FALSE(tf.isFixedFrame("base_footprint"));
@@ -130,7 +125,6 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   EXPECT_NEAR(x.translation().y(), -0.188, 1e-4);
   EXPECT_NEAR(x.translation().z(), 1.24001, 1e-4);
 }
-
 
 int main(int argc, char **argv)
 {

@@ -56,21 +56,20 @@
 #endif
 
 #include "header_widget.h"
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
 class EndEffectorsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  EndEffectorsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  EndEffectorsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -104,13 +103,13 @@ private Q_SLOTS:
   void editSelected();
 
   /// Edit the double clicked element
-  void editDoubleClicked( int row, int column );
+  void editDoubleClicked(int row, int column);
 
   /// Preview whatever element is selected
-  void previewClicked( int row, int column );
+  void previewClicked(int row, int column);
 
   /// Preview the planning group that is selected
-  void previewClickedString( const QString& name );
+  void previewClickedString(const QString &name);
 
   /// Delete currently editing ite
   void deleteSelected();
@@ -122,7 +121,6 @@ private Q_SLOTS:
   void cancelEditing();
 
 private:
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -143,21 +141,21 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::EndEffector *findEffectorByName( const std::string &name );
+  srdf::Model::EndEffector *findEffectorByName(const std::string &name);
 
   /**
    * Create the main list view of effectors for robot
    *
    * @return the widget
    */
-  QWidget* createContentsWidget();
+  QWidget *createContentsWidget();
 
   /**
    * Create the screen for editing effectors
    *
    * @return the widget
    */
-  QWidget* createEditWidget();
+  QWidget *createEditWidget();
 
   /**
    * Load the robot effectors into the table
@@ -182,12 +180,9 @@ private:
    *
    * @param name name of effector
    */
-  void edit( const std::string &name );
+  void edit(const std::string &name);
 };
 
-
-
-} //namespace
-
+}  // namespace
 
 #endif

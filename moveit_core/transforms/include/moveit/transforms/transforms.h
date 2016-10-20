@@ -47,10 +47,10 @@ namespace moveit
 {
 namespace core
 {
-
 MOVEIT_CLASS_FORWARD(Transforms);
 
-/// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning frame
+/// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning
+/// frame
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>,
                  Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > FixedTransformsMap;
 
@@ -77,7 +77,7 @@ public:
    * @brief Get the planning frame corresponding to this set of transforms
    * @return The planning frame
    */
-  const std::string& getTargetFrame() const;
+  const std::string &getTargetFrame() const;
 
   /**
    * \name Setting and retrieving transforms maintained in this class
@@ -88,7 +88,7 @@ public:
    * @brief Return all the transforms
    * @return A map from string names of frames to corresponding Eigen::Affine3d (w.r.t the planning frame)
    */
-  const FixedTransformsMap& getAllTransforms() const;
+  const FixedTransformsMap &getAllTransforms() const;
 
   /**
    * @brief Get a vector of all the transforms as ROS messages
@@ -116,7 +116,8 @@ public:
   void setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms);
 
   /**
-   * @brief Set all the transforms: a map from string names of frames to corresponding Eigen::Affine3d (w.r.t the planning frame)
+   * @brief Set all the transforms: a map from string names of frames to corresponding Eigen::Affine3d (w.r.t the
+   * planning frame)
    */
   void setAllTransforms(const FixedTransformsMap &transforms);
 
@@ -145,7 +146,8 @@ public:
    * @param v_in The input quaternion (in from_frame)
    * @param v_out The resultant (transformed) quaternion
    */
-  void transformQuaternion(const std::string &from_frame, const Eigen::Quaterniond &q_in, Eigen::Quaterniond &q_out) const
+  void transformQuaternion(const std::string &from_frame, const Eigen::Quaterniond &q_in,
+                           Eigen::Quaterniond &q_out) const
   {
     q_out = getTransform(from_frame).rotation() * q_in;
   }
@@ -189,15 +191,12 @@ public:
    * @param from_frame The string id of the frame for which the transform is being computed
    * @return The required transform
    */
-  virtual const Eigen::Affine3d& getTransform(const std::string &from_frame) const;
+  virtual const Eigen::Affine3d &getTransform(const std::string &from_frame) const;
 
 protected:
-
-  std::string        target_frame_;
+  std::string target_frame_;
   FixedTransformsMap transforms_;
-
 };
-
 }
 }
 

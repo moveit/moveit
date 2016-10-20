@@ -43,17 +43,17 @@
 
 // This function needs to return void so the gtest FAIL() macro inside
 // it works right.
-void loadRobotModel(urdf::ModelInterfaceSharedPtr& robot_model_out)
+void loadRobotModel(urdf::ModelInterfaceSharedPtr &robot_model_out)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
   std::string xml_string;
   std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
-  while ( xml_file.good() )
+  while (xml_file.good())
   {
     std::string line;
-    std::getline( xml_file, line);
+    std::getline(xml_file, line);
     xml_string += (line + "\n");
   }
   xml_file.close();
@@ -131,7 +131,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   collision_detection::CollisionResult res;
 
   attached_object_diff_scene->processAttachedCollisionObjectMsg(att_obj);
-  attached_object_diff_scene->checkCollision(req,res);
+  attached_object_diff_scene->checkCollision(req, res);
   ps->checkCollision(req, res);
 }
 

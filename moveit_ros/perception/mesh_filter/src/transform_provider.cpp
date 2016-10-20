@@ -44,56 +44,55 @@ using namespace Eigen;
 using namespace tf;
 using namespace mesh_filter;
 
-TransformProvider::TransformProvider (unsigned long interval_us)
-: stop_ (true)
-, interval_us_ (interval_us)
+TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
 {
-  tf_.reset (new TransformListener);
+  tf_.reset(new TransformListener);
   psm_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf_));
   psm_->startStateMonitor();
 }
 
-TransformProvider::~TransformProvider ()
+TransformProvider::~TransformProvider()
 {
-  stop ();
+  stop();
 }
 
-void TransformProvider::start ()
+void TransformProvider::start()
 {
   stop_ = false;
-  thread_ = thread (&TransformProvider::run, this);
+  thread_ = thread(&TransformProvider::run, this);
 }
 
-void TransformProvider::stop ()
+void TransformProvider::stop()
 {
   stop_ = true;
-  thread_.join ();
+  thread_.join();
 }
 
-void TransformProvider::addHandle (MeshHandle handle, const string& name)
+void TransformProvider::addHandle(MeshHandle handle, const string& name)
 {
   if (!stop_)
-    throw runtime_error ("Can not add handles if TransformProvider is running");
+    throw runtime_error("Can not add handles if TransformProvider is running");
 
-  handle2context_ [handle].reset (new TransformContext (name));
+  handle2context_[handle].reset(new TransformContext(name));
 }
 
-void TransformProvider::setFrame (const string& frame)
+void TransformProvider::setFrame(const string& frame)
 {
   if (frame_id_ != frame)
   {
     frame_id_ = frame;
-    for (map<MeshHandle, shared_ptr<TransformContext> >::iterator contextIt = handle2context_.begin (); contextIt != handle2context_.end(); ++contextIt)
+    for (map<MeshHandle, shared_ptr<TransformContext> >::iterator contextIt = handle2context_.begin();
+         contextIt != handle2context_.end(); ++contextIt)
     {
       // invalidate transformations
-      contextIt->second->mutex_.lock ();
-      contextIt->second->transformation_.matrix().setZero ();
-      contextIt->second->mutex_.unlock ();
+      contextIt->second->mutex_.lock();
+      contextIt->second->transformation_.matrix().setZero();
+      contextIt->second->mutex_.unlock();
     }
   }
 }
 
-bool TransformProvider::getTransform (MeshHandle handle, Affine3d& transform) const
+bool TransformProvider::getTransform(MeshHandle handle, Affine3d& transform) const
 {
   map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.find(handle);
 
@@ -102,30 +101,30 @@ bool TransformProvider::getTransform (MeshHandle handle, Affine3d& transform) co
     ROS_ERROR("Unable to find mesh with handle %d", handle);
     return false;
   }
-  contextIt->second->mutex_.lock ();
+  contextIt->second->mutex_.lock();
   transform = contextIt->second->transformation_;
-  contextIt->second->mutex_.unlock ();
-  return !(transform.matrix ().isZero (0));
+  contextIt->second->mutex_.unlock();
+  return !(transform.matrix().isZero(0));
 }
 
-void TransformProvider::run ()
+void TransformProvider::run()
 {
-  if (handle2context_.empty ())
-    throw runtime_error ("TransformProvider is listening to empty list of frames!");
+  if (handle2context_.empty())
+    throw runtime_error("TransformProvider is listening to empty list of frames!");
 
   while (!stop_)
   {
-    updateTransforms ();
-    usleep (interval_us_);
+    updateTransforms();
+    usleep(interval_us_);
   }
 }
 
-void TransformProvider::setUpdateInterval (unsigned long usecs)
+void TransformProvider::setUpdateInterval(unsigned long usecs)
 {
   interval_us_ = usecs;
 }
 
-void TransformProvider::updateTransforms ()
+void TransformProvider::updateTransforms()
 {
   static Affine3d transformation;
   static robot_state::RobotStatePtr robot_state;
@@ -136,7 +135,8 @@ void TransformProvider::updateTransforms ()
   tf_->getLatestCommonTime(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), input_pose.stamp_, &error);
   input_pose.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
-  for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin(); contextIt != handle2context_.end (); ++contextIt)
+  for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin();
+       contextIt != handle2context_.end(); ++contextIt)
   {
     transformation = robot_state->getLinkState(contextIt->second->frame_id_)->getGlobalCollisionBodyTransform();
     poseEigenToTF(transformation, input_pose);
@@ -146,18 +146,18 @@ void TransformProvider::updateTransforms ()
     }
     catch (const tf::TransformException& ex)
     {
-      handle2context_ [contextIt->first]->mutex_.lock ();
-      handle2context_ [contextIt->first]->transformation_.matrix ().setZero ();
-      handle2context_ [contextIt->first]->mutex_.unlock ();
+      handle2context_[contextIt->first]->mutex_.lock();
+      handle2context_[contextIt->first]->transformation_.matrix().setZero();
+      handle2context_[contextIt->first]->mutex_.unlock();
       continue;
     }
-    catch(...)
+    catch (...)
     {
       ROS_ERROR("unknwon tf error");
     }
     poseTFToEigen(out_pose, transformation);
-    handle2context_ [contextIt->first]->mutex_.lock ();
-    handle2context_ [contextIt->first]->transformation_ = transformation;
-    handle2context_ [contextIt->first]->mutex_.unlock ();
+    handle2context_[contextIt->first]->mutex_.lock();
+    handle2context_[contextIt->first]->transformation_ = transformation;
+    handle2context_[contextIt->first]->mutex_.unlock();
   }
 }

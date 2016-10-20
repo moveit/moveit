@@ -41,11 +41,10 @@
 
 namespace planning_interface
 {
-
 // for now this is just a typedef
 
 typedef moveit_msgs::MotionPlanRequest MotionPlanRequest;
 
-} // planning_interface
+}  // planning_interface
 
 #endif

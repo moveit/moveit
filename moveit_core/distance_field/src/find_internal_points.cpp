@@ -36,10 +36,8 @@
 
 #include <moveit/distance_field/find_internal_points.h>
 
-void distance_field::findInternalPointsConvex(
-      const bodies::Body& body,
-      double resolution,
-      EigenSTL::vector_Vector3d& points)
+void distance_field::findInternalPointsConvex(const bodies::Body& body, double resolution,
+                                              EigenSTL::vector_Vector3d& points)
 {
   bodies::BoundingSphere sphere;
   body.computeBoundingSphere(sphere);
@@ -50,14 +48,17 @@ void distance_field::findInternalPointsConvex(
   double yval_e = sphere.center.y() + sphere.radius + resolution;
   double zval_e = sphere.center.z() + sphere.radius + resolution;
   Eigen::Vector3d pt;
-  for(pt.x() = xval_s; pt.x() <= xval_e; pt.x() += resolution) {
-    for(pt.y() = yval_s; pt.y() <= yval_e; pt.y() += resolution) {
-      for(pt.z() = zval_s; pt.z() <= zval_e; pt.z() += resolution) {
-        if(body.containsPoint(pt)) {
+  for (pt.x() = xval_s; pt.x() <= xval_e; pt.x() += resolution)
+  {
+    for (pt.y() = yval_s; pt.y() <= yval_e; pt.y() += resolution)
+    {
+      for (pt.z() = zval_s; pt.z() <= zval_e; pt.z() += resolution)
+      {
+        if (body.containsPoint(pt))
+        {
           points.push_back(pt);
         }
       }
     }
   }
 }
-

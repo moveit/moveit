@@ -43,7 +43,6 @@
 
 namespace moveit_warehouse
 {
-
 typedef warehouse_ros::MessageWithMetadata<moveit_msgs::Constraints>::ConstPtr ConstraintsWithMetadata;
 typedef warehouse_ros::MessageCollection<moveit_msgs::Constraints>::Ptr ConstraintsCollection;
 
@@ -52,7 +51,6 @@ MOVEIT_CLASS_FORWARD(ConstraintsStorage);
 class ConstraintsStorage : public MoveItMessageStorage
 {
 public:
-
   static const std::string DATABASE_NAME;
 
   static const std::string CONSTRAINTS_ID_NAME;
@@ -61,26 +59,29 @@ public:
 
   ConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
-  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "", const std::string &group = "");
+  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "",
+                      const std::string &group = "");
   bool hasConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "") const;
-  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "", const std::string &group = "") const;
-  void getKnownConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "", const std::string &group = "") const;
+  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "",
+                           const std::string &group = "") const;
+  void getKnownConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "",
+                           const std::string &group = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "", const std::string &group = "") const;
+  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "",
+                      const std::string &group = "") const;
 
-  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "", const std::string &group = "");
+  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "",
+                         const std::string &group = "");
 
   void removeConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "");
 
   void reset();
 
 private:
-
   void createCollections();
 
   ConstraintsCollection constraints_collection_;
-
 };
 }
 

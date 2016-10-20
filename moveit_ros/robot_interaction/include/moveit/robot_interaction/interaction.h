@@ -55,38 +55,28 @@ class RobotState;
 
 namespace robot_interaction
 {
-
 namespace InteractionStyle
 {
-  /// The different types of interaction that can be constructed for an end
-  /// effector This is a bitmask so OR together the parts you want.
-  enum InteractionStyle
-  {
-    POSITION_ARROWS = 1,      // arrows to change position
-    ORIENTATION_CIRCLES = 2,  // circles to change orientation
-    POSITION_SPHERE = 4,      // sphere: drag to change position
-    ORIENTATION_SPHERE = 8,   // sphere: drag to change orientation
-    POSITION_EEF = 16,        // drag end effector to change position
-    ORIENTATION_EEF = 32,     // drag end effector to change orientation
-    FIXED = 64,               // keep arrow and circle axis fixed
+/// The different types of interaction that can be constructed for an end
+/// effector This is a bitmask so OR together the parts you want.
+enum InteractionStyle
+{
+  POSITION_ARROWS = 1,      // arrows to change position
+  ORIENTATION_CIRCLES = 2,  // circles to change orientation
+  POSITION_SPHERE = 4,      // sphere: drag to change position
+  ORIENTATION_SPHERE = 8,   // sphere: drag to change orientation
+  POSITION_EEF = 16,        // drag end effector to change position
+  ORIENTATION_EEF = 32,     // drag end effector to change orientation
+  FIXED = 64,               // keep arrow and circle axis fixed
 
-    POSITION = POSITION_ARROWS |
-               POSITION_SPHERE |
-               POSITION_EEF,
-    ORIENTATION = ORIENTATION_CIRCLES |
-                  ORIENTATION_SPHERE |
-                  ORIENTATION_EEF,
-    SIX_DOF = POSITION |
-           ORIENTATION,
-    SIX_DOF_SPHERE = POSITION_SPHERE |
-                  ORIENTATION_SPHERE,
-    POSITION_NOSPHERE = POSITION_ARROWS |
-                        POSITION_EEF,
-    ORIENTATION_NOSPHERE = ORIENTATION_CIRCLES |
-                           ORIENTATION_EEF,
-    SIX_DOF_NOSPHERE = POSITION_NOSPHERE |
-                    ORIENTATION_NOSPHERE
-  };
+  POSITION = POSITION_ARROWS | POSITION_SPHERE | POSITION_EEF,
+  ORIENTATION = ORIENTATION_CIRCLES | ORIENTATION_SPHERE | ORIENTATION_EEF,
+  SIX_DOF = POSITION | ORIENTATION,
+  SIX_DOF_SPHERE = POSITION_SPHERE | ORIENTATION_SPHERE,
+  POSITION_NOSPHERE = POSITION_ARROWS | POSITION_EEF,
+  ORIENTATION_NOSPHERE = ORIENTATION_CIRCLES | ORIENTATION_EEF,
+  SIX_DOF_NOSPHERE = POSITION_NOSPHERE | ORIENTATION_NOSPHERE
+};
 }
 
 /// Type of function for constructing markers.
@@ -96,10 +86,8 @@ namespace InteractionStyle
 ///          that will be used to control the interaction.
 ///  @returns true if the function succeeds, false if the function was not able
 ///          to fill in \e marker.
-typedef boost::function<bool(
-          const robot_state::RobotState& state,
-          visualization_msgs::InteractiveMarker& marker)>
-                                                InteractiveMarkerConstructorFn;
+typedef boost::function<bool(const robot_state::RobotState& state, visualization_msgs::InteractiveMarker& marker)>
+    InteractiveMarkerConstructorFn;
 
 /// Type of function for processing marker feedback.
 /// This callback function handles feedback for an Interaction's marker.
@@ -112,10 +100,8 @@ typedef boost::function<bool(
 /// @returns false if the state was not successfully updated or the new state
 ///           is somehow invalid or erronious (e.g. in collision).  true if
 ///           everything worked well.
-typedef boost::function<bool(
-    robot_state::RobotState& state,
-    const visualization_msgs::InteractiveMarkerFeedbackConstPtr & feedback)>
-                                                ProcessFeedbackFn;
+typedef boost::function<bool(robot_state::RobotState& state,
+                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)> ProcessFeedbackFn;
 
 /// Type of function for updating marker pose for new state.
 /// This callback is called when the robot state has changed.
@@ -126,10 +112,7 @@ typedef boost::function<bool(
 ///              marker, given the new state of the robot.
 /// @returns true if the pose was modified, false if no update is needed (i.e.
 ///              if the pose did not change).
-typedef boost::function<bool(
-          const robot_state::RobotState&,
-          geometry_msgs::Pose&)>
-                                                InteractiveMarkerUpdateFn;
+typedef boost::function<bool(const robot_state::RobotState&, geometry_msgs::Pose&)> InteractiveMarkerUpdateFn;
 
 /// Representation of a generic interaction.
 /// Displays one interactive marker.
@@ -170,7 +153,6 @@ struct EndEffectorInteraction
 
   /// The size of the end effector group (diameter of enclosing sphere)
   double size;
-
 };
 
 /// Representation of a joint interaction.
@@ -192,7 +174,6 @@ struct JointInteraction
   /// The size of the connecting link  (diameter of enclosing sphere)
   double size;
 };
-
 }
 
 #endif

@@ -201,8 +201,7 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
                                                       const CollisionRobot &robot, const robot_state::RobotState &state,
                                                       GroupStateRepresentationPtr &gsr) const
 {
-  distance_field::DistanceFieldConstPtr env_distance_field =
-      distance_field_cache_entry_->distance_field_;
+  distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
     const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
@@ -240,8 +239,7 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
                                                       const AllowedCollisionMatrix &acm,
                                                       GroupStateRepresentationPtr &gsr) const
 {
-  distance_field::DistanceFieldConstPtr env_distance_field =
-      distance_field_cache_entry_->distance_field_;
+  distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
     const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
@@ -272,8 +270,7 @@ void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest &
                                                         const AllowedCollisionMatrix *acm,
                                                         GroupStateRepresentationPtr &gsr) const
 {
-  distance_field::DistanceFieldConstPtr env_distance_field =
-      distance_field_cache_entry_->distance_field_;
+  distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
     const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
@@ -316,8 +313,7 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req, 
     }
     cdr.getSelfCollisions(req, res, gsr);
     cdr.getIntraGroupCollisions(req, res, gsr);
-    distance_field::DistanceFieldConstPtr env_distance_field =
-        distance_field_cache_entry_->distance_field_;
+    distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
   }
   catch (const std::bad_cast &e)
@@ -330,8 +326,7 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req, 
 }
 
 bool CollisionWorldDistanceField::getEnvironmentCollisions(
-    const CollisionRequest &req, CollisionResult &res,
-    const distance_field::DistanceFieldConstPtr &env_distance_field,
+    const CollisionRequest &req, CollisionResult &res, const distance_field::DistanceFieldConstPtr &env_distance_field,
     GroupStateRepresentationPtr &gsr) const
 {
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size() + gsr->dfce_->attached_body_names_.size(); i++)
@@ -415,8 +410,7 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
 }
 
 bool CollisionWorldDistanceField::getEnvironmentProximityGradients(
-    const distance_field::DistanceFieldConstPtr &env_distance_field,
-    GroupStateRepresentationPtr &gsr) const
+    const distance_field::DistanceFieldConstPtr &env_distance_field, GroupStateRepresentationPtr &gsr) const
 {
   bool in_collision = false;
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
@@ -500,9 +494,9 @@ void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField
   logDebug("Modifying object %s took %lf s", obj->id_.c_str(), (ros::WallTime::now() - n).toSec());
 }
 
-void CollisionWorldDistanceField::updateDistanceObject(
-    const std::string &id, DistanceFieldCacheEntryPtr &dfce,
-    EigenSTL::vector_Vector3d &add_points, EigenSTL::vector_Vector3d &subtract_points)
+void CollisionWorldDistanceField::updateDistanceObject(const std::string &id, DistanceFieldCacheEntryPtr &dfce,
+                                                       EigenSTL::vector_Vector3d &add_points,
+                                                       EigenSTL::vector_Vector3d &subtract_points)
 {
   std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>>::iterator cur_it =
       dfce->posed_body_point_decompositions_.find(id);
@@ -551,8 +545,7 @@ void CollisionWorldDistanceField::updateDistanceObject(
   }
 }
 
-CollisionWorldDistanceField::DistanceFieldCacheEntryPtr
-CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
+CollisionWorldDistanceField::DistanceFieldCacheEntryPtr CollisionWorldDistanceField::generateDistanceFieldCacheEntry()
 {
   DistanceFieldCacheEntryPtr dfce(new DistanceFieldCacheEntry());
   dfce->distance_field_.reset(new distance_field::PropagationDistanceField(

@@ -44,89 +44,87 @@
 
 namespace collision_detection
 {
+MOVEIT_CLASS_FORWARD(WorldDiff);
 
-  MOVEIT_CLASS_FORWARD(WorldDiff);
+/** \brief Maintain a diff list of changes that have happened to a World. */
+class WorldDiff
+{
+public:
+  /** \brief Constructor */
+  WorldDiff();
 
-  /** \brief Maintain a diff list of changes that have happened to a World. */
-  class WorldDiff
+  /** \brief Constructor */
+  WorldDiff(const WorldPtr& world);
+
+  /** \brief copy constructor. */
+  WorldDiff(WorldDiff& other);
+
+  ~WorldDiff();
+
+  /** \brief Set which world to record.  Records all objects in old world (if
+   * any) as DESTROYED and all objects in new world as CREATED and ADD_SHAPE
+   * */
+  void setWorld(const WorldPtr& world);
+
+  /** \brief Set which world to record.  Erases all previously recorded
+   * changes.  */
+  void reset(const WorldPtr& world);
+
+  /** \brief Turn off recording and erase all previously recorded changes. */
+  void reset();
+
+  /** \brief Return all the changes that have been recorded */
+  const std::map<std::string, World::Action>& getChanges() const
   {
-  public:
+    return changes_;
+  }
 
-    /** \brief Constructor */
-    WorldDiff();
+  typedef std::map<std::string, World::Action>::const_iterator const_iterator;
+  /** iterator pointing to first change */
+  const_iterator begin() const
+  {
+    return changes_.begin();
+  }
+  /** iterator pointing to end of changes */
+  const_iterator end() const
+  {
+    return changes_.end();
+  }
+  /** number of changes stored */
+  size_t size() const
+  {
+    return changes_.size();
+  }
+  /** find changes for a named object */
+  const_iterator find(const std::string& id) const
+  {
+    return changes_.find(id);
+  }
+  /** set the entry for an id */
+  void set(const std::string& id, World::Action val)
+  {
+    if (val)
+      changes_[id] = val;
+    else
+      changes_.erase(id);
+  }
 
-    /** \brief Constructor */
-    WorldDiff(const WorldPtr& world);
+  /** \brief Clear the internally maintained vector of changes */
+  void clearChanges();
 
-    /** \brief copy constructor. */
-    WorldDiff(WorldDiff &other);
+private:
+  /** \brief Notification function */
+  void notify(const World::ObjectConstPtr&, World::Action);
 
-    ~WorldDiff();
+  /** keep changes in a map so they can be coalesced */
+  std::map<std::string, World::Action> changes_;
 
-    /** \brief Set which world to record.  Records all objects in old world (if
-     * any) as DESTROYED and all objects in new world as CREATED and ADD_SHAPE
-     * */
-    void setWorld(const WorldPtr& world);
+  /* observer handle for world callback */
+  World::ObserverHandle observer_handle_;
 
-    /** \brief Set which world to record.  Erases all previously recorded
-     * changes.  */
-    void reset(const WorldPtr& world);
-
-    /** \brief Turn off recording and erase all previously recorded changes. */
-    void reset();
-
-    /** \brief Return all the changes that have been recorded */
-    const std::map<std::string, World::Action>& getChanges() const
-    {
-      return changes_;
-    }
-
-    typedef std::map<std::string, World::Action>::const_iterator const_iterator;
-    /** iterator pointing to first change */
-    const_iterator begin() const
-    {
-      return changes_.begin();
-    }
-    /** iterator pointing to end of changes */
-    const_iterator end() const
-    {
-      return changes_.end();
-    }
-    /** number of changes stored */
-    size_t size() const
-    {
-      return changes_.size();
-    }
-    /** find changes for a named object */
-    const_iterator find(const std::string& id) const
-    {
-      return changes_.find(id);
-    }
-    /** set the entry for an id */
-    void set(const std::string& id, World::Action val)
-    {
-      if (val)
-        changes_[id] = val;
-      else
-        changes_.erase(id);
-    }
-
-    /** \brief Clear the internally maintained vector of changes */
-    void clearChanges();
-
-  private:
-    /** \brief Notification function */
-    void notify(const World::ObjectConstPtr&, World::Action);
-
-    /** keep changes in a map so they can be coalesced */
-    std::map<std::string, World::Action> changes_;
-
-    /* observer handle for world callback */
-    World::ObserverHandle observer_handle_;
-
-    /* used to unregister the notifier */
-    std::weak_ptr<World> world_;
-  };
+  /* used to unregister the notifier */
+  std::weak_ptr<World> world_;
+};
 }
 
 #endif

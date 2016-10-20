@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 /** \Author: Benjamin Cohen /bcohen@willowgarage.com, E. Gil Jones **/
 
 #ifndef _SBPL_BFS_3D_H_
@@ -40,12 +39,13 @@
 
 #include <boost/thread.hpp>
 
-namespace sbpl_interface {
-
-#define WALL         0x7FFFFFFF
+namespace sbpl_interface
+{
+#define WALL 0x7FFFFFFF
 #define UNDISCOVERED 0xFFFFFFFF
 
-class BFS_3D {
+class BFS_3D
+{
 private:
   int dim_x, dim_y, dim_z;
   int dim_xy, dim_xyz;

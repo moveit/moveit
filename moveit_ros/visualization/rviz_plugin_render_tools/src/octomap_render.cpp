@@ -46,20 +46,15 @@
 
 namespace moveit_rviz_plugin
 {
-
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
-OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
-                           OctreeVoxelRenderMode octree_voxel_rendering,
-                           OctreeVoxelColorMode octree_color_mode,
-                           std::size_t max_octree_depth,
-                           Ogre::SceneManager* scene_manager,
-                           Ogre::SceneNode* parent_node = NULL) :
-  octree_(octree),
-  colorFactor_(0.8)
+OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree>& octree,
+                           OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
+                           std::size_t max_octree_depth, Ogre::SceneManager* scene_manager,
+                           Ogre::SceneNode* parent_node = NULL)
+  : octree_(octree), colorFactor_(0.8)
 {
-
   if (!parent_node)
   {
     parent_node = scene_manager_->getRootSceneNode();
@@ -68,17 +63,17 @@ OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
   if (!max_octree_depth)
   {
     octree_depth_ = octree->getTreeDepth();
-  } else
+  }
+  else
   {
     octree_depth_ = std::min(max_octree_depth, (std::size_t)octree->getTreeDepth());
   }
-
 
   scene_node_ = parent_node->createChildSceneNode();
 
   cloud_.resize(octree_depth_);
 
-  for (std::size_t i = 0 ; i < octree_depth_ ; ++i)
+  for (std::size_t i = 0; i < octree_depth_; ++i)
   {
     std::stringstream sname;
     sname << "PointCloud Nr." << i;
@@ -88,25 +83,22 @@ OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
     scene_node_->attachObject(cloud_[i]);
   }
 
-  octreeDecoding(octree,
-                 octree_voxel_rendering,
-                 octree_color_mode);
-
+  octreeDecoding(octree, octree_voxel_rendering, octree_color_mode);
 }
 
 OcTreeRender::~OcTreeRender()
 {
   scene_node_->detachAllObjects();
 
-  for (std::size_t i = 0 ; i < octree_depth_ ; ++i)
+  for (std::size_t i = 0; i < octree_depth_; ++i)
   {
     delete cloud_[i];
   }
-
 }
 
 // method taken from octomap_server package
-void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point)
+void OcTreeRender::setColor(double z_pos, double min_z, double max_z, double color_factor,
+                            rviz::PointCloud::Point* point)
 {
   int i;
   double m, n, f;
@@ -114,18 +106,19 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
   double s = 1.0;
   double v = 1.0;
 
-  double h = (1.0 - std::min(std::max((z_pos-min_z)/ (max_z - min_z), 0.0), 1.0)) *color_factor;
+  double h = (1.0 - std::min(std::max((z_pos - min_z) / (max_z - min_z), 0.0), 1.0)) * color_factor;
 
   h -= floor(h);
   h *= 6;
   i = floor(h);
   f = h - i;
   if (!(i & 1))
-    f = 1 - f; // if i is even
+    f = 1 - f;  // if i is even
   m = v * (1 - s);
   n = v * (1 - s * f);
 
-  switch (i) {
+  switch (i)
+  {
     case 6:
     case 0:
       point->setColor(v, n, m);
@@ -151,10 +144,8 @@ void OcTreeRender::setColor( double z_pos, double min_z, double max_z, double co
   }
 }
 
-
-void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> &octree,
-                                   OctreeVoxelRenderMode octree_voxel_rendering,
-                                   OctreeVoxelColorMode octree_color_mode)
+void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& octree,
+                                  OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode)
 {
   VVPoint pointBuf_;
   pointBuf_.resize(octree_depth_);
@@ -206,7 +197,6 @@ void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> 
         display_voxel |= !allNeighborsFound;
       }
 
-
       if (display_voxel)
       {
         rviz::PointCloud::Point newPoint;
@@ -224,7 +214,7 @@ void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> 
             break;
           case OCTOMAP_PROBABLILTY_COLOR:
             cell_probability = it->getOccupancy();
-            newPoint.setColor((1.0f-cell_probability), cell_probability, 0.0);
+            newPoint.setColor((1.0f - cell_probability), cell_probability, 0.0);
             break;
           default:
             break;
@@ -232,26 +222,22 @@ void OcTreeRender::octreeDecoding (const std::shared_ptr<const octomap::OcTree> 
 
         // push to point vectors
         unsigned int depth = it.getDepth();
-        pointBuf_[depth-1].push_back(newPoint);
+        pointBuf_[depth - 1].push_back(newPoint);
 
         ++pointCount;
       }
-
     }
   }
 
-  for (size_t i = 0; i < octree_depth_ ; ++i)
+  for (size_t i = 0; i < octree_depth_; ++i)
   {
-    double size = octree->getNodeSize(i+1);
+    double size = octree->getNodeSize(i + 1);
 
     cloud_[i]->clear();
-    cloud_[i]->setDimensions( size, size, size );
+    cloud_[i]->setDimensions(size, size, size);
 
     cloud_[i]->addPoints(&pointBuf_[i].front(), pointBuf_[i].size());
     pointBuf_[i].clear();
   }
-
 }
-
-
 }

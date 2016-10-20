@@ -41,23 +41,19 @@
 
 namespace moveit_warehouse
 {
-
 class WarehouseConnector
 {
 public:
-
   WarehouseConnector(const std::string &dbexec);
 
   ~WarehouseConnector();
 
-  bool connectToDatabase(const std::string& db_dirname);
+  bool connectToDatabase(const std::string &db_dirname);
 
 private:
-
   std::string dbexec_;
   int child_pid_;
 };
-
 }
 
 #endif

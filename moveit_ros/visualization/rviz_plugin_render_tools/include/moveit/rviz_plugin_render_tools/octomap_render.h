@@ -57,7 +57,6 @@ class AxisAlignedBox;
 
 namespace moveit_rviz_plugin
 {
-
 enum OctreeVoxelRenderMode
 {
   OCTOMAP_FREE_VOXELS = 1,
@@ -72,23 +71,18 @@ enum OctreeVoxelColorMode
 
 class OcTreeRender
 {
-
 public:
-  OcTreeRender(const std::shared_ptr<const octomap::OcTree> &octree,
-               OctreeVoxelRenderMode octree_voxel_rendering,
-               OctreeVoxelColorMode octree_color_mode,
-               std::size_t max_octree_depth,
-               Ogre::SceneManager* scene_manager,
+  OcTreeRender(const std::shared_ptr<const octomap::OcTree>& octree, OctreeVoxelRenderMode octree_voxel_rendering,
+               OctreeVoxelColorMode octree_color_mode, std::size_t max_octree_depth, Ogre::SceneManager* scene_manager,
                Ogre::SceneNode* parent_node);
   virtual ~OcTreeRender();
 
 private:
-  void setColor( double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
-  void setProbColor( double prob, rviz::PointCloud::Point* point);
+  void setColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
+  void setProbColor(double prob, rviz::PointCloud::Point* point);
 
-  void octreeDecoding (const std::shared_ptr<const octomap::OcTree> &octree,
-                       OctreeVoxelRenderMode octree_voxel_rendering,
-                       OctreeVoxelColorMode octree_color_mode);
+  void octreeDecoding(const std::shared_ptr<const octomap::OcTree>& octree,
+                      OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode);
 
   // Ogre-rviz point clouds
   std::vector<rviz::PointCloud*> cloud_;
@@ -99,8 +93,6 @@ private:
 
   double colorFactor_;
   std::size_t octree_depth_;
-
 };
-
 }
 #endif

@@ -42,29 +42,25 @@
 
 namespace constraint_sampler_manager_loader
 {
-
 MOVEIT_CLASS_FORWARD(ConstraintSamplerManagerLoader);
 
 class ConstraintSamplerManagerLoader
 {
 public:
+  ConstraintSamplerManagerLoader(
+      const constraint_samplers::ConstraintSamplerManagerPtr &csm = constraint_samplers::ConstraintSamplerManagerPtr());
 
-  ConstraintSamplerManagerLoader(const constraint_samplers::ConstraintSamplerManagerPtr &csm = constraint_samplers::ConstraintSamplerManagerPtr());
-
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager() const
+  const constraint_samplers::ConstraintSamplerManagerPtr &getConstraintSamplerManager() const
   {
     return constraint_sampler_manager_;
   }
 
 private:
-
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   MOVEIT_CLASS_FORWARD(Helper)
   HelperPtr impl_;
-
 };
-
 }
 
 #endif
