@@ -183,6 +183,11 @@ public:
     duration_from_previous_.insert(duration_from_previous_.begin() + index, dt);
   }
 
+  /**
+   * \brief Add a trajectory to the end of the current trajectory
+   * \param source - the trajectory to append to the end of current trajectory
+   * \param dt - time step between last traj point in current traj, and first traj point of new traj
+   */
   void append(const RobotTrajectory &source, double dt);
 
   void swap(robot_trajectory::RobotTrajectory &other);
