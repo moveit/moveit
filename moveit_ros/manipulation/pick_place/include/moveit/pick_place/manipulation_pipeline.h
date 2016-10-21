@@ -46,13 +46,11 @@
 
 namespace pick_place
 {
-
 /** \brief Represent the sequence of steps that are executed for a manipulation plan */
 class ManipulationPipeline
 {
 public:
-
-  ManipulationPipeline(const std::string &name, unsigned int nthreads);
+  ManipulationPipeline(const std::string& name, unsigned int nthreads);
   virtual ~ManipulationPipeline();
 
   const std::string& getName() const
@@ -60,17 +58,17 @@ public:
     return name_;
   }
 
-  void setSolutionCallback(const boost::function<void()> &callback)
+  void setSolutionCallback(const boost::function<void()>& callback)
   {
     solution_callback_ = callback;
   }
 
-  void setEmptyQueueCallback(const boost::function<void()> &callback)
+  void setEmptyQueueCallback(const boost::function<void()>& callback)
   {
     empty_queue_callback_ = callback;
   }
 
-  ManipulationPipeline& addStage(const ManipulationStagePtr &next);
+  ManipulationPipeline& addStage(const ManipulationStagePtr& next);
   const ManipulationStagePtr& getFirstStage() const;
   const ManipulationStagePtr& getLastStage() const;
   void reset();
@@ -81,7 +79,7 @@ public:
   void start();
   void stop();
 
-  void push(const ManipulationPlanPtr &grasp);
+  void push(const ManipulationPlanPtr& grasp);
   void clear();
 
   const std::vector<ManipulationPlanPtr>& getSuccessfulManipulationPlans() const
@@ -97,7 +95,6 @@ public:
   void reprocessLastFailure();
 
 protected:
-
   void processingThread(unsigned int index);
 
   std::string name_;
@@ -119,9 +116,7 @@ protected:
   unsigned int empty_queue_threads_;
 
   bool stop_processing_;
-
 };
-
 }
 
 #endif

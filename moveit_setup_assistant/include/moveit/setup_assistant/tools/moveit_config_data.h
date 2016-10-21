@@ -38,17 +38,16 @@
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
 #include <boost/shared_ptr.hpp>
-#include <srdfdom/model.h> // use their struct datastructures
-#include <srdfdom/srdf_writer.h> // for writing srdf data
-#include <urdf/model.h> // to share throughout app
+#include <srdfdom/model.h>        // use their struct datastructures
+#include <srdfdom/srdf_writer.h>  // for writing srdf data
+#include <urdf/model.h>           // to share throughout app
 #include <moveit/macros/class_forward.h>
-#include <moveit/planning_scene/planning_scene.h> // for getting kinematic model
-#include <moveit/collision_detection/collision_matrix.h> // for figuring out if robot is in collision
-#include <moveit/setup_assistant/tools/compute_default_collisions.h> // for LinkPairMap
+#include <moveit/planning_scene/planning_scene.h>                     // for getting kinematic model
+#include <moveit/collision_detection/collision_matrix.h>              // for figuring out if robot is in collision
+#include <moveit/setup_assistant/tools/compute_default_collisions.h>  // for LinkPairMap
 
 namespace moveit_setup_assistant
 {
-
 // ******************************************************************************************
 // Constants
 // ******************************************************************************************
@@ -60,8 +59,7 @@ static const std::string MOVEIT_ROBOT_STATE = "moveit_robot_state";
 // Default kin solver values
 static const double DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_ = 0.005;
 static const double DEFAULT_KIN_SOLVER_TIMEOUT_ = 0.005;
-static const int    DEFAULT_KIN_SOLVER_ATTEMPTS_ = 3;
-
+static const int DEFAULT_KIN_SOLVER_ATTEMPTS_ = 3;
 
 // ******************************************************************************************
 // Structs
@@ -72,10 +70,10 @@ static const int    DEFAULT_KIN_SOLVER_ATTEMPTS_ = 3;
  */
 struct GroupMetaData
 {
-  std::string kinematics_solver_; // Name of kinematics plugin to use
-  double kinematics_solver_search_resolution_; // resolution to use with solver
-  double kinematics_solver_timeout_; // solver timeout
-  int kinematics_solver_attempts_; // solver attempts
+  std::string kinematics_solver_;               // Name of kinematics plugin to use
+  double kinematics_solver_search_resolution_;  // resolution to use with solver
+  double kinematics_solver_timeout_;            // solver timeout
+  int kinematics_solver_attempts_;              // solver attempts
 };
 
 /**
@@ -83,45 +81,46 @@ struct GroupMetaData
  */
 struct OmplPlanningParameter
 {
-  std::string name; // name of parameter
-  std::string value; // value parameter will receive (but as a string)
-  std::string comment; // comment briefly describing what this parameter does
- };
+  std::string name;     // name of parameter
+  std::string value;    // value parameter will receive (but as a string)
+  std::string comment;  // comment briefly describing what this parameter does
+};
 
-/** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the ompl_planning.yaml file */
+/** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the
+ * ompl_planning.yaml file */
 class OMPLPlannerDescription
 {
- public:
-/** \brief Constructor
- *  @param name: name of planner
- *  @parameter type: type of planner
- */
-   OMPLPlannerDescription(const std::string  &name, const std::string  &type)
-   {
-     name_ = name;
-     type_ = type;
-   };
-   /** \brief Destructor */
-   ~OMPLPlannerDescription()
-   {
-     parameter_list_.clear();
-   };
-   /** \brief adds a parameter to the planner description 
-    * @param name: name of parameter to add
-    * @parameter: value: value of parameter as a string
-    *  @parameter: value: value of parameter as a string
-    */
-   void addParameter(const std::string &name, const  std::string &value="", const  std::string  &comment="")
-   {
-     OmplPlanningParameter temp;
-     temp.name =  name;
-     temp.value =  value;
-     temp.comment = comment;
-     parameter_list_.push_back(temp);
-   }
-   std::vector<OmplPlanningParameter> parameter_list_;
-   std::string name_; // name of planner
-   std::string type_;  // type of planner (geometric)
+public:
+  /** \brief Constructor
+   *  @param name: name of planner
+   *  @parameter type: type of planner
+   */
+  OMPLPlannerDescription(const std::string& name, const std::string& type)
+  {
+    name_ = name;
+    type_ = type;
+  };
+  /** \brief Destructor */
+  ~OMPLPlannerDescription()
+  {
+    parameter_list_.clear();
+  };
+  /** \brief adds a parameter to the planner description
+   * @param name: name of parameter to add
+   * @parameter: value: value of parameter as a string
+   *  @parameter: value: value of parameter as a string
+   */
+  void addParameter(const std::string& name, const std::string& value = "", const std::string& comment = "")
+  {
+    OmplPlanningParameter temp;
+    temp.name = name;
+    temp.value = value;
+    temp.comment = comment;
+    parameter_list_.push_back(temp);
+  }
+  std::vector<OmplPlanningParameter> parameter_list_;
+  std::string name_;  // name of planner
+  std::string type_;  // type of planner (geometric)
 };
 
 MOVEIT_CLASS_FORWARD(MoveItConfigData);
@@ -139,19 +138,20 @@ public:
   ~MoveItConfigData();
 
   // bits of information that can be entered in Setup Assistant
-  enum InformationFields {
-    COLLISIONS       = 1 << 1,
-    VIRTUAL_JOINTS   = 1 << 2,
-    GROUPS           = 1 << 3,
-    GROUP_CONTENTS   = 1 << 4,
+  enum InformationFields
+  {
+    COLLISIONS = 1 << 1,
+    VIRTUAL_JOINTS = 1 << 2,
+    GROUPS = 1 << 3,
+    GROUP_CONTENTS = 1 << 4,
     GROUP_KINEMATICS = 1 << 5,
-    POSES            = 1 << 6,
-    END_EFFECTORS    = 1 << 7,
-    PASSIVE_JOINTS   = 1 << 8,
-    AUTHOR_INFO      = 1 << 9,
-    SRDF             = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
+    POSES = 1 << 6,
+    END_EFFECTORS = 1 << 7,
+    PASSIVE_JOINTS = 1 << 8,
+    AUTHOR_INFO = 1 << 9,
+    SRDF = COLLISIONS | VIRTUAL_JOINTS | GROUPS | GROUP_CONTENTS | POSES | END_EFFECTORS | PASSIVE_JOINTS
   };
-  unsigned long changes; // bitfield of changes (composed of InformationFields)
+  unsigned long changes;  // bitfield of changes (composed of InformationFields)
 
   // All of the data needed for creating a MoveIt Configuration Files
 
@@ -237,7 +237,7 @@ public:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::Group* findGroupByName( const std::string &name );
+  srdf::Model::Group* findGroupByName(const std::string& name);
 
   /// Load the allowed collision matrix from the SRDF's list of link pairs
   void loadAllowedCollisionMatrix();
@@ -245,18 +245,18 @@ public:
   // ******************************************************************************************
   // Public Functions for outputting configuration and setting files
   // ******************************************************************************************
-  bool outputSetupAssistantFile( const std::string& file_path );
-  bool outputOMPLPlanningYAML( const std::string& file_path );
-  bool outputKinematicsYAML( const std::string& file_path );
-  bool outputJointLimitsYAML( const std::string& file_path );
-  bool outputFakeControllersYAML( const std::string& file_path );
-  
+  bool outputSetupAssistantFile(const std::string& file_path);
+  bool outputOMPLPlanningYAML(const std::string& file_path);
+  bool outputKinematicsYAML(const std::string& file_path);
+  bool outputJointLimitsYAML(const std::string& file_path);
+  bool outputFakeControllersYAML(const std::string& file_path);
+
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
    * \param link_pairs list of collision link pairs
    * \param skip_mask mask of shifted moveit_setup_assistant::DisabledReason values that will be skipped
    */
-  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask = 0);
+  void setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask = 0);
 
   /**
    * \brief Decide the best two joints to be used for the projection evaluator
@@ -270,27 +270,27 @@ public:
    * @param file_path path to kinematics.yaml in the input package
    * @return bool if the file was read correctly
    */
-  bool inputKinematicsYAML( const std::string& file_path );
+  bool inputKinematicsYAML(const std::string& file_path);
 
   /**
    * Set package path; try to resolve path from package name if directory does not exist
    * @param pkg_path path to package or package name
    * @return bool if the path was set
    */
-  bool setPackagePath( const std::string& pkg_path );
+  bool setPackagePath(const std::string& pkg_path);
 
   /**
    * Resolve path to .setup_assistant file
    * @param path resolved path
    * @return bool if the path could be resolved
    */
-  bool getSetupAssistantYAMLPath( std::string& path );
+  bool getSetupAssistantYAMLPath(std::string& path);
 
   /// Make the full URDF path using the loaded .setup_assistant data
   bool createFullURDFPath();
 
   /// Make the full SRDF path using the loaded .setup_assistant data
-  bool createFullSRDFPath( const std::string& package_path );
+  bool createFullSRDFPath(const std::string& package_path);
 
   /**
    * Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
@@ -298,7 +298,7 @@ public:
    * @param file_path path to .setup_assistant file
    * @return bool if the file was read correctly
    */
-  bool inputSetupAssistantYAML( const std::string& file_path );
+  bool inputSetupAssistantYAML(const std::string& file_path);
 
   /**
    * Helper Function for joining a file path and a file name, or two file paths, etc,
@@ -308,7 +308,7 @@ public:
    * @param path2 second half of path, or filename
    * @return string resulting combined paths
    */
-  std::string appendPaths( const std::string &path1, const std::string &path2 );
+  std::string appendPaths(const std::string& path1, const std::string& path2);
 
   /**
    * \brief Custom std::set comparator, used for sorting the joint_limits.yaml file into alphabetical order
@@ -318,14 +318,13 @@ public:
    */
   struct joint_model_compare
   {
-    bool operator() (const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
+    bool operator()(const robot_model::JointModel* jm1, const robot_model::JointModel* jm2) const
     {
       return jm1->getName() < jm2->getName();
     }
   };
 
 private:
-
   // ******************************************************************************************
   // Private Vars
   // ******************************************************************************************
@@ -338,7 +337,6 @@ private:
   planning_scene::PlanningScenePtr planning_scene_;
 };
 
-
-} // namespace
+}  // namespace
 
 #endif

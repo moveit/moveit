@@ -56,53 +56,47 @@
 
 namespace moveit_rviz_plugin
 {
-
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-RobotStateDisplay::RobotStateDisplay() :
-  Display(),
-  update_state_(false), load_robot_model_(false)
+RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_robot_model_(false)
 {
-  robot_description_property_ =
-    new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-                              this,
-                              SLOT( changedRobotDescription() ), this );
+  robot_description_property_ = new rviz::StringProperty(
+      "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
+      this, SLOT(changedRobotDescription()), this);
 
-  robot_state_topic_property_ =
-    new rviz::RosTopicProperty( "Robot State Topic", "display_robot_state",
-                                ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
-                                "The topic on which the moveit_msgs::RobotState messages are received",
-                                this,
-                                SLOT( changedRobotStateTopic() ), this );
+  robot_state_topic_property_ = new rviz::RosTopicProperty(
+      "Robot State Topic", "display_robot_state", ros::message_traits::datatype<moveit_msgs::DisplayRobotState>(),
+      "The topic on which the moveit_msgs::RobotState messages are received", this, SLOT(changedRobotStateTopic()),
+      this);
 
   // Planning scene category -------------------------------------------------------------------------------------------
   root_link_name_property_ =
-    new rviz::StringProperty( "Robot Root Link", "", "Shows the name of the root link for the robot model",
-                              this,
-                              SLOT( changedRootLinkName() ), this );
+      new rviz::StringProperty("Robot Root Link", "", "Shows the name of the root link for the robot model", this,
+                               SLOT(changedRootLinkName()), this);
   root_link_name_property_->setReadOnly(true);
 
-  robot_alpha_property_ =
-    new rviz::FloatProperty( "Robot Alpha", 1.0f, "Specifies the alpha for the robot links",
-                             this,
-                             SLOT( changedRobotSceneAlpha() ), this );
-  robot_alpha_property_->setMin( 0.0 );
-  robot_alpha_property_->setMax( 1.0 );
+  robot_alpha_property_ = new rviz::FloatProperty("Robot Alpha", 1.0f, "Specifies the alpha for the robot links", this,
+                                                  SLOT(changedRobotSceneAlpha()), this);
+  robot_alpha_property_->setMin(0.0);
+  robot_alpha_property_->setMax(1.0);
 
-  attached_body_color_property_ = new rviz::ColorProperty( "Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies",
-                                                           this,
-                                                           SLOT( changedAttachedBodyColor() ), this );
+  attached_body_color_property_ =
+      new rviz::ColorProperty("Attached Body Color", QColor(150, 50, 150), "The color for the attached bodies", this,
+                              SLOT(changedAttachedBodyColor()), this);
 
-  enable_link_highlight_ = new rviz::BoolProperty("Show Highlights", true, "Specifies whether link highlighting is enabled",
-                                                  this, SLOT( changedEnableLinkHighlight() ), this);
-  enable_visual_visible_ = new rviz::BoolProperty("Visual Enabled", true, "Whether to display the visual representation of the robot.",
-                                                  this, SLOT( changedEnableVisualVisible() ), this);
-  enable_collision_visible_ = new rviz::BoolProperty("Collision Enabled", false, "Whether to display the collision representation of the robot.",
-                                                  this, SLOT( changedEnableCollisionVisible() ), this);
+  enable_link_highlight_ =
+      new rviz::BoolProperty("Show Highlights", true, "Specifies whether link highlighting is enabled", this,
+                             SLOT(changedEnableLinkHighlight()), this);
+  enable_visual_visible_ =
+      new rviz::BoolProperty("Visual Enabled", true, "Whether to display the visual representation of the robot.", this,
+                             SLOT(changedEnableVisualVisible()), this);
+  enable_collision_visible_ = new rviz::BoolProperty("Collision Enabled", false,
+                                                     "Whether to display the collision representation of the robot.",
+                                                     this, SLOT(changedEnableCollisionVisible()), this);
 
-  show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.",
-                                           this, SLOT( changedAllLinks() ), this);
+  show_all_links_ = new rviz::BoolProperty("Show All Links", true, "Toggle all links visibility on or off.", this,
+                                           SLOT(changedAllLinks()), this);
 }
 
 // ******************************************************************************************
@@ -132,19 +126,19 @@ void RobotStateDisplay::reset()
 
 void RobotStateDisplay::changedAllLinks()
 {
-  Property *links_prop = subProp("Links");
+  Property* links_prop = subProp("Links");
   QVariant value(show_all_links_->getBool());
 
-  for (int i=0 ; i<links_prop->numChildren() ; ++i)
+  for (int i = 0; i < links_prop->numChildren(); ++i)
   {
-    Property *link_prop = links_prop->childAt(i);
+    Property* link_prop = links_prop->childAt(i);
     link_prop->setValue(value);
   }
 }
 
 void RobotStateDisplay::setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color)
 {
-  rviz::RobotLink *link = robot_->getRobot().getLink(link_name);
+  rviz::RobotLink* link = robot_->getRobot().getLink(link_name);
   if (link)
   {
     link->setColor(color.r, color.g, color.b);
@@ -154,7 +148,7 @@ void RobotStateDisplay::setHighlight(const std::string& link_name, const std_msg
 
 void RobotStateDisplay::unsetHighlight(const std::string& link_name)
 {
-  rviz::RobotLink *link = robot_->getRobot().getLink(link_name);
+  rviz::RobotLink* link = robot_->getRobot().getLink(link_name);
   if (link)
   {
     link->unsetColor();
@@ -166,18 +160,14 @@ void RobotStateDisplay::changedEnableLinkHighlight()
 {
   if (enable_link_highlight_->getBool())
   {
-    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin() ;
-         it != highlights_.end() ;
-         ++it)
+    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin(); it != highlights_.end(); ++it)
     {
       setHighlight(it->first, it->second);
     }
   }
   else
   {
-    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin() ;
-         it != highlights_.end() ;
-         ++it)
+    for (std::map<std::string, std_msgs::ColorRGBA>::iterator it = highlights_.begin(); it != highlights_.end(); ++it)
     {
       unsetHighlight(it->first);
     }
@@ -196,10 +186,7 @@ void RobotStateDisplay::changedEnableCollisionVisible()
 
 static bool operator!=(const std_msgs::ColorRGBA& a, const std_msgs::ColorRGBA& b)
 {
-  return a.r != b.r ||
-         a.g != b.g ||
-         a.b != b.b ||
-         a.a != b.a;
+  return a.r != b.r || a.g != b.g || a.b != b.b || a.a != b.a;
 }
 
 void RobotStateDisplay::setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links)
@@ -208,9 +195,8 @@ void RobotStateDisplay::setRobotHighlights(const moveit_msgs::DisplayRobotState:
     return;
 
   std::map<std::string, std_msgs::ColorRGBA> highlights;
-  for (moveit_msgs::DisplayRobotState::_highlight_links_type::const_iterator it = highlight_links.begin() ;
-       it != highlight_links.end() ;
-       ++it)
+  for (moveit_msgs::DisplayRobotState::_highlight_links_type::const_iterator it = highlight_links.begin();
+       it != highlight_links.end(); ++it)
   {
     highlights[it->id] = it->color;
   }
@@ -302,12 +288,13 @@ void RobotStateDisplay::changedRobotSceneAlpha()
 void RobotStateDisplay::changedRobotStateTopic()
 {
   robot_state_subscriber_.shutdown();
-  robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10, &RobotStateDisplay::newRobotStateCallback, this);
+  robot_state_subscriber_ = root_nh_.subscribe(robot_state_topic_property_->getStdString(), 10,
+                                               &RobotStateDisplay::newRobotStateCallback, this);
   robot_->clear();
   loadRobotModel();
 }
 
-void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr &state_msg)
+void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotStateConstPtr& state_msg)
 {
   if (!kmodel_)
     return;
@@ -319,9 +306,9 @@ void RobotStateDisplay::newRobotStateCallback(const moveit_msgs::DisplayRobotSta
   update_state_ = true;
 }
 
-void RobotStateDisplay::setLinkColor(const std::string& link_name, const QColor &color)
+void RobotStateDisplay::setLinkColor(const std::string& link_name, const QColor& color)
 {
-  setLinkColor(&robot_->getRobot(), link_name, color );
+  setLinkColor(&robot_->getRobot(), link_name, color);
 }
 
 void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
@@ -329,18 +316,18 @@ void RobotStateDisplay::unsetLinkColor(const std::string& link_name)
   unsetLinkColor(&robot_->getRobot(), link_name);
 }
 
-void RobotStateDisplay::setLinkColor(rviz::Robot* robot,  const std::string& link_name, const QColor &color )
+void RobotStateDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color)
 {
-  rviz::RobotLink *link = robot->getLink(link_name);
+  rviz::RobotLink* link = robot->getLink(link_name);
 
   // Check if link exists
   if (link)
-    link->setColor( color.redF(), color.greenF(), color.blueF() );
+    link->setColor(color.redF(), color.greenF(), color.blueF());
 }
 
-void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link_name )
+void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link_name)
 {
-  rviz::RobotLink *link = robot->getLink(link_name);
+  rviz::RobotLink* link = robot->getLink(link_name);
 
   // Check if link exists
   if (link)
@@ -358,7 +345,8 @@ void RobotStateDisplay::loadRobotModel()
 
   if (rdf_loader_->getURDF())
   {
-    const srdf::ModelSharedPtr &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+    const srdf::ModelSharedPtr& srdf =
+        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
     kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
@@ -367,14 +355,14 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->setStdString(getRobotModel()->getRootLinkName());
     root_link_name_property_->blockSignals(oldState);
     update_state_ = true;
-    setStatus( rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully" );
+    setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
 
     changedEnableVisualVisible();
     changedEnableCollisionVisible();
     robot_->setVisible(true);
   }
   else
-    setStatus( rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded" );
+    setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
 
   highlights_.clear();
 }
@@ -382,7 +370,7 @@ void RobotStateDisplay::loadRobotModel()
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  load_robot_model_ = true; // allow loading of robot model in update()
+  load_robot_model_ = true;  // allow loading of robot model in update()
   calculateOffsetPosition();
 }
 
@@ -435,5 +423,4 @@ void RobotStateDisplay::fixedFrameChanged()
   calculateOffsetPosition();
 }
 
-
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin

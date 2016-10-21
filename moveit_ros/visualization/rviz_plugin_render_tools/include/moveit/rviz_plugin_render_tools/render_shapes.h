@@ -58,35 +58,26 @@ class Shape;
 
 namespace moveit_rviz_plugin
 {
-
 MOVEIT_CLASS_FORWARD(OcTreeRender);
 MOVEIT_CLASS_FORWARD(RenderShapes);
 
 class RenderShapes
 {
 public:
-
   RenderShapes(rviz::DisplayContext *context);
   ~RenderShapes();
 
-  void renderShape(Ogre::SceneNode *node,
-                   const shapes::Shape *s,
-                   const Eigen::Affine3d &p,
-                   OctreeVoxelRenderMode octree_voxel_rendering,
-                   OctreeVoxelColorMode octree_color_mode,
-                   const rviz::Color &color,
-                   float alpha);
+  void renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p,
+                   OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
+                   const rviz::Color &color, float alpha);
   void clear();
 
 private:
-
   rviz::DisplayContext *context_;
 
   std::vector<std::unique_ptr<rviz::Shape> > scene_shapes_;
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
-
-
 }
 
 #endif

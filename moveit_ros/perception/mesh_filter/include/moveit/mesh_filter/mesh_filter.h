@@ -44,15 +44,14 @@
 #include <boost/function.hpp>
 #include <Eigen/Eigen>
 
-//forward declarations
+// forward declarations
 namespace shapes
 {
-  class Mesh;
+class Mesh;
 }
 
 namespace mesh_filter
 {
-
 class GLMesh;
 
 /**
@@ -63,53 +62,54 @@ class GLMesh;
 template <typename SensorType>
 class MeshFilter : public MeshFilterBase
 {
-  public:
-    MOVEIT_DECLARE_PTR_MEMBER(MeshFilter);
+public:
+  MOVEIT_DECLARE_PTR_MEMBER(MeshFilter);
 
-    /**
-     * \brief Constructor
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
-     * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct transformation.
-     */
-    MeshFilter (const TransformCallback& transform_callback = TransformCallback(),
-                const typename SensorType::Parameters& sensor_parameters = typename SensorType::Parameters ());
+  /**
+   * \brief Constructor
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
+   * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct
+   * transformation.
+   */
+  MeshFilter(const TransformCallback& transform_callback = TransformCallback(),
+             const typename SensorType::Parameters& sensor_parameters = typename SensorType::Parameters());
 
-    /**
-     * \brief returns the Sensor Parameters
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \return reference of the parameters object of the used Sensor
-     */
-    typename SensorType::Parameters& parameters ();
+  /**
+   * \brief returns the Sensor Parameters
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \return reference of the parameters object of the used Sensor
+   */
+  typename SensorType::Parameters& parameters();
 
-    /**
-     * \brief returns the Sensor Parameters
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \return const reference of the parameters object of the used Sensor
-     */
-    const typename SensorType::Parameters& parameters () const;
+  /**
+   * \brief returns the Sensor Parameters
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \return const reference of the parameters object of the used Sensor
+   */
+  const typename SensorType::Parameters& parameters() const;
 };
 
-template<typename SensorType>
-MeshFilter<SensorType>::MeshFilter (const TransformCallback& transform_callback,
-                                    const typename SensorType::Parameters& sensor_parameters)
-: MeshFilterBase (transform_callback, sensor_parameters,
-                  SensorType::renderVertexShaderSource, SensorType::renderFragmentShaderSource,
-                  SensorType::filterVertexShaderSource, SensorType::filterFragmentShaderSource)
+template <typename SensorType>
+MeshFilter<SensorType>::MeshFilter(const TransformCallback& transform_callback,
+                                   const typename SensorType::Parameters& sensor_parameters)
+  : MeshFilterBase(transform_callback, sensor_parameters, SensorType::renderVertexShaderSource,
+                   SensorType::renderFragmentShaderSource, SensorType::filterVertexShaderSource,
+                   SensorType::filterFragmentShaderSource)
 {
 }
 
-template<typename SensorType>
-typename SensorType::Parameters& MeshFilter<SensorType>::parameters ()
+template <typename SensorType>
+typename SensorType::Parameters& MeshFilter<SensorType>::parameters()
 {
-  return static_cast<typename SensorType::Parameters&> (*sensor_parameters_);
+  return static_cast<typename SensorType::Parameters&>(*sensor_parameters_);
 }
 
-template<typename SensorType>
-const typename SensorType::Parameters& MeshFilter<SensorType>::parameters () const
+template <typename SensorType>
+const typename SensorType::Parameters& MeshFilter<SensorType>::parameters() const
 {
-  return static_cast<typename SensorType::Parameters&> (*sensor_parameters_);
+  return static_cast<typename SensorType::Parameters&>(*sensor_parameters_);
 }
 
-} //namespace mesh_filter
+}  // namespace mesh_filter
 #endif

@@ -39,33 +39,26 @@
 #include <geometric_shapes/shapes.h>
 #include <boost/bind.hpp>
 
-
 TEST(World, AddRemoveShape)
 {
   collision_detection::World world;
 
-
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
   EXPECT_EQ(1, ball.use_count());
 
   EXPECT_FALSE(world.hasObject("ball"));
 
   // Add ball object
-  world.addToObject("ball",
-                    ball,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("ball", ball, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(2, ball.use_count());
   EXPECT_TRUE(world.hasObject("ball"));
 
-  bool move_ok = world.moveShapeInObject(
-                          "ball",
-                          ball,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,9)));
+  bool move_ok = world.moveShapeInObject("ball", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 9)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ball.use_count());
@@ -87,15 +80,11 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(1, ball.use_count());
   EXPECT_FALSE(world.hasObject("ball"));
 
-
   // add ball again
-  world.addToObject("ball",
-                    ball,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("ball", ball, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(2, ball.use_count());
   EXPECT_TRUE(world.hasObject("ball"));
-
 
   EXPECT_FALSE(world.hasObject("mix1"));
 
@@ -107,9 +96,9 @@ TEST(World, AddRemoveShape)
     shapes.push_back(cyl);
     shapes.push_back(ball);
 
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,1)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,2)));
-    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0,0,3)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 2)));
+    poses.push_back(Eigen::Affine3d(Eigen::Translation3d(0, 0, 3)));
 
     EXPECT_FALSE(world.hasObject("mix1"));
 
@@ -124,9 +113,7 @@ TEST(World, AddRemoveShape)
   EXPECT_EQ(3, ball.use_count());
 
   // add ball2
-  world.addToObject("ball2",
-                    ball,
-                    Eigen::Affine3d(Eigen::Translation3d(0,0,4)));
+  world.addToObject("ball2", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 4)));
 
   EXPECT_EQ(2, box.use_count());
   EXPECT_EQ(2, cyl.use_count());
@@ -158,25 +145,21 @@ TEST(World, AddRemoveShape)
     ASSERT_EQ(2, obj->shape_poses_.size());
 
     // check translation.z of pose
-    EXPECT_EQ(1.0, obj->shape_poses_[0](2,3));
-    EXPECT_EQ(3.0, obj->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
+    EXPECT_EQ(3.0, obj->shape_poses_[1](2, 3));
 
-
-    move_ok = world.moveShapeInObject(
-                            "mix1",
-                            ball,
-                            Eigen::Affine3d(Eigen::Translation3d(0,0,5)));
+    move_ok = world.moveShapeInObject("mix1", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 5)));
     EXPECT_TRUE(move_ok);
 
     collision_detection::World::ObjectConstPtr obj2 = world.getObject("mix1");
     EXPECT_EQ(2, obj2.use_count());
     EXPECT_EQ(1, obj.use_count());
 
-    EXPECT_EQ(1.0, obj2->shape_poses_[0](2,3));
-    EXPECT_EQ(5.0, obj2->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj2->shape_poses_[0](2, 3));
+    EXPECT_EQ(5.0, obj2->shape_poses_[1](2, 3));
 
-    EXPECT_EQ(1.0, obj->shape_poses_[0](2,3));
-    EXPECT_EQ(3.0, obj->shape_poses_[1](2,3));
+    EXPECT_EQ(1.0, obj->shape_poses_[0](2, 3));
+    EXPECT_EQ(3.0, obj->shape_poses_[1](2, 3));
 
     // moving object causes copy, thus extra references to shapes in obj
     EXPECT_EQ(3, box.use_count());
@@ -220,7 +203,8 @@ TEST(World, AddRemoveShape)
 }
 
 /* structure to hold copy of callback args */
-struct TestAction {
+struct TestAction
+{
   collision_detection::World::Object obj_;
   collision_detection::World::Action action_;
   int cnt_;
@@ -238,10 +222,8 @@ struct TestAction {
 };
 
 /* notification callback */
-static void TrackChangesNotify(
-              TestAction *ta,
-              const collision_detection::World::ObjectConstPtr& obj,
-              collision_detection::World::Action action)
+static void TrackChangesNotify(TestAction *ta, const collision_detection::World::ObjectConstPtr &obj,
+                               collision_detection::World::Action action)
 {
   ta->obj_ = *obj;
   ta->action_ = action;
@@ -256,85 +238,57 @@ TEST(World, TrackChanges)
   collision_detection::World::ObserverHandle observer_ta;
   observer_ta = world.addObserver(boost::bind(TrackChangesNotify, &ta, _1, _2));
 
-
-
-
   // Create some shapes
   shapes::ShapePtr ball(new shapes::Sphere(1.0));
-  shapes::ShapePtr box(new shapes::Box(1,2,3));
-  shapes::ShapePtr cyl(new shapes::Cylinder(4,5));
+  shapes::ShapePtr box(new shapes::Box(1, 2, 3));
+  shapes::ShapePtr cyl(new shapes::Cylinder(4, 5));
 
-
-  world.addToObject("obj1",
-                    ball,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("obj1", ball, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(1, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE |
-            collision_detection::World::ADD_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
   ta.reset();
 
-  bool move_ok = world.moveShapeInObject(
-                          "obj1",
-                          ball,
-                          Eigen::Affine3d(Eigen::Translation3d(0,0,1)));
+  bool move_ok = world.moveShapeInObject("obj1", ball, Eigen::Affine3d(Eigen::Translation3d(0, 0, 1)));
   EXPECT_TRUE(move_ok);
 
   EXPECT_EQ(2, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::MOVE_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::MOVE_SHAPE, ta.action_);
   ta.reset();
 
-  world.addToObject("obj1",
-                    box,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("obj1", box, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(3, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::ADD_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::ADD_SHAPE, ta.action_);
   ta.reset();
 
   TestAction ta2;
   collision_detection::World::ObserverHandle observer_ta2;
   observer_ta2 = world.addObserver(boost::bind(TrackChangesNotify, &ta2, _1, _2));
 
-  world.addToObject("obj2",
-                    cyl,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("obj2", cyl, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(4, ta.cnt_);
   EXPECT_EQ("obj2", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE |
-            collision_detection::World::ADD_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(1, ta2.cnt_);
   EXPECT_EQ("obj2", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE |
-            collision_detection::World::ADD_SHAPE,
-            ta2.action_);
+  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta2.action_);
   ta2.reset();
 
-
-  world.addToObject("obj3",
-                    box,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("obj3", box, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(5, ta.cnt_);
   EXPECT_EQ("obj3", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE |
-            collision_detection::World::ADD_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(2, ta2.cnt_);
   EXPECT_EQ("obj3", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::CREATE |
-            collision_detection::World::ADD_SHAPE,
-            ta2.action_);
+  EXPECT_EQ(collision_detection::World::CREATE | collision_detection::World::ADD_SHAPE, ta2.action_);
   ta2.reset();
 
   // remove nonexistent obj
@@ -358,18 +312,15 @@ TEST(World, TrackChanges)
 
   EXPECT_EQ(6, ta.cnt_);
   EXPECT_EQ("obj2", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::DESTROY, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ("obj2", ta2.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY,
-            ta2.action_);
+  EXPECT_EQ(collision_detection::World::DESTROY, ta2.action_);
   ta2.reset();
   EXPECT_EQ(1, ta3.cnt_);
   EXPECT_EQ("obj2", ta3.obj_.id_);
-  EXPECT_EQ(collision_detection::World::DESTROY,
-            ta3.action_);
+  EXPECT_EQ(collision_detection::World::DESTROY, ta3.action_);
   ta3.reset();
 
   world.removeObserver(observer_ta2);
@@ -379,29 +330,25 @@ TEST(World, TrackChanges)
 
   EXPECT_EQ(7, ta.cnt_);
   EXPECT_EQ("obj1", ta.obj_.id_);
-  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
 
   EXPECT_EQ(2, ta3.cnt_);
   EXPECT_EQ("obj1", ta3.obj_.id_);
-  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE,
-            ta3.action_);
+  EXPECT_EQ(collision_detection::World::REMOVE_SHAPE, ta3.action_);
   ta3.reset();
 
   // remove all 2 objects (should make 2 DESTROY callbacks per ta)
   world.clearObjects();
 
   EXPECT_EQ(9, ta.cnt_);
-  EXPECT_EQ(collision_detection::World::DESTROY,
-            ta.action_);
+  EXPECT_EQ(collision_detection::World::DESTROY, ta.action_);
   ta.reset();
   EXPECT_EQ(3, ta2.cnt_);
 
   EXPECT_EQ(4, ta3.cnt_);
-  EXPECT_EQ(collision_detection::World::DESTROY,
-            ta3.action_);
+  EXPECT_EQ(collision_detection::World::DESTROY, ta3.action_);
   ta3.reset();
 
   world.removeObserver(observer_ta);
@@ -411,9 +358,7 @@ TEST(World, TrackChanges)
   EXPECT_EQ(3, ta2.cnt_);
   EXPECT_EQ(4, ta3.cnt_);
 
-  world.addToObject("obj4",
-                    box,
-                    Eigen::Affine3d::Identity());
+  world.addToObject("obj4", box, Eigen::Affine3d::Identity());
 
   EXPECT_EQ(9, ta.cnt_);
   EXPECT_EQ(3, ta2.cnt_);

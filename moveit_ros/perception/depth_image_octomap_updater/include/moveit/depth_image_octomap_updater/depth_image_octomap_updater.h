@@ -51,7 +51,6 @@ namespace occupancy_map_monitor
 class DepthImageOctomapUpdater : public OccupancyMapUpdater
 {
 public:
-
   DepthImageOctomapUpdater();
   virtual ~DepthImageOctomapUpdater();
 
@@ -63,8 +62,7 @@ public:
   virtual void forgetShape(ShapeHandle handle);
 
 private:
-
-  void depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg, const sensor_msgs::CameraInfoConstPtr& info_msg);
+  void depthImageCallback(const sensor_msgs::ImageConstPtr &depth_msg, const sensor_msgs::CameraInfoConstPtr &info_msg);
   bool getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const;
   void stopHelper();
 
@@ -104,7 +102,6 @@ private:
   double inv_fx_, inv_fy_, K0_, K2_, K4_, K5_;
   std::vector<unsigned int> filtered_labels_;
   ros::WallTime last_depth_callback_start_;
-
 };
 }
 

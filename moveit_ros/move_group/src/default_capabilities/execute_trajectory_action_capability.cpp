@@ -41,21 +41,20 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 
-namespace move_group {
-
-MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() :
-  MoveGroupCapability("ExecuteTrajectoryAction")
+namespace move_group
+{
+MoveGroupExecuteTrajectoryAction::MoveGroupExecuteTrajectoryAction() : MoveGroupCapability("ExecuteTrajectoryAction")
 {
 }
 
 void MoveGroupExecuteTrajectoryAction::initialize()
 {
   // start the move action server
-  execute_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>
-                               (root_node_handle_, EXECUTE_ACTION_NAME,
-                                boost::bind(&MoveGroupExecuteTrajectoryAction::executePathCallback, this, _1), false));
+  execute_action_server_.reset(new actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction>(
+      root_node_handle_, EXECUTE_ACTION_NAME,
+      boost::bind(&MoveGroupExecuteTrajectoryAction::executePathCallback, this, _1), false));
   execute_action_server_->registerPreemptCallback(
-    boost::bind(&MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback, this));
+      boost::bind(&MoveGroupExecuteTrajectoryAction::preemptExecuteTrajectoryCallback, this));
   execute_action_server_->start();
 }
 
@@ -90,8 +89,7 @@ void MoveGroupExecuteTrajectoryAction::executePathCallback(const moveit_msgs::Ex
 }
 
 void MoveGroupExecuteTrajectoryAction::executePathCallback_Execute(
-  const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
-  moveit_msgs::ExecuteTrajectoryResult &action_res)
+    const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal, moveit_msgs::ExecuteTrajectoryResult& action_res)
 {
   ROS_INFO_NAMED("move_group", "Execution request received for ExecuteTrajectory action.");
 

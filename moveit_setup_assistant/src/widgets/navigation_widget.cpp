@@ -40,18 +40,16 @@
 
 namespace moveit_setup_assistant
 {
-
 // ******************************************************************************************
 // CLASS
 // ******************************************************************************************
 
-NavigationWidget::NavigationWidget(QWidget *parent) :
-  QListView(parent)
+NavigationWidget::NavigationWidget(QWidget *parent) : QListView(parent)
 {
   setItemDelegate(new NavDelegate(this));
   setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  //setAttribute(Qt::WA_MacShowFocusRect, false);
+  // setAttribute(Qt::WA_MacShowFocusRect, false);
 
   // Set frame graphics
   setFrameShape(QFrame::StyledPanel);
@@ -76,46 +74,45 @@ void NavigationWidget::setNavs(const QList<QString> &navs)
   setModel(NULL);
   model_->clear();
 
-  for(int i = 0; i < navs.size(); i ++)
+  for (int i = 0; i < navs.size(); i++)
   {
     QStandardItem *item = new QStandardItem();
     item->setData(QVariant::fromValue(navs.at(i)), Qt::DisplayRole);
-    item->setFlags( Qt::NoItemFlags );
+    item->setFlags(Qt::NoItemFlags);
     model_->appendRow(item);
   }
 
   setModel(model_);
 }
 
-void NavigationWidget::setEnabled( const int &index, bool enabled )
+void NavigationWidget::setEnabled(const int &index, bool enabled)
 {
-  if( enabled )
-    model_->item( index )->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled );
+  if (enabled)
+    model_->item(index)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
+                                  Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
   else
-    model_->item( index )->setFlags( Qt::NoItemFlags );
+    model_->item(index)->setFlags(Qt::NoItemFlags);
 }
 
-void NavigationWidget::setSelected( const int &index )
+void NavigationWidget::setSelected(const int &index)
 {
   // First make sure item is enabled
-  setEnabled( index, true );
+  setEnabled(index, true);
 
   // Select one box from column 0, row index
   QModelIndex top = model_->index(index, 0, QModelIndex());
   QModelIndex bottom = model_->index(index, 0, QModelIndex());
 
   QItemSelection selection(top, bottom);
-  selectionModel()->reset(); // set them all to deselected
+  selectionModel()->reset();  // set them all to deselected
   selectionModel()->select(selection, QItemSelectionModel::Select);
 }
-
 
 // ******************************************************************************************
 // CLASS
 // ******************************************************************************************
 
-NavDelegate::NavDelegate(QObject *parent) :
-  QStyledItemDelegate(parent)
+NavDelegate::NavDelegate(QObject *parent) : QStyledItemDelegate(parent)
 {
 }
 
@@ -128,13 +125,14 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
 {
   const bool isSelected = option.state & QStyle::State_Selected;
 
-  //NavScreen tp = index.data().value<NavScreen>();
+  // NavScreen tp = index.data().value<NavScreen>();
   QString nav_name = index.data().value<QString>();
 
   painter->save();
 
-  QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()), QPoint(option.rect.x(), option.rect.y()+option.rect.height()));
-  if(isSelected)
+  QLinearGradient backgroundGradient(QPoint(option.rect.x(), option.rect.y()),
+                                     QPoint(option.rect.x(), option.rect.y() + option.rect.height()));
+  if (isSelected)
   {
     backgroundGradient.setColorAt(0, QColor(109, 164, 219));
     backgroundGradient.setColorAt(1, QColor(61, 138, 212));
@@ -148,36 +146,37 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
   }
 
   painter->setPen(QColor(225, 225, 225));
-  if(isSelected)
+  if (isSelected)
   {
     painter->setPen(QColor(37, 105, 169));
     painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
     painter->setPen(Qt::transparent);
   }
   painter->drawLine(option.rect.topLeft(), option.rect.topRight());
-  if(!isSelected)
+  if (!isSelected)
   {
     painter->setPen(QColor(248, 248, 248));
-    painter->drawLine(QPoint(option.rect.x(), option.rect.y()+1), QPoint(option.rect.x()+option.rect.width(), option.rect.y()+1));
+    painter->drawLine(QPoint(option.rect.x(), option.rect.y() + 1),
+                      QPoint(option.rect.x() + option.rect.width(), option.rect.y() + 1));
   }
 
-  QRect textRect(option.rect.x()+10, option.rect.y(), option.rect.width()-10, option.rect.height());
+  QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
 
   QFont textFont(painter->font());
-  textFont.setPixelSize(14); // Set font size
-  textFont.setFamily("Arial"); //Helvetica Neue");
+  textFont.setPixelSize(14);    // Set font size
+  textFont.setFamily("Arial");  // Helvetica Neue");
   painter->setFont(textFont);
 
   // Font color
-  if(isSelected)
+  if (isSelected)
   {
     // Selected
     painter->setPen(QColor(229, 229, 229));
   }
-  else if( index.flags().testFlag( Qt::NoItemFlags ) )
+  else if (index.flags().testFlag(Qt::NoItemFlags))
   {
     // Disabled font color if disabled
-    painter->setPen(QColor(170, 170, 170)); // TODO: make this work
+    painter->setPen(QColor(170, 170, 170));  // TODO: make this work
   }
   else
   {
@@ -185,10 +184,8 @@ void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, c
     painter->setPen(QColor(69, 69, 69));
   }
 
-  painter->drawText(textRect, Qt::AlignLeft|Qt::AlignVCenter, nav_name );
+  painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, nav_name);
 
   painter->restore();
 }
-
-
 }

@@ -40,10 +40,11 @@
 #include <limits>
 #include <memory>
 
-planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency) :
-  current_state_monitor_(state_monitor),
-  sampling_frequency_(5.0),
-  trajectory_(current_state_monitor_->getRobotModel(), "")
+planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor,
+                                                             double sampling_frequency)
+  : current_state_monitor_(state_monitor)
+  , sampling_frequency_(5.0)
+  , trajectory_(current_state_monitor_->getRobotModel(), "")
 {
   setSamplingFrequency(sampling_frequency);
 }

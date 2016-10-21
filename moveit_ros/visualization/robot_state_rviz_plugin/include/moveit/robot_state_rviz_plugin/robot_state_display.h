@@ -63,7 +63,6 @@ class ColorProperty;
 
 namespace moveit_rviz_plugin
 {
-
 class RobotStateVisualization;
 
 class RobotStateDisplay : public rviz::Display
@@ -71,7 +70,6 @@ class RobotStateDisplay : public rviz::Display
   Q_OBJECT
 
 public:
-
   RobotStateDisplay();
   virtual ~RobotStateDisplay();
 
@@ -83,7 +81,7 @@ public:
     return kmodel_;
   }
 
-  void setLinkColor(const std::string &link_name, const QColor &color);
+  void setLinkColor(const std::string& link_name, const QColor& color);
   void unsetLinkColor(const std::string& link_name);
 
 private Q_SLOTS:
@@ -102,7 +100,6 @@ private Q_SLOTS:
   void changedAllLinks();
 
 protected:
-
   void loadRobotModel();
 
   /**
@@ -110,10 +107,10 @@ protected:
    */
   void calculateOffsetPosition();
 
-  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor &color);
+  void setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color);
   void unsetLinkColor(rviz::Robot* robot, const std::string& link_name);
 
-  void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr &state);
+  void newRobotStateCallback(const moveit_msgs::DisplayRobotState::ConstPtr& state);
 
   void setRobotHighlights(const moveit_msgs::DisplayRobotState::_highlight_links_type& highlight_links);
   void setHighlight(const std::string& link_name, const std_msgs::ColorRGBA& color);
@@ -135,7 +132,7 @@ protected:
   robot_state::RobotStatePtr kstate_;
   std::map<std::string, std_msgs::ColorRGBA> highlights_;
   bool update_state_;
-  bool load_robot_model_; // for delayed robot initialization
+  bool load_robot_model_;  // for delayed robot initialization
 
   rviz::StringProperty* robot_description_property_;
   rviz::StringProperty* root_link_name_property_;
@@ -148,6 +145,6 @@ protected:
   rviz::BoolProperty* show_all_links_;
 };
 
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin
 
 #endif

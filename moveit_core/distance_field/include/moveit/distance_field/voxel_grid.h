@@ -44,9 +44,9 @@
 
 namespace distance_field
 {
-
 /// \brief Specifies dimension of different axes
-enum Dimension {
+enum Dimension
+{
   DIM_X = 0,
   DIM_Y = 1,
   DIM_Z = 2
@@ -89,8 +89,8 @@ public:
    * @param [in] default_object An object that will be returned for any
    * future queries that are not valid
    */
-  VoxelGrid(double size_x, double size_y, double size_z, double resolution,
-            double origin_x, double origin_y, double origin_z, T default_object);
+  VoxelGrid(double size_x, double size_y, double size_z, double resolution, double origin_x, double origin_y,
+            double origin_z, T default_object);
   virtual ~VoxelGrid();
 
   /**
@@ -118,8 +118,8 @@ public:
    * @param [in] origin_y Minimum point along the Y axis of the volume
    * @param [in] origin_z Minimum point along the Z axis of the volume
    */
-  void resize(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object);
+  void resize(double size_x, double size_y, double size_z, double resolution, double origin_x, double origin_y,
+              double origin_z, T default_object);
 
   /**
    * \brief Operator that gets the value of the given location (x, y,
@@ -287,18 +287,18 @@ public:
   bool isCellValid(Dimension dim, int cell) const;
 
 protected:
-  T* data_;                     /**< \brief Storage for the full set of data elements */
-  T default_object_;            /**< \brief The default object to return in case of out-of-bounds query */
-  T*** data_ptrs_;              /**< \brief 3D array of pointers to the data elements */
-  double size_[3];              /**< \brief The size of each dimension in meters (in Dimension order) */
-  double resolution_;           /**< \brief The resolution of each dimension in meters (in Dimension order) */
-  double oo_resolution_;        /**< \brief 1.0/resolution_ */
-  double origin_[3];            /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
-  double origin_minus_[3];       /**< \brief origin - 0.5/resolution */
-  int num_cells_[3];            /**< \brief The number of cells in each dimension (in Dimension order) */
-  int num_cells_total_;         /**< \brief The total number of voxels in the grid */
-  int stride1_;                 /**< \brief The step to take when stepping between consecutive X members in the 1D array */
-  int stride2_;                 /**< \brief The step to take when stepping between consecutive Y members given an X in the 1D array */
+  T* data_;                /**< \brief Storage for the full set of data elements */
+  T default_object_;       /**< \brief The default object to return in case of out-of-bounds query */
+  T*** data_ptrs_;         /**< \brief 3D array of pointers to the data elements */
+  double size_[3];         /**< \brief The size of each dimension in meters (in Dimension order) */
+  double resolution_;      /**< \brief The resolution of each dimension in meters (in Dimension order) */
+  double oo_resolution_;   /**< \brief 1.0/resolution_ */
+  double origin_[3];       /**< \brief The origin (minumum point) of each dimension in meters (in Dimension order) */
+  double origin_minus_[3]; /**< \brief origin - 0.5/resolution */
+  int num_cells_[3];       /**< \brief The number of cells in each dimension (in Dimension order) */
+  int num_cells_total_;    /**< \brief The total number of voxels in the grid */
+  int stride1_;            /**< \brief The step to take when stepping between consecutive X members in the 1D array */
+  int stride2_; /**< \brief The step to take when stepping between consecutive Y members given an X in the 1D array */
 
   /**
    * \brief Gets the 1D index into the array, with no validity check.
@@ -335,24 +335,23 @@ protected:
    * @return The world coordinate of the center of the cell
    */
   double getLocationFromCell(Dimension dim, int cell) const;
-
 };
 
 //////////////////////////// template function definitions follow //////////////////
 
-template<typename T>
-VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object)
+template <typename T>
+VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double resolution, double origin_x,
+                        double origin_y, double origin_z, T default_object)
   : data_(NULL)
 {
   resize(size_x, size_y, size_z, resolution, origin_x, origin_y, origin_z, default_object);
 }
 
-template<typename T>
+template <typename T>
 VoxelGrid<T>::VoxelGrid()
   : data_(NULL)
 {
-  for (int i=DIM_X; i<=DIM_Z; ++i)
+  for (int i = DIM_X; i <= DIM_Z; ++i)
   {
     size_[i] = 0;
     origin_[i] = 0;
@@ -366,9 +365,9 @@ VoxelGrid<T>::VoxelGrid()
   stride2_ = 0;
 }
 
-template<typename T>
-void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double resolution,
-    double origin_x, double origin_y, double origin_z, T default_object)
+template <typename T>
+void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double resolution, double origin_x,
+                          double origin_y, double origin_z, T default_object)
 {
   delete[] data_;
   data_ = NULL;
@@ -385,7 +384,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
   num_cells_total_ = 1;
   resolution_ = resolution;
   oo_resolution_ = 1.0 / resolution_;
-  for (int i=DIM_X; i<=DIM_Z; ++i)
+  for (int i = DIM_X; i <= DIM_Z; ++i)
   {
     num_cells_[i] = size_[i] * oo_resolution_;
     num_cells_total_ *= num_cells_[i];
@@ -393,7 +392,7 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
 
   default_object_ = default_object;
 
-  stride1_ = num_cells_[DIM_Y]*num_cells_[DIM_Z];
+  stride1_ = num_cells_[DIM_Y] * num_cells_[DIM_Z];
   stride2_ = num_cells_[DIM_Z];
 
   // initialize the data:
@@ -401,70 +400,67 @@ void VoxelGrid<T>::resize(double size_x, double size_y, double size_z, double re
     data_ = new T[num_cells_total_];
 }
 
-template<typename T>
+template <typename T>
 VoxelGrid<T>::~VoxelGrid()
 {
   delete[] data_;
 }
 
-template<typename T>
+template <typename T>
 inline bool VoxelGrid<T>::isCellValid(int x, int y, int z) const
 {
-  return (
-      x>=0 && x<num_cells_[DIM_X] &&
-      y>=0 && y<num_cells_[DIM_Y] &&
-      z>=0 && z<num_cells_[DIM_Z]);
+  return (x >= 0 && x < num_cells_[DIM_X] && y >= 0 && y < num_cells_[DIM_Y] && z >= 0 && z < num_cells_[DIM_Z]);
 }
 
-template<typename T>
+template <typename T>
 inline bool VoxelGrid<T>::isCellValid(const Eigen::Vector3i& pos) const
 {
   return isCellValid(pos.x(), pos.y(), pos.z());
 }
 
-template<typename T>
+template <typename T>
 inline bool VoxelGrid<T>::isCellValid(Dimension dim, int cell) const
 {
-  return cell>=0 && cell<num_cells_[dim];
+  return cell >= 0 && cell < num_cells_[dim];
 }
 
-template<typename T>
+template <typename T>
 inline int VoxelGrid<T>::ref(int x, int y, int z) const
 {
-  return x*stride1_ + y*stride2_ + z;
+  return x * stride1_ + y * stride2_ + z;
 }
 
-template<typename T>
+template <typename T>
 inline double VoxelGrid<T>::getSize(Dimension dim) const
 {
   return size_[dim];
 }
 
-template<typename T>
+template <typename T>
 inline double VoxelGrid<T>::getResolution() const
 {
   return resolution_;
 }
 
-template<typename T>
+template <typename T>
 inline double VoxelGrid<T>::getResolution(Dimension dim) const
 {
   return resolution_;
 }
 
-template<typename T>
+template <typename T>
 inline double VoxelGrid<T>::getOrigin(Dimension dim) const
 {
   return origin_[dim];
 }
 
-template<typename T>
+template <typename T>
 inline int VoxelGrid<T>::getNumCells(Dimension dim) const
 {
   return num_cells_[dim];
 }
 
-template<typename T>
+template <typename T>
 inline const T& VoxelGrid<T>::operator()(double x, double y, double z) const
 {
   int cellX = getCellFromLocation(DIM_X, x);
@@ -475,49 +471,49 @@ inline const T& VoxelGrid<T>::operator()(double x, double y, double z) const
   return getCell(cellX, cellY, cellZ);
 }
 
-template<typename T>
+template <typename T>
 inline const T& VoxelGrid<T>::operator()(const Eigen::Vector3d& pos) const
 {
   return this->operator()(pos.x(), pos.y(), pos.z());
 }
 
-template<typename T>
+template <typename T>
 inline T& VoxelGrid<T>::getCell(int x, int y, int z)
 {
-  return data_[ref(x,y,z)];
+  return data_[ref(x, y, z)];
 }
 
-template<typename T>
+template <typename T>
 inline const T& VoxelGrid<T>::getCell(int x, int y, int z) const
 {
-  return data_[ref(x,y,z)];
+  return data_[ref(x, y, z)];
 }
 
-template<typename T>
+template <typename T>
 inline T& VoxelGrid<T>::getCell(const Eigen::Vector3i& pos)
 {
   return data_[ref(pos.x(), pos.y(), pos.z())];
 }
 
-template<typename T>
+template <typename T>
 inline const T& VoxelGrid<T>::getCell(const Eigen::Vector3i& pos) const
 {
   return data_[ref(pos.x(), pos.y(), pos.z())];
 }
 
-template<typename T>
+template <typename T>
 inline void VoxelGrid<T>::setCell(int x, int y, int z, const T& obj)
 {
-  data_[ref(x,y,z)] = obj;
+  data_[ref(x, y, z)] = obj;
 }
 
-template<typename T>
+template <typename T>
 inline void VoxelGrid<T>::setCell(const Eigen::Vector3i& pos, const T& obj)
 {
   data_[ref(pos.x(), pos.y(), pos.z())] = obj;
 }
 
-template<typename T>
+template <typename T>
 inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
 {
   // This implements
@@ -537,20 +533,19 @@ inline int VoxelGrid<T>::getCellFromLocation(Dimension dim, double loc) const
   return int(floor((loc - origin_minus_[dim]) * oo_resolution_));
 }
 
-template<typename T>
+template <typename T>
 inline double VoxelGrid<T>::getLocationFromCell(Dimension dim, int cell) const
 {
   return origin_[dim] + resolution_ * (double(cell));
 }
 
-
-template<typename T>
+template <typename T>
 inline void VoxelGrid<T>::reset(const T& initial)
 {
   std::fill(data_, data_ + num_cells_total_, initial);
 }
 
-template<typename T>
+template <typename T>
 inline void VoxelGrid<T>::gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const
 {
   world_x = getLocationFromCell(DIM_X, x);
@@ -558,7 +553,7 @@ inline void VoxelGrid<T>::gridToWorld(int x, int y, int z, double& world_x, doub
   world_z = getLocationFromCell(DIM_Z, z);
 }
 
-template<typename T>
+template <typename T>
 inline void VoxelGrid<T>::gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector3i& world) const
 {
   world.x() = getLocationFromCell(DIM_X, grid.x());
@@ -566,16 +561,16 @@ inline void VoxelGrid<T>::gridToWorld(const Eigen::Vector3i& grid, Eigen::Vector
   world.z() = getLocationFromCell(DIM_Z, grid.z());
 }
 
-template<typename T>
+template <typename T>
 inline bool VoxelGrid<T>::worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const
 {
   x = getCellFromLocation(DIM_X, world_x);
   y = getCellFromLocation(DIM_Y, world_y);
   z = getCellFromLocation(DIM_Z, world_z);
-  return isCellValid(x,y,z);
+  return isCellValid(x, y, z);
 }
 
-template<typename T>
+template <typename T>
 inline bool VoxelGrid<T>::worldToGrid(const Eigen::Vector3i& world, Eigen::Vector3i& grid) const
 {
   grid.x() = getCellFromLocation(DIM_X, world.x());
@@ -584,5 +579,5 @@ inline bool VoxelGrid<T>::worldToGrid(const Eigen::Vector3i& world, Eigen::Vecto
   return isCellValid(grid.x(), grid.y(), grid.z());
 }
 
-} // namespace distance_field
+}  // namespace distance_field
 #endif

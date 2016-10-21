@@ -43,18 +43,18 @@ namespace moveit
 {
 namespace core
 {
-
 /** \brief A planar joint */
 class PlanarJointModel : public JointModel
 {
 public:
-
-  PlanarJointModel(const std::string& name);
+  PlanarJointModel(const std::string &name);
 
   virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
-                                                const double *near, const double distance) const;
+  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values,
+                                          const Bounds &other_bounds) const;
+  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                const Bounds &other_bounds, const double *near,
+                                                const double distance) const;
   virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const;
   virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const;
 
@@ -64,7 +64,7 @@ public:
   virtual double distance(const double *values1, const double *values2) const;
 
   virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeVariablePositions(const Eigen::Affine3d& transf, double *joint_values) const;
+  virtual void computeVariablePositions(const Eigen::Affine3d &transf, double *joint_values) const;
 
   double getAngularDistanceWeight() const
   {
@@ -76,15 +76,14 @@ public:
     angular_distance_weight_ = weight;
   }
 
-  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this function;
+  /// Make the yaw component of a state's value vector be in the range [-Pi, Pi]. enforceBounds() also calls this
+  /// function;
   /// Return true if a change is actually made
   bool normalizeRotation(double *values) const;
 
 private:
-
   double angular_distance_weight_;
 };
-
 }
 }
 

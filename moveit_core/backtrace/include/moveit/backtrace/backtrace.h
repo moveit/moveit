@@ -39,7 +39,6 @@
 
 namespace moveit
 {
-
 /** \brief Get the current backtrace. This may not work on all compilers */
 void get_backtrace(std::ostream &out);
 
@@ -63,7 +62,6 @@ void get_backtrace(std::ostream &out)
   out << "Unable to get backtrace with the used compiler." << std::endl;
 }
 #endif
-
 }
 
 #endif

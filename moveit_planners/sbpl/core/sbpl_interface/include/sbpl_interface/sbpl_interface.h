@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #ifndef MOVEIT_SBPL_INTERFACE_H_
 #define MOVEIT_SBPL_INTERFACE_H_
 
@@ -46,28 +45,28 @@ namespace sbpl_interface
 class SBPLInterface
 {
 public:
-
-  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel){}
-  virtual ~SBPLInterface(){}
+  SBPLInterface(const planning_models::RobotModelConstPtr& kmodel)
+  {
+  }
+  virtual ~SBPLInterface()
+  {
+  }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::GetMotionPlan::Response &res,
+             const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
              const PlanningParameters& params) const;
 
-  const PlanningStatistics& getLastPlanningStatistics() const {
+  const PlanningStatistics& getLastPlanningStatistics() const
+  {
     return last_planning_statistics_;
   }
 
 protected:
-
   PlanningStatistics last_planning_statistics_;
 
-  //DummyEnvironment* dummy_env_;
-  //SBPLPlanner *planner_;
-
+  // DummyEnvironment* dummy_env_;
+  // SBPLPlanner *planner_;
 };
-
 }
 
 #endif

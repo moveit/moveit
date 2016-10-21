@@ -50,7 +50,7 @@
 #include <streambuf>
 #include <algorithm>
 
-rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
+rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(robot_description)");
@@ -65,7 +65,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
     return;
   }
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   if (!umodel->initString(content))
   {
     ROS_ERROR_NAMED("rdf_loader", "Unable to parse URDF from parameter '%s'", robot_description_.c_str());
@@ -77,27 +77,28 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   std::string scontent;
   if (!nh.getParam(srdf_description, scontent))
   {
-    ROS_ERROR_NAMED("rdf_loader", "Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
+    ROS_ERROR_NAMED("rdf_loader", "Robot semantic description not found. Did you forget to define or remap '%s'?",
+                    srdf_description.c_str());
     return;
   }
 
   srdf_.reset(new srdf::Model());
   if (!srdf_->initString(*urdf_, scontent))
   {
-    ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
+    ROS_ERROR_NAMED("rdf_loader", "Unable to parse SRDF from parameter '%s'", srdf_description.c_str());
     srdf_.reset();
     return;
   }
 
-  ROS_DEBUG_STREAM_NAMED("rdf",  "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM_NAMED("rdf", "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
-rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::string &srdf_string)
+rdf_loader::RDFLoader::RDFLoader(const std::string& urdf_string, const std::string& srdf_string)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(string)");
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   urdf_.reset(umodel);
   if (umodel->initString(urdf_string))
   {
@@ -115,12 +116,12 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::stri
   }
 }
 
-rdf_loader::RDFLoader::RDFLoader(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc)
+rdf_loader::RDFLoader::RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(XML)");
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   urdf_.reset(umodel);
   if (umodel->initXml(urdf_doc))
   {
@@ -177,7 +178,8 @@ bool rdf_loader::RDFLoader::loadFileToString(std::string& buffer, const std::str
   return true;
 }
 
-bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std::string& path,
+                                                  const std::vector<std::string>& xacro_args)
 {
   if (path.empty())
   {
@@ -214,7 +216,8 @@ bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std
   return true;
 }
 
-bool rdf_loader::RDFLoader::loadXmlFileToString(std::string& buffer, const std::string& path, const std::vector<std::string>& xacro_args)
+bool rdf_loader::RDFLoader::loadXmlFileToString(std::string& buffer, const std::string& path,
+                                                const std::vector<std::string>& xacro_args)
 {
   if (isXacroFile(path))
   {

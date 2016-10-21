@@ -42,7 +42,6 @@
 
 namespace ompl_interface
 {
-
 class ModelBasedPlanningContext;
 
 /** @class ProjectionEvaluatorLinkPose
@@ -50,7 +49,6 @@ class ModelBasedPlanningContext;
 class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 {
 public:
-
   ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
 
   virtual unsigned int getDimension() const;
@@ -58,10 +56,9 @@ public:
   virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
 
 private:
-
   const ModelBasedPlanningContext *planning_context_;
-  const robot_model::LinkModel    *link_;
-  TSStateStorage                   tss_;
+  const robot_model::LinkModel *link_;
+  TSStateStorage tss_;
 };
 
 /** @class ProjectionEvaluatorJointValue
@@ -76,9 +73,8 @@ public:
   virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
 
 private:
-
   const ModelBasedPlanningContext *planning_context_;
-  std::vector<unsigned int>        variables_;
+  std::vector<unsigned int> variables_;
 };
 }
 

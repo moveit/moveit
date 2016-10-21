@@ -45,14 +45,14 @@
 #include <moveit/robot_state/conversions.h>
 #include <ros/ros.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 typedef std::pair<geometry_msgs::Point, geometry_msgs::Quaternion> LinkConstraintPair;
-typedef std::map<std::string, LinkConstraintPair > LinkConstraintMap;
+typedef std::map<std::string, LinkConstraintPair> LinkConstraintMap;
 
-void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkConstraintMap& lcmap )
+void collectLinkConstraints(const moveit_msgs::Constraints &constraints, LinkConstraintMap &lcmap)
 {
-  for(std::size_t i = 0; i < constraints.position_constraints.size(); ++i)
+  for (std::size_t i = 0; i < constraints.position_constraints.size(); ++i)
   {
     LinkConstraintPair lcp;
     const moveit_msgs::PositionConstraint &pc = constraints.position_constraints[i];
@@ -60,13 +60,17 @@ void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkCon
     lcmap[constraints.position_constraints[i].link_name] = lcp;
   }
 
-  for(std::size_t i = 0; i < constraints.orientation_constraints.size(); ++i)
+  for (std::size_t i = 0; i < constraints.orientation_constraints.size(); ++i)
   {
-    if(lcmap.count(constraints.orientation_constraints[i].link_name))
+    if (lcmap.count(constraints.orientation_constraints[i].link_name))
     {
-      lcmap[constraints.orientation_constraints[i].link_name].second = constraints.orientation_constraints[i].orientation;
-    } else{
-      ROS_WARN("Orientation constraint for %s has no matching position constraint", constraints.orientation_constraints[i].link_name.c_str());
+      lcmap[constraints.orientation_constraints[i].link_name].second =
+          constraints.orientation_constraints[i].orientation;
+    }
+    else
+    {
+      ROS_WARN("Orientation constraint for %s has no matching position constraint",
+               constraints.orientation_constraints[i].link_name.c_str());
     }
   }
 }
@@ -76,10 +80,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "save_warehouse_as_text", ros::init_options::AnonymousName);
 
   boost::program_options::options_description desc;
-  desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+                                                                                                        "DB.")(
+      "port", boost::program_options::value<std::size_t>(), "Port for the DB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -109,13 +112,13 @@ int main(int argc, char **argv)
   std::vector<std::string> scene_names;
   pss.getPlanningSceneNames(scene_names);
 
-  for (std::size_t i = 0 ; i < scene_names.size() ; ++i)
+  for (std::size_t i = 0; i < scene_names.size(); ++i)
   {
     moveit_warehouse::PlanningSceneWithMetadata pswm;
     if (pss.getPlanningScene(pswm, scene_names[i]))
     {
       ROS_INFO("Saving scene '%s'", scene_names[i].c_str());
-      psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
+      psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene &>(*pswm));
       std::ofstream fout((scene_names[i] + ".scene").c_str());
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();
@@ -134,15 +137,15 @@ int main(int argc, char **argv)
       csregex << ".*" << scene_names[i] << ".*";
       cs.getKnownConstraints(csregex.str(), constraintNames);
 
-      if( !(robotStateNames.empty() && constraintNames.empty()) )
+      if (!(robotStateNames.empty() && constraintNames.empty()))
       {
         std::ofstream qfout((scene_names[i] + ".queries").c_str());
         qfout << scene_names[i] << std::endl;
-        if(robotStateNames.size())
+        if (robotStateNames.size())
         {
           qfout << "start" << std::endl;
           qfout << robotStateNames.size() << std::endl;
-          for(std::size_t k = 0; k < robotStateNames.size(); ++k)
+          for (std::size_t k = 0; k < robotStateNames.size(); ++k)
           {
             ROS_INFO("Saving start state %s for scene %s", robotStateNames[k].c_str(), scene_names[i].c_str());
             qfout << robotStateNames[k] << std::endl;
@@ -155,11 +158,11 @@ int main(int argc, char **argv)
           }
         }
 
-        if(constraintNames.size())
+        if (constraintNames.size())
         {
           qfout << "goal" << std::endl;
           qfout << constraintNames.size() << std::endl;
-          for(std::size_t k = 0; k < constraintNames.size(); ++k)
+          for (std::size_t k = 0; k < constraintNames.size(); ++k)
           {
             ROS_INFO("Saving goal %s for scene %s", constraintNames[k].c_str(), scene_names[i].c_str());
             qfout << "link_constraint" << std::endl;
@@ -169,7 +172,7 @@ int main(int argc, char **argv)
 
             LinkConstraintMap lcmap;
             collectLinkConstraints(*constraints, lcmap);
-            for(LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
+            for (LinkConstraintMap::iterator iter = lcmap.begin(); iter != lcmap.end(); iter++)
             {
               std::string link_name = iter->first;
               LinkConstraintPair lcp = iter->second;
@@ -178,7 +181,6 @@ int main(int argc, char **argv)
               Eigen::Quaterniond orientation(lcp.second.w, lcp.second.x, lcp.second.y, lcp.second.z);
               Eigen::Vector3d rpy = orientation.matrix().eulerAngles(0, 1, 2);
               qfout << "rpy " << rpy[0] << " " << rpy[1] << " " << rpy[2] << std::endl;
-
             }
             qfout << "." << std::endl;
           }

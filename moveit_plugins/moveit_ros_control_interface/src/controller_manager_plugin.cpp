@@ -102,7 +102,10 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
    * @param s state of controller
    * @return true if controller is active
    */
-  static bool isActive(const controller_manager_msgs::ControllerState &s) { return s.state == std::string("running"); }
+  static bool isActive(const controller_manager_msgs::ControllerState &s)
+  {
+    return s.state == std::string("running");
+  }
 
   /**
    * \brief  Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if
@@ -158,7 +161,8 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
       // Collect claimed resources across different hardware interfaces
       std::vector<std::string> resources;
       for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::const_iterator hir =
-             controller.claimed_resources.begin(); hir != controller.claimed_resources.end(); ++hir)
+               controller.claimed_resources.begin();
+           hir != controller.claimed_resources.end(); ++hir)
       {
         for (std::vector<std::string>::const_iterator r = hir->resources.begin(); r != hir->resources.end(); ++r)
         {
@@ -167,7 +171,7 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
       }
 
       moveit_controller_manager::MoveItControllerHandlePtr handle =
-        alloc_it->second->alloc(name, resources);  // allocate handle
+          alloc_it->second->alloc(name, resources);  // allocate handle
       if (handle)
         handles_.insert(std::make_pair(name, handle));
     }
@@ -178,7 +182,10 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
    * @param name name to be resolved to an absolute name
    * @return resolved name
    */
-  std::string getAbsName(const std::string &name) { return ros::names::append(ns_, name); }
+  std::string getAbsName(const std::string &name)
+  {
+    return ros::names::append(ns_, name);
+  }
 
 public:
   /**
@@ -261,7 +268,7 @@ public:
       for (std::size_t i = 0; i < it->second.claimed_resources.size(); ++i)
       {
         std::vector<std::string> &resources = it->second.claimed_resources[i].resources;
-        joints.insert( joints.end(), resources.begin(), resources.end() );
+        joints.insert(joints.end(), resources.begin(), resources.end());
       }
     }
   }
@@ -304,7 +311,9 @@ public:
     // fill bimap with active controllers and their resources
     for (ControllersMap::iterator c = active_controllers_.begin(); c != active_controllers_.end(); ++c)
     {
-      for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir = c->second.claimed_resources.begin(); hir != c->second.claimed_resources.end(); ++hir)
+      for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir =
+               c->second.claimed_resources.begin();
+           hir != c->second.claimed_resources.end(); ++hir)
       {
         for (std::vector<std::string>::iterator r = hir->resources.begin(); r != hir->resources.end(); ++r)
         {
@@ -332,7 +341,9 @@ public:
       {  // controller belongs to this manager
         srv.request.start_controllers.push_back(c->second.name);
 
-        for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir = c->second.claimed_resources.begin(); hir != c->second.claimed_resources.end(); ++hir)
+        for (std::vector<controller_manager_msgs::HardwareInterfaceResources>::iterator hir =
+                 c->second.claimed_resources.begin();
+             hir != c->second.claimed_resources.end(); ++hir)
         {
           for (std::vector<std::string>::iterator r = hir->resources.begin(); r != hir->resources.end(); ++r)
           {  // for all claimed resource

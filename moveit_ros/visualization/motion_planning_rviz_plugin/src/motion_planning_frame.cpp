@@ -53,81 +53,87 @@
 
 namespace moveit_rviz_plugin
 {
-
-MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context, QWidget *parent) :
-  QWidget(parent),
-  planning_display_(pdisplay),
-  context_(context),
-  ui_(new Ui::MotionPlanningUI()),
-  first_time_(true),
-  clear_octomap_service_client_(nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME))
+MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context,
+                                         QWidget *parent)
+  : QWidget(parent)
+  , planning_display_(pdisplay)
+  , context_(context)
+  , ui_(new Ui::MotionPlanningUI())
+  , first_time_(true)
+  , clear_octomap_service_client_(nh_.serviceClient<std_srvs::Empty>(move_group::CLEAR_OCTOMAP_SERVICE_NAME))
 {
   // set up the GUI
   ui_->setupUi(this);
 
   // connect bottons to actions; each action usually registers the function pointer for the actual computation,
   // to keep the GUI more responsive (using the background job processing)
-  connect( ui_->plan_button, SIGNAL( clicked() ), this, SLOT( planButtonClicked() ));
-  connect( ui_->execute_button, SIGNAL( clicked() ), this, SLOT( executeButtonClicked() ));
-  connect( ui_->plan_and_execute_button, SIGNAL( clicked() ), this, SLOT( planAndExecuteButtonClicked() ));
-  connect( ui_->stop_button, SIGNAL( clicked() ), this, SLOT( stopButtonClicked() ));
-  connect( ui_->use_start_state_button, SIGNAL( clicked() ), this, SLOT( useStartStateButtonClicked() ));
-  connect( ui_->use_goal_state_button, SIGNAL( clicked() ), this, SLOT( useGoalStateButtonClicked() ));
-  connect( ui_->database_connect_button, SIGNAL( clicked() ), this, SLOT( databaseConnectButtonClicked() ));
-  connect( ui_->save_scene_button, SIGNAL( clicked() ), this, SLOT( saveSceneButtonClicked() ));
-  connect( ui_->save_query_button, SIGNAL( clicked() ), this, SLOT( saveQueryButtonClicked() ));
-  connect( ui_->delete_scene_button, SIGNAL( clicked() ), this, SLOT( deleteSceneButtonClicked() ));
-  connect( ui_->delete_query_button, SIGNAL( clicked() ), this, SLOT( deleteQueryButtonClicked() ));
-  connect( ui_->planning_scene_tree, SIGNAL( itemSelectionChanged() ), this, SLOT( planningSceneItemClicked() ));
-  connect( ui_->load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
-  connect( ui_->load_query_button, SIGNAL( clicked() ), this, SLOT( loadQueryButtonClicked() ));
-  connect( ui_->allow_looking, SIGNAL( toggled(bool) ), this, SLOT( allowLookingToggled(bool) ));
-  connect( ui_->allow_replanning, SIGNAL( toggled(bool) ), this, SLOT( allowReplanningToggled(bool) ));
-  connect( ui_->allow_external_program, SIGNAL( toggled(bool) ), this, SLOT( allowExternalProgramCommunication(bool) ));
-  connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
-  connect( ui_->planning_algorithm_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( planningAlgorithmIndexChanged( int ) ));
-  connect( ui_->import_file_button, SIGNAL( clicked() ), this, SLOT( importFileButtonClicked() ));
-  connect( ui_->import_url_button, SIGNAL( clicked() ), this, SLOT( importUrlButtonClicked() ));
-  connect( ui_->clear_scene_button, SIGNAL( clicked() ), this, SLOT( clearSceneButtonClicked() ));
-  connect( ui_->scene_scale, SIGNAL( valueChanged(int) ), this, SLOT( sceneScaleChanged(int) ));
-  connect( ui_->scene_scale, SIGNAL( sliderPressed() ), this, SLOT( sceneScaleStartChange() ));
-  connect( ui_->scene_scale, SIGNAL( sliderReleased() ), this, SLOT( sceneScaleEndChange() ));
-  connect( ui_->remove_object_button, SIGNAL( clicked() ), this, SLOT( removeObjectButtonClicked() ));
-  connect( ui_->object_x, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->object_y, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->object_z, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->object_rx, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->object_ry, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->object_rz, SIGNAL( valueChanged(double) ), this, SLOT( objectPoseValueChanged(double) ));
-  connect( ui_->publish_current_scene_button, SIGNAL( clicked() ), this, SLOT( publishSceneButtonClicked() ));
-  connect( ui_->collision_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedCollisionObjectChanged() ));
-  connect( ui_->collision_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( collisionObjectChanged( QListWidgetItem * ) ));
-  connect( ui_->path_constraints_combo_box, SIGNAL( currentIndexChanged ( int ) ), this, SLOT( pathConstraintsIndexChanged( int ) ));
-  connect( ui_->clear_octomap_button, SIGNAL( clicked() ), this, SLOT( onClearOctomapClicked() ));
-  connect( ui_->planning_scene_tree, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( warehouseItemNameChanged( QTreeWidgetItem *, int ) ));
-  connect( ui_->reset_db_button, SIGNAL( clicked() ), this, SLOT( resetDbButtonClicked() ));
-  connect( ui_->export_scene_text_button, SIGNAL( clicked() ), this, SLOT( exportAsTextButtonClicked() ));
-  connect( ui_->import_scene_text_button, SIGNAL( clicked() ), this, SLOT( importFromTextButtonClicked() ));
-  connect( ui_->load_state_button, SIGNAL( clicked() ), this, SLOT( loadStateButtonClicked() ));
-  connect( ui_->save_start_state_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
-  connect( ui_->save_goal_state_button, SIGNAL( clicked() ), this, SLOT( saveGoalStateButtonClicked() ));
-  connect( ui_->set_as_start_state_button, SIGNAL( clicked() ), this, SLOT( setAsStartStateButtonClicked() ));
-  connect( ui_->set_as_goal_state_button, SIGNAL( clicked() ), this, SLOT( setAsGoalStateButtonClicked() ));
-  connect( ui_->remove_state_button, SIGNAL( clicked() ), this, SLOT( removeStateButtonClicked() ));
-  connect( ui_->clear_states_button, SIGNAL( clicked() ), this, SLOT( clearStatesButtonClicked() ));
-  connect( ui_->approximate_ik, SIGNAL( stateChanged(int) ), this, SLOT( approximateIKChanged(int) ));
+  connect(ui_->plan_button, SIGNAL(clicked()), this, SLOT(planButtonClicked()));
+  connect(ui_->execute_button, SIGNAL(clicked()), this, SLOT(executeButtonClicked()));
+  connect(ui_->plan_and_execute_button, SIGNAL(clicked()), this, SLOT(planAndExecuteButtonClicked()));
+  connect(ui_->stop_button, SIGNAL(clicked()), this, SLOT(stopButtonClicked()));
+  connect(ui_->use_start_state_button, SIGNAL(clicked()), this, SLOT(useStartStateButtonClicked()));
+  connect(ui_->use_goal_state_button, SIGNAL(clicked()), this, SLOT(useGoalStateButtonClicked()));
+  connect(ui_->database_connect_button, SIGNAL(clicked()), this, SLOT(databaseConnectButtonClicked()));
+  connect(ui_->save_scene_button, SIGNAL(clicked()), this, SLOT(saveSceneButtonClicked()));
+  connect(ui_->save_query_button, SIGNAL(clicked()), this, SLOT(saveQueryButtonClicked()));
+  connect(ui_->delete_scene_button, SIGNAL(clicked()), this, SLOT(deleteSceneButtonClicked()));
+  connect(ui_->delete_query_button, SIGNAL(clicked()), this, SLOT(deleteQueryButtonClicked()));
+  connect(ui_->planning_scene_tree, SIGNAL(itemSelectionChanged()), this, SLOT(planningSceneItemClicked()));
+  connect(ui_->load_scene_button, SIGNAL(clicked()), this, SLOT(loadSceneButtonClicked()));
+  connect(ui_->load_query_button, SIGNAL(clicked()), this, SLOT(loadQueryButtonClicked()));
+  connect(ui_->allow_looking, SIGNAL(toggled(bool)), this, SLOT(allowLookingToggled(bool)));
+  connect(ui_->allow_replanning, SIGNAL(toggled(bool)), this, SLOT(allowReplanningToggled(bool)));
+  connect(ui_->allow_external_program, SIGNAL(toggled(bool)), this, SLOT(allowExternalProgramCommunication(bool)));
+  connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(planningAlgorithmIndexChanged(int)));
+  connect(ui_->planning_algorithm_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(planningAlgorithmIndexChanged(int)));
+  connect(ui_->import_file_button, SIGNAL(clicked()), this, SLOT(importFileButtonClicked()));
+  connect(ui_->import_url_button, SIGNAL(clicked()), this, SLOT(importUrlButtonClicked()));
+  connect(ui_->clear_scene_button, SIGNAL(clicked()), this, SLOT(clearSceneButtonClicked()));
+  connect(ui_->scene_scale, SIGNAL(valueChanged(int)), this, SLOT(sceneScaleChanged(int)));
+  connect(ui_->scene_scale, SIGNAL(sliderPressed()), this, SLOT(sceneScaleStartChange()));
+  connect(ui_->scene_scale, SIGNAL(sliderReleased()), this, SLOT(sceneScaleEndChange()));
+  connect(ui_->remove_object_button, SIGNAL(clicked()), this, SLOT(removeObjectButtonClicked()));
+  connect(ui_->object_x, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->object_y, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->object_z, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->object_rx, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->object_ry, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
+  connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishSceneButtonClicked()));
+  connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
+  connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem *)), this,
+          SLOT(collisionObjectChanged(QListWidgetItem *)));
+  connect(ui_->path_constraints_combo_box, SIGNAL(currentIndexChanged(int)), this,
+          SLOT(pathConstraintsIndexChanged(int)));
+  connect(ui_->clear_octomap_button, SIGNAL(clicked()), this, SLOT(onClearOctomapClicked()));
+  connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem *, int)), this,
+          SLOT(warehouseItemNameChanged(QTreeWidgetItem *, int)));
+  connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
+  connect(ui_->export_scene_text_button, SIGNAL(clicked()), this, SLOT(exportAsTextButtonClicked()));
+  connect(ui_->import_scene_text_button, SIGNAL(clicked()), this, SLOT(importFromTextButtonClicked()));
+  connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
+  connect(ui_->save_start_state_button, SIGNAL(clicked()), this, SLOT(saveStartStateButtonClicked()));
+  connect(ui_->save_goal_state_button, SIGNAL(clicked()), this, SLOT(saveGoalStateButtonClicked()));
+  connect(ui_->set_as_start_state_button, SIGNAL(clicked()), this, SLOT(setAsStartStateButtonClicked()));
+  connect(ui_->set_as_goal_state_button, SIGNAL(clicked()), this, SLOT(setAsGoalStateButtonClicked()));
+  connect(ui_->remove_state_button, SIGNAL(clicked()), this, SLOT(removeStateButtonClicked()));
+  connect(ui_->clear_states_button, SIGNAL(clicked()), this, SLOT(clearStatesButtonClicked()));
+  connect(ui_->approximate_ik, SIGNAL(stateChanged(int)), this, SLOT(approximateIKChanged(int)));
 
+  connect(ui_->detect_objects_button, SIGNAL(clicked()), this, SLOT(detectObjectsButtonClicked()));
+  connect(ui_->pick_button, SIGNAL(clicked()), this, SLOT(pickObjectButtonClicked()));
+  connect(ui_->place_button, SIGNAL(clicked()), this, SLOT(placeObjectButtonClicked()));
+  connect(ui_->detected_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedDetectedObjectChanged()));
+  connect(ui_->detected_objects_list, SIGNAL(itemChanged(QListWidgetItem *)), this,
+          SLOT(detectedObjectChanged(QListWidgetItem *)));
+  connect(ui_->support_surfaces_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedSupportSurfaceChanged()));
 
-  connect( ui_->detect_objects_button, SIGNAL( clicked() ), this, SLOT( detectObjectsButtonClicked() ));
-  connect( ui_->pick_button, SIGNAL( clicked() ), this, SLOT( pickObjectButtonClicked() ));
-  connect( ui_->place_button, SIGNAL( clicked() ), this, SLOT( placeObjectButtonClicked() ));
-  connect( ui_->detected_objects_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedDetectedObjectChanged() ));
-  connect( ui_->detected_objects_list, SIGNAL( itemChanged( QListWidgetItem * ) ), this, SLOT( detectedObjectChanged( QListWidgetItem * ) ));
-  connect( ui_->support_surfaces_list, SIGNAL( itemSelectionChanged() ), this, SLOT( selectedSupportSurfaceChanged() ));
+  connect(ui_->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-  connect( ui_->tabWidget, SIGNAL( currentChanged ( int ) ), this, SLOT( tabChanged( int ) ));
-
-  QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);  connect(copy_object_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedCollisionObject() ) );
+  QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
+  connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
 
   ui_->reset_db_button->hide();
   ui_->background_job_progress->hide();
@@ -141,16 +147,18 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 
   //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
-  object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
-  object_recognition_subscriber_ = nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
+  object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(
+      OBJECT_RECOGNITION_ACTION, false));
+  object_recognition_subscriber_ =
+      nh_.subscribe("recognized_object_array", 1, &MotionPlanningFrame::listenDetectedObjects, this);
 
-  if(object_recognition_client_)
+  if (object_recognition_client_)
   {
     try
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       //      ROS_ERROR("Object recognition action: %s", ex.what());
       object_recognition_client_.reset();
@@ -160,7 +168,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   {
     planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -168,18 +176,18 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   try
   {
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-    if(ps)
+    if (ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
     }
     else
       semantic_world_.reset();
-    if(semantic_world_)
+    if (semantic_world_)
     {
       semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
     }
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -196,8 +204,8 @@ void MotionPlanningFrame::approximateIKChanged(int state)
 
 void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
 {
-  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (std::size_t i = 0 ; i < found_items.size(); ++i)
+  QList<QListWidgetItem *> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
+  for (std::size_t i = 0; i < found_items.size(); ++i)
     found_items[i]->setSelected(selection);
 }
 
@@ -210,13 +218,13 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     ros::NodeHandle nh;
     plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
     execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
-    update_start_state_subscriber_ = nh.subscribe("/rviz/moveit/update_start_state",1,
-                                                  &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
-    update_goal_state_subscriber_ = nh.subscribe("/rviz/moveit/update_goal_state",1,
-                                                 &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
+    update_start_state_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
+    update_goal_state_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
   }
   else
-  {                        // disable
+  {  // disable
     plan_subscriber_.shutdown();
     execute_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
@@ -254,14 +262,14 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     {
       ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
       ui_->goal_state_selection->insertSeparator(ui_->goal_state_selection->count());
-      for (std::size_t i = 0 ; i < known_states.size() ; ++i)
+      for (std::size_t i = 0; i < known_states.size(); ++i)
       {
         ui_->start_state_selection->addItem(QString::fromStdString(known_states[i]));
         ui_->goal_state_selection->addItem(QString::fromStdString(known_states[i]));
       }
     }
-    ui_->start_state_selection->setCurrentIndex(2); // default to 'current'
-    ui_->goal_state_selection->setCurrentIndex(0); // default to 'random valid'
+    ui_->start_state_selection->setCurrentIndex(2);  // default to 'current'
+    ui_->goal_state_selection->setCurrentIndex(0);   // default to 'random valid'
   }
 }
 
@@ -271,32 +279,37 @@ void MotionPlanningFrame::changePlanningGroupHelper()
     return;
 
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::fillStateSelectionOptions, this));
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
+  planning_display_->addMainLoopJob(
+      boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
   const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
-  planning_display_->addMainLoopJob(boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
+  planning_display_->addMainLoopJob(
+      boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
 
   if (!group.empty() && kmodel)
   {
     if (move_group_ && move_group_->getName() == group)
       return;
-    ROS_INFO("Constructing new MoveGroup connection for group '%s' in namespace '%s'", group.c_str(), planning_display_->getMoveGroupNS().c_str());
+    ROS_INFO("Constructing new MoveGroup connection for group '%s' in namespace '%s'", group.c_str(),
+             planning_display_->getMoveGroupNS().c_str());
     moveit::planning_interface::MoveGroupInterface::Options opt(group);
     opt.robot_model_ = kmodel;
     opt.robot_description_.clear();
     opt.node_handle_ = ros::NodeHandle(planning_display_->getMoveGroupNS());
     try
     {
-      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(opt, context_->getFrameManager()->getTFClientPtr(), ros::WallDuration(30, 0)));
+      move_group_.reset(new moveit::planning_interface::MoveGroupInterface(
+          opt, context_->getFrameManager()->getTFClientPtr(), ros::WallDuration(30, 0)));
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("%s", ex.what());
     }
-    planning_display_->addMainLoopJob(boost::bind(&MotionPlanningParamWidget::setMoveGroup, ui_->planner_param_treeview, move_group_));
+    planning_display_->addMainLoopJob(
+        boost::bind(&MotionPlanningParamWidget::setMoveGroup, ui_->planner_param_treeview, move_group_));
     if (move_group_)
     {
       move_group_->allowLooking(ui_->allow_looking->isChecked());
@@ -304,7 +317,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       moveit_msgs::PlannerInterfaceDescription desc;
       if (move_group_->getInterfaceDescription(desc))
         planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populatePlannersList, this, desc));
-      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this), "populateConstraintsList");
+      planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::populateConstraintsList, this),
+                                          "populateConstraintsList");
 
       if (first_time_)
       {
@@ -322,7 +336,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
 
 void MotionPlanningFrame::changePlanningGroup()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this), "Frame::changePlanningGroup");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::changePlanningGroupHelper, this),
+                                      "Frame::changePlanningGroup");
 }
 
 void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonitor::SceneUpdateType update_type)
@@ -347,11 +362,13 @@ void MotionPlanningFrame::importResource(const std::string &path)
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
         QMessageBox::warning(this, QString("Duplicate names"),
-                             QString("An attached object named '").append(name.c_str()).append("' already exists. Please rename the attached object before importing."));
+                             QString("An attached object named '")
+                                 .append(name.c_str())
+                                 .append("' already exists. Please rename the attached object before importing."));
         return;
       }
 
-      //If the object already exists, ask the user whether to overwrite or rename
+      // If the object already exists, ask the user whether to overwrite or rename
       if (planning_display_->getPlanningSceneRO()->getWorld()->hasObject(name))
       {
         QMessageBox msgBox;
@@ -378,10 +395,11 @@ void MotionPlanningFrame::importResource(const std::string &path)
           {
             // Don't overwrite was clicked. Ask for another name
             bool ok = false;
-            QString text = QInputDialog::getText(this, tr("Choose a new name"),
-                                                 tr("Import the new object under the name:"), QLineEdit::Normal,
-                                                 QString::fromStdString(name + "-" + boost::lexical_cast<std::string>
-                                                                        (planning_display_->getPlanningSceneRO()->getWorld()->size())), &ok);
+            QString text = QInputDialog::getText(
+                this, tr("Choose a new name"), tr("Import the new object under the name:"), QLineEdit::Normal,
+                QString::fromStdString(name + "-" + boost::lexical_cast<std::string>(
+                                                        planning_display_->getPlanningSceneRO()->getWorld()->size())),
+                &ok);
             if (ok)
             {
               if (!text.isEmpty())
@@ -391,8 +409,9 @@ void MotionPlanningFrame::importResource(const std::string &path)
                 if (ps)
                 {
                   if (ps->getWorld()->hasObject(name))
-                    QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
-                                         append("' already exists. Not importing object."));
+                    QMessageBox::warning(
+                        this, "Name already exists",
+                        QString("The name '").append(name.c_str()).append("' already exists. Not importing object."));
                   else
                     addObject(ps->getWorldNonConst(), name, shape, pose);
                 }
@@ -403,7 +422,7 @@ void MotionPlanningFrame::importResource(const std::string &path)
             break;
           }
           default:
-            //Pressed cancel, do nothing
+            // Pressed cancel, do nothing
             break;
         }
       }
@@ -443,9 +462,8 @@ void MotionPlanningFrame::tabChanged(int index)
 {
   if (scene_marker_ && ui_->tabWidget->tabText(index) != "Scene Objects")
     scene_marker_.reset();
-  else
-    if (ui_->tabWidget->tabText(index) == "Scene Objects")
-      selectedCollisionObjectChanged();
+  else if (ui_->tabWidget->tabText(index) == "Scene Objects")
+    selectedCollisionObjectChanged();
 }
 
 void MotionPlanningFrame::updateSceneMarkers(float wall_dt, float ros_dt)
@@ -462,5 +480,4 @@ void MotionPlanningFrame::updateExternalCommunication()
   }
 }
 
-
-} // namespace
+}  // namespace

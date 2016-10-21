@@ -52,128 +52,132 @@
 #include <xmmintrin.h>
 #endif
 
-mesh_filter::MeshFilterBase::MeshFilterBase (const TransformCallback& transform_callback,
-              const SensorModel::Parameters& sensor_parameters,
-              const std::string& render_vertex_shader, const std::string& render_fragment_shader,
-              const std::string& filter_vertex_shader, const std::string& filter_fragment_shader)
-: sensor_parameters_ (sensor_parameters.clone ())
-, next_handle_ (FirstLabel) // 0 and 1 are reserved!
-, min_handle_ (FirstLabel)
-, stop_ (false)
-, transform_callback_ (transform_callback)
-, padding_scale_ (1.0)
-, padding_offset_ (0.01)
-, shadow_threshold_ (0.5)
+mesh_filter::MeshFilterBase::MeshFilterBase(const TransformCallback& transform_callback,
+                                            const SensorModel::Parameters& sensor_parameters,
+                                            const std::string& render_vertex_shader,
+                                            const std::string& render_fragment_shader,
+                                            const std::string& filter_vertex_shader,
+                                            const std::string& filter_fragment_shader)
+  : sensor_parameters_(sensor_parameters.clone())
+  , next_handle_(FirstLabel)  // 0 and 1 are reserved!
+  , min_handle_(FirstLabel)
+  , stop_(false)
+  , transform_callback_(transform_callback)
+  , padding_scale_(1.0)
+  , padding_offset_(0.01)
+  , shadow_threshold_(0.5)
 {
-  filter_thread_ = boost::thread(boost::bind(&MeshFilterBase::run, this,
-                                       render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader));
+  filter_thread_ = boost::thread(boost::bind(&MeshFilterBase::run, this, render_vertex_shader, render_fragment_shader,
+                                             filter_vertex_shader, filter_fragment_shader));
 }
 
-void mesh_filter::MeshFilterBase::initialize (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
-                                              const std::string& filter_vertex_shader, const std::string& filter_fragment_shader)
+void mesh_filter::MeshFilterBase::initialize(const std::string& render_vertex_shader,
+                                             const std::string& render_fragment_shader,
+                                             const std::string& filter_vertex_shader,
+                                             const std::string& filter_fragment_shader)
 {
-  mesh_renderer_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
-                                        sensor_parameters_->getNearClippingPlaneDistance (),
-                                        sensor_parameters_->getFarClippingPlaneDistance ()));
-  depth_filter_.reset (new GLRenderer (sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
-                                        sensor_parameters_->getNearClippingPlaneDistance (),
-                                        sensor_parameters_->getFarClippingPlaneDistance ()));
+  mesh_renderer_.reset(new GLRenderer(sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
+                                      sensor_parameters_->getNearClippingPlaneDistance(),
+                                      sensor_parameters_->getFarClippingPlaneDistance()));
+  depth_filter_.reset(new GLRenderer(sensor_parameters_->getWidth(), sensor_parameters_->getHeight(),
+                                     sensor_parameters_->getNearClippingPlaneDistance(),
+                                     sensor_parameters_->getFarClippingPlaneDistance()));
 
-  mesh_renderer_->setShadersFromString (render_vertex_shader, render_fragment_shader);
-  depth_filter_->setShadersFromString (filter_vertex_shader, filter_fragment_shader);
+  mesh_renderer_->setShadersFromString(render_vertex_shader, render_fragment_shader);
+  depth_filter_->setShadersFromString(filter_vertex_shader, filter_fragment_shader);
 
-  depth_filter_->begin ();
+  depth_filter_->begin();
 
-  glGenTextures (1, &sensor_depth_texture_);
+  glGenTextures(1, &sensor_depth_texture_);
 
-  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "sensor"), 0);
-  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "depth"), 2);
-  glUniform1i (glGetUniformLocation (depth_filter_->getProgramID (), "label"), 4);
+  glUniform1i(glGetUniformLocation(depth_filter_->getProgramID(), "sensor"), 0);
+  glUniform1i(glGetUniformLocation(depth_filter_->getProgramID(), "depth"), 2);
+  glUniform1i(glGetUniformLocation(depth_filter_->getProgramID(), "label"), 4);
 
-  shadow_threshold_location_ = glGetUniformLocation (depth_filter_->getProgramID (), "shadow_threshold");
+  shadow_threshold_location_ = glGetUniformLocation(depth_filter_->getProgramID(), "shadow_threshold");
 
-  depth_filter_->end ();
+  depth_filter_->end();
 
-  canvas_ = glGenLists (1);
-  glNewList (canvas_, GL_COMPILE);
-  glBegin (GL_QUADS);
+  canvas_ = glGenLists(1);
+  glNewList(canvas_, GL_COMPILE);
+  glBegin(GL_QUADS);
 
-  glColor3f (1, 1, 1);
-  glTexCoord2f (0, 0);
-  glVertex3f (-1, -1, 1);
+  glColor3f(1, 1, 1);
+  glTexCoord2f(0, 0);
+  glVertex3f(-1, -1, 1);
 
-  glTexCoord2f (1, 0);
-  glVertex3f (1, -1, 1);
+  glTexCoord2f(1, 0);
+  glVertex3f(1, -1, 1);
 
-  glTexCoord2f ( 1, 1);
-  glVertex3f (1, 1, 1);
+  glTexCoord2f(1, 1);
+  glVertex3f(1, 1, 1);
 
-  glTexCoord2f ( 0, 1);
-  glVertex3f (-1, 1, 1);
+  glTexCoord2f(0, 1);
+  glVertex3f(-1, 1, 1);
 
-  glEnd ();
-  glEndList ();
+  glEnd();
+  glEndList();
 }
 
-mesh_filter::MeshFilterBase::~MeshFilterBase ()
+mesh_filter::MeshFilterBase::~MeshFilterBase()
 {
   {
-    boost::unique_lock<boost::mutex> lock (jobs_mutex_);
+    boost::unique_lock<boost::mutex> lock(jobs_mutex_);
     stop_ = true;
     while (!jobs_queue_.empty())
     {
-      jobs_queue_.front ()->cancel ();
+      jobs_queue_.front()->cancel();
       jobs_queue_.pop();
     }
   }
-  jobs_condition_.notify_one ();
+  jobs_condition_.notify_one();
   filter_thread_.join();
 }
 
-void mesh_filter::MeshFilterBase::addJob (const JobPtr &job) const
+void mesh_filter::MeshFilterBase::addJob(const JobPtr& job) const
 {
   {
     boost::unique_lock<boost::mutex> _(jobs_mutex_);
-    jobs_queue_.push (job);
+    jobs_queue_.push(job);
   }
   jobs_condition_.notify_one();
 }
 
-void mesh_filter::MeshFilterBase::deInitialize ()
+void mesh_filter::MeshFilterBase::deInitialize()
 {
-  glDeleteLists (canvas_, 1);
-  glDeleteTextures (1, &sensor_depth_texture_);
+  glDeleteLists(canvas_, 1);
+  glDeleteTextures(1, &sensor_depth_texture_);
 
-  meshes_.clear ();
+  meshes_.clear();
   mesh_renderer_.reset();
   depth_filter_.reset();
 }
 
-void mesh_filter::MeshFilterBase::setSize (unsigned int width, unsigned int height)
+void mesh_filter::MeshFilterBase::setSize(unsigned int width, unsigned int height)
 {
-  mesh_renderer_->setBufferSize (width, height);
-  mesh_renderer_->setCameraParameters (width, width, width >> 1, height >> 1);
+  mesh_renderer_->setBufferSize(width, height);
+  mesh_renderer_->setCameraParameters(width, width, width >> 1, height >> 1);
 
-  depth_filter_->setBufferSize (width, height);
-  depth_filter_->setCameraParameters (width, width, width >> 1, height >> 1);
+  depth_filter_->setBufferSize(width, height);
+  depth_filter_->setCameraParameters(width, width, width >> 1, height >> 1);
 }
 
-void mesh_filter::MeshFilterBase::setTransformCallback (const TransformCallback& transform_callback)
+void mesh_filter::MeshFilterBase::setTransformCallback(const TransformCallback& transform_callback)
 {
   boost::mutex::scoped_lock _(transform_callback_mutex_);
   transform_callback_ = transform_callback;
 }
 
-mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const shapes::Mesh& mesh)
+mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh(const shapes::Mesh& mesh)
 {
   boost::mutex::scoped_lock _(meshes_mutex_);
 
-  JobPtr job (new FilterJob<void> (boost::bind (&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
+  JobPtr job(new FilterJob<void>(boost::bind(&MeshFilterBase::addMeshHelper, this, next_handle_, &mesh)));
   addJob(job);
-  job->wait ();
+  job->wait();
   mesh_filter::MeshHandle ret = next_handle_;
   const std::size_t sz = min_handle_ + meshes_.size() + 1;
-  for (std::size_t i = min_handle_ ; i < sz ; ++i)
+  for (std::size_t i = min_handle_; i < sz; ++i)
     if (meshes_.find(i) == meshes_.end())
     {
       next_handle_ = i;
@@ -183,201 +187,210 @@ mesh_filter::MeshHandle mesh_filter::MeshFilterBase::addMesh (const shapes::Mesh
   return ret;
 }
 
-void mesh_filter::MeshFilterBase::addMeshHelper (MeshHandle handle, const shapes::Mesh *cmesh)
+void mesh_filter::MeshFilterBase::addMeshHelper(MeshHandle handle, const shapes::Mesh* cmesh)
 {
-  meshes_[handle] = GLMeshPtr (new GLMesh (*cmesh, handle));
+  meshes_[handle] = GLMeshPtr(new GLMesh(*cmesh, handle));
 }
 
-void mesh_filter::MeshFilterBase::removeMesh (MeshHandle handle)
+void mesh_filter::MeshFilterBase::removeMesh(MeshHandle handle)
 {
   boost::mutex::scoped_lock _(meshes_mutex_);
-  FilterJob<bool>* remover = new FilterJob<bool> (boost::bind (&MeshFilterBase::removeMeshHelper, this, handle));
-  JobPtr job (remover);
+  FilterJob<bool>* remover = new FilterJob<bool>(boost::bind(&MeshFilterBase::removeMeshHelper, this, handle));
+  JobPtr job(remover);
   addJob(job);
-  job->wait ();
+  job->wait();
 
-  if (!remover->getResult ())
-    throw std::runtime_error ("Could not remove mesh. Mesh not found!");
+  if (!remover->getResult())
+    throw std::runtime_error("Could not remove mesh. Mesh not found!");
   min_handle_ = std::min(handle, min_handle_);
 }
 
-bool mesh_filter::MeshFilterBase::removeMeshHelper (MeshHandle handle)
+bool mesh_filter::MeshFilterBase::removeMeshHelper(MeshHandle handle)
 {
-  std::size_t erased = meshes_.erase (handle);
+  std::size_t erased = meshes_.erase(handle);
   return (erased != 0);
 }
 
-void mesh_filter::MeshFilterBase::setShadowThreshold (float threshold)
+void mesh_filter::MeshFilterBase::setShadowThreshold(float threshold)
 {
   shadow_threshold_ = threshold;
 }
 
-void mesh_filter::MeshFilterBase::getModelLabels (LabelType* labels) const
+void mesh_filter::MeshFilterBase::getModelLabels(LabelType* labels) const
 {
-  JobPtr job (new FilterJob<void> (boost::bind (&GLRenderer::getColorBuffer, mesh_renderer_.get(), (unsigned char*) labels)));
+  JobPtr job(
+      new FilterJob<void>(boost::bind(&GLRenderer::getColorBuffer, mesh_renderer_.get(), (unsigned char*)labels)));
   addJob(job);
-  job->wait ();
+  job->wait();
 }
 
-void mesh_filter::MeshFilterBase::getModelDepth (float* depth) const
+void mesh_filter::MeshFilterBase::getModelDepth(float* depth) const
 {
-  JobPtr job1 (new FilterJob<void> (boost::bind (&GLRenderer::getDepthBuffer, mesh_renderer_.get(), depth)));
-  JobPtr job2 (new FilterJob<void> (boost::bind (&SensorModel::Parameters::transformModelDepthToMetricDepth, sensor_parameters_.get(), depth)));
+  JobPtr job1(new FilterJob<void>(boost::bind(&GLRenderer::getDepthBuffer, mesh_renderer_.get(), depth)));
+  JobPtr job2(new FilterJob<void>(
+      boost::bind(&SensorModel::Parameters::transformModelDepthToMetricDepth, sensor_parameters_.get(), depth)));
   {
-    boost::unique_lock<boost::mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job1);
-    jobs_queue_.push (job2);
+    boost::unique_lock<boost::mutex> lock(jobs_mutex_);
+    jobs_queue_.push(job1);
+    jobs_queue_.push(job2);
   }
   jobs_condition_.notify_one();
-  job1->wait ();
-  job2->wait ();
+  job1->wait();
+  job2->wait();
 }
 
-void mesh_filter::MeshFilterBase::getFilteredDepth (float* depth) const
+void mesh_filter::MeshFilterBase::getFilteredDepth(float* depth) const
 {
-  JobPtr job1 (new FilterJob<void> (boost::bind (&GLRenderer::getDepthBuffer, depth_filter_.get(), depth)));
-  JobPtr job2 (new FilterJob<void> (boost::bind (&SensorModel::Parameters::transformFilteredDepthToMetricDepth, sensor_parameters_.get(), depth)));
+  JobPtr job1(new FilterJob<void>(boost::bind(&GLRenderer::getDepthBuffer, depth_filter_.get(), depth)));
+  JobPtr job2(new FilterJob<void>(
+      boost::bind(&SensorModel::Parameters::transformFilteredDepthToMetricDepth, sensor_parameters_.get(), depth)));
   {
-    boost::unique_lock<boost::mutex> lock (jobs_mutex_);
-    jobs_queue_.push (job1);
-    jobs_queue_.push (job2);
+    boost::unique_lock<boost::mutex> lock(jobs_mutex_);
+    jobs_queue_.push(job1);
+    jobs_queue_.push(job2);
   }
   jobs_condition_.notify_one();
-  job1->wait ();
-  job2->wait ();
+  job1->wait();
+  job2->wait();
 }
 
-void mesh_filter::MeshFilterBase::getFilteredLabels (LabelType* labels) const
+void mesh_filter::MeshFilterBase::getFilteredLabels(LabelType* labels) const
 {
-  JobPtr job (new FilterJob<void> (boost::bind (&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*) labels)));
+  JobPtr job(
+      new FilterJob<void>(boost::bind(&GLRenderer::getColorBuffer, depth_filter_.get(), (unsigned char*)labels)));
   addJob(job);
-  job->wait ();
+  job->wait();
 }
 
-void mesh_filter::MeshFilterBase::run (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
-                                       const std::string& filter_vertex_shader, const std::string& filter_fragment_shader)
+void mesh_filter::MeshFilterBase::run(const std::string& render_vertex_shader,
+                                      const std::string& render_fragment_shader,
+                                      const std::string& filter_vertex_shader,
+                                      const std::string& filter_fragment_shader)
 {
-  initialize (render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
+  initialize(render_vertex_shader, render_fragment_shader, filter_vertex_shader, filter_fragment_shader);
 
   while (!stop_)
   {
-
-    boost::unique_lock<boost::mutex> lock (jobs_mutex_);
+    boost::unique_lock<boost::mutex> lock(jobs_mutex_);
     // check if we have new sensor data to be processed. If not, wait until we get notified.
-    if (jobs_queue_.empty ())
-      jobs_condition_.wait (lock);
+    if (jobs_queue_.empty())
+      jobs_condition_.wait(lock);
 
-    if (!jobs_queue_.empty ())
+    if (!jobs_queue_.empty())
     {
-      JobPtr job = jobs_queue_.front ();
-      jobs_queue_.pop ();
-      lock.unlock ();
-      job->execute ();
-      lock.lock ();
+      JobPtr job = jobs_queue_.front();
+      jobs_queue_.pop();
+      lock.unlock();
+      job->execute();
+      lock.lock();
     }
   }
-  deInitialize ();
+  deInitialize();
 }
 
-void mesh_filter::MeshFilterBase::filter (const void* sensor_data, GLushort type, bool wait) const
+void mesh_filter::MeshFilterBase::filter(const void* sensor_data, GLushort type, bool wait) const
 {
   if (type != GL_FLOAT && type != GL_UNSIGNED_SHORT)
   {
     std::stringstream msg;
     msg << "unknown type \"" << type << "\". Allowed values are GL_FLOAT or GL_UNSIGNED_SHORT.";
-    throw std::runtime_error (msg.str ());
+    throw std::runtime_error(msg.str());
   }
 
-  JobPtr job (new FilterJob<void> (boost::bind (&MeshFilterBase::doFilter, this, sensor_data, type)));
+  JobPtr job(new FilterJob<void>(boost::bind(&MeshFilterBase::doFilter, this, sensor_data, type)));
   addJob(job);
   if (wait)
-    job->wait ();
+    job->wait();
 }
 
-void mesh_filter::MeshFilterBase::doFilter (const void* sensor_data, const int encoding) const
+void mesh_filter::MeshFilterBase::doFilter(const void* sensor_data, const int encoding) const
 {
   boost::mutex::scoped_lock _(transform_callback_mutex_);
 
-  mesh_renderer_->begin ();
-  sensor_parameters_->setRenderParameters (*mesh_renderer_);
+  mesh_renderer_->begin();
+  sensor_parameters_->setRenderParameters(*mesh_renderer_);
 
-  glEnable (GL_TEXTURE_2D);
-  glEnable (GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  glEnable (GL_CULL_FACE);
-  glCullFace (GL_FRONT);
-  glDisable (GL_ALPHA_TEST);
-  glDisable (GL_BLEND);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_FRONT);
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_BLEND);
 
-  GLuint padding_coefficients_id = glGetUniformLocation (mesh_renderer_->getProgramID (), "padding_coefficients");
-  Eigen::Vector3f padding_coefficients = sensor_parameters_->getPaddingCoefficients () * padding_scale_ + Eigen::Vector3f (0, 0, padding_offset_);
-  glUniform3f (padding_coefficients_id, padding_coefficients [0], padding_coefficients [1], padding_coefficients [2]);
+  GLuint padding_coefficients_id = glGetUniformLocation(mesh_renderer_->getProgramID(), "padding_coefficients");
+  Eigen::Vector3f padding_coefficients =
+      sensor_parameters_->getPaddingCoefficients() * padding_scale_ + Eigen::Vector3f(0, 0, padding_offset_);
+  glUniform3f(padding_coefficients_id, padding_coefficients[0], padding_coefficients[1], padding_coefficients[2]);
 
   Eigen::Affine3d transform;
-  for (std::map<MeshHandle, GLMeshPtr>::const_iterator meshIt = meshes_.begin (); meshIt != meshes_.end (); ++meshIt)
-    if (transform_callback_ (meshIt->first, transform))
-      meshIt->second->render (transform);
+  for (std::map<MeshHandle, GLMeshPtr>::const_iterator meshIt = meshes_.begin(); meshIt != meshes_.end(); ++meshIt)
+    if (transform_callback_(meshIt->first, transform))
+      meshIt->second->render(transform);
 
-  mesh_renderer_->end ();
+  mesh_renderer_->end();
 
   // now filter the depth_map with the second rendering stage
-  //depth_filter_.setBufferSize (width, height);
-  //depth_filter_.setCameraParameters (fx, fy, cx, cy);
-  depth_filter_->begin ();
-  sensor_parameters_->setFilterParameters (*depth_filter_);
-  glEnable (GL_TEXTURE_2D);
-  glEnable (GL_DEPTH_TEST);
+  // depth_filter_.setBufferSize (width, height);
+  // depth_filter_.setCameraParameters (fx, fy, cx, cy);
+  depth_filter_->begin();
+  sensor_parameters_->setFilterParameters(*depth_filter_);
+  glEnable(GL_TEXTURE_2D);
+  glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_ALWAYS);
-  glDisable (GL_CULL_FACE);
-  glDisable (GL_ALPHA_TEST);
-  glDisable (GL_BLEND);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_ALPHA_TEST);
+  glDisable(GL_BLEND);
 
-//  glUniform1f (near_location_, depth_filter_.getNearClippingDistance ());
-//  glUniform1f (far_location_, depth_filter_.getFarClippingDistance ());
-  glUniform1f (shadow_threshold_location_, shadow_threshold_);
+  //  glUniform1f (near_location_, depth_filter_.getNearClippingDistance ());
+  //  glUniform1f (far_location_, depth_filter_.getFarClippingDistance ());
+  glUniform1f(shadow_threshold_location_, shadow_threshold_);
 
-  GLuint depth_texture = mesh_renderer_->getDepthTexture ();
-  GLuint color_texture = mesh_renderer_->getColorTexture ();
+  GLuint depth_texture = mesh_renderer_->getDepthTexture();
+  GLuint color_texture = mesh_renderer_->getColorTexture();
 
   // bind sensor depth
-  glActiveTexture (GL_TEXTURE0);
-  glBindTexture ( GL_TEXTURE_2D, sensor_depth_texture_ );
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, sensor_depth_texture_);
 
-  float scale = 1.0 / (sensor_parameters_->getFarClippingPlaneDistance () - sensor_parameters_->getNearClippingPlaneDistance ());
+  float scale =
+      1.0 / (sensor_parameters_->getFarClippingPlaneDistance() - sensor_parameters_->getNearClippingPlaneDistance());
 
   if (encoding == GL_UNSIGNED_SHORT)
-    // unsigned shorts shorts will be mapped to the range 0-1 during transfer. Afterwards we can apply another scale + offset to
+    // unsigned shorts shorts will be mapped to the range 0-1 during transfer. Afterwards we can apply another scale +
+    // offset to
     // map the values between near and far clipping plane to 0 - 1. -> scale = (65535 * depth - near ) / (far - near)
     // we have: [0 - 65535] -> [0 - 1]
     // we want: [near - far] -> [0 - 1]
-    glPixelTransferf (GL_DEPTH_SCALE, scale * 65.535);
+    glPixelTransferf(GL_DEPTH_SCALE, scale * 65.535);
   else
-    glPixelTransferf (GL_DEPTH_SCALE, scale);
-  glPixelTransferf (GL_DEPTH_BIAS, -scale * sensor_parameters_->getNearClippingPlaneDistance ());
+    glPixelTransferf(GL_DEPTH_SCALE, scale);
+  glPixelTransferf(GL_DEPTH_BIAS, -scale * sensor_parameters_->getNearClippingPlaneDistance());
 
-  glTexImage2D ( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth (), sensor_parameters_->getHeight (), 0, GL_DEPTH_COMPONENT, encoding, sensor_data);
-  glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, sensor_parameters_->getWidth(), sensor_parameters_->getHeight(), 0,
+               GL_DEPTH_COMPONENT, encoding, sensor_data);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   // bind depth map
-  glActiveTexture (GL_TEXTURE2);
-  glBindTexture (GL_TEXTURE_2D, depth_texture);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, depth_texture);
 
   // bind labels
-  glActiveTexture (GL_TEXTURE4);
-  glBindTexture (GL_TEXTURE_2D, color_texture);
-  glCallList (canvas_);
-  depth_filter_->end ();
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_2D, color_texture);
+  glCallList(canvas_);
+  depth_filter_->end();
 }
 
-void mesh_filter::MeshFilterBase::setPaddingOffset (float offset)
+void mesh_filter::MeshFilterBase::setPaddingOffset(float offset)
 {
   padding_offset_ = offset;
 }
 
-void mesh_filter::MeshFilterBase::setPaddingScale (float scale)
+void mesh_filter::MeshFilterBase::setPaddingScale(float scale)
 {
   padding_scale_ = scale;
 }

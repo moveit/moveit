@@ -44,14 +44,13 @@ namespace moveit
 {
 namespace planning_interface
 {
-
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-
   PlanningSceneInterfaceImpl()
   {
-    planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+    planning_scene_service_ =
+        node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   }
 
@@ -65,19 +64,20 @@ public:
       return result;
     if (with_type)
     {
-      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
+      for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
         if (!response.scene.world.collision_objects[i].type.key.empty())
           result.push_back(response.scene.world.collision_objects[i].id);
     }
     else
     {
-      for (std::size_t i = 0 ; i < response.scene.world.collision_objects.size() ; ++i)
+      for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
         result.push_back(response.scene.world.collision_objects[i].id);
     }
     return result;
   }
 
-  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type, std::vector<std::string> &types)
+  std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy,
+                                                    double maxz, bool with_type, std::vector<std::string> &types)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -89,7 +89,7 @@ public:
       return result;
     }
 
-    for (std::size_t i = 0; i < response.scene.world.collision_objects.size() ; ++i)
+    for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
     {
       if (with_type && response.scene.world.collision_objects[i].type.key.empty())
         continue;
@@ -97,7 +97,7 @@ public:
           response.scene.world.collision_objects[i].primitive_poses.empty())
         continue;
       bool good = true;
-      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].mesh_poses.size() ; ++j)
+      for (std::size_t j = 0; j < response.scene.world.collision_objects[i].mesh_poses.size(); ++j)
         if (!(response.scene.world.collision_objects[i].mesh_poses[j].position.x >= minx &&
               response.scene.world.collision_objects[i].mesh_poses[j].position.x <= maxx &&
               response.scene.world.collision_objects[i].mesh_poses[j].position.y >= miny &&
@@ -108,7 +108,7 @@ public:
           good = false;
           break;
         }
-      for (std::size_t j = 0 ; j < response.scene.world.collision_objects[i].primitive_poses.size() ; ++j)
+      for (std::size_t j = 0; j < response.scene.world.collision_objects[i].primitive_poses.size(); ++j)
         if (!(response.scene.world.collision_objects[i].primitive_poses[j].position.x >= minx &&
               response.scene.world.collision_objects[i].primitive_poses[j].position.x <= maxx &&
               response.scene.world.collision_objects[i].primitive_poses[j].position.y >= miny &&
@@ -122,7 +122,7 @@ public:
       if (good)
       {
         result.push_back(response.scene.world.collision_objects[i].id);
-        if(with_type)
+        if (with_type)
           types.push_back(response.scene.world.collision_objects[i].type.key);
       }
     }
@@ -143,15 +143,18 @@ public:
 
     for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
     {
-      if (std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) != object_ids.end())
+      if (std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) !=
+          object_ids.end())
       {
         if (response.scene.world.collision_objects[i].mesh_poses.empty() &&
             response.scene.world.collision_objects[i].primitive_poses.empty())
           continue;
-        if(!response.scene.world.collision_objects[i].mesh_poses.empty())
-          result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].mesh_poses[0];
+        if (!response.scene.world.collision_objects[i].mesh_poses.empty())
+          result[response.scene.world.collision_objects[i].id] =
+              response.scene.world.collision_objects[i].mesh_poses[0];
         else
-          result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i].primitive_poses[0];
+          result[response.scene.world.collision_objects[i].id] =
+              response.scene.world.collision_objects[i].primitive_poses[0];
       }
     }
     return result;
@@ -171,7 +174,9 @@ public:
 
     for (std::size_t i = 0; i < response.scene.world.collision_objects.size(); ++i)
     {
-      if (object_ids.empty() || std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) != object_ids.end())
+      if (object_ids.empty() ||
+          std::find(object_ids.begin(), object_ids.end(), response.scene.world.collision_objects[i].id) !=
+              object_ids.end())
       {
         result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i];
       }
@@ -179,7 +184,8 @@ public:
     return result;
   }
 
-  std::map<std::string, moveit_msgs::AttachedCollisionObject> getAttachedObjects(const std::vector<std::string> &object_ids)
+  std::map<std::string, moveit_msgs::AttachedCollisionObject>
+  getAttachedObjects(const std::vector<std::string> &object_ids)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -194,9 +200,11 @@ public:
     for (std::size_t i = 0; i < response.scene.robot_state.attached_collision_objects.size(); ++i)
     {
       if (object_ids.empty() ||
-          std::find(object_ids.begin(), object_ids.end(), response.scene.robot_state.attached_collision_objects[i].object.id) != object_ids.end())
+          std::find(object_ids.begin(), object_ids.end(),
+                    response.scene.robot_state.attached_collision_objects[i].object.id) != object_ids.end())
       {
-        result[response.scene.robot_state.attached_collision_objects[i].object.id] = response.scene.robot_state.attached_collision_objects[i];
+        result[response.scene.robot_state.attached_collision_objects[i].object.id] =
+            response.scene.robot_state.attached_collision_objects[i];
       }
     }
     return result;
@@ -214,7 +222,7 @@ public:
   {
     moveit_msgs::PlanningScene planning_scene;
     moveit_msgs::CollisionObject object;
-    for(std::size_t i=0; i < object_ids.size(); ++i)
+    for (std::size_t i = 0; i < object_ids.size(); ++i)
     {
       object.id = object_ids[i];
       object.operation = object.REMOVE;
@@ -225,7 +233,6 @@ public:
   }
 
 private:
-
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
@@ -247,27 +254,34 @@ std::vector<std::string> PlanningSceneInterface::getKnownObjectNames(bool with_t
   return impl_->getKnownObjectNames(with_type);
 }
 
-std::vector<std::string> PlanningSceneInterface::getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy, double maxz, bool with_type, std::vector<std::string> &types)
+std::vector<std::string> PlanningSceneInterface::getKnownObjectNamesInROI(double minx, double miny, double minz,
+                                                                          double maxx, double maxy, double maxz,
+                                                                          bool with_type,
+                                                                          std::vector<std::string> &types)
 {
   return impl_->getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, types);
 }
 
-std::map<std::string, geometry_msgs::Pose> PlanningSceneInterface::getObjectPoses(const std::vector<std::string> &object_ids)
+std::map<std::string, geometry_msgs::Pose>
+PlanningSceneInterface::getObjectPoses(const std::vector<std::string> &object_ids)
 {
   return impl_->getObjectPoses(object_ids);
 }
 
-std::map<std::string, moveit_msgs::CollisionObject> PlanningSceneInterface::getObjects(const std::vector<std::string> &object_ids)
+std::map<std::string, moveit_msgs::CollisionObject>
+PlanningSceneInterface::getObjects(const std::vector<std::string> &object_ids)
 {
   return impl_->getObjects(object_ids);
 }
 
-std::map<std::string, moveit_msgs::AttachedCollisionObject> PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
+std::map<std::string, moveit_msgs::AttachedCollisionObject>
+PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
 {
   return impl_->getAttachedObjects(object_ids);
 }
 
-void PlanningSceneInterface::addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+void PlanningSceneInterface::addCollisionObjects(
+    const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
 {
   return impl_->addCollisionObjects(collision_objects);
 }
@@ -276,6 +290,5 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   return impl_->removeCollisionObjects(object_ids);
 }
-
 }
 }

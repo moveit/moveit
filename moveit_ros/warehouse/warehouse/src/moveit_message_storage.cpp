@@ -40,18 +40,18 @@
 #include <boost/regex.hpp>
 #include <memory>
 
-moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn) :
-  conn_(conn)
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn) : conn_(conn)
 {
 }
 
-void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex, std::vector<std::string> &names) const
+void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex,
+                                                         std::vector<std::string> &names) const
 {
   if (!regex.empty())
   {
     std::vector<std::string> fnames;
     boost::regex r(regex);
-    for (std::size_t i = 0; i < names.size() ; ++i)
+    for (std::size_t i = 0; i < names.size(); ++i)
     {
       boost::cmatch match;
       if (boost::regex_match(names[i].c_str(), match, r))
@@ -67,8 +67,8 @@ typename warehouse_ros::DatabaseConnection::Ptr moveit_warehouse::loadDatabase()
 {
   if (!dbloader)
   {
-    dbloader.reset(new warehouse_ros::DatabaseLoader()); 
+    dbloader.reset(new warehouse_ros::DatabaseLoader());
   }
   return dbloader->loadDatabase();
-  //return typename warehouse_ros::DatabaseConnection::Ptr(new warehouse_ros_mongo::MongoDatabaseConnection());
+  // return typename warehouse_ros::DatabaseConnection::Ptr(new warehouse_ros_mongo::MongoDatabaseConnection());
 }

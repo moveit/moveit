@@ -38,7 +38,8 @@
 #include <console_bridge/console.h>
 
 collision_detection::World::World()
-{ }
+{
+}
 
 collision_detection::World::World(const World &other)
 {
@@ -51,16 +52,14 @@ collision_detection::World::~World()
     removeObserver(observers_.front());
 }
 
-inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj,
-                                                            const shapes::ShapeConstPtr &shape,
+inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape,
                                                             const Eigen::Affine3d &pose)
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
-void collision_detection::World::addToObject(const std::string &id,
-                                             const std::vector<shapes::ShapeConstPtr> &shapes,
+void collision_detection::World::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
                                              const EigenSTL::vector_Affine3d &poses)
 {
   if (shapes.size() != poses.size())
@@ -74,28 +73,29 @@ void collision_detection::World::addToObject(const std::string &id,
 
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
-  if (!obj) {
+  ObjectPtr &obj = objects_[id];
+  if (!obj)
+  {
     obj.reset(new Object(id));
     action |= CREATE;
   }
 
   ensureUnique(obj);
 
-  for (std::size_t i = 0 ; i < shapes.size() ; ++i)
+  for (std::size_t i = 0; i < shapes.size(); ++i)
     addToObjectInternal(obj, shapes[i], poses[i]);
 
   notify(obj, Action(action));
 }
 
-void collision_detection::World::addToObject(const std::string &id,
-                                             const shapes::ShapeConstPtr &shape,
+void collision_detection::World::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape,
                                              const Eigen::Affine3d &pose)
 {
   int action = ADD_SHAPE;
 
-  ObjectPtr& obj = objects_[id];
-  if (!obj) {
+  ObjectPtr &obj = objects_[id];
+  if (!obj)
+  {
     obj.reset(new Object(id));
     action |= CREATE;
   }
@@ -109,7 +109,7 @@ void collision_detection::World::addToObject(const std::string &id,
 std::vector<std::string> collision_detection::World::getObjectIds() const
 {
   std::vector<std::string> id;
-  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
     id.push_back(it->first);
   return id;
 }
@@ -134,15 +134,14 @@ bool collision_detection::World::hasObject(const std::string &id) const
   return objects_.find(id) != objects_.end();
 }
 
-bool collision_detection::World::moveShapeInObject(const std::string &id,
-                                                   const shapes::ShapeConstPtr &shape,
+bool collision_detection::World::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape,
                                                    const Eigen::Affine3d &pose)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
-    for (unsigned int i = 0 ; i < n ; ++i)
+    for (unsigned int i = 0; i < n; ++i)
       if (it->second->shapes_[i] == shape)
       {
         ensureUnique(it->second);
@@ -155,14 +154,13 @@ bool collision_detection::World::moveShapeInObject(const std::string &id,
   return false;
 }
 
-bool collision_detection::World::removeShapeFromObject(const std::string &id,
-                                                       const shapes::ShapeConstPtr &shape)
+bool collision_detection::World::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
-    for (unsigned int i = 0 ; i < n ; ++i)
+    for (unsigned int i = 0; i < n; ++i)
       if (it->second->shapes_[i] == shape)
       {
         ensureUnique(it->second);
@@ -211,7 +209,7 @@ collision_detection::World::ObserverHandle collision_detection::World::addObserv
 
 void collision_detection::World::removeObserver(ObserverHandle observer_handle)
 {
-  for (std::vector<Observer*>::iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
+  for (std::vector<Observer *>::iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
@@ -224,24 +222,24 @@ void collision_detection::World::removeObserver(ObserverHandle observer_handle)
 
 void collision_detection::World::notifyAll(Action action)
 {
-  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin() ; it != objects_.end() ; ++it)
+  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
     notify(it->second, action);
 }
 
-void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
+void collision_detection::World::notify(const ObjectConstPtr &obj, Action action)
 {
-  for (std::vector<Observer*>::const_iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
+  for (std::vector<Observer *>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
     (*obs)->callback_(obj, action);
 }
 
 void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
-  for (std::vector<Observer*>::const_iterator obs = observers_.begin() ; obs != observers_.end() ; ++obs)
+  for (std::vector<Observer *>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
       // call the callback for each object
-      for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin() ; obj != objects_.end() ; ++obj)
+      for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin(); obj != objects_.end(); ++obj)
         (*obs)->callback_(obj->second, action);
       break;
     }

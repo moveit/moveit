@@ -60,9 +60,11 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
     ros::Publisher pub_scene;
     if (full_scene)
-      pub_scene = nh.advertise<moveit_msgs::PlanningScene>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC, 1);
+      pub_scene = nh.advertise<moveit_msgs::PlanningScene>(
+          planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_TOPIC, 1);
     else
-      pub_scene = nh.advertise<moveit_msgs::PlanningSceneWorld>(planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC, 1);
+      pub_scene = nh.advertise<moveit_msgs::PlanningSceneWorld>(
+          planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC, 1);
 
     robot_model_loader::RobotModelLoader::Options opt;
     opt.robot_description_ = "robot_description";
@@ -95,7 +97,8 @@ int main(int argc, char **argv)
       ROS_WARN("Unable to load '%s'.", argv[filename_index]);
   }
   else
-    ROS_WARN("A filename was expected as argument. That file should be a text representation of the geometry in a planning scene.");
+    ROS_WARN("A filename was expected as argument. That file should be a text representation of the geometry in a "
+             "planning scene.");
 
   ros::shutdown();
   return 0;

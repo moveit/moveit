@@ -51,7 +51,6 @@
 
 namespace pick_place
 {
-
 MOVEIT_CLASS_FORWARD(ManipulationPlanSharedData);
 
 struct ManipulationPlanSharedData
@@ -86,9 +85,8 @@ MOVEIT_CLASS_FORWARD(ManipulationPlan);
 
 struct ManipulationPlan
 {
-  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data) :
-    shared_data_(shared_data),
-    processing_stage_(0)
+  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data)
+    : shared_data_(shared_data), processing_stage_(0)
   {
   }
 
@@ -141,9 +139,7 @@ struct ManipulationPlan
 
   // An id for this plan; this is usually the index of the Grasp / PlaceLocation in the input request
   std::size_t id_;
-
 };
-
 }
 
 #endif

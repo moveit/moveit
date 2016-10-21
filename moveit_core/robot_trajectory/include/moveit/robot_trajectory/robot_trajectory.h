@@ -45,7 +45,6 @@
 
 namespace robot_trajectory
 {
-
 MOVEIT_CLASS_FORWARD(RobotTrajectory);
 
 /** \brief Maintain a sequence of waypoints and the time durations
@@ -55,19 +54,19 @@ class RobotTrajectory
 public:
   RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, const std::string &group);
 
-  RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, const robot_model::JointModelGroup* group);
+  RobotTrajectory(const robot_model::RobotModelConstPtr &robot_model, const robot_model::JointModelGroup *group);
 
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr &getRobotModel() const
   {
     return robot_model_;
   }
 
-  const robot_model::JointModelGroup* getGroup() const
+  const robot_model::JointModelGroup *getGroup() const
   {
     return group_;
   }
 
-  const std::string& getGroupName() const;
+  const std::string &getGroupName() const;
 
   void setGroupName(const std::string &group_name);
 
@@ -76,37 +75,37 @@ public:
     return waypoints_.size();
   }
 
-  const robot_state::RobotState& getWayPoint(std::size_t index) const
+  const robot_state::RobotState &getWayPoint(std::size_t index) const
   {
     return *waypoints_[index];
   }
 
-  const robot_state::RobotState& getLastWayPoint() const
+  const robot_state::RobotState &getLastWayPoint() const
   {
     return *waypoints_.back();
   }
 
-  const robot_state::RobotState& getFirstWayPoint() const
+  const robot_state::RobotState &getFirstWayPoint() const
   {
     return *waypoints_.front();
   }
 
-  robot_state::RobotStatePtr& getWayPointPtr(std::size_t index)
+  robot_state::RobotStatePtr &getWayPointPtr(std::size_t index)
   {
     return waypoints_[index];
   }
 
-  robot_state::RobotStatePtr& getLastWayPointPtr()
+  robot_state::RobotStatePtr &getLastWayPointPtr()
   {
     return waypoints_.back();
   }
 
-  robot_state::RobotStatePtr& getFirstWayPointPtr()
+  robot_state::RobotStatePtr &getFirstWayPointPtr()
   {
     return waypoints_.front();
   }
 
-  const std::deque<double>& getWayPointDurations() const
+  const std::deque<double> &getWayPointDurations() const
   {
     return duration_from_previous_;
   }
@@ -198,24 +197,33 @@ public:
 
   void getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory &trajectory) const;
 
-  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
-      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each point in the trajectory
-      to be constructed internally is obtained by copying the reference state and overwriting the content from a trajectory point in \e trajectory. */
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required
+     to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each
+     point in the trajectory
+      to be constructed internally is obtained by copying the reference state and overwriting the content from a
+     trajectory point in \e trajectory. */
   void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
                              const trajectory_msgs::JointTrajectory &trajectory);
 
-  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
-      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each point in the trajectory
-      to be constructed internally is obtained by copying the reference state and overwriting the content from a trajectory point in \e trajectory. */
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required
+     to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Each
+     point in the trajectory
+      to be constructed internally is obtained by copying the reference state and overwriting the content from a
+     trajectory point in \e trajectory. */
   void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
                              const moveit_msgs::RobotTrajectory &trajectory);
 
-  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required to contain the values
-      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Before use, the reference state is updated
-      using \e state. Each point in the trajectory  to be constructed internally is obtained by copying the reference state and overwriting the content
+  /** \brief Copy the content of the trajectory message into this class. The trajectory message itself is not required
+     to contain the values
+      for all joints. For this reason a full starting state must be specified as reference (\e reference_state). Before
+     use, the reference state is updated
+      using \e state. Each point in the trajectory  to be constructed internally is obtained by copying the reference
+     state and overwriting the content
       from a trajectory point in \e trajectory. */
-  void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state,
-                             const moveit_msgs::RobotState &state, const moveit_msgs::RobotTrajectory &trajectory);
+  void setRobotTrajectoryMsg(const robot_state::RobotState &reference_state, const moveit_msgs::RobotState &state,
+                             const moveit_msgs::RobotTrajectory &trajectory);
 
   void reverse();
 
@@ -228,25 +236,23 @@ public:
    *  @param The waypoint index after (or equal to) the supplied duration.
    *  @param The progress (0 to 1) between the two waypoints, based on time (not based on joint distances).
    */
-  void findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after, double &blend) const;
+  void findWayPointIndicesForDurationAfterStart(const double &duration, int &before, int &after, double &blend) const;
 
   // TODO support visitor function for interpolation, or at least different types.
-  /** @brief Gets a robot state corresponding to a supplied duration from start for the trajectory, using linear time interpolation.
+  /** @brief Gets a robot state corresponding to a supplied duration from start for the trajectory, using linear time
+   * interpolation.
    *  @param The duration from start.
    *  @param The resulting robot state.
    *  @return True if state is valid, false otherwise (trajectory is empty).
    */
-  bool getStateAtDurationFromStart(const double request_duration,
-                                   robot_state::RobotStatePtr& output_state) const;
+  bool getStateAtDurationFromStart(const double request_duration, robot_state::RobotStatePtr &output_state) const;
 
 private:
-
   robot_model::RobotModelConstPtr robot_model_;
   const robot_model::JointModelGroup *group_;
   std::deque<robot_state::RobotStatePtr> waypoints_;
   std::deque<double> duration_from_previous_;
 };
-
 }
 
 #endif

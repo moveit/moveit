@@ -40,7 +40,7 @@
 void demoPick(moveit::planning_interface::MoveGroupInterface &group)
 {
   std::vector<moveit_msgs::Grasp> grasps;
-  for (std::size_t i = 0 ; i < 20 ; ++i)
+  for (std::size_t i = 0; i < 20; ++i)
   {
     geometry_msgs::PoseStamped p = group.getRandomPose();
     p.pose.orientation.x = 0;
@@ -74,7 +74,7 @@ void demoPick(moveit::planning_interface::MoveGroupInterface &group)
 void demoPlace(moveit::planning_interface::MoveGroupInterface &group)
 {
   std::vector<moveit_msgs::PlaceLocation> loc;
-  for (std::size_t i = 0 ; i < 20 ; ++i)
+  for (std::size_t i = 0; i < 20; ++i)
   {
     geometry_msgs::PoseStamped p = group.getRandomPose();
     p.pose.orientation.x = 0;
@@ -103,7 +103,6 @@ void demoPlace(moveit::planning_interface::MoveGroupInterface &group)
 
 void attachObject(void)
 {
-
 }
 
 int main(int argc, char **argv)

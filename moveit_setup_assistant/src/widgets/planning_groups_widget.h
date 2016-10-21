@@ -48,19 +48,19 @@
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 #endif
 
-#include "double_list_widget.h" // for joints, links and subgroups pages
-#include "kinematic_chain_widget.h" // for kinematic chain page
-#include "group_edit_widget.h" // for group rename page
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "double_list_widget.h"      // for joints, links and subgroups pages
+#include "kinematic_chain_widget.h"  // for kinematic chain page
+#include "group_edit_widget.h"       // for group rename page
+#include "setup_screen_widget.h"     // a base class for screens in the setup assistant
 
 // Forward Declaration (outside of namespace for Qt)
 class PlanGroupType;
 
 namespace moveit_setup_assistant
 {
-
 // Custom Type
-enum GroupType {
+enum GroupType
+{
   JOINT,
   LINK,
   CHAIN,
@@ -77,14 +77,14 @@ class PlanningGroupsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  PlanningGroupsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  PlanningGroupsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
-  void changeScreen( int index );
+  void changeScreen(int index);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -125,20 +125,19 @@ private Q_SLOTS:
   void cancelEditing();
 
   /// Called when user clicks link part of bottom left label
-  void alterTree( const QString &link );
+  void alterTree(const QString& link);
 
   /// Called from Double List widget to highlight a link
-  void previewSelectedLink( std::vector<std::string> links );
+  void previewSelectedLink(std::vector<std::string> links);
 
   /// Called from Double List widget to highlight a joint
-  //void previewClickedJoint( std::string name );
-  void previewSelectedJoints( std::vector<std::string> joints );
+  // void previewClickedJoint( std::string name );
+  void previewSelectedJoints(std::vector<std::string> joints);
 
   /// Called from Double List widget to highlight a subgroup
-  void previewSelectedSubgroup( std::vector<std::string> groups );
+  void previewSelectedSubgroup(std::vector<std::string> groups);
 
 private:
-
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
@@ -187,26 +186,24 @@ private:
   QWidget* createContentsWidget();
 
   /// Recursively build the SRDF tree
-  void loadGroupsTreeRecursive( srdf::Model::Group &group_it, QTreeWidgetItem* parent );
+  void loadGroupsTreeRecursive(srdf::Model::Group& group_it, QTreeWidgetItem* parent);
 
   // Convenience function for getting a group pointer
-  srdf::Model::Group*  findGroupByName( const std::string &name );
+  srdf::Model::Group* findGroupByName(const std::string& name);
 
   // Load edit screen
-  void loadJointsScreen( srdf::Model::Group* this_group );
-  void loadLinksScreen( srdf::Model::Group* this_group );
-  void loadChainScreen( srdf::Model::Group* this_group );
-  void loadSubgroupsScreen( srdf::Model::Group* this_group );
-  void loadGroupScreen( srdf::Model::Group* this_group );
+  void loadJointsScreen(srdf::Model::Group* this_group);
+  void loadLinksScreen(srdf::Model::Group* this_group);
+  void loadChainScreen(srdf::Model::Group* this_group);
+  void loadSubgroupsScreen(srdf::Model::Group* this_group);
+  void loadGroupScreen(srdf::Model::Group* this_group);
 
   // Save group screen
   bool saveGroupScreen();
 
   /// Switch to current groups view
   void showMainScreen();
-
 };
-
 }
 
 // ******************************************************************************************
@@ -218,11 +215,15 @@ private:
 class PlanGroupType
 {
 public:
-
   //  explicit PlanGroupType();
-  PlanGroupType() {}
-  PlanGroupType( srdf::Model::Group* group, const moveit_setup_assistant::GroupType type );
-  virtual ~PlanGroupType() { ; }
+  PlanGroupType()
+  {
+  }
+  PlanGroupType(srdf::Model::Group* group, const moveit_setup_assistant::GroupType type);
+  virtual ~PlanGroupType()
+  {
+    ;
+  }
 
   srdf::Model::Group* group_;
 
@@ -230,6 +231,5 @@ public:
 };
 
 Q_DECLARE_METATYPE(PlanGroupType);
-
 
 #endif

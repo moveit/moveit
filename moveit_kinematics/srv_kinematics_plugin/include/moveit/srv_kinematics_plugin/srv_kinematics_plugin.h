@@ -66,136 +66,108 @@ namespace srv_kinematics_plugin
  * @brief Specific implementation of kinematics using ROS service calls to communicate with
    external IK solvers. This version can be used with any robot. Supports non-chain kinematic groups
  */
-  class SrvKinematicsPlugin : public kinematics::KinematicsBase
+class SrvKinematicsPlugin : public kinematics::KinematicsBase
+{
+public:
+  /**
+   *  @brief Default constructor
+   */
+  SrvKinematicsPlugin();
+
+  virtual bool
+  getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
+                std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
+                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
+                   std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
+                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
+                   const std::vector<double> &consistency_limits, std::vector<double> &solution,
+                   moveit_msgs::MoveItErrorCodes &error_code,
+                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
+  virtual bool searchPositionIK(
+      const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
+      std::vector<double> &solution, const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
+      const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
+                   const std::vector<double> &consistency_limits, std::vector<double> &solution,
+                   const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
+                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+
+  virtual bool getPositionFK(const std::vector<std::string> &link_names, const std::vector<double> &joint_angles,
+                             std::vector<geometry_msgs::Pose> &poses) const;
+
+  virtual bool initialize(const std::string &robot_description, const std::string &group_name,
+                          const std::string &base_name, const std::string &tip_frame, double search_discretization)
   {
-    public:
+    std::vector<std::string> tip_frames;
+    tip_frames.push_back(tip_frame);
+    return initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
+  }
 
-    /**
-     *  @brief Default constructor
-     */
-    SrvKinematicsPlugin();
+  virtual bool initialize(const std::string &robot_description, const std::string &group_name,
+                          const std::string &base_name, const std::vector<std::string> &tip_frames,
+                          double search_discretization);
 
-    virtual bool getPositionIK(const geometry_msgs::Pose &ik_pose,
-                               const std::vector<double> &ik_seed_state,
-                               std::vector<double> &solution,
-                               moveit_msgs::MoveItErrorCodes &error_code,
-                               const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  /**
+   * @brief  Return all the joint names in the order they are used internally
+   */
+  const std::vector<std::string> &getJointNames() const;
 
-    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  std::vector<double> &solution,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  /**
+   * @brief  Return all the link names in the order they are represented internally
+   */
+  const std::vector<std::string> &getLinkNames() const;
 
-    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  const std::vector<double> &consistency_limits,
-                                  std::vector<double> &solution,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  /**
+   * @brief  Return all the variable names in the order they are represented internally
+   */
+  const std::vector<std::string> &getVariableNames() const;
 
-    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  std::vector<double> &solution,
-                                  const IKCallbackFn &solution_callback,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+protected:
+  virtual bool
+  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
+                   std::vector<double> &solution, const IKCallbackFn &solution_callback,
+                   moveit_msgs::MoveItErrorCodes &error_code, const std::vector<double> &consistency_limits,
+                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
-    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  const std::vector<double> &consistency_limits,
-                                  std::vector<double> &solution,
-                                  const IKCallbackFn &solution_callback,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  virtual bool
+  searchPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses, const std::vector<double> &ik_seed_state,
+                   double timeout, const std::vector<double> &consistency_limits, std::vector<double> &solution,
+                   const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
+                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
 
-    virtual bool getPositionFK(const std::vector<std::string> &link_names,
-                               const std::vector<double> &joint_angles,
-                               std::vector<geometry_msgs::Pose> &poses) const;
+  virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
 
-    virtual bool initialize(const std::string &robot_description,
-                            const std::string &group_name,
-                            const std::string &base_name,
-                            const std::string &tip_frame,
-                            double search_discretization)
-    {
-      std::vector<std::string> tip_frames;
-      tip_frames.push_back(tip_frame);
-      return initialize(robot_description, group_name, base_name, tip_frames, search_discretization);
-    }
+private:
+  bool timedOut(const ros::WallTime &start_time, double duration) const;
 
-    virtual bool initialize(const std::string &robot_description,
-                            const std::string &group_name,
-                            const std::string &base_name,
-                            const std::vector<std::string> &tip_frames,
-                            double search_discretization);
+  int getJointIndex(const std::string &name) const;
 
-    /**
-     * @brief  Return all the joint names in the order they are used internally
-     */
-    const std::vector<std::string>& getJointNames() const;
+  bool isRedundantJoint(unsigned int index) const;
 
-    /**
-     * @brief  Return all the link names in the order they are represented internally
-     */
-    const std::vector<std::string>& getLinkNames() const;
+  bool active_; /** Internal variable that indicates whether solvers are configured and ready */
 
-    /**
-     * @brief  Return all the variable names in the order they are represented internally
-     */
-    const std::vector<std::string>& getVariableNames() const;
+  moveit_msgs::KinematicSolverInfo ik_group_info_; /** Stores information for the inverse kinematics solver */
 
-  protected:
+  unsigned int dimension_; /** Dimension of the group */
 
-    virtual bool searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  std::vector<double> &solution,
-                                  const IKCallbackFn &solution_callback,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const std::vector<double> &consistency_limits,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  robot_model::RobotModelPtr robot_model_;
+  robot_model::JointModelGroup *joint_model_group_;
 
-    virtual bool searchPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
-                                  const std::vector<double> &ik_seed_state,
-                                  double timeout,
-                                  const std::vector<double> &consistency_limits,
-                                  std::vector<double> &solution,
-                                  const IKCallbackFn &solution_callback,
-                                  moveit_msgs::MoveItErrorCodes &error_code,
-                                  const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  robot_state::RobotStatePtr robot_state_;
 
-    virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
+  int num_possible_redundant_joints_;
 
-  private:
-
-    bool timedOut(const ros::WallTime &start_time, double duration) const;
-
-    int getJointIndex(const std::string &name) const;
-
-    bool isRedundantJoint(unsigned int index) const;
-
-    bool active_; /** Internal variable that indicates whether solvers are configured and ready */
-
-    moveit_msgs::KinematicSolverInfo ik_group_info_; /** Stores information for the inverse kinematics solver */
-
-    unsigned int dimension_; /** Dimension of the group */
-
-    robot_model::RobotModelPtr robot_model_;
-    robot_model::JointModelGroup* joint_model_group_;
-
-    robot_state::RobotStatePtr robot_state_;
-
-    int num_possible_redundant_joints_;
-
-    std::shared_ptr<ros::ServiceClient> ik_service_client_;
-
-
-  };
+  std::shared_ptr<ros::ServiceClient> ik_service_client_;
+};
 }
 
 #endif

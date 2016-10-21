@@ -41,9 +41,8 @@
 #include <limits>
 #include <cmath>
 
-moveit::core::FloatingJointModel::FloatingJointModel(const std::string& name)
-  : JointModel(name)
-  , angular_distance_weight_(1.0)
+moveit::core::FloatingJointModel::FloatingJointModel(const std::string &name)
+  : JointModel(name), angular_distance_weight_(1.0)
 {
   type_ = FLOATING;
   local_variable_names_.push_back("trans_x");
@@ -53,7 +52,7 @@ moveit::core::FloatingJointModel::FloatingJointModel(const std::string& name)
   local_variable_names_.push_back("rot_y");
   local_variable_names_.push_back("rot_z");
   local_variable_names_.push_back("rot_w");
-  for (int i = 0 ; i < 7 ; ++i)
+  for (int i = 0; i < 7; ++i)
   {
     variable_names_.push_back(name_ + "/" + local_variable_names_[i]);
     variable_index_map_[variable_names_.back()] = i;
@@ -92,7 +91,7 @@ double moveit::core::FloatingJointModel::getMaximumExtent(const Bounds &other_bo
   double dx = other_bounds[0].max_position_ - other_bounds[0].min_position_;
   double dy = other_bounds[1].max_position_ - other_bounds[1].min_position_;
   double dz = other_bounds[2].max_position_ - other_bounds[2].min_position_;
-  return sqrt(dx*dx + dy*dy + dz*dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
+  return sqrt(dx * dx + dy * dy + dz * dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
 }
 
 double moveit::core::FloatingJointModel::distance(const double *values1, const double *values2) const
@@ -105,19 +104,21 @@ double moveit::core::FloatingJointModel::distanceTranslation(const double *value
   double dx = values1[0] - values2[0];
   double dy = values1[1] - values2[1];
   double dz = values1[2] - values2[2];
-  return sqrt(dx*dx + dy*dy + dz*dz);
+  return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 double moveit::core::FloatingJointModel::distanceRotation(const double *values1, const double *values2) const
 {
-  double dq = fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
+  double dq =
+      fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
   if (dq + std::numeric_limits<double>::epsilon() >= 1.0)
     return 0.0;
   else
     return acos(dq);
 }
 
-void moveit::core::FloatingJointModel::interpolate(const double *from, const double *to, const double t, double *state) const
+void moveit::core::FloatingJointModel::interpolate(const double *from, const double *to, const double t,
+                                                   double *state) const
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -147,7 +148,8 @@ void moveit::core::FloatingJointModel::interpolate(const double *from, const dou
   }
 }
 
-bool moveit::core::FloatingJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds, double margin) const
+bool moveit::core::FloatingJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds,
+                                                               double margin) const
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
@@ -197,30 +199,31 @@ unsigned int moveit::core::FloatingJointModel::getStateSpaceDimension() const
 bool moveit::core::FloatingJointModel::enforcePositionBounds(double *values, const Bounds &bounds) const
 {
   bool result = normalizeRotation(values);
-  for (unsigned int i = 0 ; i < 3 ; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     if (values[i] < bounds[i].min_position_)
     {
       values[i] = bounds[i].min_position_;
       result = true;
     }
-    else
-      if (values[i] > bounds[i].max_position_)
-      {
-        values[i] = bounds[i].max_position_;
-        result = true;
-      }
+    else if (values[i] > bounds[i].max_position_)
+    {
+      values[i] = bounds[i].max_position_;
+      result = true;
+    }
   }
   return result;
 }
 
 void moveit::core::FloatingJointModel::computeTransform(const double *joint_values, Eigen::Affine3d &transf) const
 {
-  transf = Eigen::Affine3d(Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2]) *
-                           Eigen::Quaterniond(joint_values[6],joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
+  transf = Eigen::Affine3d(
+      Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2]) *
+      Eigen::Quaterniond(joint_values[6], joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
 }
 
-void moveit::core::FloatingJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double *joint_values) const
+void moveit::core::FloatingJointModel::computeVariablePositions(const Eigen::Affine3d &transf,
+                                                                double *joint_values) const
 {
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
@@ -234,13 +237,13 @@ void moveit::core::FloatingJointModel::computeVariablePositions(const Eigen::Aff
 
 void moveit::core::FloatingJointModel::getVariableDefaultPositions(double *values, const Bounds &bounds) const
 {
-  for (unsigned int i = 0 ; i < 3 ; ++i)
+  for (unsigned int i = 0; i < 3; ++i)
   {
     // if zero is a valid value
     if (bounds[i].min_position_ <= 0.0 && bounds[i].max_position_ >= 0.0)
       values[i] = 0.0;
     else
-      values[i] = (bounds[i].min_position_ + bounds[i].max_position_)/2.0;
+      values[i] = (bounds[i].min_position_ + bounds[i].max_position_) / 2.0;
   }
 
   values[3] = 0.0;
@@ -249,42 +252,51 @@ void moveit::core::FloatingJointModel::getVariableDefaultPositions(double *value
   values[6] = 1.0;
 }
 
-void moveit::core::FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
+void moveit::core::FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
+                                                                  double *values, const Bounds &bounds) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(bounds[1].min_position_, bounds[1].max_position_);
-  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() || bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
     values[2] = 0.0;
   else
     values[2] = rng.uniformReal(bounds[2].min_position_, bounds[2].max_position_);
 
-  double q[4]; rng.quaternion(q);
+  double q[4];
+  rng.quaternion(q);
   values[3] = q[0];
   values[4] = q[1];
   values[5] = q[2];
   values[6] = q[3];
 }
 
-void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
+void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng,
+                                                                        double *values, const Bounds &bounds,
                                                                         const double *near, const double distance) const
 {
-  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() || bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
     values[0] = 0.0;
   else
     values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
                                 std::min(bounds[0].max_position_, near[0] + distance));
-  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() || bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[1].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[1].min_position_ <= -std::numeric_limits<double>::infinity())
     values[1] = 0.0;
   else
     values[1] = rng.uniformReal(std::max(bounds[1].min_position_, near[1] - distance),
                                 std::min(bounds[1].max_position_, near[1] + distance));
-  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() || bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
+  if (bounds[2].max_position_ >= std::numeric_limits<double>::infinity() ||
+      bounds[2].min_position_ <= -std::numeric_limits<double>::infinity())
     values[2] = 0.0;
   else
     values[2] = rng.uniformReal(std::max(bounds[2].min_position_, near[2] - distance),
@@ -293,7 +305,8 @@ void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_n
   double da = angular_distance_weight_ * distance;
   if (da >= .25 * boost::math::constants::pi<double>())
   {
-    double q[4]; rng.quaternion(q);
+    double q[4];
+    rng.quaternion(q);
     values[3] = q[0];
     values[4] = q[1];
     values[5] = q[2];
@@ -301,12 +314,12 @@ void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_n
   }
   else
   {
-    //taken from OMPL
+    // taken from OMPL
     // sample angle & axis
     double ax = rng.gaussian01();
     double ay = rng.gaussian01();
     double az = rng.gaussian01();
-    double angle = 2.0 * pow(rng.uniform01(), 1.0/3.0) * da;
+    double angle = 2.0 * pow(rng.uniform01(), 1.0 / 3.0) * da;
     // convert to quaternion
     double q[4];
     double norm = sqrt(ax * ax + ay * ay + az * az);
@@ -324,9 +337,9 @@ void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_n
       q[3] = cos(angle / 2.0);
     }
     // multiply quaternions: near * q
-    values[3] = near[6]*q[0] + near[3]*q[3] + near[4]*q[2] - near[5]*q[1];
-    values[4] = near[6]*q[1] + near[4]*q[3] + near[5]*q[0] - near[3]*q[2];
-    values[5] = near[6]*q[2] + near[5]*q[3] + near[3]*q[1] - near[4]*q[0];
-    values[6] = near[6]*q[3] - near[3]*q[0] - near[4]*q[1] - near[5]*q[2];
+    values[3] = near[6] * q[0] + near[3] * q[3] + near[4] * q[2] - near[5] * q[1];
+    values[4] = near[6] * q[1] + near[4] * q[3] + near[5] * q[0] - near[3] * q[2];
+    values[5] = near[6] * q[2] + near[5] * q[3] + near[3] * q[1] - near[4] * q[0];
+    values[6] = near[6] * q[3] - near[3] * q[0] - near[4] * q[1] - near[5] * q[2];
   }
 }

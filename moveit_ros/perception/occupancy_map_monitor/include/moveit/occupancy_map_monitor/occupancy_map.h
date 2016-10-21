@@ -44,13 +44,11 @@
 
 namespace occupancy_map_monitor
 {
-
 typedef octomap::OcTreeNode OccMapNode;
 
 class OccMapTree : public octomap::OcTree
 {
 public:
-
   OccMapTree(double resolution) : octomap::OcTree(resolution)
   {
   }
@@ -117,7 +115,6 @@ private:
 
 typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
 typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
-
 }
 
 #endif

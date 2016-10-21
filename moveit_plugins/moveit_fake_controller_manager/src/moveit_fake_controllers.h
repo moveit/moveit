@@ -46,7 +46,6 @@
 
 namespace moveit_fake_controller_manager
 {
-
 MOVEIT_CLASS_FORWARD(BaseFakeController);
 
 // common base class to all fake controllers in this package
@@ -73,7 +72,6 @@ public:
   virtual bool cancelExecution();
   virtual bool waitForExecution(const ros::Duration &);
 };
-
 
 class ThreadedController : public BaseFakeController
 {
@@ -102,7 +100,6 @@ private:
   moveit_controller_manager::ExecutionStatus status_;
 };
 
-
 class ViaPointController : public ThreadedController
 {
 public:
@@ -112,7 +109,6 @@ public:
 protected:
   virtual void execTrajectory(const moveit_msgs::RobotTrajectory &t);
 };
-
 
 class InterpolatingController : public ThreadedController
 {
@@ -126,7 +122,6 @@ protected:
 private:
   ros::WallRate rate_;
 };
-
 }
 
 #endif

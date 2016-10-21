@@ -48,7 +48,7 @@
 
 namespace tf
 {
-  class TransformListener;
+class TransformListener;
 }
 
 /**
@@ -57,111 +57,112 @@ namespace tf
  */
 class TransformProvider
 {
-  public:
-    /**
-     * \brief Constructor
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] interval_us update interval in micro seconds
-     */
-    TransformProvider (unsigned long interval_us = 30000);
+public:
+  /**
+   * \brief Constructor
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] interval_us update interval in micro seconds
+   */
+  TransformProvider(unsigned long interval_us = 30000);
 
-    /** \brief Destructor */
-    ~TransformProvider ();
+  /** \brief Destructor */
+  ~TransformProvider();
 
-    /**
-     * \brief returns the current transformation of a mesh given by its handle
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] handle handle of the mesh
-     * \param[out] transform pose of the mesh in camera coordinate system
-     * \return true if transform available, false otherwise
-     */
-    bool getTransform(mesh_filter::MeshHandle handle, Eigen::Affine3d& transform) const;
+  /**
+   * \brief returns the current transformation of a mesh given by its handle
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] handle handle of the mesh
+   * \param[out] transform pose of the mesh in camera coordinate system
+   * \return true if transform available, false otherwise
+   */
+  bool getTransform(mesh_filter::MeshHandle handle, Eigen::Affine3d& transform) const;
 
-    /**
-     * \brief registers a mesh with its handle
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] handle handle of the mesh
-     * \param[in] name frame_id_ of teh mesh
-     */
-    void addHandle (mesh_filter::MeshHandle handle, const std::string& name);
+  /**
+   * \brief registers a mesh with its handle
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] handle handle of the mesh
+   * \param[in] name frame_id_ of teh mesh
+   */
+  void addHandle(mesh_filter::MeshHandle handle, const std::string& name);
 
-    /**
-     * \brief sets the camera frame id. The returned transformations are in respect to this coordinate frame
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param frame frame id of parent/camera coordinate system.
-     */
-    void setFrame (const std::string& frame);
+  /**
+   * \brief sets the camera frame id. The returned transformations are in respect to this coordinate frame
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param frame frame id of parent/camera coordinate system.
+   */
+  void setFrame(const std::string& frame);
 
-    /**
-     * \brief starts the updating process. Done in a seperate thread
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    void start ();
+  /**
+   * \brief starts the updating process. Done in a seperate thread
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  void start();
 
-    /**
-     * \brief stops the update process/thread.
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    void stop ();
+  /**
+   * \brief stops the update process/thread.
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  void stop();
 
-    /**
-     * \brief sets the update interval in micro seconds. This should be low enough to reduce the system load but high enough
-     * to get up-to-date transformations. For PSDK compatible devices this value should be around 30000 = 30ms
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] usecs interval in micro seconds
-     */
-    void setUpdateInterval (unsigned long usecs);
+  /**
+   * \brief sets the update interval in micro seconds. This should be low enough to reduce the system load but high
+   * enough
+   * to get up-to-date transformations. For PSDK compatible devices this value should be around 30000 = 30ms
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] usecs interval in micro seconds
+   */
+  void setUpdateInterval(unsigned long usecs);
 
-  private:
-    /**
-     * \brief this method is called periodically by the dedicated thread and updates all the transformations of the registered frames.
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    void updateTransforms ();
+private:
+  /**
+   * \brief this method is called periodically by the dedicated thread and updates all the transformations of the
+   * registered frames.
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  void updateTransforms();
 
-    MOVEIT_CLASS_FORWARD(TransformContext);
+  MOVEIT_CLASS_FORWARD(TransformContext);
 
-    /**
-     * \brief Context Object for registered frames
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    struct TransformContext
+  /**
+   * \brief Context Object for registered frames
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  struct TransformContext
+  {
+    TransformContext(const std::string& name) : frame_id_(name)
     {
-      TransformContext (const std::string& name)
-      : frame_id_ (name)
-      {
-        transformation_.matrix().setZero ();
-      }
-      std::string frame_id_;
-      Eigen::Affine3d transformation_;
-      boost::mutex mutex_;
-    };
-
-    /**
-     * \brief The entry point of the dedicated thread that updates the transformations periodically.
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    void run ();
-
-    /** \brief mapping between the mesh handle and its context*/
-    std:: map<mesh_filter::MeshHandle, TransformContextPtr> handle2context_;
-
-    /** \brief TransformListener used to listen and update transformations*/
-    boost::shared_ptr<tf::TransformListener> tf_;
-
-    /** \brief SceneMonitor used to get current states*/
-    planning_scene_monitor::PlanningSceneMonitorPtr psm_;
-
-    /** \brief the camera frame id*/
+      transformation_.matrix().setZero();
+    }
     std::string frame_id_;
+    Eigen::Affine3d transformation_;
+    boost::mutex mutex_;
+  };
 
-    /** \brief thread object*/
-    boost::thread thread_;
+  /**
+   * \brief The entry point of the dedicated thread that updates the transformations periodically.
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  void run();
 
-    /** \flag to leave the update loop*/
-    bool stop_;
+  /** \brief mapping between the mesh handle and its context*/
+  std::map<mesh_filter::MeshHandle, TransformContextPtr> handle2context_;
 
-    /** \brief update interval in micro seconds*/
-    unsigned long interval_us_;
+  /** \brief TransformListener used to listen and update transformations*/
+  boost::shared_ptr<tf::TransformListener> tf_;
+
+  /** \brief SceneMonitor used to get current states*/
+  planning_scene_monitor::PlanningSceneMonitorPtr psm_;
+
+  /** \brief the camera frame id*/
+  std::string frame_id_;
+
+  /** \brief thread object*/
+  boost::thread thread_;
+
+  /** \flag to leave the update loop*/
+  bool stop_;
+
+  /** \brief update interval in micro seconds*/
+  unsigned long interval_us_;
 };
 #endif

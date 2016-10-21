@@ -47,27 +47,29 @@
 
 namespace move_group
 {
-
 class MoveGroupPickPlaceAction : public MoveGroupCapability
 {
 public:
-
   MoveGroupPickPlaceAction();
   virtual void initialize();
 
 private:
-
   void executePickupCallback(const moveit_msgs::PickupGoalConstPtr& goal);
   void executePlaceCallback(const moveit_msgs::PlaceGoalConstPtr& goal);
 
-  void executePickupCallback_PlanOnly(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult &action_res);
-  void executePickupCallback_PlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal, moveit_msgs::PickupResult &action_res);
+  void executePickupCallback_PlanOnly(const moveit_msgs::PickupGoalConstPtr& goal,
+                                      moveit_msgs::PickupResult& action_res);
+  void executePickupCallback_PlanAndExecute(const moveit_msgs::PickupGoalConstPtr& goal,
+                                            moveit_msgs::PickupResult& action_res);
 
-  void executePlaceCallback_PlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res);
-  void executePlaceCallback_PlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult &action_res);
+  void executePlaceCallback_PlanOnly(const moveit_msgs::PlaceGoalConstPtr& goal, moveit_msgs::PlaceResult& action_res);
+  void executePlaceCallback_PlanAndExecute(const moveit_msgs::PlaceGoalConstPtr& goal,
+                                           moveit_msgs::PlaceResult& action_res);
 
-  bool planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult *action_res, plan_execution::ExecutableMotionPlan &plan);
-  bool planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, moveit_msgs::PlaceResult *action_res, plan_execution::ExecutableMotionPlan &plan);
+  bool planUsingPickPlace_Pickup(const moveit_msgs::PickupGoal& goal, moveit_msgs::PickupResult* action_res,
+                                 plan_execution::ExecutableMotionPlan& plan);
+  bool planUsingPickPlace_Place(const moveit_msgs::PlaceGoal& goal, moveit_msgs::PlaceResult* action_res,
+                                plan_execution::ExecutableMotionPlan& plan);
 
   void preemptPickupCallback();
   void preemptPlaceCallback();
@@ -97,9 +99,7 @@ private:
   MoveGroupState place_state_;
 
   ros::ServiceClient grasp_planning_service_;
-
 };
-
 }
 
 #endif

@@ -38,10 +38,8 @@
 
 namespace collision_detection
 {
-
 class CollisionPluginLoader::CollisionPluginLoaderImpl
 {
-
 public:
   CollisionPluginLoaderImpl()
   {
@@ -49,7 +47,7 @@ public:
     {
       loader_.reset(new pluginlib::ClassLoader<CollisionPlugin>("moveit_core", "collision_detection::CollisionPlugin"));
     }
-    catch(pluginlib::PluginlibException& e)
+    catch (pluginlib::PluginlibException& e)
     {
       ROS_ERROR("Unable to construct colllision plugin loader. Error: %s", e.what());
     }
@@ -70,10 +68,7 @@ public:
     return plugin;
   }
 
-  bool activate(
-    const std::string& name,
-    const planning_scene::PlanningScenePtr& scene,
-    bool exclusive)
+  bool activate(const std::string& name, const planning_scene::PlanningScenePtr& scene, bool exclusive)
   {
     std::map<std::string, CollisionPluginPtr>::iterator it = plugins_.find(name);
     if (it == plugins_.end())
@@ -106,17 +101,13 @@ CollisionPluginLoader::~CollisionPluginLoader()
 {
 }
 
-bool CollisionPluginLoader::activate(
-  const std::string& name,
-  const planning_scene::PlanningScenePtr& scene,
-  bool exclusive)
+bool CollisionPluginLoader::activate(const std::string& name, const planning_scene::PlanningScenePtr& scene,
+                                     bool exclusive)
 {
   return loader_->activate(name, scene, exclusive);
 }
 
-void CollisionPluginLoader::setupScene(
-  ros::NodeHandle& nh,
-  const planning_scene::PlanningScenePtr& scene)
+void CollisionPluginLoader::setupScene(ros::NodeHandle& nh, const planning_scene::PlanningScenePtr& scene)
 {
   if (!scene)
     return;

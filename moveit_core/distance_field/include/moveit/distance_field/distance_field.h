@@ -67,13 +67,12 @@ class OcTree;
  */
 namespace distance_field
 {
-
 /// \brief The plane to visualize
 enum PlaneVisualizationType
 {
- XYPlane,
- XZPlane,
- YZPlane
+  XYPlane,
+  XZPlane,
+  YZPlane
 };
 
 MOVEIT_CLASS_FORWARD(DistanceField);
@@ -96,7 +95,6 @@ MOVEIT_CLASS_FORWARD(DistanceField);
 class DistanceField
 {
 public:
-
   /**
    * \brief Constructor, where units are arbitrary but are assumed to
    * be meters.
@@ -109,8 +107,8 @@ public:
    * @param [in] origin_y The minimum Y point of the volume
    * @param [in] origin_z The minimum Z point of the volume
    */
-  DistanceField(double size_x, double size_y, double size_z, double resolution,
-                double origin_x, double origin_y, double origin_z);
+  DistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x, double origin_y,
+                double origin_z);
 
   virtual ~DistanceField();
 
@@ -121,7 +119,7 @@ public:
    *
    * @param [in] points The set of obstacle points to add
    */
-  virtual void addPointsToField(const EigenSTL::vector_Vector3d &points)=0;
+  virtual void addPointsToField(const EigenSTL::vector_Vector3d& points) = 0;
 
   /**
    * \brief Remove a set of obstacle points from the distance field,
@@ -136,7 +134,7 @@ public:
 
    * @param [in] points The set of obstacle points that will be set as free
    */
-  virtual void removePointsFromField(const EigenSTL::vector_Vector3d &points)=0;
+  virtual void removePointsFromField(const EigenSTL::vector_Vector3d& points) = 0;
 
   /**
    * \brief This function will remove any obstacle points that are in
@@ -171,9 +169,7 @@ public:
    * @param [in] pose The pose of the shape.
    * @param [out] points The points determined for this shape.
    */
-  bool getShapePoints(const shapes::Shape* shape,
-                      const Eigen::Affine3d& pose,
-                      EigenSTL::vector_Vector3d* points);
+  bool getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose, EigenSTL::vector_Vector3d* points);
 
   /**
    * \brief Adds the set of points corresponding to the shape at the
@@ -193,12 +189,10 @@ public:
    * @param [in] shape The shape to add to the distance field
    * @param [in] pose The pose of the shape
    */
-  void addShapeToField(const shapes::Shape* shape,
-                       const Eigen::Affine3d& pose);
+  void addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void addShapeToField(const shapes::Shape* shape,
-                                         const geometry_msgs::Pose& pose);
+  MOVEIT_DEPRECATED void addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
 
   /**
    * \brief Adds an octree to the distance field.  Cells that are
@@ -233,13 +227,10 @@ public:
    * @param [in] old_pose The old pose of the shape
    * @param [in] new_pose The new pose of the shape
    */
-  void moveShapeInField(const shapes::Shape* shape,
-                        const Eigen::Affine3d& old_pose,
-                        const Eigen::Affine3d& new_pose);
+  void moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose, const Eigen::Affine3d& new_pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape,
-                                          const geometry_msgs::Pose& old_pose,
+  MOVEIT_DEPRECATED void moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
                                           const geometry_msgs::Pose& new_pose);
 
   /**
@@ -251,18 +242,16 @@ public:
    * @param [in] shape The shape to remove from the distance field
    * @param [in] pose The pose of the shape to remove
    */
-  void removeShapeFromField(const shapes::Shape* shape,
-                            const Eigen::Affine3d& pose);
+  void removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose);
 
   // DEPRECATED form
-  MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape,
-                                              const geometry_msgs::Pose& pose);
+  MOVEIT_DEPRECATED void removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose);
 
   /**
    * \brief Resets all points in the distance field to an uninitialize
    * value.
    */
-  virtual void reset()=0;
+  virtual void reset() = 0;
 
   /**
    * \brief Gets the distance to the closest obstacle at the given
@@ -332,8 +321,7 @@ public:
    *
    * @return The distance to the closest occupied cell
    */
-  double getDistanceGradient(double x, double y, double z,
-                             double& gradient_x, double& gradient_y, double& gradient_z,
+  double getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y, double& gradient_z,
                              bool& in_bounds) const;
   /**
    * \brief Gets the distance to the closest obstacle at the given
@@ -394,10 +382,10 @@ public:
    * @param [out] world_x The computed world X location
    * @param [out] world_y The computed world X location
    * @param [out] world_z The computed world X location
-   * @return Whether or not the transformation is successful.  An implementation may or may not choose to return false if the indicated cell is not valid for this distance field.
+   * @return Whether or not the transformation is successful.  An implementation may or may not choose to return false
+   *if the indicated cell is not valid for this distance field.
    */
-  virtual bool gridToWorld(int x, int y, int z,
-                           double& world_x, double& world_y, double& world_z) const = 0;
+  virtual bool gridToWorld(int x, int y, int z, double& world_x, double& world_y, double& world_z) const = 0;
 
   /**
    * \brief Converts from a world location to a set of integer
@@ -415,8 +403,7 @@ public:
    * @return True if all the world values result in integer indices
    * that pass a validity check; otherwise False.
    */
-  virtual bool worldToGrid(double world_x, double world_y, double world_z,
-                           int& x, int& y, int& z) const = 0;
+  virtual bool worldToGrid(double world_x, double world_y, double world_z, int& x, int& y, int& z) const = 0;
 
   /**
    * \brief Writes the contents of the distance field to the supplied stream.
@@ -451,11 +438,8 @@ public:
    * @param [in] stamp The stamp to use in the header of the marker
    * @param [out] marker The marker that will contain the indicated cells.
    */
-  void getIsoSurfaceMarkers(double min_distance,
-                            double max_distance,
-                            const std::string &frame_id,
-                            const ros::Time stamp,
-                            visualization_msgs::Marker& marker ) const;
+  void getIsoSurfaceMarkers(double min_distance, double max_distance, const std::string& frame_id,
+                            const ros::Time stamp, visualization_msgs::Marker& marker) const;
 
   /**
    * \brief Populates the supplied marker array with a series of
@@ -470,10 +454,7 @@ public:
    * @param [in] stamp The stamp to use in the header of the marker
    * @param [out] marker_array The marker array to populate
    */
-  void getGradientMarkers(double min_radius,
-                          double max_radius,
-                          const std::string& frame_id,
-                          const ros::Time& stamp,
+  void getGradientMarkers(double min_radius, double max_radius, const std::string& frame_id, const ros::Time& stamp,
                           visualization_msgs::MarkerArray& marker_array) const;
 
   /**
@@ -501,13 +482,8 @@ public:
    * @param [in] stamp The stamp to use in the header of the marker
    * @param [out] marker The marker that will contain the indicated cells.
    */
-  void getPlaneMarkers(PlaneVisualizationType type,
-                       double length,
-                       double width,
-                       double height,
-                       const Eigen::Vector3d& origin,
-                       const std::string & frame_id,
-                       const ros::Time stamp,
+  void getPlaneMarkers(PlaneVisualizationType type, double length, double width, double height,
+                       const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time stamp,
                        visualization_msgs::Marker& marker) const;
   /**
    * \brief A function that populates the marker with three planes -
@@ -525,9 +501,7 @@ public:
    * @param [out] marker The marker, which will be populated with a
    * visualization_msgs::Marker::CUBE_LIST .
    */
-  void getProjectionPlanes(const std::string& frame_id,
-                           const ros::Time& stamp,
-                           double max_distance,
+  void getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp, double max_distance,
                            visualization_msgs::Marker& marker) const;
 
   /**
@@ -602,7 +576,8 @@ public:
    *
    * @return The resolution of the distance field in meters
    */
-  double getResolution() const {
+  double getResolution() const
+  {
     return resolution_;
   }
 
@@ -620,8 +595,7 @@ protected:
    * @param [in] octree The octree to find points for.
    * @param [out] points The points determined for this octree.
    */
-  void getOcTreePoints(const octomap::OcTree* octree,
-                       EigenSTL::vector_Vector3d* points);
+  void getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points);
 
   /**
    * \brief Helper function that sets the point value and color given
@@ -633,24 +607,22 @@ protected:
    * @param [in] dist The distance of the cell
    * @param [out] point World coordinates will be placed here
    *
-   * @param [out] color A color will be assigned here that's only red if the distance is 0, and gets progressively whiter as the dist value approaches max_distance.
+   * @param [out] color A color will be assigned here that's only red if the distance is 0, and gets progressively
+   *whiter as the dist value approaches max_distance.
    *
    * @param [in] max_distance The distance past which all cells will be fully white
    */
-  void setPoint(int xCell, int yCell, int zCell,
-                double dist,
-                geometry_msgs::Point& point,
-                std_msgs::ColorRGBA& color,
+  void setPoint(int xCell, int yCell, int zCell, double dist, geometry_msgs::Point& point, std_msgs::ColorRGBA& color,
                 double max_distance) const;
 
-  double size_x_;               /**< \brief X size of the distance field */
-  double size_y_;               /**< \brief Y size of the distance field */
-  double size_z_;               /**< \brief Z size of the distance field */
-  double origin_x_;             /**< \brief X origin of the distance field */
-  double origin_y_;             /**< \brief Y origin of the distance field */
-  double origin_z_;             /**< \brief Z origin of the distance field */
-  double resolution_;           /**< \brief Resolution of the distance field */
-  int inv_twice_resolution_;    /**< \brief Computed value 1.0/(2.0*resolution_) */
+  double size_x_;            /**< \brief X size of the distance field */
+  double size_y_;            /**< \brief Y size of the distance field */
+  double size_z_;            /**< \brief Z size of the distance field */
+  double origin_x_;          /**< \brief X origin of the distance field */
+  double origin_y_;          /**< \brief Y origin of the distance field */
+  double origin_z_;          /**< \brief Z origin of the distance field */
+  double resolution_;        /**< \brief Resolution of the distance field */
+  int inv_twice_resolution_; /**< \brief Computed value 1.0/(2.0*resolution_) */
 };
 
 }  // namespace distance_field

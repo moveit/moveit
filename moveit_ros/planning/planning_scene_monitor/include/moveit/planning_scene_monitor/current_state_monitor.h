@@ -48,7 +48,6 @@
 
 namespace planning_scene_monitor
 {
-
 typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)> JointStateUpdateCallback;
 
 /** @class CurrentStateMonitor
@@ -56,13 +55,12 @@ typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)
 class CurrentStateMonitor
 {
 public:
-
-    /**
-     * @brief Constructor.
-     * @param robot_model The current kinematic model to build on
-     * @param tf A pointer to the tf transformer to use
-     */
-    CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf );
+  /**
+   * @brief Constructor.
+   * @param robot_model The current kinematic model to build on
+   * @param tf A pointer to the tf transformer to use
+   */
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
@@ -70,7 +68,7 @@ public:
    *  @param nh A ros::NodeHandle to pass node specific options
    */
   CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf,
-        ros::NodeHandle nh );
+                      ros::NodeHandle nh);
 
   ~CurrentStateMonitor();
 
@@ -87,7 +85,7 @@ public:
   bool isActive() const;
 
   /** @brief Get the RobotModel for which we are monitoring state */
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr &getRobotModel() const
   {
     return robot_model_;
   }
@@ -137,18 +135,20 @@ public:
    *  @return Returns the map from joint names to joint state values*/
   std::map<std::string, double> getCurrentStateValues() const;
 
-  /** @brief Wait for at most \e wait_time seconds until the complete robot state is known. Return true if the full state is known */
+  /** @brief Wait for at most \e wait_time seconds until the complete robot state is known. Return true if the full
+   * state is known */
   bool waitForCompleteState(double wait_time) const;
   /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
   MOVEIT_DEPRECATED bool waitForCurrentState(double wait_time) const;
 
-  /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true if values for all joints in \e group are known */
+  /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true
+   * if values for all joints in \e group are known */
   bool waitForCompleteState(const std::string &group, double wait_time) const;
   /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
   MOVEIT_DEPRECATED bool waitForCurrentState(const std::string &group, double wait_time) const;
 
   /** @brief Get the time point when the monitor was started */
-  const ros::Time& getMonitorStartTime() const
+  const ros::Time &getMonitorStartTime() const
   {
     return monitor_start_time_;
   }
@@ -186,29 +186,27 @@ public:
   }
 
 private:
-
   void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
   bool isPassiveOrMimicDOF(const std::string &dof) const;
 
-  ros::NodeHandle                              nh_;
-  boost::shared_ptr<tf::Transformer>           tf_;
-  robot_model::RobotModelConstPtr              robot_model_;
-  robot_state::RobotState                      robot_state_;
-  std::map<std::string, ros::Time>             joint_time_;
-  bool                                         state_monitor_started_;
-  bool                                         copy_dynamics_;  // Copy velocity and effort from joint_state
-  ros::Time                                    monitor_start_time_;
-  double                                       error_;
-  ros::Subscriber                              joint_state_subscriber_;
-  ros::Time                                    current_state_time_;
-  ros::Time                                    last_tf_update_;
+  ros::NodeHandle nh_;
+  boost::shared_ptr<tf::Transformer> tf_;
+  robot_model::RobotModelConstPtr robot_model_;
+  robot_state::RobotState robot_state_;
+  std::map<std::string, ros::Time> joint_time_;
+  bool state_monitor_started_;
+  bool copy_dynamics_;  // Copy velocity and effort from joint_state
+  ros::Time monitor_start_time_;
+  double error_;
+  ros::Subscriber joint_state_subscriber_;
+  ros::Time current_state_time_;
+  ros::Time last_tf_update_;
 
-  mutable boost::mutex                         state_update_lock_;
-  std::vector< JointStateUpdateCallback >      update_callbacks_;
+  mutable boost::mutex state_update_lock_;
+  std::vector<JointStateUpdateCallback> update_callbacks_;
 };
 
 MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
-
 }
 
 #endif

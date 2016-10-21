@@ -39,7 +39,7 @@
 
 #include <urdf_model/model.h>
 #include <Eigen/Core>
-#include <Eigen/LU>// provides LU decomposition
+#include <Eigen/LU>  // provides LU decomposition
 #include <kdl/chainiksolver.hpp>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
@@ -53,54 +53,54 @@ static const double IK_EPS = 1e-5;
 
 inline double distance(const urdf::Pose &transform)
 {
-  return sqrt(transform.position.x*transform.position.x+transform.position.y*transform.position.y+transform.position.z*transform.position.z);
+  return sqrt(transform.position.x * transform.position.x + transform.position.y * transform.position.y +
+              transform.position.z * transform.position.z);
 }
-
 
 inline bool solveQuadratic(const double &a, const double &b, const double &c, double *x1, double *x2)
 {
-  double discriminant = b*b-4*a*c;
-  if(fabs(a) < IK_EPS)
+  double discriminant = b * b - 4 * a * c;
+  if (fabs(a) < IK_EPS)
   {
-    *x1 = -c/b;
+    *x1 = -c / b;
     *x2 = *x1;
     return true;
   }
-  //ROS_DEBUG("Discriminant: %f\n",discriminant);
+  // ROS_DEBUG("Discriminant: %f\n",discriminant);
   if (discriminant >= 0)
   {
-    *x1 = (-b + sqrt(discriminant))/(2*a);
-    *x2 = (-b - sqrt(discriminant))/(2*a);
+    *x1 = (-b + sqrt(discriminant)) / (2 * a);
+    *x2 = (-b - sqrt(discriminant)) / (2 * a);
     return true;
   }
-  else if(fabs(discriminant) < IK_EPS)
+  else if (fabs(discriminant) < IK_EPS)
   {
-    *x1 = -b/(2*a);
-    *x2 = -b/(2*a);
+    *x1 = -b / (2 * a);
+    *x2 = -b / (2 * a);
     return true;
   }
   else
   {
-    *x1 = -b/(2*a);
-    *x2 = -b/(2*a);
+    *x1 = -b / (2 * a);
+    *x2 = -b / (2 * a);
     return false;
   }
 }
 
 inline bool solveCosineEqn(const double &a, const double &b, const double &c, double &soln1, double &soln2)
 {
-  double theta1 = atan2(b,a);
-  double denom  = sqrt(a*a+b*b);
+  double theta1 = atan2(b, a);
+  double denom = sqrt(a * a + b * b);
 
-  if(fabs(denom) < IK_EPS) // should never happen, wouldn't make sense but make sure it is checked nonetheless
+  if (fabs(denom) < IK_EPS)  // should never happen, wouldn't make sense but make sure it is checked nonetheless
   {
 #ifdef DEBUG
     std::cout << "denom: " << denom << std::endl;
 #endif
     return false;
   }
-  double rhs_ratio = c/denom;
-  if(rhs_ratio < -1 || rhs_ratio > 1)
+  double rhs_ratio = c / denom;
+  if (rhs_ratio < -1 || rhs_ratio > 1)
   {
 #ifdef DEBUG
     std::cout << "rhs_ratio: " << rhs_ratio << std::endl;
@@ -117,7 +117,6 @@ inline bool solveCosineEqn(const double &a, const double &b, const double &c, do
 class PR2ArmIK
 {
 public:
-
   /** @class
    *  @brief Inverse kinematics for the PR2 arm.
    *  @author Sachin Chitta <sachinc@willowgarage.com>
@@ -140,20 +139,22 @@ public:
      @param Input pose for end-effector
      @param Initial guess for shoulder pan angle
   */
-  void computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &shoulder_pan_initial_guess,std::vector<std::vector<double> > &solution) const;
+  void computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &shoulder_pan_initial_guess,
+                            std::vector<std::vector<double> > &solution) const;
 
   /**
      @brief compute IK based on an initial guess for the shoulder roll angle.
      h       @param Input pose for end-effector
      @param Initial guess for shoulder roll angle
   */
-  void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess,std::vector<std::vector<double> > &solution) const;
-
+  void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess,
+                             std::vector<std::vector<double> > &solution) const;
 
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
 
   /**
-     @brief get chain information about the arm. This populates the IK query response, filling in joint level information including names and joint limits.
+     @brief get chain information about the arm. This populates the IK query response, filling in joint level
+     information including names and joint limits.
      @param The response structure to be filled in.
   */
   void getSolverInfo(moveit_msgs::KinematicSolverInfo &info);
@@ -165,9 +166,8 @@ public:
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  private:
-
-  void addJointToChainInfo(urdf::JointConstSharedPtr joint,moveit_msgs::KinematicSolverInfo &info);
+private:
+  void addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo &info);
 
   bool checkJointLimits(const std::vector<double> &joint_values) const;
 
@@ -179,14 +179,14 @@ public:
 
   std::vector<double> solution_;
 
-  double shoulder_upperarm_offset_, upperarm_elbow_offset_, elbow_wrist_offset_, shoulder_wrist_offset_, shoulder_elbow_offset_, torso_shoulder_offset_x_, torso_shoulder_offset_y_, torso_shoulder_offset_z_;
+  double shoulder_upperarm_offset_, upperarm_elbow_offset_, elbow_wrist_offset_, shoulder_wrist_offset_,
+      shoulder_elbow_offset_, torso_shoulder_offset_x_, torso_shoulder_offset_y_, torso_shoulder_offset_z_;
 
   std::vector<double> min_angles_;
 
   std::vector<double> max_angles_;
 
   std::vector<bool> continuous_joint_;
-
 };
 }
-#endif// PR2_ARM_IK_H
+#endif  // PR2_ARM_IK_H

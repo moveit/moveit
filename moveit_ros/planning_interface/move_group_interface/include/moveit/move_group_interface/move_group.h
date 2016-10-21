@@ -48,7 +48,6 @@ namespace moveit
 {
 namespace planning_interface
 {
-
 MOVEIT_CLASS_FORWARD(MoveGroup)
 
 /** \brief Deprecated Client interface to access interfaces of the move_group node
@@ -57,10 +56,7 @@ MOVEIT_CLASS_FORWARD(MoveGroup)
 class MoveGroup : public MoveGroupInterface
 {
   using MoveGroupInterface::MoveGroupInterface;
-}
-MOVEIT_DEPRECATED
-;
-
+} MOVEIT_DEPRECATED;
 }
 }
 

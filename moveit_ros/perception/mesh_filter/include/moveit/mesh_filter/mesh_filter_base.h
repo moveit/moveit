@@ -35,7 +35,7 @@
 /* Author: Suat Gedikli */
 
 #ifndef MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
-#define    MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
+#define MOVEIT_MESH_FILTER_MESH_FILTER_BASE_
 
 #include <map>
 #include <moveit/macros/class_forward.h>
@@ -46,15 +46,14 @@
 #include <Eigen/Eigen>
 #include <queue>
 
-//forward declarations
+// forward declarations
 namespace shapes
 {
-  class Mesh;
+class Mesh;
 }
 
 namespace mesh_filter
 {
-
 MOVEIT_CLASS_FORWARD(Job);
 MOVEIT_CLASS_FORWARD(GLMesh);
 
@@ -63,155 +62,167 @@ typedef uint32_t LabelType;
 
 class MeshFilterBase
 {
-    // inner types and typedefs
-  public:
-    typedef boost::function<bool (MeshHandle, Eigen::Affine3d&)> TransformCallback;
-  // \todo @suat: to avoid a few comparisons, it would be much nicer if background = 14 and shadow = 15 (near/far clip can be anything below that)
+  // inner types and typedefs
+public:
+  typedef boost::function<bool(MeshHandle, Eigen::Affine3d&)> TransformCallback;
+  // \todo @suat: to avoid a few comparisons, it would be much nicer if background = 14 and shadow = 15 (near/far clip
+  // can be anything below that)
   // this would allow me to do a single comparison instead of 3, in the code i write
-    enum {Background = 0, Shadow = 1, NearClip = 2, FarClip = 3, FirstLabel = 16};
-  public:
-    /**
-     * \brief Constructor
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
-     * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct transformation.
-     */
-    MeshFilterBase (const TransformCallback& transform_callback,
-                    const SensorModel::Parameters& sensor_parameters,
-                    const std::string& render_vertex_shader = "", const std::string& render_fragment_shader = "",
-                    const std::string& filter_vertex_shader = "", const std::string& filter_fragment_shader = "");
+  enum
+  {
+    Background = 0,
+    Shadow = 1,
+    NearClip = 2,
+    FarClip = 3,
+    FirstLabel = 16
+  };
 
-    /** \brief Desctructor */
-    ~MeshFilterBase ();
+public:
+  /**
+   * \brief Constructor
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] transform_callback Callback function that is called for each mesh to obtain the current transformation.
+   * \note the callback expects the mesh handle but no time stamp. Its the users responsibility to return the correct
+   * transformation.
+   */
+  MeshFilterBase(const TransformCallback& transform_callback, const SensorModel::Parameters& sensor_parameters,
+                 const std::string& render_vertex_shader = "", const std::string& render_fragment_shader = "",
+                 const std::string& filter_vertex_shader = "", const std::string& filter_fragment_shader = "");
 
-    /**
-     * \brief adds a mesh to the filter object.
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] mesh the mesh to be added
-     * \return handle to the mesh. This handle is used in the transform callback function to identify the mesh and retrieve the correct transformation.
-     */
-    MeshHandle addMesh (const shapes::Mesh& mesh);
+  /** \brief Desctructor */
+  ~MeshFilterBase();
 
-    /**
-     * \brief removes a mesh given by its handle
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] mesh_handle the handle of the mesh to be removed.
-     */
-    void removeMesh (MeshHandle mesh_handle);
+  /**
+   * \brief adds a mesh to the filter object.
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] mesh the mesh to be added
+   * \return handle to the mesh. This handle is used in the transform callback function to identify the mesh and
+   * retrieve the correct transformation.
+   */
+  MeshHandle addMesh(const shapes::Mesh& mesh);
 
-    /**
-     * \brief label/remove pixels from input depth-image
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] sensor_data pointer to the input depth image from sensor readings.
-     * \todo what is type?
-     */
-    void filter (const void* sensor_data, GLushort type, bool wait = false) const;
+  /**
+   * \brief removes a mesh given by its handle
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] mesh_handle the handle of the mesh to be removed.
+   */
+  void removeMesh(MeshHandle mesh_handle);
 
-    /**
-     * \brief retrieves the labels of the input data
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[out] labels pointer to buffer to be filled with labels
-     * \note labels are corresponding 1-1 to the mesh handles. 0 and 1 are reserved indicating either background (0) or shadow (1)
-     *       The upper 8bit of a label is filled with the user given flag (see addMesh)
-     */
-    void getFilteredLabels (LabelType* labels) const;
+  /**
+   * \brief label/remove pixels from input depth-image
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] sensor_data pointer to the input depth image from sensor readings.
+   * \todo what is type?
+   */
+  void filter(const void* sensor_data, GLushort type, bool wait = false) const;
 
-    /**
-     * \brief retrieves the filtered depth values
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[out] depth pointer to buffer to be filled with depth values.
-     */
-    void getFilteredDepth (float* depth) const;
+  /**
+   * \brief retrieves the labels of the input data
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[out] labels pointer to buffer to be filled with labels
+   * \note labels are corresponding 1-1 to the mesh handles. 0 and 1 are reserved indicating either background (0) or
+   * shadow (1)
+   *       The upper 8bit of a label is filled with the user given flag (see addMesh)
+   */
+  void getFilteredLabels(LabelType* labels) const;
 
-    /**
-     * \brief retrieves the labels of the rendered model
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[out] labels pointer to buffer to be filled with labels
-     * \note labels are corresponding 1-1 to the mesh handles. 0 and 1 are reserved indicating either background (0) or shadow (1)
-     *       The upper 8bit of a label is filled with the user given flag (see addMesh)
-     * \todo How is this data different from the filtered labels?
-     */
-    void getModelLabels (LabelType* labels) const;
+  /**
+   * \brief retrieves the filtered depth values
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[out] depth pointer to buffer to be filled with depth values.
+   */
+  void getFilteredDepth(float* depth) const;
 
-    /**
-     * \brief retrieves the depth values of the rendered model
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[out] depth pointer to buffer to be filled with depth values.
-     */
-    void getModelDepth (float* depth) const;
+  /**
+   * \brief retrieves the labels of the rendered model
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[out] labels pointer to buffer to be filled with labels
+   * \note labels are corresponding 1-1 to the mesh handles. 0 and 1 are reserved indicating either background (0) or
+   * shadow (1)
+   *       The upper 8bit of a label is filled with the user given flag (see addMesh)
+   * \todo How is this data different from the filtered labels?
+   */
+  void getModelLabels(LabelType* labels) const;
 
-    /**
-     * \brief set the shadow threshold. points that are further away than the rendered model are filtered out.
-     *        Except they are further away than this threshold. Then these points are kept, but its label is set to
-     *        1 indicating that it is in the shadow of the model
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] threshold shadow threshold in meters
-     */
-    void setShadowThreshold (float threshold);
+  /**
+   * \brief retrieves the depth values of the rendered model
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[out] depth pointer to buffer to be filled with depth values.
+   */
+  void getModelDepth(float* depth) const;
 
-    /**
-     * \brief set the callback for retrieving transformations for each mesh.
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] transform_callback the callback
-     */
-    void setTransformCallback (const TransformCallback& transform_callback);
+  /**
+   * \brief set the shadow threshold. points that are further away than the rendered model are filtered out.
+   *        Except they are further away than this threshold. Then these points are kept, but its label is set to
+   *        1 indicating that it is in the shadow of the model
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] threshold shadow threshold in meters
+   */
+  void setShadowThreshold(float threshold);
 
-    /**
-     * \brief set the scale component of padding used to multiply with sensor-specific padding coefficients to get final coefficients.
-     * \param[in] scale the scale value
-     */
-    void setPaddingScale (float scale);
+  /**
+   * \brief set the callback for retrieving transformations for each mesh.
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] transform_callback the callback
+   */
+  void setTransformCallback(const TransformCallback& transform_callback);
 
-    /**
-     * \brief set the offset component of padding. This value is added to the scaled sensor-specific constant component.
-     * \param[in] offset the offset value
-     */
-    void setPaddingOffset (float offset);
+  /**
+   * \brief set the scale component of padding used to multiply with sensor-specific padding coefficients to get final
+   * coefficients.
+   * \param[in] scale the scale value
+   */
+  void setPaddingScale(float scale);
 
-  protected:
+  /**
+   * \brief set the offset component of padding. This value is added to the scaled sensor-specific constant component.
+   * \param[in] offset the offset value
+   */
+  void setPaddingOffset(float offset);
 
-    /**
-     * \brief initializes OpenGL related things as well as renderers
-     */
-    void initialize (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
-                     const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
+protected:
+  /**
+   * \brief initializes OpenGL related things as well as renderers
+   */
+  void initialize(const std::string& render_vertex_shader, const std::string& render_fragment_shader,
+                  const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
 
-    /**
-     * \brief cleaning up
-     */
-    void deInitialize ();
+  /**
+   * \brief cleaning up
+   */
+  void deInitialize();
 
-    /**
-     * \brief filtering thread
-     */
-    void run (const std::string& render_vertex_shader, const std::string& render_fragment_shader,
-              const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
+  /**
+   * \brief filtering thread
+   */
+  void run(const std::string& render_vertex_shader, const std::string& render_fragment_shader,
+           const std::string& filter_vertex_shader, const std::string& filter_fragment_shader);
 
-    /**
-     * \brief the filter method that does the magic
-     * \param[in] sensor_data pointer to the buffer containing the depth readings
-     * \param[in] encoding the representation of the depth readings in the buffer
-     */
-    void doFilter (const void* sensor_data, const int encoding) const;
+  /**
+   * \brief the filter method that does the magic
+   * \param[in] sensor_data pointer to the buffer containing the depth readings
+   * \param[in] encoding the representation of the depth readings in the buffer
+   */
+  void doFilter(const void* sensor_data, const int encoding) const;
 
-    /**
-     * \brief used within a Job to allow the main thread adding meshes
-     * \param[in] handle the handle of the mesh that is predetermined and passed
-     * \param[in] cmesh the mesh to be added to the corresponding handle
-     */
-    void addMeshHelper (MeshHandle handle, const shapes::Mesh *cmesh);
+  /**
+   * \brief used within a Job to allow the main thread adding meshes
+   * \param[in] handle the handle of the mesh that is predetermined and passed
+   * \param[in] cmesh the mesh to be added to the corresponding handle
+   */
+  void addMeshHelper(MeshHandle handle, const shapes::Mesh* cmesh);
 
-    /**
-     * \brief used within a Job to allow the main thread removing meshes
-     * \param[in] handle the handle of the mesh to be removed
-     */
-    bool removeMeshHelper (MeshHandle handle);
+  /**
+   * \brief used within a Job to allow the main thread removing meshes
+   * \param[in] handle the handle of the mesh to be removed
+   */
+  bool removeMeshHelper(MeshHandle handle);
 
-    /**
-     * \brief add a Job for the main thread that needs to be executed there
-     * \param[in] job the job object that has the function o be executed
-     */
-    void addJob (const JobPtr &job) const;
+  /**
+   * \brief add a Job for the main thread that needs to be executed there
+   * \param[in] job the job object that has the function o be executed
+   */
+  void addJob(const JobPtr& job) const;
 
   /**
    * \brief sets the size of the fram buffers
@@ -219,69 +230,69 @@ class MeshFilterBase
    * \param[in] width width of frame buffers in pixels
    * \param[in] height height of frame buffers in pixels
    */
-    void setSize (unsigned int width, unsigned int height);
+  void setSize(unsigned int width, unsigned int height);
 
-    /** \brief storage for meshed to be filtered */
-    std::map<MeshHandle, GLMeshPtr> meshes_;
+  /** \brief storage for meshed to be filtered */
+  std::map<MeshHandle, GLMeshPtr> meshes_;
 
-    /** \brief the parameters of the used sensor model*/
-    SensorModel::ParametersPtr sensor_parameters_;
+  /** \brief the parameters of the used sensor model*/
+  SensorModel::ParametersPtr sensor_parameters_;
 
-    /** \brief next handle to be used for next mesh that is added*/
-    MeshHandle next_handle_;
+  /** \brief next handle to be used for next mesh that is added*/
+  MeshHandle next_handle_;
 
-    /** \brief Handle values below this are all taken (this variable is used for more efficient computation of next_label_) */
-    MeshHandle min_handle_;
+  /** \brief Handle values below this are all taken (this variable is used for more efficient computation of
+   * next_label_) */
+  MeshHandle min_handle_;
 
-    /** \brief the filtering thread that also holds the OpenGL context*/
-    boost::thread filter_thread_;
+  /** \brief the filtering thread that also holds the OpenGL context*/
+  boost::thread filter_thread_;
 
-    /** \brief condition variable to notify the filtering thread if a new image arrived*/
-    mutable boost::condition_variable jobs_condition_;
+  /** \brief condition variable to notify the filtering thread if a new image arrived*/
+  mutable boost::condition_variable jobs_condition_;
 
-    /** \brief mutex required for synchronization of condition states*/
-    mutable boost::mutex jobs_mutex_;
+  /** \brief mutex required for synchronization of condition states*/
+  mutable boost::mutex jobs_mutex_;
 
-    /** \brief OpenGL job queue that need to be processed by the worker thread*/
-    mutable std::queue<JobPtr> jobs_queue_;
+  /** \brief OpenGL job queue that need to be processed by the worker thread*/
+  mutable std::queue<JobPtr> jobs_queue_;
 
-    /** \brief mutex for synchronization of updating filtered meshes */
-    mutable boost::mutex meshes_mutex_;
+  /** \brief mutex for synchronization of updating filtered meshes */
+  mutable boost::mutex meshes_mutex_;
 
-    /** \brief mutex for synchronization of setting/calling transform_callback_ */
-    mutable boost::mutex transform_callback_mutex_;
+  /** \brief mutex for synchronization of setting/calling transform_callback_ */
+  mutable boost::mutex transform_callback_mutex_;
 
-    /** \brief indicates whether the filtering loop should stop*/
-    bool stop_;
+  /** \brief indicates whether the filtering loop should stop*/
+  bool stop_;
 
-    /** \brief first pass renderer for rendering the mesh*/
-    GLRendererPtr mesh_renderer_;
+  /** \brief first pass renderer for rendering the mesh*/
+  GLRendererPtr mesh_renderer_;
 
-    /** \brief second pass renderer for filtering the results of first pass*/
-    GLRendererPtr depth_filter_;
+  /** \brief second pass renderer for filtering the results of first pass*/
+  GLRendererPtr depth_filter_;
 
-    /** \brief canvas element (screen-filling quad) for second pass*/
-    GLuint canvas_;
+  /** \brief canvas element (screen-filling quad) for second pass*/
+  GLuint canvas_;
 
-    /** \brief handle depth texture from sensor data*/
-    GLuint sensor_depth_texture_;
+  /** \brief handle depth texture from sensor data*/
+  GLuint sensor_depth_texture_;
 
-    /** \brief handle to GLSL location of shadow threshold*/
-    GLuint shadow_threshold_location_;
+  /** \brief handle to GLSL location of shadow threshold*/
+  GLuint shadow_threshold_location_;
 
-    /** \brief callback function for retrieving the mesh transformations*/
-    TransformCallback transform_callback_;
+  /** \brief callback function for retrieving the mesh transformations*/
+  TransformCallback transform_callback_;
 
-    /** \brief padding scale*/
-    float padding_scale_;
+  /** \brief padding scale*/
+  float padding_scale_;
 
-    /** \brief padding offset*/
-    float padding_offset_;
+  /** \brief padding offset*/
+  float padding_offset_;
 
-    /** \brief threshold for shadowed pixels vs. filtered pixels*/
-    float shadow_threshold_;
-
+  /** \brief threshold for shadowed pixels vs. filtered pixels*/
+  float shadow_threshold_;
 };
-} // namespace mesh_filter
+}  // namespace mesh_filter
 
-#endif    /* __MESH_FILTER_MESH_FILTER_BASE_H__ */
+#endif /* __MESH_FILTER_MESH_FILTER_BASE_H__ */

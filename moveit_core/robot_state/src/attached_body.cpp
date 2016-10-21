@@ -37,8 +37,7 @@
 #include <moveit/robot_state/attached_body.h>
 #include <geometric_shapes/shapes.h>
 
-moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
-                                         const std::string &id,
+moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model, const std::string &id,
                                          const std::vector<shapes::ShapeConstPtr> &shapes,
                                          const EigenSTL::vector_Affine3d &attach_trans,
                                          const std::set<std::string> &touch_links,
@@ -51,7 +50,7 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel *parent_link_model,
   , detach_posture_(detach_posture)
 {
   global_collision_body_transforms_.resize(attach_trans.size());
-  for(std::size_t i = 0 ; i < global_collision_body_transforms_.size() ; ++i)
+  for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
     global_collision_body_transforms_[i].setIdentity();
 }
 
@@ -61,11 +60,11 @@ moveit::core::AttachedBody::~AttachedBody()
 
 void moveit::core::AttachedBody::setScale(double scale)
 {
-  for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+  for (std::size_t i = 0; i < shapes_.size(); ++i)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
     if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->scale(scale);
+      const_cast<shapes::Shape *>(shapes_[i].get())->scale(scale);
     else
     {
       // if the shape is owned elsewhere, we make a copy:
@@ -78,11 +77,11 @@ void moveit::core::AttachedBody::setScale(double scale)
 
 void moveit::core::AttachedBody::setPadding(double padding)
 {
-  for (std::size_t i = 0 ; i < shapes_.size() ; ++i)
+  for (std::size_t i = 0; i < shapes_.size(); ++i)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
     if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->padd(padding);
+      const_cast<shapes::Shape *>(shapes_[i].get())->padd(padding);
     else
     {
       // if the shape is owned elsewhere, we make a copy:

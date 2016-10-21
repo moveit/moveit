@@ -147,8 +147,7 @@ void CollisionWorldHybrid::getCollisionGradients(const CollisionRequest &req, Co
 
 void CollisionWorldHybrid::getAllCollisions(const CollisionRequest &req, CollisionResult &res,
                                             const CollisionRobot &robot, const robot_state::RobotState &state,
-                                            const AllowedCollisionMatrix *acm,
-                                            GroupStateRepresentationPtr &gsr) const
+                                            const AllowedCollisionMatrix *acm, GroupStateRepresentationPtr &gsr) const
 {
   cworld_distance_->getAllCollisions(req, res, robot, state, acm, gsr);
 }

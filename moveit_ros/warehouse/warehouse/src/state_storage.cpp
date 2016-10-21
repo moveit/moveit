@@ -44,8 +44,8 @@ const std::string moveit_warehouse::RobotStateStorage::ROBOT_NAME = "robot_id";
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
-moveit_warehouse::RobotStateStorage::RobotStateStorage(warehouse_ros::DatabaseConnection::Ptr conn) :
-  MoveItMessageStorage(conn)
+moveit_warehouse::RobotStateStorage::RobotStateStorage(warehouse_ros::DatabaseConnection::Ptr conn)
+  : MoveItMessageStorage(conn)
 {
   createCollections();
 }
@@ -62,7 +62,8 @@ void moveit_warehouse::RobotStateStorage::reset()
   createCollections();
 }
 
-void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot)
+void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState &msg, const std::string &name,
+                                                        const std::string &robot)
 {
   bool replace = false;
   if (hasRobotState(name, robot))
@@ -87,25 +88,28 @@ bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name,
   return !constr.empty();
 }
 
-void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string &regex, std::vector<std::string> &names, const std::string &robot) const
+void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string &regex, std::vector<std::string> &names,
+                                                              const std::string &robot) const
 {
   getKnownRobotStates(names, robot);
   filterNames(regex, names);
 }
 
-void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string> &names, const std::string &robot) const
+void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string> &names,
+                                                              const std::string &robot) const
 {
   names.clear();
   Query::Ptr q = state_collection_->createQuery();
   if (!robot.empty())
     q->append(ROBOT_NAME, robot);
   std::vector<RobotStateWithMetadata> constr = state_collection_->queryList(q, true, STATE_NAME, true);
-  for (std::size_t i = 0; i < constr.size() ; ++i)
+  for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(STATE_NAME))
       names.push_back(constr[i]->lookupString(STATE_NAME));
 }
 
-bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot) const
+bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &msg_m, const std::string &name,
+                                                        const std::string &robot) const
 {
   Query::Ptr q = state_collection_->createQuery();
   q->append(STATE_NAME, name);
@@ -121,7 +125,8 @@ bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &
   }
 }
 
-void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &old_name, const std::string &new_name, const std::string &robot)
+void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &old_name, const std::string &new_name,
+                                                           const std::string &robot)
 {
   Query::Ptr q = state_collection_->createQuery();
   q->append(STATE_NAME, old_name);

@@ -49,7 +49,6 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-
   virtual void SetUp()
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
@@ -77,12 +76,11 @@ protected:
   }
 
 protected:
-  robot_model::RobotModelPtr    robot_model_;
+  robot_model::RobotModelPtr robot_model_;
   urdf::ModelInterfaceSharedPtr urdf_model_;
-  srdf::ModelSharedPtr          srdf_model_;
-  bool                          urdf_ok_;
-  bool                          srdf_ok_;
-
+  srdf::ModelSharedPtr srdf_model_;
+  bool urdf_ok_;
+  bool srdf_ok_;
 };
 
 TEST_F(LoadPlanningModelsPr2, StateSpace)
@@ -99,7 +97,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
     ss.sanityChecks();
     passed = true;
   }
-  catch(ompl::Exception &ex)
+  catch (ompl::Exception &ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -142,7 +140,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     ss.sanityChecks();
     passed = true;
   }
-  catch(ompl::Exception &ex)
+  catch (ompl::Exception &ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -152,7 +150,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   kstate.setToRandomPositions();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
   ompl::base::State *state = ss.allocState();
-  for (int i = 0 ; i < 10 ; ++i)
+  for (int i = 0; i < 10; ++i)
   {
     robot_state::RobotState kstate2(kstate);
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
@@ -172,6 +170,6 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
 
 int main(int argc, char **argv)
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

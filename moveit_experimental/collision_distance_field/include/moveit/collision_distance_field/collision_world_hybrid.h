@@ -69,8 +69,7 @@ public:
                                    const robot_state::RobotState &state) const;
 
   void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state,
-                                   GroupStateRepresentationPtr &gsr) const;
+                                   const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
 
   void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
                                    const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
@@ -83,8 +82,7 @@ public:
                                         const robot_state::RobotState &state) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                        const robot_state::RobotState &state,
-                                        GroupStateRepresentationPtr &gsr) const;
+                                        const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
 
   void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
                                         const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;

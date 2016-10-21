@@ -633,8 +633,7 @@ bool CollisionRobotDistanceField::getIntraGroupCollisions(const collision_detect
   return false;
 }
 
-bool CollisionRobotDistanceField::getIntraGroupProximityGradients(
-    GroupStateRepresentationPtr &gsr) const
+bool CollisionRobotDistanceField::getIntraGroupProximityGradients(GroupStateRepresentationPtr &gsr) const
 {
   bool in_collision = false;
   unsigned int num_links = gsr->dfce_->link_names_.size();
@@ -1096,8 +1095,8 @@ CollisionRobotDistanceField::getPosedLinkBodyPointDecomposition(const moveit::co
   return ret;
 }
 
-void CollisionRobotDistanceField::updateGroupStateRepresentationState(
-    const moveit::core::RobotState &state, GroupStateRepresentationPtr &gsr) const
+void CollisionRobotDistanceField::updateGroupStateRepresentationState(const moveit::core::RobotState &state,
+                                                                      GroupStateRepresentationPtr &gsr) const
 {
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
   {
@@ -1151,9 +1150,9 @@ void CollisionRobotDistanceField::updateGroupStateRepresentationState(
   }
 }
 
-void CollisionRobotDistanceField::getGroupStateRepresentation(
-    const DistanceFieldCacheEntryConstPtr &dfce, const moveit::core::RobotState &state,
-    GroupStateRepresentationPtr &gsr) const
+void CollisionRobotDistanceField::getGroupStateRepresentation(const DistanceFieldCacheEntryConstPtr &dfce,
+                                                              const moveit::core::RobotState &state,
+                                                              GroupStateRepresentationPtr &gsr) const
 {
   if (!dfce->pregenerated_group_state_representation_)
   {
@@ -1311,8 +1310,7 @@ bool CollisionRobotDistanceField::compareCacheEntryToState(const DistanceFieldCa
 }
 
 bool CollisionRobotDistanceField::compareCacheEntryToAllowedCollisionMatrix(
-    const DistanceFieldCacheEntryConstPtr &dfce,
-    const collision_detection::AllowedCollisionMatrix &acm) const
+    const DistanceFieldCacheEntryConstPtr &dfce, const collision_detection::AllowedCollisionMatrix &acm) const
 {
   if (dfce->acm_.getSize() != acm.getSize())
   {

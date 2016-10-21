@@ -44,29 +44,24 @@
 
 namespace move_group
 {
-
 class MoveGroupQueryPlannersService : public MoveGroupCapability
 {
 public:
-
   MoveGroupQueryPlannersService();
 
   virtual void initialize();
 
 private:
+  bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req,
+                      moveit_msgs::QueryPlannerInterfaces::Response &res);
 
-  bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res);
-
-  bool getParams(moveit_msgs::GetPlannerParams::Request &req,
-                 moveit_msgs::GetPlannerParams::Response &res);
-  bool setParams(moveit_msgs::SetPlannerParams::Request &req,
-                 moveit_msgs::SetPlannerParams::Response &res);
+  bool getParams(moveit_msgs::GetPlannerParams::Request &req, moveit_msgs::GetPlannerParams::Response &res);
+  bool setParams(moveit_msgs::SetPlannerParams::Request &req, moveit_msgs::SetPlannerParams::Response &res);
 
   ros::ServiceServer query_service_;
   ros::ServiceServer get_service_;
   ros::ServiceServer set_service_;
 };
-
 }
 
 #endif

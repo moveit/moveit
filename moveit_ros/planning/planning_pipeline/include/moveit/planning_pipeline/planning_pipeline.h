@@ -47,7 +47,6 @@
 /** \brief Planning pipeline */
 namespace planning_pipeline
 {
-
 /** \brief This class facilitates loading planning plugins and
     planning request adapted plugins.  and allows calling
     planning_interface::PlanningContext::solve() from a loaded
@@ -56,28 +55,30 @@ namespace planning_pipeline
     specified order. */
 class PlanningPipeline
 {
-
 public:
-
-  /** \brief When motion plans are computed and they are supposed to be automatically displayed, they are sent to this topic (moveit_msgs::DisplauTrajectory) */
+  /** \brief When motion plans are computed and they are supposed to be automatically displayed, they are sent to this
+   * topic (moveit_msgs::DisplauTrajectory) */
   static const std::string DISPLAY_PATH_TOPIC;
 
-  /** \brief When motion planning requests are received and they are supposed to be automatically published, they are sent to this topic (moveit_msgs::MotionPlanRequest) */
+  /** \brief When motion planning requests are received and they are supposed to be automatically published, they are
+   * sent to this topic (moveit_msgs::MotionPlanRequest) */
   static const std::string MOTION_PLAN_REQUEST_TOPIC;
 
-  /** \brief When contacts are found in the solution path reported by a planner, they can be published as markers on this topic (visualization_msgs::MarkerArray) */
+  /** \brief When contacts are found in the solution path reported by a planner, they can be published as markers on
+   * this topic (visualization_msgs::MarkerArray) */
   static const std::string MOTION_CONTACTS_TOPIC;
 
   /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
       \param nh The ROS node handle that should be used for reading parameters needed for configuration
-      \param planning_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is specified
-      \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter plugins are specified (plugin names separated by space; order matters)
+      \param planning_plugin_param_name The name of the ROS parameter under which the name of the planning plugin is
+     specified
+      \param adapter_plugins_param_name The name of the ROS parameter under which the names of the request adapter
+     plugins are specified (plugin names separated by space; order matters)
   */
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model,
-                   const ros::NodeHandle &nh = ros::NodeHandle("~"),
-                   const std::string &planning_plugin_param_name = "planning_plugin",
-                   const std::string &adapter_plugins_param_name = "request_adapters");
+  PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh = ros::NodeHandle("~"),
+                   const std::string& planning_plugin_param_name = "planning_plugin",
+                   const std::string& adapter_plugins_param_name = "request_adapters");
 
   /** \brief Given a robot model (\e model), a node handle (\e nh), initialize the planning pipeline.
       \param model The robot model for which this pipeline is initialized.
@@ -85,18 +86,19 @@ public:
       \param planning_plugin_name The name of the planning plugin to load
       \param adapter_plugins_names The names of the planning request adapter plugins to load
   */
-  PlanningPipeline(const robot_model::RobotModelConstPtr& model,
-                   const ros::NodeHandle &nh,
-                   const std::string &planning_plugin_name,
-                   const std::vector<std::string> &adapter_plugin_names);
+  PlanningPipeline(const robot_model::RobotModelConstPtr& model, const ros::NodeHandle& nh,
+                   const std::string& planning_plugin_name, const std::vector<std::string>& adapter_plugin_names);
 
-  /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC. Default is true. */
+  /** \brief Pass a flag telling the pipeline whether or not to publish the computed motion plans on DISPLAY_PATH_TOPIC.
+   * Default is true. */
   void displayComputedMotionPlans(bool flag);
 
-  /** \brief Pass a flag telling the pipeline whether or not to publish the received motion planning requests on MOTION_PLAN_REQUEST_TOPIC. Default is false. */
+  /** \brief Pass a flag telling the pipeline whether or not to publish the received motion planning requests on
+   * MOTION_PLAN_REQUEST_TOPIC. Default is false. */
   void publishReceivedRequests(bool flag);
 
-  /** \brief Pass a flag telling the pipeline whether or not to re-check the solution paths reported by the planner. This is true by default.  */
+  /** \brief Pass a flag telling the pipeline whether or not to re-check the solution paths reported by the planner.
+   * This is true by default.  */
   void checkSolutionPaths(bool flag);
 
   /** \brief Get the flag set by displayComputedMotionPlans() */
@@ -129,11 +131,13 @@ public:
       \param planning_scene The planning scene where motion planning is to be done
       \param req The request for motion planning
       \param res The motion planning response
-      \param adapter_added_state_index Sometimes planning request adapters may add states on the solution path (e.g., add the current state of the robot as prefix, when the robot started to plan only from near that state, as the current state itself appears to touch obstacles). This is helpful because the added states should not be considered invalid in all situations. */
+      \param adapter_added_state_index Sometimes planning request adapters may add states on the solution path (e.g.,
+     add the current state of the robot as prefix, when the robot started to plan only from near that state, as the
+     current state itself appears to touch obstacles). This is helpful because the added states should not be considered
+     invalid in all situations. */
   bool generatePlan(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req,
-                    planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t> &adapter_added_state_index) const;
+                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
+                    std::vector<std::size_t>& adapter_added_state_index) const;
 
   /** \brief Request termination, if a generatePlan() function is currently computing plans */
   void terminate() const;
@@ -163,7 +167,6 @@ public:
   }
 
 private:
-
   void configure();
 
   ros::NodeHandle nh_;
@@ -172,7 +175,8 @@ private:
   bool display_computed_motion_plans_;
   ros::Publisher display_path_publisher_;
 
-  /// Flag indicating whether received requests should be published just before beginning processing (useful for debugging)
+  /// Flag indicating whether received requests should be published just before beginning processing (useful for
+  /// debugging)
   bool publish_received_requests_;
   ros::Publisher received_request_publisher_;
 
@@ -189,11 +193,9 @@ private:
   /// Flag indicating whether the reported plans should be checked once again, by the planning pipeline itself
   bool check_solution_paths_;
   ros::Publisher contacts_publisher_;
-
 };
 
 MOVEIT_CLASS_FORWARD(PlanningPipeline);
-
 }
 
 #endif

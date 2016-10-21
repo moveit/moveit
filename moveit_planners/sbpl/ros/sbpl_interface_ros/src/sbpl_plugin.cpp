@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #include <ros/ros.h>
 
 #include <planning_interface/planning_interface.h>
@@ -45,11 +44,10 @@
 
 namespace sbpl_interface_ros
 {
-
 class SBPLPlanner : public planning_interface::Planner
 {
 public:
-  void init(const planning_models::RobotModelConstPtr& model)
+  void init(const planning_models::RobotModelConstPtr &model)
   {
     ros::NodeHandle nh;
     display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);
@@ -64,31 +62,23 @@ public:
     return true;
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::GetMotionPlan::Response &res) const
+  bool solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
+             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
-    bool solve_ok = sbpl_interface_->solve(planning_scene,
-                                           req,
-                                           res,
-                                           params);
+    bool solve_ok = sbpl_interface_->solve(planning_scene, req, res, params);
     return solve_ok;
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::MotionPlanDetailedResponse &res) const
+  bool solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
+             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
 
     moveit_msgs::GetMotionPlan::Response res2;
-    if (sbpl_interface_->solve(planning_scene,
-                               req,
-                               res2,
-                               params))
+    if (sbpl_interface_->solve(planning_scene, req, res2, params))
     {
       res.trajectory_start = res2.trajectory_start;
       res.trajectory.push_back(res2.trajectory);
@@ -100,7 +90,10 @@ public:
       return false;
   }
 
-  std::string getDescription() const { return "SBPL"; }
+  std::string getDescription() const
+  {
+    return "SBPL";
+  }
 
   void getPlanningAlgorithms(std::vector<std::string> &algs) const
   {
@@ -110,7 +103,7 @@ public:
 
   void terminate() const
   {
-    //TODO - make interruptible
+    // TODO - make interruptible
   }
 
 private:
@@ -118,6 +111,6 @@ private:
   boost::shared_ptr<sbpl_interface::SBPLInterface> sbpl_interface_;
 };
 
-} // ompl_interface_ros
+}  // ompl_interface_ros
 
-PLUGINLIB_EXPORT_CLASS( sbpl_interface_ros::SBPLPlanner, planning_interface::Planner);
+PLUGINLIB_EXPORT_CLASS(sbpl_interface_ros::SBPLPlanner, planning_interface::Planner);

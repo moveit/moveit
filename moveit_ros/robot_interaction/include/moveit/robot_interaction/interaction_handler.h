@@ -46,7 +46,6 @@
 
 namespace robot_interaction
 {
-
 MOVEIT_CLASS_FORWARD(InteractionHandler);
 MOVEIT_CLASS_FORWARD(RobotInteraction);
 MOVEIT_CLASS_FORWARD(KinematicOptionsMap);
@@ -54,7 +53,6 @@ MOVEIT_CLASS_FORWARD(KinematicOptionsMap);
 class EndEffectorInteraction;
 class JointInteraction;
 class GenericInteraction;
-
 
 /// Function type for notifying client of RobotState changes.
 ///
@@ -66,8 +64,6 @@ class GenericInteraction;
 /// InteractionHandler::handle* functions have switched from failing to
 /// succeeding or the other way around.
 typedef boost::function<void(InteractionHandler*, bool)> InteractionHandlerCallbackFn;
-
-
 
 /// Manage interactive markers to control a RobotState.
 ///
@@ -81,24 +77,20 @@ class InteractionHandler : public LockedRobotState
 {
 public:
   // Use this constructor if you have an initial RobotState already.
-  InteractionHandler(const RobotInteractionPtr& robot_interaction,
-                     const std::string &name,
-                     const robot_state::RobotState &initial_robot_state,
-                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
+                     const robot_state::RobotState& initial_robot_state,
+                     const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
 
   // Use this constructor to start with a default state.
-  InteractionHandler(const RobotInteractionPtr& robot_interaction,
-                     const std::string &name,
-                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
+                     const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
 
   // DEPRECATED.
-  InteractionHandler(const std::string &name,
-                     const robot_state::RobotState &initial_robot_state,
-                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
+                     const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
   // DEPRECATED.
-  InteractionHandler(const std::string &name,
-                     const robot_model::RobotModelConstPtr &model,
-                     const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>());
+  InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& model,
+                     const boost::shared_ptr<tf::Transformer>& tf = boost::shared_ptr<tf::Transformer>());
 
   virtual ~InteractionHandler()
   {
@@ -115,7 +107,7 @@ public:
   /// Set a new RobotState for this InteractionHandler.
   using LockedRobotState::setState;
 
-  void setUpdateCallback(const InteractionHandlerCallbackFn &callback);
+  void setUpdateCallback(const InteractionHandlerCallbackFn& callback);
   const InteractionHandlerCallbackFn& getUpdateCallback() const;
   void setMeshesVisible(bool visible);
   bool getMeshesVisible() const;
@@ -159,9 +151,7 @@ public:
   /** \brief Set the menu handler that defines menus and callbacks for all
    *         interactive markers drawn by this interaction handler.
    * @param  A menu handler. */
-  void setMenuHandler(
-        const std::shared_ptr<interactive_markers::MenuHandler>& mh);
-
+  void setMenuHandler(const std::shared_ptr<interactive_markers::MenuHandler>& mh);
 
   /** \brief Get the menu handler that defines menus and callbacks for all
    *         interactive markers drawn by this interaction handler.
@@ -176,16 +166,14 @@ public:
    * @param A PoseStamped message containing the last (offset-removed) pose
    *           commanded for the end-effector.
    * @return True if a pose for that end-effector was found, false otherwise. */
-  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef,
-                                    geometry_msgs::PoseStamped& pose);
+  bool getLastEndEffectorMarkerPose(const EndEffectorInteraction& eef, geometry_msgs::PoseStamped& pose);
 
   /** \brief Get the last interactive_marker command pose for a joint.
    * @param The joint in question.
    * @param A PoseStamped message containing the last (offset-removed) pose
    *           commanded for the joint.
    * @return True if a pose for that joint was found, false otherwise. */
-  bool getLastJointMarkerPose(const JointInteraction& vj,
-                              geometry_msgs::PoseStamped& pose);
+  bool getLastJointMarkerPose(const JointInteraction& vj, geometry_msgs::PoseStamped& pose);
 
   /** \brief Clear the last interactive_marker command pose for the given
    * end-effector.
@@ -202,21 +190,18 @@ public:
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleEndEffector(
-        const EndEffectorInteraction &eef,
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleEndEffector(const EndEffectorInteraction& eef,
+                                 const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleJoint(
-        const JointInteraction &vj,
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleJoint(const JointInteraction& vj,
+                           const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /** \brief Update the internal state maintained by the handler using
    * information from the received feedback message. */
-  virtual void handleGeneric(
-        const GenericInteraction &g,
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  virtual void handleGeneric(const GenericInteraction& g,
+                             const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
 
   /** \brief Check if the marker corresponding to this end-effector leads to an
    * invalid state */
@@ -239,41 +224,31 @@ public:
   void setRobotInteraction(RobotInteraction* robot_interaction);
 
 protected:
-
-  bool transformFeedbackPose(
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback,
-        const geometry_msgs::Pose &offset,
-        geometry_msgs::PoseStamped &tpose);
+  bool transformFeedbackPose(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback,
+                             const geometry_msgs::Pose& offset, geometry_msgs::PoseStamped& tpose);
 
   const std::string name_;
   const std::string planning_frame_;
   boost::shared_ptr<tf::Transformer> tf_;
 
 private:
-
   typedef boost::function<void(InteractionHandler*)> StateChangeCallbackFn;
 
   // Update RobotState using a generic interaction feedback message.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateGeneric(
-        robot_state::RobotState* state,
-        const GenericInteraction* g,
-        const visualization_msgs::InteractiveMarkerFeedbackConstPtr *feedback,
-        StateChangeCallbackFn *callback);
+  void updateStateGeneric(robot_state::RobotState* state, const GenericInteraction* g,
+                          const visualization_msgs::InteractiveMarkerFeedbackConstPtr* feedback,
+                          StateChangeCallbackFn* callback);
 
   // Update RobotState for a new pose of an eef.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateEndEffector(robot_state::RobotState* state,
-                              const EndEffectorInteraction* eef,
-                              const geometry_msgs::Pose* pose,
-                              StateChangeCallbackFn *callback);
+  void updateStateEndEffector(robot_state::RobotState* state, const EndEffectorInteraction* eef,
+                              const geometry_msgs::Pose* pose, StateChangeCallbackFn* callback);
 
   // Update RobotState for a new joint position.
   // YOU MUST LOCK state_lock_ BEFORE CALLING THIS.
-  void updateStateJoint(robot_state::RobotState* state,
-                        const JointInteraction* vj,
-                        const geometry_msgs::Pose* pose,
-                        StateChangeCallbackFn *callback);
+  void updateStateJoint(robot_state::RobotState* state, const JointInteraction* vj, const geometry_msgs::Pose* pose,
+                        StateChangeCallbackFn* callback);
 
   // Set the error state for \e name.
   // Returns true if the error state for \e name changed.
@@ -338,8 +313,7 @@ private:
   //
   // PROTECTED BY state_lock_ - the function pointer is protected, but the call
   // is made without any lock held.
-  boost::function<void(InteractionHandler* handler,
-                       bool error_state_changed)> update_callback_;
+  boost::function<void(InteractionHandler* handler, bool error_state_changed)> update_callback_;
 
   // PROTECTED BY state_lock_
   bool display_meshes_;
@@ -354,17 +328,14 @@ public:
   // DEPRECATED FUNCTIONS.
   // DO NOT USE THESE.  Instead access the KinematicOptions by calling
   // RobotInteraction::getKinematicOptionsMap()
-  void setGroupStateValidityCallback(
-        const robot_state::GroupStateValidityCallbackFn &callback);
+  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback);
   void setIKTimeout(double timeout);
   void setIKAttempts(unsigned int attempts);
   kinematics::KinematicsQueryOptions getKinematicsQueryOptions() const;
-  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions &opt);
+  void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt);
   void setKinematicsQueryOptionsForGroup(const std::string& group_name,
-           const kinematics::KinematicsQueryOptions &options);
+                                         const kinematics::KinematicsQueryOptions& options);
 };
-
-
 }
 
 #endif

@@ -37,7 +37,6 @@
 #include <moveit/collision_detection/world_diff.h>
 #include <boost/bind.hpp>
 
-
 collision_detection::WorldDiff::~WorldDiff()
 {
   WorldPtr old_world = world_.lock();
@@ -46,15 +45,15 @@ collision_detection::WorldDiff::~WorldDiff()
 }
 
 collision_detection::WorldDiff::WorldDiff()
-{ }
+{
+}
 
-collision_detection::WorldDiff::WorldDiff(const WorldPtr& world) :
-  world_(world)
+collision_detection::WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
 {
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
-collision_detection::WorldDiff::WorldDiff(WorldDiff &other)
+collision_detection::WorldDiff::WorldDiff(WorldDiff& other)
 {
   WorldPtr world = other.world_.lock();
   if (world)
@@ -101,7 +100,7 @@ void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
   std::weak_ptr<World>(world).swap(world_);
 
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
-  world->notifyObserverAllObjects(observer_handle_, World::CREATE|World::ADD_SHAPE);
+  world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);
 }
 
 void collision_detection::WorldDiff::clearChanges()

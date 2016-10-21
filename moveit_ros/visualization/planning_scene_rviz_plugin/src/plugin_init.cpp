@@ -37,4 +37,4 @@
 #include <class_loader/class_loader.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 
-CLASS_LOADER_REGISTER_CLASS( moveit_rviz_plugin::PlanningSceneDisplay, rviz::Display )
+CLASS_LOADER_REGISTER_CLASS(moveit_rviz_plugin::PlanningSceneDisplay, rviz::Display)

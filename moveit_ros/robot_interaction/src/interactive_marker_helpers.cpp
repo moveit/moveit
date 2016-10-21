@@ -41,20 +41,19 @@
 
 namespace robot_interaction
 {
-
 visualization_msgs::InteractiveMarker makeEmptyInteractiveMarker(const std::string& name,
-                                                                 const geometry_msgs::PoseStamped &stamped,
+                                                                 const geometry_msgs::PoseStamped& stamped,
                                                                  double scale)
 {
   visualization_msgs::InteractiveMarker int_marker;
-  int_marker.header =  stamped.header;
+  int_marker.header = stamped.header;
   int_marker.name = name;
   int_marker.scale = scale;
   int_marker.pose = stamped.pose;
   return int_marker;
 }
 
-void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
+void addTArrowMarker(visualization_msgs::InteractiveMarker& im)
 {
   // create an arrow marker
   visualization_msgs::Marker m;
@@ -67,10 +66,10 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
   m.action = visualization_msgs::Marker::ADD;
   m.header = im.header;
   m.pose = im.pose;
-  //Arrow points along Z
+  // Arrow points along Z
   tf::Quaternion imq;
   tf::quaternionMsgToTF(m.pose.orientation, imq);
-  imq=imq*tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
+  imq = imq * tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
   tf::quaternionTFToMsg(imq, m.pose.orientation);
   m.color.r = 0.0f;
   m.color.g = 1.0f;
@@ -87,9 +86,9 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
   mc.action = visualization_msgs::Marker::ADD;
   mc.header = im.header;
   mc.pose = im.pose;
-  //Cylinder points along Y
+  // Cylinder points along Y
   tf::quaternionMsgToTF(mc.pose.orientation, imq);
-  imq=imq*tf::createQuaternionFromRPY(boost::math::constants::pi<double>() / 2.0, 0, 0);
+  imq = imq * tf::createQuaternionFromRPY(boost::math::constants::pi<double>() / 2.0, 0, 0);
   tf::quaternionTFToMsg(imq, mc.pose.orientation);
   mc.pose.position.x -= 0.04;
   mc.pose.position.z += 0.01;
@@ -100,7 +99,7 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
 
   visualization_msgs::InteractiveMarkerControl m_control;
   m_control.always_visible = true;
-  m_control.interaction_mode=m_control.BUTTON;
+  m_control.interaction_mode = m_control.BUTTON;
   m_control.markers.push_back(m);
   m_control.markers.push_back(mc);
 
@@ -108,7 +107,7 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker &im)
   im.controls.push_back(m_control);
 }
 
-void addErrorMarker(visualization_msgs::InteractiveMarker &im)
+void addErrorMarker(visualization_msgs::InteractiveMarker& im)
 {
   // create a grey box marker
   visualization_msgs::Marker err;
@@ -227,7 +226,8 @@ void addPositionControl(visualization_msgs::InteractiveMarker& int_marker, bool 
   int_marker.controls.push_back(control);
 }
 
-void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius, const std_msgs::ColorRGBA& color, bool position, bool orientation)
+void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, double radius,
+                         const std_msgs::ColorRGBA& color, bool position, bool orientation)
 {
   visualization_msgs::InteractiveMarkerControl control;
   control.orientation_mode = visualization_msgs::InteractiveMarkerControl::VIEW_FACING;
@@ -248,30 +248,26 @@ void addViewPlaneControl(visualization_msgs::InteractiveMarker& int_marker, doub
   marker.scale.z = radius * 2.0;
   marker.color = color;
 
-  control.markers.push_back( marker );
+  control.markers.push_back(marker);
   control.always_visible = false;
 
   int_marker.controls.push_back(control);
 }
 
 visualization_msgs::InteractiveMarker makePlanarXYMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped,
-                                                     double scale,
-                                                     bool orientation_fixed)
+                                                         const geometry_msgs::PoseStamped& stamped, double scale,
+                                                         bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarker int_marker = makeEmptyInteractiveMarker(name, stamped, scale);
   addPlanarXYControl(int_marker, orientation_fixed);
   return int_marker;
 }
 
-visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name,
-                                                     const geometry_msgs::PoseStamped &stamped,
-                                                     double scale,
-                                                     bool orientation_fixed)
+visualization_msgs::InteractiveMarker make6DOFMarker(const std::string& name, const geometry_msgs::PoseStamped& stamped,
+                                                     double scale, bool orientation_fixed)
 {
   visualization_msgs::InteractiveMarker int_marker = makeEmptyInteractiveMarker(name, stamped, scale);
   add6DOFControl(int_marker, orientation_fixed);
   return int_marker;
 }
-
 }

@@ -39,12 +39,8 @@
 
 namespace pick_place
 {
-
-ManipulationPipeline::ManipulationPipeline(const std::string &name, unsigned int nthreads) :
-  name_(name),
-  nthreads_(nthreads),
-  verbose_(false),
-  stop_processing_(true)
+ManipulationPipeline::ManipulationPipeline(const std::string &name, unsigned int nthreads)
+  : name_(name), nthreads_(nthreads), verbose_(false), stop_processing_(true)
 {
   processing_threads_.resize(nthreads, NULL);
 }
@@ -54,14 +50,14 @@ ManipulationPipeline::~ManipulationPipeline()
   reset();
 }
 
-ManipulationPipeline& ManipulationPipeline::addStage(const ManipulationStagePtr &next)
+ManipulationPipeline &ManipulationPipeline::addStage(const ManipulationStagePtr &next)
 {
   next->setVerbose(verbose_);
   stages_.push_back(next);
   return *this;
 }
 
-const ManipulationStagePtr& ManipulationPipeline::getFirstStage() const
+const ManipulationStagePtr &ManipulationPipeline::getFirstStage() const
 {
   if (stages_.empty())
   {
@@ -72,7 +68,7 @@ const ManipulationStagePtr& ManipulationPipeline::getFirstStage() const
     return stages_.front();
 }
 
-const ManipulationStagePtr& ManipulationPipeline::getLastStage() const
+const ManipulationStagePtr &ManipulationPipeline::getLastStage() const
 {
   if (stages_.empty())
   {
@@ -92,7 +88,7 @@ void ManipulationPipeline::reset()
 void ManipulationPipeline::setVerbose(bool flag)
 {
   verbose_ = flag;
-  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+  for (std::size_t i = 0; i < stages_.size(); ++i)
     stages_[i]->setVerbose(flag);
 }
 
@@ -114,16 +110,16 @@ void ManipulationPipeline::start()
 {
   stop_processing_ = false;
   empty_queue_threads_ = 0;
-  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+  for (std::size_t i = 0; i < stages_.size(); ++i)
     stages_[i]->resetStopSignal();
-  for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
+  for (std::size_t i = 0; i < processing_threads_.size(); ++i)
     if (!processing_threads_[i])
       processing_threads_[i] = new boost::thread(boost::bind(&ManipulationPipeline::processingThread, this, i));
 }
 
 void ManipulationPipeline::signalStop()
 {
-  for (std::size_t i = 0 ; i < stages_.size() ; ++i)
+  for (std::size_t i = 0; i < stages_.size(); ++i)
     stages_[i]->signalStop();
   stop_processing_ = true;
   queue_access_cond_.notify_all();
@@ -132,7 +128,7 @@ void ManipulationPipeline::signalStop()
 void ManipulationPipeline::stop()
 {
   signalStop();
-  for (std::size_t i = 0; i < processing_threads_.size() ; ++i)
+  for (std::size_t i = 0; i < processing_threads_.size(); ++i)
     if (processing_threads_[i])
     {
       processing_threads_[i]->join();
@@ -173,7 +169,7 @@ void ManipulationPipeline::processingThread(unsigned int index)
       try
       {
         g->error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-        for (std::size_t i = 0 ; !stop_processing_ && i < stages_.size() ; ++i)
+        for (std::size_t i = 0; !stop_processing_ && i < stages_.size(); ++i)
         {
           bool res = stages_[i]->evaluate(g);
           g->processing_stage_ = i + 1;
@@ -181,7 +177,9 @@ void ManipulationPipeline::processingThread(unsigned int index)
           {
             boost::mutex::scoped_lock slock(result_lock_);
             failed_.push_back(g);
-            ROS_INFO_STREAM_NAMED("manipulation", "Manipulation plan " << g->id_ << " failed at stage '" << stages_[i]->getName() << "' on thread " << index);
+            ROS_INFO_STREAM_NAMED("manipulation", "Manipulation plan " << g->id_ << " failed at stage '"
+                                                                       << stages_[i]->getName() << "' on thread "
+                                                                       << index);
             break;
           }
         }
@@ -204,7 +202,8 @@ void ManipulationPipeline::processingThread(unsigned int index)
       }
       catch (...)
       {
-        ROS_ERROR_NAMED("manipulation", "[%s:%u] Caught unknown exception while processing manipulation stage", name_.c_str(), index);
+        ROS_ERROR_NAMED("manipulation", "[%s:%u] Caught unknown exception while processing manipulation stage",
+                        name_.c_str(), index);
       }
       queue_access_lock_.lock();
     }
@@ -215,7 +214,8 @@ void ManipulationPipeline::push(const ManipulationPlanPtr &plan)
 {
   boost::mutex::scoped_lock slock(queue_access_lock_);
   queue_.push_back(plan);
-  ROS_INFO_STREAM_NAMED("manipulation", "Added plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
+  ROS_INFO_STREAM_NAMED("manipulation", "Added plan for pipeline '" << name_ << "'. Queue is now of size "
+                                                                    << queue_.size());
   queue_access_cond_.notify_all();
 }
 
@@ -228,8 +228,8 @@ void ManipulationPipeline::reprocessLastFailure()
   failed_.pop_back();
   plan->clear();
   queue_.push_back(plan);
-  ROS_INFO_STREAM_NAMED("manipulation", "Re-added last failed plan for pipeline '" << name_ << "'. Queue is now of size " << queue_.size());
+  ROS_INFO_STREAM_NAMED("manipulation", "Re-added last failed plan for pipeline '"
+                                            << name_ << "'. Queue is now of size " << queue_.size());
   queue_access_cond_.notify_all();
 }
-
 }

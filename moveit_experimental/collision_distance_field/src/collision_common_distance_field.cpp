@@ -45,7 +45,7 @@ namespace collision_detection
 struct BodyDecompositionCache
 {
   using Comperator = std::owner_less<std::weak_ptr<const shapes::Shape>>;
-  using Map        = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
+  using Map = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
 
   BodyDecompositionCache() : clean_count_(0)
   {
@@ -69,8 +69,7 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
   std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
-    BodyDecompositionCache::Map::const_iterator cache_it =
-        cache.map_.find(wptr);
+    BodyDecompositionCache::Map::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
       return cache_it->second;
@@ -129,8 +128,8 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const rob
   return ret;
 }
 
-void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr,
-                                       std::string reference_frame, visualization_msgs::MarkerArray &body_marker_array)
+void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr, std::string reference_frame,
+                                       visualization_msgs::MarkerArray &body_marker_array)
 {
   // creating namespaces
   std::string robot_ns = gsr->dfce_->group_name_ + "_sphere_decomposition";

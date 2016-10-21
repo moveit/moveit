@@ -45,7 +45,8 @@ bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse 
     res.trajectory_[0]->setRobotTrajectoryMsg(start_state, res2.trajectory[0]);
 
     trajectory_processing::IterativeParabolicTimeParameterization itp;
-    itp.computeTimeStamps(*res.trajectory_[0], request_.max_velocity_scaling_factor, request_.max_acceleration_scaling_factor);
+    itp.computeTimeStamps(*res.trajectory_[0], request_.max_velocity_scaling_factor,
+                          request_.max_acceleration_scaling_factor);
 
     res.description_.push_back("plan");
     res.processing_time_ = res2.processing_time;

@@ -42,7 +42,6 @@
 
 namespace constraint_samplers
 {
-
 MOVEIT_CLASS_FORWARD(ConstraintSamplerManager);
 
 /**
@@ -90,7 +89,8 @@ public:
    * @return An allocated ConstraintSamplerPtr,
    * or an empty pointer if none could be allocated
    */
-  ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr) const;
+  ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
+                                     const moveit_msgs::Constraints &constr) const;
 
   /**
    * \brief Default logic to select a ConstraintSampler given a
@@ -117,26 +117,32 @@ public:
    *     one with the smallest volume will be kept.
    *   - If no full pose is available, the function will attempt to create a position-only IKConstraintSampler.
    *   - Finally, the function will attempt to create an orientation-only IKConstraintSampler.
-   *   - If there is a valid IKConstraintSampler, then if no valid joint constraints are present then an IKConstraintSampler will be returned.
-   *   - If there are joint constraints, a UnionConstraintSampler with both the JointConstraintSampler and the IKConstraintSampler will be returned.
-   * - If there is no direct IK solver for the group, or no valid IKConstraintSampler could be generated, and there are subgroup IKSolvers, the function will attempt to generate a sampler from the various subgroup solvers.
-   *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.
+   *   - If there is a valid IKConstraintSampler, then if no valid joint constraints are present then an
+   *IKConstraintSampler will be returned.
+   *   - If there are joint constraints, a UnionConstraintSampler with both the JointConstraintSampler and the
+   *IKConstraintSampler will be returned.
+   * - If there is no direct IK solver for the group, or no valid IKConstraintSampler could be generated, and there are
+   *subgroup IKSolvers, the function will attempt to generate a sampler from the various subgroup solvers.
+   *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to
+   *create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.
    *   - If any samplers are valid, it adds them to a vector of type \ref ConstraintSamplerPtr.
-   *   - Once it has iterated through each sub-group, if any samplers are valid, they are returned in a UnionConstraintSampler, along with a JointConstraintSampler if one exists.
+   *   - Once it has iterated through each sub-group, if any samplers are valid, they are returned in a
+   *UnionConstraintSampler, along with a JointConstraintSampler if one exists.
    * @param scene The planning scene that will be used to create the ConstraintSampler
    * @param group_name The group name for which to create a sampler
    * @param constr The set of constraints for which to create a sampler
    *
-   * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref ConstraintSamplerPtr
+   * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref
+   *ConstraintSamplerPtr
    */
-  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name, const moveit_msgs::Constraints &constr);
+  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene,
+                                                   const std::string &group_name,
+                                                   const moveit_msgs::Constraints &constr);
 
 private:
-
-  std::vector<ConstraintSamplerAllocatorPtr> sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
+  std::vector<ConstraintSamplerAllocatorPtr>
+      sampler_alloc_; /**< \brief Holds the constraint sampler allocators, which will be tested in order  */
 };
-
 }
-
 
 #endif
