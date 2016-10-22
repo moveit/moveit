@@ -38,48 +38,48 @@
 
 void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int p2z, bresenham3d_param_t *params)
 {
-  params->X1=p1x;
-  params->Y1=p1y;
-  params->Z1=p1z;
-  params->X2=p2x;
-  params->Y2=p2y;
-  params->Z2=p2z;
+  params->X1 = p1x;
+  params->Y1 = p1y;
+  params->Z1 = p1z;
+  params->X2 = p2x;
+  params->Y2 = p2y;
+  params->Z2 = p2z;
 
   params->XIndex = params->X1;
   params->YIndex = params->Y1;
   params->ZIndex = params->Z1;
 
-  params->dx = fabs((double)(p2x-p1x));
-  params->dy = fabs((double)(p2y-p1y));
-  params->dz = fabs((double)(p2z-p1z));
+  params->dx = fabs((double)(p2x - p1x));
+  params->dy = fabs((double)(p2y - p1y));
+  params->dz = fabs((double)(p2z - p1z));
   params->dx2 = params->dx << 1;
   params->dy2 = params->dy << 1;
   params->dz2 = params->dz << 1;
 
-  //get direction of slope
-  if((double)(p2x-p1x) < 0)
+  // get direction of slope
+  if ((double)(p2x - p1x) < 0)
     params->IncX = -1;
   else
     params->IncX = 1;
 
-  if((double)(p2y-p1y) < 0)
+  if ((double)(p2y - p1y) < 0)
     params->IncY = -1;
   else
     params->IncY = 1;
 
-  if((double)(p2z-p1z) < 0)
+  if ((double)(p2z - p1z) < 0)
     params->IncZ = -1;
   else
     params->IncZ = 1;
 
-  //choose which axis to use as the index
-  if(params->dx >= params->dy && params->dx >= params->dz)
+  // choose which axis to use as the index
+  if (params->dx >= params->dy && params->dx >= params->dz)
   {
     params->UsingXYZIndex = 0;
     params->err1 = params->dy2 - params->dx;
     params->err2 = params->dz2 - params->dx;
   }
-  else if(params->dy >= params->dx && params->dy >= params->dz)
+  else if (params->dy >= params->dx && params->dy >= params->dz)
   {
     params->UsingXYZIndex = 1;
     params->err1 = params->dx2 - params->dy;
@@ -102,17 +102,19 @@ void get_current_point3d(bresenham3d_param_t *params, int *x, int *y, int *z)
 
 int get_next_point3d(bresenham3d_param_t *params)
 {
-  //check to see if at end of line
+  // check to see if at end of line
   if (params->XIndex == params->X2 && params->YIndex == params->Y2 && params->ZIndex == params->Z2)
     return 0;
 
   if (params->UsingXYZIndex == 0)
   {
-    if (params->err1 > 0) {
+    if (params->err1 > 0)
+    {
       params->YIndex += params->IncY;
       params->err1 -= params->dx2;
     }
-    if (params->err2 > 0) {
+    if (params->err2 > 0)
+    {
       params->ZIndex += params->IncZ;
       params->err2 -= params->dx2;
     }
@@ -120,13 +122,15 @@ int get_next_point3d(bresenham3d_param_t *params)
     params->err2 += params->dz2;
     params->XIndex += params->IncX;
   }
-  else if(params->UsingXYZIndex == 1)
+  else if (params->UsingXYZIndex == 1)
   {
-    if (params->err1 > 0) {
+    if (params->err1 > 0)
+    {
       params->XIndex += params->IncX;
       params->err1 -= params->dy2;
     }
-    if (params->err2 > 0) {
+    if (params->err2 > 0)
+    {
       params->ZIndex += params->IncZ;
       params->err2 -= params->dy2;
     }
@@ -136,11 +140,13 @@ int get_next_point3d(bresenham3d_param_t *params)
   }
   else
   {
-    if (params->err1 > 0) {
+    if (params->err1 > 0)
+    {
       params->YIndex += params->IncY;
       params->err1 -= params->dz2;
     }
-    if (params->err2 > 0) {
+    if (params->err2 > 0)
+    {
       params->XIndex += params->IncX;
       params->err2 -= params->dz2;
     }

@@ -42,23 +42,18 @@
 
 namespace move_group
 {
-
 class MoveGroupStateValidationService : public MoveGroupCapability
 {
 public:
-
   MoveGroupStateValidationService();
 
   virtual void initialize();
 
 private:
-
   bool computeService(moveit_msgs::GetStateValidity::Request &req, moveit_msgs::GetStateValidity::Response &res);
 
   ros::ServiceServer validity_service_;
-
 };
-
 }
 
 #endif

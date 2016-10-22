@@ -61,8 +61,7 @@ moveit_msgs::Constraints getConstraints()
   return cmsg;
 }
 
-void computeDB(const robot_model::RobotModelPtr &robot_model,
-           unsigned int ns, unsigned int ne)
+void computeDB(const robot_model::RobotModelPtr &robot_model, unsigned int ns, unsigned int ne)
 {
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
   ompl_interface::OMPLInterface ompl_interface(robot_model);
@@ -81,26 +80,29 @@ void computeDB(const robot_model::RobotModelPtr &robot_model,
   ROS_INFO("Done");
 }
 
-  /*
-  bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req, moveit_msgs::ConstructConstraintApproximation::Response &res)
+/*
+bool constructConstraintApproximation(moveit_msgs::ConstructConstraintApproximation::Request &req,
+moveit_msgs::ConstructConstraintApproximation::Response &res)
+{
+  planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
+  robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state,
+diff_scene->getCurrentStateNonConst());
+  ompl_interface::ConstraintApproximationConstructionResults ca_res =
+    ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group,
+req.state_space_parameterization,
+                                                                       diff_scene, req.samples, req.edges_per_sample);
+  if (ca_res.approx)
   {
-    planning_scene::PlanningScenePtr diff_scene = psm_.getPlanningScene()->diff();
-    robot_state::robotStateMsgToRobotState(*psm_.getPlanningScene()->getTransforms(), req.start_state, diff_scene->getCurrentStateNonConst());
-    ompl_interface::ConstraintApproximationConstructionResults ca_res =
-      ompl_interface_.getConstraintsLibrary().addConstraintApproximation(req.constraint, req.group, req.state_space_parameterization,
-                                                                         diff_scene, req.samples, req.edges_per_sample);
-    if (ca_res.approx)
-    {
-      res.sampling_success_rate = ca_res.sampling_success_rate;
-      res.state_sampling_time = ca_res.state_sampling_time;
-      res.state_connection_time = ca_res.state_connection_time;
-      res.filename = ca_res.approx->getFilename();
-      return ompl_interface_.saveConstraintApproximations();
-    }
-    else
-      return false;
+    res.sampling_success_rate = ca_res.sampling_success_rate;
+    res.state_sampling_time = ca_res.state_sampling_time;
+    res.state_connection_time = ca_res.state_connection_time;
+    res.filename = ca_res.approx->getFilename();
+    return ompl_interface_.saveConstraintApproximations();
   }
-  */
+  else
+    return false;
+}
+*/
 
 int main(int argc, char **argv)
 {
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
     {
       nstates = boost::lexical_cast<unsigned int>(argv[1]);
     }
-    catch(...)
+    catch (...)
     {
     }
 
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
     {
       nedges = boost::lexical_cast<unsigned int>(argv[2]);
     }
-    catch(...)
+    catch (...)
     {
     }
 

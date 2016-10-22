@@ -51,14 +51,12 @@ class StringProperty;
 
 namespace moveit_rviz_plugin
 {
-
 class TrajectoryDisplay : public rviz::Display
 {
   Q_OBJECT
-//friend class TrajectoryVisualization; // allow the visualization class to access the display
+  // friend class TrajectoryVisualization; // allow the visualization class to access the display
 
 public:
-
   TrajectoryDisplay();
 
   virtual ~TrajectoryDisplay();
@@ -80,7 +78,6 @@ private Q_SLOTS:
   void changedRobotDescription();
 
 protected:
-
   // The trajectory playback component
   TrajectoryVisualizationPtr trajectory_visual_;
 
@@ -93,6 +90,6 @@ protected:
   rviz::StringProperty* robot_description_property_;
 };
 
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin
 
 #endif

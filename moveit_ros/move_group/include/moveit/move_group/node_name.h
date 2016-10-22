@@ -41,7 +41,7 @@
 
 namespace move_group
 {
-static const std::string NODE_NAME = "move_group"; // name of node
+static const std::string NODE_NAME = "move_group";  // name of node
 }
 
 #endif

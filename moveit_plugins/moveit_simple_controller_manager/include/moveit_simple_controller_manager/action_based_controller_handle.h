@@ -44,15 +44,13 @@
 
 namespace moveit_simple_controller_manager
 {
-
 /*
  * This exist solely to inject addJoint/getJoints into base non-templated class.
  */
 class ActionBasedControllerHandleBase : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  ActionBasedControllerHandleBase(const std::string &name) :
-    moveit_controller_manager::MoveItControllerHandle(name)
+  ActionBasedControllerHandleBase(const std::string &name) : moveit_controller_manager::MoveItControllerHandle(name)
   {
   }
 
@@ -62,19 +60,15 @@ public:
 
 MOVEIT_CLASS_FORWARD(ActionBasedControllerHandleBase);
 
-
 /*
  * This is a simple base class, which handles all of the action creation/etc
  */
-template<typename T>
+template <typename T>
 class ActionBasedControllerHandle : public ActionBasedControllerHandleBase
 {
-
 public:
-  ActionBasedControllerHandle(const std::string &name, const std::string &ns) :
-    ActionBasedControllerHandleBase(name),
-    namespace_(ns),
-    done_(true)
+  ActionBasedControllerHandle(const std::string &name, const std::string &ns)
+    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true)
   {
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
@@ -132,28 +126,26 @@ public:
   }
 
 protected:
-
   std::string getActionName(void) const
   {
     if (namespace_.empty())
       return name_;
     else
-      return name_ +"/" + namespace_;
+      return name_ + "/" + namespace_;
   }
 
-  void finishControllerExecution(const actionlib::SimpleClientGoalState& state)
+  void finishControllerExecution(const actionlib::SimpleClientGoalState &state)
   {
-    ROS_DEBUG_STREAM("MoveitSimpleControllerManager: Controller " << name_ << " is done with state " << state.toString() << ": " << state.getText());
+    ROS_DEBUG_STREAM("MoveitSimpleControllerManager: Controller " << name_ << " is done with state " << state.toString()
+                                                                  << ": " << state.getText());
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
       last_exec_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
+    else if (state == actionlib::SimpleClientGoalState::ABORTED)
+      last_exec_ = moveit_controller_manager::ExecutionStatus::ABORTED;
+    else if (state == actionlib::SimpleClientGoalState::PREEMPTED)
+      last_exec_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
     else
-      if (state == actionlib::SimpleClientGoalState::ABORTED)
-        last_exec_ = moveit_controller_manager::ExecutionStatus::ABORTED;
-      else
-        if (state == actionlib::SimpleClientGoalState::PREEMPTED)
-          last_exec_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
-        else
-          last_exec_ = moveit_controller_manager::ExecutionStatus::FAILED;
+      last_exec_ = moveit_controller_manager::ExecutionStatus::FAILED;
     done_ = true;
   }
 
@@ -171,7 +163,6 @@ protected:
   boost::shared_ptr<actionlib::SimpleActionClient<T> > controller_action_client_;
 };
 
+}  // end namespace moveit_simple_controller_manager
 
-} // end namespace moveit_simple_controller_manager
-
-#endif // MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
+#endif  // MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE

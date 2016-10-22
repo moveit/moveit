@@ -45,40 +45,40 @@
 
 namespace benchmark_tool
 {
-
-const float GripperMarker::GOAL_NOT_TESTED_COLOR[4] = { 0.75, 0.75, 0.75, 1.0};
-const float GripperMarker::GOAL_PROCESSING_COLOR[4] = { 0.9, 0.9, 0.9, 1.0};
-const float GripperMarker::GOAL_NOT_REACHABLE_COLOR[4] = { 1.0, 0.0, 0.0, 1.0};
-const float GripperMarker::GOAL_REACHABLE_COLOR[4] = { 0.0, 1.0, 0.0, 1.0};
-const float GripperMarker::GOAL_COLLISION_COLOR[4] = { 1.0, 1.0, 0.0, 1.0};
+const float GripperMarker::GOAL_NOT_TESTED_COLOR[4] = { 0.75, 0.75, 0.75, 1.0 };
+const float GripperMarker::GOAL_PROCESSING_COLOR[4] = { 0.9, 0.9, 0.9, 1.0 };
+const float GripperMarker::GOAL_NOT_REACHABLE_COLOR[4] = { 1.0, 0.0, 0.0, 1.0 };
+const float GripperMarker::GOAL_REACHABLE_COLOR[4] = { 0.0, 1.0, 0.0, 1.0 };
+const float GripperMarker::GOAL_COLLISION_COLOR[4] = { 1.0, 1.0, 0.0, 1.0 };
 
 FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-            const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color,
-            bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-              parent_node_(parent_node),
-              context_(context),
-              selected_(is_selected),
-              visible_x_(visible_x),
-              visible_y_(visible_y),
-              visible_z_(visible_z),
-              color_(color),
-              receiver_(NULL),
-              receiver_method_(NULL)
+                         const std::string &frame_id, const geometry_msgs::Pose &pose, double scale,
+                         const std_msgs::ColorRGBA &color, bool is_selected, bool visible_x, bool visible_y,
+                         bool visible_z)
+  : parent_node_(parent_node)
+  , context_(context)
+  , selected_(is_selected)
+  , visible_x_(visible_x)
+  , visible_y_(visible_y)
+  , visible_z_(visible_z)
+  , color_(color)
+  , receiver_(NULL)
+  , receiver_method_(NULL)
 {
   buildFrom(name, frame_id, pose, scale, color);
 }
 
 FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-            const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const float color[4],
-            bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-              parent_node_(parent_node),
-              context_(context),
-              selected_(is_selected),
-              visible_x_(visible_x),
-              visible_y_(visible_y),
-              visible_z_(visible_z),
-              receiver_(NULL),
-              receiver_method_(NULL)
+                         const std::string &frame_id, const geometry_msgs::Pose &pose, double scale,
+                         const float color[4], bool is_selected, bool visible_x, bool visible_y, bool visible_z)
+  : parent_node_(parent_node)
+  , context_(context)
+  , selected_(is_selected)
+  , visible_x_(visible_x)
+  , visible_y_(visible_y)
+  , visible_z_(visible_z)
+  , receiver_(NULL)
+  , receiver_method_(NULL)
 {
   color_.r = color[0];
   color_.g = color[1];
@@ -89,7 +89,7 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
 
 void FrameMarker::hide(void)
 {
-  if ( isVisible() )
+  if (isVisible())
   {
     position_ = imarker->getPosition();
     orientation_ = imarker->getOrientation();
@@ -99,7 +99,7 @@ void FrameMarker::hide(void)
 
 void FrameMarker::show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
 {
-  if ( ! isVisible() )
+  if (!isVisible())
   {
     rebuild();
   }
@@ -162,9 +162,7 @@ void FrameMarker::getPose(Eigen::Affine3d &pose)
 {
   pose = Eigen::Affine3d(Eigen::Quaterniond(imarker->getOrientation().w, imarker->getOrientation().x,
                                             imarker->getOrientation().y, imarker->getOrientation().z));
-  pose.translation() = Eigen::Vector3d(imarker->getPosition().x,
-                                       imarker->getPosition().y,
-                                       imarker->getPosition().z);
+  pose.translation() = Eigen::Vector3d(imarker->getPosition().x, imarker->getPosition().y, imarker->getPosition().z);
 }
 
 void FrameMarker::setPose(Eigen::Affine3d &pose)
@@ -176,7 +174,7 @@ void FrameMarker::setPose(Eigen::Affine3d &pose)
 
 void FrameMarker::setColor(float r, float g, float b, float a)
 {
-  //Update marker color
+  // Update marker color
   color_.r = r;
   color_.g = g;
   color_.b = b;
@@ -226,7 +224,8 @@ void FrameMarker::rebuild()
   buildFrom(imarker_msg.name, imarker_msg.header.frame_id, pose, imarker_msg.scale, color_);
 }
 
-void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color)
+void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
+                            double scale, const std_msgs::ColorRGBA &color)
 {
   color_ = color;
 
@@ -253,7 +252,7 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   m_control.always_visible = true;
   m_control.interaction_mode = m_control.BUTTON;
 
-  //Display a frame marker with an sphere in the origin
+  // Display a frame marker with an sphere in the origin
   visualization_msgs::Marker m;
   m.type = visualization_msgs::Marker::SPHERE;
   m.scale.x = 0.1 * scale;
@@ -271,7 +270,7 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   m.ns = "goal_pose_marker";
   m.action = visualization_msgs::Marker::ADD;
 
-  //X axis
+  // X axis
   if (visible_x_)
   {
     m.color.r = 1.0f;
@@ -281,7 +280,7 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
     m_control.markers.push_back(m);
   }
 
-  //Y axis
+  // Y axis
   if (visible_y_)
   {
     tf::Quaternion imq;
@@ -294,8 +293,9 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
     m_control.markers.push_back(m);
   }
 
-  //Z axis
-  if (visible_z_) {
+  // Z axis
+  if (visible_z_)
+  {
     tf::Quaternion imq;
     imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
     tf::quaternionTFToMsg(imq, m.pose.orientation);
@@ -307,14 +307,14 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   }
   int_marker.controls.push_back(m_control);
 
-  imarker.reset(new rviz::InteractiveMarker(parent_node_, context_ ));
+  imarker.reset(new rviz::InteractiveMarker(parent_node_, context_));
   interactive_markers::autoComplete(int_marker);
   imarker->processMessage(int_marker);
   imarker->setShowVisualAids(true);
   imarker->setShowAxes(false);
   imarker->setShowDescription(false);
 
-  //reconnect if it was previously connected
+  // reconnect if it was previously connected
   if (receiver_ && receiver_method_)
   {
     connect(receiver_, receiver_method_);
@@ -323,14 +323,16 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   imarker_msg = int_marker;
 }
 
-
-GripperMarker::GripperMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                             const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                             const GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-                             FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x, visible_y, visible_z),
-                             eef_(eef),
-                             display_gripper_mesh_(false),
-                             state_(state)
+GripperMarker::GripperMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
+                             rviz::DisplayContext *context, const std::string &name, const std::string &frame_id,
+                             const robot_interaction::RobotInteraction::EndEffector &eef,
+                             const geometry_msgs::Pose &pose, double scale, const GripperMarkerState &state,
+                             bool is_selected, bool visible_x, bool visible_y, bool visible_z)
+  : FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x,
+                visible_y, visible_z)
+  , eef_(eef)
+  , display_gripper_mesh_(false)
+  , state_(state)
 {
   robot_state_ = &robot_state;
 }
@@ -347,7 +349,8 @@ void GripperMarker::unselect(bool display_gripper_mesh)
   FrameMarker::unselect();
 }
 
-void GripperMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color)
+void GripperMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
+                              double scale, const std_msgs::ColorRGBA &color)
 {
   color_ = color;
 
@@ -375,7 +378,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
 
   if (display_gripper_mesh_)
   {
-    //If selected and gripper_mesh enabled, display the actual end effector mesh
+    // If selected and gripper_mesh enabled, display the actual end effector mesh
     const robot_state::JointModelGroup *joint_model_group = robot_state_->getJointModelGroup(eef_.eef_group);
     const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
 
@@ -384,7 +387,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
     visualization_msgs::MarkerArray marker_array;
     robot_state_->getRobotMarkers(marker_array, link_names, marker_color, "goal_pose_marker", ros::Duration());
 
-    for (std::size_t i = 0 ; i < marker_array.markers.size() ; ++i)
+    for (std::size_t i = 0; i < marker_array.markers.size(); ++i)
     {
       marker_array.markers[i].header = int_marker.header;
       m_control.markers.push_back(marker_array.markers[i]);
@@ -395,7 +398,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   }
   else
   {
-    //Display a frame marker with an sphere in the origin
+    // Display a frame marker with an sphere in the origin
     visualization_msgs::Marker m;
     m.type = visualization_msgs::Marker::SPHERE;
     m.scale.x = 0.1 * scale;
@@ -413,7 +416,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
     m.ns = "goal_pose_marker";
     m.action = visualization_msgs::Marker::ADD;
 
-    //X axis
+    // X axis
     if (visible_x_)
     {
       m.color.r = 1.0f;
@@ -423,7 +426,7 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
       m_control.markers.push_back(m);
     }
 
-    //Y axis
+    // Y axis
     if (visible_y_)
     {
       tf::Quaternion imq;
@@ -436,8 +439,9 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
       m_control.markers.push_back(m);
     }
 
-    //Z axis
-    if (visible_z_) {
+    // Z axis
+    if (visible_z_)
+    {
       tf::Quaternion imq;
       imq = tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
       tf::quaternionTFToMsg(imq, m.pose.orientation);
@@ -451,16 +455,17 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
 
   int_marker.controls.push_back(m_control);
 
-  imarker.reset(new rviz::InteractiveMarker(parent_node_, context_ ));
+  imarker.reset(new rviz::InteractiveMarker(parent_node_, context_));
   interactive_markers::autoComplete(int_marker);
   imarker->processMessage(int_marker);
   imarker->setShowAxes(false);
   imarker->setShowVisualAids(true);
   imarker->setShowDescription(false);
   imarker->setPose(Ogre::Vector3(pose.position.x, pose.position.y, pose.position.z),
-                    Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z), "");
+                   Ogre::Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z),
+                   "");
 
-  //reconnect if it was previously connected
+  // reconnect if it was previously connected
   if (receiver_ && receiver_method_)
   {
     connect(receiver_, receiver_method_);

@@ -43,17 +43,16 @@
 
 namespace moveit_simple_controller_manager
 {
-
 /*
  * This is generally used for arms, but could also be used for multi-dof hands,
  *   or anything using a control_mgs/FollowJointTrajectoryAction.
  */
-class FollowJointTrajectoryControllerHandle : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
+class FollowJointTrajectoryControllerHandle
+    : public ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>
 {
 public:
-
-  FollowJointTrajectoryControllerHandle(const std::string &name, const std::string &action_ns) :
-    ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, action_ns)
+  FollowJointTrajectoryControllerHandle(const std::string &name, const std::string &action_ns)
+    : ActionBasedControllerHandle<control_msgs::FollowJointTrajectoryAction>(name, action_ns)
   {
   }
 
@@ -72,26 +71,26 @@ public:
     if (done_)
       ROS_DEBUG_STREAM("FollowJointTrajectoryController: sending trajectory to " << name_);
     else
-      ROS_DEBUG_STREAM("FollowJointTrajectoryController: sending continuation for the currently executed trajectory to " << name_);
+      ROS_DEBUG_STREAM("FollowJointTrajectoryController: sending continuation for the currently executed trajectory to "
+                       << name_);
 
     control_msgs::FollowJointTrajectoryGoal goal;
     goal.trajectory = trajectory.joint_trajectory;
-    controller_action_client_->sendGoal(goal,
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
-                    boost::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
+    controller_action_client_->sendGoal(
+        goal, boost::bind(&FollowJointTrajectoryControllerHandle::controllerDoneCallback, this, _1, _2),
+        boost::bind(&FollowJointTrajectoryControllerHandle::controllerActiveCallback, this),
+        boost::bind(&FollowJointTrajectoryControllerHandle::controllerFeedbackCallback, this, _1));
     done_ = false;
     last_exec_ = moveit_controller_manager::ExecutionStatus::RUNNING;
     return true;
   }
 
 protected:
-
-  void controllerDoneCallback(const actionlib::SimpleClientGoalState& state,
-                              const control_msgs::FollowJointTrajectoryResultConstPtr& result)
+  void controllerDoneCallback(const actionlib::SimpleClientGoalState &state,
+                              const control_msgs::FollowJointTrajectoryResultConstPtr &result)
   {
     // Output custom error message for FollowJointTrajectoryResult if necessary
-    switch( result->error_code )
+    switch (result->error_code)
     {
       case control_msgs::FollowJointTrajectoryResult::INVALID_GOAL:
         ROS_WARN_STREAM("Controller " << name_ << " failed with error code INVALID_GOAL");
@@ -118,12 +117,11 @@ protected:
     ROS_DEBUG_STREAM("FollowJointTrajectoryController: " << name_ << " started execution");
   }
 
-  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
+  void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr &feedback)
   {
   }
 };
 
+}  // end namespace moveit_simple_controller_manager
 
-} // end namespace moveit_simple_controller_manager
-
-#endif // MOVEIT_PLUGINS_FOLLOW_TRAJECTORY_CONTROLLER_HANDLE
+#endif  // MOVEIT_PLUGINS_FOLLOW_TRAJECTORY_CONTROLLER_HANDLE

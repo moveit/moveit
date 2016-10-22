@@ -43,48 +43,49 @@ using namespace std;
 using namespace Eigen;
 using shapes::Mesh;
 
-mesh_filter::GLMesh::GLMesh (const Mesh& mesh, unsigned int mesh_label)
+mesh_filter::GLMesh::GLMesh(const Mesh& mesh, unsigned int mesh_label)
 {
   if (!mesh.vertex_normals)
-    throw std::runtime_error("Vertex normals are not computed for input mesh. Call computeVertexNormals() before passing as input to mesh_filter.");
+    throw std::runtime_error("Vertex normals are not computed for input mesh. Call computeVertexNormals() before "
+                             "passing as input to mesh_filter.");
 
   mesh_label_ = mesh_label;
   list_ = glGenLists(1);
-  glNewList (list_, GL_COMPILE );
-    glBegin(GL_TRIANGLES);
-    glColor4ubv ((GLubyte*)&mesh_label_);
-      for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
-      {
-        unsigned v1 = 3 * mesh.triangles [3*tIdx];
-        unsigned v2 = 3 * mesh.triangles [3*tIdx + 1];
-        unsigned v3 = 3 * mesh.triangles [3*tIdx + 2];
+  glNewList(list_, GL_COMPILE);
+  glBegin(GL_TRIANGLES);
+  glColor4ubv((GLubyte*)&mesh_label_);
+  for (unsigned tIdx = 0; tIdx < mesh.triangle_count; ++tIdx)
+  {
+    unsigned v1 = 3 * mesh.triangles[3 * tIdx];
+    unsigned v2 = 3 * mesh.triangles[3 * tIdx + 1];
+    unsigned v3 = 3 * mesh.triangles[3 * tIdx + 2];
 
-        glNormal3f (mesh.vertex_normals[v1], mesh.vertex_normals[v1 + 1], mesh.vertex_normals[v1 + 2]);
-        glVertex3f (mesh.vertices [v1], mesh.vertices[v1 + 1], mesh.vertices[v1 + 2]);
+    glNormal3f(mesh.vertex_normals[v1], mesh.vertex_normals[v1 + 1], mesh.vertex_normals[v1 + 2]);
+    glVertex3f(mesh.vertices[v1], mesh.vertices[v1 + 1], mesh.vertices[v1 + 2]);
 
-        glNormal3f (mesh.vertex_normals[v2], mesh.vertex_normals[v2 + 1], mesh.vertex_normals[v2 + 2]);
-        glVertex3f (mesh.vertices[v2], mesh.vertices[v2 + 1], mesh.vertices [v2 + 2]);
+    glNormal3f(mesh.vertex_normals[v2], mesh.vertex_normals[v2 + 1], mesh.vertex_normals[v2 + 2]);
+    glVertex3f(mesh.vertices[v2], mesh.vertices[v2 + 1], mesh.vertices[v2 + 2]);
 
-        glNormal3f (mesh.vertex_normals[v3], mesh.vertex_normals[v3 + 1], mesh.vertex_normals[v3 + 2]);
-        glVertex3f (mesh.vertices[v3], mesh.vertices[v3 + 1], mesh.vertices[v3 + 2]);
-      }
-    glEnd();
+    glNormal3f(mesh.vertex_normals[v3], mesh.vertex_normals[v3 + 1], mesh.vertex_normals[v3 + 2]);
+    glVertex3f(mesh.vertices[v3], mesh.vertices[v3 + 1], mesh.vertices[v3 + 2]);
+  }
+  glEnd();
   glEndList();
 }
 
-mesh_filter::GLMesh::~GLMesh ()
+mesh_filter::GLMesh::~GLMesh()
 {
   glDeleteLists(list_, 1);
 }
 
-void mesh_filter::GLMesh::render (const Affine3d& transform) const
+void mesh_filter::GLMesh::render(const Affine3d& transform) const
 {
-  glMatrixMode (GL_MODELVIEW);
+  glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
-  if (!(transform.matrix ().Flags & RowMajorBit))
-    glMultMatrixd (transform.matrix().data());
+  if (!(transform.matrix().Flags & RowMajorBit))
+    glMultMatrixd(transform.matrix().data());
   else
-    glMultTransposeMatrixd (transform.matrix().data());
-  glCallList (list_);
+    glMultTransposeMatrixd(transform.matrix().data());
+  glCallList(list_);
   glPopMatrix();
 }

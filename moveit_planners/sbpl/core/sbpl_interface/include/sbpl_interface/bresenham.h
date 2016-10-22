@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #ifndef _BRESENHAM3D_
 #define _BRESENHAM3D_
 

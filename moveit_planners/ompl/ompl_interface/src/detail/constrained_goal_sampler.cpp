@@ -39,9 +39,9 @@
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext *pc,
-                                                               const kinematic_constraints::KinematicConstraintSetPtr &ks,
-                                                               const constraint_samplers::ConstraintSamplerPtr &cs)
+ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
+    const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
+    const constraint_samplers::ConstraintSamplerPtr& cs)
   : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
                         boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
@@ -69,17 +69,17 @@ bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* new_g
 bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* new_goal,
                                                                    robot_state::RobotState const* state,
                                                                    const robot_model::JointModelGroup* jmg,
-                                                                   const double* jpos,
-                                                                   bool verbose) const
+                                                                   const double* jpos, bool verbose) const
 {
   // we copy the state to not change the seed state
-  robot_state::RobotState solution_state( *state );
+  robot_state::RobotState solution_state(*state);
   solution_state.setJointGroupPositions(jmg, jpos);
   solution_state.update();
   return checkStateValidity(new_goal, solution_state, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples *gls, ob::State *new_goal)
+bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples* gls,
+                                                                          ob::State* new_goal)
 {
   //  moveit::Profiler::ScopedBlock sblock("ConstrainedGoalSampler::sampleUsingConstraintSampler");
 
@@ -98,8 +98,8 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
   if (planning_context_->getOMPLSimpleSetup()->getProblemDefinition()->hasSolution())
     return false;
 
-  unsigned int max_attempts_div2 = max_attempts/2;
-  for (unsigned int a = gls->samplingAttemptsCount() ; a < max_attempts && gls->isSampling() ; ++a)
+  unsigned int max_attempts_div2 = max_attempts / 2;
+  for (unsigned int a = gls->samplingAttemptsCount(); a < max_attempts && gls->isSampling(); ++a)
   {
     bool verbose = false;
     if (gls->getStateCount() == 0 && a >= max_attempts_div2)
@@ -112,14 +112,13 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
     if (constraint_sampler_)
     {
       // makes the constraint sampler also perform a validity callback
-      robot_state::GroupStateValidityCallbackFn gsvcf = boost::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback,
-                                                                    this,
-                                                                    new_goal,
-                                                                    _1,  // pointer to state
-                                                                    _2,  // const* joint model group
-                                                                    _3,  // double* of joint positions
-                                                                    verbose);
-      constraint_sampler_->setGroupStateValidityCallback( gsvcf );
+      robot_state::GroupStateValidityCallbackFn gsvcf =
+          boost::bind(&ompl_interface::ConstrainedGoalSampler::stateValidityCallback, this, new_goal,
+                      _1,  // pointer to state
+                      _2,  // const* joint model group
+                      _3,  // double* of joint positions
+                      verbose);
+      constraint_sampler_->setGroupStateValidityCallback(gsvcf);
 
       if (constraint_sampler_->project(work_state_, planning_context_->getMaximumStateSamplingAttempts()))
       {
@@ -135,7 +134,8 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
           {
             warned_invalid_samples_ = true;
-            logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal sampler. Is the constrained sampler working correctly?");
+            logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal "
+                    "sampler. Is the constrained sampler working correctly?");
           }
         }
       }

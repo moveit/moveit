@@ -38,15 +38,17 @@
 #include <boost/regex.hpp>
 #include <ros/ros.h>
 
-moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port, double wait_seconds) :
-  db_host_(host), db_port_(port), timeout_(wait_seconds)
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port,
+                                                             double wait_seconds)
+  : db_host_(host), db_port_(port), timeout_(wait_seconds)
 {
   // if we are using default values for initialization, attempt to use ROS params for initialization
   if (db_host_.empty() || db_port_ == 0)
   {
     ros::NodeHandle nh("~");
     // search for the warehouse_port parameter in the local name space of the node, and up the tree of namespaces;
-    // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined above
+    // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined
+    // above
     if (db_port_ == 0)
     {
       std::string paramName;
@@ -79,13 +81,14 @@ void moveit_warehouse::MoveItMessageStorage::drop(const std::string &db)
   ROS_DEBUG("Dropped database '%s'", db.c_str());
 }
 
-void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex, std::vector<std::string> &names) const
+void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex,
+                                                         std::vector<std::string> &names) const
 {
   if (!regex.empty())
   {
     std::vector<std::string> fnames;
     boost::regex r(regex);
-    for (std::size_t i = 0; i < names.size() ; ++i)
+    for (std::size_t i = 0; i < names.size(); ++i)
     {
       boost::cmatch match;
       if (boost::regex_match(names[i].c_str(), match, r))

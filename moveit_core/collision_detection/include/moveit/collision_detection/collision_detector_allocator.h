@@ -43,68 +43,66 @@
 
 namespace collision_detection
 {
+MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
 
-  MOVEIT_CLASS_FORWARD(CollisionDetectorAllocator);
+/** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair. */
+class CollisionDetectorAllocator
+{
+public:
+  /** A unique name identifying the CollisionWorld/CollisionRobot pairing. */
+  virtual const std::string& getName() const = 0;
 
-  /** \brief An allocator for a compatible CollisionWorld/CollisionRobot pair. */
-  class CollisionDetectorAllocator
+  /** create a new CollisionWorld for checking collisions with the supplied world. */
+  virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const = 0;
+
+  /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
+   * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified.
+   */
+  virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const = 0;
+
+  /** create a new CollisionRobot given a robot_model */
+  virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const = 0;
+
+  /** create a new CollisionRobot by copying an existing CollisionRobot of the same type. */
+  virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const = 0;
+};
+
+/** \brief Template class to make it easy to create an allocator for a specific CollisionWorld/CollisionRobot pair. */
+template <class CollisionWorldType, class CollisionRobotType, class CollisionDetectorAllocatorType>
+class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
+{
+public:
+  virtual const std::string& getName() const
   {
-  public:
-    /** A unique name identifying the CollisionWorld/CollisionRobot pairing. */
-    virtual const std::string& getName() const = 0;
+    return CollisionDetectorAllocatorType::NAME_;
+  }
 
-    /** create a new CollisionWorld for checking collisions with the supplied world. */
-    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const = 0;
-
-    /** create a new CollisionWorld by copying an existing CollisionWorld of the same type.s
-     * The world must be either the same world as used by \orig or a copy of that world which has not yet been modified. */
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const = 0;
-
-    /** create a new CollisionRobot given a robot_model */
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const = 0;
-
-    /** create a new CollisionRobot by copying an existing CollisionRobot of the same type. */
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const = 0;
-  };
-
-
-  /** \brief Template class to make it easy to create an allocator for a specific CollisionWorld/CollisionRobot pair. */
-  template<class CollisionWorldType, class CollisionRobotType, class CollisionDetectorAllocatorType>
-  class CollisionDetectorAllocatorTemplate : public CollisionDetectorAllocator
+  virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const
   {
-  public:
-    virtual const std::string& getName() const
-    {
-      return CollisionDetectorAllocatorType::NAME_;
-    }
+    return CollisionWorldPtr(new CollisionWorldType(world));
+  }
 
-    virtual CollisionWorldPtr allocateWorld(const WorldPtr& world) const
-    {
-      return CollisionWorldPtr(new CollisionWorldType(world));
-    }
+  virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const
+  {
+    return CollisionWorldPtr(new CollisionWorldType(dynamic_cast<const CollisionWorldType&>(*orig), world));
+  }
 
-    virtual CollisionWorldPtr allocateWorld(const CollisionWorldConstPtr& orig, const WorldPtr& world) const
-    {
-      return CollisionWorldPtr(new CollisionWorldType(dynamic_cast<const CollisionWorldType&>(*orig), world));
-    }
+  virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const
+  {
+    return CollisionRobotPtr(new CollisionRobotType(robot_model));
+  }
 
-    virtual CollisionRobotPtr allocateRobot(const robot_model::RobotModelConstPtr& robot_model) const
-    {
-      return CollisionRobotPtr(new CollisionRobotType(robot_model));
-    }
+  virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const
+  {
+    return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
+  }
 
-    virtual CollisionRobotPtr allocateRobot(const CollisionRobotConstPtr& orig) const
-    {
-      return CollisionRobotPtr(new CollisionRobotType(dynamic_cast<const CollisionRobotType&>(*orig)));
-    }
-
-    /** Create an allocator for FCL collision detectors */
-    static CollisionDetectorAllocatorPtr create()
-    {
-      return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());
-    }
-  };
-
+  /** Create an allocator for FCL collision detectors */
+  static CollisionDetectorAllocatorPtr create()
+  {
+    return CollisionDetectorAllocatorPtr(new CollisionDetectorAllocatorType());
+  }
+};
 }
 
 #endif

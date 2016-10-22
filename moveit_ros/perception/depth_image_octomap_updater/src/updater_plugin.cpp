@@ -37,4 +37,5 @@
 #include <class_loader/class_loader.h>
 #include <moveit/depth_image_octomap_updater/depth_image_octomap_updater.h>
 
-CLASS_LOADER_REGISTER_CLASS(occupancy_map_monitor::DepthImageOctomapUpdater, occupancy_map_monitor::OccupancyMapUpdater);
+CLASS_LOADER_REGISTER_CLASS(occupancy_map_monitor::DepthImageOctomapUpdater,
+                            occupancy_map_monitor::OccupancyMapUpdater);

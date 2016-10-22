@@ -47,9 +47,8 @@ namespace moveit
 {
 namespace py_bindings_tools
 {
-
-template<typename T>
-std::vector<T> typeFromList(const boost::python::object &values)
+template <typename T>
+std::vector<T> typeFromList(const boost::python::object& values)
 {
   boost::python::stl_input_iterator<T> begin(values), end;
   std::vector<T> v;
@@ -57,16 +56,16 @@ std::vector<T> typeFromList(const boost::python::object &values)
   return v;
 }
 
-template<typename T>
+template <typename T>
 boost::python::list listFromType(const std::vector<T>& v)
 {
   boost::python::list l;
-  for (std::size_t i = 0 ; i < v.size() ; ++i)
+  for (std::size_t i = 0; i < v.size(); ++i)
     l.append(v[i]);
   return l;
 }
 
-template<typename T>
+template <typename T>
 boost::python::dict dictFromType(const std::map<std::string, T>& v)
 {
   boost::python::dict d;
@@ -75,12 +74,12 @@ boost::python::dict dictFromType(const std::map<std::string, T>& v)
   return d;
 }
 
-std::vector<double> doubleFromList(const boost::python::object &values)
+std::vector<double> doubleFromList(const boost::python::object& values)
 {
   return typeFromList<double>(values);
 }
 
-std::vector<std::string> stringFromList(const boost::python::object &values)
+std::vector<std::string> stringFromList(const boost::python::object& values)
 {
   return typeFromList<std::string>(values);
 }
@@ -94,9 +93,7 @@ boost::python::list listFromString(const std::vector<std::string>& v)
 {
   return listFromType<std::string>(v);
 }
-
 }
 }
-
 
 #endif

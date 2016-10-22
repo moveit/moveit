@@ -48,17 +48,16 @@
 #include <boost/math/constants/constants.hpp>
 #include <ros/ros.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "initialize_demo_db", ros::init_options::AnonymousName);
 
   boost::program_options::options_description desc;
-  desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the MongoDB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
+  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+                                                                                                        "MongoDB.")(
+      "port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -111,7 +110,7 @@ int main(int argc, char **argv)
       ROS_INFO("Added default state");
 
       const std::vector<std::string> &gnames = psm.getRobotModel()->getJointModelGroupNames();
-      for (std::size_t i = 0 ; i < gnames.size() ; ++i)
+      for (std::size_t i = 0; i < gnames.size(); ++i)
       {
         const robot_model::JointModelGroup *jmg = psm.getRobotModel()->getJointModelGroup(gnames[i]);
         if (!jmg->isChain())
@@ -125,8 +124,8 @@ int main(int argc, char **argv)
         ocm.header.frame_id = psm.getRobotModel()->getModelFrame();
         ocm.orientation.x = 0.0;
         ocm.orientation.y = 0.0;
-    ocm.orientation.z = 0.0;
-    ocm.orientation.w = 1.0;
+        ocm.orientation.z = 0.0;
+        ocm.orientation.w = 1.0;
         ocm.absolute_x_axis_tolerance = 0.1;
         ocm.absolute_y_axis_tolerance = 0.1;
         ocm.absolute_z_axis_tolerance = boost::math::constants::pi<double>();
@@ -140,7 +139,7 @@ int main(int argc, char **argv)
       done = true;
       ROS_INFO("Default MoveIt! Warehouse was reset. Done.");
     }
-    catch(mongo_ros::DbConnectException &ex)
+    catch (mongo_ros::DbConnectException &ex)
     {
       ROS_WARN("MongoDB does not appear to be initialized yet. Waiting for a few seconds before trying again ...");
       ros::WallDuration(15.0).sleep();

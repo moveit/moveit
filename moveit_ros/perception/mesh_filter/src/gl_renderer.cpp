@@ -53,36 +53,35 @@
 
 using namespace std;
 
-
-mesh_filter::GLRenderer::GLRenderer (unsigned width, unsigned height, float near, float far)
-  : width_ (width)
-  , height_ (height)
-  , fbo_id_ (0)
-  , rbo_id_ (0)
-  , rgb_id_ (0)
-  , depth_id_ (0)
-  , program_ (0)
-  , near_ (near)
-  , far_ (far)
-  , fx_ (width >> 1) // 90 degree wide angle
-  , fy_ (fx_)
-  , cx_ (width >> 1)
-  , cy_ (height >> 1)
+mesh_filter::GLRenderer::GLRenderer(unsigned width, unsigned height, float near, float far)
+  : width_(width)
+  , height_(height)
+  , fbo_id_(0)
+  , rbo_id_(0)
+  , rgb_id_(0)
+  , depth_id_(0)
+  , program_(0)
+  , near_(near)
+  , far_(far)
+  , fx_(width >> 1)  // 90 degree wide angle
+  , fy_(fx_)
+  , cx_(width >> 1)
+  , cy_(height >> 1)
 {
-  createGLContext ();
-  initFrameBuffers ();
+  createGLContext();
+  initFrameBuffers();
 }
 
-mesh_filter::GLRenderer::~GLRenderer ()
+mesh_filter::GLRenderer::~GLRenderer()
 {
   if (program_)
-    glDeleteProgram (program_);
+    glDeleteProgram(program_);
 
   deleteFrameBuffers();
-  deleteGLContext ();
+  deleteGLContext();
 }
 
-void mesh_filter::GLRenderer::setBufferSize (unsigned width, unsigned height)
+void mesh_filter::GLRenderer::setBufferSize(unsigned width, unsigned height)
 {
   if (width_ != width || height_ != height)
   {
@@ -93,17 +92,17 @@ void mesh_filter::GLRenderer::setBufferSize (unsigned width, unsigned height)
   }
 }
 
-void mesh_filter::GLRenderer::setClippingRange (float near, float far)
+void mesh_filter::GLRenderer::setClippingRange(float near, float far)
 {
   if (near_ <= 0)
-    throw runtime_error ("near clipping plane distance needs to be larger than 0");
+    throw runtime_error("near clipping plane distance needs to be larger than 0");
   if (far_ <= near_)
-    throw runtime_error ("far clipping plane needs to be larger than near clipping plane distance");
+    throw runtime_error("far clipping plane needs to be larger than near clipping plane distance");
   near_ = near;
   far_ = far;
 }
 
-void mesh_filter::GLRenderer::setCameraParameters (float fx, float fy, float cx, float cy)
+void mesh_filter::GLRenderer::setCameraParameters(float fx, float fy, float cx, float cy)
 {
   fx_ = fx;
   fy_ = fy;
@@ -111,23 +110,23 @@ void mesh_filter::GLRenderer::setCameraParameters (float fx, float fy, float cx,
   cy_ = cy;
 }
 
-void mesh_filter::GLRenderer::setCameraParameters () const
+void mesh_filter::GLRenderer::setCameraParameters() const
 {
   float left = near_ * -cx_ / fx_;
   float right = near_ * (width_ - cx_) / fx_;
   float top = near_ * cy_ / fy_;
   float bottom = near_ * (cy_ - height_) / fy_;
 
-  glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();
-  glFrustum (left, right, bottom, top, near_, far_);
-
-  glMatrixMode (GL_MODELVIEW);
+  glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluLookAt (0, 0, 0, 0, 0, 1, 0, -1, 0);
+  glFrustum(left, right, bottom, top, near_, far_);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
 }
 
-void mesh_filter::GLRenderer::initFrameBuffers ()
+void mesh_filter::GLRenderer::initFrameBuffers()
 {
   glGenTextures(1, &rgb_id_);
   glBindTexture(GL_TEXTURE_2D, rgb_id_);
@@ -158,23 +157,23 @@ void mesh_filter::GLRenderer::initFrameBuffers ()
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_id_, 0);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-  GLenum DrawBuffers[2] = {GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT};
+  GLenum DrawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
   glDrawBuffers(2, DrawBuffers);
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-  if (status != GL_FRAMEBUFFER_COMPLETE) // If the frame buffer does not report back as complete
-    throw runtime_error ("Couldn't create frame buffer");
+  if (status != GL_FRAMEBUFFER_COMPLETE)  // If the frame buffer does not report back as complete
+    throw runtime_error("Couldn't create frame buffer");
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind our frame buffer
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Unbind our frame buffer
 }
 
 void mesh_filter::GLRenderer::deleteFrameBuffers()
 {
   if (rbo_id_)
-    glDeleteRenderbuffers (1, &rbo_id_);
+    glDeleteRenderbuffers(1, &rbo_id_);
   if (fbo_id_)
-    glDeleteFramebuffers (1, &fbo_id_);
+    glDeleteFramebuffers(1, &fbo_id_);
   if (depth_id_)
     glDeleteTextures(1, &depth_id_);
   if (rgb_id_)
@@ -183,24 +182,24 @@ void mesh_filter::GLRenderer::deleteFrameBuffers()
   rbo_id_ = fbo_id_ = depth_id_ = rgb_id_ = 0;
 }
 
-void mesh_filter::GLRenderer::begin () const
+void mesh_filter::GLRenderer::begin() const
 {
   glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_POLYGON_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport (0, 0, width_, height_);
-  glUseProgram (program_);
-  setCameraParameters ();
+  glViewport(0, 0, width_, height_);
+  glUseProgram(program_);
+  setCameraParameters();
 }
 
-void mesh_filter::GLRenderer::callList (GLuint list) const
+void mesh_filter::GLRenderer::callList(GLuint list) const
 {
-  begin ();
-  glCallList( list );
-  end ();
+  begin();
+  glCallList(list);
+  end();
 }
 
-void mesh_filter::GLRenderer::end () const
+void mesh_filter::GLRenderer::end() const
 {
   glFlush();
   glPopAttrib();
@@ -211,7 +210,7 @@ void mesh_filter::GLRenderer::getColorBuffer(unsigned char* buffer) const
 {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glBindTexture(GL_TEXTURE_2D, rgb_id_);
-  glGetTexImage (GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -219,14 +218,14 @@ void mesh_filter::GLRenderer::getDepthBuffer(float* buffer) const
 {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
   glBindTexture(GL_TEXTURE_2D, depth_id_);
-  glGetTexImage (GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buffer );
+  glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-GLuint mesh_filter::GLRenderer::setShadersFromFile (const string& vertex_filename, const string& fragment_filename)
+GLuint mesh_filter::GLRenderer::setShadersFromFile(const string& vertex_filename, const string& fragment_filename)
 {
   if (program_)
-    glDeleteProgram (program_);
+    glDeleteProgram(program_);
 
   string vertex_source, fragment_source;
   readShaderCodeFromFile(vertex_filename, vertex_source);
@@ -236,13 +235,13 @@ GLuint mesh_filter::GLRenderer::setShadersFromFile (const string& vertex_filenam
   return program_;
 }
 
-GLuint mesh_filter::GLRenderer::setShadersFromString (const string& vertex_source, const string& fragment_source)
+GLuint mesh_filter::GLRenderer::setShadersFromString(const string& vertex_source, const string& fragment_source)
 {
   program_ = loadShaders(vertex_source, fragment_source);
   return program_;
 }
 
-const GLuint& mesh_filter::GLRenderer::getProgramID () const
+const GLuint& mesh_filter::GLRenderer::getProgramID() const
 {
   return program_;
 }
@@ -257,13 +256,13 @@ const float& mesh_filter::GLRenderer::getFarClippingDistance() const
   return far_;
 }
 
-GLuint mesh_filter::GLRenderer::createShader (GLuint shaderType, const string& ShaderCode) const
+GLuint mesh_filter::GLRenderer::createShader(GLuint shaderType, const string& ShaderCode) const
 {
   GLuint ShaderID = glCreateShader(shaderType);
 
   // Compile Shader
-  char const * SourcePointer = ShaderCode.c_str();
-  glShaderSource(ShaderID, 1, &SourcePointer , NULL);
+  char const* SourcePointer = ShaderCode.c_str();
+  glShaderSource(ShaderID, 1, &SourcePointer, NULL);
   glCompileShader(ShaderID);
 
   // Check Shader
@@ -273,29 +272,29 @@ GLuint mesh_filter::GLRenderer::createShader (GLuint shaderType, const string& S
   {
     int InfoLogLength;
     glGetShaderiv(ShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 )
+    if (InfoLogLength > 0)
     {
-      vector<char> ShaderErrorMessage(InfoLogLength+1);
+      vector<char> ShaderErrorMessage(InfoLogLength + 1);
       glGetShaderInfoLog(ShaderID, InfoLogLength, NULL, &ShaderErrorMessage[0]);
       stringstream errorStream;
-      errorStream << "Could not compile shader: " << (const char*) &ShaderErrorMessage [0];
+      errorStream << "Could not compile shader: " << (const char*)&ShaderErrorMessage[0];
 
-      glDeleteShader (ShaderID);
-      throw runtime_error (errorStream.str());
+      glDeleteShader(ShaderID);
+      throw runtime_error(errorStream.str());
     }
   }
   return ShaderID;
 }
 
-void mesh_filter::GLRenderer::readShaderCodeFromFile (const string& filename, string& shader) const
+void mesh_filter::GLRenderer::readShaderCodeFromFile(const string& filename, string& shader) const
 {
-  if (filename.empty ())
+  if (filename.empty())
     shader = "";
   else
   {
     string ShaderCode;
     fstream ShaderFile(filename.c_str(), ios::in);
-    if(ShaderFile.is_open())
+    if (ShaderFile.is_open())
     {
       stringstream buffer;
       buffer << ShaderFile.rdbuf();
@@ -305,27 +304,27 @@ void mesh_filter::GLRenderer::readShaderCodeFromFile (const string& filename, st
     {
       stringstream errorStream;
       errorStream << "Could not open shader code in file \"" << filename << "\"";
-      throw runtime_error (errorStream.str());
+      throw runtime_error(errorStream.str());
     }
   }
 }
 
-GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const string& fragment_source) const
+GLuint mesh_filter::GLRenderer::loadShaders(const string& vertex_source, const string& fragment_source) const
 {
-  if (vertex_source.empty () && fragment_source.empty ())
+  if (vertex_source.empty() && fragment_source.empty())
     return 0;
 
   GLuint ProgramID = glCreateProgram();
   GLuint VertexShaderID = 0;
   GLuint FragmentShaderID = 0;
 
-  if (!vertex_source.empty ())
+  if (!vertex_source.empty())
   {
-    GLuint VertexShaderID = createShader (GL_VERTEX_SHADER, vertex_source);
+    GLuint VertexShaderID = createShader(GL_VERTEX_SHADER, vertex_source);
     glAttachShader(ProgramID, VertexShaderID);
   }
 
-  if (!fragment_source.empty ())
+  if (!fragment_source.empty())
   {
     GLuint FragmentShaderID = createShader(GL_FRAGMENT_SHADER, fragment_source);
     glAttachShader(ProgramID, FragmentShaderID);
@@ -338,9 +337,9 @@ GLuint mesh_filter::GLRenderer::loadShaders (const string& vertex_source, const 
   GLint InfoLogLength;
   glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
   glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-  if ( InfoLogLength > 0 )
+  if (InfoLogLength > 0)
   {
-    vector<char> ProgramErrorMessage(InfoLogLength+1);
+    vector<char> ProgramErrorMessage(InfoLogLength + 1);
     glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
     std::size_t l = strnlen(&ProgramErrorMessage[0], ProgramErrorMessage.size());
     if (l > 0)
@@ -360,11 +359,12 @@ map<boost::thread::id, pair<unsigned, GLuint> > mesh_filter::GLRenderer::context
 boost::mutex mesh_filter::GLRenderer::context_lock_;
 bool mesh_filter::GLRenderer::glutInitialized_ = false;
 
-namespace {
-  void nullDisplayFunction(){};
+namespace
+{
+void nullDisplayFunction(){};
 }
 
-void mesh_filter::GLRenderer::createGLContext ()
+void mesh_filter::GLRenderer::createGLContext()
 {
   boost::mutex::scoped_lock _(context_lock_);
   if (!glutInitialized_)
@@ -384,12 +384,12 @@ void mesh_filter::GLRenderer::createGLContext ()
 
   if (contextIt == context_.end())
   {
-    context_ [threadID] = std::pair<unsigned, GLuint> (1, 0);
+    context_[threadID] = std::pair<unsigned, GLuint>(1, 0);
     map<boost::thread::id, pair<unsigned, GLuint> >::iterator contextIt = context_.find(threadID);
 
-    glutInitWindowPosition (glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
+    glutInitWindowPosition(glutGet(GLUT_SCREEN_WIDTH) + 30000, 0);
     glutInitWindowSize(1, 1);
-    GLuint window_id = glutCreateWindow( "mesh_filter" );
+    GLuint window_id = glutCreateWindow("mesh_filter");
     glutDisplayFunc(nullDisplayFunction);
 
     GLenum err = glewInit();
@@ -398,21 +398,21 @@ void mesh_filter::GLRenderer::createGLContext ()
       stringstream errorStream;
       errorStream << "Unable to initialize GLEW: " << glewGetErrorString(err);
 
-      throw (runtime_error (errorStream.str()));
+      throw(runtime_error(errorStream.str()));
     }
     glutIconifyWindow();
     glutHideWindow();
 
-    for (int i = 0 ; i < 10 ; ++i)
-      glutMainLoopEvent ();
+    for (int i = 0; i < 10; ++i)
+      glutMainLoopEvent();
 
-    context_ [threadID] = std::pair<unsigned, GLuint> (1, window_id);
+    context_[threadID] = std::pair<unsigned, GLuint>(1, window_id);
   }
   else
-    ++ (contextIt->second.first);
+    ++(contextIt->second.first);
 }
 
-void mesh_filter::GLRenderer::deleteGLContext ()
+void mesh_filter::GLRenderer::deleteGLContext()
 {
   boost::mutex::scoped_lock _(context_lock_);
   boost::thread::id threadID = boost::this_thread::get_id();
@@ -421,10 +421,10 @@ void mesh_filter::GLRenderer::deleteGLContext ()
   {
     stringstream errorMsg;
     errorMsg << "No OpenGL context exists for Thread " << threadID;
-    throw runtime_error (errorMsg.str ());
+    throw runtime_error(errorMsg.str());
   }
 
-  if ( --(contextIt->second.first) == 0)
+  if (--(contextIt->second.first) == 0)
   {
     glutDestroyWindow(contextIt->second.second);
     context_.erase(contextIt);
@@ -441,12 +441,12 @@ GLuint mesh_filter::GLRenderer::getDepthTexture() const
   return depth_id_;
 }
 
-const unsigned mesh_filter::GLRenderer::getWidth () const
+const unsigned mesh_filter::GLRenderer::getWidth() const
 {
   return width_;
 }
 
-const unsigned mesh_filter::GLRenderer::getHeight () const
+const unsigned mesh_filter::GLRenderer::getHeight() const
 {
   return height_;
 }

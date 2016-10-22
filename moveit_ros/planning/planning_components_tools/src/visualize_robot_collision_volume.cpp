@@ -37,7 +37,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <cstdlib>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 int main(int argc, char **argv)
 {
@@ -58,10 +58,10 @@ int main(int argc, char **argv)
     psm.startStateMonitor();
     ros::NodeHandle nh;
     ros::Publisher pub_markers = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
-    std::cout << "\nListening for planning scene...\nType the number of spheres to generate and press Enter: " << std::endl;
+    std::cout << "\nListening for planning scene...\nType the number of spheres to generate and press Enter: "
+              << std::endl;
     int N;
     std::cin >> N;
-
 
     planning_scene::PlanningScenePtr scene = psm.getPlanningScene();
     std::vector<double> aabb;
@@ -91,7 +91,6 @@ int main(int argc, char **argv)
     arr.markers.push_back(mk);
     pub_markers.publish(arr);
 
-
     Eigen::Affine3d t;
     t.setIdentity();
     std::vector<Eigen::Vector3d> points;
@@ -105,9 +104,10 @@ int main(int argc, char **argv)
     color.b = 0.0f;
     color.a = 1.0f;
 
-    for (int i = 0 ; i < N ; ++i)
+    for (int i = 0; i < N; ++i)
     {
-      t.translation() = Eigen::Vector3d(rng.uniformReal(aabb[0], aabb[1]), rng.uniformReal(aabb[2], aabb[3]), rng.uniformReal(aabb[4], aabb[5]));
+      t.translation() = Eigen::Vector3d(rng.uniformReal(aabb[0], aabb[1]), rng.uniformReal(aabb[2], aabb[3]),
+                                        rng.uniformReal(aabb[4], aabb[5]));
       scene->getWorldNonConst()->clearObjects();
       scene->getWorldNonConst()->addToObject("test", shapes::ShapeConstPtr(new shapes::Sphere(radius)), t);
       collision_detection::CollisionResult res;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
         if (points.size() - published >= 100 || (points.size() > published && i + 1 >= N))
         {
           arr.markers.clear();
-          for (std::size_t k = published ; k < points.size() ; ++k)
+          for (std::size_t k = published; k < points.size(); ++k)
           {
             visualization_msgs::Marker mk;
             mk.header.stamp = ros::Time::now();

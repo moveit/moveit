@@ -43,7 +43,6 @@
 
 namespace moveit_warehouse
 {
-
 typedef mongo_ros::MessageWithMetadata<moveit_msgs::RobotState>::ConstPtr RobotStateWithMetadata;
 typedef boost::shared_ptr<mongo_ros::MessageCollection<moveit_msgs::RobotState> > RobotStateCollection;
 
@@ -52,7 +51,6 @@ MOVEIT_CLASS_FORWARD(RobotStateStorage);
 class RobotStateStorage : public MoveItMessageStorage
 {
 public:
-
   static const std::string DATABASE_NAME;
 
   static const std::string STATE_NAME;
@@ -60,15 +58,18 @@ public:
 
   /** \brief Initialize the state storage to connect to a specified \e host and \e port for the MongoDB.
       If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
-      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and warehouse_host.
+      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and
+     warehouse_host.
       If no values are found, the defaults are left to be the ones MongoDB uses.
-      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a runtime exception is thrown. */
+      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
+     runtime exception is thrown. */
   RobotStateStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
   void addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot = "");
   bool hasRobotState(const std::string &name, const std::string &robot = "") const;
   void getKnownRobotStates(std::vector<std::string> &names, const std::string &robot = "") const;
-  void getKnownRobotStates(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "") const;
+  void getKnownRobotStates(const std::string &regex, std::vector<std::string> &names,
+                           const std::string &robot = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
   bool getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot = "") const;
@@ -80,11 +81,9 @@ public:
   void reset();
 
 private:
-
   void createCollections();
 
   RobotStateCollection state_collection_;
-
 };
 }
 

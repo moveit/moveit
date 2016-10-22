@@ -39,7 +39,6 @@
 
 namespace benchmark_tool
 {
-
 std::deque<boost::function<void(void)> > JobProcessing::main_loop_jobs_;
 boost::mutex JobProcessing::main_loop_jobs_lock_;
 moveit::tools::BackgroundProcessing JobProcessing::background_process_;
@@ -58,7 +57,7 @@ void JobProcessing::addMainLoopJob(const boost::function<void(void)> &job)
 void JobProcessing::executeMainLoopJobs()
 {
   main_loop_jobs_lock_.lock();
-  while ( ! main_loop_jobs_.empty())
+  while (!main_loop_jobs_.empty())
   {
     boost::function<void(void)> fn = main_loop_jobs_.front();
     main_loop_jobs_.pop_front();
@@ -67,11 +66,11 @@ void JobProcessing::executeMainLoopJobs()
     {
       fn();
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
     }
-    catch(...)
+    catch (...)
     {
       ROS_ERROR("Exception caught executing main loop job");
     }
@@ -80,4 +79,4 @@ void JobProcessing::executeMainLoopJobs()
   main_loop_jobs_lock_.unlock();
 }
 
-} //namespace
+}  // namespace

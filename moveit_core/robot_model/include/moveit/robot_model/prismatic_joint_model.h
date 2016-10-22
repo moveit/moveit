@@ -43,19 +43,20 @@ namespace moveit
 {
 namespace core
 {
-
 /** \brief A prismatic joint */
 class PrismaticJointModel : public JointModel
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  PrismaticJointModel(const std::string& name);
+  PrismaticJointModel(const std::string &name);
 
   virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &other_bounds,
-                                                const double *near, const double distance) const;
+  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values,
+                                          const Bounds &other_bounds) const;
+  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
+                                                const Bounds &other_bounds, const double *near,
+                                                const double distance) const;
   virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const;
   virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const;
 
@@ -65,10 +66,10 @@ public:
   virtual double distance(const double *values1, const double *values2) const;
 
   virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeVariablePositions(const Eigen::Affine3d& transf, double *joint_values) const;
+  virtual void computeVariablePositions(const Eigen::Affine3d &transf, double *joint_values) const;
 
   /** \brief Get the axis of translation */
-  const Eigen::Vector3d& getAxis() const
+  const Eigen::Vector3d &getAxis() const
   {
     return axis_;
   }

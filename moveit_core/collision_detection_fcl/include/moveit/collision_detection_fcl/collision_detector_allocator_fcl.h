@@ -43,12 +43,13 @@
 
 namespace collision_detection
 {
-  /** \brief An allocator for FCL collision detectors */
-  class CollisionDetectorAllocatorFCL : public CollisionDetectorAllocatorTemplate<CollisionWorldFCL, CollisionRobotFCL, CollisionDetectorAllocatorFCL>
-  {
-  public:
-    static const std::string NAME_; // defined in collision_world_fcl.cpp
-  };
+/** \brief An allocator for FCL collision detectors */
+class CollisionDetectorAllocatorFCL
+    : public CollisionDetectorAllocatorTemplate<CollisionWorldFCL, CollisionRobotFCL, CollisionDetectorAllocatorFCL>
+{
+public:
+  static const std::string NAME_;  // defined in collision_world_fcl.cpp
+};
 }
 
 #endif

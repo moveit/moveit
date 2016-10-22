@@ -37,4 +37,4 @@
 #include <class_loader/class_loader.h>
 #include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.h>
 
-CLASS_LOADER_REGISTER_CLASS( occupancy_map_monitor::PointCloudOctomapUpdater, occupancy_map_monitor::OccupancyMapUpdater )
+CLASS_LOADER_REGISTER_CLASS(occupancy_map_monitor::PointCloudOctomapUpdater, occupancy_map_monitor::OccupancyMapUpdater)

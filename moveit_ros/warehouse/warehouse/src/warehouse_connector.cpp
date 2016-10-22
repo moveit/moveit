@@ -42,8 +42,7 @@
 
 namespace moveit_warehouse
 {
-
-WarehouseConnector::WarehouseConnector(const std::string &mongoexec) : mongoexec_(mongoexec), child_pid_(0)
+WarehouseConnector::WarehouseConnector(const std::string& mongoexec) : mongoexec_(mongoexec), child_pid_(0)
 {
 }
 
@@ -55,7 +54,7 @@ WarehouseConnector::~WarehouseConnector()
 
 bool WarehouseConnector::connectToDatabase(const std::string& dirname)
 {
-  if(child_pid_ != 0)
+  if (child_pid_ != 0)
     kill(child_pid_, SIGTERM);
 
   child_pid_ = fork();
@@ -71,7 +70,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
     std::size_t exec_file_pos = mongoexec_.find_last_of("/\\");
     if (exec_file_pos != std::string::npos)
     {
-      char** argv = new char*[4];
+      char** argv = new char* [4];
       std::size_t exec_length = 1 + mongoexec_.length() - exec_file_pos;
       argv[0] = new char[1 + exec_length];
       snprintf(argv[0], exec_length, "%s", mongoexec_.substr(exec_file_pos + 1).c_str());
@@ -95,10 +94,9 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
   }
   else
   {
-    //sleep so mongod has time to come up
+    // sleep so mongod has time to come up
     ros::WallDuration(1.0).sleep();
   }
   return true;
 }
-
 }

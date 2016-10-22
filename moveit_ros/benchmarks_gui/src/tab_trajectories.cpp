@@ -48,17 +48,18 @@
 
 namespace benchmark_tool
 {
-
 void MainWindow::createTrajectoryButtonClicked(void)
 {
   std::stringstream ss;
 
   {
     const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
-    if ( ! ps || robot_interaction_->getActiveEndEffectors().empty() )
+    if (!ps || robot_interaction_->getActiveEndEffectors().empty())
     {
-      if ( ! ps ) ROS_ERROR("Not planning scene");
-      if ( robot_interaction_->getActiveEndEffectors().empty() ) ROS_ERROR("No end effector");
+      if (!ps)
+        ROS_ERROR("Not planning scene");
+      if (robot_interaction_->getActiveEndEffectors().empty())
+        ROS_ERROR("No end effector");
       return;
     }
     else
@@ -66,34 +67,36 @@ void MainWindow::createTrajectoryButtonClicked(void)
   }
 
   bool ok = false;
-  QString text = QInputDialog::getText(this, tr("Choose a name"),
-                                       tr("Trajectory name:"), QLineEdit::Normal,
+  QString text = QInputDialog::getText(this, tr("Choose a name"), tr("Trajectory name:"), QLineEdit::Normal,
                                        QString(ss.str().c_str()), &ok);
 
   std::string name;
   if (ok)
   {
-    if ( ! text.isEmpty() )
+    if (!text.isEmpty())
     {
       name = text.toStdString();
       if (goal_poses_.find(name) != goal_poses_.end())
-        QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
-                             append("' already exists. Not creating trajectory."));
+        QMessageBox::warning(
+            this, "Name already exists",
+            QString("The name '").append(name.c_str()).append("' already exists. Not creating trajectory."));
       else
       {
-        //Create the new trajectory starting point at the current eef pose, and attach an interactive marker to it
+        // Create the new trajectory starting point at the current eef pose, and attach an interactive marker to it
         scene_display_->getPlanningSceneRW()->getCurrentStateNonConst().update();
-        Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(robot_interaction_->getActiveEndEffectors()[0].parent_link);
+        Eigen::Affine3d tip_pose = scene_display_->getPlanningSceneRO()->getCurrentState().getGlobalLinkTransform(
+            robot_interaction_->getActiveEndEffectors()[0].parent_link);
         geometry_msgs::Pose marker_pose;
         tf::poseEigenToMsg(tip_pose, marker_pose);
         static const float marker_scale = 0.15;
 
-        TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                              name, scene_display_->getRobotModel()->getModelFrame(),
-                                                              robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale, GripperMarker::NOT_TESTED,
-                                                              ui_.trajectory_nwaypoints_spin->value()));
+        TrajectoryPtr trajectory_marker(
+            new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(),
+                           visualization_manager_, name, scene_display_->getRobotModel()->getModelFrame(),
+                           robot_interaction_->getActiveEndEffectors()[0], marker_pose, marker_scale,
+                           GripperMarker::NOT_TESTED, ui_.trajectory_nwaypoints_spin->value()));
 
-        trajectories_.insert(TrajectoryPair(name,  trajectory_marker));
+        trajectories_.insert(TrajectoryPair(name, trajectory_marker));
       }
     }
     else
@@ -118,11 +121,11 @@ void MainWindow::populateTrajectoriesList(void)
 
 void MainWindow::trajectorySelectionChanged(void)
 {
-  for (unsigned int i = 0; i < ui_.trajectory_list->count() ; ++i)
+  for (unsigned int i = 0; i < ui_.trajectory_list->count(); ++i)
   {
     QListWidgetItem *item = ui_.trajectory_list->item(i);
     std::string name = item->text().toStdString();
-    if ( trajectories_.find(name) != trajectories_.end() && item->isSelected())
+    if (trajectories_.find(name) != trajectories_.end() && item->isSelected())
     {
       trajectories_[name]->show(scene_display_->getSceneNode(), visualization_manager_);
     }
@@ -137,7 +140,7 @@ void MainWindow::removeTrajectoryButtonClicked(void)
 {
   if (ui_.trajectory_list->currentItem())
   {
-    //Warn the user
+    // Warn the user
     QMessageBox msgBox;
     msgBox.setText("The selected trajectory will be removed from the database");
     msgBox.setInformativeText("Do you want to continue?");
@@ -149,9 +152,9 @@ void MainWindow::removeTrajectoryButtonClicked(void)
     {
       case QMessageBox::Yes:
       {
-        //Go through the list of trajectories, and delete those selected
-        QList<QListWidgetItem*> found_items = ui_.trajectory_list->selectedItems();
-        for ( std::size_t i = 0 ; i < found_items.size() ; i++ )
+        // Go through the list of trajectories, and delete those selected
+        QList<QListWidgetItem *> found_items = ui_.trajectory_list->selectedItems();
+        for (std::size_t i = 0; i < found_items.size(); i++)
         {
           try
           {
@@ -172,26 +175,28 @@ void MainWindow::removeTrajectoryButtonClicked(void)
 
 void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
 {
-  //Get all the trajectory constraints from the database
+  // Get all the trajectory constraints from the database
   if (trajectory_constraints_storage_ && !robot_interaction_->getActiveEndEffectors().empty())
   {
-    //First clear the current list
+    // First clear the current list
     trajectories_.clear();
 
     std::vector<std::string> names;
     try
     {
-      trajectory_constraints_storage_->getKnownTrajectoryConstraints(ui_.trajectories_filter_text->text().toStdString(), names);
+      trajectory_constraints_storage_->getKnownTrajectoryConstraints(ui_.trajectories_filter_text->text().toStdString(),
+                                                                     names);
     }
     catch (std::runtime_error &ex)
     {
-      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for trajectory contraints: ").append(ex.what()));
+      QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for "
+                                                                      "trajectory contraints: ").append(ex.what()));
       return;
     }
 
-    for (unsigned int i = 0 ; i < names.size() ; i++)
+    for (unsigned int i = 0; i < names.size(); i++)
     {
-      //Create a trajectory constraint
+      // Create a trajectory constraint
       moveit_warehouse::TrajectoryConstraintsWithMetadata tc;
       bool got_constraint = false;
       try
@@ -205,18 +210,21 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
       if (!got_constraint)
         continue;
 
-      if (tc->constraints.size() > 0 && tc->constraints[0].position_constraints[0].constraint_region.primitive_poses.size() > 0 && tc->constraints[0].orientation_constraints.size() > 0)
+      if (tc->constraints.size() > 0 &&
+          tc->constraints[0].position_constraints[0].constraint_region.primitive_poses.size() > 0 &&
+          tc->constraints[0].orientation_constraints.size() > 0)
       {
         geometry_msgs::Pose shape_pose;
         shape_pose.position = tc->constraints[0].position_constraints[0].constraint_region.primitive_poses[0].position;
         shape_pose.orientation = tc->constraints[0].orientation_constraints[0].orientation;
         static const float marker_scale = 0.15;
-        TrajectoryPtr trajectory_marker( new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                        names[i], scene_display_->getRobotModel()->getModelFrame(),
-                                                        robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED,
-                                                        ui_.trajectory_nwaypoints_spin->value()));
+        TrajectoryPtr trajectory_marker(
+            new Trajectory(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(),
+                           visualization_manager_, names[i], scene_display_->getRobotModel()->getModelFrame(),
+                           robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale,
+                           GripperMarker::NOT_TESTED, ui_.trajectory_nwaypoints_spin->value()));
 
-        if ( trajectories_.find(names[i]) != trajectories_.end() )
+        if (trajectories_.find(names[i]) != trajectories_.end())
         {
           trajectories_.erase(names[i]);
         }
@@ -224,15 +232,19 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
 
         for (std::size_t c = 0; c < tc->constraints.size(); ++c)
         {
-          if (tc->constraints[c].position_constraints.size() > 0 && tc->constraints[c].position_constraints[0].constraint_region.primitive_poses.size() > 0 && tc->constraints[c].orientation_constraints.size() > 0 )
+          if (tc->constraints[c].position_constraints.size() > 0 &&
+              tc->constraints[c].position_constraints[0].constraint_region.primitive_poses.size() > 0 &&
+              tc->constraints[c].orientation_constraints.size() > 0)
           {
-            shape_pose.position = tc->constraints[c].position_constraints[0].constraint_region.primitive_poses[0].position;
+            shape_pose.position =
+                tc->constraints[c].position_constraints[0].constraint_region.primitive_poses[0].position;
             shape_pose.orientation = tc->constraints[c].orientation_constraints[0].orientation;
 
             static const float marker_scale = 0.15;
-            GripperMarkerPtr waypoint_marker( new GripperMarker(scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(), visualization_manager_,
-                                                                names[i], scene_display_->getRobotModel()->getModelFrame(),
-                                                                robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED));
+            GripperMarkerPtr waypoint_marker(new GripperMarker(
+                scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getSceneNode(),
+                visualization_manager_, names[i], scene_display_->getRobotModel()->getModelFrame(),
+                robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED));
             waypoint_marker->unselect(true);
             waypoint_marker->setColor(0.0, 0.9, 0.0, 1 - (double)c / (double)tc->constraints.size());
             trajectory_marker->waypoint_markers.push_back(waypoint_marker);
@@ -241,8 +253,10 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
 
         if (trajectory_marker->waypoint_markers.size() > 0)
         {
-          trajectory_marker->start_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.front()));
-          trajectory_marker->end_marker = GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.back()));
+          trajectory_marker->start_marker =
+              GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.front()));
+          trajectory_marker->end_marker =
+              GripperMarkerPtr(new GripperMarker(*trajectory_marker->waypoint_markers.back()));
           trajectory_marker->waypoint_markers.front()->getPose(trajectory_marker->control_marker_start_pose);
           trajectory_marker->waypoint_markers.back()->getPose(trajectory_marker->control_marker_end_pose);
         }
@@ -250,7 +264,7 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
         selectFirstItemInList(ui_.trajectory_list);
       }
     }
-   }
+  }
   else
   {
     if (!trajectory_constraints_storage_)
@@ -262,7 +276,7 @@ void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
 {
   if (trajectory_constraints_storage_)
   {
-    //Convert all goal trajectory markers into constraints and store them
+    // Convert all goal trajectory markers into constraints and store them
     for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
     {
       moveit_msgs::TrajectoryConstraints tc;
@@ -290,8 +304,8 @@ void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
 
         moveit_msgs::OrientationConstraint oc;
         it->second->waypoint_markers[w]->getOrientation(oc.orientation);
-        oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance =
-            oc.absolute_z_axis_tolerance = std::numeric_limits<float>::epsilon() * 10.0;
+        oc.absolute_x_axis_tolerance = oc.absolute_y_axis_tolerance = oc.absolute_z_axis_tolerance =
+            std::numeric_limits<float>::epsilon() * 10.0;
         oc.weight = 1.0;
         c.orientation_constraints.push_back(oc);
         tc.constraints.push_back(c);
@@ -328,7 +342,7 @@ void MainWindow::trajectoryExecuteButtonClicked()
   {
     TrajectoryMap::iterator it = trajectories_.find(ui_.trajectory_list->currentItem()->text().toStdString());
     EigenSTL::vector_Affine3d waypoint_poses;
-    for (std::size_t w = 1; w < it->second->waypoint_markers.size(); ++w )
+    for (std::size_t w = 1; w < it->second->waypoint_markers.size(); ++w)
     {
       Eigen::Affine3d pose;
       it->second->waypoint_markers[w]->getPose(pose);
@@ -339,11 +353,13 @@ void MainWindow::trajectoryExecuteButtonClicked()
     {
       robot_state::RobotState &rstate = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst();
       rstate.update();
-      const robot_model::JointModelGroup *jmg = rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
+      const robot_model::JointModelGroup *jmg =
+          rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
 
       std::vector<robot_state::RobotStatePtr> traj;
-      double completed = rstate.computeCartesianPath(jmg, traj, rstate.getLinkModel(robot_interaction_->getActiveEndEffectors()[0].parent_link),
-                                                     waypoint_poses, true, 0.04, 0.0);
+      double completed = rstate.computeCartesianPath(
+          jmg, traj, rstate.getLinkModel(robot_interaction_->getActiveEndEffectors()[0].parent_link), waypoint_poses,
+          true, 0.04, 0.0);
 
       ROS_INFO_STREAM("Trajectory completion percentage " << completed);
       JobProcessing::addBackgroundJob(boost::bind(&MainWindow::animateTrajectory, this, traj));
@@ -361,4 +377,4 @@ void MainWindow::animateTrajectory(const std::vector<robot_state::RobotStatePtr>
   }
 }
 
-} // namespace
+}  // namespace

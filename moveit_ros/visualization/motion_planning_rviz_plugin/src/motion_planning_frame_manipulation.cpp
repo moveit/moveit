@@ -45,23 +45,23 @@
 
 namespace moveit_rviz_plugin
 {
-
 /////////////// Object Detection ///////////////////////
 void MotionPlanningFrame::detectObjectsButtonClicked()
 {
-  if(!semantic_world_)
+  if (!semantic_world_)
   {
     const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
-    if(ps)
+    if (ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
     }
-    if(semantic_world_)
+    if (semantic_world_)
     {
       semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
     }
   }
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect objects");
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::triggerObjectDetection, this), "detect "
+                                                                                                       "objects");
 }
 
 void MotionPlanningFrame::processDetectedObjects()
@@ -69,29 +69,30 @@ void MotionPlanningFrame::processDetectedObjects()
   pick_object_name_.clear();
 
   std::vector<std::string> objects, object_ids;
-  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
-  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
-  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
+  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value() / 2.0;
+  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value() / 2.0;
+  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value() / 2.0;
 
-  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
-  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
-  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
+  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value() / 2.0;
+  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value() / 2.0;
+  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value() / 2.0;
 
   ros::Time start_time = ros::Time::now();
-  while(object_ids.empty() && ros::Time::now() - start_time <= ros::Duration(3.0))
+  while (object_ids.empty() && ros::Time::now() - start_time <= ros::Duration(3.0))
   {
-    object_ids = planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
+    object_ids =
+        planning_scene_interface_->getKnownObjectNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z, true, objects);
     ros::Duration(0.5).sleep();
   }
 
-  ROS_DEBUG("Found %d objects", (int) object_ids.size());
+  ROS_DEBUG("Found %d objects", (int)object_ids.size());
   updateDetectedObjectsList(object_ids, objects);
 }
 
 void MotionPlanningFrame::selectedDetectedObjectChanged()
 {
   QList<QListWidgetItem *> sel = ui_->detected_objects_list->selectedItems();
-  if(sel.empty())
+  if (sel.empty())
   {
     ROS_INFO("No objects to select");
     return;
@@ -105,27 +106,29 @@ void MotionPlanningFrame::selectedDetectedObjectChanged()
 
   if (ps)
   {
-    if(!selected_object_name_.empty())
+    if (!selected_object_name_.empty())
       ps->removeObjectColor(selected_object_name_);
     selected_object_name_ = sel[0]->text().toStdString();
     ps->setObjectColor(selected_object_name_, pick_object_color);
   }
 }
 
-void MotionPlanningFrame::detectedObjectChanged( QListWidgetItem *item)
+void MotionPlanningFrame::detectedObjectChanged(QListWidgetItem *item)
 {
 }
 
 void MotionPlanningFrame::triggerObjectDetection()
 {
-  if(!object_recognition_client_)
+  if (!object_recognition_client_)
   {
-    object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION, false));
+    object_recognition_client_.reset(
+        new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(OBJECT_RECOGNITION_ACTION,
+                                                                                            false));
     try
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("Object recognition action: %s", ex.what());
       return;
@@ -139,7 +142,8 @@ void MotionPlanningFrame::triggerObjectDetection()
   }
   if (object_recognition_client_->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
   {
-    ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": " << object_recognition_client_->getState().getText());
+    ROS_WARN_STREAM("Fail: " << object_recognition_client_->getState().toString() << ": "
+                             << object_recognition_client_->getState().getText());
   }
 }
 
@@ -156,10 +160,10 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
   bool oldState = ui_->detected_objects_list->blockSignals(true);
   ui_->detected_objects_list->clear();
   {
-    for(std::size_t i = 0; i < object_ids.size(); ++i)
+    for (std::size_t i = 0; i < object_ids.size(); ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(object_ids[i]),
-                                                   ui_->detected_objects_list, (int)i);
+      QListWidgetItem *item =
+          new QListWidgetItem(QString::fromStdString(object_ids[i]), ui_->detected_objects_list, (int)i);
       item->setToolTip(item->text());
       Qt::ItemFlags flags = item->flags();
       flags &= ~(Qt::ItemIsUserCheckable);
@@ -169,7 +173,7 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
   }
   ui_->detected_objects_list->blockSignals(oldState);
   ui_->detected_objects_list->setUpdatesEnabled(true);
-  if(!object_ids.empty())
+  if (!object_ids.empty())
     ui_->pick_button->setEnabled(true);
 }
 
@@ -189,7 +193,7 @@ void MotionPlanningFrame::publishTables()
 void MotionPlanningFrame::selectedSupportSurfaceChanged()
 {
   QList<QListWidgetItem *> sel = ui_->support_surfaces_list->selectedItems();
-  if(sel.empty())
+  if (sel.empty())
   {
     ROS_INFO("No tables to select");
     return;
@@ -203,7 +207,7 @@ void MotionPlanningFrame::selectedSupportSurfaceChanged()
 
   if (ps)
   {
-    if(!selected_support_surface_name_.empty())
+    if (!selected_support_surface_name_.empty())
       ps->removeObjectColor(selected_support_surface_name_);
     selected_support_surface_name_ = sel[0]->text().toStdString();
     ps->setObjectColor(selected_support_surface_name_, selected_support_surface_color);
@@ -212,24 +216,24 @@ void MotionPlanningFrame::selectedSupportSurfaceChanged()
 
 void MotionPlanningFrame::updateSupportSurfacesList()
 {
-  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value()/2.0;
-  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value()/2.0;
-  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value()/2.0;
+  double min_x = ui_->roi_center_x->value() - ui_->roi_size_x->value() / 2.0;
+  double min_y = ui_->roi_center_y->value() - ui_->roi_size_y->value() / 2.0;
+  double min_z = ui_->roi_center_z->value() - ui_->roi_size_z->value() / 2.0;
 
-  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value()/2.0;
-  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value()/2.0;
-  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value()/2.0;
+  double max_x = ui_->roi_center_x->value() + ui_->roi_size_x->value() / 2.0;
+  double max_y = ui_->roi_center_y->value() + ui_->roi_size_y->value() / 2.0;
+  double max_z = ui_->roi_center_z->value() + ui_->roi_size_z->value() / 2.0;
   std::vector<std::string> support_ids = semantic_world_->getTableNamesInROI(min_x, min_y, min_z, max_x, max_y, max_z);
-  ROS_INFO("%d Tables in collision world", (int) support_ids.size());
+  ROS_INFO("%d Tables in collision world", (int)support_ids.size());
 
   ui_->support_surfaces_list->setUpdatesEnabled(false);
   bool oldState = ui_->support_surfaces_list->blockSignals(true);
   ui_->support_surfaces_list->clear();
   {
-    for(std::size_t i = 0; i < support_ids.size(); ++i)
+    for (std::size_t i = 0; i < support_ids.size(); ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(QString::fromStdString(support_ids[i]),
-                                                   ui_->support_surfaces_list, (int)i);
+      QListWidgetItem *item =
+          new QListWidgetItem(QString::fromStdString(support_ids[i]), ui_->support_surfaces_list, (int)i);
       item->setToolTip(item->text());
       Qt::ItemFlags flags = item->flags();
       flags &= ~(Qt::ItemIsUserCheckable);
@@ -248,23 +252,23 @@ void MotionPlanningFrame::pickObjectButtonClicked()
   QList<QListWidgetItem *> sel_table = ui_->support_surfaces_list->selectedItems();
 
   std::string group_name = planning_display_->getCurrentPlanningGroup();
-  if(sel.empty())
+  if (sel.empty())
   {
     ROS_INFO("No objects to pick");
     return;
   }
   pick_object_name_[group_name] = sel[0]->text().toStdString();
 
-  if(!sel_table.empty())
+  if (!sel_table.empty())
     support_surface_name_ = sel_table[0]->text().toStdString();
   else
   {
-    if(semantic_world_)
+    if (semantic_world_)
     {
       std::vector<std::string> object_names;
       object_names.push_back(pick_object_name_[group_name]);
       std::map<std::string, geometry_msgs::Pose> object_poses = planning_scene_interface_->getObjectPoses(object_names);
-      if(object_poses.find(pick_object_name_[group_name]) != object_poses.end())
+      if (object_poses.find(pick_object_name_[group_name]) != object_poses.end())
       {
         ROS_DEBUG("Finding current table for object: %s", pick_object_name_[group_name].c_str());
         support_surface_name_ = semantic_world_->findObjectTable(object_poses[pick_object_name_[group_name]]);
@@ -275,8 +279,7 @@ void MotionPlanningFrame::pickObjectButtonClicked()
     else
       support_surface_name_.clear();
   }
-  ROS_INFO("Trying to pick up object %s from support surface %s",
-           pick_object_name_[group_name].c_str(),
+  ROS_INFO("Trying to pick up object %s from support surface %s", pick_object_name_[group_name].c_str(),
            support_surface_name_.c_str());
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::pickObject, this), "pick");
 }
@@ -286,7 +289,7 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   QList<QListWidgetItem *> sel_table = ui_->support_surfaces_list->selectedItems();
   std::string group_name = planning_display_->getCurrentPlanningGroup();
 
-  if(!sel_table.empty())
+  if (!sel_table.empty())
     support_surface_name_ = sel_table[0]->text().toStdString();
   else
   {
@@ -298,7 +301,7 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   ui_->pick_button->setEnabled(false);
   ui_->place_button->setEnabled(false);
 
-  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  std::vector<const robot_state::AttachedBody *> attached_bodies;
   const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
   if (!ps)
   {
@@ -320,10 +323,8 @@ void MotionPlanningFrame::placeObjectButtonClicked()
 
   // Else place the first one
   place_poses_.clear();
-  place_poses_ = semantic_world_->generatePlacePoses(support_surface_name_,
-                                                    attached_bodies[0]->getShapes()[0],
-                                                    upright_orientation,
-                                                    0.1);
+  place_poses_ = semantic_world_->generatePlacePoses(support_surface_name_, attached_bodies[0]->getShapes()[0],
+                                                     upright_orientation, 0.1);
   planning_display_->visualizePlaceLocations(place_poses_);
   place_object_name_ = attached_bodies[0]->getName();
   planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::placeObject, this), "place");
@@ -333,16 +334,16 @@ void MotionPlanningFrame::pickObject()
 {
   std::string group_name = planning_display_->getCurrentPlanningGroup();
   ui_->pick_button->setEnabled(false);
-  if(pick_object_name_.find(group_name) == pick_object_name_.end())
+  if (pick_object_name_.find(group_name) == pick_object_name_.end())
   {
     ROS_ERROR("No pick object set for this group");
     return;
   }
-  if(!support_surface_name_.empty())
+  if (!support_surface_name_.empty())
   {
     move_group_->setSupportSurfaceName(support_surface_name_);
   }
-  if(move_group_->pick(pick_object_name_[group_name]))
+  if (move_group_->pick(pick_object_name_[group_name]))
   {
     ui_->place_button->setEnabled(true);
   }
@@ -353,5 +354,4 @@ void MotionPlanningFrame::placeObject()
   move_group_->place(place_object_name_, place_poses_);
   return;
 }
-
 }

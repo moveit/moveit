@@ -41,11 +41,9 @@
 
 namespace benchmark_tool
 {
-
 class JobProcessing
 {
 public:
-
   static std::deque<boost::function<void(void)> > main_loop_jobs_;
   static boost::mutex main_loop_jobs_lock_;
 
@@ -60,7 +58,6 @@ public:
   static void executeMainLoopJobs();
 };
 
-
-} //namespace
+}  // namespace
 
 #endif

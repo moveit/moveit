@@ -63,7 +63,6 @@ namespace ompl_interface
 class PlanningContextManager::LastPlanningContext
 {
 public:
-
   ModelBasedPlanningContextPtr getContext()
   {
     boost::mutex::scoped_lock slock(lock_);
@@ -85,22 +84,27 @@ public:
 private:
   /* The planning group for which solve() was called last */
   ModelBasedPlanningContextPtr last_planning_context_solve_;
-  boost::mutex                 lock_;
+  boost::mutex lock_;
 };
 
 struct PlanningContextManager::CachedContexts
 {
-  std::map<std::pair<std::string, std::string>,
-           std::vector<ModelBasedPlanningContextPtr> > contexts_;
-  boost::mutex                                         lock_;
+  std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
+  boost::mutex lock_;
 };
 
-} // namespace ompl_interface
+}  // namespace ompl_interface
 
-ompl_interface::PlanningContextManager::PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm) :
-  kmodel_(kmodel), constraint_sampler_manager_(csm),
-  max_goal_samples_(10), max_state_sampling_attempts_(4), max_goal_sampling_attempts_(1000),
-  max_planning_threads_(4), max_solution_segment_length_(0.0), minimum_waypoint_count_(2)
+ompl_interface::PlanningContextManager::PlanningContextManager(
+    const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm)
+  : kmodel_(kmodel)
+  , constraint_sampler_manager_(csm)
+  , max_goal_samples_(10)
+  , max_state_sampling_attempts_(4)
+  , max_goal_sampling_attempts_(1000)
+  , max_planning_threads_(4)
+  , max_solution_segment_length_(0.0)
+  , minimum_waypoint_count_(2)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -116,8 +120,9 @@ namespace
 {
 using namespace ompl_interface;
 
-template<typename T>
-static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name, const ModelBasedPlanningContextSpecification &spec)
+template <typename T>
+static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name,
+                                              const ModelBasedPlanningContextSpecification &spec)
 {
   ompl::base::PlannerPtr planner(new T(si));
   if (!new_name.empty())
@@ -128,7 +133,8 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si,
 }
 }
 
-ompl_interface::ConfiguredPlannerAllocator ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
+ompl_interface::ConfiguredPlannerAllocator
+ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
 {
   std::map<std::string, ConfiguredPlannerAllocator>::const_iterator it = known_planners_.find(planner);
   if (it != known_planners_.end())
@@ -167,19 +173,22 @@ ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager
   return boost::bind(&PlanningContextManager::plannerSelector, this, _1);
 }
 
-void ompl_interface::PlanningContextManager::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
+void ompl_interface::PlanningContextManager::setPlannerConfigurations(
+    const planning_interface::PlannerConfigurationMap &pconfig)
 {
   planner_configs_ = pconfig;
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const std::string &config, const std::string& factory_type) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
+    const std::string &config, const std::string &factory_type) const
 {
   planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.find(config);
 
   if (pc != planner_configs_.end())
   {
-    moveit_msgs::MotionPlanRequest req; // dummy request with default values
-    return getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type), req);
+    moveit_msgs::MotionPlanRequest req;  // dummy request with default values
+    return getPlanningContext(pc->second,
+                              boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type), req);
   }
   else
   {
@@ -188,9 +197,9 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   }
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_interface::PlannerConfigurationSettings &config,
-                                                                                                        const StateSpaceFactoryTypeSelector &factory_selector,
-                                                                                                        const moveit_msgs::MotionPlanRequest &req) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
+    const planning_interface::PlannerConfigurationSettings &config,
+    const StateSpaceFactoryTypeSelector &factory_selector, const moveit_msgs::MotionPlanRequest &req) const
 {
   const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
 
@@ -200,10 +209,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   {
     boost::mutex::scoped_lock slock(cached_contexts_->lock_);
     std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
-      cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
+        cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
     if (cc != cached_contexts_->contexts_.end())
     {
-      for (std::size_t i = 0 ; i < cc->second.size() ; ++i)
+      for (std::size_t i = 0; i < cc->second.size(); ++i)
         if (cc->second[i].unique())
         {
           logDebug("Reusing cached planning context");
@@ -234,7 +243,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       state_validity_cache = false;
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(config.config.at("subspaces"), sep);
-      for(boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin() ; beg != tok.end(); ++beg)
+      for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
       {
         const ompl_interface::ModelBasedStateSpaceFactoryPtr &sub_fact = factory_selector(*beg);
         if (sub_fact)
@@ -259,7 +268,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
   context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
   if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())
-    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup()->getStateSpace()->getMaximumExtent() / 100.0);
+    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup()->getStateSpace()->getMaximumExtent() /
+                                             100.0);
   else
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
   context->setMinimumWaypointCount(minimum_waypoint_count_);
@@ -270,10 +280,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(const std::string & /* dummy */, const std::string &factory_type) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningContextManager::getStateSpaceFactory1(
+    const std::string & /* dummy */, const std::string &factory_type) const
 {
   std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
-    factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
+      factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
     return f->second;
   else
@@ -284,12 +295,14 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(const std::string &group, const moveit_msgs::MotionPlanRequest &req) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningContextManager::getStateSpaceFactory2(
+    const std::string &group, const moveit_msgs::MotionPlanRequest &req) const
 {
   // find the problem representation to use
   std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
   int prev_priority = -1;
-  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin() ; it != state_space_factories_.end() ; ++it)
+  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
+       it != state_space_factories_.end(); ++it)
   {
     int priority = it->second->canRepresentProblem(group, req, kmodel_);
     if (priority > 0)
@@ -313,9 +326,9 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
   }
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                                                                        const moveit_msgs::MotionPlanRequest &req,
-                                                                                                        moveit_msgs::MoveItErrorCodes &error_code) const
+ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::MotionPlanRequest &req,
+    moveit_msgs::MoveItErrorCodes &error_code) const
 {
   if (req.group_name.empty())
   {
@@ -336,11 +349,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.end();
   if (!req.planner_id.empty())
   {
-    pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ? req.group_name + "[" + req.planner_id + "]" : req.planner_id);
+    pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ?
+                                   req.group_name + "[" + req.planner_id + "]" :
+                                   req.planner_id);
     if (pc == planner_configs_.end())
       logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.",
               req.group_name.c_str(), req.planner_id.c_str());
-
   }
   if (pc == planner_configs_.end())
   {
@@ -352,7 +366,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
 
-  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req), req);
+  ModelBasedPlanningContextPtr context =
+      getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req), req);
   if (context)
   {
     context->clear();

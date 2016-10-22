@@ -44,7 +44,6 @@
 
 namespace mesh_filter
 {
-
 MOVEIT_CLASS_FORWARD(Job);
 
 /**
@@ -53,35 +52,36 @@ MOVEIT_CLASS_FORWARD(Job);
 
 class Job
 {
-  public:
-    Job ()
-    : done_ (false)
-    {}
-    inline void wait () const;
-    virtual void execute () = 0;
-    inline void cancel ();
-    inline bool isDone () const;
-  protected:
-    bool done_;
-    mutable boost::condition_variable condition_;
-    mutable boost::mutex mutex_;
+public:
+  Job() : done_(false)
+  {
+  }
+  inline void wait() const;
+  virtual void execute() = 0;
+  inline void cancel();
+  inline bool isDone() const;
+
+protected:
+  bool done_;
+  mutable boost::condition_variable condition_;
+  mutable boost::mutex mutex_;
 };
 
-void Job::wait () const
+void Job::wait() const
 {
-  boost::unique_lock<boost::mutex> lock (mutex_);
+  boost::unique_lock<boost::mutex> lock(mutex_);
   while (!done_)
-    condition_.wait (lock);
+    condition_.wait(lock);
 }
 
-void Job::cancel ()
+void Job::cancel()
 {
-  boost::unique_lock<boost::mutex> lock (mutex_);
+  boost::unique_lock<boost::mutex> lock(mutex_);
   done_ = true;
-  condition_.notify_all ();
+  condition_.notify_all();
 }
 
-bool Job::isDone () const
+bool Job::isDone() const
 {
   return done_;
 }
@@ -89,57 +89,55 @@ bool Job::isDone () const
 template <typename ReturnType>
 class FilterJob : public Job
 {
-  public:
-    FilterJob (const boost::function<ReturnType ()>& exec)
-    : Job ()
-    , exec_ (exec)
-    {}
-    virtual void execute ();
-    const ReturnType& getResult () const;
-  private:
-    boost::function<ReturnType ()> exec_;
-    ReturnType result_;
+public:
+  FilterJob(const boost::function<ReturnType()>& exec) : Job(), exec_(exec)
+  {
+  }
+  virtual void execute();
+  const ReturnType& getResult() const;
+
+private:
+  boost::function<ReturnType()> exec_;
+  ReturnType result_;
 };
 
 template <typename ReturnType>
-void FilterJob<ReturnType>::execute ()
+void FilterJob<ReturnType>::execute()
 {
-  boost::unique_lock<boost::mutex> lock (mutex_);
-  if (!done_) // not canceled !
-    result_ = exec_ ();
+  boost::unique_lock<boost::mutex> lock(mutex_);
+  if (!done_)  // not canceled !
+    result_ = exec_();
 
   done_ = true;
-  condition_.notify_all ();
+  condition_.notify_all();
 }
 
 template <typename ReturnType>
-const ReturnType& FilterJob<ReturnType>::getResult () const
+const ReturnType& FilterJob<ReturnType>::getResult() const
 {
-  wait ();
+  wait();
   return result_;
 }
 
 template <>
 class FilterJob<void> : public Job
 {
-  public:
-    FilterJob (const boost::function<void ()>& exec)
-    : Job ()
-    , exec_ (exec)
-    {}
-    virtual void execute ()
-    {
-      boost::unique_lock<boost::mutex> lock (mutex_);
-      if (!done_) // not canceled !
-        exec_ ();
+public:
+  FilterJob(const boost::function<void()>& exec) : Job(), exec_(exec)
+  {
+  }
+  virtual void execute()
+  {
+    boost::unique_lock<boost::mutex> lock(mutex_);
+    if (!done_)  // not canceled !
+      exec_();
 
-      done_ = true;
-      condition_.notify_all ();
-    }
+    done_ = true;
+    condition_.notify_all();
+  }
 
-  private:
-    boost::function<void ()> exec_;
+private:
+  boost::function<void()> exec_;
 };
-
 }
 #endif

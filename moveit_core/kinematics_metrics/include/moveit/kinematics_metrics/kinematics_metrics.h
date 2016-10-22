@@ -43,7 +43,6 @@
 /** @brief Namespace for kinematics metrics */
 namespace kinematics_metrics
 {
-
 MOVEIT_CLASS_FORWARD(KinematicsMetrics);
 
 /**
@@ -53,10 +52,9 @@ MOVEIT_CLASS_FORWARD(KinematicsMetrics);
 class KinematicsMetrics
 {
 public:
-
   /** \brief Construct a KinematicsMetricss from a RobotModel */
-  KinematicsMetrics(const robot_model::RobotModelConstPtr &robot_model) :
-    robot_model_(robot_model), penalty_multiplier_(0.0)
+  KinematicsMetrics(const robot_model::RobotModelConstPtr &robot_model)
+    : robot_model_(robot_model), penalty_multiplier_(0.0)
   {
   }
 
@@ -67,10 +65,8 @@ public:
    * @param manipulability_index The computed manipulability = sqrt(det(JJ^T))
    * @return False if the group was not found
    */
-  bool getManipulabilityIndex(const robot_state::RobotState &state,
-                              const std::string &group_name,
-                              double &manipulability_index,
-                              bool translation = false) const;
+  bool getManipulabilityIndex(const robot_state::RobotState &state, const std::string &group_name,
+                              double &manipulability_index, bool translation = false) const;
 
   /**
    * @brief Get the manipulability for a given group at a given joint configuration
@@ -80,8 +76,7 @@ public:
    * @return False if the group was not found
    */
   bool getManipulabilityIndex(const robot_state::RobotState &state,
-                              const robot_model::JointModelGroup *joint_model_group,
-                              double &manipulability_index,
+                              const robot_model::JointModelGroup *joint_model_group, double &manipulability_index,
                               bool translation = false) const;
 
   /**
@@ -92,10 +87,8 @@ public:
    * @param eigen_vectors The eigen vectors for the translation part of JJ^T
    * @return False if the group was not found
    */
-  bool getManipulabilityEllipsoid(const robot_state::RobotState &state,
-                                  const std::string &group_name,
-                                  Eigen::MatrixXcd &eigen_values,
-                                  Eigen::MatrixXcd &eigen_vectors) const;
+  bool getManipulabilityEllipsoid(const robot_state::RobotState &state, const std::string &group_name,
+                                  Eigen::MatrixXcd &eigen_values, Eigen::MatrixXcd &eigen_vectors) const;
 
   /**
    * @brief Get the (translation) manipulability ellipsoid for a given group at a given joint configuration
@@ -106,8 +99,7 @@ public:
    * @return False if the group was not found
    */
   bool getManipulabilityEllipsoid(const robot_state::RobotState &state,
-                                  const robot_model::JointModelGroup *joint_model_group,
-                                  Eigen::MatrixXcd &eigen_values,
+                                  const robot_model::JointModelGroup *joint_model_group, Eigen::MatrixXcd &eigen_values,
                                   Eigen::MatrixXcd &eigen_vectors) const;
 
   /**
@@ -119,9 +111,7 @@ public:
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getManipulability(const robot_state::RobotState &state,
-                         const std::string &group_name,
-                         double &condition_number,
+  bool getManipulability(const robot_state::RobotState &state, const std::string &group_name, double &condition_number,
                          bool translation = false) const;
 
   /**
@@ -133,43 +123,40 @@ public:
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getManipulability(const robot_state::RobotState &state,
-                         const robot_model::JointModelGroup *joint_model_group,
-                         double &condition_number,
-                         bool translation = false) const;
+  bool getManipulability(const robot_state::RobotState &state, const robot_model::JointModelGroup *joint_model_group,
+                         double &condition_number, bool translation = false) const;
 
   void setPenaltyMultiplier(double multiplier)
   {
     penalty_multiplier_ = fabs(multiplier);
   }
 
-  const double& getPenaltyMultiplier() const
+  const double &getPenaltyMultiplier() const
   {
     return penalty_multiplier_;
   }
 
 protected:
-
   robot_model::RobotModelConstPtr robot_model_;
 
 private:
-
-    /**
-   * @brief Defines a multiplier for the manipulabilty
-   * = 1 - exp ( -penalty_multipler_ * product_{i=1}{n} (distance_to_lower_limit * distance_to_higher_limit/(joint_range*joint_range)))
-   * where n is the number of joints in the group. Floating joints are ignored in this computation. Planar joints with finite bounds
-   * are considered.
-   * Set penalty_multiplier_ to 0 if you don't want this multiplier to have any effect on the manipulability measures.
-   * See "Workspace Geometric Characterization and Manipulability of Industrial Robots", Ming-June, Tsia, PhD Thesis,
-   * Ohio State University, 1986, for more details.
-   * @return multiplier that is multiplied with every manipulability measure computed here
-   */
-  double getJointLimitsPenalty(const robot_state::RobotState &state, const robot_model::JointModelGroup *joint_model_group) const;
+  /**
+ * @brief Defines a multiplier for the manipulabilty
+ * = 1 - exp ( -penalty_multipler_ * product_{i=1}{n} (distance_to_lower_limit *
+ * distance_to_higher_limit/(joint_range*joint_range)))
+ * where n is the number of joints in the group. Floating joints are ignored in this computation. Planar joints with
+ * finite bounds
+ * are considered.
+ * Set penalty_multiplier_ to 0 if you don't want this multiplier to have any effect on the manipulability measures.
+ * See "Workspace Geometric Characterization and Manipulability of Industrial Robots", Ming-June, Tsia, PhD Thesis,
+ * Ohio State University, 1986, for more details.
+ * @return multiplier that is multiplied with every manipulability measure computed here
+ */
+  double getJointLimitsPenalty(const robot_state::RobotState &state,
+                               const robot_model::JointModelGroup *joint_model_group) const;
 
   double penalty_multiplier_;
-
 };
-
 }
 
 #endif

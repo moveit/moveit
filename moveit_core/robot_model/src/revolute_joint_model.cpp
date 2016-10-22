@@ -41,7 +41,7 @@
 #include <limits>
 #include <cmath>
 
-moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
+moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string &name)
   : JointModel(name)
   , axis_(0.0, 0.0, 0.0)
   , continuous_(false)
@@ -106,12 +106,14 @@ void moveit::core::RevoluteJointModel::getVariableDefaultPositions(double *value
     values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
-void moveit::core::RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
+void moveit::core::RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
+                                                                  double *values, const Bounds &bounds) const
 {
   values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
-void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
+void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng,
+                                                                        double *values, const Bounds &bounds,
                                                                         const double *near, const double distance) const
 {
   if (continuous_)
@@ -124,7 +126,8 @@ void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_n
                                 std::min(bounds[0].max_position_, near[0] + distance));
 }
 
-void moveit::core::RevoluteJointModel::interpolate(const double *from, const double *to, const double t, double *state) const
+void moveit::core::RevoluteJointModel::interpolate(const double *from, const double *to, const double t,
+                                                   double *state) const
 {
   if (continuous_)
   {
@@ -141,9 +144,8 @@ void moveit::core::RevoluteJointModel::interpolate(const double *from, const dou
       // input states are within bounds, so the following check is sufficient
       if (state[0] > boost::math::constants::pi<double>())
         state[0] -= 2.0 * boost::math::constants::pi<double>();
-      else
-        if (state[0] < -boost::math::constants::pi<double>())
-          state[0] += 2.0 * boost::math::constants::pi<double>();
+      else if (state[0] < -boost::math::constants::pi<double>())
+        state[0] += 2.0 * boost::math::constants::pi<double>();
     }
   }
   else
@@ -161,7 +163,8 @@ double moveit::core::RevoluteJointModel::distance(const double *values1, const d
     return fabs(values1[0] - values2[0]);
 }
 
-bool moveit::core::RevoluteJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds, double margin) const
+bool moveit::core::RevoluteJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds,
+                                                               double margin) const
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
@@ -178,9 +181,8 @@ bool moveit::core::RevoluteJointModel::enforcePositionBounds(double *values, con
       v = fmod(v, 2.0 * boost::math::constants::pi<double>());
       if (v <= -boost::math::constants::pi<double>())
         v += 2.0 * boost::math::constants::pi<double>();
-      else
-        if (v > boost::math::constants::pi<double>())
-          v -= 2.0 * boost::math::constants::pi<double>();
+      else if (v > boost::math::constants::pi<double>())
+        v -= 2.0 * boost::math::constants::pi<double>();
       return true;
     }
   }
@@ -191,12 +193,11 @@ bool moveit::core::RevoluteJointModel::enforcePositionBounds(double *values, con
       values[0] = bounds[0].min_position_;
       return true;
     }
-    else
-      if (values[0] > bounds[0].max_position_)
-      {
-        values[0] = bounds[0].max_position_;
-        return true;
-      }
+    else if (values[0] > bounds[0].max_position_)
+    {
+      values[0] = bounds[0].max_position_;
+      return true;
+    }
   }
   return false;
 }
@@ -240,11 +241,12 @@ void moveit::core::RevoluteJointModel::computeTransform(const double *joint_valu
   //  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
-void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double *joint_values) const
+void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d &transf,
+                                                                double *joint_values) const
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();
   size_t maxIdx;
   axis_.array().abs().maxCoeff(&maxIdx);
-  joint_values[0] = 2.*atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
+  joint_values[0] = 2. * atan2(q.vec()[maxIdx] / axis_[maxIdx], q.w());
 }

@@ -37,8 +37,7 @@
 #include "clear_octomap_service_capability.h"
 #include <moveit/move_group/capability_names.h>
 
-move_group::ClearOctomapService::ClearOctomapService():
-  MoveGroupCapability("ClearOctomapService")
+move_group::ClearOctomapService::ClearOctomapService() : MoveGroupCapability("ClearOctomapService")
 {
 }
 
@@ -60,7 +59,6 @@ bool move_group::ClearOctomapService::clearOctomap(std_srvs::Empty::Request &req
   ROS_INFO("Octomap cleared.");
   return true;
 }
-
 
 #include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::ClearOctomapService, move_group::MoveGroupCapability)

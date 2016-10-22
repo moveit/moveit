@@ -74,7 +74,8 @@ public:
    * @param maxiter maximum iterations for the svd calculation,
    * default: 150
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints =0, int num_redundant_joints =0, bool position_ik=false, double eps=0.00001, int maxiter=150);
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
+                                       bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
   ~ChainIkSolverVel_pinv_mimic();
 
@@ -86,7 +87,10 @@ public:
    * not (yet) implemented.
    *
    */
-  virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out){return -1;};
+  virtual int CartToJnt(const JntArray& q_init, const FrameVel& v_in, JntArrayVel& q_out)
+  {
+    return -1;
+  };
 
   /**
    * @brief Set a vector of indices that map each (and every) joint in the chain onto the corresponding joint in a
@@ -96,16 +100,17 @@ public:
    * @param mimic_joints Vector of size chain.getNrOfJoints() that maps every joint in the chain onto (a) itself
    * if its not a mimic joint or (b) onto the active dof that it is mimicking
    */
-  bool setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic> &_mimic_joints);
+  bool setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& _mimic_joints);
 
   /**
    * @brief Set a mapping between a reduced set of joints (numbering either 6 or 3) and the full set of active (i.e
    * excluding the mimic joints) DOFs in the robot.
-   * As an example, consider an arm with 7 joints: j0 to j6. If j2 represents the redundancy, then redundant_joints_map_index
+   * As an example, consider an arm with 7 joints: j0 to j6. If j2 represents the redundancy, then
+   * redundant_joints_map_index
    * will be a 6 dimensional vector - [0 1 3 4 5 6],
    * i.e. joint_value_full(redundant_joints_map_index[i]) = joint_value_reduced(i), for i=0,...5
    */
-  bool setRedundantJointsMapIndex(const std::vector<unsigned int> & redundant_joints_map_index);
+  bool setRedundantJointsMapIndex(const std::vector<unsigned int>& redundant_joints_map_index);
 
   void lockRedundantJoints()
   {
@@ -118,9 +123,8 @@ public:
   }
 
 private:
-
-  bool jacToJacReduced(const Jacobian &jac, Jacobian &jac_mimic);
-  bool jacToJacLocked(const Jacobian &jac, Jacobian &jac_locked);
+  bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_mimic);
+  bool jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked);
 
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
@@ -176,8 +180,6 @@ private:
   std::vector<unsigned int> locked_joints_map_index;
   unsigned int num_redundant_joints;
   bool redundant_joints_locked;
-
-
 };
 }
 #endif

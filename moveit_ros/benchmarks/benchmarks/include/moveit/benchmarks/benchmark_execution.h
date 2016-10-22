@@ -49,7 +49,6 @@
 
 namespace moveit_benchmarks
 {
-
 typedef unsigned int BenchmarkType;
 static const BenchmarkType BENCHMARK_PLANNERS = 1;
 static const BenchmarkType BENCHMARK_GOAL_EXISTANCE = 2;
@@ -91,7 +90,6 @@ struct BenchmarkRequest
 class BenchmarkExecution
 {
 public:
-
   BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, const std::string &host, std::size_t port);
 
   bool readOptions(const std::string &filename);
@@ -104,7 +102,6 @@ public:
   void runGoalExistenceBenchmark(BenchmarkRequest &req);
 
 private:
-
   struct BenchmarkOptions
   {
     std::string scene;
@@ -143,11 +140,10 @@ private:
   };
 
   /// Contains the parameter combination for one test
-  typedef std::map<std::string,double> ParameterInstance;
+  typedef std::map<std::string, double> ParameterInstance;
 
   void collectMetrics(std::map<std::string, std::string> &rundata,
-                      const planning_interface::MotionPlanDetailedResponse &mp_res,
-                      bool solved, double total_time);
+                      const planning_interface::MotionPlanDetailedResponse &mp_res, bool solved, double total_time);
 
   /**
    * @brief Called within the benchmarking solve loop to allow parameters to be swept/tested
@@ -156,10 +152,8 @@ private:
    * @param param_combinations_id_ - keeps track of what parameter combo we are currently iterating on
    * @param parameter_data - used for outputting log information to file (results)
    */
-  void modifyPlannerConfiguration(planning_interface::PlannerManager &planner,
-                                  const std::string& planner_id,
-                                  std::size_t param_combinations_id_,
-                                  RunData &parameter_data);
+  void modifyPlannerConfiguration(planning_interface::PlannerManager &planner, const std::string &planner_id,
+                                  std::size_t param_combinations_id_, RunData &parameter_data);
 
   /**
    * @brief Populates the param_combinations_ vector with all combinations of desired parameters to be tested
@@ -169,7 +163,8 @@ private:
 
   /**
    * @brief Recursively generates all the combinations of parameters to be tested
-   * @param options_id - where in the recursive loop we are, id is with respect to the n*n*n*... number of tests we are to generate
+   * @param options_id - where in the recursive loop we are, id is with respect to the n*n*n*... number of tests we are
+   * to generate
    * @param param_instance - holds the generated parameter combinations, the result
    */
   void recursiveParamCombinations(int options_id, ParameterInstance param_instance);
@@ -192,10 +187,7 @@ private:
 
   boost::shared_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader_;
   std::map<std::string, planning_interface::PlannerManagerPtr> planner_interfaces_;
-
 };
-
-
 }
 
 #endif

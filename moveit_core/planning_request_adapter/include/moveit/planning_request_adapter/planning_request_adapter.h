@@ -45,15 +45,14 @@
 /** \brief Generic interface to adapting motion planning requests */
 namespace planning_request_adapter
 {
-
 MOVEIT_CLASS_FORWARD(PlanningRequestAdapter);
 
 class PlanningRequestAdapter
 {
 public:
-
-  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                               const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res)> PlannerFn;
+  typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr &planning_scene,
+                               const planning_interface::MotionPlanRequest &req,
+                               planning_interface::MotionPlanResponse &res)> PlannerFn;
 
   PlanningRequestAdapter()
   {
@@ -64,17 +63,19 @@ public:
   }
 
   /// Get a short string that identifies the planning request adapter
-  virtual std::string getDescription() const { return ""; }
+  virtual std::string getDescription() const
+  {
+    return "";
+  }
 
   bool adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_scene::PlanningSceneConstPtr &planning_scene,
                     const planning_interface::MotionPlanRequest &req,
                     planning_interface::MotionPlanResponse &res) const;
 
   bool adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest &req,
-                    planning_interface::MotionPlanResponse &res,
+                    const planning_scene::PlanningSceneConstPtr &planning_scene,
+                    const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res,
                     std::vector<std::size_t> &added_path_index) const;
 
   /** \brief Adapt the planning request if needed, call the planner
@@ -82,12 +83,10 @@ public:
       needed. If the response is changed, the index values of the
       states added without planning are added to \e
       added_path_index */
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const = 0;
-
 };
 
 /// Apply a sequence of adapters to a motion plan
@@ -104,21 +103,18 @@ public:
   }
 
   bool adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
+                    const planning_scene::PlanningSceneConstPtr &planning_scene,
                     const planning_interface::MotionPlanRequest &req,
                     planning_interface::MotionPlanResponse &res) const;
 
   bool adaptAndPlan(const planning_interface::PlannerManagerPtr &planner,
-                    const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest &req,
-                    planning_interface::MotionPlanResponse &res,
+                    const planning_scene::PlanningSceneConstPtr &planning_scene,
+                    const planning_interface::MotionPlanRequest &req, planning_interface::MotionPlanResponse &res,
                     std::vector<std::size_t> &added_path_index) const;
 
 private:
   std::vector<PlanningRequestAdapterConstPtr> adapters_;
 };
-
-
 }
 
 #endif

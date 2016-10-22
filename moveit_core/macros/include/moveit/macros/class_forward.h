@@ -46,13 +46,17 @@
  *  - ${Class}ConstPtr = shared_ptr<const ${Class}>
  */
 
-#define MOVEIT_CLASS_FORWARD(C) class C; MOVEIT_DECLARE_PTR(C, C);
+#define MOVEIT_CLASS_FORWARD(C)                                                                                        \
+  class C;                                                                                                             \
+  MOVEIT_DECLARE_PTR(C, C);
 
 /**
  * \def MOVEIT_STRUCT_FORWARD
  * Like MOVEIT_CLASS_FORWARD, but forward declares the type as a struct
  * instead of a class.
  */
-#define MOVEIT_STRUCT_FORWARD(C) struct C; MOVEIT_DECLARE_PTR(C, C);
+#define MOVEIT_STRUCT_FORWARD(C)                                                                                       \
+  struct C;                                                                                                            \
+  MOVEIT_DECLARE_PTR(C, C);
 
 #endif

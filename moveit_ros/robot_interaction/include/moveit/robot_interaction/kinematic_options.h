@@ -42,7 +42,6 @@
 
 namespace robot_interaction
 {
-
 // Options for inverse kinematics calculations.
 //
 // This is intended to be lightweight and passable by value.  No virtual
@@ -57,18 +56,15 @@ struct KinematicOptions
   /// enum and to the setOptions() method.
   enum OptionBitmask
   {
-    TIMEOUT                     = 0x00000001, // timeout_seconds_
-    MAX_ATTEMPTS                = 0x00000002, // max_attempts_
-    STATE_VALIDITY_CALLBACK     = 0x00000004, // state_validity_callback_
-    LOCK_REDUNDANT_JOINTS       = 0x00000008, // options_.lock_redundant_joints
-    RETURN_APPROXIMATE_SOLUTION = 0x00000010, // options_.return_approximate_solution
-    DISCRETIZATION_METHOD       = 0x00000020,
-    ALL_QUERY_OPTIONS           = LOCK_REDUNDANT_JOINTS |
-                                  RETURN_APPROXIMATE_SOLUTION |
-                                  DISCRETIZATION_METHOD,
-    ALL                         = 0x7fffffff
+    TIMEOUT = 0x00000001,                      // timeout_seconds_
+    MAX_ATTEMPTS = 0x00000002,                 // max_attempts_
+    STATE_VALIDITY_CALLBACK = 0x00000004,      // state_validity_callback_
+    LOCK_REDUNDANT_JOINTS = 0x00000008,        // options_.lock_redundant_joints
+    RETURN_APPROXIMATE_SOLUTION = 0x00000010,  // options_.return_approximate_solution
+    DISCRETIZATION_METHOD = 0x00000020,
+    ALL_QUERY_OPTIONS = LOCK_REDUNDANT_JOINTS | RETURN_APPROXIMATE_SOLUTION | DISCRETIZATION_METHOD,
+    ALL = 0x7fffffff
   };
-
 
   /// Set \e state using inverse kinematics
   /// @param state the state to set
@@ -76,16 +72,13 @@ struct KinematicOptions
   /// @param tip link that will be posed
   /// @param pose desired pose of tip link
   /// @param result true if IK succeeded.
-  bool setStateFromIK(robot_state::RobotState& state,
-                      const std::string& group,
-                      const std::string& tip,
+  bool setStateFromIK(robot_state::RobotState& state, const std::string& group, const std::string& tip,
                       const geometry_msgs::Pose& pose) const;
 
   /// Copy a subset of source to this.
   /// For each bit set in fields the corresponding member is copied from
   /// source to this.
-  void setOptions(const KinematicOptions& source,
-                  OptionBitmask fields = ALL);
+  void setOptions(const KinematicOptions& source, OptionBitmask fields = ALL);
 
   /// max time an IK attempt can take before we give up.
   double timeout_seconds_;
@@ -99,7 +92,6 @@ struct KinematicOptions
   /// other options
   kinematics::KinematicsQueryOptions options_;
 };
-
 }
 
 #endif
