@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_experimental
 )
 
-find_package(Eigen3 REQUIRED)
+find_package(Eigen 3 REQUIRED)
 
 find_package(Boost REQUIRED)
 
