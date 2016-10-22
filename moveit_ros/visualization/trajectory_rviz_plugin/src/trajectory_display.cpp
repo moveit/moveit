@@ -41,15 +41,13 @@
 
 namespace moveit_rviz_plugin
 {
-
-TrajectoryDisplay::TrajectoryDisplay() :
-  Display()
+TrajectoryDisplay::TrajectoryDisplay() : Display()
 {
-  // The robot description property is only needed when using the trajectory playback standalone (not within motion planning plugin)
-  robot_description_property_ =
-    new rviz::StringProperty( "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
-                              this,
-                              SLOT( changedRobotDescription() ), this );
+  // The robot description property is only needed when using the trajectory playback standalone (not within motion
+  // planning plugin)
+  robot_description_property_ = new rviz::StringProperty(
+      "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
+      this, SLOT(changedRobotDescription()), this);
 
   trajectory_visual_.reset(new TrajectoryVisualization(this, this));
 }
@@ -71,11 +69,13 @@ void TrajectoryDisplay::loadRobotModel()
 
   if (!rdf_loader_->getURDF())
   {
-    ROS_DEBUG_STREAM_NAMED("trajectory_display","Unable to load robot model from parameter " << robot_description_property_->getStdString());
+    ROS_DEBUG_STREAM_NAMED("trajectory_display", "Unable to load robot model from parameter "
+                                                     << robot_description_property_->getStdString());
     return;
   }
 
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+  const boost::shared_ptr<srdf::Model> &srdf =
+      rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
   robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
 
   // Send to child class
@@ -116,4 +116,4 @@ void TrajectoryDisplay::changedRobotDescription()
     reset();
 }
 
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin

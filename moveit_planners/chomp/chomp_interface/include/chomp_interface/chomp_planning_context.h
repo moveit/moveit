@@ -53,7 +53,6 @@ MOVEIT_CLASS_FORWARD(CHOMPPlanningContext);
 
 class CHOMPPlanningContext : public planning_interface::PlanningContext
 {
-
 public:
   virtual bool solve(planning_interface::MotionPlanResponse &res);
   virtual bool solve(planning_interface::MotionPlanDetailedResponse &res);

@@ -42,14 +42,15 @@ ompl_interface::JointModelStateSpaceFactory::JointModelStateSpaceFactory() : Mod
   type_ = JointModelStateSpace::PARAMETERIZATION_TYPE;
 }
 
-int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(const std::string &group,
-                                                                     const moveit_msgs::MotionPlanRequest &req,
-                                                                     const robot_model::RobotModelConstPtr &kmodel) const
+int ompl_interface::JointModelStateSpaceFactory::canRepresentProblem(
+    const std::string &group, const moveit_msgs::MotionPlanRequest &req,
+    const robot_model::RobotModelConstPtr &kmodel) const
 {
   return 100;
 }
 
-ompl_interface::ModelBasedStateSpacePtr ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
+ompl_interface::ModelBasedStateSpacePtr
+ompl_interface::JointModelStateSpaceFactory::allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const
 {
   return ModelBasedStateSpacePtr(new JointModelStateSpace(space_spec));
 }

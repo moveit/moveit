@@ -45,7 +45,7 @@
 #include <boost/program_options/variables_map.hpp>
 #include <ros/ros.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
@@ -67,8 +67,7 @@ void onSceneUpdate(planning_scene_monitor::PlanningSceneMonitor *psm, moveit_war
 }
 
 void onMotionPlanRequest(const moveit_msgs::MotionPlanRequestConstPtr &req,
-                         planning_scene_monitor::PlanningSceneMonitor *psm,
-                         moveit_warehouse::PlanningSceneStorage *pss)
+                         planning_scene_monitor::PlanningSceneMonitor *psm, moveit_warehouse::PlanningSceneStorage *pss)
 {
   if (psm->getPlanningScene()->getName().empty())
   {
@@ -117,10 +116,9 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "save_to_warehouse", ros::init_options::AnonymousName);
 
   boost::program_options::options_description desc;
-  desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+                                                                                                        "DB.")(
+      "port", boost::program_options::value<std::size_t>(), "Port for the DB.");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -162,7 +160,7 @@ int main(int argc, char **argv)
   else
   {
     ROS_INFO("Previously stored scenes:");
-    for (std::size_t i = 0 ; i < names.size() ; ++i)
+    for (std::size_t i = 0; i < names.size(); ++i)
       ROS_INFO(" * %s", names[i].c_str());
   }
   cs.getKnownConstraints(names);
@@ -171,7 +169,7 @@ int main(int argc, char **argv)
   else
   {
     ROS_INFO("Previously stored constraints:");
-    for (std::size_t i = 0 ; i < names.size() ; ++i)
+    for (std::size_t i = 0; i < names.size(); ++i)
       ROS_INFO(" * %s", names[i].c_str());
   }
   rs.getKnownRobotStates(names);
@@ -180,17 +178,18 @@ int main(int argc, char **argv)
   else
   {
     ROS_INFO("Previously stored robot states:");
-    for (std::size_t i = 0 ; i < names.size() ; ++i)
+    for (std::size_t i = 0; i < names.size(); ++i)
       ROS_INFO(" * %s", names[i].c_str());
   }
 
   psm.addUpdateCallback(boost::bind(&onSceneUpdate, &psm, &pss));
 
-  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr&)> callback1 = boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
+  boost::function<void(const moveit_msgs::MotionPlanRequestConstPtr &)> callback1 =
+      boost::bind(&onMotionPlanRequest, _1, &psm, &pss);
   ros::Subscriber mplan_req_sub = nh.subscribe("motion_plan_request", 100, callback1);
-  boost::function<void(const moveit_msgs::ConstraintsConstPtr&)> callback2 = boost::bind(&onConstraints, _1, &cs);
+  boost::function<void(const moveit_msgs::ConstraintsConstPtr &)> callback2 = boost::bind(&onConstraints, _1, &cs);
   ros::Subscriber constr_sub = nh.subscribe("constraints", 100, callback2);
-  boost::function<void(const moveit_msgs::RobotStateConstPtr&)> callback3 = boost::bind(&onRobotState, _1, &rs);
+  boost::function<void(const moveit_msgs::RobotStateConstPtr &)> callback3 = boost::bind(&onRobotState, _1, &rs);
   ros::Subscriber state_sub = nh.subscribe("robot_state", 100, callback3);
 
   std::vector<std::string> topics;

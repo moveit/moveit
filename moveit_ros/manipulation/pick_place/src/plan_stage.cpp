@@ -41,12 +41,9 @@
 
 namespace pick_place
 {
-
 PlanStage::PlanStage(const planning_scene::PlanningSceneConstPtr &scene,
-                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline) :
-  ManipulationStage("plan"),
-  planning_scene_(scene),
-  planning_pipeline_(planning_pipeline)
+                     const planning_pipeline::PlanningPipelinePtr &planning_pipeline)
+  : ManipulationStage("plan"), planning_scene_(scene), planning_pipeline_(planning_pipeline)
 {
 }
 
@@ -68,14 +65,14 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
   req.planner_id = plan->shared_data_->planner_id_;
   req.start_state.is_diff = true;
 
-  req.goal_constraints.resize(1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_, plan->shared_data_->planning_group_));
+  req.goal_constraints.resize(
+      1, kinematic_constraints::constructGoalConstraints(*plan->approach_state_, plan->shared_data_->planning_group_));
   unsigned int attempts = 0;
-  do // give the planner two chances
+  do  // give the planner two chances
   {
     attempts++;
     if (!signal_stop_ && planning_pipeline_->generatePlan(planning_scene_, req, res) &&
-        res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS &&
-        res.trajectory_ && !res.trajectory_->empty())
+        res.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS && res.trajectory_ && !res.trajectory_->empty())
     {
       // We have a valid motion plan, now apply pre-approach end effector posture (open gripper) if applicable
       if (!plan->approach_posture_.joint_names.empty())
@@ -86,18 +83,22 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
         pre_approach_traj->setRobotTrajectoryMsg(*pre_approach_state, plan->approach_posture_);
 
         // Apply the open gripper state to the waypoint
-        // If user has defined a time for it's gripper movement time, don't add the DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
-        if (plan->approach_posture_.points.size() > 0  && plan->approach_posture_.points.back().time_from_start > ros::Duration(0.0)){
-            pre_approach_traj->addPrefixWayPoint(pre_approach_state, 0.0);
+        // If user has defined a time for it's gripper movement time, don't add the
+        // DEFAULT_GRASP_POSTURE_COMPLETION_DURATION
+        if (plan->approach_posture_.points.size() > 0 &&
+            plan->approach_posture_.points.back().time_from_start > ros::Duration(0.0))
+        {
+          pre_approach_traj->addPrefixWayPoint(pre_approach_state, 0.0);
         }
-        else {// Do what was done before
-            pre_approach_traj->addPrefixWayPoint(pre_approach_state, PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
+        else
+        {  // Do what was done before
+          pre_approach_traj->addPrefixWayPoint(pre_approach_state,
+                                               PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION);
         }
 
         // Add the open gripper trajectory to the plan
         plan_execution::ExecutableTrajectory et(pre_approach_traj, "pre_grasp");
         plan->trajectories_.insert(plan->trajectories_.begin(), et);
-
       }
 
       // Add the pre-approach trajectory to the plan
@@ -116,5 +117,4 @@ bool PlanStage::evaluate(const ManipulationPlanPtr &plan) const
 
   return false;
 }
-
 }

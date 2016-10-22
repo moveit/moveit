@@ -65,7 +65,6 @@ class MovableText;
 
 namespace moveit_rviz_plugin
 {
-
 MOVEIT_CLASS_FORWARD(TrajectoryVisualization);
 
 class TrajectoryVisualization : public QObject
@@ -73,14 +72,13 @@ class TrajectoryVisualization : public QObject
   Q_OBJECT
 
 public:
-
   /**
    * \brief Playback a trajectory from a planned path
    * \param widget - either a rviz::Display or rviz::Property
    * \param display - the rviz::Display from the parent
    * \return true on success
    */
-  TrajectoryVisualization(rviz::Property *widget, rviz::Display *display);
+  TrajectoryVisualization(rviz::Property* widget, rviz::Display* display);
 
   virtual ~TrajectoryVisualization();
 
@@ -109,7 +107,6 @@ private Q_SLOTS:
   void changedStateDisplayTime();
 
 protected:
-
   /**
    * \brief ROS callback for an incoming path message
    */
@@ -133,8 +130,8 @@ protected:
   robot_state::RobotStatePtr robot_state_;
 
   // Pointers from parent display taht we save
-  rviz::Display* display_; // the parent display that this class populates
-  rviz::Property *widget_;
+  rviz::Display* display_;  // the parent display that this class populates
+  rviz::Property* widget_;
   Ogre::SceneNode* scene_node_;
   rviz::DisplayContext* context_;
   ros::NodeHandle update_nh_;
@@ -148,9 +145,8 @@ protected:
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* interrupt_display_property_;
-
 };
 
-} // namespace moveit_rviz_plugin
+}  // namespace moveit_rviz_plugin
 
 #endif

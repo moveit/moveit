@@ -46,7 +46,6 @@
 
 namespace moveit_rviz_plugin
 {
-
 void MotionPlanningFrame::populateRobotStatesList(void)
 {
   ui_->list_states->clear();
@@ -63,8 +62,9 @@ void MotionPlanningFrame::loadStateButtonClicked()
   {
     bool ok;
 
-    QString text = QInputDialog::getText(this, tr("Robot states to load"), tr("Pattern:"), QLineEdit::Normal, ".*", &ok);
-    if (ok && ! text.isEmpty())
+    QString text =
+        QInputDialog::getText(this, tr("Robot states to load"), tr("Pattern:"), QLineEdit::Normal, ".*", &ok);
+    if (ok && !text.isEmpty())
     {
       loadStoredStates(text.toStdString());
     }
@@ -75,7 +75,7 @@ void MotionPlanningFrame::loadStateButtonClicked()
   }
 }
 
-void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
+void MotionPlanningFrame::loadStoredStates(const std::string &pattern)
 {
   std::vector<std::string> names;
   try
@@ -84,14 +84,15 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
   }
   catch (std::runtime_error &ex)
   {
-    QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
+    QMessageBox::warning(this, "Cannot query the database",
+                         QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
     return;
   }
 
   // Clear the current list
   clearStatesButtonClicked();
 
-  for ( std::size_t i = 0 ; i < names.size() ; ++i )
+  for (std::size_t i = 0; i < names.size(); ++i)
   {
     moveit_warehouse::RobotStateWithMetadata rs;
     bool got_state = false;
@@ -99,20 +100,20 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
     {
       got_state = robot_state_storage_->getRobotState(rs, names[i]);
     }
-    catch(std::runtime_error &ex)
+    catch (std::runtime_error &ex)
     {
       ROS_ERROR("%s", ex.what());
     }
     if (!got_state)
       continue;
 
-    //Overwrite if exists.
+    // Overwrite if exists.
     if (robot_states_.find(names[i]) != robot_states_.end())
     {
       robot_states_.erase(names[i]);
     }
 
-    //Store the current start state
+    // Store the current start state
     robot_states_.insert(RobotStatePair(names[i], *rs));
   }
   populateRobotStatesList();
@@ -123,9 +124,11 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
   bool ok = false;
 
   std::stringstream ss;
-  ss << planning_display_->getRobotModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4) << robot_states_.size();
+  ss << planning_display_->getRobotModel()->getName().c_str() << "_state_" << std::setfill('0') << std::setw(4)
+     << robot_states_.size();
 
-  QString text = QInputDialog::getText(this, tr("Choose a name"), tr("State name:"), QLineEdit::Normal, QString(ss.str().c_str()), &ok);
+  QString text = QInputDialog::getText(this, tr("Choose a name"), tr("State name:"), QLineEdit::Normal,
+                                       QString(ss.str().c_str()), &ok);
 
   std::string name;
   if (ok)
@@ -134,16 +137,17 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
     {
       name = text.toStdString();
       if (robot_states_.find(name) != robot_states_.end())
-        QMessageBox::warning(this, "Name already exists", QString("The name '").append(name.c_str()).
-                             append("' already exists. Not creating state."));
+        QMessageBox::warning(
+            this, "Name already exists",
+            QString("The name '").append(name.c_str()).append("' already exists. Not creating state."));
       else
       {
-        //Store the current start state
+        // Store the current start state
         moveit_msgs::RobotState msg;
         robot_state::robotStateToRobotStateMsg(state, msg);
         robot_states_.insert(RobotStatePair(name, msg));
 
-        //Save to the database if connected
+        // Save to the database if connected
         if (robot_state_storage_)
         {
           try
@@ -157,7 +161,8 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
         }
         else
         {
-          QMessageBox::warning(this, "Warning", "Not connected to a database. The state will be created but not stored");
+          QMessageBox::warning(this, "Warning", "Not connected to a database. The state will be created but not "
+                                                "stored");
         }
       }
     }
@@ -201,12 +206,11 @@ void MotionPlanningFrame::setAsGoalStateButtonClicked()
   }
 }
 
-
 void MotionPlanningFrame::removeStateButtonClicked()
 {
   if (robot_state_storage_)
   {
-    //Warn the user
+    // Warn the user
     QMessageBox msgBox;
     msgBox.setText("All the selected states will be removed from the database");
     msgBox.setInformativeText("Do you want to continue?");
@@ -218,8 +222,8 @@ void MotionPlanningFrame::removeStateButtonClicked()
     {
       case QMessageBox::Yes:
       {
-        QList<QListWidgetItem*> found_items =  ui_->list_states->selectedItems();
-        for (std::size_t i = 0; i < found_items.size() ; ++i)
+        QList<QListWidgetItem *> found_items = ui_->list_states->selectedItems();
+        for (std::size_t i = 0; i < found_items.size(); ++i)
         {
           const std::string &name = found_items[i]->text().toStdString();
           try
@@ -245,4 +249,4 @@ void MotionPlanningFrame::clearStatesButtonClicked()
   populateRobotStatesList();
 }
 
-} //namespace
+}  // namespace

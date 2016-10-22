@@ -45,15 +45,17 @@ const std::string moveit_warehouse::TrajectoryConstraintsStorage::ROBOT_NAME = "
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
-moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn) :
-  MoveItMessageStorage(conn)
+moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(
+    warehouse_ros::DatabaseConnection::Ptr conn)
+  : MoveItMessageStorage(conn)
 {
   createCollections();
 }
 
 void moveit_warehouse::TrajectoryConstraintsStorage::createCollections(void)
 {
-  constraints_collection_ = conn_->openCollectionPtr<moveit_msgs::TrajectoryConstraints>(DATABASE_NAME, "trajectory_constraints");
+  constraints_collection_ =
+      conn_->openCollectionPtr<moveit_msgs::TrajectoryConstraints>(DATABASE_NAME, "trajectory_constraints");
 }
 
 void moveit_warehouse::TrajectoryConstraintsStorage::reset(void)
@@ -63,7 +65,9 @@ void moveit_warehouse::TrajectoryConstraintsStorage::reset(void)
   createCollections();
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::addTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints &msg, const std::string &name, const std::string &robot, const std::string &group)
+void moveit_warehouse::TrajectoryConstraintsStorage::addTrajectoryConstraints(
+    const moveit_msgs::TrajectoryConstraints &msg, const std::string &name, const std::string &robot,
+    const std::string &group)
 {
   bool replace = false;
   if (hasTrajectoryConstraints(name, robot, group))
@@ -79,7 +83,9 @@ void moveit_warehouse::TrajectoryConstraintsStorage::addTrajectoryConstraints(co
   ROS_DEBUG("%s constraints '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
 
-bool moveit_warehouse::TrajectoryConstraintsStorage::hasTrajectoryConstraints(const std::string &name, const std::string &robot, const std::string &group) const
+bool moveit_warehouse::TrajectoryConstraintsStorage::hasTrajectoryConstraints(const std::string &name,
+                                                                              const std::string &robot,
+                                                                              const std::string &group) const
 {
   Query::Ptr q = constraints_collection_->createQuery();
   q->append(CONSTRAINTS_ID_NAME, name);
@@ -91,13 +97,18 @@ bool moveit_warehouse::TrajectoryConstraintsStorage::hasTrajectoryConstraints(co
   return !constr.empty();
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot, const std::string &group) const
+void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstraints(const std::string &regex,
+                                                                                   std::vector<std::string> &names,
+                                                                                   const std::string &robot,
+                                                                                   const std::string &group) const
 {
   getKnownTrajectoryConstraints(names, robot, group);
   filterNames(regex, names);
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstraints(std::vector<std::string> &names, const std::string &robot, const std::string &group) const
+void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstraints(std::vector<std::string> &names,
+                                                                                   const std::string &robot,
+                                                                                   const std::string &group) const
 {
   names.clear();
   Query::Ptr q = constraints_collection_->createQuery();
@@ -105,13 +116,17 @@ void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstrain
     q->append(ROBOT_NAME, robot);
   if (!group.empty())
     q->append(CONSTRAINTS_GROUP_NAME, group);
-  std::vector<TrajectoryConstraintsWithMetadata> constr = constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
-  for (std::size_t i = 0; i < constr.size() ; ++i)
+  std::vector<TrajectoryConstraintsWithMetadata> constr =
+      constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(CONSTRAINTS_ID_NAME))
       names.push_back(constr[i]->lookupString(CONSTRAINTS_ID_NAME));
 }
 
-bool moveit_warehouse::TrajectoryConstraintsStorage::getTrajectoryConstraints(TrajectoryConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot, const std::string &group) const
+bool moveit_warehouse::TrajectoryConstraintsStorage::getTrajectoryConstraints(TrajectoryConstraintsWithMetadata &msg_m,
+                                                                              const std::string &name,
+                                                                              const std::string &robot,
+                                                                              const std::string &group) const
 {
   Query::Ptr q = constraints_collection_->createQuery();
   q->append(CONSTRAINTS_ID_NAME, name);
@@ -129,7 +144,10 @@ bool moveit_warehouse::TrajectoryConstraintsStorage::getTrajectoryConstraints(Tr
   }
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::renameTrajectoryConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot, const std::string &group)
+void moveit_warehouse::TrajectoryConstraintsStorage::renameTrajectoryConstraints(const std::string &old_name,
+                                                                                 const std::string &new_name,
+                                                                                 const std::string &robot,
+                                                                                 const std::string &group)
 {
   Query::Ptr q = constraints_collection_->createQuery();
   q->append(CONSTRAINTS_ID_NAME, old_name);
@@ -143,7 +161,9 @@ void moveit_warehouse::TrajectoryConstraintsStorage::renameTrajectoryConstraints
   ROS_DEBUG("Renamed constraints from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 
-void moveit_warehouse::TrajectoryConstraintsStorage::removeTrajectoryConstraints(const std::string &name, const std::string &robot, const std::string &group)
+void moveit_warehouse::TrajectoryConstraintsStorage::removeTrajectoryConstraints(const std::string &name,
+                                                                                 const std::string &robot,
+                                                                                 const std::string &group)
 {
   Query::Ptr q = constraints_collection_->createQuery();
   q->append(CONSTRAINTS_ID_NAME, name);

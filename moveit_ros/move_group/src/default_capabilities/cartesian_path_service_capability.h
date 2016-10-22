@@ -42,24 +42,20 @@
 
 namespace move_group
 {
-
 class MoveGroupCartesianPathService : public MoveGroupCapability
 {
 public:
-
   MoveGroupCartesianPathService();
 
   virtual void initialize();
 
 private:
-
   bool computeService(moveit_msgs::GetCartesianPath::Request &req, moveit_msgs::GetCartesianPath::Response &res);
 
   ros::ServiceServer cartesian_path_service_;
   ros::Publisher display_path_;
   bool display_computed_paths_;
 };
-
 }
 
 #endif

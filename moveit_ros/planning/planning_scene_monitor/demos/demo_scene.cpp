@@ -37,7 +37,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 
-static const std::string ROBOT_DESCRIPTION="robot_description";
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
 void sendKnife()
 {
@@ -81,7 +81,6 @@ void sendKnife()
   ROS_INFO("Object published.");
   ros::Duration(1.5).sleep();
 }
-
 
 int main(int argc, char **argv)
 {

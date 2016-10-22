@@ -119,13 +119,14 @@ public:
     }
   }
 
-  sensor_msgs::JointState loadInitialJointValues(XmlRpc::XmlRpcValue& param) const
+  sensor_msgs::JointState loadInitialJointValues(XmlRpc::XmlRpcValue &param) const
   {
     sensor_msgs::JointState js;
 
     if (param.getType() != XmlRpc::XmlRpcValue::TypeArray || param.size() == 0)
     {
-      ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Parameter 'initial' should be an array of (group, pose) structs.");
+      ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Parameter 'initial' should be an array of (group, pose) "
+                                                     "structs.");
       return js;
     }
 
@@ -145,20 +146,23 @@ public:
           ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint model group: " << group_name);
           continue;
         }
-        moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
+        moveit::core::JointModelGroup *jmg = robot_model->getJointModelGroup(group_name);
         moveit::core::RobotState robot_state(robot_model);
         const std::vector<std::string> &joint_names = jmg->getActiveJointModelNames();
 
         if (!robot_state.setToDefaultValues(jmg, pose_name))
         {
-          ROS_WARN_NAMED("loadInitialJointValues", "Unknown pose '%s' for group '%s'.", pose_name.c_str(), group_name.c_str());
+          ROS_WARN_NAMED("loadInitialJointValues", "Unknown pose '%s' for group '%s'.", pose_name.c_str(),
+                         group_name.c_str());
           continue;
         }
-        ROS_INFO_NAMED("loadInitialJointValues", "Set joints of group '%s' to pose '%s'.", group_name.c_str(), pose_name.c_str());
+        ROS_INFO_NAMED("loadInitialJointValues", "Set joints of group '%s' to pose '%s'.", group_name.c_str(),
+                       pose_name.c_str());
 
-        for (std::vector<std::string>::const_iterator jit = joint_names.begin(), end = joint_names.end(); jit != end; ++jit)
+        for (std::vector<std::string>::const_iterator jit = joint_names.begin(), end = joint_names.end(); jit != end;
+             ++jit)
         {
-          const moveit::core::JointModel* jm = robot_state.getJointModel(*jit);
+          const moveit::core::JointModel *jm = robot_state.getJointModel(*jit);
           if (!jm)
           {
             ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint: " << *jit);
@@ -245,7 +249,8 @@ public:
     else
     {
       ROS_WARN("The joints for controller '%s' are not known. Perhaps the controller configuration is not loaded on "
-               "the param server?", name.c_str());
+               "the param server?",
+               name.c_str());
       joints.clear();
     }
   }

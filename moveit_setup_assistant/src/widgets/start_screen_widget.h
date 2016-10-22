@@ -44,22 +44,19 @@
 #include <QProgressBar>
 
 #ifndef Q_MOC_RUN
-#include <urdf/model.h> // for testing a valid urdf is loaded
-#include <srdfdom/model.h> // for testing a valid srdf is loaded
-#include <moveit/setup_assistant/tools/moveit_config_data.h> // common datastructure class
+#include <urdf/model.h>                                       // for testing a valid urdf is loaded
+#include <srdfdom/model.h>                                    // for testing a valid srdf is loaded
+#include <moveit/setup_assistant/tools/moveit_config_data.h>  // common datastructure class
 #endif
 
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
-
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
-
 // Class Prototypes
 class SelectModeWidget;
 class LoadPathWidget;
-//class LoadURDFWidget;
+// class LoadURDFWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -68,7 +65,7 @@ class StartScreenWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -76,10 +73,9 @@ class StartScreenWidget : public SetupScreenWidget
   /**
    * \brief Start screen user interface for MoveIt Configuration Assistant
    */
-  StartScreenWidget( QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  StartScreenWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   ~StartScreenWidget();
-
 
   // ******************************************************************************************
   // Qt Components
@@ -87,7 +83,7 @@ class StartScreenWidget : public SetupScreenWidget
   SelectModeWidget *select_mode_;
   LoadPathWidget *stack_path_;
   LoadPathWidget *urdf_file_;
-  //LoadPathWidget *srdf_file_;
+  // LoadPathWidget *srdf_file_;
   QPushButton *btn_load_;
   QLabel *next_label_;
   QProgressBar *progress_bar_;
@@ -127,8 +123,6 @@ Q_SIGNALS:
   void loadRviz();
 
 private:
-
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -147,13 +141,13 @@ private:
   bool loadExistingFiles();
 
   /// Load URDF File to Parameter Server
-  bool loadURDFFile( const std::string& urdf_file_path );
+  bool loadURDFFile(const std::string &urdf_file_path);
 
   /// Load SRDF File
-  bool loadSRDFFile( const std::string& srdf_file_path );
+  bool loadSRDFFile(const std::string &srdf_file_path);
 
   /// Put SRDF File on Parameter Server
-  bool setSRDFFile( const std::string& srdf_string );
+  bool setSRDFFile(const std::string &srdf_string);
 
   //// Extract the package/stack name and relative path to urdf from an absolute path name
   bool extractPackageNameFromPath();
@@ -162,7 +156,7 @@ private:
   bool createFullURDFPath();
 
   /// Make the full SRDF path using the loaded .setup_assistant data
-  bool createFullSRDFPath( const std::string& package_path );
+  bool createFullSRDFPath(const std::string &package_path);
 
   /// Get the full package path for editing an existing package
   bool createFullPackagePath();
@@ -178,20 +172,16 @@ class SelectModeWidget : public QFrame
 {
   Q_OBJECT
 
-  private:
+private:
+private Q_SLOTS:
 
-    private Q_SLOTS:
-
-  public:
-
-  SelectModeWidget( QWidget * parent );
+public:
+  SelectModeWidget(QWidget *parent);
 
   // Load file button
   QPushButton *btn_new_;
   QPushButton *btn_exist_;
-
 };
-
 }
 
 #endif

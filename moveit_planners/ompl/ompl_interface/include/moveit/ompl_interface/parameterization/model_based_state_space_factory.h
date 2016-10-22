@@ -43,13 +43,11 @@
 
 namespace ompl_interface
 {
-
 MOVEIT_CLASS_FORWARD(ModelBasedStateSpaceFactory);
 
 class ModelBasedStateSpaceFactory
 {
 public:
-
   ModelBasedStateSpaceFactory()
   {
   }
@@ -60,23 +58,22 @@ public:
 
   ModelBasedStateSpacePtr getNewStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
 
-  const std::string& getType() const
+  const std::string &getType() const
   {
     return type_;
   }
 
-  /** \brief Decide whether the type of state space constructed by this factory could represent problems specified by the user
-      request \e req for group \e group. The group \e group must always be specified and takes precedence over \e req.group_name, which may be different */
-  virtual int canRepresentProblem(const std::string &group,
-                                  const moveit_msgs::MotionPlanRequest &req,
+  /** \brief Decide whether the type of state space constructed by this factory could represent problems specified by
+     the user
+      request \e req for group \e group. The group \e group must always be specified and takes precedence over \e
+     req.group_name, which may be different */
+  virtual int canRepresentProblem(const std::string &group, const moveit_msgs::MotionPlanRequest &req,
                                   const robot_model::RobotModelConstPtr &kmodel) const = 0;
 
 protected:
-
   virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const = 0;
   std::string type_;
 };
-
 }
 
 #endif

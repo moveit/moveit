@@ -40,7 +40,7 @@
 #include <moveit/robot_model/link_model.h>
 #include <algorithm>
 
-moveit::core::JointModel::JointModel(const std::string& name)
+moveit::core::JointModel::JointModel(const std::string &name)
   : name_(name)
   , type_(UNKNOWN)
   , parent_link_model_(NULL)
@@ -63,13 +63,20 @@ std::string moveit::core::JointModel::getTypeName() const
 {
   switch (type_)
   {
-  case UNKNOWN: return "Unkown";
-  case REVOLUTE: return "Revolute";
-  case PRISMATIC: return "Prismatic";
-  case PLANAR: return "Planar";
-  case FLOATING: return "Floating";
-  case FIXED: return "Fixed";
-  default: return "[Unkown]";
+    case UNKNOWN:
+      return "Unkown";
+    case REVOLUTE:
+      return "Revolute";
+    case PRISMATIC:
+      return "Prismatic";
+    case PLANAR:
+      return "Planar";
+    case FLOATING:
+      return "Floating";
+    case FIXED:
+      return "Fixed";
+    default:
+      return "[Unkown]";
   }
 }
 
@@ -84,47 +91,46 @@ int moveit::core::JointModel::getLocalVariableIndex(const std::string &variable)
 bool moveit::core::JointModel::enforceVelocityBounds(double *values, const Bounds &other_bounds) const
 {
   bool change = false;
-  for (std::size_t i = 0 ; i < other_bounds.size() ; ++i)
+  for (std::size_t i = 0; i < other_bounds.size(); ++i)
     if (other_bounds[i].max_velocity_ < values[i])
     {
       values[i] = other_bounds[i].max_velocity_;
       change = true;
     }
-    else
-      if (other_bounds[i].min_velocity_ > values[i])
-      {
-        values[i] = other_bounds[i].min_velocity_;
-        change = true;
-      }
+    else if (other_bounds[i].min_velocity_ > values[i])
+    {
+      values[i] = other_bounds[i].min_velocity_;
+      change = true;
+    }
   return change;
 }
 
-bool moveit::core::JointModel::satisfiesVelocityBounds(const double *values, const Bounds &other_bounds, double margin) const
+bool moveit::core::JointModel::satisfiesVelocityBounds(const double *values, const Bounds &other_bounds,
+                                                       double margin) const
 {
-  for (std::size_t i = 0 ; i < other_bounds.size() ; ++i)
+  for (std::size_t i = 0; i < other_bounds.size(); ++i)
     if (other_bounds[i].max_velocity_ + margin < values[i])
       return false;
-    else
-      if (other_bounds[i].min_velocity_ - margin > values[i])
-        return false;
+    else if (other_bounds[i].min_velocity_ - margin > values[i])
+      return false;
   return true;
 }
 
-const moveit::core::VariableBounds& moveit::core::JointModel::getVariableBounds(const std::string& variable) const
+const moveit::core::VariableBounds &moveit::core::JointModel::getVariableBounds(const std::string &variable) const
 {
   return variable_bounds_[getLocalVariableIndex(variable)];
 }
 
-void moveit::core::JointModel::setVariableBounds(const std::string& variable, const VariableBounds& bounds)
+void moveit::core::JointModel::setVariableBounds(const std::string &variable, const VariableBounds &bounds)
 {
   variable_bounds_[getLocalVariableIndex(variable)] = bounds;
   computeVariableBoundsMsg();
 }
 
-void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim)
+void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::JointLimits> &jlim)
 {
   for (std::size_t j = 0; j < variable_names_.size(); ++j)
-    for (std::size_t i = 0 ; i < jlim.size() ; ++i)
+    for (std::size_t i = 0; i < jlim.size(); ++i)
       if (jlim[i].joint_name == variable_names_[j])
       {
         variable_bounds_[j].position_bounded_ = jlim[i].has_position_limits;
@@ -163,7 +169,8 @@ void moveit::core::JointModel::computeVariableBoundsMsg()
     lim.has_velocity_limits = variable_bounds_[i].velocity_bounded_;
     lim.max_velocity = std::min(fabs(variable_bounds_[i].min_velocity_), fabs(variable_bounds_[i].max_velocity_));
     lim.has_acceleration_limits = variable_bounds_[i].acceleration_bounded_;
-    lim.max_acceleration = std::min(fabs(variable_bounds_[i].min_acceleration_), fabs(variable_bounds_[i].max_acceleration_));
+    lim.max_acceleration =
+        std::min(fabs(variable_bounds_[i].min_acceleration_), fabs(variable_bounds_[i].max_acceleration_));
     variable_bounds_msg_.push_back(lim);
   }
 }
@@ -198,25 +205,26 @@ inline void printBoundHelper(std::ostream &out, double v)
 {
   if (v <= -std::numeric_limits<double>::infinity())
     out << "-inf";
+  else if (v >= std::numeric_limits<double>::infinity())
+    out << "inf";
   else
-    if (v >= std::numeric_limits<double>::infinity())
-      out << "inf";
-    else
-      out << v;
+    out << v;
 }
 }
 
-std::ostream& moveit::core::operator<<(std::ostream &out, const VariableBounds &b)
+std::ostream &moveit::core::operator<<(std::ostream &out, const VariableBounds &b)
 {
   out << "P." << (b.position_bounded_ ? "bounded" : "unbounded") << " [";
   printBoundHelper(out, b.min_position_);
   out << ", ";
   printBoundHelper(out, b.max_position_);
-  out << "]; " << "V." << (b.velocity_bounded_ ? "bounded" : "unbounded") << " [";
+  out << "]; "
+      << "V." << (b.velocity_bounded_ ? "bounded" : "unbounded") << " [";
   printBoundHelper(out, b.min_velocity_);
   out << ", ";
   printBoundHelper(out, b.max_velocity_);
-  out << "]; " << "A." << (b.acceleration_bounded_ ? "bounded" : "unbounded") << " [";
+  out << "]; "
+      << "A." << (b.acceleration_bounded_ ? "bounded" : "unbounded") << " [";
   printBoundHelper(out, b.min_acceleration_);
   out << ", ";
   printBoundHelper(out, b.max_acceleration_);

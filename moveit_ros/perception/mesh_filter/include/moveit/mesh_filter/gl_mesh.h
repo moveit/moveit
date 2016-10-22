@@ -48,7 +48,7 @@
 
 namespace shapes
 {
-  class Mesh;
+class Mesh;
 }
 
 namespace mesh_filter
@@ -59,30 +59,30 @@ namespace mesh_filter
  */
 class GLMesh
 {
-  public:
-    /**
-     * \brief Constucts a GLMesh object for given mesh and label
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     * \param[in] mesh
-     * \param[in] mesh_label
-     */
-    GLMesh (const shapes::Mesh& mesh, unsigned int mesh_label);
+public:
+  /**
+   * \brief Constucts a GLMesh object for given mesh and label
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   * \param[in] mesh
+   * \param[in] mesh_label
+   */
+  GLMesh(const shapes::Mesh& mesh, unsigned int mesh_label);
 
-    /** \brief Destructor*/
-    ~GLMesh ();
-    /**
-     * \brief renders the mesh in current OpenGL frame buffer (context)
-     * \param[in] transform the modelview transformation describing the pose of the mesh in camera coordinate frame
-     * \author Suat Gedikli (gedikli@willowgarage.com)
-     */
-    void render (const Eigen::Affine3d& transform) const;
-  private:
+  /** \brief Destructor*/
+  ~GLMesh();
+  /**
+   * \brief renders the mesh in current OpenGL frame buffer (context)
+   * \param[in] transform the modelview transformation describing the pose of the mesh in camera coordinate frame
+   * \author Suat Gedikli (gedikli@willowgarage.com)
+   */
+  void render(const Eigen::Affine3d& transform) const;
 
-    /** \brief the OpenGL mesh represented as a OpenGL list */
-    GLuint list_;
+private:
+  /** \brief the OpenGL mesh represented as a OpenGL list */
+  GLuint list_;
 
-    /** \brief label of current mesh*/
-    unsigned int mesh_label_;
+  /** \brief label of current mesh*/
+  unsigned int mesh_label_;
 };
-} // namespace mesh_filter
+}  // namespace mesh_filter
 #endif

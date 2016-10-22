@@ -55,11 +55,10 @@
 #endif
 
 #include "header_widget.h"
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
  */
@@ -76,7 +75,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  DefaultCollisionsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  DefaultCollisionsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /**
    * \brief Output Link Pairs to SRDF Format
@@ -87,7 +86,6 @@ public:
    * \brief Load Link Pairs from SRDF Format
    */
   void linkPairsFromSRDF();
-
 
 private Q_SLOTS:
 
@@ -133,7 +131,6 @@ private Q_SLOTS:
   void focusGiven();
 
 private:
-
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
@@ -171,16 +168,14 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
-  void generateCollisionTableThread( unsigned int *collision_progress );
+  void generateCollisionTableThread(unsigned int *collision_progress);
 
   /**
    * \brief Helper function to disable parts of GUI during computation
    * \param disable A command
    */
   void disableControls(bool disable);
-
 };
-
 }
 
 #endif

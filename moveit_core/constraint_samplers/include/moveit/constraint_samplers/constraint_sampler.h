@@ -51,7 +51,6 @@
  */
 namespace constraint_samplers
 {
-
 MOVEIT_CLASS_FORWARD(ConstraintSampler);
 
 /**
@@ -61,7 +60,6 @@ MOVEIT_CLASS_FORWARD(ConstraintSampler);
 class ConstraintSampler
 {
 public:
-
   /** \brief The default value associated with a sampling request.  By default if a valid sample cannot be
       produced in this many attempts, it returns with no sample */
   static const unsigned int DEFAULT_MAX_SAMPLING_ATTEMPTS = 2;
@@ -96,7 +94,7 @@ public:
    *
    * @return The group name
    */
-  const std::string& getGroupName() const
+  const std::string &getGroupName() const
   {
     return getJointModelGroup()->getName();
   }
@@ -107,7 +105,7 @@ public:
    *
    * @return The joint model group
    */
-  const robot_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup *getJointModelGroup() const
   {
     return jmg_;
   }
@@ -118,7 +116,7 @@ public:
    *
    * @return The planning scene as a const ptr
    */
-  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr &getPlanningScene() const
   {
     return scene_;
   }
@@ -134,7 +132,7 @@ public:
    *
    * @return The list of names whose pose is needed
    */
-  const std::vector<std::string>& getFrameDependency() const
+  const std::vector<std::string> &getFrameDependency() const
   {
     return frame_depends_;
   }
@@ -143,7 +141,7 @@ public:
    * \brief Gets the callback used to determine state validity during sampling. The sampler will attempt
    *        to satisfy this constraint if possible, but there is no guarantee.
    */
-  const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
+  const robot_state::GroupStateValidityCallbackFn &getGroupStateValidityCallback() const
   {
     return group_state_validity_callback_;
   }
@@ -159,7 +157,6 @@ public:
     group_state_validity_callback_ = callback;
   }
 
-
   /**
    * \brief Samples given the constraints, populating \e state.
    * The value DEFAULT_MAX_SAMPLING_ATTEMPTS will be passed in
@@ -174,7 +171,6 @@ public:
   {
     return sample(state, state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
-
 
   /**
    * \brief Samples given the constraints, populating \e state.
@@ -233,8 +229,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  virtual bool sample(robot_state::RobotState &state,
-                      const robot_state::RobotState &reference_state,
+  virtual bool sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state,
                       unsigned int max_attempts) = 0;
 
   /**
@@ -242,13 +237,13 @@ public:
    * group. This function allows the parameter max_attempts to be set.
    *
    * @param [out] state The state into which the values will be placed. Only values for the group are written.
-   * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in this
+   * @param [in] max_attempts The maximum number of times to attempt to draw a sample.  If no sample has been drawn in
+   *this
    *        number of attempts, false will be returned.
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  virtual bool project(robot_state::RobotState &state,
-                       unsigned int max_attempts) = 0;
+  virtual bool project(robot_state::RobotState &state, unsigned int max_attempts) = 0;
 
   /**
    * \brief Returns whether or not the constraint sampler is valid or not.
@@ -279,27 +274,25 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual const std::string& getName() const = 0;
+  virtual const std::string &getName() const = 0;
 
 protected:
-
   /**
    * \brief Clears all data from the constraint.
    *
    */
   virtual void clear();
 
-  bool                                  is_valid_;  /**< \brief  Holds the value for validity */
+  bool is_valid_; /**< \brief  Holds the value for validity */
 
   planning_scene::PlanningSceneConstPtr scene_; /**< \brief Holds the planning scene */
-  const robot_model::JointModelGroup   *jmg_; /**< \brief Holds the joint model group associated with this constraint */
+  const robot_model::JointModelGroup *jmg_; /**< \brief Holds the joint model group associated with this constraint */
   /** \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
-  std::vector<std::string>              frame_depends_;
-  robot_state::GroupStateValidityCallbackFn group_state_validity_callback_; /**< \brief Holds the callback for state validity */
-  bool                                  verbose_; /**< \brief True if verbosity is on */
+  std::vector<std::string> frame_depends_;
+  robot_state::GroupStateValidityCallbackFn group_state_validity_callback_; /**< \brief Holds the callback for state
+                                                                               validity */
+  bool verbose_;                                                            /**< \brief True if verbosity is on */
 };
-
 }
-
 
 #endif

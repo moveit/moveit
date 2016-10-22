@@ -50,14 +50,11 @@
 
 namespace benchmark_tool
 {
-
-const char * MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
-const char * MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
+const char *MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
+const char *MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
 
-MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
-    QMainWindow(parent),
-    goal_pose_dragging_(false)
+MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(parent), goal_pose_dragging_(false)
 {
   QMessageBox::warning(this, "Development", "This GUI is under development and has many issues. Use at your own risk.");
 
@@ -70,16 +67,16 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   QVariant previous_database_names = settings_->value("database_name", QStringList());
   ui_.db_combo->addItems(previous_database_names.toStringList());
 
-  robot_loader_dialog_ = new QDialog(0,0);
+  robot_loader_dialog_ = new QDialog(0, 0);
   load_robot_ui_.setupUi(robot_loader_dialog_);
 
-  run_benchmark_dialog_ = new QDialog(0,0);
+  run_benchmark_dialog_ = new QDialog(0, 0);
   run_benchmark_ui_.setupUi(run_benchmark_dialog_);
 
-  bbox_dialog_ = new QDialog(0,0);
+  bbox_dialog_ = new QDialog(0, 0);
   bbox_dialog_ui_.setupUi(bbox_dialog_);
 
-  //Rviz render panel
+  // Rviz render panel
   render_panel_ = new rviz::RenderPanel();
   ui_.render_widget->addWidget(render_panel_);
   ui_.splitter->setStretchFactor(1, 4);
@@ -90,23 +87,24 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
   visualization_manager_->initialize();
   visualization_manager_->startUpdate();
 
-  //Grid display
+  // Grid display
   visualization_manager_->createDisplay("rviz/Grid", "Grid", true);
 
-  //Planning scene display
+  // Planning scene display
   scene_display_ = new moveit_rviz_plugin::PlanningSceneDisplay();
   scene_display_->setName("Planning Scene");
   scene_display_->subProp("Robot Description")->setValue(ROBOT_DESCRIPTION_PARAM);
   scene_display_->subProp("Scene Geometry")->subProp("Scene Alpha")->setValue(1.0);
-  visualization_manager_->addDisplay( scene_display_, true );
+  visualization_manager_->addDisplay(scene_display_, true);
 
-  //Interactive Marker display
+  // Interactive Marker display
   int_marker_display_ = visualization_manager_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(visualization_manager_);
   int_marker_display_->setEnabled(true);
-  int_marker_display_->subProp("Update Topic")->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
+  int_marker_display_->subProp("Update Topic")
+      ->setValue(QString::fromStdString(robot_interaction::RobotInteraction::INTERACTIVE_MARKER_TOPIC + "/update"));
 
-  if ( scene_display_ )
+  if (scene_display_)
   {
     if (waitForPlanningSceneMonitor(scene_display_))
     {
@@ -122,7 +120,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
       planningGroupChanged(ui_.planning_group_combo->currentText());
     }
 
-    rviz::Tool * interact_tool = visualization_manager_->getToolManager()->addTool("rviz/Interact");
+    rviz::Tool *interact_tool = visualization_manager_->getToolManager()->addTool("rviz/Interact");
     if (interact_tool)
     {
       visualization_manager_->getToolManager()->setCurrentTool(interact_tool);
@@ -130,96 +128,118 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) :
     }
     visualization_manager_->getSelectionManager()->enableInteraction(true);
 
-    //Setup ui: colors and icons
+    // Setup ui: colors and icons
     ui_.db_connect_button->setStyleSheet("QPushButton { color : green }");
 
-    ui_.goal_poses_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-    ui_.goal_poses_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
-    ui_.goal_poses_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
-    ui_.goal_poses_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
+    ui_.goal_poses_open_button->setIcon(
+        QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    ui_.goal_poses_add_button->setIcon(
+        QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
+    ui_.goal_poses_remove_button->setIcon(
+        QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
+    ui_.goal_poses_save_button->setIcon(
+        QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
     ui_.goal_switch_visibility_button->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton));
 
-    ui_.start_states_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-    ui_.start_states_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
-    ui_.start_states_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
-    ui_.start_states_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
+    ui_.start_states_open_button->setIcon(
+        QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    ui_.start_states_add_button->setIcon(
+        QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
+    ui_.start_states_remove_button->setIcon(
+        QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
+    ui_.start_states_save_button->setIcon(
+        QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
 
-    ui_.trajectory_open_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-    ui_.trajectory_add_button->setIcon(QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
-    ui_.trajectory_remove_button->setIcon(QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
-    ui_.trajectory_save_button->setIcon(QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
+    ui_.trajectory_open_button->setIcon(
+        QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    ui_.trajectory_add_button->setIcon(
+        QIcon::fromTheme("list-add", QApplication::style()->standardIcon(QStyle::SP_FileDialogNewFolder)));
+    ui_.trajectory_remove_button->setIcon(
+        QIcon::fromTheme("list-remove", QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton)));
+    ui_.trajectory_save_button->setIcon(
+        QIcon::fromTheme("document-save", QApplication::style()->standardIcon(QStyle::SP_DriveFDIcon)));
 
-    //Connect signals and slots
-    connect(ui_.actionExit, SIGNAL( triggered(bool) ), this, SLOT( exitActionTriggered(bool) ));
-    connect(ui_.actionOpen, SIGNAL( triggered(bool) ), this, SLOT( openActionTriggered(bool) ));
-    connect(ui_.planning_group_combo, SIGNAL( currentIndexChanged ( const QString & ) ), this, SLOT( planningGroupChanged( const QString & ) ));
-    connect(ui_.db_connect_button, SIGNAL( clicked() ), this, SLOT( dbConnectButtonClicked() ));
-    connect(ui_.load_scene_button, SIGNAL( clicked() ), this, SLOT( loadSceneButtonClicked() ));
-    connect(ui_.planning_scene_list, SIGNAL( itemDoubleClicked (QListWidgetItem *) ), this, SLOT( loadSceneButtonClicked(QListWidgetItem *) ));
-    connect(ui_.robot_interaction_button, SIGNAL( clicked() ), this, SLOT( robotInteractionButtonClicked() ));
+    // Connect signals and slots
+    connect(ui_.actionExit, SIGNAL(triggered(bool)), this, SLOT(exitActionTriggered(bool)));
+    connect(ui_.actionOpen, SIGNAL(triggered(bool)), this, SLOT(openActionTriggered(bool)));
+    connect(ui_.planning_group_combo, SIGNAL(currentIndexChanged(const QString &)), this,
+            SLOT(planningGroupChanged(const QString &)));
+    connect(ui_.db_connect_button, SIGNAL(clicked()), this, SLOT(dbConnectButtonClicked()));
+    connect(ui_.load_scene_button, SIGNAL(clicked()), this, SLOT(loadSceneButtonClicked()));
+    connect(ui_.planning_scene_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
+            SLOT(loadSceneButtonClicked(QListWidgetItem *)));
+    connect(ui_.robot_interaction_button, SIGNAL(clicked()), this, SLOT(robotInteractionButtonClicked()));
 
-    run_benchmark_ui_.benchmark_select_folder_button->setIcon(QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
-    connect( run_benchmark_ui_.run_benchmark_button, SIGNAL( clicked( ) ), this, SLOT( runBenchmarkButtonClicked(  ) ));
-    connect( run_benchmark_ui_.save_config_button, SIGNAL( clicked( ) ), this, SLOT( saveBenchmarkConfigButtonClicked( ) ));
-    connect( run_benchmark_ui_.cancel_button, SIGNAL( clicked( ) ), this, SLOT( cancelBenchmarkButtonClicked( ) ));
-    connect( run_benchmark_ui_.benchmark_select_folder_button, SIGNAL( clicked( ) ), this, SLOT( benchmarkFolderButtonClicked( ) ));
-    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_interfaces_text,  SLOT(setEnabled(bool)));
-    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_interfaces_label,  SLOT(setEnabled(bool)));
-    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_algorithms_text,  SLOT(setEnabled(bool)));
-    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)), run_benchmark_ui_.planning_algorithms_label,  SLOT(setEnabled(bool)));
+    run_benchmark_ui_.benchmark_select_folder_button->setIcon(
+        QIcon::fromTheme("document-open", QApplication::style()->standardIcon(QStyle::SP_DirOpenIcon)));
+    connect(run_benchmark_ui_.run_benchmark_button, SIGNAL(clicked()), this, SLOT(runBenchmarkButtonClicked()));
+    connect(run_benchmark_ui_.save_config_button, SIGNAL(clicked()), this, SLOT(saveBenchmarkConfigButtonClicked()));
+    connect(run_benchmark_ui_.cancel_button, SIGNAL(clicked()), this, SLOT(cancelBenchmarkButtonClicked()));
+    connect(run_benchmark_ui_.benchmark_select_folder_button, SIGNAL(clicked()), this,
+            SLOT(benchmarkFolderButtonClicked()));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)),
+            run_benchmark_ui_.planning_interfaces_text, SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)),
+            run_benchmark_ui_.planning_interfaces_label, SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)),
+            run_benchmark_ui_.planning_algorithms_text, SLOT(setEnabled(bool)));
+    connect(run_benchmark_ui_.benchmark_include_planners_checkbox, SIGNAL(clicked(bool)),
+            run_benchmark_ui_.planning_algorithms_label, SLOT(setEnabled(bool)));
 
-    //Goal poses
+    // Goal poses
     QMenu *add_button_menu = new QMenu(ui_.goal_poses_add_button);
     QAction *add_single_goal_action = new QAction("Single goal", add_button_menu);
     QAction *bbox_goals_action = new QAction("Goals in a bounding box", add_button_menu);
     add_button_menu->addAction(add_single_goal_action);
     add_button_menu->addAction(bbox_goals_action);
     ui_.goal_poses_add_button->setMenu(add_button_menu);
-    connect( add_single_goal_action, SIGNAL( triggered() ), this, SLOT( createGoalPoseButtonClicked() ));
-    connect( bbox_goals_action, SIGNAL( triggered() ), this, SLOT( showBBoxGoalsDialog() ));
-    connect( bbox_dialog_ui_.ok_button, SIGNAL(clicked()), this, SLOT(createBBoxGoalsButtonClicked()));
-    connect( bbox_dialog_ui_.cancel_button, SIGNAL(clicked()), bbox_dialog_, SLOT(hide()));
-    connect( ui_.goal_poses_remove_button, SIGNAL( clicked() ), this, SLOT( deleteGoalsOnDBButtonClicked() ));
-    connect( ui_.load_poses_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
-    connect( ui_.goal_poses_open_button, SIGNAL( clicked() ), this, SLOT( loadGoalsFromDBButtonClicked() ));
-    connect( ui_.goal_poses_save_button, SIGNAL( clicked() ), this, SLOT( saveGoalsOnDBButtonClicked() ));
-    connect( ui_.goal_switch_visibility_button, SIGNAL( clicked() ), this, SLOT( switchGoalVisibilityButtonClicked() ));
-    connect( ui_.goal_poses_list, SIGNAL( itemSelectionChanged() ), this, SLOT( goalPoseSelectionChanged() ));
-    connect( ui_.goal_poses_list, SIGNAL( itemDoubleClicked(QListWidgetItem *) ), this, SLOT( goalPoseDoubleClicked(QListWidgetItem *) ));
-    connect( ui_.show_x_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-    connect( ui_.show_y_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-    connect( ui_.show_z_checkbox, SIGNAL( stateChanged( int ) ), this, SLOT( visibleAxisChanged( int ) ));
-    connect( ui_.goal_offset_roll, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
-    connect( ui_.goal_offset_pitch, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
-    connect( ui_.goal_offset_yaw, SIGNAL( editingFinished ( )), this, SLOT( goalOffsetChanged( ) ));
+    connect(add_single_goal_action, SIGNAL(triggered()), this, SLOT(createGoalPoseButtonClicked()));
+    connect(bbox_goals_action, SIGNAL(triggered()), this, SLOT(showBBoxGoalsDialog()));
+    connect(bbox_dialog_ui_.ok_button, SIGNAL(clicked()), this, SLOT(createBBoxGoalsButtonClicked()));
+    connect(bbox_dialog_ui_.cancel_button, SIGNAL(clicked()), bbox_dialog_, SLOT(hide()));
+    connect(ui_.goal_poses_remove_button, SIGNAL(clicked()), this, SLOT(deleteGoalsOnDBButtonClicked()));
+    connect(ui_.load_poses_filter_text, SIGNAL(returnPressed()), this, SLOT(loadGoalsFromDBButtonClicked()));
+    connect(ui_.goal_poses_open_button, SIGNAL(clicked()), this, SLOT(loadGoalsFromDBButtonClicked()));
+    connect(ui_.goal_poses_save_button, SIGNAL(clicked()), this, SLOT(saveGoalsOnDBButtonClicked()));
+    connect(ui_.goal_switch_visibility_button, SIGNAL(clicked()), this, SLOT(switchGoalVisibilityButtonClicked()));
+    connect(ui_.goal_poses_list, SIGNAL(itemSelectionChanged()), this, SLOT(goalPoseSelectionChanged()));
+    connect(ui_.goal_poses_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
+            SLOT(goalPoseDoubleClicked(QListWidgetItem *)));
+    connect(ui_.show_x_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
+    connect(ui_.show_y_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
+    connect(ui_.show_z_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
+    connect(ui_.goal_offset_roll, SIGNAL(editingFinished()), this, SLOT(goalOffsetChanged()));
+    connect(ui_.goal_offset_pitch, SIGNAL(editingFinished()), this, SLOT(goalOffsetChanged()));
+    connect(ui_.goal_offset_yaw, SIGNAL(editingFinished()), this, SLOT(goalOffsetChanged()));
 
-    connect( ui_.check_goal_collisions_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsInCollision( ) ));
-    connect( ui_.check_goal_reachability_button, SIGNAL( clicked( ) ), this, SLOT( checkGoalsReachable( ) ));
-    connect( ui_.run_benchmark_button, SIGNAL( clicked( ) ), this, SLOT( runBenchmark( ) ));
-    connect( ui_.load_results_button, SIGNAL( clicked( ) ), this, SLOT( loadBenchmarkResults( ) ));
+    connect(ui_.check_goal_collisions_button, SIGNAL(clicked()), this, SLOT(checkGoalsInCollision()));
+    connect(ui_.check_goal_reachability_button, SIGNAL(clicked()), this, SLOT(checkGoalsReachable()));
+    connect(ui_.run_benchmark_button, SIGNAL(clicked()), this, SLOT(runBenchmark()));
+    connect(ui_.load_results_button, SIGNAL(clicked()), this, SLOT(loadBenchmarkResults()));
 
-    connect( ui_.start_states_add_button, SIGNAL( clicked() ), this, SLOT( saveStartStateButtonClicked() ));
-    connect( ui_.start_states_remove_button, SIGNAL( clicked() ), this, SLOT( deleteStatesOnDBButtonClicked() ));
-    connect( ui_.load_states_filter_text, SIGNAL( returnPressed() ), this, SLOT( loadStatesFromDBButtonClicked() ));
-    connect( ui_.start_states_open_button, SIGNAL( clicked() ), this, SLOT( loadStatesFromDBButtonClicked() ));
-    connect( ui_.start_states_save_button, SIGNAL( clicked() ), this, SLOT( saveStatesOnDBButtonClicked() ));
-    connect( ui_.start_states_list, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( startStateItemDoubleClicked(QListWidgetItem*) ));
+    connect(ui_.start_states_add_button, SIGNAL(clicked()), this, SLOT(saveStartStateButtonClicked()));
+    connect(ui_.start_states_remove_button, SIGNAL(clicked()), this, SLOT(deleteStatesOnDBButtonClicked()));
+    connect(ui_.load_states_filter_text, SIGNAL(returnPressed()), this, SLOT(loadStatesFromDBButtonClicked()));
+    connect(ui_.start_states_open_button, SIGNAL(clicked()), this, SLOT(loadStatesFromDBButtonClicked()));
+    connect(ui_.start_states_save_button, SIGNAL(clicked()), this, SLOT(saveStatesOnDBButtonClicked()));
+    connect(ui_.start_states_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
+            SLOT(startStateItemDoubleClicked(QListWidgetItem *)));
 
     QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), ui_.goal_poses_list);
-    connect(copy_goals_shortcut, SIGNAL( activated() ), this, SLOT( copySelectedGoalPoses() ) );
+    connect(copy_goals_shortcut, SIGNAL(activated()), this, SLOT(copySelectedGoalPoses()));
 
-    //Trajectories
-    connect( ui_.trajectory_add_button, SIGNAL( clicked() ), this, SLOT( createTrajectoryButtonClicked() ));
-    connect( ui_.trajectory_remove_button, SIGNAL( clicked() ), this, SLOT( removeTrajectoryButtonClicked() ));
-    connect( ui_.trajectory_open_button, SIGNAL( clicked() ), this, SLOT( loadTrajectoriesFromDBButtonClicked() ));
-    connect( ui_.trajectory_save_button, SIGNAL( clicked() ), this, SLOT( saveTrajectoriesOnDBButtonClicked() ));
-    connect( ui_.trajectory_list, SIGNAL( itemSelectionChanged() ), this, SLOT( trajectorySelectionChanged() ));
-    connect( ui_.trajectory_nwaypoints_spin, SIGNAL( valueChanged ( int )), this, SLOT( trajectoryNWaypointsChanged( int ) ));
-    connect( ui_.trajectory_execute_button, SIGNAL( clicked() ), this, SLOT( trajectoryExecuteButtonClicked() ));
+    // Trajectories
+    connect(ui_.trajectory_add_button, SIGNAL(clicked()), this, SLOT(createTrajectoryButtonClicked()));
+    connect(ui_.trajectory_remove_button, SIGNAL(clicked()), this, SLOT(removeTrajectoryButtonClicked()));
+    connect(ui_.trajectory_open_button, SIGNAL(clicked()), this, SLOT(loadTrajectoriesFromDBButtonClicked()));
+    connect(ui_.trajectory_save_button, SIGNAL(clicked()), this, SLOT(saveTrajectoriesOnDBButtonClicked()));
+    connect(ui_.trajectory_list, SIGNAL(itemSelectionChanged()), this, SLOT(trajectorySelectionChanged()));
+    connect(ui_.trajectory_nwaypoints_spin, SIGNAL(valueChanged(int)), this, SLOT(trajectoryNWaypointsChanged(int)));
+    connect(ui_.trajectory_execute_button, SIGNAL(clicked()), this, SLOT(trajectoryExecuteButtonClicked()));
 
-    //Start a QTimer for handling main loop jobs
+    // Start a QTimer for handling main loop jobs
     main_loop_jobs_timer_.reset(new QTimer(this));
-    connect(main_loop_jobs_timer_.get(), SIGNAL( timeout() ), this, SLOT( MainLoop() ));
+    connect(main_loop_jobs_timer_.get(), SIGNAL(timeout()), this, SLOT(MainLoop()));
     main_loop_jobs_timer_->start(1000 / MAIN_LOOP_RATE);
   }
   else
@@ -235,10 +255,10 @@ MainWindow::~MainWindow()
 
 bool MainWindow::waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display)
 {
-  //Wait until the planning scene monitor is up
+  // Wait until the planning scene monitor is up
   ros::Time tstart = ros::Time::now();
   static const double psm_waiting_timeout = 10.0;
-  while (! scene_display->getPlanningSceneMonitor() && (ros::Time::now() - tstart) < ros::Duration(psm_waiting_timeout))
+  while (!scene_display->getPlanningSceneMonitor() && (ros::Time::now() - tstart) < ros::Duration(psm_waiting_timeout))
   {
     ROS_INFO_ONCE("Waiting for the planning scene monitor...");
     scene_display->update(0.1, 0.1);
@@ -254,11 +274,13 @@ void MainWindow::exitActionTriggered(bool)
 
 void MainWindow::openActionTriggered(bool)
 {
-  QString urdf_path = QFileDialog::getOpenFileName(this, tr("Select a robot description file"), tr(""), tr("URDF files (*.urdf)"));
+  QString urdf_path =
+      QFileDialog::getOpenFileName(this, tr("Select a robot description file"), tr(""), tr("URDF files (*.urdf)"));
 
   if (!urdf_path.isEmpty())
   {
-    QString srdf_path = QFileDialog::getOpenFileName(this, tr("Select a semantic robot description file"), tr(""), tr("SRDF files (*.srdf)"));
+    QString srdf_path = QFileDialog::getOpenFileName(this, tr("Select a semantic robot description file"), tr(""),
+                                                     tr("SRDF files (*.srdf)"));
 
     if (!srdf_path.isEmpty())
     {
@@ -276,7 +298,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-  //Load urdf
+  // Load urdf
   boost::filesystem::path boost_urdf_path(urdf_path);
   load_robot_ui_.status_label->setText(QString::fromStdString("Loading urdf " + boost_urdf_path.string()));
   load_robot_ui_.load_progress_bar->setValue(10);
@@ -292,7 +314,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     ROS_ERROR("Cannot load URDF file");
   }
 
-  //Load srdf
+  // Load srdf
   boost::filesystem::path boost_srdf_path(srdf_path);
   load_robot_ui_.status_label->setText(QString::fromStdString("Loading srdf " + boost_srdf_path.string()));
   load_robot_ui_.load_progress_bar->setValue(20);
@@ -308,12 +330,13 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     ROS_ERROR("Cannot load SRDF file");
   }
 
-  //Load kinematics.yaml, joint_limits.yaml and ompl_planning.yaml
-  //TODO: Can we assume kinematics.yaml to be in the same folder as the srdf?
-  boost::filesystem::path kinematics_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "kinematics.yaml");
+  // Load kinematics.yaml, joint_limits.yaml and ompl_planning.yaml
+  // TODO: Can we assume kinematics.yaml to be in the same folder as the srdf?
+  boost::filesystem::path kinematics_file =
+      boost::filesystem::operator/(boost_srdf_path.branch_path(), "kinematics.yaml");
   load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + kinematics_file.string()));
   load_robot_ui_.load_progress_bar->setValue(30);
-  if (boost::filesystem::exists( kinematics_file ) && boost::filesystem::is_regular_file( kinematics_file ))
+  if (boost::filesystem::exists(kinematics_file) && boost::filesystem::is_regular_file(kinematics_file))
   {
     if (system(("rosparam load " + kinematics_file.string()).c_str()) < 0)
     {
@@ -321,10 +344,11 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
   }
 
-  boost::filesystem::path joint_limits_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "joint_limits.yaml");
+  boost::filesystem::path joint_limits_file =
+      boost::filesystem::operator/(boost_srdf_path.branch_path(), "joint_limits.yaml");
   load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + joint_limits_file.string()));
   load_robot_ui_.load_progress_bar->setValue(40);
-  if (boost::filesystem::exists( joint_limits_file ) && boost::filesystem::is_regular_file( joint_limits_file ))
+  if (boost::filesystem::exists(joint_limits_file) && boost::filesystem::is_regular_file(joint_limits_file))
   {
     if (system(("rosparam load " + joint_limits_file.string()).c_str()) < 0)
     {
@@ -332,10 +356,11 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
     }
   }
 
-  boost::filesystem::path ompl_planning_file = boost::filesystem::operator/(boost_srdf_path.branch_path(), "ompl_planning.yaml");
+  boost::filesystem::path ompl_planning_file =
+      boost::filesystem::operator/(boost_srdf_path.branch_path(), "ompl_planning.yaml");
   load_robot_ui_.status_label->setText(QString::fromStdString("Loading " + ompl_planning_file.string()));
   load_robot_ui_.load_progress_bar->setValue(50);
-  if (boost::filesystem::exists( ompl_planning_file ) && boost::filesystem::is_regular_file( ompl_planning_file ))
+  if (boost::filesystem::exists(ompl_planning_file) && boost::filesystem::is_regular_file(ompl_planning_file))
   {
     if (system(("rosparam load " + ompl_planning_file.string()).c_str()) < 0)
     {
@@ -354,17 +379,18 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
   {
     if (configure())
     {
-      //Reload the scene geometry if one scene was already loaded
+      // Reload the scene geometry if one scene was already loaded
       load_robot_ui_.status_label->setText(QString("Reloading scene... "));
       load_robot_ui_.load_progress_bar->setValue(90);
-      QList<QListWidgetItem *> found_items = ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
+      QList<QListWidgetItem *> found_items =
+          ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
       if (found_items.size() > 0)
       {
         found_items[0]->setSelected(true);
         loadSceneButtonClicked();
       }
 
-      //Reload the goals
+      // Reload the goals
       load_robot_ui_.status_label->setText(QString("Reloading goals... "));
       load_robot_ui_.load_progress_bar->setValue(95);
       if (ui_.goal_poses_list->count() > 0)
@@ -387,7 +413,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
 
 bool MainWindow::configure()
 {
-  if ( ! scene_display_->getPlanningSceneMonitor() || ! scene_display_->getPlanningSceneMonitor()->getRobotModel() )
+  if (!scene_display_->getPlanningSceneMonitor() || !scene_display_->getPlanningSceneMonitor()->getRobotModel())
   {
     ROS_ERROR("Cannot load robot");
     ui_.robot_interaction_button->setEnabled(false);
@@ -455,24 +481,29 @@ bool MainWindow::configure()
   ui_.trajectory_open_button->setEnabled(true);
   ui_.trajectory_execute_button->setEnabled(true);
 
-  //Set the fixed frame to the model frame
+  // Set the fixed frame to the model frame
   load_robot_ui_.status_label->setText(QString("Setting fixed frame..."));
   load_robot_ui_.load_progress_bar->setValue(65);
-  visualization_manager_->setFixedFrame(QString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame().c_str()));
-  int_marker_display_->setFixedFrame(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame()));
+  visualization_manager_->setFixedFrame(
+      QString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame().c_str()));
+  int_marker_display_->setFixedFrame(
+      QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getModelFrame()));
 
-  //robot interaction
+  // robot interaction
   load_robot_ui_.status_label->setText(QString("Resetting robot interaction..."));
   load_robot_ui_.load_progress_bar->setValue(75);
-  robot_interaction_.reset(new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getRobotModel()));
+  robot_interaction_.reset(
+      new robot_interaction::RobotInteraction(scene_display_->getPlanningSceneMonitor()->getRobotModel()));
 
-  //Configure robot-dependent ui elements
-  ui_.load_states_filter_text->setText(QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() + ".*"));
+  // Configure robot-dependent ui elements
+  ui_.load_states_filter_text->setText(
+      QString::fromStdString(scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() + ".*"));
 
-  //Get the list of planning groups and fill in the combo box
+  // Get the list of planning groups and fill in the combo box
   load_robot_ui_.status_label->setText(QString("Updating planning groups..."));
   load_robot_ui_.load_progress_bar->setValue(85);
-  std::vector<std::string> group_names = scene_display_->getPlanningSceneMonitor()->getRobotModel()->getJointModelGroupNames();
+  std::vector<std::string> group_names =
+      scene_display_->getPlanningSceneMonitor()->getRobotModel()->getJointModelGroupNames();
   ui_.planning_group_combo->clear();
   for (std::size_t i = 0; i < group_names.size(); i++)
   {
@@ -487,14 +518,16 @@ bool MainWindow::configure()
 
 void MainWindow::planningGroupChanged(const QString &text)
 {
-  if (robot_interaction_ && ! text.isEmpty())
+  if (robot_interaction_ && !text.isEmpty())
   {
     robot_interaction_->decideActiveComponents(text.toStdString());
     if (robot_interaction_->getActiveEndEffectors().size() == 0)
-      ROS_WARN_STREAM("No end-effectors defined for robot " << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << " and group " << text.toStdString());
+      ROS_WARN_STREAM("No end-effectors defined for robot "
+                      << scene_display_->getPlanningSceneMonitor()->getRobotModel()->getName() << " and group "
+                      << text.toStdString());
     else
     {
-      //Update the kinematic state associated to the goals
+      // Update the kinematic state associated to the goals
       for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
       {
         it->second->setRobotState(scene_display_->getPlanningSceneRO()->getCurrentState());
@@ -519,9 +552,12 @@ void MainWindow::robotInteractionButtonClicked()
   }
   else if (robot_interaction_ && scene_display_)
   {
-    query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler("goal", scene_display_->getPlanningSceneRO()->getCurrentState(), scene_display_->getPlanningSceneMonitor()->getTFClient()));
+    query_goal_state_.reset(new robot_interaction::RobotInteraction::InteractionHandler(
+        "goal", scene_display_->getPlanningSceneRO()->getCurrentState(),
+        scene_display_->getPlanningSceneMonitor()->getTFClient()));
     query_goal_state_->setUpdateCallback(boost::bind(&MainWindow::scheduleStateUpdate, this));
-    query_goal_state_->setGroupStateValidityCallback(boost::bind(&MainWindow::isIKSolutionCollisionFree, this, _1, _2, _3));
+    query_goal_state_->setGroupStateValidityCallback(
+        boost::bind(&MainWindow::isIKSolutionCollisionFree, this, _1, _2, _3));
     robot_interaction_->addInteractiveMarkers(query_goal_state_);
   }
   else
@@ -531,7 +567,8 @@ void MainWindow::robotInteractionButtonClicked()
   robot_interaction_->publishInteractiveMarkers();
 }
 
-bool MainWindow::isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group, const double *ik_solution)
+bool MainWindow::isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group,
+                                           const double *ik_solution)
 {
   if (scene_display_)
   {
@@ -569,7 +606,8 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     trajectory_constraints_storage_.reset();
     ui_.planning_scene_list->clear();
 
-    JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+    JobProcessing::addMainLoopJob(
+        boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
   }
   else
   {
@@ -590,12 +628,12 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     else
       port = DEFAULT_WAREHOUSE_PORT;
 
-    if (port > 0 && ! host_port[0].isEmpty())
+    if (port > 0 && !host_port[0].isEmpty())
     {
       database_host_ = host_port[0].toStdString();
       database_port_ = port;
 
-      //Store into settings
+      // Store into settings
       QVariant previous_database_names = settings_->value("database_name", QStringList());
       QStringList name_list = previous_database_names.toStringList();
       name_list.removeAll(ui_.db_combo->currentText());
@@ -607,8 +645,9 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
       ui_.db_combo->clear();
       ui_.db_combo->addItems(name_list);
 
-      //Connect
-      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : green }"));
+      // Connect
+      JobProcessing::addMainLoopJob(
+          boost::bind(&setButtonState, ui_.db_connect_button, true, "Connecting...", "QPushButton { color : green }"));
       try
       {
         warehouse_ros::DatabaseConnection::Ptr conn = moveit_warehouse::loadDatabase();
@@ -619,24 +658,29 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
           robot_state_storage_.reset(new moveit_warehouse::RobotStateStorage(conn));
           constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
           trajectory_constraints_storage_.reset(new moveit_warehouse::TrajectoryConstraintsStorage(conn));
-          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...", "QPushButton { color : yellow }"));
+          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Getting data...",
+                                                    "QPushButton { color : yellow }"));
 
-          //Get all the scenes
+          // Get all the scenes
           populatePlanningSceneList();
 
-          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
+          JobProcessing::addMainLoopJob(
+              boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
         }
         else
         {
-          JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
-          JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Unable to connect to Database"));
+          JobProcessing::addMainLoopJob(
+              boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
+          JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Unable to connect to "
+                                                                                         "Database"));
           return;
         }
       }
-      catch(std::runtime_error &ex)
+      catch (std::runtime_error &ex)
       {
         ROS_ERROR("%s", ex.what());
-        JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
+        JobProcessing::addMainLoopJob(
+            boost::bind(&setButtonState, ui_.db_connect_button, false, "Connect", "QPushButton { color : green }"));
         JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", ex.what()));
         return;
       }
@@ -644,8 +688,11 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
     else
     {
       ROS_ERROR("Warehouse server must be introduced as host:port (eg. server.domain.com:33830)");
-      JobProcessing::addMainLoopJob(boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
-      JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Warehouse server must be introduced as host:port (eg. server.domain.com:33830)"));
+      JobProcessing::addMainLoopJob(
+          boost::bind(&setButtonState, ui_.db_connect_button, false, "Disconnected", "QPushButton { color : red }"));
+      JobProcessing::addMainLoopJob(boost::bind(&showCriticalMessage, this, "Error", "Warehouse server must be "
+                                                                                     "introduced as host:port (eg. "
+                                                                                     "server.domain.com:33830)"));
     }
   }
 }
@@ -675,7 +722,8 @@ void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
 
 void MainWindow::loadSceneButtonClicked(void)
 {
-  if (ui_.planning_scene_list->currentItem() && ui_.planning_scene_list->currentItem()->text().toStdString() != scene_display_->getPlanningSceneRO()->getName())
+  if (ui_.planning_scene_list->currentItem() &&
+      ui_.planning_scene_list->currentItem()->text().toStdString() != scene_display_->getPlanningSceneRO()->getName())
   {
     ui_.goal_poses_list->clear();
     ui_.trajectory_list->clear();
@@ -690,7 +738,7 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
   if (planning_scene_storage_)
   {
     QList<QListWidgetItem *> sel = ui_.planning_scene_list->selectedItems();
-    if ( ! sel.empty())
+    if (!sel.empty())
     {
       QListWidgetItem *s = sel.front();
       std::string scene = s->text().toStdString();
@@ -714,20 +762,20 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
         ROS_DEBUG("Loaded scene '%s'", scene.c_str());
         setStatusFromBackground(STATUS_INFO, QString::fromStdString("Rendering Scene..."));
 
-        //Update the planning scene
+        // Update the planning scene
         planning_scene_monitor::LockedPlanningSceneRW ps = scene_display_->getPlanningSceneRW();
         if (ps)
         {
           scene_msg = *scene_m;
           ps->getWorldNonConst()->clearObjects();
-          for (std::size_t i = 0 ; i < scene_msg.object_colors.size() ; ++i)
+          for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
             ps->setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
           ps->processPlanningSceneWorldMsg(scene_msg.world);
           ps->setName(scene_msg.name);
           scene_display_->queueRenderSceneGeometry();
         }
 
-        //Configure ui elements
+        // Configure ui elements
         ui_.load_poses_filter_text->setText(QString::fromStdString(scene + ".*"));
         ui_.trajectories_filter_text->setText(QString::fromStdString(scene + ".*"));
         setStatusFromBackground(STATUS_INFO, QString::fromStdString(""));
@@ -740,16 +788,16 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
   }
 }
 
-
 void MainWindow::updateGoalPoseMarkers(float wall_dt, float ros_dt)
 {
-  if (goal_pose_dragging_) {
-    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end() ; ++it)
+  if (goal_pose_dragging_)
+  {
+    for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
       if (it->second->isVisible())
         it->second->imarker->update(wall_dt);
   }
 
-  for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end() ; ++it)
+  for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
     if (it->second->control_marker->isVisible())
     {
       it->second->control_marker->imarker->update(wall_dt);
@@ -775,9 +823,8 @@ void MainWindow::selectItemJob(QListWidgetItem *item, bool flag)
 
 void MainWindow::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
 {
-  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
-  for (std::size_t i = 0 ; i < found_items.size(); ++i)
+  QList<QListWidgetItem *> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
+  for (std::size_t i = 0; i < found_items.size(); ++i)
     found_items[i]->setSelected(selection);
 }
-
 }

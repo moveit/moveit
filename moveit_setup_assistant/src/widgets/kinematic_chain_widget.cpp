@@ -46,89 +46,88 @@
 
 namespace moveit_setup_assistant
 {
-
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  :  QWidget( parent ), config_data_( config_data )
+KinematicChainWidget::KinematicChainWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+  : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
+  QVBoxLayout *layout = new QVBoxLayout();
 
   // Label ------------------------------------------------
-  title_ = new QLabel( "", this ); // specify the title from the parent widget
-  QFont group_title_font( "Arial", 12, QFont::Bold );
+  title_ = new QLabel("", this);  // specify the title from the parent widget
+  QFont group_title_font("Arial", 12, QFont::Bold);
   title_->setFont(group_title_font);
-  layout->addWidget( title_ );
+  layout->addWidget(title_);
 
   // Create link tree ------------------------------------------------------
-  link_tree_ = new QTreeWidget( this );
-  link_tree_->setHeaderLabel( "Robot Links" );
-  connect( link_tree_, SIGNAL( itemSelectionChanged() ), this, SLOT( itemSelected() ) );
-  layout->addWidget( link_tree_ );
+  link_tree_ = new QTreeWidget(this);
+  link_tree_->setHeaderLabel("Robot Links");
+  connect(link_tree_, SIGNAL(itemSelectionChanged()), this, SLOT(itemSelected()));
+  layout->addWidget(link_tree_);
 
   // Create Grid Layout for form --------------------------------------------
   QGridLayout *form_grid = new QGridLayout();
-  form_grid->setContentsMargins( 20, 20, 20, 20 ); // left top right bottom
+  form_grid->setContentsMargins(20, 20, 20, 20);  // left top right bottom
 
   // Row 1: Base Link
-  QLabel *base_link_label = new QLabel( "Base Link", this );
-  form_grid->addWidget( base_link_label, 0, 0, Qt::AlignRight );
+  QLabel *base_link_label = new QLabel("Base Link", this);
+  form_grid->addWidget(base_link_label, 0, 0, Qt::AlignRight);
 
-  base_link_field_ = new QLineEdit( this );
-  base_link_field_->setMinimumWidth( 300 );
-  form_grid->addWidget( base_link_field_, 0, 1, Qt::AlignLeft );
+  base_link_field_ = new QLineEdit(this);
+  base_link_field_->setMinimumWidth(300);
+  form_grid->addWidget(base_link_field_, 0, 1, Qt::AlignLeft);
 
-  QPushButton *btn_base_link = new QPushButton( "Choose Selected", this );
-  connect( btn_base_link, SIGNAL( clicked() ), this, SLOT( baseLinkTreeClick() ));
-  form_grid->addWidget( btn_base_link, 0, 2, Qt::AlignLeft );
+  QPushButton *btn_base_link = new QPushButton("Choose Selected", this);
+  connect(btn_base_link, SIGNAL(clicked()), this, SLOT(baseLinkTreeClick()));
+  form_grid->addWidget(btn_base_link, 0, 2, Qt::AlignLeft);
 
   // Row 2: Tip Link
-  QLabel *tip_link_label = new QLabel( "Tip Link", this );
-  form_grid->addWidget( tip_link_label, 1, 0, Qt::AlignRight );
+  QLabel *tip_link_label = new QLabel("Tip Link", this);
+  form_grid->addWidget(tip_link_label, 1, 0, Qt::AlignRight);
 
-  tip_link_field_ = new QLineEdit( this );
-  tip_link_field_->setMinimumWidth( 300 );
-  form_grid->addWidget( tip_link_field_, 1, 1, Qt::AlignLeft );
+  tip_link_field_ = new QLineEdit(this);
+  tip_link_field_->setMinimumWidth(300);
+  form_grid->addWidget(tip_link_field_, 1, 1, Qt::AlignLeft);
 
-  QPushButton *btn_tip_link = new QPushButton( "Choose Selected", this );
-  connect( btn_tip_link, SIGNAL( clicked() ), this, SLOT( tipLinkTreeClick() ));
-  form_grid->addWidget( btn_tip_link, 1, 2, Qt::AlignLeft );
+  QPushButton *btn_tip_link = new QPushButton("Choose Selected", this);
+  connect(btn_tip_link, SIGNAL(clicked()), this, SLOT(tipLinkTreeClick()));
+  form_grid->addWidget(btn_tip_link, 1, 2, Qt::AlignLeft);
 
   // Add form grid layout
-  layout->addLayout( form_grid );
+  layout->addLayout(form_grid);
 
   // Bottom Controls ---------------------------------------------------------
   QHBoxLayout *controls_layout = new QHBoxLayout();
 
   // Expand/Contract controls
-  QLabel *expand_controls = new QLabel( this );
+  QLabel *expand_controls = new QLabel(this);
   expand_controls->setText("<a href='expand'>Expand All</a> <a href='contract'>Collapse All</a>");
-  connect( expand_controls, SIGNAL(linkActivated( const QString )), this, SLOT( alterTree( const QString )));
-  controls_layout->addWidget( expand_controls );
+  connect(expand_controls, SIGNAL(linkActivated(const QString)), this, SLOT(alterTree(const QString)));
+  controls_layout->addWidget(expand_controls);
 
   // Spacer
-  QWidget *spacer = new QWidget( this );
-  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  controls_layout->addWidget( spacer );
+  QWidget *spacer = new QWidget(this);
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton *btn_save = new QPushButton( "&Save", this );
-  btn_save->setMaximumWidth( 200 );
-  connect( btn_save, SIGNAL(clicked()), this, SIGNAL( doneEditing() ) );
-  controls_layout->addWidget( btn_save );
+  QPushButton *btn_save = new QPushButton("&Save", this);
+  btn_save->setMaximumWidth(200);
+  connect(btn_save, SIGNAL(clicked()), this, SIGNAL(doneEditing()));
+  controls_layout->addWidget(btn_save);
   controls_layout->setAlignment(btn_save, Qt::AlignRight);
 
   // Cancel
-  QPushButton *btn_cancel = new QPushButton( "&Cancel", this );
-  btn_cancel->setMaximumWidth( 200 );
-  connect( btn_cancel, SIGNAL(clicked()), this, SIGNAL( cancelEditing() ) );
-  controls_layout->addWidget( btn_cancel );
+  QPushButton *btn_cancel = new QPushButton("&Cancel", this);
+  btn_cancel->setMaximumWidth(200);
+  connect(btn_cancel, SIGNAL(clicked()), this, SIGNAL(cancelEditing()));
+  controls_layout->addWidget(btn_cancel);
   controls_layout->setAlignment(btn_cancel, Qt::AlignRight);
 
   // Add layout
-  layout->addLayout( controls_layout );
+  layout->addLayout(controls_layout);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
@@ -143,7 +142,7 @@ KinematicChainWidget::KinematicChainWidget( QWidget *parent, moveit_setup_assist
 void KinematicChainWidget::setAvailable()
 {
   // Only load the kinematic chain once
-  if( kinematic_chain_loaded_ )
+  if (kinematic_chain_loaded_)
     return;
 
   // Retrieve pointer to the shared kinematic model
@@ -152,7 +151,7 @@ void KinematicChainWidget::setAvailable()
   // Get the root joint
   const robot_model::JointModel *root_joint = model->getRootJoint();
 
-  addLinktoTreeRecursive( root_joint->getChildLinkModel(), NULL);
+  addLinktoTreeRecursive(root_joint->getChildLinkModel(), NULL);
 
   // Remember that we have loaded the chain
   kinematic_chain_loaded_ = true;
@@ -161,29 +160,29 @@ void KinematicChainWidget::setAvailable()
 // ******************************************************************************************
 //
 // ******************************************************************************************
-void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel* link,
-                                                  const robot_model::LinkModel* parent)
+void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel *link,
+                                                  const robot_model::LinkModel *parent)
 {
   // Create new tree item
-  QTreeWidgetItem* new_item = new QTreeWidgetItem(link_tree_);
+  QTreeWidgetItem *new_item = new QTreeWidgetItem(link_tree_);
 
   // Add item to tree
-  if(parent == NULL)
+  if (parent == NULL)
   {
     new_item->setText(0, link->getName().c_str());
     link_tree_->addTopLevelItem(new_item);
   }
   else
   {
-    for(int i = 0; i < link_tree_->topLevelItemCount(); i++)
+    for (int i = 0; i < link_tree_->topLevelItemCount(); i++)
     {
-      if(addLinkChildRecursive(link_tree_->topLevelItem(i), link, parent->getName()))
+      if (addLinkChildRecursive(link_tree_->topLevelItem(i), link, parent->getName()))
       {
         break;
       }
     }
   }
-  for(size_t i = 0; i < link->getChildJointModels().size(); i++)
+  for (size_t i = 0; i < link->getChildJointModels().size(); i++)
   {
     addLinktoTreeRecursive(link->getChildJointModels()[i]->getChildLinkModel(), link);
   }
@@ -192,13 +191,12 @@ void KinematicChainWidget::addLinktoTreeRecursive(const robot_model::LinkModel* 
 // ******************************************************************************************
 //
 // ******************************************************************************************
-bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
-                                                 const robot_model::LinkModel* link,
-                                                 const std::string& parent_name)
+bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem *parent, const robot_model::LinkModel *link,
+                                                 const std::string &parent_name)
 {
-  if(parent->text(0).toStdString() == parent_name)
+  if (parent->text(0).toStdString() == parent_name)
   {
-    QTreeWidgetItem* new_item = new QTreeWidgetItem(parent);
+    QTreeWidgetItem *new_item = new QTreeWidgetItem(parent);
     new_item->setText(0, link->getName().c_str());
 
     parent->addChild(new_item);
@@ -206,9 +204,9 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
   }
   else
   {
-    for(int i = 0; i < parent->childCount(); i++)
+    for (int i = 0; i < parent->childCount(); i++)
     {
-      if(addLinkChildRecursive(parent->child(i), link, parent_name))
+      if (addLinkChildRecursive(parent->child(i), link, parent_name))
       {
         return true;
       }
@@ -221,18 +219,19 @@ bool KinematicChainWidget::addLinkChildRecursive(QTreeWidgetItem* parent,
 // ******************************************************************************************
 // Set the link field with previous value
 // ******************************************************************************************
-void KinematicChainWidget::setSelected( const std::string &base_link, const std::string &tip_link )
+void KinematicChainWidget::setSelected(const std::string &base_link, const std::string &tip_link)
 {
-  base_link_field_->setText( QString( base_link.c_str() ) );
-  tip_link_field_->setText( QString( tip_link.c_str() ) );
+  base_link_field_->setText(QString(base_link.c_str()));
+  tip_link_field_->setText(QString(tip_link.c_str()));
 }
 
 // ******************************************************************************************
 // Choose the base link
 // ******************************************************************************************
-void KinematicChainWidget::baseLinkTreeClick() {
-  QTreeWidgetItem* item = link_tree_->currentItem();
-  if(item != NULL)
+void KinematicChainWidget::baseLinkTreeClick()
+{
+  QTreeWidgetItem *item = link_tree_->currentItem();
+  if (item != NULL)
   {
     base_link_field_->setText(item->text(0));
   }
@@ -243,8 +242,8 @@ void KinematicChainWidget::baseLinkTreeClick() {
 // ******************************************************************************************
 void KinematicChainWidget::tipLinkTreeClick()
 {
-  QTreeWidgetItem* item = link_tree_->currentItem();
-  if(item != NULL)
+  QTreeWidgetItem *item = link_tree_->currentItem();
+  if (item != NULL)
   {
     tip_link_field_->setText(item->text(0));
   }
@@ -253,9 +252,9 @@ void KinematicChainWidget::tipLinkTreeClick()
 // ******************************************************************************************
 // Expand/Collapse Tree
 // ******************************************************************************************
-void KinematicChainWidget::alterTree( const QString &link )
+void KinematicChainWidget::alterTree(const QString &link)
 {
-  if( link.contains("expand") )
+  if (link.contains("expand"))
     link_tree_->expandAll();
   else
     link_tree_->collapseAll();
@@ -266,20 +265,19 @@ void KinematicChainWidget::alterTree( const QString &link )
 // ******************************************************************************************
 void KinematicChainWidget::itemSelected()
 {
-  QTreeWidgetItem* item = link_tree_->currentItem();
-  if(item != NULL)
+  QTreeWidgetItem *item = link_tree_->currentItem();
+  if (item != NULL)
   {
     Q_EMIT unhighlightAll();
 
     std::string name = item->text(0).toStdString();
 
     // Don't try to highlight empty links!
-    if( name.empty() )
+    if (name.empty())
       return;
 
     // Check that item is not empty
-    Q_EMIT highlightLink( item->text(0).toStdString(), QColor(255, 0, 0) );
+    Q_EMIT highlightLink(item->text(0).toStdString(), QColor(255, 0, 0));
   }
 }
-
 }

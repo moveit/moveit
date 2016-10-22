@@ -38,12 +38,10 @@
 
 namespace ompl_interface
 {
-
 /** @class GoalSampleableRegionMux*/
 class GoalSampleableRegionMux : public ompl::base::GoalSampleableRegion
 {
 public:
-
   /** @brief Constructor
    *  @param goals The input set of goals*/
   GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals);
@@ -80,9 +78,7 @@ public:
   virtual void print(std::ostream &out = std::cout) const;
 
 protected:
-
   std::vector<ompl::base::GoalPtr> goals_;
-  mutable unsigned int             gindex_;
+  mutable unsigned int gindex_;
 };
-
 }

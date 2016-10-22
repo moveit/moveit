@@ -40,11 +40,9 @@
 
 namespace default_planner_request_adapters
 {
-
 class FixWorkspaceBounds : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-
   static const std::string WBOUNDS_PARAM_NAME;
 
   FixWorkspaceBounds() : planning_request_adapter::PlanningRequestAdapter(), nh_("~")
@@ -59,10 +57,12 @@ public:
     workspace_extent_ /= 2.0;
   }
 
-  virtual std::string getDescription() const { return "Fix Workspace Bounds"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Workspace Bounds";
+  }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
@@ -90,7 +90,6 @@ private:
 };
 
 const std::string FixWorkspaceBounds::WBOUNDS_PARAM_NAME = "default_workspace_bounds";
-
 }
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixWorkspaceBounds,

@@ -53,26 +53,25 @@
 // SA
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
-#include <moveit/planning_scene/planning_scene.h> // for collision stuff
+#include <moveit/planning_scene/planning_scene.h>  // for collision stuff
 #include <ros/ros.h>
 #endif
 
 #include "header_widget.h"
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
 class RobotPosesWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  RobotPosesWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  RobotPosesWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -109,10 +108,10 @@ private Q_SLOTS:
   void editSelected();
 
   /// Edit the double clicked element
-  void editDoubleClicked( int row, int column );
+  void editDoubleClicked(int row, int column);
 
   /// Preview whatever element is selected
-  void previewClicked( int row, int column );
+  void previewClicked(int row, int column);
 
   /// Delete currently editing ite
   void deleteSelected();
@@ -124,7 +123,7 @@ private Q_SLOTS:
   void cancelEditing();
 
   /// Run this whenever the group is changed
-  void loadJointSliders( const QString &selected );
+  void loadJointSliders(const QString &selected);
 
   /// Show the robot in its default joint positions
   void showDefaultPose();
@@ -138,13 +137,12 @@ private Q_SLOTS:
    * @param name - name of joint being changed
    * @param value - value of joint
    */
-  void updateRobotModel( const std::string &name, double value );
+  void updateRobotModel(const std::string &name, double value);
 
   /// Publishes a joint state message based on all the slider locations in a planning group, to rviz
   void publishJoints();
 
 private:
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -159,7 +157,7 @@ private:
   std::map<std::string, double> joint_state_map_;
 
   /// The joints currently in the selected planning group
-  std::vector<const robot_model::JointModel*> joint_models_;
+  std::vector<const robot_model::JointModel *> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_robot_state_;
@@ -179,21 +177,21 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::GroupState *findPoseByName( const std::string &name );
+  srdf::Model::GroupState *findPoseByName(const std::string &name);
 
   /**
    * Create the main list view of poses for robot
    *
    * @return the widget
    */
-  QWidget* createContentsWidget();
+  QWidget *createContentsWidget();
 
   /**
    * Create the screen for editing poses
    *
    * @return the widget
    */
-  QWidget* createEditWidget();
+  QWidget *createEditWidget();
 
   /**
    * Load the robot poses into the table
@@ -212,14 +210,13 @@ private:
    *
    * @param name name of pose
    */
-  void edit( const std::string &name );
+  void edit(const std::string &name);
 
   /**
    * Show the robot in the current pose
    */
-  void showPose( srdf::Model::GroupState *pose );
+  void showPose(srdf::Model::GroupState *pose);
 };
-
 
 // ******************************************************************************************
 // ******************************************************************************************
@@ -230,7 +227,7 @@ class SliderWidget : public QWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
@@ -241,8 +238,7 @@ class SliderWidget : public QWidget
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget( QWidget *parent, const robot_model::JointModel *joint_model,
-                double init_value );
+  SliderWidget(QWidget *parent, const robot_model::JointModel *joint_model, double init_value);
 
   /**
    * Deconstructor
@@ -264,7 +260,7 @@ private Q_SLOTS:
   // ******************************************************************************************
 
   /// Called when the joint value slider is changed
-  void changeJointValue( int value );
+  void changeJointValue(int value);
 
   /// Called when the joint value box is changed
   void changeJointSlider();
@@ -276,10 +272,9 @@ Q_SIGNALS:
   // ******************************************************************************************
 
   /// Indicate joint name and value when slider widget changed
-  void jointValueChanged( const std::string &name, double value );
+  void jointValueChanged(const std::string &name, double value);
 
 private:
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -294,15 +289,11 @@ private:
   // ******************************************************************************************
   // Private Functions
   // ******************************************************************************************
-
-
 };
 
-
-} //namespace
+}  // namespace
 
 // Declare std::string as metatype so we can use it in a signal
-Q_DECLARE_METATYPE (std::string)
-
+Q_DECLARE_METATYPE(std::string)
 
 #endif

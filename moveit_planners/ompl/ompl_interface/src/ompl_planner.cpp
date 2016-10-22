@@ -42,16 +42,17 @@
 #include <moveit/profiler/profiler.h>
 #include <moveit_msgs/GetMotionPlan.h>
 
-static const std::string PLANNER_NODE_NAME="ompl_planning";          // name of node
-static const std::string PLANNER_SERVICE_NAME="plan_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string ROBOT_DESCRIPTION="robot_description";      // name of the robot description (a param name, so it can be changed externally)
+static const std::string PLANNER_NODE_NAME = "ompl_planning";  // name of node
+static const std::string PLANNER_SERVICE_NAME =
+    "plan_kinematic_path";  // name of the advertised service (within the ~ namespace)
+static const std::string ROBOT_DESCRIPTION =
+    "robot_description";  // name of the robot description (a param name, so it can be changed externally)
 
 class OMPLPlannerService
 {
 public:
-
-  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false) :
-    nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
+  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false)
+    : nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     if (debug_)
@@ -69,10 +70,10 @@ public:
     planning_interface::MotionPlanResponse response;
 
     ompl_interface::ModelBasedPlanningContextPtr context =
-      ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
+        ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
     if (!context)
     {
-      ROS_ERROR_STREAM_NAMED("computePlan","No planning context found");
+      ROS_ERROR_STREAM_NAMED("computePlan", "No planning context found");
       return false;
     }
     context->clear();
@@ -107,15 +108,14 @@ public:
   }
 
 private:
-
-  ros::NodeHandle                               nh_;
+  ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitor &psm_;
-  ompl_interface::OMPLInterface                 ompl_interface_;
-  ros::ServiceServer                            plan_service_;
-  ros::ServiceServer                            display_states_service_;
-  ros::Publisher                                pub_plan_;
-  ros::Publisher                                pub_request_;
-  bool                                          debug_;
+  ompl_interface::OMPLInterface ompl_interface_;
+  ros::ServiceServer plan_service_;
+  ros::ServiceServer display_states_service_;
+  ros::Publisher pub_plan_;
+  ros::Publisher pub_request_;
+  bool debug_;
 };
 
 int main(int argc, char **argv)
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, PLANNER_NODE_NAME);
 
   bool debug = false;
-  for (int i = 1 ; i < argc ; ++i)
+  for (int i = 1; i < argc; ++i)
     if (strncmp(argv[i], "--debug", 7) == 0)
       debug = true;
 

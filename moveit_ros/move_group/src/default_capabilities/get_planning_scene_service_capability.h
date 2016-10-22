@@ -42,22 +42,19 @@
 
 namespace move_group
 {
-
 class MoveGroupGetPlanningSceneService : public MoveGroupCapability
 {
 public:
-
   MoveGroupGetPlanningSceneService();
 
   virtual void initialize();
 
 private:
-
-  bool getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req, moveit_msgs::GetPlanningScene::Response &res);
+  bool getPlanningSceneService(moveit_msgs::GetPlanningScene::Request &req,
+                               moveit_msgs::GetPlanningScene::Response &res);
 
   ros::ServiceServer get_scene_service_;
 };
-
 }
 
 #endif

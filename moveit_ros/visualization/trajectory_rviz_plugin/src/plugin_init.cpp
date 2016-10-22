@@ -37,4 +37,4 @@
 #include <class_loader/class_loader.h>
 #include <moveit/trajectory_rviz_plugin/trajectory_display.h>
 
-CLASS_LOADER_REGISTER_CLASS( moveit_rviz_plugin::TrajectoryDisplay, rviz::Display )
+CLASS_LOADER_REGISTER_CLASS(moveit_rviz_plugin::TrajectoryDisplay, rviz::Display)

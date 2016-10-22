@@ -44,17 +44,13 @@ namespace ompl_interface
 class JointModelStateSpaceFactory : public ModelBasedStateSpaceFactory
 {
 public:
-
   JointModelStateSpaceFactory();
 
-  virtual int canRepresentProblem(const std::string &group,
-                                  const moveit_msgs::MotionPlanRequest &req,
+  virtual int canRepresentProblem(const std::string &group, const moveit_msgs::MotionPlanRequest &req,
                                   const robot_model::RobotModelConstPtr &robot_model) const;
 
 protected:
-
   virtual ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification &space_spec) const;
-
 };
 }
 

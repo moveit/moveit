@@ -42,25 +42,21 @@
 
 namespace ompl_interface
 {
-
 class PoseModelStateSpace : public ModelBasedStateSpace
 {
 public:
-
   static const std::string PARAMETERIZATION_TYPE;
 
   class StateType : public ModelBasedStateSpace::StateType
   {
   public:
     enum
-      {
-        JOINTS_COMPUTED = 256,
-        POSE_COMPUTED = 512
-      };
+    {
+      JOINTS_COMPUTED = 256,
+      POSE_COMPUTED = 512
+    };
 
-    StateType()
-      : ModelBasedStateSpace::StateType()
-      , poses(NULL)
+    StateType() : ModelBasedStateSpace::StateType(), poses(NULL)
     {
       flags |= JOINTS_COMPUTED;
     }
@@ -97,10 +93,11 @@ public:
   PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
   virtual ~PoseModelStateSpace();
 
-  virtual ompl::base::State* allocState() const;
+  virtual ompl::base::State *allocState() const;
   virtual void freeState(ompl::base::State *state) const;
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
-  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
+  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t,
+                           ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual double getMaximumExtent() const;
 
@@ -115,7 +112,6 @@ public:
   virtual void sanityChecks() const;
 
 private:
-
   struct PoseComponent
   {
     PoseComponent(const robot_model::JointModelGroup *subgroup,
@@ -139,7 +135,6 @@ private:
   std::vector<PoseComponent> poses_;
   double jump_factor_;
 };
-
 }
 
 #endif

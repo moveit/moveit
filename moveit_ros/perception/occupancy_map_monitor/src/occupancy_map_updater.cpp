@@ -39,7 +39,6 @@
 
 namespace occupancy_map_monitor
 {
-
 OccupancyMapUpdater::OccupancyMapUpdater(const std::string &type) : type_(type)
 {
 }
@@ -59,16 +58,16 @@ void OccupancyMapUpdater::readXmlParam(XmlRpc::XmlRpcValue &params, const std::s
   if (params.hasMember(param_name))
   {
     if (params[param_name].getType() == XmlRpc::XmlRpcValue::TypeInt)
-      *value = (int) params[param_name];
+      *value = (int)params[param_name];
     else
-      *value = (double) params[param_name];
+      *value = (double)params[param_name];
   }
 }
 
 void OccupancyMapUpdater::readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value)
 {
   if (params.hasMember(param_name))
-    *value = (int) params[param_name];
+    *value = (int)params[param_name];
 }
 
 bool OccupancyMapUpdater::updateTransformCache(const std::string &target_frame, const ros::Time &target_time)
@@ -82,5 +81,4 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string &target_frame, 
     return false;
   }
 }
-
 }

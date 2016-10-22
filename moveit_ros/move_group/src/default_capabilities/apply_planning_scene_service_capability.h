@@ -42,7 +42,6 @@
 
 namespace move_group
 {
-
 /**
  * Provides the ability to update the shared planning scene
  * with a remote blocking call using a ROS-Service
@@ -50,18 +49,15 @@ namespace move_group
 class ApplyPlanningSceneService : public MoveGroupCapability
 {
 public:
-
   ApplyPlanningSceneService();
 
   virtual void initialize();
 
 private:
-
   bool applyScene(moveit_msgs::ApplyPlanningScene::Request &req, moveit_msgs::ApplyPlanningScene::Response &res);
 
   ros::ServiceServer service_;
 };
-
 }
 
-#endif // MOVEIT_MOVE_GROUP_APPLY_PLANNING_SCENE_SERVICE_CAPABILITY_
+#endif  // MOVEIT_MOVE_GROUP_APPLY_PLANNING_SCENE_SERVICE_CAPABILITY_

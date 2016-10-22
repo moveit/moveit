@@ -41,12 +41,19 @@
 
 namespace moveit_setup_assistant
 {
-
 /**
  * \brief Reasons for disabling link pairs. Append "in collision" for understanding.
  * NOT_DISABLED means the link pair DOES do self collision checking
  */
-enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED };
+enum DisabledReason
+{
+  NEVER,
+  DEFAULT,
+  ADJACENT,
+  ALWAYS,
+  USER,
+  NOT_DISABLED
+};
 
 /**
  * \brief Store details on a pair of links
@@ -54,7 +61,7 @@ enum DisabledReason { NEVER, DEFAULT, ADJACENT, ALWAYS, USER, NOT_DISABLED };
 struct LinkPairData
 {
   // by default all link pairs are NOT disabled for collision checking
-  LinkPairData() : reason( NOT_DISABLED ), disable_check( false ) {};
+  LinkPairData() : reason(NOT_DISABLED), disable_check(false){};
   DisabledReason reason;
   bool disable_check;
 };
@@ -62,14 +69,15 @@ struct LinkPairData
 /**
  * \brief LinkPairMap is an adjacency list structure containing links in string-based form. Used for disabled links
  */
-typedef std::map<std::pair<std::string, std::string>, LinkPairData > LinkPairMap;
+typedef std::map<std::pair<std::string, std::string>, LinkPairData> LinkPairMap;
 
 /**
  * \brief Generate an adjacency list of links that are always and never in collision, to speed up collision detection
  * \param parent_scene A reference to the robot in the planning scene
  * \param include_never_colliding Flag to disable the check for links that are never in collision
  * \param trials Set the number random collision checks that are made. Increase the probability of correctness
- * \param min_collision_fraction If collisions are found between a pair of links >= this fraction, the are assumed "always" in collision
+ * \param min_collision_fraction If collisions are found between a pair of links >= this fraction, the are assumed
+ * "always" in collision
  * \return Adj List of unique set of pairs of links in string-based form
  */
 LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr &parent_scene, unsigned int *progress,
@@ -81,22 +89,21 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
  * \param scene A reference to the robot in the planning scene
  * \param link_pairs List of all unique link pairs and each pair's properties
  **/
-void computeLinkPairs( const planning_scene::PlanningScene &scene, LinkPairMap &link_pairs );
+void computeLinkPairs(const planning_scene::PlanningScene &scene, LinkPairMap &link_pairs);
 
 /**
  * \brief Converts a reason for disabling a link pair into a string
  * \param reason enum reason type
  * \return reason as string
  */
-const std::string disabledReasonToString( DisabledReason reason );
+const std::string disabledReasonToString(DisabledReason reason);
 
 /**
  * \brief Converts a string reason for disabling a link pair into a struct data type
  * \param reason string that should match one of the DisableReason types. If not, is set as "USER"
  * \return reason as struct
  */
-DisabledReason disabledReasonFromString( const std::string& reason );
-
+DisabledReason disabledReasonFromString(const std::string &reason);
 }
 
 #endif

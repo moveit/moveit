@@ -47,7 +47,6 @@
 
 namespace distance_field
 {
-
 /**
  * \brief Struct for sorting type Eigen::Vector3i for use in sorted
  * std containers.  Sorts in z order, then y order, then x order.
@@ -56,12 +55,12 @@ struct compareEigen_Vector3i
 {
   bool operator()(Eigen::Vector3i loc_1, Eigen::Vector3i loc_2) const
   {
-    if( loc_1.z() != loc_2.z() )
-      return ( loc_1.z() < loc_2.z() );
-    else if( loc_1.y() != loc_2.y() )
-      return ( loc_1.y() < loc_2.y() );
-    else if( loc_1.x() != loc_2.x() )
-      return ( loc_1.x() < loc_2.x() );
+    if (loc_1.z() != loc_2.z())
+      return (loc_1.z() < loc_2.z());
+    else if (loc_1.y() != loc_2.y())
+      return (loc_1.y() < loc_2.y());
+    else if (loc_1.x() != loc_2.x())
+      return (loc_1.x() < loc_2.x());
     return false;
   }
 };
@@ -72,7 +71,6 @@ struct compareEigen_Vector3i
  */
 struct PropDistanceFieldVoxel
 {
-
   /**
    * \brief Constructor.  All fields left uninitialized.
    *
@@ -95,14 +93,15 @@ struct PropDistanceFieldVoxel
    */
   PropDistanceFieldVoxel(int distance_sq_positive, int distance_sq_negative);
 
-  int distance_square_;         /**< \brief Distance in cells to the closest obstacle, squared */
-  int negative_distance_square_; /**< \brief Distance in cells to the nearest unoccupied cell, squared */
-  Eigen::Vector3i closest_point_; /**< \brief Closest occupied cell */
+  int distance_square_;                    /**< \brief Distance in cells to the closest obstacle, squared */
+  int negative_distance_square_;           /**< \brief Distance in cells to the nearest unoccupied cell, squared */
+  Eigen::Vector3i closest_point_;          /**< \brief Closest occupied cell */
   Eigen::Vector3i closest_negative_point_; /**< \brief Closest unoccupied cell */
-  int update_direction_;        /**< \brief Direction from which this voxel was updated for occupied distance propagation */
-  int negative_update_direction_;        /**< \brief Direction from which this voxel was updated  for negative distance propagation*/
+  int update_direction_; /**< \brief Direction from which this voxel was updated for occupied distance propagation */
+  int negative_update_direction_; /**< \brief Direction from which this voxel was updated  for negative distance
+                                     propagation*/
 
-  static const int UNINITIALIZED=-1; /**< \brief Value that represents an unitialized voxel */
+  static const int UNINITIALIZED = -1; /**< \brief Value that represents an unitialized voxel */
 };
 
 /**
@@ -131,11 +130,9 @@ struct PropDistanceFieldVoxel
  * on the data, calculating this data can significantly impact the
  * time it takes to add and remove obstacle cells.
  */
-class PropagationDistanceField: public DistanceField
+class PropagationDistanceField : public DistanceField
 {
 public:
-
-
   /**
    * \brief Constructor that initializes entire distance field to
    * empty - all cells will be assigned maximum distance values.  All
@@ -161,13 +158,9 @@ public:
    * the implications of this.
    *
    */
-  PropagationDistanceField(double size_x,
-                           double size_y,
-                           double size_z,
-                           double resolution,
-                           double origin_x, double origin_y, double origin_z,
-                           double max_distance,
-                           bool propagate_negative_distances=false);
+  PropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
+                           double origin_y, double origin_z, double max_distance,
+                           bool propagate_negative_distances = false);
 
   /**
    * \brief Constructor based on an OcTree and bounding box
@@ -191,11 +184,9 @@ public:
    * \ref PropagationDistanceField description for more information on
    * the implications of this.
    */
-  PropagationDistanceField(const octomap::OcTree& octree,
-                           const octomap::point3d& bbx_min,
-                           const octomap::point3d& bbx_max,
-                           double max_distance,
-                           bool propagate_negative_distances=false);
+  PropagationDistanceField(const octomap::OcTree& octree, const octomap::point3d& bbx_min,
+                           const octomap::point3d& bbx_max, double max_distance,
+                           bool propagate_negative_distances = false);
 
   /**
    * \brief Constructor that takes an istream and reads the contents
@@ -218,15 +209,15 @@ public:
    *
    * @return
    */
-  PropagationDistanceField(std::istream& stream,
-                           double max_distance,
-                           bool propagate_negative_distances=false);
+  PropagationDistanceField(std::istream& stream, double max_distance, bool propagate_negative_distances = false);
   /**
    * \brief Empty destructor
    *
    *
    */
-  virtual ~PropagationDistanceField(){}
+  virtual ~PropagationDistanceField()
+  {
+  }
 
   /**
    * \brief Add a set of obstacle points to the distance field,
@@ -373,7 +364,7 @@ public:
    */
   virtual bool readFromStream(std::istream& stream);
 
-  //passthrough docs to DistanceField
+  // passthrough docs to DistanceField
   virtual double getUninitializedDistance() const
   {
     return max_distance_;
@@ -451,7 +442,6 @@ public:
   }
 
 private:
-
   typedef std::set<Eigen::Vector3i, compareEigen_Vector3i> VoxelSet; /**< \brief Typedef for set of integer indices */
 
   /**
@@ -535,7 +525,7 @@ private:
    *
    * @param set Voxel set to print
    */
-  void print(const VoxelSet & set);
+  void print(const VoxelSet& set);
 
   /**
    * \brief Debug function that prints all points in a vector to logDebug
@@ -554,17 +544,24 @@ private:
    */
   static int eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
 
-  bool propagate_negative_;     /**< \brief Whether or not to propagate negative distances */
+  bool propagate_negative_; /**< \brief Whether or not to propagate negative distances */
 
   VoxelGrid<PropDistanceFieldVoxel>::Ptr voxel_grid_; /**< \brief Actual container for distance data */
 
   /// \brief Structure used to hold propagation frontier
-  std::vector<std::vector<Eigen::Vector3i> > bucket_queue_; /**< \brief Data member that holds points from which to propagate, where each vector holds points that are a particular integer distance from the closest obstacle points*/
+  std::vector<std::vector<Eigen::Vector3i> > bucket_queue_; /**< \brief Data member that holds points from which to
+                                                               propagate, where each vector holds points that are a
+                                                               particular integer distance from the closest obstacle
+                                                               points*/
 
-  std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_;/**< \brief Data member that holds points from which to propagate in the negative, where each vector holds points that are a particular integer distance from the closest unoccupied points*/
+  std::vector<std::vector<Eigen::Vector3i> > negative_bucket_queue_; /**< \brief Data member that holds points from
+                                                                        which to propagate in the negative, where each
+                                                                        vector holds points that are a particular
+                                                                        integer distance from the closest unoccupied
+                                                                        points*/
 
-  double max_distance_;         /**< \brief Holds maximum distance  */
-  int max_distance_sq_;         /**< \brief Holds maximum distance squared in cells */
+  double max_distance_; /**< \brief Holds maximum distance  */
+  int max_distance_sq_; /**< \brief Holds maximum distance squared in cells */
 
   std::vector<double> sqrt_table_; /**< \brief Precomputed square root table for faster distance lookups */
 
@@ -580,16 +577,16 @@ private:
    *
    */
 
-  std::vector<std::vector<std::vector<Eigen::Vector3i > > > neighborhoods_;
+  std::vector<std::vector<std::vector<Eigen::Vector3i> > > neighborhoods_;
 
-  std::vector<Eigen::Vector3i > direction_number_to_direction_; /**< \brief Holds conversion from direction number to integer changes */
+  std::vector<Eigen::Vector3i> direction_number_to_direction_; /**< \brief Holds conversion from direction number to
+                                                                  integer changes */
 };
 
 ////////////////////////// inline functions follow ////////////////////////////////////////
 
-inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_square, int negative_distance_squared):
-  distance_square_(distance_square),
-  negative_distance_square_(negative_distance_squared)
+inline PropDistanceFieldVoxel::PropDistanceFieldVoxel(int distance_square, int negative_distance_squared)
+  : distance_square_(distance_square), negative_distance_square_(negative_distance_squared)
 {
   closest_point_.x() = PropDistanceFieldVoxel::UNINITIALIZED;
   closest_point_.y() = PropDistanceFieldVoxel::UNINITIALIZED;
@@ -605,9 +602,8 @@ inline PropDistanceFieldVoxel::PropDistanceFieldVoxel()
 
 inline double PropagationDistanceField::getDistance(const PropDistanceFieldVoxel& object) const
 {
-  return sqrt_table_[object.distance_square_]-sqrt_table_[object.negative_distance_square_];
+  return sqrt_table_[object.distance_square_] - sqrt_table_[object.negative_distance_square_];
 }
-
 }
 
 #endif

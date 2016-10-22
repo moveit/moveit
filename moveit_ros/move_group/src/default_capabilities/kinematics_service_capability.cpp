@@ -40,37 +40,35 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupKinematicsService::MoveGroupKinematicsService():
-  MoveGroupCapability("KinematicsService")
+move_group::MoveGroupKinematicsService::MoveGroupKinematicsService() : MoveGroupCapability("KinematicsService")
 {
 }
 
 void move_group::MoveGroupKinematicsService::initialize()
 {
-  fk_service_ = root_node_handle_.advertiseService(FK_SERVICE_NAME, &MoveGroupKinematicsService::computeFKService, this);
-  ik_service_ = root_node_handle_.advertiseService(IK_SERVICE_NAME, &MoveGroupKinematicsService::computeIKService, this);
+  fk_service_ =
+      root_node_handle_.advertiseService(FK_SERVICE_NAME, &MoveGroupKinematicsService::computeFKService, this);
+  ik_service_ =
+      root_node_handle_.advertiseService(IK_SERVICE_NAME, &MoveGroupKinematicsService::computeIKService, this);
 }
 
 namespace
 {
 bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
                        const kinematic_constraints::KinematicConstraintSet *constraint_set,
-                       robot_state::RobotState *state,
-                       const robot_model::JointModelGroup *jmg,
+                       robot_state::RobotState *state, const robot_model::JointModelGroup *jmg,
                        const double *ik_solution)
 {
   state->setJointGroupPositions(jmg, ik_solution);
   state->update();
   return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName())) &&
-    (!constraint_set || constraint_set->decide(*state).satisfied);
+         (!constraint_set || constraint_set->decide(*state).satisfied);
 }
 }
 
-void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRequest &req,
-                                                       moveit_msgs::RobotState &solution,
-                                                       moveit_msgs::MoveItErrorCodes &error_code,
-                                                       robot_state::RobotState &rs,
-                                                       const robot_state::GroupStateValidityCallbackFn &constraint) const
+void move_group::MoveGroupKinematicsService::computeIK(
+    moveit_msgs::PositionIKRequest &req, moveit_msgs::RobotState &solution, moveit_msgs::MoveItErrorCodes &error_code,
+    robot_state::RobotState &rs, const robot_state::GroupStateValidityCallbackFn &constraint) const
 {
   const robot_state::JointModelGroup *jmg = rs.getJointModelGroup(req.group_name);
   if (jmg)
@@ -80,8 +78,11 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
 
     if (req.pose_stamped_vector.empty() || req.pose_stamped_vector.size() == 1)
     {
-      geometry_msgs::PoseStamped req_pose = req.pose_stamped_vector.empty() ? req.pose_stamped : req.pose_stamped_vector[0];
-      std::string ik_link = (!req.pose_stamped_vector.empty()) ? (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) : req.ik_link_name;
+      geometry_msgs::PoseStamped req_pose =
+          req.pose_stamped_vector.empty() ? req.pose_stamped : req.pose_stamped_vector[0];
+      std::string ik_link = (!req.pose_stamped_vector.empty()) ?
+                                (req.ik_link_names.empty() ? "" : req.ik_link_names[0]) :
+                                req.ik_link_name;
 
       if (performTransform(req_pose, default_frame))
       {
@@ -91,7 +92,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
         else
           result_ik = rs.setFromIK(jmg, req_pose.pose, ik_link, req.attempts, req.timeout.toSec(), constraint);
 
-        if(result_ik)
+        if (result_ik)
         {
           robot_state::robotStateToRobotStateMsg(rs, solution, false);
           error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
@@ -110,7 +111,7 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
       {
         bool ok = true;
         EigenSTL::vector_Affine3d req_poses(req.pose_stamped_vector.size());
-        for (std::size_t k = 0 ; k < req.pose_stamped_vector.size() ; ++k)
+        for (std::size_t k = 0; k < req.pose_stamped_vector.size(); ++k)
         {
           geometry_msgs::PoseStamped msg = req.pose_stamped_vector[k];
           if (performTransform(msg, default_frame))
@@ -139,7 +140,8 @@ void move_group::MoveGroupKinematicsService::computeIK(moveit_msgs::PositionIKRe
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
 }
 
-bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request &req, moveit_msgs::GetPositionIK::Response &res)
+bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request &req,
+                                                              moveit_msgs::GetPositionIK::Response &res)
 {
   context_->planning_scene_monitor_->updateFrameTransforms();
 
@@ -150,21 +152,25 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
     kinematic_constraints::KinematicConstraintSet kset(ls->getRobotModel());
     robot_state::RobotState rs = ls->getCurrentState();
     kset.add(req.ik_request.constraints, ls->getTransforms());
-    computeIK(req.ik_request, res.solution, res.error_code, rs, boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
-                                                                            static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() : NULL,
-                                                                            kset.empty() ? NULL : &kset, _1, _2, _3));
+    computeIK(req.ik_request, res.solution, res.error_code, rs,
+              boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
+                                                  static_cast<const planning_scene::PlanningSceneConstPtr &>(ls).get() :
+                                                  NULL,
+                          kset.empty() ? NULL : &kset, _1, _2, _3));
   }
   else
   {
     // compute unconstrained IK, no lock to planning scene maintained
-    robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
+    robot_state::RobotState rs =
+        planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
     computeIK(req.ik_request, res.solution, res.error_code, rs);
   }
 
   return true;
 }
 
-bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPositionFK::Request &req, moveit_msgs::GetPositionFK::Response &res)
+bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPositionFK::Request &req,
+                                                              moveit_msgs::GetPositionFK::Response &res)
 {
   if (req.fk_link_names.empty())
   {
@@ -176,13 +182,15 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
   context_->planning_scene_monitor_->updateFrameTransforms();
 
   const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
-  bool do_transform = !req.header.frame_id.empty() && !robot_state::Transforms::sameFrame(req.header.frame_id, default_frame)
-    && context_->planning_scene_monitor_->getTFClient();
+  bool do_transform = !req.header.frame_id.empty() &&
+                      !robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) &&
+                      context_->planning_scene_monitor_->getTFClient();
   bool tf_problem = false;
 
-  robot_state::RobotState rs = planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
+  robot_state::RobotState rs =
+      planning_scene_monitor::LockedPlanningSceneRO(context_->planning_scene_monitor_)->getCurrentState();
   robot_state::robotStateMsgToRobotState(req.robot_state, rs);
-  for (std::size_t i = 0 ; i < req.fk_link_names.size() ; ++i)
+  for (std::size_t i = 0; i < req.fk_link_names.size(); ++i)
     if (rs.getRobotModel()->hasLinkModel(req.fk_link_names[i]))
     {
       res.pose_stamped.resize(res.pose_stamped.size() + 1);
@@ -196,11 +204,10 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
     }
   if (tf_problem)
     res.error_code.val = moveit_msgs::MoveItErrorCodes::FRAME_TRANSFORM_FAILURE;
+  else if (res.fk_link_names.size() == req.fk_link_names.size())
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   else
-    if (res.fk_link_names.size() == req.fk_link_names.size())
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    else
-      res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME;
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_LINK_NAME;
   return true;
 }
 
