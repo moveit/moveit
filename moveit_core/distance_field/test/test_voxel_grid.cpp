@@ -44,59 +44,59 @@ using namespace distance_field;
 TEST(TestVoxelGrid, TestReadWrite)
 {
   int i;
-  int def=-100;
-  VoxelGrid<int> vg(0.02,0.02,0.02,0.01,0,0,0, def);
+  int def = -100;
+  VoxelGrid<int> vg(0.02, 0.02, 0.02, 0.01, 0, 0, 0, def);
 
   int numX = vg.getNumCells(DIM_X);
   int numY = vg.getNumCells(DIM_Y);
   int numZ = vg.getNumCells(DIM_Z);
 
   // Check dimensions
-  EXPECT_EQ(numX,2);
-  EXPECT_EQ(numY,2);
-  EXPECT_EQ(numZ,2);
+  EXPECT_EQ(numX, 2);
+  EXPECT_EQ(numY, 2);
+  EXPECT_EQ(numZ, 2);
 
   // check initial values
   vg.reset(0);
 
-  i=0;
-  for (int x=0; x<numX; x++)
-    for (int y=0; y<numY; y++)
-      for (int z=0; z<numZ; z++)
+  i = 0;
+  for (int x = 0; x < numX; x++)
+    for (int y = 0; y < numY; y++)
+      for (int z = 0; z < numZ; z++)
       {
-        EXPECT_EQ( vg.getCell(x,y,z), 0);
+        EXPECT_EQ(vg.getCell(x, y, z), 0);
         i++;
       }
 
   // Check out-of-bounds query    // FIXME-- this test fails!!
-  //EXPECT_EQ( vg.getCell(999,9999,999), def );
-  //EXPECT_EQ( vg.getCell(numX+1,0,0), def);
-  //EXPECT_EQ( vg.getCell(0,numY+1,0), def);
-  //EXPECT_EQ( vg.getCell(0,0,numZ+1), def);
+  // EXPECT_EQ( vg.getCell(999,9999,999), def );
+  // EXPECT_EQ( vg.getCell(numX+1,0,0), def);
+  // EXPECT_EQ( vg.getCell(0,numY+1,0), def);
+  // EXPECT_EQ( vg.getCell(0,0,numZ+1), def);
 
   // Set values
-  i=0;
-  for (int x=0; x<numX; x++)
-    for (int y=0; y<numY; y++)
-      for (int z=0; z<numZ; z++)
+  i = 0;
+  for (int x = 0; x < numX; x++)
+    for (int y = 0; y < numY; y++)
+      for (int z = 0; z < numZ; z++)
       {
-        vg.getCell(x,y,z) = i;
+        vg.getCell(x, y, z) = i;
         i++;
       }
 
   // check reset values
-  i=0;
-  for (int x=0; x<numX; x++)
-    for (int y=0; y<numY; y++)
-      for (int z=0; z<numZ; z++)
+  i = 0;
+  for (int x = 0; x < numX; x++)
+    for (int y = 0; y < numY; y++)
+      for (int z = 0; z < numZ; z++)
       {
-        EXPECT_EQ(i, vg.getCell(x,y,z));
+        EXPECT_EQ(i, vg.getCell(x, y, z));
         i++;
       }
-
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

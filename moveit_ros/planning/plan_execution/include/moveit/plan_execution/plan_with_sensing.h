@@ -48,22 +48,21 @@
 
 namespace plan_execution
 {
-
 MOVEIT_CLASS_FORWARD(PlanWithSensing);
 
 class PlanWithSensing
 {
 public:
-
-  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
+  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution);
   ~PlanWithSensing();
 
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr &getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }
 
-  bool computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner, unsigned int max_look_attempts, double max_safe_path_cost);
+  bool computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner,
+                   unsigned int max_look_attempts, double max_safe_path_cost);
 
   double getMaxSafePathCost() const
   {
@@ -113,7 +112,6 @@ public:
   void displayCostSources(bool flag);
 
 private:
-
   bool lookAt(const std::set<collision_detection::CostSource> &cost_sources, const std::string &frame_id);
 
   ros::NodeHandle node_handle_;
@@ -135,6 +133,5 @@ private:
   class DynamicReconfigureImpl;
   DynamicReconfigureImpl *reconfigure_impl_;
 };
-
 }
 #endif

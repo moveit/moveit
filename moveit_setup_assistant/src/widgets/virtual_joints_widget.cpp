@@ -43,22 +43,22 @@
 
 namespace moveit_setup_assistant
 {
-
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-VirtualJointsWidget::VirtualJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  : SetupScreenWidget( parent ), config_data_(config_data)
+VirtualJointsWidget::VirtualJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+  : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
+  QVBoxLayout *layout = new QVBoxLayout();
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header = new HeaderWidget( "Virtual Joints",
-                                           "Define a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot).",
-                                           this);
-  layout->addWidget( header );
+  HeaderWidget *header =
+      new HeaderWidget("Virtual Joints", "Define a virtual joint between a robot link and an external frame of "
+                                         "reference (considered fixed with respect to the robot).",
+                       this);
+  layout->addWidget(header);
 
   // Create contents screens ---------------------------------------
 
@@ -66,41 +66,40 @@ VirtualJointsWidget::VirtualJointsWidget( QWidget *parent, moveit_setup_assistan
   vjoint_edit_widget_ = createEditWidget();
 
   // Create stacked layout -----------------------------------------
-  stacked_layout_ = new QStackedLayout( this );
-  stacked_layout_->addWidget( vjoint_list_widget_ ); // screen index 0
-  stacked_layout_->addWidget( vjoint_edit_widget_ ); // screen index 1
+  stacked_layout_ = new QStackedLayout(this);
+  stacked_layout_->addWidget(vjoint_list_widget_);  // screen index 0
+  stacked_layout_->addWidget(vjoint_edit_widget_);  // screen index 1
 
   // Create Widget wrapper for layout
-  QWidget *stacked_layout_widget = new QWidget( this );
-  stacked_layout_widget->setLayout( stacked_layout_ );
+  QWidget *stacked_layout_widget = new QWidget(this);
+  stacked_layout_widget->setLayout(stacked_layout_);
 
-  layout->addWidget( stacked_layout_widget );
+  layout->addWidget(stacked_layout_widget);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
-
 }
 
 // ******************************************************************************************
 // Create the main content widget
 // ******************************************************************************************
-QWidget* VirtualJointsWidget::createContentsWidget()
+QWidget *VirtualJointsWidget::createContentsWidget()
 {
   // Main widget
-  QWidget *content_widget = new QWidget( this );
+  QWidget *content_widget = new QWidget(this);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( this );
+  QVBoxLayout *layout = new QVBoxLayout(this);
 
   // Table ------------ ------------------------------------------------
 
-  data_table_ = new QTableWidget( this );
+  data_table_ = new QTableWidget(this);
   data_table_->setColumnCount(4);
   data_table_->setSortingEnabled(true);
-  data_table_->setSelectionBehavior( QAbstractItemView::SelectRows );
-  connect( data_table_, SIGNAL( cellDoubleClicked( int, int ) ), this, SLOT( editDoubleClicked( int, int ) ) );
-  connect( data_table_, SIGNAL( cellClicked( int, int ) ), this, SLOT( previewClicked( int, int ) ) );
-  layout->addWidget( data_table_ );
+  data_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  connect(data_table_, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(editDoubleClicked(int, int)));
+  connect(data_table_, SIGNAL(cellClicked(int, int)), this, SLOT(previewClicked(int, int)));
+  layout->addWidget(data_table_);
 
   // Set header labels
   QStringList header_list;
@@ -115,36 +114,35 @@ QWidget* VirtualJointsWidget::createContentsWidget()
   QHBoxLayout *controls_layout = new QHBoxLayout();
 
   // Spacer
-  QWidget *spacer = new QWidget( this );
-  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  controls_layout->addWidget( spacer );
+  QWidget *spacer = new QWidget(this);
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  controls_layout->addWidget(spacer);
 
   // Edit Selected Button
-  btn_edit_ = new QPushButton( "&Edit Selected", this );
-  btn_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  btn_edit_ = new QPushButton("&Edit Selected", this);
+  btn_edit_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_edit_->setMaximumWidth(300);
-  btn_edit_->hide(); // show once we know if there are existing poses
+  btn_edit_->hide();  // show once we know if there are existing poses
   connect(btn_edit_, SIGNAL(clicked()), this, SLOT(editSelected()));
   controls_layout->addWidget(btn_edit_);
-  controls_layout->setAlignment( btn_edit_, Qt::AlignRight );
+  controls_layout->setAlignment(btn_edit_, Qt::AlignRight);
 
   // Delete Selected Button
-  btn_delete_ = new QPushButton( "&Delete Selected", this );
-  connect( btn_delete_, SIGNAL(clicked()), this, SLOT( deleteSelected() ) );
-  controls_layout->addWidget( btn_delete_ );
+  btn_delete_ = new QPushButton("&Delete Selected", this);
+  connect(btn_delete_, SIGNAL(clicked()), this, SLOT(deleteSelected()));
+  controls_layout->addWidget(btn_delete_);
   controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
 
   // Add VJoint Button
-  QPushButton *btn_add = new QPushButton( "&Add Virtual Joint", this );
-  btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred );
+  QPushButton *btn_add = new QPushButton("&Add Virtual Joint", this);
+  btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add->setMaximumWidth(300);
   connect(btn_add, SIGNAL(clicked()), this, SLOT(showNewScreen()));
   controls_layout->addWidget(btn_add);
-  controls_layout->setAlignment( btn_add, Qt::AlignRight );
+  controls_layout->setAlignment(btn_add, Qt::AlignRight);
 
   // Add layout
-  layout->addLayout( controls_layout );
-
+  layout->addLayout(controls_layout);
 
   // Set layout -----------------------------------------------------
   content_widget->setLayout(layout);
@@ -155,69 +153,67 @@ QWidget* VirtualJointsWidget::createContentsWidget()
 // ******************************************************************************************
 // Create the edit widget
 // ******************************************************************************************
-QWidget* VirtualJointsWidget::createEditWidget()
+QWidget *VirtualJointsWidget::createEditWidget()
 {
   // Main widget
-  QWidget *edit_widget = new QWidget( this );
+  QWidget *edit_widget = new QWidget(this);
   // Layout
   QVBoxLayout *layout = new QVBoxLayout();
 
-
   // Simple form -------------------------------------------
   QFormLayout *form_layout = new QFormLayout();
-  //form_layout->setContentsMargins( 0, 15, 0, 15 );
-  form_layout->setRowWrapPolicy( QFormLayout::WrapAllRows );
+  // form_layout->setContentsMargins( 0, 15, 0, 15 );
+  form_layout->setRowWrapPolicy(QFormLayout::WrapAllRows);
 
   // Name input
-  vjoint_name_field_ = new QLineEdit( this );
-  form_layout->addRow( "Virtual Joint Name:", vjoint_name_field_ );
+  vjoint_name_field_ = new QLineEdit(this);
+  form_layout->addRow("Virtual Joint Name:", vjoint_name_field_);
 
   // Child Link input
-  child_link_field_ = new QComboBox( this );
-  child_link_field_->setEditable( false );
-  form_layout->addRow( "Child Link:", child_link_field_ );
+  child_link_field_ = new QComboBox(this);
+  child_link_field_->setEditable(false);
+  form_layout->addRow("Child Link:", child_link_field_);
 
   // Parent frame name input
-  parent_name_field_ = new QLineEdit( this );
-  form_layout->addRow( "Parent Frame Name:", parent_name_field_ );
+  parent_name_field_ = new QLineEdit(this);
+  form_layout->addRow("Parent Frame Name:", parent_name_field_);
 
   // Type input
-  joint_type_field_ = new QComboBox( this );
-  joint_type_field_->setEditable( false );
-  loadJointTypesComboBox(); // only do this once
-  //connect( joint_type_field_, SIGNAL( currentIndexChanged( const QString & ) ),
+  joint_type_field_ = new QComboBox(this);
+  joint_type_field_->setEditable(false);
+  loadJointTypesComboBox();  // only do this once
+  // connect( joint_type_field_, SIGNAL( currentIndexChanged( const QString & ) ),
   //         this, SLOT( loadJoinSliders( const QString & ) ) );
-  form_layout->addRow( "Joint Type:", joint_type_field_ );
+  form_layout->addRow("Joint Type:", joint_type_field_);
 
-  layout->addLayout( form_layout );
+  layout->addLayout(form_layout);
 
   // Bottom Buttons --------------------------------------------------
 
   QHBoxLayout *controls_layout = new QHBoxLayout();
-  controls_layout->setContentsMargins( 0, 25, 0, 15 );
+  controls_layout->setContentsMargins(0, 25, 0, 15);
 
   // Spacer
-  QWidget *spacer = new QWidget( this );
-  spacer->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-  controls_layout->addWidget( spacer );
+  QWidget *spacer = new QWidget(this);
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+  controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton *btn_save_ = new QPushButton( "&Save", this );
-  btn_save_->setMaximumWidth( 200 );
-  connect( btn_save_, SIGNAL(clicked()), this, SLOT( doneEditing() ) );
-  controls_layout->addWidget( btn_save_ );
+  QPushButton *btn_save_ = new QPushButton("&Save", this);
+  btn_save_->setMaximumWidth(200);
+  connect(btn_save_, SIGNAL(clicked()), this, SLOT(doneEditing()));
+  controls_layout->addWidget(btn_save_);
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton *btn_cancel_ = new QPushButton( "&Cancel", this );
-  btn_cancel_->setMaximumWidth( 200 );
-  connect( btn_cancel_, SIGNAL(clicked()), this, SLOT( cancelEditing() ) );
-  controls_layout->addWidget( btn_cancel_ );
+  QPushButton *btn_cancel_ = new QPushButton("&Cancel", this);
+  btn_cancel_->setMaximumWidth(200);
+  connect(btn_cancel_, SIGNAL(clicked()), this, SLOT(cancelEditing()));
+  controls_layout->addWidget(btn_cancel_);
   controls_layout->setAlignment(btn_cancel_, Qt::AlignRight);
 
   // Add layout
-  layout->addLayout( controls_layout );
-
+  layout->addLayout(controls_layout);
 
   // Set layout -----------------------------------------------------
   edit_widget->setLayout(layout);
@@ -237,19 +233,19 @@ void VirtualJointsWidget::showNewScreen()
   vjoint_name_field_->setText("");
   parent_name_field_->setText("");
   child_link_field_->clearEditText();
-  joint_type_field_->clearEditText(); // actually this just chooses first option
+  joint_type_field_->clearEditText();  // actually this just chooses first option
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 );
+  stacked_layout_->setCurrentIndex(1);
 
   // Announce that this widget is in modal mode
-  Q_EMIT isModal( true );
+  Q_EMIT isModal(true);
 }
 
 // ******************************************************************************************
 // Edit whatever element is selected
 // ******************************************************************************************
-void VirtualJointsWidget::editDoubleClicked( int row, int column )
+void VirtualJointsWidget::editDoubleClicked(int row, int column)
 {
   editSelected();
 }
@@ -257,10 +253,9 @@ void VirtualJointsWidget::editDoubleClicked( int row, int column )
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void VirtualJointsWidget::previewClicked( int row, int column )
+void VirtualJointsWidget::previewClicked(int row, int column)
 {
   // TODO: highlight the virtual joint?
-
 
   /*  // Get list of all selected items
   QList<QTableWidgetItem*> selected = data_table_->selectedItems();
@@ -291,54 +286,54 @@ void VirtualJointsWidget::previewClicked( int row, int column )
 void VirtualJointsWidget::editSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if( !selected.size() )
+  if (!selected.size())
     return;
 
   // Get selected name and edit it
-  edit( selected[0]->text().toStdString() );
+  edit(selected[0]->text().toStdString());
 }
 
 // ******************************************************************************************
 // Edit vjoint
 // ******************************************************************************************
-void VirtualJointsWidget::edit( const std::string &name )
+void VirtualJointsWidget::edit(const std::string &name)
 {
   // Remember what we are editing
   current_edit_vjoint_ = name;
 
   // Find the selected in datastruture
-  srdf::Model::VirtualJoint *vjoint = findVJointByName( name );
+  srdf::Model::VirtualJoint *vjoint = findVJointByName(name);
 
   // Set vjoint name
-  vjoint_name_field_->setText( vjoint->name_.c_str() );
-  parent_name_field_->setText( vjoint->parent_frame_.c_str() );
+  vjoint_name_field_->setText(vjoint->name_.c_str());
+  parent_name_field_->setText(vjoint->parent_frame_.c_str());
 
   // Set vjoint child link
-  int index = child_link_field_->findText( vjoint->child_link_.c_str() );
-  if( index == -1 )
+  int index = child_link_field_->findText(vjoint->child_link_.c_str());
+  if (index == -1)
   {
-    QMessageBox::critical( this, "Error Loading", "Unable to find child link in drop down box" );
+    QMessageBox::critical(this, "Error Loading", "Unable to find child link in drop down box");
     return;
   }
-  child_link_field_->setCurrentIndex( index );
+  child_link_field_->setCurrentIndex(index);
 
   // Set joint type
-  index = joint_type_field_->findText( vjoint->type_.c_str() );
-  if( index == -1 )
+  index = joint_type_field_->findText(vjoint->type_.c_str());
+  if (index == -1)
   {
-    QMessageBox::critical( this, "Error Loading", "Unable to find joint type in drop down box" );
+    QMessageBox::critical(this, "Error Loading", "Unable to find joint type in drop down box");
     return;
   }
-  joint_type_field_->setCurrentIndex( index );
+  joint_type_field_->setCurrentIndex(index);
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 1 );
+  stacked_layout_->setCurrentIndex(1);
 
   // Announce that this widget is in modal mode
-  Q_EMIT isModal( true );
+  Q_EMIT isModal(true);
 }
 
 // ******************************************************************************************
@@ -350,9 +345,9 @@ void VirtualJointsWidget::loadJointTypesComboBox()
   joint_type_field_->clear();
 
   // joint types (hard coded)
-  joint_type_field_->addItem( "fixed" );
-  joint_type_field_->addItem( "floating" );
-  joint_type_field_->addItem( "planar" );
+  joint_type_field_->addItem("fixed");
+  joint_type_field_->addItem("floating");
+  joint_type_field_->addItem("planar");
 }
 
 // ******************************************************************************************
@@ -364,39 +359,38 @@ void VirtualJointsWidget::loadChildLinksComboBox()
   child_link_field_->clear();
 
   // Get all links in robot model
-  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
+  std::vector<const robot_model::LinkModel *> link_models = config_data_->getRobotModel()->getLinkModels();
 
   // Add all links to combo box
-  for( std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
-       link_it < link_models.end(); ++link_it )
+  for (std::vector<const robot_model::LinkModel *>::const_iterator link_it = link_models.begin();
+       link_it < link_models.end(); ++link_it)
   {
-    child_link_field_->addItem( (*link_it)->getName().c_str() );
+    child_link_field_->addItem((*link_it)->getName().c_str());
   }
-
 }
 
 // ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
-srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName( const std::string &name )
+srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName(const std::string &name)
 {
   // Find the group state we are editing based on the vjoint name
-  srdf::Model::VirtualJoint *searched_group = NULL; // used for holding our search results
+  srdf::Model::VirtualJoint *searched_group = NULL;  // used for holding our search results
 
-  for( std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
-       vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it )
+  for (std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
+       vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it)
   {
-    if( vjoint_it->name_ == name ) // string match
+    if (vjoint_it->name_ == name)  // string match
     {
       searched_group = &(*vjoint_it);  // convert to pointer from iterator
-      break; // we are done searching
+      break;                           // we are done searching
     }
   }
 
   // Check if vjoint was found
-  if( searched_group == NULL ) // not found
+  if (searched_group == NULL)  // not found
   {
-    QMessageBox::critical( this, "Error Saving", "An internal error has occured while saving. Quitting.");
+    QMessageBox::critical(this, "Error Saving", "An internal error has occured while saving. Quitting.");
     QApplication::quit();
   }
 
@@ -409,34 +403,33 @@ srdf::Model::VirtualJoint *VirtualJointsWidget::findVJointByName( const std::str
 void VirtualJointsWidget::deleteSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
 
   // Check that an element was selected
-  if( !selected.size() )
+  if (!selected.size())
     return;
 
   // Get selected name and edit it
   current_edit_vjoint_ = selected[0]->text().toStdString();
 
   // Confirm user wants to delete group
-  if( QMessageBox::question( this, "Confirm Virtual Joint Deletion",
-                             QString("Are you sure you want to delete the virtual joint '")
-                             .append( current_edit_vjoint_.c_str() )
-                             .append( "'?" ),
-                             QMessageBox::Ok | QMessageBox::Cancel)
-      == QMessageBox::Cancel )
+  if (QMessageBox::question(this, "Confirm Virtual Joint Deletion",
+                            QString("Are you sure you want to delete the virtual joint '")
+                                .append(current_edit_vjoint_.c_str())
+                                .append("'?"),
+                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
   {
     return;
   }
 
   // Delete vjoint from vector
-  for( std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
-       vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it )
+  for (std::vector<srdf::Model::VirtualJoint>::iterator vjoint_it = config_data_->srdf_->virtual_joints_.begin();
+       vjoint_it != config_data_->srdf_->virtual_joints_.end(); ++vjoint_it)
   {
     // check if this is the group we want to delete
-    if( vjoint_it->name_ == current_edit_vjoint_ ) // string match
+    if (vjoint_it->name_ == current_edit_vjoint_)  // string match
     {
-      config_data_->srdf_->virtual_joints_.erase( vjoint_it );
+      config_data_->srdf_->virtual_joints_.erase(vjoint_it);
       break;
     }
   }
@@ -459,52 +452,52 @@ void VirtualJointsWidget::doneEditing()
   srdf::Model::VirtualJoint *searched_data = NULL;
 
   // Check that name field is not empty
-  if( vjoint_name.empty() )
+  if (vjoint_name.empty())
   {
-    QMessageBox::warning( this, "Error Saving", "A name must be given for the virtual joint!" );
+    QMessageBox::warning(this, "Error Saving", "A name must be given for the virtual joint!");
     return;
   }
 
   // Check that parent frame name field is not empty
-  if( parent_name.empty() )
+  if (parent_name.empty())
   {
-    QMessageBox::warning( this, "Error Saving", "A name must be given for the parent frame" );
+    QMessageBox::warning(this, "Error Saving", "A name must be given for the parent frame");
     return;
   }
 
   // Check if this is an existing vjoint
-  if( !current_edit_vjoint_.empty() )
+  if (!current_edit_vjoint_.empty())
   {
     // Find the group we are editing based on the goup name string
-    searched_data = findVJointByName( current_edit_vjoint_ );
+    searched_data = findVJointByName(current_edit_vjoint_);
   }
 
   // Check that the vjoint name is unique
-  for( std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
-       data_it != config_data_->srdf_->virtual_joints_.end();  ++data_it )
+  for (std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
+       data_it != config_data_->srdf_->virtual_joints_.end(); ++data_it)
   {
-    if( data_it->name_.compare( vjoint_name ) == 0 ) // the names are the same
+    if (data_it->name_.compare(vjoint_name) == 0)  // the names are the same
     {
       // is this our existing vjoint? check if vjoint pointers are same
-      if( &(*data_it) != searched_data )
+      if (&(*data_it) != searched_data)
       {
-        QMessageBox::warning( this, "Error Saving", "A virtual joint already exists with that name!" );
+        QMessageBox::warning(this, "Error Saving", "A virtual joint already exists with that name!");
         return;
       }
     }
   }
 
   // Check that a joint type was selected
-  if( joint_type_field_->currentText().isEmpty() )
+  if (joint_type_field_->currentText().isEmpty())
   {
-    QMessageBox::warning( this, "Error Saving", "A joint type must be chosen!" );
+    QMessageBox::warning(this, "Error Saving", "A joint type must be chosen!");
     return;
   }
 
   // Check that a child link was selected
-  if( child_link_field_->currentText().isEmpty() )
+  if (child_link_field_->currentText().isEmpty())
   {
-    QMessageBox::warning( this, "Error Saving", "A child link must be chosen!" );
+    QMessageBox::warning(this, "Error Saving", "A child link must be chosen!");
     return;
   }
 
@@ -513,7 +506,7 @@ void VirtualJointsWidget::doneEditing()
   // Save the new vjoint name or create the new vjoint ----------------------------
   bool isNew = false;
 
-  if( searched_data == NULL ) // create new
+  if (searched_data == NULL)  // create new
   {
     isNew = true;
 
@@ -529,11 +522,11 @@ void VirtualJointsWidget::doneEditing()
   bool emit_frame_notice = false;
 
   // Insert new vjoints into group state vector --------------------------
-  if( isNew )
+  if (isNew)
   {
     if (searched_data->child_link_ == config_data_->getRobotModel()->getRootLinkName())
       emit_frame_notice = true;
-    config_data_->srdf_->virtual_joints_.push_back( *searched_data );
+    config_data_->srdf_->virtual_joints_.push_back(*searched_data);
     config_data_->updateRobotModel();
   }
 
@@ -543,10 +536,10 @@ void VirtualJointsWidget::doneEditing()
   loadDataTable();
 
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 0 );
+  stacked_layout_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
-  Q_EMIT isModal( false );
+  Q_EMIT isModal(false);
 
   // if the root frame changed for the robot, emit the signal
   if (emit_frame_notice)
@@ -561,10 +554,10 @@ void VirtualJointsWidget::doneEditing()
 void VirtualJointsWidget::cancelEditing()
 {
   // Switch to screen
-  stacked_layout_->setCurrentIndex( 0 );
+  stacked_layout_->setCurrentIndex(0);
 
   // Announce that this widget is not in modal mode
-  Q_EMIT isModal( false );
+  Q_EMIT isModal(false);
 }
 
 // ******************************************************************************************
@@ -573,41 +566,41 @@ void VirtualJointsWidget::cancelEditing()
 void VirtualJointsWidget::loadDataTable()
 {
   // Disable Table
-  data_table_->setUpdatesEnabled(false); // prevent table from updating until we are completely done
-  data_table_->setDisabled(true); // make sure we disable it so that the cellChanged event is not called
+  data_table_->setUpdatesEnabled(false);  // prevent table from updating until we are completely done
+  data_table_->setDisabled(true);         // make sure we disable it so that the cellChanged event is not called
   data_table_->clearContents();
 
   // Set size of datatable
-  data_table_->setRowCount( config_data_->srdf_->virtual_joints_.size() );
+  data_table_->setRowCount(config_data_->srdf_->virtual_joints_.size());
 
   // Loop through every virtual joint
   int row = 0;
-  for( std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
-       data_it != config_data_->srdf_->virtual_joints_.end(); ++data_it )
+  for (std::vector<srdf::Model::VirtualJoint>::const_iterator data_it = config_data_->srdf_->virtual_joints_.begin();
+       data_it != config_data_->srdf_->virtual_joints_.end(); ++data_it)
   {
     // Create row elements
-    QTableWidgetItem* data_name = new QTableWidgetItem( data_it->name_.c_str() );
+    QTableWidgetItem *data_name = new QTableWidgetItem(data_it->name_.c_str());
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* child_link_name = new QTableWidgetItem( data_it->child_link_.c_str() );
+    QTableWidgetItem *child_link_name = new QTableWidgetItem(data_it->child_link_.c_str());
     child_link_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* parent_frame_name = new QTableWidgetItem( data_it->parent_frame_.c_str() );
+    QTableWidgetItem *parent_frame_name = new QTableWidgetItem(data_it->parent_frame_.c_str());
     parent_frame_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem* type_name = new QTableWidgetItem( data_it->type_.c_str() );
+    QTableWidgetItem *type_name = new QTableWidgetItem(data_it->type_.c_str());
     type_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     // Add to table
-    data_table_->setItem( row, 0, data_name );
-    data_table_->setItem( row, 1, child_link_name );
-    data_table_->setItem( row, 2, parent_frame_name );
-    data_table_->setItem( row, 3, type_name );
+    data_table_->setItem(row, 0, data_name);
+    data_table_->setItem(row, 1, child_link_name);
+    data_table_->setItem(row, 2, parent_frame_name);
+    data_table_->setItem(row, 3, type_name);
 
     // Increment counter
     ++row;
   }
 
   // Reenable
-  data_table_->setUpdatesEnabled(true); // prevent table from updating until we are completely done
-  data_table_->setDisabled(false); // make sure we disable it so that the cellChanged event is not called
+  data_table_->setUpdatesEnabled(true);  // prevent table from updating until we are completely done
+  data_table_->setDisabled(false);       // make sure we disable it so that the cellChanged event is not called
 
   // Resize header
   data_table_->resizeColumnToContents(0);
@@ -616,7 +609,7 @@ void VirtualJointsWidget::loadDataTable()
   data_table_->resizeColumnToContents(3);
 
   // Show edit button if applicable
-  if( config_data_->srdf_->virtual_joints_.size() )
+  if (config_data_->srdf_->virtual_joints_.size())
     btn_edit_->show();
 }
 
@@ -626,15 +619,13 @@ void VirtualJointsWidget::loadDataTable()
 void VirtualJointsWidget::focusGiven()
 {
   // Show the current vjoints screen
-  stacked_layout_->setCurrentIndex( 0 );
+  stacked_layout_->setCurrentIndex(0);
 
   // Load the data to the tree
   loadDataTable();
 
   // Load the avail groups to the combo box
   loadChildLinksComboBox();
-
 }
 
-
-} // namespace
+}  // namespace

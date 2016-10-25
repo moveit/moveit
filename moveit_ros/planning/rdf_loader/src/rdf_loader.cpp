@@ -65,19 +65,20 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   std::string scontent;
   if (!nh.getParam(srdf_description, scontent))
   {
-    ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s'?", srdf_description.c_str());
+    ROS_ERROR("Robot semantic description not found. Did you forget to define or remap '%s'?",
+              srdf_description.c_str());
     return;
   }
 
   srdf_.reset(new srdf::Model());
   if (!srdf_->initString(*urdf_, scontent))
   {
-    ROS_ERROR("Unable to parse SRDF from parameter '%s'", srdf_description.c_str() );
+    ROS_ERROR("Unable to parse SRDF from parameter '%s'", srdf_description.c_str());
     srdf_.reset();
     return;
   }
 
-  ROS_DEBUG_STREAM_NAMED("rdf",  "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
+  ROS_DEBUG_STREAM_NAMED("rdf", "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
 rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::string &srdf_string)

@@ -101,7 +101,10 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
    * @param s state of controller
    * @return true if controller is active
    */
-  static bool isActive(const controller_manager_msgs::ControllerState &s) { return s.state == std::string("running"); }
+  static bool isActive(const controller_manager_msgs::ControllerState &s)
+  {
+    return s.state == std::string("running");
+  }
 
   /**
    * \brief  Call list_controllers and populate managed_controllers_ and active_controllers_. Allocates handles if
@@ -165,7 +168,10 @@ class MoveItControllerManager : public moveit_controller_manager::MoveItControll
    * @param name name to be resolved to an absolute name
    * @return resolved name
    */
-  std::string getAbsName(const std::string &name) { return ros::names::append(ns_, name); }
+  std::string getAbsName(const std::string &name)
+  {
+    return ros::names::append(ns_, name);
+  }
 
 public:
   /**

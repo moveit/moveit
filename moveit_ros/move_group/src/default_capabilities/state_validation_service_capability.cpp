@@ -41,17 +41,19 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupStateValidationService::MoveGroupStateValidationService():
-  MoveGroupCapability("StateValidationService")
+move_group::MoveGroupStateValidationService::MoveGroupStateValidationService()
+  : MoveGroupCapability("StateValidationService")
 {
 }
 
 void move_group::MoveGroupStateValidationService::initialize()
 {
-  validity_service_ = root_node_handle_.advertiseService(STATE_VALIDITY_SERVICE_NAME, &MoveGroupStateValidationService::computeService, this);
+  validity_service_ = root_node_handle_.advertiseService(STATE_VALIDITY_SERVICE_NAME,
+                                                         &MoveGroupStateValidationService::computeService, this);
 }
 
-bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidity::Request &req, moveit_msgs::GetStateValidity::Response &res)
+bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::GetStateValidity::Request &req,
+                                                                 moveit_msgs::GetStateValidity::Response &res)
 {
   planning_scene_monitor::LockedPlanningSceneRO ls(context_->planning_scene_monitor_);
   robot_state::RobotState rs = ls->getCurrentState();
@@ -78,8 +80,9 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
     ros::Time time_now = ros::Time::now();
     res.contacts.reserve(cres.contact_count);
     res.valid = false;
-    for (collision_detection::CollisionResult::ContactMap::const_iterator it = cres.contacts.begin() ; it != cres.contacts.end() ; ++it)
-      for (std::size_t k = 0 ; k < it->second.size() ; ++k)
+    for (collision_detection::CollisionResult::ContactMap::const_iterator it = cres.contacts.begin();
+         it != cres.contacts.end(); ++it)
+      for (std::size_t k = 0; k < it->second.size(); ++k)
       {
         res.contacts.resize(res.contacts.size() + 1);
         collision_detection::contactToMsg(it->second[k], res.contacts.back());
@@ -90,7 +93,8 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
 
   // copy cost sources
   res.cost_sources.reserve(cres.cost_sources.size());
-  for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin() ; it != cres.cost_sources.end() ; ++it)
+  for (std::set<collision_detection::CostSource>::const_iterator it = cres.cost_sources.begin();
+       it != cres.cost_sources.end(); ++it)
   {
     res.cost_sources.resize(res.cost_sources.size() + 1);
     collision_detection::costSourceToMsg(*it, res.cost_sources.back());
@@ -108,7 +112,7 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
 
     // copy constraint results
     res.constraint_result.resize(kres.size());
-    for (std::size_t k = 0 ; k < kres.size() ; ++k)
+    for (std::size_t k = 0; k < kres.size(); ++k)
     {
       res.constraint_result[k].result = kres[k].satisfied;
       res.constraint_result[k].distance = kres[k].distance;
@@ -117,7 +121,6 @@ bool move_group::MoveGroupStateValidationService::computeService(moveit_msgs::Ge
 
   return true;
 }
-
 
 #include <class_loader/class_loader.h>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupStateValidationService, move_group::MoveGroupCapability)

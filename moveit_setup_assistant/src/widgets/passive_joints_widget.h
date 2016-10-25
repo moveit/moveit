@@ -55,21 +55,20 @@
 
 #include "header_widget.h"
 #include "double_list_widget.h"
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
 class PassiveJointsWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  PassiveJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  PassiveJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -88,10 +87,9 @@ private Q_SLOTS:
   void selectionUpdated();
 
   /// Called from Double List widget to highlight joints
-  void previewSelectedJoints( std::vector<std::string> joints );
+  void previewSelectedJoints(std::vector<std::string> joints);
 
 private:
-
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
@@ -101,13 +99,8 @@ private:
 
   /// Orignal name of vjoint currently being edited. This is used to find the element in the vector
   std::string current_edit_vjoint_;
-
-
 };
 
-
-
-} //namespace
-
+}  // namespace
 
 #endif

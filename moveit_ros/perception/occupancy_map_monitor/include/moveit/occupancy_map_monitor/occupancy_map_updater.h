@@ -46,11 +46,11 @@
 
 namespace occupancy_map_monitor
 {
-
 typedef unsigned int ShapeHandle;
 typedef std::map<ShapeHandle, Eigen::Affine3d, std::less<ShapeHandle>,
                  Eigen::aligned_allocator<std::pair<const ShapeHandle, Eigen::Affine3d> > > ShapeTransformCache;
-typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)> TransformCacheProvider;
+typedef boost::function<bool(const std::string &target_frame, const ros::Time &target_time, ShapeTransformCache &cache)>
+    TransformCacheProvider;
 
 class OccupancyMapMonitor;
 
@@ -61,17 +61,18 @@ MOVEIT_CLASS_FORWARD(OccupancyMapUpdater);
 class OccupancyMapUpdater
 {
 public:
-
   OccupancyMapUpdater(const std::string &type);
   virtual ~OccupancyMapUpdater();
 
   /** \brief This is the first function to be called after construction */
   void setMonitor(OccupancyMapMonitor *monitor);
 
-  /** @brief Set updater params using struct that comes from parsing a yaml string. This must be called after setMonitor() */
+  /** @brief Set updater params using struct that comes from parsing a yaml string. This must be called after
+   * setMonitor() */
   virtual bool setParams(XmlRpc::XmlRpcValue &params) = 0;
 
-  /** @brief Do any necessary setup (subscribe to ros topics, etc.). This call assumes setMonitor() and setParams() have been previously called. */
+  /** @brief Do any necessary setup (subscribe to ros topics, etc.). This call assumes setMonitor() and setParams() have
+   * been previously called. */
   virtual bool initialize() = 0;
 
   virtual void start() = 0;
@@ -82,7 +83,7 @@ public:
 
   virtual void forgetShape(ShapeHandle handle) = 0;
 
-  const std::string& getType() const
+  const std::string &getType() const
   {
     return type_;
   }
@@ -98,7 +99,6 @@ public:
   }
 
 protected:
-
   OccupancyMapMonitor *monitor_;
   std::string type_;
   OccMapTreePtr tree_;
@@ -110,9 +110,7 @@ protected:
 
   static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, double *value);
   static void readXmlParam(XmlRpc::XmlRpcValue &params, const std::string &param_name, unsigned int *value);
-
 };
-
 }
 
 #endif

@@ -36,7 +36,7 @@
 
 #include "moveit/profiler/profiler.h"
 
-moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
+moveit::tools::Profiler &moveit::tools::Profiler::Instance(void)
 {
   static Profiler p(false, false);
   return p;
@@ -93,7 +93,7 @@ void moveit::tools::Profiler::average(const std::string &name, const double valu
   lock_.lock();
   AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
   a.total += value;
-  a.totalSqr += value*value;
+  a.totalSqr += value * value;
   a.parts++;
   lock_.unlock();
 }
@@ -114,12 +114,10 @@ void moveit::tools::Profiler::end(const std::string &name)
 
 namespace
 {
-
 inline double to_seconds(const boost::posix_time::time_duration &d)
 {
   return (double)d.total_microseconds() / 1000000.0;
 }
-
 }
 
 void moveit::tools::Profiler::status(std::ostream &out, bool merge)
@@ -134,17 +132,20 @@ void moveit::tools::Profiler::status(std::ostream &out, bool merge)
   if (merge)
   {
     PerThread combined;
-    for (std::map<boost::thread::id, PerThread>::const_iterator it = data_.begin() ; it != data_.end() ; ++it)
+    for (std::map<boost::thread::id, PerThread>::const_iterator it = data_.begin(); it != data_.end(); ++it)
     {
-      for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin() ; iev != it->second.events.end(); ++iev)
+      for (std::map<std::string, unsigned long int>::const_iterator iev = it->second.events.begin();
+           iev != it->second.events.end(); ++iev)
         combined.events[iev->first] += iev->second;
-      for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin() ; iavg != it->second.avg.end(); ++iavg)
+      for (std::map<std::string, AvgInfo>::const_iterator iavg = it->second.avg.begin(); iavg != it->second.avg.end();
+           ++iavg)
       {
         combined.avg[iavg->first].total += iavg->second.total;
         combined.avg[iavg->first].totalSqr += iavg->second.totalSqr;
         combined.avg[iavg->first].parts += iavg->second.parts;
       }
-      for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin() ; itm != it->second.time.end(); ++itm)
+      for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin(); itm != it->second.time.end();
+           ++itm)
       {
         TimeInfo &tc = combined.time[itm->first];
         tc.total = tc.total + itm->second.total;
@@ -158,7 +159,7 @@ void moveit::tools::Profiler::status(std::ostream &out, bool merge)
     printThreadInfo(out, combined);
   }
   else
-    for (std::map<boost::thread::id, PerThread>::const_iterator it = data_.begin() ; it != data_.end() ; ++it)
+    for (std::map<boost::thread::id, PerThread>::const_iterator it = data_.begin(); it != data_.end(); ++it)
     {
       out << "Thread " << it->first << ":" << std::endl;
       printThreadInfo(out, it->second);
@@ -177,10 +178,9 @@ void moveit::tools::Profiler::console(void)
 /// @cond IGNORE
 namespace
 {
-
 struct dataIntVal
 {
-  std::string       name;
+  std::string name;
   unsigned long int value;
 };
 
@@ -194,8 +194,8 @@ struct SortIntByValue
 
 struct dataDoubleVal
 {
-  std::string  name;
-  double       value;
+  std::string name;
+  double value;
 };
 
 struct SortDoubleByValue
@@ -213,38 +213,40 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
   double total = to_seconds(tinfo_.total);
 
   std::vector<dataIntVal> events;
-  for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin() ; iev != data.events.end() ; ++iev)
+  for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin(); iev != data.events.end();
+       ++iev)
   {
-    dataIntVal next = {iev->first, iev->second};
+    dataIntVal next = { iev->first, iev->second };
     events.push_back(next);
   }
   std::sort(events.begin(), events.end(), SortIntByValue());
   if (!events.empty())
     out << "Events:" << std::endl;
-  for (unsigned int i = 0 ; i < events.size() ; ++i)
+  for (unsigned int i = 0; i < events.size(); ++i)
     out << events[i].name << ": " << events[i].value << std::endl;
 
   std::vector<dataDoubleVal> avg;
-  for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin() ; ia != data.avg.end() ; ++ia)
+  for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin(); ia != data.avg.end(); ++ia)
   {
-    dataDoubleVal next = {ia->first, ia->second.total / (double)ia->second.parts};
+    dataDoubleVal next = { ia->first, ia->second.total / (double)ia->second.parts };
     avg.push_back(next);
   }
   std::sort(avg.begin(), avg.end(), SortDoubleByValue());
   if (!avg.empty())
     out << "Averages:" << std::endl;
-  for (unsigned int i = 0 ; i < avg.size() ; ++i)
+  for (unsigned int i = 0; i < avg.size(); ++i)
   {
     const AvgInfo &a = data.avg.find(avg[i].name)->second;
-    out << avg[i].name << ": " << avg[i].value << " (stddev = " <<
-      sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")" << std::endl;
+    out << avg[i].name << ": " << avg[i].value << " (stddev = "
+        << sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")"
+        << std::endl;
   }
 
   std::vector<dataDoubleVal> time;
 
-  for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin() ; itm != data.time.end() ; ++itm)
+  for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin(); itm != data.time.end(); ++itm)
   {
-    dataDoubleVal next = {itm->first, to_seconds(itm->second.total)};
+    dataDoubleVal next = { itm->first, to_seconds(itm->second.total) };
     time.push_back(next);
   }
 
@@ -253,20 +255,20 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
     out << "Blocks of time:" << std::endl;
 
   double unaccounted = total;
-  for (unsigned int i = 0 ; i < time.size() ; ++i)
+  for (unsigned int i = 0; i < time.size(); ++i)
   {
     const TimeInfo &d = data.time.find(time[i].name)->second;
 
     double tS = to_seconds(d.shortest);
     double tL = to_seconds(d.longest);
-    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value/total) << "%), ["
-        << tS << "s --> " << tL << " s], " << d.parts << " parts";
+    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), [" << tS
+        << "s --> " << tL << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
       double pavg = to_seconds(d.total) / (double)d.parts;
       out << ", " << pavg << " s on average";
       if (pavg < 1.0)
-        out << " (" << 1.0/pavg << " /s)";
+        out << " (" << 1.0 / pavg << " /s)";
     }
     out << std::endl;
     unaccounted -= time[i].value;

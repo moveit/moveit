@@ -39,10 +39,8 @@
 #include <ros/console.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 
-point_containment_filter::ShapeMask::ShapeMask(const TransformCallback& transform_callback) :
-  transform_callback_(transform_callback),
-  next_handle_ (1),
-  min_handle_ (1)
+point_containment_filter::ShapeMask::ShapeMask(const TransformCallback &transform_callback)
+  : transform_callback_(transform_callback), next_handle_(1), min_handle_(1)
 {
 }
 
@@ -53,18 +51,19 @@ point_containment_filter::ShapeMask::~ShapeMask()
 
 void point_containment_filter::ShapeMask::freeMemory()
 {
-  for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() ; ++it)
+  for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end(); ++it)
     delete it->body;
   bodies_.clear();
 }
 
-void point_containment_filter::ShapeMask::setTransformCallback(const TransformCallback& transform_callback)
+void point_containment_filter::ShapeMask::setTransformCallback(const TransformCallback &transform_callback)
 {
   boost::mutex::scoped_lock _(shapes_lock_);
   transform_callback_ = transform_callback;
 }
 
-point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addShape(const shapes::ShapeConstPtr &shape, double scale, double padding)
+point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addShape(const shapes::ShapeConstPtr &shape,
+                                                                                    double scale, double padding)
 {
   boost::mutex::scoped_lock _(shapes_lock_);
   SeeShape ss;
@@ -85,7 +84,7 @@ point_containment_filter::ShapeHandle point_containment_filter::ShapeMask::addSh
 
   ShapeHandle ret = next_handle_;
   const std::size_t sz = min_handle_ + bodies_.size() + 1;
-  for (std::size_t i = min_handle_ ; i < sz ; ++i)
+  for (std::size_t i = min_handle_; i < sz; ++i)
     if (used_handles_.find(i) == used_handles_.end())
     {
       next_handle_ = i;
@@ -111,7 +110,7 @@ void point_containment_filter::ShapeMask::removeShape(ShapeHandle handle)
     ROS_ERROR("Unable to remove shape handle %u", handle);
 }
 
-void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::PointCloud2& data_in,
+void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::PointCloud2 &data_in,
                                                           const Eigen::Vector3d &sensor_origin,
                                                           const double min_sensor_dist, const double max_sensor_dist,
                                                           std::vector<int> &mask)
@@ -127,7 +126,7 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
     Eigen::Affine3d tmp;
     bspheres_.resize(bodies_.size());
     std::size_t j = 0;
-    for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() ; ++it)
+    for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end(); ++it)
     {
       if (transform_callback_(it->handle, tmp))
       {
@@ -135,7 +134,6 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
         it->body->computeBoundingSphere(bspheres_[j++]);
       }
     }
-
 
     // compute a sphere that bounds the entire robot
     bodies::BoundingSphere bound;
@@ -148,20 +146,19 @@ void point_containment_filter::ShapeMask::maskContainment(const sensor_msgs::Poi
     sensor_msgs::PointCloud2ConstIterator<float> iter_z(data_in, "z");
 
     // Cloud iterators are not incremented in the for loop, because of the pragma
-// Comment out below parallelization as it can result in very high CPU consumption    
-//#pragma omp parallel for schedule(dynamic)
-    for (int i = 0 ; i < (int)np ; ++i)
+    // Comment out below parallelization as it can result in very high CPU consumption
+    //#pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < (int)np; ++i)
     {
-      Eigen::Vector3d pt = Eigen::Vector3d(*(iter_x+i), *(iter_y+i), *(iter_z+i));
+      Eigen::Vector3d pt = Eigen::Vector3d(*(iter_x + i), *(iter_y + i), *(iter_z + i));
       double d = pt.norm();
       int out = OUTSIDE;
       if (d < min_sensor_dist || d > max_sensor_dist)
         out = CLIP;
-      else
-        if ((bound.center - pt).squaredNorm() < radiusSquared)
-          for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() && out == OUTSIDE ; ++it)
-            if (it->body->containsPoint(pt))
-              out = INSIDE;
+      else if ((bound.center - pt).squaredNorm() < radiusSquared)
+        for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end() && out == OUTSIDE; ++it)
+          if (it->body->containsPoint(pt))
+            out = INSIDE;
       mask[i] = out;
     }
   }
@@ -172,7 +169,7 @@ int point_containment_filter::ShapeMask::getMaskContainment(const Eigen::Vector3
   boost::mutex::scoped_lock _(shapes_lock_);
 
   int out = OUTSIDE;
-  for (std::set<SeeShape>::const_iterator it = bodies_.begin() ; it != bodies_.end() && out == OUTSIDE ; ++it)
+  for (std::set<SeeShape>::const_iterator it = bodies_.begin(); it != bodies_.end() && out == OUTSIDE; ++it)
     if (it->body->containsPoint(pt))
       out = INSIDE;
   return out;

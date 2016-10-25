@@ -44,22 +44,17 @@
 
 namespace plan_execution
 {
-
 struct ExecutableMotionPlan;
 
 /** \brief Representation of a trajectory that can be executed */
 struct ExecutableTrajectory
 {
-  ExecutableTrajectory() :
-    trajectory_monitoring_(true)
+  ExecutableTrajectory() : trajectory_monitoring_(true)
   {
   }
 
-  ExecutableTrajectory(const robot_trajectory::RobotTrajectoryPtr &trajectory,
-                       const std::string &description) :
-    trajectory_(trajectory),
-    description_(description),
-    trajectory_monitoring_(true)
+  ExecutableTrajectory(const robot_trajectory::RobotTrajectoryPtr &trajectory, const std::string &description)
+    : trajectory_(trajectory), description_(description), trajectory_monitoring_(true)
   {
   }
 
@@ -67,7 +62,7 @@ struct ExecutableTrajectory
   std::string description_;
   bool trajectory_monitoring_;
   collision_detection::AllowedCollisionMatrixConstPtr allowed_collision_matrix_;
-  boost::function<bool(const ExecutableMotionPlan*)> effect_on_success_;
+  boost::function<bool(const ExecutableMotionPlan *)> effect_on_success_;
 };
 
 /// A generic representation on what a computed motion plan looks like
@@ -87,6 +82,5 @@ struct ExecutableMotionPlan
 
 /// The signature of a function that can compute a motion plan
 typedef boost::function<bool(ExecutableMotionPlan &plan)> ExecutableMotionPlanComputationFn;
-
 }
 #endif

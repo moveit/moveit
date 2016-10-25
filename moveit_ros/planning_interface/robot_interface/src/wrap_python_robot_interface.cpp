@@ -54,8 +54,7 @@ namespace moveit
 class RobotInterfacePython : protected py_bindings_tools::ROScppInitializer
 {
 public:
-  RobotInterfacePython(const std::string &robot_description) :
-    py_bindings_tools::ROScppInitializer()
+  RobotInterfacePython(const std::string &robot_description) : py_bindings_tools::ROScppInitializer()
   {
     robot_model_ = planning_interface::getSharedRobotModel(robot_description);
     if (!robot_model_)
@@ -121,7 +120,7 @@ public:
     if (jm)
     {
       const std::vector<moveit_msgs::JointLimits> &lim = jm->getVariableBoundsMsg();
-      for (std::size_t i = 0 ; i < lim.size() ; ++i)
+      for (std::size_t i = 0; i < lim.size(); ++i)
       {
         bp::list l;
         l.append(lim[i].min_position);
@@ -132,7 +131,7 @@ public:
     return result;
   }
 
-  const char* getPlanningFrame() const
+  const char *getPlanningFrame() const
   {
     return robot_model_->getModelFrame().c_str();
   }
@@ -172,7 +171,7 @@ public:
     {
       const double *pos = state->getJointPositions(jm);
       const unsigned int sz = jm->getVariableCount();
-      for (unsigned int i = 0 ; i < sz ; ++i)
+      for (unsigned int i = 0; i < sz; ++i)
         l.append(pos[i]);
     }
 
@@ -215,13 +214,13 @@ public:
       return d;
 
     const std::map<std::string, double> &vars = current_state_monitor_->getCurrentStateValues();
-    for (std::map<std::string, double>::const_iterator it = vars.begin() ; it != vars.end() ; ++it)
+    for (std::map<std::string, double>::const_iterator it = vars.begin(); it != vars.end(); ++it)
       d[it->first] = it->second;
 
     return d;
   }
 
-  const char* getRobotRootLink() const
+  const char *getRobotRootLink() const
   {
     return robot_model_->getRootLinkName().c_str();
   }
@@ -252,9 +251,9 @@ static void wrap_robot_interface()
   RobotClass.def("get_joint_limits", &RobotInterfacePython::getJointLimits);
   RobotClass.def("get_link_pose", &RobotInterfacePython::getLinkPose);
   RobotClass.def("get_planning_frame", &RobotInterfacePython::getPlanningFrame);
-  RobotClass.def("get_current_state",  &RobotInterfacePython::getCurrentState);
+  RobotClass.def("get_current_state", &RobotInterfacePython::getCurrentState);
   RobotClass.def("get_current_variable_values", &RobotInterfacePython::getCurrentVariableValues);
-  RobotClass.def("get_current_joint_values",  &RobotInterfacePython::getCurrentJointValues);
+  RobotClass.def("get_current_joint_values", &RobotInterfacePython::getCurrentJointValues);
   RobotClass.def("get_robot_root_link", &RobotInterfacePython::getRobotRootLink);
   RobotClass.def("has_group", &RobotInterfacePython::hasGroup);
   RobotClass.def("get_robot_name", &RobotInterfacePython::getRobotName);

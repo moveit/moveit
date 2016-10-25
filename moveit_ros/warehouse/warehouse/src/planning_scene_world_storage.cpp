@@ -39,8 +39,9 @@
 const std::string moveit_warehouse::PlanningSceneWorldStorage::DATABASE_NAME = "moveit_planning_scene_worlds";
 const std::string moveit_warehouse::PlanningSceneWorldStorage::PLANNING_SCENE_WORLD_ID_NAME = "world_id";
 
-moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(const std::string &host, const unsigned int port, double wait_seconds) :
-  MoveItMessageStorage(host, port, wait_seconds)
+moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(const std::string &host, const unsigned int port,
+                                                                       double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
 {
   createCollections();
   ROS_DEBUG("Connected to MongoDB '%s' on host '%s' port '%u'.", DATABASE_NAME.c_str(), db_host_.c_str(), db_port_);
@@ -48,7 +49,8 @@ moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(const std
 
 void moveit_warehouse::PlanningSceneWorldStorage::createCollections()
 {
-  planning_scene_world_collection_.reset(new PlanningSceneWorldCollection::element_type(DATABASE_NAME, "planning_scene_worlds", db_host_, db_port_, timeout_));
+  planning_scene_world_collection_.reset(new PlanningSceneWorldCollection::element_type(
+      DATABASE_NAME, "planning_scene_worlds", db_host_, db_port_, timeout_));
 }
 
 void moveit_warehouse::PlanningSceneWorldStorage::reset()
@@ -58,7 +60,8 @@ void moveit_warehouse::PlanningSceneWorldStorage::reset()
   createCollections();
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg, const std::string &name)
+void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg,
+                                                                        const std::string &name)
 {
   bool replace = false;
   if (hasPlanningSceneWorld(name))
@@ -78,7 +81,8 @@ bool moveit_warehouse::PlanningSceneWorldStorage::hasPlanningSceneWorld(const st
   return !psw.empty();
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(const std::string &regex, std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(const std::string &regex,
+                                                                              std::vector<std::string> &names) const
 {
   getKnownPlanningSceneWorlds(names);
   filterNames(regex, names);
@@ -88,13 +92,15 @@ void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(st
 {
   names.clear();
   mongo_ros::Query q;
-  std::vector<PlanningSceneWorldWithMetadata> constr = planning_scene_world_collection_->pullAllResults(q, true, PLANNING_SCENE_WORLD_ID_NAME, true);
-  for (std::size_t i = 0; i < constr.size() ; ++i)
+  std::vector<PlanningSceneWorldWithMetadata> constr =
+      planning_scene_world_collection_->pullAllResults(q, true, PLANNING_SCENE_WORLD_ID_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->metadata.hasField(PLANNING_SCENE_WORLD_ID_NAME.c_str()))
       names.push_back(constr[i]->lookupString(PLANNING_SCENE_WORLD_ID_NAME));
 }
 
-bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(PlanningSceneWorldWithMetadata &msg_m, const std::string &name) const
+bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(PlanningSceneWorldWithMetadata &msg_m,
+                                                                        const std::string &name) const
 {
   mongo_ros::Query q(PLANNING_SCENE_WORLD_ID_NAME, name);
   std::vector<PlanningSceneWorldWithMetadata> psw = planning_scene_world_collection_->pullAllResults(q, false);
@@ -107,7 +113,8 @@ bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(Planning
   }
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const std::string &old_name, const std::string &new_name)
+void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const std::string &old_name,
+                                                                           const std::string &new_name)
 {
   mongo_ros::Query q(PLANNING_SCENE_WORLD_ID_NAME, old_name);
   mongo_ros::Metadata m(PLANNING_SCENE_WORLD_ID_NAME, new_name);

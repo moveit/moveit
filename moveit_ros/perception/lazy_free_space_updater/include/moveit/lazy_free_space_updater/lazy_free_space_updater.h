@@ -43,25 +43,24 @@
 
 namespace occupancy_map_monitor
 {
-
 class LazyFreeSpaceUpdater
 {
 public:
-
   LazyFreeSpaceUpdater(const OccMapTreePtr &tree, unsigned int max_batch_size = 10);
   ~LazyFreeSpaceUpdater();
 
-  void pushLazyUpdate(octomap::KeySet *occupied_cells, octomap::KeySet *model_cells, const octomap::point3d &sensor_origin);
+  void pushLazyUpdate(octomap::KeySet *occupied_cells, octomap::KeySet *model_cells,
+                      const octomap::point3d &sensor_origin);
 
 private:
-
 #ifdef __APPLE__
   typedef std::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
 #else
   typedef std::tr1::unordered_map<octomap::OcTreeKey, unsigned int, octomap::OcTreeKey::KeyHash> OcTreeKeyCountMap;
 #endif
 
-  void pushBatchToProcess(OcTreeKeyCountMap *occupied_cells, octomap::KeySet *model_cells, const octomap::point3d &sensor_origin);
+  void pushBatchToProcess(OcTreeKeyCountMap *occupied_cells, octomap::KeySet *model_cells,
+                          const octomap::point3d &sensor_origin);
 
   void lazyUpdateThread();
   void processThread();
@@ -71,8 +70,8 @@ private:
   std::size_t max_batch_size_;
   double max_sensor_delta_;
 
-  std::deque<octomap::KeySet*> occupied_cells_sets_;
-  std::deque<octomap::KeySet*> model_cells_sets_;
+  std::deque<octomap::KeySet *> occupied_cells_sets_;
+  std::deque<octomap::KeySet *> model_cells_sets_;
   std::deque<octomap::point3d> sensor_origins_;
   boost::condition_variable update_condition_;
   boost::mutex update_cell_sets_lock_;
@@ -86,7 +85,6 @@ private:
   boost::thread update_thread_;
   boost::thread process_thread_;
 };
-
 }
 
 #endif /* MOVEIT_OCCUPANCY_MAP_UPDATER_H_ */

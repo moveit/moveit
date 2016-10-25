@@ -36,8 +36,7 @@
 
 #include <moveit/robot_model/fixed_joint_model.h>
 
-moveit::core::FixedJointModel::FixedJointModel(const std::string& name)
-  : JointModel(name)
+moveit::core::FixedJointModel::FixedJointModel(const std::string &name) : JointModel(name)
 {
   type_ = FIXED;
 }
@@ -51,11 +50,13 @@ void moveit::core::FixedJointModel::getVariableDefaultPositions(double *values, 
 {
 }
 
-void moveit::core::FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds) const
+void moveit::core::FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
+                                                               double *values, const Bounds &bounds) const
 {
 }
 
-void moveit::core::FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const Bounds &bounds,
+void moveit::core::FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng,
+                                                                     double *values, const Bounds &bounds,
                                                                      const double *near, const double distance) const
 {
 }
@@ -65,7 +66,8 @@ bool moveit::core::FixedJointModel::enforcePositionBounds(double *values, const 
   return false;
 }
 
-bool moveit::core::FixedJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds, double margin) const
+bool moveit::core::FixedJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds,
+                                                            double margin) const
 {
   return true;
 }
@@ -80,15 +82,17 @@ double moveit::core::FixedJointModel::getMaximumExtent(const Bounds &other_bound
   return 0.0;
 }
 
-void moveit::core::FixedJointModel::interpolate(const double *from, const double *to, const double t, double *state) const
+void moveit::core::FixedJointModel::interpolate(const double *from, const double *to, const double t,
+                                                double *state) const
 {
 }
 
-void moveit::core::FixedJointModel::computeTransform(const double */* joint_values */, Eigen::Affine3d &transf) const
+void moveit::core::FixedJointModel::computeTransform(const double * /* joint_values */, Eigen::Affine3d &transf) const
 {
   transf.setIdentity();
 }
 
-void moveit::core::FixedJointModel::computeVariablePositions(const Eigen::Affine3d& /* transform */, double * /* joint_values */) const
+void moveit::core::FixedJointModel::computeVariablePositions(const Eigen::Affine3d & /* transform */,
+                                                             double * /* joint_values */) const
 {
 }

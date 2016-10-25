@@ -46,34 +46,35 @@
 
 namespace ompl_interface
 {
-
-typedef ompl::base::StateStorageWithMetadata< std::vector<std::size_t> > ConstraintApproximationStateStorage;
-typedef boost::function<bool(const ompl::base::State*, const ompl::base::State*)> ConstraintStateStorageOrderFn;
+typedef ompl::base::StateStorageWithMetadata<std::vector<std::size_t> > ConstraintApproximationStateStorage;
+typedef boost::function<bool(const ompl::base::State *, const ompl::base::State *)> ConstraintStateStorageOrderFn;
 
 struct ConstraintApproximation
 {
-  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
-                          const std::string &serialization, const std::string &filename, const ompl::base::StateStoragePtr &storage);
-  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group, const std::string &factory,
-                          const moveit_msgs::Constraints &msg, const std::string &filename, const ompl::base::StateStoragePtr &storage);
+  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group,
+                          const std::string &factory, const std::string &serialization, const std::string &filename,
+                          const ompl::base::StateStoragePtr &storage);
+  ConstraintApproximation(const planning_models::RobotModelConstPtr &kinematic_model, const std::string &group,
+                          const std::string &factory, const moveit_msgs::Constraints &msg, const std::string &filename,
+                          const ompl::base::StateStoragePtr &storage);
 
-  void visualizeDistribution(const std::string &link_name, unsigned int count, visualization_msgs::MarkerArray &arr) const;
+  void visualizeDistribution(const std::string &link_name, unsigned int count,
+                             visualization_msgs::MarkerArray &arr) const;
 
-  std::string                                      group_;
-  std::string                                      factory_;
-  std::string                                      serialization_;
-  moveit_msgs::Constraints                         constraint_msg_;
-  planning_models::RobotModelConstPtr          kmodel_;
+  std::string group_;
+  std::string factory_;
+  std::string serialization_;
+  moveit_msgs::Constraints constraint_msg_;
+  planning_models::RobotModelConstPtr kmodel_;
   kinematic_constraints::KinematicConstraintSetPtr kconstraints_set_;
-  std::vector<int>                                 space_signature_;
+  std::vector<int> space_signature_;
 
-  std::string                                      ompldb_filename_;
-  ompl::base::StateStoragePtr                      state_storage_ptr_;
-  ConstraintApproximationStateStorage             *state_storage_;
+  std::string ompldb_filename_;
+  ompl::base::StateStoragePtr state_storage_ptr_;
+  ConstraintApproximationStateStorage *state_storage_;
 };
 
 MOVEIT_DECLARE_PTR(ConstraintApproximations, std::vector<ConstraintApproximation>)
-
 }
 
 #endif

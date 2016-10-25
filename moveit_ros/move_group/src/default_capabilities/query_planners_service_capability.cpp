@@ -38,17 +38,18 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService():
-  MoveGroupCapability("QueryPlannersService")
+move_group::MoveGroupQueryPlannersService::MoveGroupQueryPlannersService() : MoveGroupCapability("QueryPlannersService")
 {
 }
 
 void move_group::MoveGroupQueryPlannersService::initialize()
 {
-  query_service_ = root_node_handle_.advertiseService(QUERY_PLANNERS_SERVICE_NAME, &MoveGroupQueryPlannersService::queryInterface, this);
+  query_service_ = root_node_handle_.advertiseService(QUERY_PLANNERS_SERVICE_NAME,
+                                                      &MoveGroupQueryPlannersService::queryInterface, this);
 }
 
-bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req, moveit_msgs::QueryPlannerInterfaces::Response &res)
+bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req,
+                                                               moveit_msgs::QueryPlannerInterfaces::Response &res)
 {
   const planning_interface::PlannerManagerPtr &planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (planner_interface)

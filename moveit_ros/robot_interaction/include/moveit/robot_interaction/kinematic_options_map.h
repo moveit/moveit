@@ -43,7 +43,6 @@
 
 namespace robot_interaction
 {
-
 // Maintains a set of KinematicOptions with a key/value mapping and a default
 // value.
 class KinematicOptionsMap
@@ -65,11 +64,8 @@ public:
   /// @param tip link that will be posed
   /// @param pose desired pose of tip link
   /// @param result true if IK succeeded.
-  bool setStateFromIK(robot_state::RobotState& state,
-                      const std::string& key,
-                      const std::string& group,
-                      const std::string& tip,
-                      const geometry_msgs::Pose& pose) const;
+  bool setStateFromIK(robot_state::RobotState& state, const std::string& key, const std::string& group,
+                      const std::string& tip, const geometry_msgs::Pose& pose) const;
 
   /// Get the options to use for a particular key.
   /// To get the default values pass key = KinematicOptionsMap::DEFAULT
@@ -84,10 +80,8 @@ public:
   /// @param options the new value for the options.
   ///
   /// @fields which options to set for the key.
-  void setOptions(
-          const std::string& key,
-          const KinematicOptions& options,
-          KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
+  void setOptions(const std::string& key, const KinematicOptions& options,
+                  KinematicOptions::OptionBitmask fields = KinematicOptions::ALL);
 
   /// Merge all options from \e other into \e this.
   /// Values in \e other (including defaults_) take precedence over values in \e
@@ -109,7 +103,6 @@ private:
   // PROTECTED BY lock_
   M_options options_;
 };
-
 }
 
 #endif

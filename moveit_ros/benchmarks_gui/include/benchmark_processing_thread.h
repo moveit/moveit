@@ -13,7 +13,8 @@ class BenchmarkProcessingThread : public QThread
   Q_OBJECT
 
 public:
-  BenchmarkProcessingThread(const moveit_benchmarks::BenchmarkExecution &be, const moveit_benchmarks::BenchmarkType &bt, QObject *parent = 0);
+  BenchmarkProcessingThread(const moveit_benchmarks::BenchmarkExecution &be, const moveit_benchmarks::BenchmarkType &bt,
+                            QObject *parent = 0);
   ~BenchmarkProcessingThread();
 
   void startAndShow();
@@ -28,4 +29,4 @@ protected:
   void run();
 };
 
-#endif // BENCHMARK_PROCESSING_THREAD_H
+#endif  // BENCHMARK_PROCESSING_THREAD_H

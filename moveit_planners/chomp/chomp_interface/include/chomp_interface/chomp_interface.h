@@ -43,7 +43,6 @@
 
 namespace chomp_interface
 {
-
 MOVEIT_CLASS_FORWARD(CHOMPInterface);
 
 class CHOMPInterface : public chomp::ChompPlanner

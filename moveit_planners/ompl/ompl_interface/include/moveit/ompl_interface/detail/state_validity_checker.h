@@ -43,7 +43,6 @@
 
 namespace ompl_interface
 {
-
 class ModelBasedPlanningContext;
 
 /** @class StateValidityChecker
@@ -51,9 +50,7 @@ class ModelBasedPlanningContext;
 class StateValidityChecker : public ompl::base::StateValidityChecker
 {
 public:
-
   StateValidityChecker(const ModelBasedPlanningContext *planning_context);
-
 
   virtual bool isValid(const ompl::base::State *state) const
   {
@@ -74,25 +71,23 @@ public:
   void setVerbose(bool flag);
 
 protected:
-
   bool isValidWithoutCache(const ompl::base::State *state, bool verbose) const;
   bool isValidWithoutCache(const ompl::base::State *state, double &dist, bool verbose) const;
 
   bool isValidWithCache(const ompl::base::State *state, bool verbose) const;
   bool isValidWithCache(const ompl::base::State *state, double &dist, bool verbose) const;
 
-  const ModelBasedPlanningContext      *planning_context_;
-  std::string                           group_name_;
-  TSStateStorage                        tss_;
+  const ModelBasedPlanningContext *planning_context_;
+  std::string group_name_;
+  TSStateStorage tss_;
   collision_detection::CollisionRequest collision_request_simple_;
   collision_detection::CollisionRequest collision_request_with_distance_;
   collision_detection::CollisionRequest collision_request_simple_verbose_;
   collision_detection::CollisionRequest collision_request_with_distance_verbose_;
 
   collision_detection::CollisionRequest collision_request_with_cost_;
-  bool                                  verbose_;
+  bool verbose_;
 };
-
 }
 
 #endif

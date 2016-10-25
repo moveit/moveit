@@ -67,7 +67,8 @@ static inline bool validatePadding(double padding)
   return true;
 }
 
-collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr &model, double padding, double scale)
+collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr &model, double padding,
+                                                    double scale)
   : robot_model_(model)
 {
   if (!validateScale(scale))
@@ -75,8 +76,8 @@ collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotMode
   if (!validatePadding(padding))
     padding = 0.0;
 
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  const std::vector<const robot_model::LinkModel *> &links = robot_model_->getLinkModelsWithCollisionGeometry();
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     link_padding_[links[i]->getName()] = padding;
     link_scale_[links[i]->getName()] = scale;
@@ -94,8 +95,8 @@ void collision_detection::CollisionRobot::setPadding(double padding)
   if (!validatePadding(padding))
     return;
   std::vector<std::string> u;
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  const std::vector<const robot_model::LinkModel *> &links = robot_model_->getLinkModelsWithCollisionGeometry();
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     if (getLinkPadding(links[i]->getName()) != padding)
       u.push_back(links[i]->getName());
@@ -110,8 +111,8 @@ void collision_detection::CollisionRobot::setScale(double scale)
   if (!validateScale(scale))
     return;
   std::vector<std::string> u;
-  const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (std::size_t i = 0 ; i < links.size() ; ++i)
+  const std::vector<const robot_model::LinkModel *> &links = robot_model_->getLinkModelsWithCollisionGeometry();
+  for (std::size_t i = 0; i < links.size(); ++i)
   {
     if (getLinkScale(links[i]->getName()) != scale)
       u.push_back(links[i]->getName());
@@ -144,7 +145,7 @@ double collision_detection::CollisionRobot::getLinkPadding(const std::string &li
 void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::string, double> &padding)
 {
   std::vector<std::string> u;
-  for (std::map<std::string, double>::const_iterator it = padding.begin() ; it != padding.end() ; ++it)
+  for (std::map<std::string, double>::const_iterator it = padding.begin(); it != padding.end(); ++it)
   {
     bool update = getLinkPadding(it->first) != it->second;
     link_padding_[it->first] = it->second;
@@ -183,7 +184,7 @@ double collision_detection::CollisionRobot::getLinkScale(const std::string &link
 void collision_detection::CollisionRobot::setLinkScale(const std::map<std::string, double> &scale)
 {
   std::vector<std::string> u;
-  for (std::map<std::string, double>::const_iterator it = scale.begin() ; it != scale.end() ; ++it)
+  for (std::map<std::string, double>::const_iterator it = scale.begin(); it != scale.end(); ++it)
   {
     bool update = getLinkScale(it->first) != it->second;
     link_scale_[it->first] = it->second;
@@ -202,7 +203,7 @@ const std::map<std::string, double> &collision_detection::CollisionRobot::getLin
 void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_msgs::LinkPadding> &padding)
 {
   std::vector<std::string> u;
-  for (std::size_t i = 0 ; i < padding.size() ; ++i)
+  for (std::size_t i = 0; i < padding.size(); ++i)
   {
     bool update = getLinkPadding(padding[i].link_name) != padding[i].padding;
     link_padding_[padding[i].link_name] = padding[i].padding;
@@ -216,7 +217,7 @@ void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_ms
 void collision_detection::CollisionRobot::setScale(const std::vector<moveit_msgs::LinkScale> &scale)
 {
   std::vector<std::string> u;
-  for (std::size_t i = 0 ; i < scale.size() ; ++i)
+  for (std::size_t i = 0; i < scale.size(); ++i)
   {
     bool update = getLinkScale(scale[i].link_name) != scale[i].scale;
     link_scale_[scale[i].link_name] = scale[i].scale;
@@ -230,7 +231,7 @@ void collision_detection::CollisionRobot::setScale(const std::vector<moveit_msgs
 void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::LinkPadding> &padding) const
 {
   padding.clear();
-  for (std::map<std::string, double>::const_iterator it = link_padding_.begin() ; it != link_padding_.end() ; ++it)
+  for (std::map<std::string, double>::const_iterator it = link_padding_.begin(); it != link_padding_.end(); ++it)
   {
     moveit_msgs::LinkPadding lp;
     lp.link_name = it->first;
@@ -242,7 +243,7 @@ void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::Li
 void collision_detection::CollisionRobot::getScale(std::vector<moveit_msgs::LinkScale> &scale) const
 {
   scale.clear();
-  for (std::map<std::string, double>::const_iterator it = link_scale_.begin() ; it != link_scale_.end() ; ++it)
+  for (std::map<std::string, double>::const_iterator it = link_scale_.begin(); it != link_scale_.end(); ++it)
   {
     moveit_msgs::LinkScale ls;
     ls.link_name = it->first;

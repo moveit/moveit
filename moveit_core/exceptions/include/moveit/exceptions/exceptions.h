@@ -42,7 +42,6 @@
 /** \brief Main namespace for MoveIt! */
 namespace moveit
 {
-
 /** \brief This may be thrown during construction of objects if errors occur */
 class ConstructException : public std::runtime_error
 {
@@ -56,7 +55,6 @@ class Exception : public std::runtime_error
 public:
   explicit Exception(const std::string& what_arg);
 };
-
 }
 
 #endif

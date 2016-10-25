@@ -43,13 +43,12 @@ const std::string robot_interaction::KinematicOptionsMap::DEFAULT = "";
 const std::string robot_interaction::KinematicOptionsMap::ALL = "";
 
 robot_interaction::KinematicOptionsMap::KinematicOptionsMap()
-{}
+{
+}
 
 // Returns a copy of the KinematicOptions so that the caller does not need to
 // worry about locking.
-robot_interaction::KinematicOptions
-robot_interaction::KinematicOptionsMap::getOptions(
-      const std::string& key) const
+robot_interaction::KinematicOptions robot_interaction::KinematicOptionsMap::getOptions(const std::string& key) const
 {
   boost::mutex::scoped_lock lock(lock_);
 
@@ -62,10 +61,8 @@ robot_interaction::KinematicOptionsMap::getOptions(
   return it->second;
 }
 
-void robot_interaction::KinematicOptionsMap::setOptions(
-      const std::string& key,
-      const KinematicOptions& options_delta,
-      KinematicOptions::OptionBitmask fields)
+void robot_interaction::KinematicOptionsMap::setOptions(const std::string& key, const KinematicOptions& options_delta,
+                                                        KinematicOptions::OptionBitmask fields)
 {
   boost::mutex::scoped_lock lock(lock_);
 
@@ -81,9 +78,7 @@ void robot_interaction::KinematicOptionsMap::setOptions(
     }
 
     defaults_.setOptions(options_delta, fields);
-    for (M_options::iterator it = options_.begin() ;
-         it != options_.end() ;
-         ++it)
+    for (M_options::iterator it = options_.begin(); it != options_.end(); ++it)
     {
       it->second.setOptions(options_delta, fields);
     }
@@ -113,25 +108,22 @@ void robot_interaction::KinematicOptionsMap::setOptions(
 }
 
 // merge other into this.  All options in other take precedence over this.
-void robot_interaction::KinematicOptionsMap::merge(
-      const KinematicOptionsMap& other)
+void robot_interaction::KinematicOptionsMap::merge(const KinematicOptionsMap& other)
 {
   if (&other == this)
     return;
 
   // need to lock in consistent order to avoid deadlock.
   // Lock the one with lower address first.
-  boost::mutex *m1 = &lock_;
-  boost::mutex *m2 = &other.lock_;
+  boost::mutex* m1 = &lock_;
+  boost::mutex* m2 = &other.lock_;
   if (m2 < m1)
     std::swap(m1, m2);
   boost::mutex::scoped_lock lock1(*m1);
   boost::mutex::scoped_lock lock2(*m2);
 
   defaults_ = other.defaults_;
-  for (M_options::const_iterator it = other.options_.begin() ;
-       it != other.options_.end() ;
-       ++it)
+  for (M_options::const_iterator it = other.options_.begin(); it != other.options_.end(); ++it)
   {
     options_[it->first] = it->second;
   }
@@ -139,15 +131,11 @@ void robot_interaction::KinematicOptionsMap::merge(
 
 // This is intended to be called as a ModifyStateFunction to modify the state
 // maintained by a LockedRobotState in place.
-bool robot_interaction::KinematicOptionsMap::setStateFromIK(
-      robot_state::RobotState& state,
-      const std::string& key,
-      const std::string& group,
-      const std::string& tip,
-      const geometry_msgs::Pose& pose) const
+bool robot_interaction::KinematicOptionsMap::setStateFromIK(robot_state::RobotState& state, const std::string& key,
+                                                            const std::string& group, const std::string& tip,
+                                                            const geometry_msgs::Pose& pose) const
 {
   // copy options so lock is not needed during IK solve.
   KinematicOptions options = getOptions(key);
   return options.setStateFromIK(state, group, tip, pose);
 }
-

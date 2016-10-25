@@ -39,7 +39,6 @@
 
 namespace benchmark_tool
 {
-
 void setButtonState(QPushButton *button, bool checked, const QString &text, const QString &style)
 {
   button->setUpdatesEnabled(false);
@@ -70,4 +69,4 @@ void selectLastItemInList(QListWidget *list)
   }
 }
 
-} //namespace
+}  // namespace

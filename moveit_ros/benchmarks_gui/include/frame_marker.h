@@ -51,7 +51,6 @@
 
 namespace benchmark_tool
 {
-
 class MotionPlanningDisplay;
 
 MOVEIT_CLASS_FORWARD(FrameMarker);
@@ -67,7 +66,7 @@ public:
   boost::shared_ptr<rviz::InteractiveMarker> imarker;
 
   /** Copy constructor */
-  FrameMarker(const FrameMarker &frame_marker): receiver_(NULL), receiver_method_(NULL)
+  FrameMarker(const FrameMarker &frame_marker) : receiver_(NULL), receiver_method_(NULL)
   {
     imarker_msg = frame_marker.imarker_msg;
 
@@ -99,8 +98,9 @@ public:
    * @param visible_x, visible_y, visible_z define the visibility of each axis
    */
   FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-              const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color,
-              bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
+              const std::string &frame_id, const geometry_msgs::Pose &pose, double scale,
+              const std_msgs::ColorRGBA &color, bool is_selected = false, bool visible_x = true, bool visible_y = true,
+              bool visible_z = true);
 
   FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
               const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const float color[4],
@@ -161,24 +161,27 @@ public:
     return (imarker);
   }
 
-  void connect(const QObject * receiver, const char * method)
+  void connect(const QObject *receiver, const char *method)
   {
     receiver_ = receiver;
     receiver_method_ = method;
-    QObject::connect( imarker.get(), SIGNAL( userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), receiver, method );
+    QObject::connect(imarker.get(), SIGNAL(userFeedback(visualization_msgs::InteractiveMarkerFeedback &)), receiver,
+                     method);
   }
 
   virtual ~FrameMarker()
-  {}
+  {
+  }
 
 protected:
-  virtual void buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color);
+  virtual void buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
+                         double scale, const std_msgs::ColorRGBA &color);
   virtual void rebuild();
 
   std::vector<visualization_msgs::MenuEntry> menu_entries_;
 
   Ogre::SceneNode *parent_node_;
-  rviz::DisplayContext* context_;
+  rviz::DisplayContext *context_;
 
   bool selected_;
   bool visible_x_, visible_y_, visible_z_;
@@ -191,7 +194,6 @@ protected:
   const char *receiver_method_;
 };
 
-
 MOVEIT_CLASS_FORWARD(GripperMarker);
 
 /** A special FrameMarker that displays the robot end-effector mesh when selected.
@@ -203,7 +205,11 @@ class GripperMarker : public FrameMarker
 public:
   typedef enum
   {
-    NOT_TESTED, PROCESSING, REACHABLE, NOT_REACHABLE, IN_COLLISION
+    NOT_TESTED,
+    PROCESSING,
+    REACHABLE,
+    NOT_REACHABLE,
+    IN_COLLISION
   } GripperMarkerState;
 
   /** Copy constructor */
@@ -230,9 +236,11 @@ public:
    * @param is_selected whether this frame marker is selected or not by default. When selected, controls are displayed
    * @param visible_x, visible_y, visible_z define the visibility of each axis
    */
-  GripperMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                const GripperMarkerState &state, bool is_selected = false, bool visible_x = true, bool visible_y = true, bool visible_z = true);
+  GripperMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context,
+                const std::string &name, const std::string &frame_id,
+                const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose,
+                double scale, const GripperMarkerState &state, bool is_selected = false, bool visible_x = true,
+                bool visible_y = true, bool visible_z = true);
 
   virtual void select(bool display_gripper_mesh = true);
   virtual void unselect(bool display_gripper_mesh = false);
@@ -252,7 +260,7 @@ public:
     return state_;
   }
 
-  void setRobotState(const robot_state::RobotState& robot_state)
+  void setRobotState(const robot_state::RobotState &robot_state)
   {
     robot_state_ = &robot_state;
   }
@@ -279,7 +287,8 @@ protected:
   static const float GOAL_REACHABLE_COLOR[4];
   static const float GOAL_COLLISION_COLOR[4];
 
-  virtual void buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose, double scale, const std_msgs::ColorRGBA &color);
+  virtual void buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
+                         double scale, const std_msgs::ColorRGBA &color);
 
   const float *stateToColor(const GripperMarkerState &state);
 
@@ -290,5 +299,5 @@ protected:
   GripperMarkerState state_;
 };
 
-} //namespace
+}  // namespace
 #endif

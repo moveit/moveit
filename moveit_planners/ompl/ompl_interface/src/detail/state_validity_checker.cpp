@@ -71,13 +71,15 @@ void ompl_interface::StateValidityChecker::setVerbose(bool flag)
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, bool verbose) const
 {
   //  moveit::Profiler::ScopedBlock sblock("isValid");
-  return planning_context_->useStateValidityCache() ? isValidWithCache(state, verbose) : isValidWithoutCache(state, verbose);
+  return planning_context_->useStateValidityCache() ? isValidWithCache(state, verbose) :
+                                                      isValidWithoutCache(state, verbose);
 }
 
 bool ompl_interface::StateValidityChecker::isValid(const ompl::base::State *state, double &dist, bool verbose) const
 {
   //  moveit::Profiler::ScopedBlock sblock("isValid");
-  return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist, verbose) : isValidWithoutCache(state, dist, verbose);
+  return planning_context_->useStateValidityCache() ? isValidWithCache(state, dist, verbose) :
+                                                      isValidWithoutCache(state, dist, verbose);
 }
 
 double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state) const
@@ -91,7 +93,8 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State *state
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
 
-  for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin() ; it != res.cost_sources.end() ; ++it)
+  for (std::set<collision_detection::CostSource>::const_iterator it = res.cost_sources.begin();
+       it != res.cost_sources.end(); ++it)
     cost += it->cost * it->getVolume();
 
   return cost;
@@ -132,11 +135,13 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
 
   // check collision avoidance
   collision_detection::CollisionResult res;
-  planning_context_->getPlanningScene()->checkCollision(verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
+  planning_context_->getPlanningScene()->checkCollision(
+      verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
   return res.collision == false;
 }
 
-bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state, double &dist, bool verbose) const
+bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base::State *state, double &dist,
+                                                               bool verbose) const
 {
   if (!si_->satisfiesBounds(state))
   {
@@ -169,7 +174,8 @@ bool ompl_interface::StateValidityChecker::isValidWithoutCache(const ompl::base:
 
   // check collision avoidance
   collision_detection::CollisionResult res;
-  planning_context_->getPlanningScene()->checkCollision(verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
+  planning_context_->getPlanningScene()->checkCollision(
+      verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
   dist = res.distance;
   return res.collision == false;
 }
@@ -183,7 +189,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   {
     if (verbose)
       logInform("State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
@@ -194,35 +200,38 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   const kinematic_constraints::KinematicConstraintSetPtr &kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose).satisfied)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose))
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
   // check collision avoidance
   collision_detection::CollisionResult res;
-  planning_context_->getPlanningScene()->checkCollision(verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
+  planning_context_->getPlanningScene()->checkCollision(
+      verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
   if (res.collision == false)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
     return true;
   }
   else
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 }
 
-bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State *state, double &dist, bool verbose) const
+bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::State *state, double &dist,
+                                                            bool verbose) const
 {
-  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() && state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
+  if (state->as<ModelBasedStateSpace::StateType>()->isValidityKnown() &&
+      state->as<ModelBasedStateSpace::StateType>()->isGoalDistanceKnown())
   {
     dist = state->as<ModelBasedStateSpace::StateType>()->distance;
     return state->as<ModelBasedStateSpace::StateType>()->isMarkedValid();
@@ -232,7 +241,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   {
     if (verbose)
       logInform("State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
+    const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }
 
@@ -247,7 +256,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     if (!cer.satisfied)
     {
       dist = cer.distance;
-      const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+      const_cast<ob::State *>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
       return false;
     }
   }
@@ -261,7 +270,8 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
 
   // check collision avoidance
   collision_detection::CollisionResult res;
-  planning_context_->getPlanningScene()->checkCollision(verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
+  planning_context_->getPlanningScene()->checkCollision(
+      verbose ? collision_request_with_distance_verbose_ : collision_request_with_distance_, res, *kstate);
   dist = res.distance;
   return res.collision == false;
 }

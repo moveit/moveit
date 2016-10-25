@@ -46,21 +46,20 @@
 #endif
 
 #include "header_widget.h"
-#include "setup_screen_widget.h" // a base class for screens in the setup assistant
+#include "setup_screen_widget.h"  // a base class for screens in the setup assistant
 
 namespace moveit_setup_assistant
 {
-
 class AuthorInformationWidget : public SetupScreenWidget
 {
   Q_OBJECT
 
-  public:
+public:
   // ******************************************************************************************
   // Public Functions
   // ******************************************************************************************
 
-  AuthorInformationWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data );
+  AuthorInformationWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -82,12 +81,10 @@ private Q_SLOTS:
   void edited_email();
 
 private:
-
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
-
 };
 
-} //namespace moveit_setup_assistant
+}  // namespace moveit_setup_assistant
 
 #endif

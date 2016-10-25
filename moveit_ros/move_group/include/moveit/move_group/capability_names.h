@@ -41,19 +41,25 @@
 
 namespace move_group
 {
-
-static const std::string PLANNER_SERVICE_NAME = "plan_kinematic_path";    // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME = "execute_kinematic_path"; // name of the advertised service (within the ~ namespace)
-static const std::string QUERY_PLANNERS_SERVICE_NAME = "query_planner_interface"; // name of the advertised query planners service
-static const std::string MOVE_ACTION = "move_group"; // name of 'move' action
-static const std::string IK_SERVICE_NAME = "compute_ik"; // name of ik service
-static const std::string FK_SERVICE_NAME = "compute_fk"; // name of fk service
-static const std::string STATE_VALIDITY_SERVICE_NAME = "check_state_validity"; // name of the service that validates states
-static const std::string CARTESIAN_PATH_SERVICE_NAME = "compute_cartesian_path"; // name of the service that computes cartesian paths
-static const std::string GET_PLANNING_SCENE_SERVICE_NAME = "get_planning_scene"; // name of the service that can be used to query the planning scene
-static const std::string APPLY_PLANNING_SCENE_SERVICE_NAME = "apply_planning_scene"; // name of the service that applies a given planning scene
-static const std::string CLEAR_OCTOMAP_SERVICE_NAME = "clear_octomap"; // name of the service that can be used to clear the octomap
-
+static const std::string PLANNER_SERVICE_NAME =
+    "plan_kinematic_path";  // name of the advertised service (within the ~ namespace)
+static const std::string EXECUTE_SERVICE_NAME =
+    "execute_kinematic_path";  // name of the advertised service (within the ~ namespace)
+static const std::string QUERY_PLANNERS_SERVICE_NAME =
+    "query_planner_interface";                            // name of the advertised query planners service
+static const std::string MOVE_ACTION = "move_group";      // name of 'move' action
+static const std::string IK_SERVICE_NAME = "compute_ik";  // name of ik service
+static const std::string FK_SERVICE_NAME = "compute_fk";  // name of fk service
+static const std::string STATE_VALIDITY_SERVICE_NAME =
+    "check_state_validity";  // name of the service that validates states
+static const std::string CARTESIAN_PATH_SERVICE_NAME =
+    "compute_cartesian_path";  // name of the service that computes cartesian paths
+static const std::string GET_PLANNING_SCENE_SERVICE_NAME =
+    "get_planning_scene";  // name of the service that can be used to query the planning scene
+static const std::string APPLY_PLANNING_SCENE_SERVICE_NAME =
+    "apply_planning_scene";  // name of the service that applies a given planning scene
+static const std::string CLEAR_OCTOMAP_SERVICE_NAME =
+    "clear_octomap";  // name of the service that can be used to clear the octomap
 }
 
 #endif
