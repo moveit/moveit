@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 /** \Author: Benjamin Cohen /bcohen@willowgarage.com, E. Gil Jones **/
 
 #ifndef _ENVIRONMENT_CHAIN3D_TYPES_H_
@@ -42,9 +41,9 @@
 #include <planning_models/robot_model.h>
 #include <planning_models/angle_utils.h>
 
-namespace sbpl_interface {
-
-static unsigned int HASH_TABLE_SIZE = 32*1024;
+namespace sbpl_interface
+{
+static unsigned int HASH_TABLE_SIZE = 32 * 1024;
 
 static inline unsigned int intHash(unsigned int key)
 {
@@ -60,12 +59,12 @@ static inline unsigned int intHash(unsigned int key)
 }
 struct EnvChain3DHashEntry
 {
-  unsigned char dist; // distance to closest obstacle
-  int stateID; // hash entry ID number
-  int action; // which action in the list was required to get here
-  int xyz[3]; // tip link coordinates in space
-  std::vector<int> coord; // position in the angle discretization
-  std::vector<double> angles; // position of joints in continuous space
+  unsigned char dist;          // distance to closest obstacle
+  int stateID;                 // hash entry ID number
+  int action;                  // which action in the list was required to get here
+  int xyz[3];                  // tip link coordinates in space
+  std::vector<int> coord;      // position in the angle discretization
+  std::vector<double> angles;  // position of joints in continuous space
 };
 
 /** @brief struct that describes a basic joint constraint */
@@ -88,63 +87,66 @@ struct EnvChain3DGoalPose
 /** main structure that stores environment data used in planning */
 struct EnvChain3DPlanningData
 {
-
-  EnvChain3DPlanningData(std::vector<int*>& state_ID_to_index_mapping) :
-    state_ID_to_index_mapping_(state_ID_to_index_mapping),
-    goal_hash_entry_(NULL),
-    start_hash_entry_(NULL),
-    hash_table_size_(HASH_TABLE_SIZE)
+  EnvChain3DPlanningData(std::vector<int*>& state_ID_to_index_mapping)
+    : state_ID_to_index_mapping_(state_ID_to_index_mapping)
+    , goal_hash_entry_(NULL)
+    , start_hash_entry_(NULL)
+    , hash_table_size_(HASH_TABLE_SIZE)
   {
     coord_to_state_ID_table_.resize(hash_table_size_);
   }
 
-  ~EnvChain3DPlanningData() {
-    for(unsigned int i = 0; i < state_ID_to_coord_table_.size(); i++) {
+  ~EnvChain3DPlanningData()
+  {
+    for (unsigned int i = 0; i < state_ID_to_coord_table_.size(); i++)
+    {
       delete state_ID_to_coord_table_[i];
     }
   }
 
-  unsigned int getHashBin(const std::vector<int>& coord) {
+  unsigned int getHashBin(const std::vector<int>& coord)
+  {
     unsigned int val = 0;
 
-    for(size_t i = 0; i < coord.size(); i++)
+    for (size_t i = 0; i < coord.size(); i++)
       val += intHash(coord[i]) << i;
 
-    return intHash(val) & (hash_table_size_-1);
+    return intHash(val) & (hash_table_size_ - 1);
   }
 
-  EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord,
-                                    const std::vector<double>& angles,
-                                    const int(&xyz)[3],
-                                    int action)
+  EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord, const std::vector<double>& angles,
+                                    const int(&xyz)[3], int action)
   {
     EnvChain3DHashEntry* new_hash_entry = new EnvChain3DHashEntry();
     new_hash_entry->stateID = state_ID_to_coord_table_.size();
     new_hash_entry->coord = coord;
     new_hash_entry->angles = angles;
-    memcpy(new_hash_entry->xyz, xyz, sizeof(int)*3);
+    memcpy(new_hash_entry->xyz, xyz, sizeof(int) * 3);
     new_hash_entry->action = action;
     state_ID_to_coord_table_.push_back(new_hash_entry);
     unsigned int bin = getHashBin(coord);
     coord_to_state_ID_table_[bin].push_back(new_hash_entry);
 
-    //have to do for DiscreteSpaceInformation
-    //insert into and initialize the mappings
-    int* entry = new int [NUMOFINDICES_STATEID2IND];
-    memset(entry, -1, NUMOFINDICES_STATEID2IND*sizeof(int));
+    // have to do for DiscreteSpaceInformation
+    // insert into and initialize the mappings
+    int* entry = new int[NUMOFINDICES_STATEID2IND];
+    memset(entry, -1, NUMOFINDICES_STATEID2IND * sizeof(int));
     state_ID_to_index_mapping_.push_back(entry);
-    if(new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size()-1) {
-      ROS_ERROR_STREAM("Size mismatch between state mappings " << new_hash_entry->stateID << " " << state_ID_to_index_mapping_.size());
+    if (new_hash_entry->stateID != (int)state_ID_to_index_mapping_.size() - 1)
+    {
+      ROS_ERROR_STREAM("Size mismatch between state mappings " << new_hash_entry->stateID << " "
+                                                               << state_ID_to_index_mapping_.size());
     }
     return new_hash_entry;
   }
 
-  EnvChain3DHashEntry* getHashEntry(const std::vector<int> &coord,
-                                    int action)
+  EnvChain3DHashEntry* getHashEntry(const std::vector<int>& coord, int action)
   {
     unsigned int bin = getHashBin(coord);
-    for(unsigned int i = 0; i < coord_to_state_ID_table_[bin].size(); i++) {
-      if(coord_to_state_ID_table_[bin][i]->coord == coord) {
+    for (unsigned int i = 0; i < coord_to_state_ID_table_[bin].size(); i++)
+    {
+      if (coord_to_state_ID_table_[bin][i]->coord == coord)
+      {
         return coord_to_state_ID_table_[bin][i];
       }
     }
@@ -152,10 +154,13 @@ struct EnvChain3DPlanningData
   }
 
   bool convertFromStateIDsToAngles(const std::vector<int>& state_ids,
-                                   std::vector<std::vector<double> >& angle_vector) const {
+                                   std::vector<std::vector<double> >& angle_vector) const
+  {
     angle_vector.resize(state_ids.size());
-    for(unsigned int i = 0; i < state_ids.size(); i++) {
-      if(state_ids[i] > (int) state_ID_to_coord_table_.size()-1) {
+    for (unsigned int i = 0; i < state_ids.size(); i++)
+    {
+      if (state_ids[i] > (int)state_ID_to_coord_table_.size() - 1)
+      {
         return false;
       }
       angle_vector[i] = state_ID_to_coord_table_[state_ids[i]]->angles;
@@ -163,137 +168,155 @@ struct EnvChain3DPlanningData
     return true;
   }
 
-  //internal data from DiscreteSpaceInformation
+  // internal data from DiscreteSpaceInformation
   std::vector<int*>& state_ID_to_index_mapping_;
 
   EnvChain3DHashEntry* goal_hash_entry_;
   EnvChain3DHashEntry* start_hash_entry_;
 
   unsigned int hash_table_size_;
-  //maps from coords to stateID
+  // maps from coords to stateID
   std::vector<std::vector<EnvChain3DHashEntry*> > coord_to_state_ID_table_;
 
-  //vector that maps from stateID to coords
+  // vector that maps from stateID to coords
   std::vector<EnvChain3DHashEntry*> state_ID_to_coord_table_;
-
 };
 
-class JointMotionWrapper {
+class JointMotionWrapper
+{
 public:
-
-  JointMotionWrapper(const planning_models::RobotModel::JointModel* joint_model) :
-    joint_model_(joint_model)
+  JointMotionWrapper(const planning_models::RobotModel::JointModel* joint_model) : joint_model_(joint_model)
   {
     std::vector<moveit_msgs::JointLimits> limits = joint_model->getLimits();
     joint_limit_ = limits.front();
   }
 
-  bool getSuccessorValue(double start,
-                         double delta,
-                         double& end) {
-    end = start+delta;
-    if(joint_limit_.has_position_limits) {
-      if(end < joint_limit_.min_position) {
-        if(fabs(start-joint_limit_.min_position) > std::numeric_limits<double>::epsilon()) {
-          //start not at min limit, so peg the end position
+  bool getSuccessorValue(double start, double delta, double& end)
+  {
+    end = start + delta;
+    if (joint_limit_.has_position_limits)
+    {
+      if (end < joint_limit_.min_position)
+      {
+        if (fabs(start - joint_limit_.min_position) > std::numeric_limits<double>::epsilon())
+        {
+          // start not at min limit, so peg the end position
           end = joint_limit_.min_position;
-        } else {
-          //start already at min limit
-          return false;
         }
-      } else if(end > joint_limit_.max_position) {
-        if(fabs(start-joint_limit_.max_position) > std::numeric_limits<double>::epsilon()) {
-          //start not at max limit, so peg the end position
-          end = joint_limit_.max_position;
-        } else {
-          //start already at max limit
+        else
+        {
+          // start already at min limit
           return false;
         }
       }
-    } else {
+      else if (end > joint_limit_.max_position)
+      {
+        if (fabs(start - joint_limit_.max_position) > std::numeric_limits<double>::epsilon())
+        {
+          // start not at max limit, so peg the end position
+          end = joint_limit_.max_position;
+        }
+        else
+        {
+          // start already at max limit
+          return false;
+        }
+      }
+    }
+    else
+    {
       end = normalizeAngle(end);
     }
     return true;
   }
 
-  bool canGetCloser(double start,
-                    double goal,
-                    double delta) {
-    double start_dist = getDoubleDistance(start,goal);
+  bool canGetCloser(double start, double goal, double delta)
+  {
+    double start_dist = getDoubleDistance(start, goal);
     double plus_value = 0.0;
     double minus_value = 0.0;
-    if(getSuccessorValue(start, delta, plus_value)) {
+    if (getSuccessorValue(start, delta, plus_value))
+    {
       double succ_dist = getDoubleDistance(plus_value, goal);
-      if(succ_dist < start_dist) {
+      if (succ_dist < start_dist)
+      {
         return true;
       }
     }
-    if(getSuccessorValue(start, -delta, minus_value)) {
+    if (getSuccessorValue(start, -delta, minus_value))
+    {
       double succ_dist = getDoubleDistance(minus_value, goal);
-      if(succ_dist < start_dist) {
+      if (succ_dist < start_dist)
+      {
         return true;
       }
     }
     return false;
   }
 
-  double getDoubleDistance(double start,
-                           double end)
+  double getDoubleDistance(double start, double end)
   {
-    if(joint_limit_.has_position_limits) {
-      return fabs(end-start);
-    } else {
-      return fabs(planning_models::shortestAngularDistance(start,end));
+    if (joint_limit_.has_position_limits)
+    {
+      return fabs(end - start);
+    }
+    else
+    {
+      return fabs(planning_models::shortestAngularDistance(start, end));
     }
   }
-  int getIntegerDistance(double start,
-                         double end,
-                         double delta) {
+  int getIntegerDistance(double start, double end, double delta)
+  {
     double val;
-    if(joint_limit_.has_position_limits) {
-      val = fabs(end-start)/delta;
-    } else {
-      val = fabs(planning_models::shortestAngularDistance(start,end))/delta;
+    if (joint_limit_.has_position_limits)
+    {
+      val = fabs(end - start) / delta;
     }
-    if(val-floor(val) > std::numeric_limits<double>::epsilon()) {
+    else
+    {
+      val = fabs(planning_models::shortestAngularDistance(start, end)) / delta;
+    }
+    if (val - floor(val) > std::numeric_limits<double>::epsilon())
+    {
       return ceil(val);
-    } else {
+    }
+    else
+    {
       return floor(val);
     }
   }
+
 protected:
   const planning_models::RobotModel::JointModel* joint_model_;
   moveit_msgs::JointLimits joint_limit_;
 };
 
-class JointMotionPrimitive {
+class JointMotionPrimitive
+{
 public:
-  virtual bool generateSuccessorState(const std::vector<double>& start,
-                                      std::vector<double>& end) = 0;
+  virtual bool generateSuccessorState(const std::vector<double>& start, std::vector<double>& end) = 0;
 };
 
-class SingleJointMotionPrimitive : public JointMotionPrimitive {
+class SingleJointMotionPrimitive : public JointMotionPrimitive
+{
 public:
-  SingleJointMotionPrimitive(const boost::shared_ptr<JointMotionWrapper>& joint_motion_wrapper,
-                             unsigned int ind,
-                             double delta) :
-    joint_motion_wrapper_(joint_motion_wrapper),
-    ind_(ind),
-    delta_(delta)
+  SingleJointMotionPrimitive(const boost::shared_ptr<JointMotionWrapper>& joint_motion_wrapper, unsigned int ind,
+                             double delta)
+    : joint_motion_wrapper_(joint_motion_wrapper), ind_(ind), delta_(delta)
   {
   }
 
-  virtual bool generateSuccessorState(const std::vector<double>& start,
-                                      std::vector<double>& end) {
+  virtual bool generateSuccessorState(const std::vector<double>& start, std::vector<double>& end)
+  {
     end = start;
     return joint_motion_wrapper_->getSuccessorValue(start[ind_], delta_, end[ind_]);
   }
+
 protected:
   boost::shared_ptr<JointMotionWrapper> joint_motion_wrapper_;
   unsigned int ind_;
   double delta_;
 };
-
 }
 
 #endif

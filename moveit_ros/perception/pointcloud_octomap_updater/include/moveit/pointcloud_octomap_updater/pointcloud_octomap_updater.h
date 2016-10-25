@@ -47,11 +47,9 @@
 
 namespace occupancy_map_monitor
 {
-
 class PointCloudOctomapUpdater : public OccupancyMapUpdater
 {
 public:
-
   PointCloudOctomapUpdater();
   virtual ~PointCloudOctomapUpdater();
 
@@ -64,11 +62,10 @@ public:
   virtual void forgetShape(ShapeHandle handle);
 
 protected:
-
-  virtual void updateMask(const sensor_msgs::PointCloud2 &cloud, const Eigen::Vector3d &sensor_origin, std::vector<int> &mask);
+  virtual void updateMask(const sensor_msgs::PointCloud2 &cloud, const Eigen::Vector3d &sensor_origin,
+                          std::vector<int> &mask);
 
 private:
-
   bool getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
   void stopHelper();
@@ -95,9 +92,7 @@ private:
 
   boost::scoped_ptr<point_containment_filter::ShapeMask> shape_mask_;
   std::vector<int> mask_;
-
 };
-
 }
 
 #endif

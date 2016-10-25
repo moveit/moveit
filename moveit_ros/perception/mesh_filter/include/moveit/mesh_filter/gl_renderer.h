@@ -49,10 +49,10 @@
 
 namespace mesh_filter
 {
-
 MOVEIT_CLASS_FORWARD(GLRenderer);
 
-/** \brief Abstracts the OpenGL frame buffer objects, and provides an interface to render meshes, and retrieve the color and depth ap from opengl.
+/** \brief Abstracts the OpenGL frame buffer objects, and provides an interface to render meshes, and retrieve the color
+ * and depth ap from opengl.
  *  \author Suat Gedikli (gedikli@willowgarage.com)
  */
 class GLRenderer
@@ -66,29 +66,29 @@ public:
    * \param[in] near distance of the near clipping plane in meters
    * \param[in] far distance of the far clipping plane in meters
    */
-  GLRenderer (unsigned width, unsigned height, float near = 0.1, float far = 10.0);
+  GLRenderer(unsigned width, unsigned height, float near = 0.1, float far = 10.0);
 
   /** \brief destructor, destroys frame buffer objects and OpenGL context*/
-  ~GLRenderer ();
+  ~GLRenderer();
 
   /**
    * \brief initializes the frame buffers for rendering and or manipulating
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void begin () const;
+  void begin() const;
 
   /**
    * \brief finalizes the frame buffers after rendering and/or manipulating
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void end () const;
+  void end() const;
 
   /**
    * \brief executes a OpenGL list
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \param [in] list the handle of the OpenGL list to be executed
    */
-  void callList (GLuint list) const;
+  void callList(GLuint list) const;
 
   /**
    * \brief retrieves the color buffer from  OpenGL
@@ -107,11 +107,12 @@ public:
   /**
    * \brief loads, compiles, links and adds GLSL shaders from files to the current OpenGL context.
    * \author Suat Gedikli (gedikli@willowgarage.com)
-   * \param[in] vertex_filename path to vertex shader source code. Can set to "" (empty string) if no vertex shader is used.
+   * \param[in] vertex_filename path to vertex shader source code. Can set to "" (empty string) if no vertex shader is
+   * used.
    * \param[in] fragment_filename path to fragemnt shader source code. Can be set to "" if no fragment shader is used.
    * \return the programID
    */
-  GLuint setShadersFromFile (const std::string& vertex_filename, const std::string& fragment_filename);
+  GLuint setShadersFromFile(const std::string& vertex_filename, const std::string& fragment_filename);
 
   /**
    * \brief loads, compiles, links and adds GLSL shaders from string to the current OpenGL context.
@@ -120,7 +121,7 @@ public:
    * \param[in] fragment_shader source code of the fragment shader. Can be "" if no fragment shader is used.
    * \return  programID
    */
-  GLuint setShadersFromString (const std::string& vertex_shader, const std::string& fragment_shader);
+  GLuint setShadersFromString(const std::string& vertex_shader, const std::string& fragment_shader);
 
   /**
    * \brief set the camera parameters
@@ -130,7 +131,7 @@ public:
    * \param[in] cx x component of principal point
    * \param[in] cy y component of principal point
    */
-  void setCameraParameters (float fx, float fy, float cx, float cy);
+  void setCameraParameters(float fx, float fy, float cx, float cy);
 
   /**
    * \brief sets the near and far clipping plane distances in meters
@@ -138,35 +139,35 @@ public:
    * \param[in] near distance of the near clipping plane in meters
    * \param[in] far distance of the far clipping plane in meters
    */
-  void setClippingRange (float near, float far);
+  void setClippingRange(float near, float far);
 
   /**
    * \brief returns the distance of the near clipping plane in meters
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return distance of near clipping plane in meters
    */
-  const float& getNearClippingDistance () const;
+  const float& getNearClippingDistance() const;
 
   /**
    * \brief returns the distance of the far clipping plane in meters
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return distance of the far clipping plane in meters
    */
-  const float& getFarClippingDistance () const;
+  const float& getFarClippingDistance() const;
 
   /**
    * \brief returns the width of the frame buffer objectsin pixels
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return width of frame buffer in pixels
    */
-  const unsigned getWidth () const;
+  const unsigned getWidth() const;
 
   /**
    * \brief returns the height of the frame buffer objects in pixels
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return height of frame buffer in pixels
    */
-  const unsigned getHeight () const;
+  const unsigned getHeight() const;
 
   /**
    * \brief set the size of fram buffers
@@ -174,35 +175,35 @@ public:
    * \param[in] width width of frame buffer in pixels
    * \param[in] height height of frame buffer in pixels
    */
-  void setBufferSize (unsigned width, unsigned height);
+  void setBufferSize(unsigned width, unsigned height);
 
   /**
    * \returns the current programID
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return current porgamID. 0 if no shaders are used.
    */
-  const GLuint& getProgramID () const;
+  const GLuint& getProgramID() const;
 
   /**
    * \brief returns the handle of the depth buffer as an OpenGL texture object
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return handle of the OpenGL texture object for the depth buffer
    */
-  GLuint getDepthTexture () const;
+  GLuint getDepthTexture() const;
 
   /**
    * \brief returns the handle of the color buffer as an OpenGL texture object
    * \author Suat Gedikli (gedikli@willowgarage.com)
    * \return handle of the OpenGL texture object for the color buffer
    */
-  GLuint getColorTexture () const;
+  GLuint getColorTexture() const;
 
 private:
   /**
    * \brief sets the OpenGL camera parameters
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void setCameraParameters () const;
+  void setCameraParameters() const;
 
   /**
    * \brief reads shader source code from file to a string
@@ -210,7 +211,7 @@ private:
    * \param[in] filename path to file containing the shader source code
    * \param[out] source string to be filled with the shader source code
    */
-  void readShaderCodeFromFile (const std::string& filename, std::string& source) const;
+  void readShaderCodeFromFile(const std::string& filename, std::string& source) const;
 
   /**
    * \brief Compiles, Links and adds the GLSL shaders from strings containing the source codes
@@ -219,7 +220,7 @@ private:
    * \param[in] fragment_source string containing the fragment shader source code
    * \return programID
    */
-  GLuint loadShaders (const std::string& vertex_source, const std::string& fragment_source) const;
+  GLuint loadShaders(const std::string& vertex_source, const std::string& fragment_source) const;
 
   /**
    * \brief create a OpenGL shader object from the shader source code
@@ -228,31 +229,31 @@ private:
    * \param[in] source the source code of the shader to be created
    * \return handle to the shader object
    */
-  GLuint createShader (GLuint shaderID, const std::string& source) const;
+  GLuint createShader(GLuint shaderID, const std::string& source) const;
 
   /**
    * \brief initializes the frame buffer objects
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void initFrameBuffers ();
+  void initFrameBuffers();
 
   /**
    * \brief deletes the frame buffer objects
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  void deleteFrameBuffers ();
+  void deleteFrameBuffers();
 
   /**
    * \brief create the OpenGL context if required. Only on context is created for each thread
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  static void createGLContext ();
+  static void createGLContext();
 
   /**
    * \brief deletes OpenGL context for the current thread
    * \author Suat Gedikli (gedikli@willowgarage.com)
    */
-  static void deleteGLContext ();
+  static void deleteGLContext();
 
   /** \brief width of frame buffer objects in pixels*/
   unsigned width_;
@@ -300,7 +301,6 @@ private:
   static boost::mutex context_lock_;
 
   static bool glutInitialized_;
-
 };
-} // namespace mesh_filter
+}  // namespace mesh_filter
 #endif

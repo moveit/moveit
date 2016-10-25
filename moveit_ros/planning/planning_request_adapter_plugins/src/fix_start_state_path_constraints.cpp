@@ -43,20 +43,19 @@
 
 namespace default_planner_request_adapters
 {
-
 class FixStartStatePathConstraints : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-
   FixStartStatePathConstraints() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
-  virtual std::string getDescription() const { return "Fix Start State Path Constraints"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State Path Constraints";
+  }
 
-
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
@@ -100,11 +99,11 @@ public:
         if (solved2)
         {
           // since we add a prefix, we need to correct any existing index positions
-          for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
+          for (std::size_t i = 0; i < added_path_index.size(); ++i)
             added_path_index[i] += res2.trajectory_->getWayPointCount();
 
           // we mark the fact we insert a prefix path (we specify the index position we just added)
-          for (std::size_t i = 0 ; i < res2.trajectory_->getWayPointCount() ; ++i)
+          for (std::size_t i = 0; i < res2.trajectory_->getWayPointCount(); ++i)
             added_path_index.push_back(i);
 
           // we need to append the solution paths.
@@ -129,9 +128,7 @@ public:
       return planner(planning_scene, req, res);
     }
   }
-
 };
-
 }
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixStartStatePathConstraints,

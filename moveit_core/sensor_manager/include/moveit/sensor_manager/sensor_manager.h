@@ -46,7 +46,6 @@
 /// Namespace for the base class of a MoveIt sensor manager
 namespace moveit_sensor_manager
 {
-
 /** \brief Define the frame of reference and the frustum of a sensor (usually this is a visual sensor) */
 struct SensorInfo
 {
@@ -77,7 +76,6 @@ MOVEIT_CLASS_FORWARD(MoveItSensorManager);
 class MoveItSensorManager
 {
 public:
-
   MoveItSensorManager()
   {
   }
@@ -95,13 +93,15 @@ public:
   /** \brief Check if any sensors are known to this manager */
   virtual bool hasSensors() const = 0;
 
-  /// Point sensor \e name towards a particular point in space (\e target). This may require executing a trajectory, but it may or may not execute that trajectory.
-  /// If it does not, it returns it as part of \e sensor_trajectory. This is the recommended behaviour, since the caller of this function can perform checks on the safety of the trajectory.
-  /// The function returns true on success (either completing execution succesfully or computing a trajecotory successufully)
-  virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target, moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
-
+  /// Point sensor \e name towards a particular point in space (\e target). This may require executing a trajectory, but
+  /// it may or may not execute that trajectory.
+  /// If it does not, it returns it as part of \e sensor_trajectory. This is the recommended behaviour, since the caller
+  /// of this function can perform checks on the safety of the trajectory.
+  /// The function returns true on success (either completing execution succesfully or computing a trajecotory
+  /// successufully)
+  virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target,
+                             moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
 };
-
 }
 
 #endif

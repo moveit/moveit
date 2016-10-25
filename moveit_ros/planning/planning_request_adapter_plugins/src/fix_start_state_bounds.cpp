@@ -43,11 +43,9 @@
 
 namespace default_planner_request_adapters
 {
-
 class FixStartStateBounds : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-
   static const std::string BOUNDS_PARAM_NAME;
   static const std::string DT_PARAM_NAME;
 
@@ -70,11 +68,12 @@ public:
       ROS_INFO_STREAM("Param '" << DT_PARAM_NAME << "' was set to " << max_dt_offset_);
   }
 
-  virtual std::string getDescription() const { return "Fix Start State Bounds"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State Bounds";
+  }
 
-
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
@@ -85,13 +84,13 @@ public:
     robot_state::RobotState start_state = planning_scene->getCurrentState();
     robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
-    const std::vector<const robot_model::JointModel*> &jmodels =
-      planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
-      planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
-      planning_scene->getRobotModel()->getJointModels();
+    const std::vector<const robot_model::JointModel *> &jmodels =
+        planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
+            planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
+            planning_scene->getRobotModel()->getJointModels();
 
     bool change_req = false;
-    for (std::size_t i = 0 ; i < jmodels.size() ; ++i)
+    for (std::size_t i = 0; i < jmodels.size(); ++i)
     {
       // Check if we have a revolute, continuous joint. If we do, then we only need to make sure
       // it is within de model's declared bounds (usually -Pi, Pi), since the values wrap around.
@@ -99,10 +98,10 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
 
-      const robot_model::JointModel* jm = jmodels[i];
+      const robot_model::JointModel *jm = jmodels[i];
       if (jm->getType() == robot_model::JointModel::REVOLUTE)
       {
-        if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
+        if (static_cast<const robot_model::RevoluteJointModel *>(jm)->isContinuous())
         {
           double initial = start_state.getJointPositions(jm)[0];
           start_state.enforceBounds(jm);
@@ -112,34 +111,34 @@ public:
         }
       }
       else
-        // Normalize yaw; no offset needs to be remembered
-        if (jm->getType() == robot_model::JointModel::PLANAR)
+          // Normalize yaw; no offset needs to be remembered
+          if (jm->getType() == robot_model::JointModel::PLANAR)
+      {
+        const double *p = start_state.getJointPositions(jm);
+        double copy[3] = { p[0], p[1], p[2] };
+        if (static_cast<const robot_model::PlanarJointModel *>(jm)->normalizeRotation(copy))
         {
-          const double *p = start_state.getJointPositions(jm);
-          double copy[3] = {p[0], p[1], p[2]};
-          if (static_cast<const robot_model::PlanarJointModel*>(jm)->normalizeRotation(copy))
-          {
-            start_state.setJointPositions(jm, copy);
-            change_req = true;
-          }
+          start_state.setJointPositions(jm, copy);
+          change_req = true;
         }
-        else
+      }
+      else
           // Normalize quaternions
           if (jm->getType() == robot_model::JointModel::FLOATING)
-          {
-            const double *p = start_state.getJointPositions(jm);
-            double copy[7] = {p[0], p[1], p[2], p[3], p[4], p[5], p[6]};
-            if (static_cast<const robot_model::FloatingJointModel*>(jm)->normalizeRotation(copy))
-            {
-              start_state.setJointPositions(jm, copy);
-              change_req = true;
-            }
-          }
+      {
+        const double *p = start_state.getJointPositions(jm);
+        double copy[7] = { p[0], p[1], p[2], p[3], p[4], p[5], p[6] };
+        if (static_cast<const robot_model::FloatingJointModel *>(jm)->normalizeRotation(copy))
+        {
+          start_state.setJointPositions(jm, copy);
+          change_req = true;
+        }
+      }
     }
 
     // pointer to a prefix state we could possibly add, if we detect we have to make changes
     robot_state::RobotStatePtr prefix_state;
-    for (std::size_t i = 0 ; i < jmodels.size() ; ++i)
+    for (std::size_t i = 0; i < jmodels.size(); ++i)
     {
       if (!start_state.satisfiesBounds(jmodels[i]))
       {
@@ -149,7 +148,8 @@ public:
             prefix_state.reset(new robot_state::RobotState(start_state));
           start_state.enforceBounds(jmodels[i]);
           change_req = true;
-          ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.", jmodels[i]->getName().c_str());
+          ROS_INFO("Starting state is just outside bounds (joint '%s'). Assuming within bounds.",
+                   jmodels[i]->getName().c_str());
         }
         else
         {
@@ -157,16 +157,19 @@ public:
           std::stringstream joint_bounds_low;
           std::stringstream joint_bounds_hi;
           const double *p = start_state.getJointPositions(jmodels[i]);
-          for (std::size_t k = 0 ; k < jmodels[i]->getVariableCount() ; ++k)
+          for (std::size_t k = 0; k < jmodels[i]->getVariableCount(); ++k)
             joint_values << p[k] << " ";
           const robot_model::JointModel::Bounds &b = jmodels[i]->getVariableBounds();
-          for (std::size_t k = 0 ; k < b.size() ; ++k)
+          for (std::size_t k = 0; k < b.size(); ++k)
           {
             joint_bounds_low << b[k].min_position_ << " ";
             joint_bounds_hi << b[k].max_position_ << " ";
           }
-          ROS_WARN_STREAM("Joint '" << jmodels[i]->getName() << "' from the starting state is outside bounds by a significant margin: [ " << joint_values.str() << "] should be in the range [ " << joint_bounds_low.str() <<
-                          "], [ " << joint_bounds_hi.str() << "] but the error above the ~" << BOUNDS_PARAM_NAME << " parameter (currently set to " << bounds_dist_ << ")");
+          ROS_WARN_STREAM("Joint '" << jmodels[i]->getName()
+                                    << "' from the starting state is outside bounds by a significant margin: [ "
+                                    << joint_values.str() << "] should be in the range [ " << joint_bounds_low.str()
+                                    << "], [ " << joint_bounds_hi.str() << "] but the error above the ~"
+                                    << BOUNDS_PARAM_NAME << " parameter (currently set to " << bounds_dist_ << ")");
         }
       }
     }
@@ -185,11 +188,13 @@ public:
     // re-add the prefix state, if it was constructed
     if (prefix_state && res.trajectory_ && !res.trajectory_->empty())
     {
-      // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-      res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+      // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to
+      // the computed trajectory)
+      res.trajectory_->setWayPointDurationFromPrevious(
+          0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
       res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
       // we add a prefix point, so we need to bump any previously added index positions
-      for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
+      for (std::size_t i = 0; i < added_path_index.size(); ++i)
         added_path_index[i]++;
       added_path_index.push_back(0);
     }
@@ -198,16 +203,13 @@ public:
   }
 
 private:
-
   ros::NodeHandle nh_;
   double bounds_dist_;
   double max_dt_offset_;
 };
 
-
 const std::string FixStartStateBounds::BOUNDS_PARAM_NAME = "start_state_max_bounds_error";
 const std::string FixStartStateBounds::DT_PARAM_NAME = "start_state_max_dt";
-
 }
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixStartStateBounds,

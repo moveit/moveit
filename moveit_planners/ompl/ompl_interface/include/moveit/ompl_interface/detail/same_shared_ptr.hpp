@@ -37,27 +37,25 @@
 #include <boost/shared_ptr.hpp>
 
 #if __cplusplus >= 201103L
-#  include <memory>
+#include <memory>
 #endif
 
 namespace ompl_interface
 {
-
-template<typename T, typename OtherPtrType>
+template <typename T, typename OtherPtrType>
 struct same_shared_ptr;
 
 #if __cplusplus >= 201103L
-template<typename T, typename Wrapped>
+template <typename T, typename Wrapped>
 struct same_shared_ptr<T, std::shared_ptr<Wrapped> >
 {
   typedef std::shared_ptr<T> type;
 };
 #endif
 
-template<typename T, typename Wrapped>
+template <typename T, typename Wrapped>
 struct same_shared_ptr<T, boost::shared_ptr<Wrapped> >
 {
   typedef boost::shared_ptr<T> type;
 };
-
 }

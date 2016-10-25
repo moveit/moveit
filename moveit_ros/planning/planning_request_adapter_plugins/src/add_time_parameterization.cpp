@@ -41,19 +41,19 @@
 
 namespace default_planner_request_adapters
 {
-
 class AddTimeParameterization : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-
   AddTimeParameterization() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
-  virtual std::string getDescription() const { return "Add Time Parameterization"; }
+  virtual std::string getDescription() const
+  {
+    return "Add Time Parameterization";
+  }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
@@ -62,7 +62,8 @@ public:
     if (result && res.trajectory_)
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
-      if (!time_param_.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor, req.max_acceleration_scaling_factor))
+      if (!time_param_.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor,
+                                         req.max_acceleration_scaling_factor))
         ROS_WARN("Time parametrization for the solution path failed.");
     }
 
@@ -70,10 +71,8 @@ public:
   }
 
 private:
-
   trajectory_processing::IterativeParabolicTimeParameterization time_param_;
 };
-
 }
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::AddTimeParameterization,

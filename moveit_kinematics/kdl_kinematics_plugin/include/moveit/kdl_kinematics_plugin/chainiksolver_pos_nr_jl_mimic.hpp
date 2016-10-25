@@ -35,7 +35,6 @@
 
 namespace KDL
 {
-
 /**
  * Implementation of a general inverse position kinematics
  * algorithm based on Newton-Raphson iterations to calculate the
@@ -64,7 +63,9 @@ public:
    *
    * @return
    */
-  ChainIkSolverPos_NR_JL_Mimic(const Chain& chain,const JntArray& q_min, const JntArray& q_max, ChainFkSolverPos& fksolver,ChainIkSolverVel& iksolver,unsigned int maxiter=100,double eps=1e-6, bool position_ik = false);
+  ChainIkSolverPos_NR_JL_Mimic(const Chain& chain, const JntArray& q_min, const JntArray& q_max,
+                               ChainFkSolverPos& fksolver, ChainIkSolverVel& iksolver, unsigned int maxiter = 100,
+                               double eps = 1e-6, bool position_ik = false);
 
   ~ChainIkSolverPos_NR_JL_Mimic();
 
@@ -76,10 +77,10 @@ public:
 
 private:
   const Chain chain;
-  JntArray q_min;//These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_min_mimic;//These are the limits for the full state
-  JntArray q_max;//These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_max_mimic;//These are the limits for the full state
+  JntArray q_min;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_min_mimic;  // These are the limits for the full state
+  JntArray q_max;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_max_mimic;  // These are the limits for the full state
   JntArray q_temp;
   ChainFkSolverPos& fksolver;
   ChainIkSolverVel& iksolver;
@@ -89,12 +90,11 @@ private:
   unsigned int maxiter;
   double eps;
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
-  void qToqMimic(const JntArray& q, JntArray& q_result); //Convert from the "reduced" state (only active DOFs) to the "full" state
-  void qMimicToq(const JntArray& q, JntArray& q_result); //Convert from the "full" state to the "reduced" state
+  void qToqMimic(const JntArray& q,
+                 JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state
+  void qMimicToq(const JntArray& q, JntArray& q_result);  // Convert from the "full" state to the "reduced" state
   bool position_ik;
-
 };
-
 }
 
 #endif

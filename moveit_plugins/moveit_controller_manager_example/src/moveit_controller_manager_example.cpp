@@ -42,7 +42,6 @@
 
 namespace moveit_controller_manager_example
 {
-
 class ExampleControllerHandle : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
@@ -74,11 +73,9 @@ public:
   }
 };
 
-
 class MoveItControllerManagerExample : public moveit_controller_manager::MoveItControllerManager
 {
 public:
-
   MoveItControllerManagerExample()
   {
   }
@@ -102,7 +99,8 @@ public:
   }
 
   /*
-   * This plugin assumes that all controllers are already active -- and if they are not, well, it has no way to deal with it anyways!
+   * This plugin assumes that all controllers are already active -- and if they are not, well, it has no way to deal
+   * with it anyways!
    */
   virtual void getActiveControllers(std::vector<std::string> &names)
   {
@@ -137,7 +135,8 @@ public:
   /*
    * Controllers are all active and default.
    */
-  virtual moveit_controller_manager::MoveItControllerManager::ControllerState getControllerState(const std::string &name)
+  virtual moveit_controller_manager::MoveItControllerManager::ControllerState
+  getControllerState(const std::string &name)
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = true;
@@ -146,15 +145,17 @@ public:
   }
 
   /* Cannot switch our controllers */
-  virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate) { return false; }
+  virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate)
+  {
+    return false;
+  }
 
 protected:
-
   ros::NodeHandle node_handle_;
   std::map<std::string, moveit_controller_manager::MoveItControllerHandlePtr> controllers_;
 };
 
-} // end namespace moveit_controller_manager_example
+}  // end namespace moveit_controller_manager_example
 
 PLUGINLIB_EXPORT_CLASS(moveit_controller_manager_example::MoveItControllerManagerExample,
                        moveit_controller_manager::MoveItControllerManager);

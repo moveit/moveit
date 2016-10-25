@@ -38,17 +38,18 @@
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/move_group/capability_names.h>
 
-move_group::MoveGroupPlanService::MoveGroupPlanService():
-  MoveGroupCapability("MotionPlanService")
+move_group::MoveGroupPlanService::MoveGroupPlanService() : MoveGroupCapability("MotionPlanService")
 {
 }
 
 void move_group::MoveGroupPlanService::initialize()
 {
-  plan_service_ = root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
+  plan_service_ =
+      root_node_handle_.advertiseService(PLANNER_SERVICE_NAME, &MoveGroupPlanService::computePlanService, this);
 }
 
-bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotionPlan::Request &req,
+                                                          moveit_msgs::GetMotionPlan::Response &res)
 {
   ROS_INFO("Received new planning service request...");
   context_->planning_scene_monitor_->updateFrameTransforms();
@@ -61,12 +62,12 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
     solved = context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
     mp_res.getMessage(res.motion_plan_response);
   }
-  catch(std::runtime_error &ex)
+  catch (std::runtime_error &ex)
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR("Planning pipeline threw an exception");
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;

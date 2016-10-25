@@ -38,7 +38,8 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc, const constraint_samplers::ConstraintSamplerPtr &cs)
+ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc,
+                                                       const constraint_samplers::ConstraintSamplerPtr &cs)
   : ob::StateSampler(pc->getOMPLStateSpace().get())
   , planning_context_(pc)
   , default_(space_->allocDefaultStateSampler())
@@ -62,7 +63,8 @@ bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
 {
   //  moveit::Profiler::ScopedBlock sblock("sampleWithConstraints");
 
-  if (constraint_sampler_->sample(work_state_, planning_context_->getCompleteInitialRobotState(), planning_context_->getMaximumStateSamplingAttempts()))
+  if (constraint_sampler_->sample(work_state_, planning_context_->getCompleteInitialRobotState(),
+                                  planning_context_->getMaximumStateSamplingAttempts()))
   {
     planning_context_->getOMPLStateSpace()->copyToOMPLState(state, work_state_);
     if (space_->satisfiesBounds(state))
@@ -81,7 +83,8 @@ void ompl_interface::ConstrainedSampler::sampleUniform(ob::State *state)
     default_->sampleUniform(state);
 }
 
-void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, const ob::State *near, const double distance)
+void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, const ob::State *near,
+                                                           const double distance)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
   {

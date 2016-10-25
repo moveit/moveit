@@ -48,7 +48,8 @@ moveit::core::Transforms::Transforms(const std::string &target_frame) : target_f
   {
     if (target_frame_[0] != '/')
     {
-      logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.", target_frame_.c_str(), target_frame_.c_str());
+      logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
+              target_frame_.c_str(), target_frame_.c_str());
       target_frame_ = '/' + target_frame_;
     }
     transforms_[target_frame_] = Eigen::Affine3d::Identity();
@@ -70,12 +71,12 @@ moveit::core::Transforms::~Transforms()
 {
 }
 
-const std::string& moveit::core::Transforms::getTargetFrame() const
+const std::string &moveit::core::Transforms::getTargetFrame() const
 {
   return target_frame_;
 }
 
-const moveit::core::FixedTransformsMap& moveit::core::Transforms::getAllTransforms() const
+const moveit::core::FixedTransformsMap &moveit::core::Transforms::getAllTransforms() const
 {
   return transforms_;
 }
@@ -93,16 +94,18 @@ bool moveit::core::Transforms::isFixedFrame(const std::string &frame) const
     return (frame[0] == '/' ? transforms_.find(frame) : transforms_.find('/' + frame)) != transforms_.end();
 }
 
-const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string &from_frame) const
+const Eigen::Affine3d &moveit::core::Transforms::getTransform(const std::string &from_frame) const
 {
   if (!from_frame.empty())
   {
-    FixedTransformsMap::const_iterator it = (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
+    FixedTransformsMap::const_iterator it =
+        (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
     if (it != transforms_.end())
       return it->second;
   }
 
-  logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(), target_frame_.c_str());
+  logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(),
+           target_frame_.c_str());
 
   // return identity
   static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
@@ -114,7 +117,8 @@ bool moveit::core::Transforms::canTransform(const std::string &from_frame) const
   if (from_frame.empty())
     return false;
   else
-    return (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame)) != transforms_.end();
+    return (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame)) !=
+           transforms_.end();
 }
 
 void moveit::core::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
@@ -143,13 +147,14 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
   }
   else
   {
-    logError("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(), target_frame_.c_str());
+    logError("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(),
+             target_frame_.c_str());
   }
 }
 
 void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
 {
-  for (std::size_t i = 0 ; i < transforms.size() ; ++i)
+  for (std::size_t i = 0; i < transforms.size(); ++i)
     setTransform(transforms[i]);
 }
 
@@ -157,7 +162,7 @@ void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::Transfo
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
-  for (FixedTransformsMap::const_iterator it = transforms_.begin() ; it != transforms_.end() ; ++it, ++i)
+  for (FixedTransformsMap::const_iterator it = transforms_.begin(); it != transforms_.end(); ++it, ++i)
   {
     transforms[i].child_frame_id = target_frame_;
     transforms[i].header.frame_id = it->first;

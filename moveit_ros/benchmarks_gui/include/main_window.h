@@ -72,10 +72,9 @@
 
 namespace benchmark_tool
 {
-
 class MainWindow : public QMainWindow
 {
-Q_OBJECT
+  Q_OBJECT
 
 public:
   MainWindow(int argc, char **argv, QWidget *parent = 0);
@@ -93,7 +92,7 @@ public Q_SLOTS:
   void loadSceneButtonClicked(void);
   void loadSceneButtonClicked(QListWidgetItem *item);
 
-  //Goals and states
+  // Goals and states
   void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
   void createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose);
   void createGoalPoseButtonClicked(void);
@@ -121,7 +120,7 @@ public Q_SLOTS:
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
   void removeAllStatesButtonClicked(void);
-  void startStateItemDoubleClicked(QListWidgetItem * item);
+  void startStateItemDoubleClicked(QListWidgetItem *item);
 
   void loadGoalsFromDBButtonClicked(void);
   void saveGoalsOnDBButtonClicked(void);
@@ -130,7 +129,7 @@ public Q_SLOTS:
   void saveStatesOnDBButtonClicked(void);
   void deleteStatesOnDBButtonClicked(void);
 
-  //Trajectories
+  // Trajectories
   void trajectorySelectionChanged(void);
   void createTrajectoryButtonClicked(void);
   void removeTrajectoryButtonClicked(void);
@@ -139,13 +138,12 @@ public Q_SLOTS:
   void trajectoryNWaypointsChanged(int);
   void trajectoryExecuteButtonClicked(void);
 
-  //main loop processing
+  // main loop processing
   void MainLoop();
 
-
 private:
-  const static char * ROBOT_DESCRIPTION_PARAM;
-  const static char * ROBOT_DESCRIPTION_SEMANTIC_PARAM;
+  const static char *ROBOT_DESCRIPTION_PARAM;
+  const static char *ROBOT_DESCRIPTION_SEMANTIC_PARAM;
   const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
@@ -155,7 +153,7 @@ private:
   QDialog *robot_loader_dialog_, *run_benchmark_dialog_, *bbox_dialog_;
   boost::shared_ptr<QSettings> settings_;
 
-  //rviz
+  // rviz
   rviz::RenderPanel *render_panel_;
   rviz::VisualizationManager *visualization_manager_;
   moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
@@ -163,18 +161,19 @@ private:
   bool waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display);
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
-  bool isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group, const double *ik_solution);
+  bool isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group,
+                                 const double *ik_solution);
   bool configure();
   void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
   void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
   void selectItemJob(QListWidgetItem *item, bool flag);
   void saveGoalsToDB();
 
-  //robot interaction
+  // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
   rviz::Display *int_marker_display_;
 
-  //Warehouse
+  // Warehouse
   std::string database_host_;
   std::size_t database_port_;
   moveit_warehouse::PlanningSceneStoragePtr planning_scene_storage_;
@@ -184,7 +183,7 @@ private:
 
   void populatePlanningSceneList(void);
 
-  //Goals and start states
+  // Goals and start states
   robot_interaction::RobotInteraction::InteractionHandlerPtr query_goal_state_;
 
   Eigen::Affine3d goal_offset_;
@@ -205,9 +204,15 @@ private:
     moveit_msgs::RobotState state_msg;
     bool selected;
 
-    StartState(): selected(false) {}
-    StartState(const moveit_msgs::RobotState &state): state_msg(state), selected(false) {}
-    StartState(const moveit_msgs::RobotState &state, bool is_selected): state_msg(state), selected(is_selected) {}
+    StartState() : selected(false)
+    {
+    }
+    StartState(const moveit_msgs::RobotState &state) : state_msg(state), selected(false)
+    {
+    }
+    StartState(const moveit_msgs::RobotState &state, bool is_selected) : state_msg(state), selected(is_selected)
+    {
+    }
   };
 
   typedef std::map<std::string, StartStatePtr> StartStateMap;
@@ -217,7 +222,7 @@ private:
   void populateGoalPosesList();
   void populateStartStatesList();
   void populateTrajectoriesList();
-  void computeGoalPoseDoubleClicked(QListWidgetItem * item);
+  void computeGoalPoseDoubleClicked(QListWidgetItem *item);
   void switchGoalPoseMarkerSelection(const std::string &marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
 
@@ -227,15 +232,15 @@ private:
    *
    * This function helps display collision state for a disconnected
    * end-effector which is used to show goal poses. */
-  bool isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name);
+  bool isGroupCollidingWithWorld(robot_state::RobotState &robot_state, const std::string &group_name);
 
-  void checkIfGoalInCollision(const std::string & goal_name);
+  void checkIfGoalInCollision(const std::string &goal_name);
   void checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable = false);
   void computeLoadBenchmarkResults(const std::string &file);
 
   void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
-  //Trajectories
+  // Trajectories
   void switchTrajectorySelection(const std::string &marker_name);
   void animateTrajectory(const std::vector<robot_state::RobotStatePtr> &traj);
 
@@ -245,15 +250,20 @@ private:
 
   void createTrajectoryStartMarker(const GripperMarker &marker);
 
-  //Background processing
+  // Background processing
   void loadSceneButtonClickedBackgroundJob(void);
 
-  //Foreground processing
-  const static unsigned int MAIN_LOOP_RATE = 20; //calls to executeMainLoopJobs per second
+  // Foreground processing
+  const static unsigned int MAIN_LOOP_RATE = 20;  // calls to executeMainLoopJobs per second
   boost::shared_ptr<QTimer> main_loop_jobs_timer_;
 
-  //Status and logging
-  typedef enum {STATUS_WARN, STATUS_ERROR, STATUS_INFO} StatusType;
+  // Status and logging
+  typedef enum
+  {
+    STATUS_WARN,
+    STATUS_ERROR,
+    STATUS_INFO
+  } StatusType;
   void setStatus(StatusType st, const QString &text)
   {
     if (st == STATUS_WARN)
@@ -276,9 +286,7 @@ private:
   {
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::setStatus, this, st, text));
   }
-
 };
-
 }
 
 #endif

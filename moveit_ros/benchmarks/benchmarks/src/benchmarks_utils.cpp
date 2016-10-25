@@ -42,7 +42,6 @@
 
 namespace moveit_benchmarks
 {
-
 // Keep this function in a separate file so we don't have the class_loader and mongoDB in the same namespace
 // as that causes boost::filesystem version issues (redefinition of symbols)
 std::vector<std::string> benchmarkGetAvailablePluginNames()
@@ -51,9 +50,10 @@ std::vector<std::string> benchmarkGetAvailablePluginNames()
   boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader;
   try
   {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
+        "moveit_core", "planning_interface::PlannerManager"));
   }
-  catch(pluginlib::PluginlibException& ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     std::cerr << "Exception while creating planning plugin loader " << ex.what() << std::endl;
   }
@@ -77,5 +77,4 @@ std::string getHostname()
     return std::string(buffer);
   }
 }
-
 }

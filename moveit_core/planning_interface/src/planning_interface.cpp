@@ -44,19 +44,18 @@ namespace
 struct ActiveContexts
 {
   boost::mutex mutex_;
-  std::set<planning_interface::PlanningContext*> contexts_;
+  std::set<planning_interface::PlanningContext *> contexts_;
 };
 
-static ActiveContexts& getActiveContexts()
+static ActiveContexts &getActiveContexts()
 {
   static ActiveContexts ac;
   return ac;
 }
 }
 
-planning_interface::PlanningContext::PlanningContext(const std::string &name, const std::string &group) :
-  name_(name),
-  group_(group)
+planning_interface::PlanningContext::PlanningContext(const std::string &name, const std::string &group)
+  : name_(name), group_(group)
 {
   ActiveContexts &ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
@@ -80,7 +79,8 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_ = request;
   if (request_.allowed_planning_time <= 0.0)
   {
-    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.", request_.allowed_planning_time);
+    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
+              request_.allowed_planning_time);
     request_.allowed_planning_time = 1.0;
   }
   if (request_.num_planning_attempts < 0)
@@ -98,8 +98,8 @@ std::string planning_interface::PlannerManager::getDescription() const
   return "";
 }
 
-planning_interface::PlanningContextPtr planning_interface::PlannerManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                                                                              const MotionPlanRequest &req) const
+planning_interface::PlanningContextPtr planning_interface::PlannerManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr &planning_scene, const MotionPlanRequest &req) const
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);
@@ -120,6 +120,6 @@ void planning_interface::PlannerManager::terminate() const
 {
   ActiveContexts &ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
-  for (std::set<PlanningContext*>::iterator it = ac.contexts_.begin() ; it != ac.contexts_.end() ; ++it)
+  for (std::set<PlanningContext *>::iterator it = ac.contexts_.begin(); it != ac.contexts_.end(); ++it)
     (*it)->terminate();
 }

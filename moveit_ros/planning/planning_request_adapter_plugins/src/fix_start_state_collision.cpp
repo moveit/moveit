@@ -42,11 +42,9 @@
 
 namespace default_planner_request_adapters
 {
-
 class FixStartStateCollision : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-
   static const std::string DT_PARAM_NAME;
   static const std::string JIGGLE_PARAM_NAME;
   static const std::string ATTEMPTS_PARAM_NAME;
@@ -83,13 +81,14 @@ public:
       }
       ROS_INFO_STREAM("Param '" << ATTEMPTS_PARAM_NAME << "' was set to " << sampling_attempts_);
     }
-
   }
 
-  virtual std::string getDescription() const { return "Fix Start State In Collision"; }
+  virtual std::string getDescription() const
+  {
+    return "Fix Start State In Collision";
+  }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner,
-                            const planning_scene::PlanningSceneConstPtr& planning_scene,
+  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
                             const planning_interface::MotionPlanRequest &req,
                             planning_interface::MotionPlanResponse &res,
                             std::vector<std::size_t> &added_path_index) const
@@ -120,26 +119,28 @@ public:
       robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
       random_numbers::RandomNumberGenerator &rng = prefix_state->getRandomNumberGenerator();
 
-      const std::vector<const robot_model::JointModel*> &jmodels =
-        planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
-        planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
-        planning_scene->getRobotModel()->getJointModels();
+      const std::vector<const robot_model::JointModel *> &jmodels =
+          planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
+              planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
+              planning_scene->getRobotModel()->getJointModels();
 
       bool found = false;
-      for (int c = 0 ; !found && c < sampling_attempts_ ; ++c)
+      for (int c = 0; !found && c < sampling_attempts_; ++c)
       {
-        for (std::size_t i = 0 ; !found && i < jmodels.size() ; ++i)
+        for (std::size_t i = 0; !found && i < jmodels.size(); ++i)
         {
           std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
           const double *original_values = prefix_state->getJointPositions(jmodels[i]);
-          jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values, jmodels[i]->getMaximumExtent() * jiggle_fraction_);
+          jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values,
+                                                       jmodels[i]->getMaximumExtent() * jiggle_fraction_);
           start_state.setJointPositions(jmodels[i], sampled_variable_values);
           collision_detection::CollisionResult cres;
           planning_scene->checkCollision(creq, cres, start_state);
           if (!cres.collision)
           {
             found = true;
-            ROS_INFO("Found a valid state near the start state at distance %lf after %d attempts", prefix_state->distance(start_state), c);
+            ROS_INFO("Found a valid state near the start state at distance %lf after %d attempts",
+                     prefix_state->distance(start_state), c);
           }
         }
       }
@@ -151,11 +152,13 @@ public:
         bool solved = planner(planning_scene, req2, res);
         if (solved && !res.trajectory_->empty())
         {
-          // heuristically decide a duration offset for the trajectory (induced by the additional point added as a prefix to the computed trajectory)
-          res.trajectory_->setWayPointDurationFromPrevious(0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
+          // heuristically decide a duration offset for the trajectory (induced by the additional point added as a
+          // prefix to the computed trajectory)
+          res.trajectory_->setWayPointDurationFromPrevious(
+              0, std::min(max_dt_offset_, res.trajectory_->getAverageSegmentDuration()));
           res.trajectory_->addPrefixWayPoint(prefix_state, 0.0);
           // we add a prefix point, so we need to bump any previously added index positions
-          for (std::size_t i = 0 ; i < added_path_index.size() ; ++i)
+          for (std::size_t i = 0; i < added_path_index.size(); ++i)
             added_path_index[i]++;
           added_path_index.push_back(0);
         }
@@ -163,7 +166,8 @@ public:
       }
       else
       {
-        ROS_WARN("Unable to find a valid state nearby the start state (using jiggle fraction of %lf and %u sampling attempts). Passing the original planning request to the planner.",
+        ROS_WARN("Unable to find a valid state nearby the start state (using jiggle fraction of %lf and %u sampling "
+                 "attempts). Passing the original planning request to the planner.",
                  jiggle_fraction_, sampling_attempts_);
         return planner(planning_scene, req, res);
       }
@@ -179,7 +183,6 @@ public:
   }
 
 private:
-
   ros::NodeHandle nh_;
   double max_dt_offset_;
   double jiggle_fraction_;
@@ -189,7 +192,6 @@ private:
 const std::string FixStartStateCollision::DT_PARAM_NAME = "start_state_max_dt";
 const std::string FixStartStateCollision::JIGGLE_PARAM_NAME = "jiggle_fraction";
 const std::string FixStartStateCollision::ATTEMPTS_PARAM_NAME = "max_sampling_attempts";
-
 }
 
 CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::FixStartStateCollision,

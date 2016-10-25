@@ -36,85 +36,91 @@
 
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
 // Reading/Writing Files
-#include <iostream> // For writing yaml and launch files
+#include <iostream>  // For writing yaml and launch files
 #include <fstream>
-#include <yaml-cpp/yaml.h> // outputing yaml config files
-#include <boost/filesystem.hpp>  // for creating folders/files
-#include <boost/algorithm/string.hpp> // for string find and replace in templates
+#include <yaml-cpp/yaml.h>             // outputing yaml config files
+#include <boost/filesystem.hpp>        // for creating folders/files
+#include <boost/algorithm/string.hpp>  // for string find and replace in templates
 
 #ifdef HAVE_NEW_YAMLCPP
-#include <boost/optional.hpp> // optional
+#include <boost/optional.hpp>  // optional
 #endif
 
 // ROS
 #include <ros/console.h>
-#include <ros/package.h> // for getting file path for loading images
+#include <ros/package.h>  // for getting file path for loading images
 
 #ifdef HAVE_NEW_YAMLCPP
-namespace YAML {
-  // Create a legacy Iterator that can be used with the yaml-cpp 0.3 API.
-  class Iterator
+namespace YAML
+{
+// Create a legacy Iterator that can be used with the yaml-cpp 0.3 API.
+class Iterator
+{
+public:
+  typedef YAML::iterator iterator_t;
+  typedef YAML::const_iterator const_iterator_t;
+
+  Iterator(iterator_t iter) : iter_(iter)
   {
-  public:
-    typedef YAML::iterator iterator_t;
-    typedef YAML::const_iterator const_iterator_t;
+  }
 
-    Iterator (iterator_t iter) : iter_ (iter)
-    {
-    }
+  const Node& first() const
+  {
+    return iter_->first;
+  }
 
-    const Node& first () const
-    {
-      return iter_->first;
-    }
+  const Node& second() const
+  {
+    return iter_->second;
+  }
 
-    const Node& second () const
-    {
-      return iter_->second;
-    }
+  detail::iterator_value operator*()
+  {
+    return *iter_;
+  }
 
-    detail::iterator_value operator*() { return *iter_; }
+  Iterator operator++()
+  {
+    return Iterator(++iter_);
+  }
 
-    Iterator operator++() { return Iterator (++iter_); }
+  bool operator==(iterator_t const& other) const
+  {
+    return iter_ == other;
+  }
 
-    bool operator== (iterator_t const& other) const
-    {
-      return iter_ == other;
-    }
+  bool operator!=(iterator_t const& other) const
+  {
+    return iter_ != other;
+  }
 
-    bool operator!= (iterator_t const& other) const
-    {
-      return iter_ != other;
-    }
-
-  private:
-    iterator_t iter_;
-  };
+private:
+  iterator_t iter_;
+};
 }
 #endif
 
 namespace moveit_setup_assistant
 {
-
 // File system
 namespace fs = boost::filesystem;
-
 
 #ifdef HAVE_NEW_YAMLCPP
 typedef boost::optional<YAML::Node> yaml_node_t;
 
 // Helper function to find a value (yaml-cpp 0.5)
 template <typename T>
-yaml_node_t findValue (const YAML::Node& node, const T& key)
+yaml_node_t findValue(const YAML::Node& node, const T& key)
 {
-  if (node[key]) return node[key];
-  return yaml_node_t ();
+  if (node[key])
+    return node[key];
+  return yaml_node_t();
 }
 
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
 // added to provide support for code written under the yaml-cpp 0.3 API.
-template<typename T>
-void operator >> (const YAML::Node& node, T& i)
+template <typename T>
+void operator>>(const YAML::Node& node, T& i)
 {
   i = node.as<T>();
 }
@@ -124,12 +130,11 @@ typedef const YAML::Node* yaml_node_t;
 
 // Helper function to find a value (yaml-cpp 0.3)
 template <typename T>
-yaml_node_t findValue (const YAML::Node& node, const T& key)
+yaml_node_t findValue(const YAML::Node& node, const T& key)
 {
-  return node.FindValue (key);
+  return node.FindValue(key);
 }
 #endif
-
 
 // yaml-cpp 0.5 also changed how you load the YAML document.  This
 // function hides the changes.
@@ -146,19 +151,18 @@ void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-MoveItConfigData::MoveItConfigData() :
-  config_pkg_generated_timestamp_(0)
+MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
-  srdf_.reset( new srdf::SRDFWriter() );
-  urdf_model_.reset( new urdf::Model() );
+  srdf_.reset(new srdf::SRDFWriter());
+  urdf_model_.reset(new urdf::Model());
 
   // Not in debug mode
   debug_ = false;
 
   // Get MoveIt Setup Assistant package path
   setup_assistant_path_ = ros::package::getPath("moveit_setup_assistant");
-  if( setup_assistant_path_.empty() )
+  if (setup_assistant_path_.empty())
   {
     setup_assistant_path_ = ".";
   }
@@ -176,10 +180,10 @@ MoveItConfigData::~MoveItConfigData()
 // ******************************************************************************************
 robot_model::RobotModelConstPtr MoveItConfigData::getRobotModel()
 {
-  if( !robot_model_ )
+  if (!robot_model_)
   {
     // Initialize with a URDF Model Interface and a SRDF Model
-    robot_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
+    robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_->srdf_model_));
     robot_model_const_ = robot_model_;
   }
 
@@ -191,13 +195,13 @@ robot_model::RobotModelConstPtr MoveItConfigData::getRobotModel()
 // ******************************************************************************************
 void MoveItConfigData::updateRobotModel()
 {
-  ROS_INFO( "Updating kinematic model");
+  ROS_INFO("Updating kinematic model");
 
   // Tell SRDF Writer to create new SRDF Model, use original URDF model
-  srdf_->updateSRDFModel( *urdf_model_ );
+  srdf_->updateSRDFModel(*urdf_model_);
 
   // Create new kin model
-  robot_model_.reset( new robot_model::RobotModel( urdf_model_, srdf_->srdf_model_ ) );
+  robot_model_.reset(new robot_model::RobotModel(urdf_model_, srdf_->srdf_model_));
   robot_model_const_ = robot_model_;
 
   // Reset the planning scene
@@ -209,7 +213,7 @@ void MoveItConfigData::updateRobotModel()
 // ******************************************************************************************
 planning_scene::PlanningScenePtr MoveItConfigData::getPlanningScene()
 {
-  if( !planning_scene_ )
+  if (!planning_scene_)
   {
     // make sure kinematic model exists
     getRobotModel();
@@ -229,17 +233,17 @@ void MoveItConfigData::loadAllowedCollisionMatrix()
   allowed_collision_matrix_.clear();
 
   // Update the allowed collision matrix, in case there has been a change
-  for( std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = srdf_->disabled_collisions_.begin();
-       pair_it != srdf_->disabled_collisions_.end(); ++pair_it )
+  for (std::vector<srdf::Model::DisabledCollision>::const_iterator pair_it = srdf_->disabled_collisions_.begin();
+       pair_it != srdf_->disabled_collisions_.end(); ++pair_it)
   {
-    allowed_collision_matrix_.setEntry( pair_it->link1_, pair_it->link2_, true );
+    allowed_collision_matrix_.setEntry(pair_it->link1_, pair_it->link2_, true);
   }
 }
 
 // ******************************************************************************************
 // Output MoveIt Setup Assistant hidden settings file
 // ******************************************************************************************
-bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
+bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
@@ -267,28 +271,28 @@ bool MoveItConfigData::outputSetupAssistantFile( const std::string& file_path )
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "author_name" << YAML::Value << author_name_;
   emitter << YAML::Key << "author_email" << YAML::Value << author_email_;
-  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(NULL); // TODO: is this cross-platform?
+  emitter << YAML::Key << "generated_timestamp" << YAML::Value << std::time(NULL);  // TODO: is this cross-platform?
   emitter << YAML::EndMap;
 
   emitter << YAML::EndMap;
 
-  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
-  if( !output_stream.good() )
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
 
   output_stream << emitter.c_str();
   output_stream.close();
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
 // Output OMPL Planning config files
 // ******************************************************************************************
-bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
+bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
@@ -300,33 +304,38 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
 
   std::vector<OMPLPlannerDescription> planner_des;
 
-  OMPLPlannerDescription SBL("SBL","geometric");
+  OMPLPlannerDescription SBL("SBL", "geometric");
   SBL.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
   planner_des.push_back(SBL);
 
   OMPLPlannerDescription EST("EST", "geometric");
-  EST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0 setup()" );
+  EST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0 setup()");
   EST.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   planner_des.push_back(EST);
 
   OMPLPlannerDescription LBKPIECE("LBKPIECE", "geometric");
-  LBKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  LBKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                        "setup()");
   LBKPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9");
   LBKPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(LBKPIECE);
 
   OMPLPlannerDescription BKPIECE("BKPIECE", "geometric");
-  BKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  BKPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                       "setup()");
   BKPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9");
-  BKPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. default: 0.5");
+  BKPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. "
+                                                               "default: 0.5");
   BKPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(BKPIECE);
 
   OMPLPlannerDescription KPIECE("KPIECE", "geometric");
-  KPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  KPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                      "setup()");
   KPIECE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
   KPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9 (0.0,1.]");
-  KPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. default: 0.5");
+  KPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. "
+                                                              "default: 0.5");
   KPIECE.addParameter("min_valid_path_fraction", "0.5", "Accept partially valid moves above fraction. default: 0.5");
   planner_des.push_back(KPIECE);
 
@@ -336,13 +345,16 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   planner_des.push_back(RRT);
 
   OMPLPlannerDescription RRTConnect("RRTConnect", "geometric");
-  RRTConnect.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  RRTConnect.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                          "setup()");
   planner_des.push_back(RRTConnect);
 
   OMPLPlannerDescription RRTstar("RRTstar", "geometric");
-  RRTstar.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()");
+  RRTstar.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                       "setup()");
   RRTstar.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
-  RRTstar.addParameter("delay_collision_checking", "1", "Stop collision checking as soon as C-free parent found. default 1");
+  RRTstar.addParameter("delay_collision_checking", "1", "Stop collision checking as soon as C-free parent found. "
+                                                        "default 1");
   planner_des.push_back(RRTstar);
 
   OMPLPlannerDescription TRRT("TRRT", "geometric");
@@ -352,7 +364,8 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   TRRT.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   TRRT.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   TRRT.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  TRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. default: 0.0 set in setup() ");
+  TRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
+                                                  "default: 0.0 set in setup() ");
   TRRT.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   TRRT.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(TRRT);
@@ -361,23 +374,23 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   PRM.addParameter("max_nearest_neighbors", "10", "use k nearest neighbors. default: 10");
   planner_des.push_back(PRM);
 
-  OMPLPlannerDescription PRMstar("PRMstar", "geometric"); // no delcares in code
+  OMPLPlannerDescription PRMstar("PRMstar", "geometric");  // no delcares in code
   planner_des.push_back(PRMstar);
 
-  // Add Planners with parameter values 
+  // Add Planners with parameter values
   std::vector<std::string> pconfigs;
-  for (std::size_t i = 0 ; i < planner_des.size() ; ++i)
+  for (std::size_t i = 0; i < planner_des.size(); ++i)
   {
     std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
     emitter << YAML::Key << defaultconfig;
     emitter << YAML::Value << YAML::BeginMap;
     emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
-    for(std::size_t  j=0; j<planner_des[i].parameter_list_.size(); j++) 
-      {
-	emitter << YAML::Key  << planner_des[i].parameter_list_[j].name;
-	emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
-	emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
-      }
+    for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
+    {
+      emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
+      emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
+      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
+    }
     emitter << YAML::EndMap;
 
     pconfigs.push_back(defaultconfig);
@@ -387,21 +400,21 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
   emitter << YAML::EndMap;
 
   // Output every group and the planners it can use ----------------------------------
-  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end();  ++group_it )
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
   {
     emitter << YAML::Key << group_it->name_;
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
-    for (std::size_t i = 0 ; i < pconfigs.size() ; ++i)
+    for (std::size_t i = 0; i < pconfigs.size(); ++i)
       emitter << pconfigs[i];
     emitter << YAML::EndSeq;
 
     // Output projection_evaluator
-    std::string projection_joints = decideProjectionJoints( group_it->name_ );
-    if( !projection_joints.empty() )
+    std::string projection_joints = decideProjectionJoints(group_it->name_);
+    if (!projection_joints.empty())
     {
       emitter << YAML::Key << "projection_evaluator";
       emitter << YAML::Value << projection_joints;
@@ -414,34 +427,34 @@ bool MoveItConfigData::outputOMPLPlanningYAML( const std::string& file_path )
 
   emitter << YAML::EndMap;
 
-  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
-  if( !output_stream.good() )
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
 
   output_stream << emitter.c_str();
   output_stream.close();
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
 // Output kinematic config files
 // ******************************************************************************************
-bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
+bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
 
   // Output every group and the kinematic solver it can use ----------------------------------
-  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end();  ++group_it )
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
   {
     // Only save kinematic data if the solver is not "None"
-    if( group_meta_data_[ group_it->name_ ].kinematics_solver_.empty() ||
-        group_meta_data_[ group_it->name_ ].kinematics_solver_ == "None" )
+    if (group_meta_data_[group_it->name_].kinematics_solver_.empty() ||
+        group_meta_data_[group_it->name_].kinematics_solver_ == "None")
       continue;
 
     emitter << YAML::Key << group_it->name_;
@@ -449,39 +462,39 @@ bool MoveItConfigData::outputKinematicsYAML( const std::string& file_path )
 
     // Kinematic Solver
     emitter << YAML::Key << "kinematics_solver";
-    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_;
+    emitter << YAML::Value << group_meta_data_[group_it->name_].kinematics_solver_;
 
     // Search Resolution
     emitter << YAML::Key << "kinematics_solver_search_resolution";
-    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_search_resolution_;
+    emitter << YAML::Value << group_meta_data_[group_it->name_].kinematics_solver_search_resolution_;
 
     // Solver Timeout
     emitter << YAML::Key << "kinematics_solver_timeout";
-    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_timeout_;
+    emitter << YAML::Value << group_meta_data_[group_it->name_].kinematics_solver_timeout_;
 
     // Solver Attempts
     emitter << YAML::Key << "kinematics_solver_attempts";
-    emitter << YAML::Value << group_meta_data_[ group_it->name_ ].kinematics_solver_attempts_;
+    emitter << YAML::Value << group_meta_data_[group_it->name_].kinematics_solver_attempts_;
 
     emitter << YAML::EndMap;
   }
 
   emitter << YAML::EndMap;
 
-  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
-  if( !output_stream.good() )
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
 
   output_stream << emitter.c_str();
   output_stream.close();
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
 
-bool MoveItConfigData::outputFakeControllersYAML( const std::string& file_path )
+bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
@@ -493,14 +506,13 @@ bool MoveItConfigData::outputFakeControllersYAML( const std::string& file_path )
   std::set<const robot_model::JointModel*> joints;
 
   // Loop through groups
-  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end();  ++group_it)
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
   {
     // Get list of associated joints
-    const robot_model::JointModelGroup *joint_model_group =
-      getRobotModel()->getJointModelGroup( group_it->name_ );
+    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
     emitter << YAML::BeginMap;
-    const std::vector<const robot_model::JointModel*> &joint_models = joint_model_group->getActiveJointModels();
+    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
     emitter << YAML::Key << "name";
     emitter << YAML::Value << "fake_" + group_it->name_ + "_controller";
     emitter << YAML::Key << "joints";
@@ -518,23 +530,23 @@ bool MoveItConfigData::outputFakeControllersYAML( const std::string& file_path )
   emitter << YAML::EndSeq;
   emitter << YAML::EndMap;
 
-  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
-  if( !output_stream.good() )
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
 
   output_stream << emitter.c_str();
   output_stream.close();
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
 // Output joint limits config files
 // ******************************************************************************************
-bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
+bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
@@ -546,14 +558,13 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   std::set<const robot_model::JointModel*, joint_model_compare> joints;
 
   // Loop through groups
-  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end();  ++group_it)
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
   {
     // Get list of associated joints
-    const robot_model::JointModelGroup *joint_model_group =
-      getRobotModel()->getJointModelGroup( group_it->name_ );
+    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
 
-    const std::vector<const robot_model::JointModel*> &joint_models = joint_model_group->getJointModels();
+    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getJointModels();
 
     // Iterate through the joints
     for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
@@ -566,12 +577,13 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
   }
 
   // Add joints to yaml file, if no more than 1 dof
-  for ( std::set<const robot_model::JointModel*>::iterator joint_it = joints.begin() ; joint_it != joints.end() ; ++joint_it )
+  for (std::set<const robot_model::JointModel*>::iterator joint_it = joints.begin(); joint_it != joints.end();
+       ++joint_it)
   {
     emitter << YAML::Key << (*joint_it)->getName();
     emitter << YAML::Value << YAML::BeginMap;
 
-    const robot_model::VariableBounds &b = (*joint_it)->getVariableBounds()[0];
+    const robot_model::VariableBounds& b = (*joint_it)->getVariableBounds()[0];
 
     // Output property
     emitter << YAML::Key << "has_velocity_limits";
@@ -600,49 +612,51 @@ bool MoveItConfigData::outputJointLimitsYAML( const std::string& file_path )
 
   emitter << YAML::EndMap;
 
-  std::ofstream output_stream( file_path.c_str(), std::ios_base::trunc );
-  if( !output_stream.good() )
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for writing " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
   // Add documentation into joint_limits.yaml
-  output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or augmented as needed" << std::endl;
-  output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]" << std::endl;
+  output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or "
+                   "augmented as needed" << std::endl;
+  output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, "
+                   "max_velocity, max_acceleration]" << std::endl;
   output_stream << "# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]" << std::endl;
   output_stream << emitter.c_str();
   output_stream.close();
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
 
 // ******************************************************************************************
 // Set list of collision link pairs in SRDF; sorted; with optional filter
 // ******************************************************************************************
 
-
 class SortableDisabledCollision
 {
 public:
-  SortableDisabledCollision(const srdf::Model::DisabledCollision &dc) :
-     dc_(dc), key_( dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_) )
+  SortableDisabledCollision(const srdf::Model::DisabledCollision& dc)
+    : dc_(dc), key_(dc.link1_ < dc.link2_ ? (dc.link1_ + "|" + dc.link2_) : (dc.link2_ + "|" + dc.link1_))
   {
   }
-  operator const srdf::Model::DisabledCollision () const
+  operator const srdf::Model::DisabledCollision() const
   {
     return dc_;
-
   }
-  bool operator < (const SortableDisabledCollision &other) const
+  bool operator<(const SortableDisabledCollision& other) const
   {
     return key_ < other.key_;
   }
+
 private:
   const srdf::Model::DisabledCollision dc_;
   const std::string key_;
 };
 
-void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap &link_pairs, size_t skip_mask){
+void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkPairMap& link_pairs, size_t skip_mask)
+{
   // Create temp disabled collision
   srdf::Model::DisabledCollision dc;
 
@@ -650,17 +664,18 @@ void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkP
   disabled_collisions.insert(srdf_->disabled_collisions_.begin(), srdf_->disabled_collisions_.end());
 
   // copy the data in this class's LinkPairMap datastructure to srdf::Model::DisabledCollision format
-  for ( moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin();
-        pair_it != link_pairs.end(); ++pair_it)
+  for (moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs.begin(); pair_it != link_pairs.end();
+       ++pair_it)
   {
     // Only copy those that are actually disabled
-    if(pair_it->second.disable_check)
+    if (pair_it->second.disable_check)
     {
-      if((1 << pair_it->second.reason) & skip_mask) continue;
+      if ((1 << pair_it->second.reason) & skip_mask)
+        continue;
 
       dc.link1_ = pair_it->first.first;
       dc.link2_ = pair_it->first.second;
-      dc.reason_ = moveit_setup_assistant::disabledReasonToString( pair_it->second.reason );
+      dc.reason_ = moveit_setup_assistant::disabledReasonToString(pair_it->second.reason);
 
       disabled_collisions.insert(SortableDisabledCollision(dc));
     }
@@ -668,7 +683,6 @@ void MoveItConfigData::setCollisionLinkPairs(const moveit_setup_assistant::LinkP
 
   srdf_->disabled_collisions_.assign(disabled_collisions.begin(), disabled_collisions.end());
 }
-
 
 // ******************************************************************************************
 // Decide the best two joints to be used for the projection evaluator
@@ -678,10 +692,10 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
   std::string joint_pair = "";
 
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = getRobotModel();
+  const robot_model::RobotModelConstPtr& model = getRobotModel();
 
   // Error check
-  if( !model->hasJointModelGroup( planning_group ) )
+  if (!model->hasJointModelGroup(planning_group))
     return joint_pair;
 
   // Get the joint model group
@@ -690,14 +704,14 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
   // get vector of joint names
   const std::vector<std::string> joints = group->getJointModelNames();
 
-  if( joints.size() >= 2 )
+  if (joints.size() >= 2)
   {
     // Check that the first two joints have only 1 variable
-    if( group->getJointModel( joints[0] )->getVariableCount() == 1 &&
-        group->getJointModel( joints[1] )->getVariableCount() == 1)
+    if (group->getJointModel(joints[0])->getVariableCount() == 1 &&
+        group->getJointModel(joints[1])->getVariableCount() == 1)
     {
       // Just choose the first two joints.
-      joint_pair = "joints("+joints[0] + "," + joints[1]+")";
+      joint_pair = "joints(" + joints[0] + "," + joints[1] + ")";
     }
   }
 
@@ -707,28 +721,29 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
 // ******************************************************************************************
 // Input kinematics.yaml file
 // ******************************************************************************************
-bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
+bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
 {
   // Load file
-  std::ifstream input_stream( file_path.c_str() );
-  if( !input_stream.good() )
+  std::ifstream input_stream(file_path.c_str());
+  if (!input_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for reading " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for reading " << file_path);
     return false;
   }
 
   // Begin parsing
-  try {
+  try
+  {
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
     yaml_node_t prop_name;
 
-    // Loop through all groups
+// Loop through all groups
 #ifdef HAVE_NEW_YAMLCPP
-    for( YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+    for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
 #else
-    for( YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it )
+    for (YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
 #endif
     {
 #ifdef HAVE_NEW_YAMLCPP
@@ -741,21 +756,21 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       // Create new meta data
       GroupMetaData new_meta_data;
 
-      // kinematics_solver
+// kinematics_solver
 #ifdef HAVE_NEW_YAMLCPP
-      if( prop_name = findValue( group_it->second, "kinematics_solver" ) )
+      if (prop_name = findValue(group_it->second, "kinematics_solver"))
 #else
-      if( prop_name = findValue( group_it.second(), "kinematics_solver" ) )
+      if (prop_name = findValue(group_it.second(), "kinematics_solver"))
 #endif
       {
         *prop_name >> new_meta_data.kinematics_solver_;
       }
 
-      // kinematics_solver_search_resolution
+// kinematics_solver_search_resolution
 #ifdef HAVE_NEW_YAMLCPP
-      if( prop_name = findValue( group_it->second, "kinematics_solver_search_resolution" ) )
+      if (prop_name = findValue(group_it->second, "kinematics_solver_search_resolution"))
 #else
-      if( prop_name = findValue( group_it.second(), "kinematics_solver_search_resolution" ) )
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_search_resolution"))
 #endif
       {
         *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
@@ -765,11 +780,11 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
       }
 
-      // kinematics_solver_timeout
+// kinematics_solver_timeout
 #ifdef HAVE_NEW_YAMLCPP
-      if( prop_name = findValue( group_it->second, "kinematics_solver_timeout" ) )
+      if (prop_name = findValue(group_it->second, "kinematics_solver_timeout"))
 #else
-      if( prop_name = findValue( group_it.second(), "kinematics_solver_timeout" ) )
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_timeout"))
 #endif
       {
         *prop_name >> new_meta_data.kinematics_solver_timeout_;
@@ -779,11 +794,11 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
         new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
       }
 
-      // kinematics_solver_attempts
+// kinematics_solver_attempts
 #ifdef HAVE_NEW_YAMLCPP
-      if( prop_name = findValue( group_it->second, "kinematics_solver_attempts" ) )
+      if (prop_name = findValue(group_it->second, "kinematics_solver_attempts"))
 #else
-      if( prop_name = findValue( group_it.second(), "kinematics_solver_attempts" ) )
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_attempts"))
 #endif
       {
         *prop_name >> new_meta_data.kinematics_solver_attempts_;
@@ -794,35 +809,33 @@ bool MoveItConfigData::inputKinematicsYAML( const std::string& file_path )
       }
 
       // Assign meta data to vector
-      group_meta_data_[ group_name ] = new_meta_data;
+      group_meta_data_[group_name] = new_meta_data;
     }
-
   }
-  catch(YAML::ParserException& e)  // Catch errors
+  catch (YAML::ParserException& e)  // Catch errors
   {
-    ROS_ERROR_STREAM( e.what() );
+    ROS_ERROR_STREAM(e.what());
     return false;
   }
 
-  return true; // file created successfully
+  return true;  // file created successfully
 }
-
 
 // ******************************************************************************************
 // Set package path; try to resolve path from package name if directory does not exist
 // ******************************************************************************************
-bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
+bool MoveItConfigData::setPackagePath(const std::string& pkg_path)
 {
   std::string full_package_path;
 
   // check that the folder exists
-  if( !fs::is_directory( pkg_path ) )
+  if (!fs::is_directory(pkg_path))
   {
     // does not exist, check if its a package
-    full_package_path = ros::package::getPath( pkg_path );
+    full_package_path = ros::package::getPath(pkg_path);
 
     // check that the folder exists
-    if( !fs::is_directory( full_package_path ) )
+    if (!fs::is_directory(full_package_path))
     {
       return false;
     }
@@ -841,12 +854,12 @@ bool MoveItConfigData::setPackagePath( const std::string& pkg_path )
 // Resolve path to .setup_assistant file
 // ******************************************************************************************
 
-bool MoveItConfigData::getSetupAssistantYAMLPath( std::string& path )
+bool MoveItConfigData::getSetupAssistantYAMLPath(std::string& path)
 {
   path = appendPaths(config_pkg_path_, ".setup_assistant");
 
   // Check if the old package is a setup assistant package
-  return fs::is_regular_file( path );
+  return fs::is_regular_file(path);
 }
 
 // ******************************************************************************************
@@ -857,7 +870,7 @@ bool MoveItConfigData::createFullURDFPath()
   boost::trim(urdf_pkg_name_);
 
   // Check if a package name was provided
-  if( urdf_pkg_name_.empty() || urdf_pkg_name_ == "\"\"" )
+  if (urdf_pkg_name_.empty() || urdf_pkg_name_ == "\"\"")
   {
     urdf_path_ = urdf_pkg_relative_path_;
     urdf_pkg_name_.clear();
@@ -865,9 +878,9 @@ bool MoveItConfigData::createFullURDFPath()
   else
   {
     // Check that ROS can find the package
-    std::string robot_desc_pkg_path = ros::package::getPath( urdf_pkg_name_ );
+    std::string robot_desc_pkg_path = ros::package::getPath(urdf_pkg_name_);
 
-    if( robot_desc_pkg_path.empty() )
+    if (robot_desc_pkg_path.empty())
     {
       urdf_path_.clear();
       return false;
@@ -878,94 +891,94 @@ bool MoveItConfigData::createFullURDFPath()
   }
 
   // Check that this file exits -------------------------------------------------
-  return fs::is_regular_file( urdf_path_ );
+  return fs::is_regular_file(urdf_path_);
 }
 
 // ******************************************************************************************
 // Make the full SRDF path using the loaded .setup_assistant data
 // ******************************************************************************************
-bool MoveItConfigData::createFullSRDFPath( const std::string& package_path )
+bool MoveItConfigData::createFullSRDFPath(const std::string& package_path)
 {
   srdf_path_ = appendPaths(package_path, srdf_pkg_relative_path_);
 
-  return fs::is_regular_file( srdf_path_ );
+  return fs::is_regular_file(srdf_path_);
 }
-
 
 // ******************************************************************************************
 // Input .setup_assistant file - contains data used for the MoveIt Setup Assistant
 // ******************************************************************************************
-bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
+bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
 {
   // Load file
-  std::ifstream input_stream( file_path.c_str() );
-  if( !input_stream.good() )
+  std::ifstream input_stream(file_path.c_str());
+  if (!input_stream.good())
   {
-    ROS_ERROR_STREAM( "Unable to open file for reading " << file_path );
+    ROS_ERROR_STREAM("Unable to open file for reading " << file_path);
     return false;
   }
 
   // Begin parsing
-  try {
+  try
+  {
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
-    yaml_node_t title_node, urdf_node, package_node, srdf_node,
-                relative_node, config_node, timestamp_node, author_name_node, author_email_node;
+    yaml_node_t title_node, urdf_node, package_node, srdf_node, relative_node, config_node, timestamp_node,
+        author_name_node, author_email_node;
 
     // Get title node
-    if( title_node = findValue( doc, "moveit_setup_assistant_config" ) )
+    if (title_node = findValue(doc, "moveit_setup_assistant_config"))
     {
       // URDF Properties
-      if( urdf_node = findValue( *title_node, "URDF" ) )
+      if (urdf_node = findValue(*title_node, "URDF"))
       {
         // Load first property
-        if( package_node = findValue( *urdf_node, "package" ) )
+        if (package_node = findValue(*urdf_node, "package"))
         {
           *package_node >> urdf_pkg_name_;
         }
         else
         {
-          return false; // if we do not find this value we cannot continue
+          return false;  // if we do not find this value we cannot continue
         }
 
         // Load second property
-        if( relative_node = findValue( *urdf_node, "relative_path" ) )
+        if (relative_node = findValue(*urdf_node, "relative_path"))
         {
           *relative_node >> urdf_pkg_relative_path_;
         }
         else
         {
-          return false; // if we do not find this value we cannot continue
+          return false;  // if we do not find this value we cannot continue
         }
       }
       // SRDF Properties
-      if( srdf_node = findValue( *title_node, "SRDF" ) )
+      if (srdf_node = findValue(*title_node, "SRDF"))
       {
         // Load first property
-        if( relative_node = findValue( *srdf_node, "relative_path" ) )
+        if (relative_node = findValue(*srdf_node, "relative_path"))
         {
           *relative_node >> srdf_pkg_relative_path_;
         }
         else
         {
-          return false; // if we do not find this value we cannot continue
+          return false;  // if we do not find this value we cannot continue
         }
       }
       // Package generation time
-      if( config_node = findValue( *title_node, "CONFIG" ) )
+      if (config_node = findValue(*title_node, "CONFIG"))
       {
         // Load author contact details
-        if( author_name_node = findValue( *config_node, "author_name" ) )
+        if (author_name_node = findValue(*config_node, "author_name"))
         {
           *author_name_node >> author_name_;
         }
-        if( author_email_node = findValue( *config_node, "author_email" ) )
+        if (author_email_node = findValue(*config_node, "author_email"))
         {
           *author_email_node >> author_email_;
         }
         // Load first property
-        if( timestamp_node = findValue( *config_node, "generated_timestamp" ) )
+        if (timestamp_node = findValue(*config_node, "generated_timestamp"))
         {
           *timestamp_node >> config_pkg_generated_timestamp_;
         }
@@ -977,46 +990,45 @@ bool MoveItConfigData::inputSetupAssistantYAML( const std::string& file_path )
       return true;
     }
   }
-  catch(YAML::ParserException& e)  // Catch errors
+  catch (YAML::ParserException& e)  // Catch errors
   {
-    ROS_ERROR_STREAM( e.what() );
+    ROS_ERROR_STREAM(e.what());
   }
 
-  return false; // if it gets to this point an error has occured
+  return false;  // if it gets to this point an error has occured
 }
 
 // ******************************************************************************************
 // Helper Function for joining a file path and a file name, or two file paths, etc, in a cross-platform way
 // ******************************************************************************************
-std::string MoveItConfigData::appendPaths( const std::string &path1, const std::string &path2 )
+std::string MoveItConfigData::appendPaths(const std::string& path1, const std::string& path2)
 {
   fs::path result = path1;
   result /= path2;
   return result.make_preferred().native().c_str();
 }
 
-srdf::Model::Group* MoveItConfigData::findGroupByName( const std::string &name )
+srdf::Model::Group* MoveItConfigData::findGroupByName(const std::string& name)
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = NULL; // used for holding our search results
+  srdf::Model::Group* searched_group = NULL;  // used for holding our search results
 
-  for( std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin();
-       group_it != srdf_->groups_.end(); ++group_it )
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
   {
-    if( group_it->name_ == name ) // string match
+    if (group_it->name_ == name)  // string match
     {
       searched_group = &(*group_it);  // convert to pointer from iterator
-      break; // we are done searching
+      break;                          // we are done searching
     }
   }
 
   // Check if subgroup was found
-  if( searched_group == NULL ) // not found
-    ROS_FATAL_STREAM("An internal error has occured while searching for groups. Group '" << name << "' was not found in the SRDF.");
+  if (searched_group == NULL)  // not found
+    ROS_FATAL_STREAM("An internal error has occured while searching for groups. Group '" << name << "' was not found "
+                                                                                                    "in the SRDF.");
 
   return searched_group;
 }
 
-
-
-} // namespace
+}  // namespace

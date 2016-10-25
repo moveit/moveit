@@ -45,26 +45,33 @@
 
 namespace benchmark_tool
 {
-
 const std::string Trajectory::TRAJECTORY_SET_START_POSE_STRING = "Set start pose";
 const std::string Trajectory::TRAJECTORY_SET_END_POSE_STRING = "Set end pose";
 const std::string Trajectory::TRAJECTORY_EDIT_CONTROL_FRAME_STRING = "Edit control frame";
 const std::string Trajectory::TRAJECTORY_FIX_CONTROL_FRAME_STRING = "Fix control frame";
 
-Trajectory::Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                       const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                       const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected, bool visible_x, bool visible_y, bool visible_z):
-                       dragging_(false), nwaypoints_(nwaypoints), control_marker_mode_(CONTROL_MARKER_FIXED)
+Trajectory::Trajectory(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
+                       rviz::DisplayContext *context, const std::string &name, const std::string &frame_id,
+                       const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose,
+                       double scale, const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints,
+                       bool is_selected, bool visible_x, bool visible_y, bool visible_z)
+  : dragging_(false), nwaypoints_(nwaypoints), control_marker_mode_(CONTROL_MARKER_FIXED)
 {
-  createControlMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected, visible_x, visible_y, visible_z);
+  createControlMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state, is_selected,
+                      visible_x, visible_y, visible_z);
   createHandMarker();
 }
 
-void Trajectory::createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                       const std::string &frame_id, const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-                       const GripperMarker::GripperMarkerState &state, bool is_selected, bool visible_x, bool visible_y, bool visible_z)
+void Trajectory::createControlMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
+                                     rviz::DisplayContext *context, const std::string &name,
+                                     const std::string &frame_id,
+                                     const robot_interaction::RobotInteraction::EndEffector &eef,
+                                     const geometry_msgs::Pose &pose, double scale,
+                                     const GripperMarker::GripperMarkerState &state, bool is_selected, bool visible_x,
+                                     bool visible_y, bool visible_z)
 {
-  GripperMarkerPtr control( new GripperMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state));
+  GripperMarkerPtr control(
+      new GripperMarker(robot_state, parent_node, context, name, frame_id, eef, pose, scale, state));
   control->select(true);
   std::vector<visualization_msgs::MenuEntry> menu_entries;
   visualization_msgs::MenuEntry m;
@@ -138,21 +145,21 @@ void Trajectory::createEndMarker()
 
 void Trajectory::connectControlMarker()
 {
-  control_marker->connect(this, SLOT( trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  control_marker->connect(this, SLOT(trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 }
 
 void Trajectory::connectHandMarker()
 {
-  hand_marker->connect( this, SLOT( handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  hand_marker->connect(this, SLOT(handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 }
 
 void Trajectory::connectStartMarker()
 {
-  start_marker->connect(this, SLOT( startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  start_marker->connect(this, SLOT(startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 }
 void Trajectory::connectEndMarker()
 {
-  end_marker->connect(this, SLOT( endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &) ));
+  end_marker->connect(this, SLOT(endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
 }
 
 void Trajectory::rebuildWayPointMarkers()
@@ -178,7 +185,7 @@ void Trajectory::rebuildWayPointMarkers()
     for (std::size_t i = 0; i <= nfragments; ++i)
     {
       Eigen::Vector3d waypoint_t = ((nfragments - i) * start_t + i * end_t) / nfragments;
-      Eigen::Quaterniond waypoint_r = start_r.slerp( (double)i / (double)nfragments, end_r );
+      Eigen::Quaterniond waypoint_r = start_r.slerp((double)i / (double)nfragments, end_r);
       Eigen::Affine3d wMwpt(waypoint_r);
       wMwpt.translation() = waypoint_t;
 
@@ -191,7 +198,7 @@ void Trajectory::rebuildWayPointMarkers()
       waypoint->unselect(true);
       waypoint->setColor(0.0, 0.9, 0.0, 1 - (double)i / (double)nfragments);
       Eigen::Quaterniond rotation(wMwph.rotation());
-      waypoint->imarker->setPose(Ogre::Vector3(wMwph(0,3), wMwph(1,3), wMwph(2,3)),
+      waypoint->imarker->setPose(Ogre::Vector3(wMwph(0, 3), wMwph(1, 3), wMwph(2, 3)),
                                  Ogre::Quaternion(rotation.w(), rotation.x(), rotation.y(), rotation.z()), "");
       waypoint_markers.push_back(waypoint);
     }
@@ -206,13 +213,13 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
     {
       if (control_marker_mode_ == CONTROL_MARKER_FLOATING)
       {
-        //If the control marker is not fixed, fix it
+        // If the control marker is not fixed, fix it
         fixControlFrame();
       }
 
       control_marker->getPose(control_marker_start_pose);
 
-      //Create start marker
+      // Create start marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createStartMarker, this));
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
@@ -220,13 +227,13 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
     {
       if (control_marker_mode_ == CONTROL_MARKER_FLOATING)
       {
-        //If the control marker is not fixed, fix it
+        // If the control marker is not fixed, fix it
         fixControlFrame();
       }
 
       control_marker->getPose(control_marker_end_pose);
 
-      //Create end marker
+      // Create end marker
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::createEndMarker, this));
       JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::rebuildWayPointMarkers, this));
     }
@@ -241,26 +248,29 @@ void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerF
   }
   else if (feedback.event_type == feedback.MOUSE_DOWN && control_marker_mode_ == CONTROL_MARKER_FIXED)
   {
-    //Store current hand pose
+    // Store current hand pose
     hand_marker->getPose(hand_marker_start_pose);
     control_marker->getPose(control_marker_drag_start_pose);
 
-    dragging_=true;
+    dragging_ = true;
   }
   else if (feedback.event_type == feedback.POSE_UPDATE && dragging_ && control_marker_mode_ == CONTROL_MARKER_FIXED)
   {
-    //Compute displacement from stored pose, and apply to the rest of selected markers
+    // Compute displacement from stored pose, and apply to the rest of selected markers
     Eigen::Affine3d current_pose_eigen;
     tf::poseMsgToEigen(feedback.pose, current_pose_eigen);
 
     Eigen::Affine3d current_wrt_initial = control_marker_drag_start_pose.inverse() * current_pose_eigen;
 
     visualization_msgs::InteractiveMarkerPose impose;
-    Eigen::Affine3d newpose = control_marker_drag_start_pose * current_wrt_initial * control_marker_drag_start_pose.inverse() * hand_marker_start_pose;
+    Eigen::Affine3d newpose = control_marker_drag_start_pose * current_wrt_initial *
+                              control_marker_drag_start_pose.inverse() * hand_marker_start_pose;
     tf::poseEigenToMsg(newpose, impose.pose);
 
     hand_marker->imarker->setPose(Ogre::Vector3(impose.pose.position.x, impose.pose.position.y, impose.pose.position.z),
-                                  Ogre::Quaternion(impose.pose.orientation.w, impose.pose.orientation.x, impose.pose.orientation.y, impose.pose.orientation.z), "");
+                                  Ogre::Quaternion(impose.pose.orientation.w, impose.pose.orientation.x,
+                                                   impose.pose.orientation.y, impose.pose.orientation.z),
+                                  "");
   }
   else if (feedback.event_type == feedback.MOUSE_UP)
   {
@@ -336,4 +346,4 @@ void Trajectory::handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedbac
 {
 }
 
-} //namespace
+}  // namespace

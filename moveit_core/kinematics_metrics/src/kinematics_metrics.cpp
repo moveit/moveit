@@ -40,32 +40,36 @@
 
 namespace kinematics_metrics
 {
-
-double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &state, const robot_model::JointModelGroup *joint_model_group) const
+double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &state,
+                                                const robot_model::JointModelGroup *joint_model_group) const
 {
   if (fabs(penalty_multiplier_) <= boost::math::tools::epsilon<double>())
-     return 1.0;
+    return 1.0;
   double joint_limits_multiplier(1.0);
-  const std::vector<const robot_model::JointModel*> &joint_model_vector = joint_model_group->getJointModels();
+  const std::vector<const robot_model::JointModel *> &joint_model_vector = joint_model_group->getJointModels();
   for (std::size_t i = 0; i < joint_model_vector.size(); ++i)
   {
     if (joint_model_vector[i]->getType() == robot_model::JointModel::REVOLUTE)
     {
-      const robot_model::RevoluteJointModel* revolute_model = static_cast<const robot_model::RevoluteJointModel*>(joint_model_vector[i]);
+      const robot_model::RevoluteJointModel *revolute_model =
+          static_cast<const robot_model::RevoluteJointModel *>(joint_model_vector[i]);
       if (revolute_model->isContinuous())
         continue;
     }
     if (joint_model_vector[i]->getType() == robot_model::JointModel::PLANAR)
     {
       const robot_model::JointModel::Bounds &bounds = joint_model_vector[i]->getVariableBounds();
-      if (bounds[0].min_position_ == -std::numeric_limits<double>::max() || bounds[0].max_position_ == std::numeric_limits<double>::max() ||
-          bounds[1].min_position_ == -std::numeric_limits<double>::max() || bounds[1].max_position_ == std::numeric_limits<double>::max() ||
-          bounds[2].min_position_ == -boost::math::constants::pi<double>() || bounds[2].max_position_ == boost::math::constants::pi<double>())
+      if (bounds[0].min_position_ == -std::numeric_limits<double>::max() ||
+          bounds[0].max_position_ == std::numeric_limits<double>::max() ||
+          bounds[1].min_position_ == -std::numeric_limits<double>::max() ||
+          bounds[1].max_position_ == std::numeric_limits<double>::max() ||
+          bounds[2].min_position_ == -boost::math::constants::pi<double>() ||
+          bounds[2].max_position_ == boost::math::constants::pi<double>())
         continue;
     }
     if (joint_model_vector[i]->getType() == robot_model::JointModel::FLOATING)
     {
-      //Joint limits are not well-defined for floating joints
+      // Joint limits are not well-defined for floating joints
       continue;
     }
     const double *joint_values = state.getJointPositions(joint_model_vector[i]);
@@ -81,15 +85,13 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &s
     double range = lower_bound_distance + upper_bound_distance;
     if (range <= boost::math::tools::epsilon<double>())
       continue;
-    joint_limits_multiplier *= (lower_bound_distance * upper_bound_distance/(range*range));
+    joint_limits_multiplier *= (lower_bound_distance * upper_bound_distance / (range * range));
   }
-  return (1.0 - exp(-penalty_multiplier_*joint_limits_multiplier));
+  return (1.0 - exp(-penalty_multiplier_ * joint_limits_multiplier));
 }
 
-bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &state,
-                                               const std::string &group_name,
-                                               double &manipulability_index,
-                                               bool translation) const
+bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &state, const std::string &group_name,
+                                               double &manipulability_index, bool translation) const
 {
   const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (joint_model_group)
@@ -100,11 +102,10 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &st
 
 bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &state,
                                                const robot_model::JointModelGroup *joint_model_group,
-                                               double &manipulability_index,
-                                               bool translation) const
+                                               double &manipulability_index, bool translation) const
 {
   // state.getJacobian() only works for chain groups.
-  if(!joint_model_group->isChain())
+  if (!joint_model_group->isChain())
   {
     return false;
   }
@@ -114,45 +115,45 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &st
   double penalty = getJointLimitsPenalty(state, joint_model_group);
   if (translation)
   {
-    if(jacobian.cols()<6)
+    if (jacobian.cols() < 6)
     {
-      Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3,jacobian.cols()));
+      Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3, jacobian.cols()));
       Eigen::MatrixXd singular_values = svdsolver.singularValues();
       manipulability_index = 1.0;
-      for(unsigned int i=0; i < singular_values.rows(); ++i)
+      for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
-        logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
-        manipulability_index *= singular_values(i,0);
+        logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+        manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
       manipulability_index = penalty * manipulability_index;
     }
     else
     {
-      Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3,jacobian.cols());
-      Eigen::MatrixXd matrix = jacobian_2*jacobian_2.transpose();
+      Eigen::MatrixXd jacobian_2 = jacobian.topLeftCorner(3, jacobian.cols());
+      Eigen::MatrixXd matrix = jacobian_2 * jacobian_2.transpose();
       // Get manipulability index
       manipulability_index = penalty * sqrt(matrix.determinant());
     }
   }
   else
   {
-    if(jacobian.cols()<6)
+    if (jacobian.cols() < 6)
     {
       Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
       Eigen::MatrixXd singular_values = svdsolver.singularValues();
       manipulability_index = 1.0;
-      for(unsigned int i=0; i < singular_values.rows(); ++i)
+      for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
-        logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
-        manipulability_index *= singular_values(i,0);
+        logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+        manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
       manipulability_index = penalty * manipulability_index;
     }
     else
     {
-      Eigen::MatrixXd matrix = jacobian*jacobian.transpose();
+      Eigen::MatrixXd matrix = jacobian * jacobian.transpose();
       // Get manipulability index
       manipulability_index = penalty * sqrt(matrix.determinant());
     }
@@ -160,8 +161,7 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &st
   return true;
 }
 
-bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState &state,
-                                                   const std::string &group_name,
+bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState &state, const std::string &group_name,
                                                    Eigen::MatrixXcd &eigen_values,
                                                    Eigen::MatrixXcd &eigen_vectors) const
 {
@@ -178,23 +178,21 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState
                                                    Eigen::MatrixXcd &eigen_vectors) const
 {
   // state.getJacobian() only works for chain groups.
-  if(!joint_model_group->isChain())
+  if (!joint_model_group->isChain())
   {
     return false;
   }
 
   Eigen::MatrixXd jacobian = state.getJacobian(joint_model_group);
-  Eigen::MatrixXd matrix = jacobian*jacobian.transpose();
+  Eigen::MatrixXd matrix = jacobian * jacobian.transpose();
   Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(matrix.block(0, 0, 3, 3));
   eigen_values = eigensolver.eigenvalues();
   eigen_vectors = eigensolver.eigenvectors();
   return true;
 }
 
-bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
-                                          const std::string &group_name,
-                                          double &manipulability,
-                                          bool translation) const
+bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state, const std::string &group_name,
+                                          double &manipulability, bool translation) const
 {
   const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (joint_model_group)
@@ -204,12 +202,11 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
 }
 
 bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
-                                          const robot_model::JointModelGroup *joint_model_group,
-                                          double &manipulability,
+                                          const robot_model::JointModelGroup *joint_model_group, double &manipulability,
                                           bool translation) const
 {
   // state.getJacobian() only works for chain groups.
-  if(!joint_model_group->isChain())
+  if (!joint_model_group->isChain())
   {
     return false;
   }
@@ -218,22 +215,22 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
   if (translation)
   {
     Eigen::MatrixXd jacobian = state.getJacobian(joint_model_group);
-    Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3,jacobian.cols()));
+    Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3, jacobian.cols()));
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (int i = 0; i < singular_values.rows(); ++i)
-      logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
-    manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();
+      logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+    manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   else
   {
     Eigen::MatrixXd jacobian = state.getJacobian(joint_model_group);
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
-    for(int i=0; i < singular_values.rows(); ++i)
-      logDebug("moveit.kin_metrics: Singular value: %d %f",i,singular_values(i,0));
-    manipulability = penalty * singular_values.minCoeff()/singular_values.maxCoeff();
+    for (int i = 0; i < singular_values.rows(); ++i)
+      logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+    manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   return true;
 }
 
-} // namespace
+}  // namespace

@@ -37,14 +37,13 @@
 #ifndef KDLCHAINIKSOLVERPOS_LMA_JL_MIMIC_H
 #define KDLCHAINIKSOLVERPOS_LMA_JL_MIMIC_H
 
-#include "kdl/chainiksolverpos_lma.hpp" // Solver for the inverse position kinematics that uses Levenberg-Marquardt.
+#include "kdl/chainiksolverpos_lma.hpp"  // Solver for the inverse position kinematics that uses Levenberg-Marquardt.
 #include "kdl/chainfksolver.hpp"
 
 #include <moveit/lma_kinematics_plugin/joint_mimic.h>
 
 namespace KDL
 {
-
 /**
  * Implementation of a general inverse position kinematics
  * algorithm based on Levenberg-Marquardt method to calculate the
@@ -73,7 +72,9 @@ public:
    *
    * @return
    */
-  ChainIkSolverPos_LMA_JL_Mimic(const Chain& chain,const JntArray& q_min, const JntArray& q_max, ChainFkSolverPos& fksolver,ChainIkSolverPos_LMA& iksolver,unsigned int maxiter=100,double eps=1e-6, bool position_ik = false);
+  ChainIkSolverPos_LMA_JL_Mimic(const Chain& chain, const JntArray& q_min, const JntArray& q_max,
+                                ChainFkSolverPos& fksolver, ChainIkSolverPos_LMA& iksolver, unsigned int maxiter = 100,
+                                double eps = 1e-6, bool position_ik = false);
 
   ~ChainIkSolverPos_LMA_JL_Mimic();
 
@@ -85,10 +86,10 @@ public:
 
 private:
   const Chain chain;
-  JntArray q_min;//These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_min_mimic;//These are the limits for the full state
-  JntArray q_max;//These are the limits for the "reduced" state consisting of only active DOFs
-  JntArray q_max_mimic;//These are the limits for the full state
+  JntArray q_min;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_min_mimic;  // These are the limits for the full state
+  JntArray q_max;        // These are the limits for the "reduced" state consisting of only active DOFs
+  JntArray q_max_mimic;  // These are the limits for the full state
   JntArray q_temp;
   ChainFkSolverPos& fksolver;
   ChainIkSolverPos_LMA& iksolver;
@@ -98,14 +99,13 @@ private:
   unsigned int maxiter;
   double eps;
   std::vector<lma_kinematics_plugin::JointMimic> mimic_joints;
-  void qToqMimic(const JntArray& q, JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state
+  void qToqMimic(const JntArray& q,
+                 JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state
   void qMimicToq(const JntArray& q, JntArray& q_result);  // Convert from the "full" state to the "reduced" state
   void harmonize(JntArray& q_out);                        // Puts the angles within [-2PI, 2PI]
-  bool obeysLimits(const KDL::JntArray &q_out);           // Checks that a set of joint angles obey the urdf limits
+  bool obeysLimits(const KDL::JntArray& q_out);           // Checks that a set of joint angles obey the urdf limits
   bool position_ik;
-
 };
-
 }
 
 #endif

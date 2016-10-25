@@ -41,179 +41,178 @@
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
 
+static const char* URDF_STR = "<?xml version=\"1.0\" ?>"
+                              "<robot name=\"one_robot\">"
+                              "<link name=\"base_link\">"
+                              "  <inertial>"
+                              "    <mass value=\"2.81\"/>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+                              "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+                              "  </inertial>"
+                              "  <collision name=\"my_collision\">"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "<joint name=\"joint_a\" type=\"continuous\">"
+                              "   <axis xyz=\"0 0 1\"/>"
+                              "   <parent link=\"base_link\"/>"
+                              "   <child link=\"link_a\"/>"
+                              "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
+                              "</joint>"
+                              "<link name=\"link_a\">"
+                              "  <inertial>"
+                              "    <mass value=\"1.0\"/>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+                              "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+                              "  </inertial>"
+                              "  <collision>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "<joint name=\"joint_b\" type=\"fixed\">"
+                              "  <parent link=\"link_a\"/>"
+                              "  <child link=\"link_b\"/>"
+                              "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
+                              "</joint>"
+                              "<link name=\"link_b\">"
+                              "  <inertial>"
+                              "    <mass value=\"1.0\"/>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+                              "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+                              "  </inertial>"
+                              "  <collision>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "  <joint name=\"joint_c\" type=\"prismatic\">"
+                              "    <axis xyz=\"1 0 0\"/>"
+                              "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.09\" velocity=\"0.2\"/>"
+                              "    <safety_controller k_position=\"20.0\" k_velocity=\"500.0\" "
+                              "soft_lower_limit=\"0.0\" soft_upper_limit=\"0.089\"/>"
+                              "    <parent link=\"link_b\"/>"
+                              "    <child link=\"link_c\"/>"
+                              "    <origin rpy=\" 0.0 0.42 0.0 \" xyz=\"0.0 -0.1 0 \"/>"
+                              "  </joint>"
+                              "<link name=\"link_c\">"
+                              "  <inertial>"
+                              "    <mass value=\"1.0\"/>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 .0\"/>"
+                              "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+                              "  </inertial>"
+                              "  <collision>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "  <joint name=\"mim_f\" type=\"prismatic\">"
+                              "    <axis xyz=\"1 0 0\"/>"
+                              "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
+                              "    <parent link=\"link_c\"/>"
+                              "    <child link=\"link_d\"/>"
+                              "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+                              "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
+                              "  </joint>"
+                              "  <joint name=\"joint_f\" type=\"prismatic\">"
+                              "    <axis xyz=\"1 0 0\"/>"
+                              "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
+                              "    <parent link=\"link_d\"/>"
+                              "    <child link=\"link_e\"/>"
+                              "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+                              "  </joint>"
+                              "<link name=\"link_d\">"
+                              "  <collision>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "<link name=\"link_e\">"
+                              "  <collision>"
+                              "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </collision>"
+                              "  <visual>"
+                              "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
+                              "    <geometry>"
+                              "      <box size=\"1 2 1\" />"
+                              "    </geometry>"
+                              "  </visual>"
+                              "</link>"
+                              "</robot>";
 
-
-static const char *URDF_STR =
-  "<?xml version=\"1.0\" ?>"
-  "<robot name=\"one_robot\">"
-  "<link name=\"base_link\">"
-  "  <inertial>"
-  "    <mass value=\"2.81\"/>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-  "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-  "  </inertial>"
-  "  <collision name=\"my_collision\">"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "<joint name=\"joint_a\" type=\"continuous\">"
-  "   <axis xyz=\"0 0 1\"/>"
-  "   <parent link=\"base_link\"/>"
-  "   <child link=\"link_a\"/>"
-  "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
-  "</joint>"
-  "<link name=\"link_a\">"
-  "  <inertial>"
-  "    <mass value=\"1.0\"/>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-  "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-  "  </inertial>"
-  "  <collision>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "<joint name=\"joint_b\" type=\"fixed\">"
-  "  <parent link=\"link_a\"/>"
-  "  <child link=\"link_b\"/>"
-  "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
-  "</joint>"
-  "<link name=\"link_b\">"
-  "  <inertial>"
-  "    <mass value=\"1.0\"/>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-  "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-  "  </inertial>"
-  "  <collision>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "  <joint name=\"joint_c\" type=\"prismatic\">"
-  "    <axis xyz=\"1 0 0\"/>"
-  "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.09\" velocity=\"0.2\"/>"
-  "    <safety_controller k_position=\"20.0\" k_velocity=\"500.0\" soft_lower_limit=\"0.0\" soft_upper_limit=\"0.089\"/>"
-  "    <parent link=\"link_b\"/>"
-  "    <child link=\"link_c\"/>"
-  "    <origin rpy=\" 0.0 0.42 0.0 \" xyz=\"0.0 -0.1 0 \"/>"
-  "  </joint>"
-  "<link name=\"link_c\">"
-  "  <inertial>"
-  "    <mass value=\"1.0\"/>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 .0\"/>"
-  "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-  "  </inertial>"
-  "  <collision>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "  <joint name=\"mim_f\" type=\"prismatic\">"
-  "    <axis xyz=\"1 0 0\"/>"
-  "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
-  "    <parent link=\"link_c\"/>"
-  "    <child link=\"link_d\"/>"
-  "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
-  "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
-  "  </joint>"
-  "  <joint name=\"joint_f\" type=\"prismatic\">"
-  "    <axis xyz=\"1 0 0\"/>"
-  "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
-  "    <parent link=\"link_d\"/>"
-  "    <child link=\"link_e\"/>"
-  "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
-  "  </joint>"
-  "<link name=\"link_d\">"
-  "  <collision>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "<link name=\"link_e\">"
-  "  <collision>"
-  "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </collision>"
-  "  <visual>"
-  "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
-  "    <geometry>"
-  "      <box size=\"1 2 1\" />"
-  "    </geometry>"
-  "  </visual>"
-  "</link>"
-  "</robot>";
-
-static const char *SRDF_STR =
-  "<?xml version=\"1.0\" ?>"
-  "<robot name=\"one_robot\">"
-  "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
-  "<group name=\"base_from_joints\">"
-  "<joint name=\"base_joint\"/>"
-  "<joint name=\"joint_a\"/>"
-  "<joint name=\"joint_c\"/>"
-  "</group>"
-  "<group name=\"mim_joints\">"
-  "<joint name=\"joint_f\"/>"
-  "<joint name=\"mim_f\"/>"
-  "</group>"
-  "<group name=\"base_with_subgroups\">"
-  "<group name=\"base_from_base_to_tip\"/>"
-  "<joint name=\"joint_c\"/>"
-  "</group>"
-  "<group name=\"base_from_base_to_tip\">"
-  "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
-  "<joint name=\"base_joint\"/>"
-  "</group>"
-  "</robot>";
+static const char* SRDF_STR =
+    "<?xml version=\"1.0\" ?>"
+    "<robot name=\"one_robot\">"
+    "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
+    "<group name=\"base_from_joints\">"
+    "<joint name=\"base_joint\"/>"
+    "<joint name=\"joint_a\"/>"
+    "<joint name=\"joint_c\"/>"
+    "</group>"
+    "<group name=\"mim_joints\">"
+    "<joint name=\"joint_f\"/>"
+    "<joint name=\"mim_f\"/>"
+    "</group>"
+    "<group name=\"base_with_subgroups\">"
+    "<group name=\"base_from_base_to_tip\"/>"
+    "<joint name=\"joint_c\"/>"
+    "</group>"
+    "<group name=\"base_from_base_to_tip\">"
+    "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
+    "<joint name=\"base_joint\"/>"
+    "</group>"
+    "</robot>";
 
 // index of joints from URDF
-enum {
+enum
+{
   JOINT_A = 3,
   JOINT_C = 4,
-  MIM_F   = 5,
+  MIM_F = 5,
   JOINT_F = 6
 };
 
@@ -241,8 +240,7 @@ TEST(LockedRobotState, load)
   state2.setToDefaultValues();
   robot_interaction::LockedRobotState ls2(state2);
 
-  robot_interaction::LockedRobotStatePtr ls4(
-                    new robot_interaction::LockedRobotState(model));
+  robot_interaction::LockedRobotStatePtr ls4(new robot_interaction::LockedRobotState(model));
 }
 
 // sanity test the URDF and enum
@@ -258,10 +256,9 @@ TEST(LockedRobotState, URDF_sanity)
 class Super1 : public robot_interaction::LockedRobotState
 {
 public:
-  Super1(const robot_model::RobotModelPtr& model)
-    : LockedRobotState(model)
-    , cnt_(0)
-  {}
+  Super1(const robot_model::RobotModelPtr& model) : LockedRobotState(model), cnt_(0)
+  {
+  }
 
   virtual void robotStateChanged()
   {
@@ -304,35 +301,28 @@ TEST(LockedRobotState, robotStateChanged)
 class MyInfo
 {
 public:
-  MyInfo()
-    : quit_(false)
-  {}
+  MyInfo() : quit_(false)
+  {
+  }
 
   // Thread that repeatedly sets state to different values
-  void setThreadFunc(robot_interaction::LockedRobotState* locked_state,
-                        int* counter,
-                        double offset);
+  void setThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter, double offset);
 
   // Thread that repeatedly modifies  state with different values
-  void modifyThreadFunc(robot_interaction::LockedRobotState* locked_state,
-                        int* counter,
-                        double offset);
+  void modifyThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter, double offset);
 
   // Thread that repeatedly checks that state is valid (not half-updated)
-  void checkThreadFunc(robot_interaction::LockedRobotState* locked_state,
-                       int* counter);
+  void checkThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter);
 
   // Thread that waits for other threads to complete
-  void waitThreadFunc(robot_interaction::LockedRobotState* locked_state,
-                      int** counters,
-                      int max);
+  void waitThreadFunc(robot_interaction::LockedRobotState* locked_state, int** counters, int max);
 
 private:
   // helper function for modifyThreadFunc
-  void modifyFunc( robot_state::RobotState* state, double val);
+  void modifyFunc(robot_state::RobotState* state, double val);
 
   // Checks state for validity and self-consistancy.
-  void checkState(robot_interaction::LockedRobotState &locked_state);
+  void checkState(robot_interaction::LockedRobotState& locked_state);
 
   // mutex protects quit_ and counter variables
   boost::mutex cnt_lock_;
@@ -343,7 +333,7 @@ private:
 };
 
 // Check the state.  It should always be valid.
-void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
+void MyInfo::checkState(robot_interaction::LockedRobotState& locked_state)
 {
   robot_state::RobotStateConstPtr s = locked_state.getState();
 
@@ -358,8 +348,7 @@ void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
   cnt_lock_.unlock();
 
   // check mim_f == joint_f
-  EXPECT_EQ(s->getVariablePositions()[MIM_F],
-            s->getVariablePositions()[JOINT_F] * 1.5 + 0.1);
+  EXPECT_EQ(s->getVariablePositions()[MIM_F], s->getVariablePositions()[JOINT_F] * 1.5 + 0.1);
 
   robot_state::RobotState cp2(*s);
 
@@ -367,28 +356,23 @@ void MyInfo::checkState(robot_interaction::LockedRobotState &locked_state)
   EXPECT_NE(cp1.getVariablePositions(), s->getVariablePositions());
 
   int cnt = cp1.getVariableCount();
-  for (int i = 0 ; i < cnt ; ++i)
+  for (int i = 0; i < cnt; ++i)
   {
-    EXPECT_EQ(cp1.getVariablePositions()[i],
-              cp2.getVariablePositions()[i]);
-    EXPECT_EQ(cp1.getVariablePositions()[i],
-              s->getVariablePositions()[i]);
+    EXPECT_EQ(cp1.getVariablePositions()[i], cp2.getVariablePositions()[i]);
+    EXPECT_EQ(cp1.getVariablePositions()[i], s->getVariablePositions()[i]);
   }
 
   // check mim_f == joint_f
-  EXPECT_EQ(s->getVariablePositions()[MIM_F],
-            s->getVariablePositions()[JOINT_F] * 1.5 + 0.1);
+  EXPECT_EQ(s->getVariablePositions()[MIM_F], s->getVariablePositions()[JOINT_F] * 1.5 + 0.1);
 }
 
 // spin, checking the state
-void MyInfo::checkThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter)
+void MyInfo::checkThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
-    for (int loops = 0 ; loops < 100 ; ++loops)
+    for (int loops = 0; loops < 100; ++loops)
     {
       checkState(*locked_state);
     }
@@ -401,16 +385,13 @@ void MyInfo::checkThreadFunc(
 }
 
 // spin, setting the state to different values
-void MyInfo::setThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter,
-    double offset)
+void MyInfo::setThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter, double offset)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     double val = offset;
-    for (int loops = 0 ; loops < 100 ; ++loops)
+    for (int loops = 0; loops < 100; ++loops)
     {
       val += 0.0001;
       robot_state::RobotState cp1(*locked_state->getState());
@@ -434,9 +415,7 @@ void MyInfo::setThreadFunc(
 }
 
 // modify the state in place.  Used by MyInfo::modifyThreadFunc()
-void MyInfo::modifyFunc(
-    robot_state::RobotState* state,
-    double val)
+void MyInfo::modifyFunc(robot_state::RobotState* state, double val)
 {
   state->setVariablePosition(JOINT_A, val + 0.00001);
   state->setVariablePosition(JOINT_C, val + 0.00002);
@@ -444,23 +423,17 @@ void MyInfo::modifyFunc(
 }
 
 // spin, modifying the state to different values
-void MyInfo::modifyThreadFunc(
-    robot_interaction::LockedRobotState* locked_state,
-    int* counter,
-    double offset)
+void MyInfo::modifyThreadFunc(robot_interaction::LockedRobotState* locked_state, int* counter, double offset)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     double val = offset;
-    for (int loops = 0 ; loops < 100 ; ++loops)
+    for (int loops = 0; loops < 100; ++loops)
     {
       val += 0.0001;
 
-      locked_state->modifyState(boost::bind(&MyInfo::modifyFunc,
-                                                 this,
-                                                 _1,
-                                                 val));
+      locked_state->modifyState(boost::bind(&MyInfo::modifyFunc, this, _1, val));
     }
 
     cnt_lock_.lock();
@@ -475,17 +448,14 @@ void MyInfo::modifyThreadFunc(
 }
 
 // spin until all counters reach at least max
-void MyInfo::waitThreadFunc(
-            robot_interaction::LockedRobotState* locked_state,
-            int** counters,
-            int max)
+void MyInfo::waitThreadFunc(robot_interaction::LockedRobotState* locked_state, int** counters, int max)
 {
   bool go = true;
-  while(go)
+  while (go)
   {
     go = false;
     cnt_lock_.lock();
-    for (int i = 0 ; counters[i] ; ++i)
+    for (int i = 0; counters[i]; ++i)
     {
       if (counters[i][0] < max)
         go = true;
@@ -513,52 +483,41 @@ static void runThreads(int ncheck, int nset, int nmod)
 
   int num = ncheck + nset + nmod;
 
-  typedef int *int_ptr;
-  typedef boost::thread * thread_ptr;
-  int *cnt = new int[num];
-  int_ptr *counters = new int_ptr[num+1];
-  thread_ptr *threads = new thread_ptr[num];
+  typedef int* int_ptr;
+  typedef boost::thread* thread_ptr;
+  int* cnt = new int[num];
+  int_ptr* counters = new int_ptr[num + 1];
+  thread_ptr* threads = new thread_ptr[num];
 
   int p = 0;
   double val = 0.1;
 
   // These threads check the validity of the RobotState
-  for (int i = 0 ; i < ncheck ; ++i)
+  for (int i = 0; i < ncheck; ++i)
   {
     cnt[p] = 0;
     counters[p] = &cnt[p];
-    threads[p] = new boost::thread(&MyInfo::checkThreadFunc,
-                                   &info,
-                                   &ls1,
-                                   &cnt[p]);
+    threads[p] = new boost::thread(&MyInfo::checkThreadFunc, &info, &ls1, &cnt[p]);
     val += 0.1;
     p++;
   }
 
   // These threads set the RobotState to new values
-  for (int i = 0 ; i < nset ; ++i)
+  for (int i = 0; i < nset; ++i)
   {
     cnt[p] = 0;
     counters[p] = &cnt[p];
-    threads[p] = new boost::thread(&MyInfo::setThreadFunc,
-                                   &info,
-                                   &ls1,
-                                   &cnt[p],
-                                   val);
+    threads[p] = new boost::thread(&MyInfo::setThreadFunc, &info, &ls1, &cnt[p], val);
     val += 0.1;
     p++;
   }
 
   // These threads modify the RobotState in place
-  for (int i = 0 ; i < nmod ; ++i)
+  for (int i = 0; i < nmod; ++i)
   {
     cnt[p] = 0;
     counters[p] = &cnt[p];
-    threads[p] = new boost::thread(&MyInfo::modifyThreadFunc,
-                                   &info,
-                                   &ls1,
-                                   &cnt[p],
-                                   val);
+    threads[p] = new boost::thread(&MyInfo::modifyThreadFunc, &info, &ls1, &cnt[p], val);
     val += 0.1;
     p++;
   }
@@ -568,21 +527,17 @@ static void runThreads(int ncheck, int nset, int nmod)
 
   // this thread waits for all the other threads to make progress, then stops
   // everything.
-  boost::thread wthread(&MyInfo::waitThreadFunc,
-                   &info,
-                   &ls1,
-                   counters,
-                   1000);
+  boost::thread wthread(&MyInfo::waitThreadFunc, &info, &ls1, counters, 1000);
 
   // wait for all threads to finish
-  for (int i = 0 ; i < p ; ++i)
+  for (int i = 0; i < p; ++i)
   {
     threads[i]->join();
     wthread.join();
   }
 
   // clean up
-  for (int i = 0 ; i < p ; ++i)
+  for (int i = 0; i < p; ++i)
   {
     delete threads[i];
   }
@@ -656,11 +611,10 @@ TEST(LockedRobotState, set3mod3c3)
   runThreads(3, 3, 3);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   int arg;
 
   return RUN_ALL_TESTS();
 }
-

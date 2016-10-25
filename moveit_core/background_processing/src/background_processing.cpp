@@ -77,11 +77,11 @@ void moveit::tools::BackgroundProcessing::processingThread()
         fn();
         logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
-      catch(std::runtime_error &ex)
+      catch (std::runtime_error &ex)
       {
         logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
       }
-      catch(...)
+      catch (...)
       {
         logError("Exception caught while processing action '%s'", action_name.c_str());
       }
@@ -116,7 +116,7 @@ void moveit::tools::BackgroundProcessing::clear()
     action_names_.swap(removed);
   }
   if (update && queue_change_event_)
-    for (std::deque<std::string>::iterator it = removed.begin() ; it != removed.end() ; ++it)
+    for (std::deque<std::string>::iterator it = removed.begin(); it != removed.end(); ++it)
       queue_change_event_(REMOVE, *it);
 }
 

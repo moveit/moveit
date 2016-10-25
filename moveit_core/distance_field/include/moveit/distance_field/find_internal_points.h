@@ -43,7 +43,6 @@
 
 namespace distance_field
 {
-
 /**
  * \brief Find all points on a regular grid that are internal to the body,
  * assuming the body is a convex shape.  If the body is not convex then its
@@ -54,10 +53,7 @@ namespace distance_field
  * @param [out] points The points internal to the body are appended to thiss
  *                   vector.
  */
-void findInternalPointsConvex(const bodies::Body& body,
-                              double resolution,
-                              EigenSTL::vector_Vector3d& points);
-
+void findInternalPointsConvex(const bodies::Body& body, double resolution, EigenSTL::vector_Vector3d& points);
 }
 
 #endif

@@ -44,11 +44,11 @@
 /** The ENABLE_PROFILING macro can be set externally. If it is not,
     profiling is enabled by default, unless NDEBUG is defined. */
 
-#  ifdef NDEBUG
-#    define MOVEIT_ENABLE_PROFILING 0
-#  else
-#    define MOVEIT_ENABLE_PROFILING 1
-#  endif
+#ifdef NDEBUG
+#define MOVEIT_ENABLE_PROFILING 0
+#else
+#define MOVEIT_ENABLE_PROFILING 1
+#endif
 
 #endif
 
@@ -63,10 +63,8 @@
 
 namespace moveit
 {
-
 namespace tools
 {
-
 /** This is a simple thread-safe tool for counting time
     spent in various chunks of code. This is different from
     external profiling tools in that it allows the user to count
@@ -75,8 +73,8 @@ namespace tools
 class Profiler : private boost::noncopyable
 {
 public:
-
-  /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope. */
+  /** \brief This instance will call Profiler::begin() when constructed and Profiler::end() when it goes out of scope.
+   */
   class ScopedBlock
   {
   public:
@@ -92,9 +90,8 @@ public:
     }
 
   private:
-
-    std::string  name_;
-    Profiler    &prof_;
+    std::string name_;
+    Profiler &prof_;
   };
 
   /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
@@ -102,7 +99,6 @@ public:
   class ScopedStart
   {
   public:
-
     /** \brief Take as argument the profiler instance to operate on (\e prof) */
     ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
     {
@@ -117,13 +113,12 @@ public:
     }
 
   private:
-
     Profiler &prof_;
-    bool      wasRunning_;
+    bool wasRunning_;
   };
 
   /** \brief Return an instance of the class */
-  static Profiler& Instance(void);
+  static Profiler &Instance(void);
 
   /** \brief Constructor. It is allowed to separately instantiate this
       class (not only as a singleton) */
@@ -168,7 +163,7 @@ public:
   void clear(void);
 
   /** \brief Count a specific event for a number of times */
-  static void Event(const std::string& name, const unsigned int times = 1)
+  static void Event(const std::string &name, const unsigned int times = 1)
   {
     Instance().event(name, times);
   }
@@ -177,7 +172,7 @@ public:
   void event(const std::string &name, const unsigned int times = 1);
 
   /** \brief Maintain the average of a specific value */
-  static void Average(const std::string& name, const double value)
+  static void Average(const std::string &name, const double value)
   {
     Instance().average(name, value);
   }
@@ -240,11 +235,11 @@ public:
   }
 
 private:
-
   /** \brief Information about time spent in a section of the code */
   struct TimeInfo
   {
-    TimeInfo(void) : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
+    TimeInfo(void)
+      : total(0, 0, 0, 0), shortest(boost::posix_time::pos_infin), longest(boost::posix_time::neg_infin), parts(0)
     {
     }
 
@@ -286,10 +281,10 @@ private:
   struct AvgInfo
   {
     /** \brief The sum of the values to average */
-    double            total;
+    double total;
 
     /** \brief The sub of squares of the values to average */
-    double            totalSqr;
+    double totalSqr;
 
     /** \brief Number of times a value was added to this structure */
     unsigned long int parts;
@@ -302,20 +297,19 @@ private:
     std::map<std::string, unsigned long int> events;
 
     /** \brief The stored averages */
-    std::map<std::string, AvgInfo>           avg;
+    std::map<std::string, AvgInfo> avg;
 
     /** \brief The amount of time spent in various places */
-    std::map<std::string, TimeInfo>          time;
+    std::map<std::string, TimeInfo> time;
   };
 
   void printThreadInfo(std::ostream &out, const PerThread &data);
 
-  boost::mutex                           lock_;
+  boost::mutex lock_;
   std::map<boost::thread::id, PerThread> data_;
-  TimeInfo                               tinfo_;
-  bool                                   running_;
-  bool                                   printOnDestroy_;
-
+  TimeInfo tinfo_;
+  bool running_;
+  bool printOnDestroy_;
 };
 }
 }
@@ -331,15 +325,12 @@ namespace moveit
 {
 namespace tools
 {
-
 class Profiler
 {
 public:
-
   class ScopedBlock
   {
   public:
-
     ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
     {
     }
@@ -352,7 +343,6 @@ public:
   class ScopedStart
   {
   public:
-
     ScopedStart(Profiler & = Profiler::Instance())
     {
     }
@@ -362,7 +352,7 @@ public:
     }
   };
 
-  static Profiler& Instance(void);
+  static Profiler &Instance(void);
 
   Profiler(bool = true, bool = true)
   {
@@ -396,7 +386,7 @@ public:
   {
   }
 
-  static void Event(const std::string&, const unsigned int = 1)
+  static void Event(const std::string &, const unsigned int = 1)
   {
   }
 
@@ -404,7 +394,7 @@ public:
   {
   }
 
-  static void Average(const std::string&, const double)
+  static void Average(const std::string &, const double)
   {
   }
 
@@ -454,10 +444,8 @@ public:
     return false;
   }
 };
-
 }
 }
-
 
 #endif
 

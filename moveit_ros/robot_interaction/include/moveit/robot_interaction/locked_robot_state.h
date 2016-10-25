@@ -45,7 +45,6 @@
 
 namespace robot_interaction
 {
-
 MOVEIT_CLASS_FORWARD(LockedRobotState);
 
 /// Maintain a RobotState in a multithreaded environment.
@@ -80,7 +79,7 @@ public:
   void setState(const robot_state::RobotState& state);
 
   // This is a function that can modify the maintained state.
-  typedef boost::function<void (robot_state::RobotState*)> ModifyStateFunction;
+  typedef boost::function<void(robot_state::RobotState*)> ModifyStateFunction;
 
   // Modify the state.
   //
@@ -109,7 +108,6 @@ private:
   // PROTECTED BY state_lock_
   robot_state::RobotStatePtr state_;
 };
-
 }
 
 #endif

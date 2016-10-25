@@ -62,14 +62,12 @@ MOVEIT_CLASS_FORWARD(TrajectoryExecutionManager);
 
 namespace move_group
 {
-
 MOVEIT_CLASS_FORWARD(MoveGroupContext);
 
 struct MoveGroupContext
 {
   MoveGroupContext(const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-           bool allow_trajectory_execution = false,
-           bool debug = false);
+                   bool allow_trajectory_execution = false, bool debug = false);
   ~MoveGroupContext();
 
   bool status() const;
@@ -82,7 +80,6 @@ struct MoveGroupContext
   bool allow_trajectory_execution_;
   bool debug_;
 };
-
 }
 
 #endif

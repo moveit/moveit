@@ -127,24 +127,22 @@ int main(int argc, char *argv[])
   uint32_t never_trials = 0;
 
   po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "show help")
-    ("config-pkg", po::value(&config_pkg_path), "path to moveit config package")
-    ("urdf", po::value(&urdf_path), "path to URDF ( or xacro)")
-    ("srdf", po::value(&srdf_path), "path to SRDF ( or xacro)")
-    ("output", po::value(&output_path), "output path for SRDF")
+  desc.add_options()("help", "show help")("config-pkg", po::value(&config_pkg_path), "path to moveit config package")(
+      "urdf", po::value(&urdf_path),
+      "path to URDF ( or xacro)")("srdf", po::value(&srdf_path),
+                                  "path to SRDF ( or xacro)")("output", po::value(&output_path), "output path for SRDF")
 
-    ("xacro-args", po::value<std::vector<std::string> >()->composing(), "additional arguments for xacro")
+      ("xacro-args", po::value<std::vector<std::string> >()->composing(), "additional arguments for xacro")
 
-    ("default", po::bool_switch(&include_default),  "disable default colliding pairs")
-    ("always", po::bool_switch(&include_always),  "disable always colliding pairs")
+          ("default", po::bool_switch(&include_default), "disable default colliding pairs")(
+              "always", po::bool_switch(&include_always), "disable always colliding pairs")
 
-    ("keep", po::bool_switch(&keep_old),  "keep disabled link from SRDF")
-    ("verbose", po::bool_switch(&verbose),  "verbose output")
+              ("keep", po::bool_switch(&keep_old), "keep disabled link from SRDF")("verbose", po::bool_switch(&verbose),
+                                                                                   "verbose output")
 
-    ("trials", po::value(&never_trials),  "number of trials for searching never colliding pairs")
-    ("min-collision-fraction", po::value(&min_collision_fraction),  "fraction of small sample size to determine links that are alwas colliding")
-  ;
+                  ("trials", po::value(&never_trials), "number of trials for searching never colliding pairs")(
+                      "min-collision-fraction", po::value(&min_collision_fraction),
+                      "fraction of small sample size to determine links that are alwas colliding");
 
   po::positional_options_description pos_desc;
   pos_desc.add("xacro-args", -1);

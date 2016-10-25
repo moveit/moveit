@@ -32,7 +32,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #ifndef MOVEIT_SBPL_META_INTERFACE_H_
 #define MOVEIT_SBPL_META_INTERFACE_H_
 
@@ -47,24 +46,22 @@ namespace sbpl_interface
 class SBPLMetaInterface
 {
 public:
-
   SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel);
-  virtual ~SBPLMetaInterface(){}
+  virtual ~SBPLMetaInterface()
+  {
+  }
 
   bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req,
-             moveit_msgs::GetMotionPlan::Response &res);
+             const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res);
 
-  const PlanningStatistics& getLastPlanningStatistics() const {
+  const PlanningStatistics& getLastPlanningStatistics() const
+  {
     return last_planning_statistics_;
   }
 
 protected:
-
-  void runSolver(bool use_first,
-                 const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::GetMotionPlan::Request &req,
-                 moveit_msgs::GetMotionPlan::Response &res,
+  void runSolver(bool use_first, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                 const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
                  const PlanningParameters& params);
 
   boost::mutex planner_done_mutex_;
@@ -79,7 +76,6 @@ protected:
 
   PlanningStatistics last_planning_statistics_;
 };
-
 }
 
 #endif

@@ -61,16 +61,16 @@ int main(int argc, char **argv)
   double delay = 0.001;
 
   boost::program_options::options_description desc;
-  desc.add_options()
-    ("help", "Show help message")
-    ("host", boost::program_options::value<std::string>(), "Host for the DB.")
-    ("port", boost::program_options::value<std::size_t>(), "Port for the DB.")
-    ("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")
-    ("planning_requests", "Also publish the planning requests that correspond to the scene")
-    ("planning_results", "Also publish the planning results that correspond to the scene")
-    ("constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")
-    ("state", boost::program_options::value<std::string>(), "Name of the robot state to publish.")
-    ("delay", boost::program_options::value<double>()->default_value(delay), "Time to wait in between publishing messages (s)");
+  desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+                                                                                                        "DB.")(
+      "port", boost::program_options::value<std::size_t>(),
+      "Port for the DB.")("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")(
+      "planning_requests", "Also publish the planning requests that correspond to the scene")(
+      "planning_results", "Also publish the planning results that correspond to the scene")(
+      "constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")(
+      "state", boost::program_options::value<std::string>(),
+      "Name of the robot state to publish.")("delay", boost::program_options::value<double>()->default_value(delay),
+                                             "Time to wait in between publishing messages (s)");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   {
     delay = vm["delay"].as<double>();
   }
-  catch(...)
+  catch (...)
   {
     std::cout << desc << std::endl;
     return 2;
@@ -121,13 +121,14 @@ int main(int argc, char **argv)
     std::vector<std::string> scene_names;
     pss.getPlanningSceneNames(vm["scene"].as<std::string>(), scene_names);
 
-    for (std::size_t i = 0 ; i < scene_names.size() ; ++i)
+    for (std::size_t i = 0; i < scene_names.size(); ++i)
     {
       moveit_warehouse::PlanningSceneWithMetadata pswm;
       if (pss.getPlanningScene(pswm, scene_names[i]))
       {
-        ROS_INFO("Publishing scene '%s'", pswm->lookupString(moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME).c_str());
-        pub_scene.publish(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
+        ROS_INFO("Publishing scene '%s'",
+                 pswm->lookupString(moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME).c_str());
+        pub_scene.publish(static_cast<const moveit_msgs::PlanningScene &>(*pswm));
         ros::spinOnce();
 
         // publish optional data associated to the scene
@@ -138,21 +139,21 @@ int main(int argc, char **argv)
           pss.getPlanningQueries(planning_queries, query_names, pswm->name);
           ROS_INFO("There are %d planning queries associated to the scene", (int)planning_queries.size());
           ros::WallDuration(0.5).sleep();
-          for (std::size_t i = 0 ; i < planning_queries.size() ; ++i)
+          for (std::size_t i = 0; i < planning_queries.size(); ++i)
           {
             if (req)
             {
               ROS_INFO("Publishing query '%s'", query_names[i].c_str());
-              pub_req.publish(static_cast<const moveit_msgs::MotionPlanRequest&>(*planning_queries[i]));
+              pub_req.publish(static_cast<const moveit_msgs::MotionPlanRequest &>(*planning_queries[i]));
               ros::spinOnce();
             }
             if (res)
             {
               std::vector<moveit_warehouse::RobotTrajectoryWithMetadata> planning_results;
               pss.getPlanningResults(planning_results, query_names[i], pswm->name);
-              for (std::size_t j = 0 ; j < planning_results.size() ; ++j)
+              for (std::size_t j = 0; j < planning_results.size(); ++j)
               {
-                pub_res.publish(static_cast<const moveit_msgs::RobotTrajectory&>(*planning_results[j]));
+                pub_res.publish(static_cast<const moveit_msgs::RobotTrajectory &>(*planning_results[j]));
                 ros::spinOnce();
               }
             }
@@ -171,13 +172,14 @@ int main(int argc, char **argv)
     std::vector<std::string> cnames;
     cs.getKnownConstraints(vm["constraint"].as<std::string>(), cnames);
 
-    for (std::size_t i = 0 ; i < cnames.size() ; ++i)
+    for (std::size_t i = 0; i < cnames.size(); ++i)
     {
       moveit_warehouse::ConstraintsWithMetadata cwm;
       if (cs.getConstraints(cwm, cnames[i]))
       {
-        ROS_INFO("Publishing constraints '%s'", cwm->lookupString(moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME).c_str());
-        pub_constr.publish(static_cast<const moveit_msgs::Constraints&>(*cwm));
+        ROS_INFO("Publishing constraints '%s'",
+                 cwm->lookupString(moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME).c_str());
+        pub_constr.publish(static_cast<const moveit_msgs::Constraints &>(*cwm));
         ros::spinOnce();
         wait_time.sleep();
       }
@@ -192,13 +194,13 @@ int main(int argc, char **argv)
     std::vector<std::string> rnames;
     rs.getKnownRobotStates(vm["state"].as<std::string>(), rnames);
 
-    for (std::size_t i = 0 ; i < rnames.size() ; ++i)
+    for (std::size_t i = 0; i < rnames.size(); ++i)
     {
       moveit_warehouse::RobotStateWithMetadata rswm;
       if (rs.getRobotState(rswm, rnames[i]))
       {
         ROS_INFO("Publishing state '%s'", rswm->lookupString(moveit_warehouse::RobotStateStorage::STATE_NAME).c_str());
-        pub_state.publish(static_cast<const moveit_msgs::RobotState&>(*rswm));
+        pub_state.publish(static_cast<const moveit_msgs::RobotState &>(*rswm));
         ros::spinOnce();
         wait_time.sleep();
       }

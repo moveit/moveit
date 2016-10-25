@@ -42,35 +42,34 @@
 
 namespace moveit_setup_assistant
 {
-
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PassiveJointsWidget::PassiveJointsWidget( QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data )
-  : SetupScreenWidget( parent ), config_data_(config_data)
+PassiveJointsWidget::PassiveJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+  : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout( );
+  QVBoxLayout *layout = new QVBoxLayout();
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header = new HeaderWidget( "Passive Joints",
-                                           "Specify the set of passive joints (not actuated). Joint state is not expected to be published for these joints.",
-                                           this);
-  layout->addWidget( header );
+  HeaderWidget *header = new HeaderWidget("Passive Joints", "Specify the set of passive joints (not actuated). Joint "
+                                                            "state is not expected to be published for these joints.",
+                                          this);
+  layout->addWidget(header);
 
   // Joints edit widget
-  joints_widget_ = new DoubleListWidget( this, config_data_, "Joint Collection", "Joint", false);
-  connect( joints_widget_, SIGNAL( selectionUpdated() ), this, SLOT( selectionUpdated() ) );
-  connect( joints_widget_, SIGNAL( previewSelected( std::vector<std::string> ) ),
-           this, SLOT( previewSelectedJoints( std::vector<std::string> ) ) );
+  joints_widget_ = new DoubleListWidget(this, config_data_, "Joint Collection", "Joint", false);
+  connect(joints_widget_, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdated()));
+  connect(joints_widget_, SIGNAL(previewSelected(std::vector<std::string>)), this,
+          SLOT(previewSelectedJoints(std::vector<std::string>)));
 
   // Set the title
-  joints_widget_->title_->setText( "" );
+  joints_widget_->title_->setText("");
 
   joints_widget_->setColumnNames("Active Joints", "Passive Joints");
 
-  layout->addWidget( joints_widget_ );
+  layout->addWidget(joints_widget_);
 
   // Finish Layout --------------------------------------------------
   this->setLayout(layout);
@@ -89,23 +88,23 @@ void PassiveJointsWidget::focusGiven()
   // Get the names of the all joints
   const std::vector<std::string> &joints = model->getJointModelNames();
 
-  if( joints.size() == 0 )
+  if (joints.size() == 0)
   {
-    QMessageBox::critical( this, "Error Loading", "No joints found for robot model");
+    QMessageBox::critical(this, "Error Loading", "No joints found for robot model");
     return;
   }
   std::vector<std::string> active_joints;
-  for (std::size_t i = 0 ; i < joints.size() ; ++i)
+  for (std::size_t i = 0; i < joints.size(); ++i)
     if (model->getJointModel(joints[i])->getVariableCount() > 0)
       active_joints.push_back(joints[i]);
 
   // Set the available joints (left box)
-  joints_widget_->setAvailable( active_joints );
+  joints_widget_->setAvailable(active_joints);
 
   std::vector<std::string> passive_joints;
-  for (std::size_t i = 0 ; i < config_data_->srdf_->passive_joints_.size() ; ++i)
+  for (std::size_t i = 0; i < config_data_->srdf_->passive_joints_.size(); ++i)
     passive_joints.push_back(config_data_->srdf_->passive_joints_[i].name_);
-  joints_widget_->setSelected( passive_joints );
+  joints_widget_->setSelected(passive_joints);
 }
 
 // ******************************************************************************************
@@ -114,10 +113,10 @@ void PassiveJointsWidget::focusGiven()
 void PassiveJointsWidget::selectionUpdated()
 {
   config_data_->srdf_->passive_joints_.clear();
-  for( int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i )
+  for (int i = 0; i < joints_widget_->selected_data_table_->rowCount(); ++i)
   {
     srdf::Model::PassiveJoint pj;
-    pj.name_ = joints_widget_->selected_data_table_->item( i, 0 )->text().toStdString();
+    pj.name_ = joints_widget_->selected_data_table_->item(i, 0)->text().toStdString();
     config_data_->srdf_->passive_joints_.push_back(pj);
   }
   config_data_->changes |= MoveItConfigData::PASSIVE_JOINTS;
@@ -126,18 +125,17 @@ void PassiveJointsWidget::selectionUpdated()
 // ******************************************************************************************
 // Called from Double List widget to highlight joints
 // ******************************************************************************************
-void PassiveJointsWidget::previewSelectedJoints( std::vector<std::string> joints )
+void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
 
-  for(int i = 0; i < joints.size(); ++i)
+  for (int i = 0; i < joints.size(); ++i)
   {
-
-    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel( joints[i] );
+    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
     // Check that a joint model was found
-    if( !joint_model )
+    if (!joint_model)
     {
       continue;
     }
@@ -145,15 +143,14 @@ void PassiveJointsWidget::previewSelectedJoints( std::vector<std::string> joints
     // Get the name of the link
     const std::string link = joint_model->getChildLinkModel()->getName();
 
-    if( link.empty() )
+    if (link.empty())
     {
       continue;
     }
 
     // Highlight link
-    Q_EMIT highlightLink( link, QColor(255, 0, 0) );
+    Q_EMIT highlightLink(link, QColor(255, 0, 0));
   }
 }
 
-
-} // namespace
+}  // namespace

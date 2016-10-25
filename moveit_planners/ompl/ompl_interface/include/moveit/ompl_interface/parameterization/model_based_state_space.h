@@ -46,23 +46,20 @@
 
 namespace ompl_interface
 {
-
-typedef boost::function<bool(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state)> InterpolationFunction;
+typedef boost::function<bool(const ompl::base::State *from, const ompl::base::State *to, const double t,
+                             ompl::base::State *state)> InterpolationFunction;
 typedef boost::function<double(const ompl::base::State *state1, const ompl::base::State *state2)> DistanceFunction;
 
 struct ModelBasedStateSpaceSpecification
 {
   ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr &robot_model,
                                     const robot_model::JointModelGroup *jmg)
-    : robot_model_(robot_model)
-    , joint_model_group_(jmg)
+    : robot_model_(robot_model), joint_model_group_(jmg)
   {
   }
 
-  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr &robot_model,
-                                    const std::string &group_name)
-    : robot_model_(robot_model)
-    , joint_model_group_(robot_model_->getJointModelGroup(group_name))
+  ModelBasedStateSpaceSpecification(const robot_model::RobotModelConstPtr &robot_model, const std::string &group_name)
+    : robot_model_(robot_model), joint_model_group_(robot_model_->getJointModelGroup(group_name))
   {
     if (!joint_model_group_)
       throw std::runtime_error("Group '" + group_name + "'  was not found");
@@ -76,26 +73,19 @@ struct ModelBasedStateSpaceSpecification
 class ModelBasedStateSpace : public ompl::base::StateSpace
 {
 public:
-
   class StateType : public ompl::base::State
   {
   public:
-
     enum
-      {
-        VALIDITY_KNOWN = 1,
-        GOAL_DISTANCE_KNOWN = 2,
-        VALIDITY_TRUE = 4,
-        IS_START_STATE = 8,
-        IS_GOAL_STATE = 16
-      };
+    {
+      VALIDITY_KNOWN = 1,
+      GOAL_DISTANCE_KNOWN = 2,
+      VALIDITY_TRUE = 4,
+      IS_START_STATE = 8,
+      IS_GOAL_STATE = 16
+    };
 
-    StateType()
-      : ompl::base::State()
-      , values(NULL)
-      , tag(-1)
-      , flags(0)
-      , distance(0.0)
+    StateType() : ompl::base::State(), values(NULL), tag(-1), flags(0), distance(0.0)
     {
     }
 
@@ -188,14 +178,15 @@ public:
     distance_function_ = fun;
   }
 
-  virtual ompl::base::State* allocState() const;
+  virtual ompl::base::State *allocState() const;
   virtual void freeState(ompl::base::State *state) const;
   virtual unsigned int getDimension() const;
   virtual void enforceBounds(ompl::base::State *state) const;
   virtual bool satisfiesBounds(const ompl::base::State *state) const;
 
   virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
-  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t, ompl::base::State *state) const;
+  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t,
+                           ompl::base::State *state) const;
   virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual bool equalStates(const ompl::base::State *state1, const ompl::base::State *state2) const;
   virtual double getMaximumExtent() const;
@@ -204,27 +195,26 @@ public:
   virtual unsigned int getSerializationLength() const;
   virtual void serialize(void *serialization, const ompl::base::State *state) const;
   virtual void deserialize(ompl::base::State *state, const void *serialization) const;
-  virtual double* getValueAddressAtIndex(ompl::base::State *state, const unsigned int index) const;
+  virtual double *getValueAddressAtIndex(ompl::base::State *state, const unsigned int index) const;
 
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
 
-
-  const robot_model::RobotModelConstPtr& getRobotModel() const
+  const robot_model::RobotModelConstPtr &getRobotModel() const
   {
     return spec_.robot_model_;
   }
 
-  const robot_model::JointModelGroup* getJointModelGroup() const
+  const robot_model::JointModelGroup *getJointModelGroup() const
   {
     return spec_.joint_model_group_;
   }
 
-  const std::string& getJointModelGroupName() const
+  const std::string &getJointModelGroupName() const
   {
     return getJointModelGroup()->getName();
   }
 
-  const ModelBasedStateSpaceSpecification& getSpecification() const
+  const ModelBasedStateSpaceSpecification &getSpecification() const
   {
     return spec_;
   }
@@ -235,7 +225,7 @@ public:
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
 
-  const robot_model::JointBoundsVector& getJointsBounds() const
+  const robot_model::JointBoundsVector &getJointsBounds() const
   {
     return spec_.joint_bounds_;
   }
@@ -249,24 +239,25 @@ public:
   virtual void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const;
 
   /**
-   * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt! robot_state to an OMPL state.
+   * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt! robot_state to an OMPL
+   * state.
    * \param state - output OMPL state with single joint modified
    * \param robot_state - input MoveIt! state to get the joint value from
    * \param joint_model - the joint to copy values of
-   * \param ompl_state_joint_index - the index of the joint in the ompl state (passed in for efficiency, you should cache this index)
+   * \param ompl_state_joint_index - the index of the joint in the ompl state (passed in for efficiency, you should
+   * cache this index)
    *        e.g. ompl_state_joint_index = joint_model_group_->getVariableGroupIndex("virtual_joint");
    */
   virtual void copyJointToOMPLState(ompl::base::State *state, const robot_state::RobotState &robot_state,
-                                    const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const;
+                                    const moveit::core::JointModel *joint_model, int ompl_state_joint_index) const;
 
   double getTagSnapToSegment() const;
   void setTagSnapToSegment(double snap);
 
 protected:
-
   ModelBasedStateSpaceSpecification spec_;
   std::vector<robot_model::JointModel::Bounds> joint_bounds_storage_;
-  std::vector<const robot_model::JointModel*> joint_model_vector_;
+  std::vector<const robot_model::JointModel *> joint_model_vector_;
   unsigned int variable_count_;
   size_t state_values_size_;
 
@@ -275,11 +266,9 @@ protected:
 
   double tag_snap_to_segment_;
   double tag_snap_to_segment_complement_;
-
 };
 
 typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
-
 }
 
 #endif

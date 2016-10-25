@@ -54,7 +54,7 @@ static void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_moni
     if (!octomap_msgs::binaryMapToMsgData(*server->getOcTreePtr(), map.data))
       ROS_ERROR_THROTTLE(1, "Could not generate OctoMap message");
   }
-  catch(...)
+  catch (...)
   {
     ROS_ERROR_THROTTLE(1, "Exception thrown while generating OctoMap message");
   }
