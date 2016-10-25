@@ -1274,7 +1274,7 @@ as the new values that correspond to the group */
    * \param group - planning group to compare joint positions against
    * \param dt - time step between the two points
    */
-  bool isValidVelocityMove(const RobotState &other, const JointModelGroup* group, double dt) const;
+  bool isValidVelocityMove(const RobotState &other, const JointModelGroup *group, double dt) const;
 
   /** @} */
 

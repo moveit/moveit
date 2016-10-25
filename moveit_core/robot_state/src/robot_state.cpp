@@ -702,14 +702,14 @@ moveit::core::RobotState::getMinDistanceToPositionBounds(const std::vector<const
   return std::make_pair(distance, index);
 }
 
-bool moveit::core::RobotState::isValidVelocityMove(const RobotState &other, const JointModelGroup* group,
+bool moveit::core::RobotState::isValidVelocityMove(const RobotState &other, const JointModelGroup *group,
                                                    double dt) const
 {
-  const std::vector<const JointModel*> &jm = group->getActiveJointModels();
-  for (std::size_t joint_id = 0 ; joint_id < jm.size() ; ++joint_id)
+  const std::vector<const JointModel *> &jm = group->getActiveJointModels();
+  for (std::size_t joint_id = 0; joint_id < jm.size(); ++joint_id)
   {
     const int idx = jm[joint_id]->getFirstVariableIndex();
-    const std::vector<moveit::core::VariableBounds>& bounds = jm[joint_id]->getVariableBounds();
+    const std::vector<moveit::core::VariableBounds> &bounds = jm[joint_id]->getVariableBounds();
 
     // Check velocity for each joint variable
     for (std::size_t var_id = 0; var_id < jm[joint_id]->getVariableCount(); ++var_id)
