@@ -43,6 +43,7 @@
 #include <console_bridge/console.h>
 #include <urdf_model/model.h>
 #include <urdf_world/types.h>
+#include <moveit/urdfdom_compatibility.h>
 #include <srdfdom/model.h>
 
 // joint types
