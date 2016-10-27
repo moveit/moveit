@@ -37,10 +37,7 @@
 #ifndef MOVEIT_CORE_URDFDOM_COMPATIBILITY_
 #define MOVEIT_CORE_URDFDOM_COMPATIBILITY_
 
-// This code is only activated when urdfdom's type forwards were not available
-// at cmake configuration time
-
-#if @HAVE_URDFDOM_4@ == 0
+#if @URDFDOM_DECLARE_TYPES@ // This is needed for urdfdom <= 0.4
 
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
@@ -70,9 +67,18 @@ URDF_TYPEDEF_CLASS_POINTER(Material);
 URDF_TYPEDEF_CLASS_POINTER(Mesh);
 URDF_TYPEDEF_CLASS_POINTER(Sphere);
 URDF_TYPEDEF_CLASS_POINTER(Visual);
+
+URDF_TYPEDEF_CLASS_POINTER(ModelInterface);
 }
 
 #undef URDF_TYPEDEF_CLASS_POINTER
 
-#endif
-#endif // MOVEIT_CORE_URDFDOM_COMPATIBILITY_
+#else // urdfdom <= 0.4
+
+typedef std::shared_ptr<ModelInterface> ModelInterfaceSharedPtr;
+typedef std::shared_ptr<const ModelInterface> ModelInterfaceConstSharedPtr;
+typedef std::weak_ptr<ModelInterface> ModelInterfaceWeakPtr;
+
+#endif // urdfdom > 0.4
+
+#endif // URDF_URDFDOM_COMPATIBILITY_
