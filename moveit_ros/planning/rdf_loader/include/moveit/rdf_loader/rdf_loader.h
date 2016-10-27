@@ -39,10 +39,6 @@
 
 #include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
-#include <moveit/urdfdom_compatibility.h>
-#if HAVE_URDFDOM_4
-#include <urdf_world/types.h>
-#endif
 #include <srdfdom/model.h>
 #include <tinyxml.h>
 
