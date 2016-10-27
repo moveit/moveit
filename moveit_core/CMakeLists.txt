@@ -39,7 +39,6 @@ endif()
 set(generated_compat_header "${CATKIN_DEVEL_PREFIX}/include/moveit/urdfdom_compatibility.h")
 include_directories("${CATKIN_DEVEL_PREFIX}/include")
 configure_file(version/urdfdom_compatibility.h.in "${generated_compat_header}" @ONLY)
-install(FILES ${generated_compat_header} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 find_package(catkin REQUIRED
 COMPONENTS
@@ -166,6 +165,7 @@ set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VER
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+install(FILES ${generated_compat_header} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)
