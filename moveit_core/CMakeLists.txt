@@ -30,7 +30,7 @@ find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
 
-### Maintain compatibility to old urdfdom_headers (version < 4.0)
+### for Wily: maintain compatibility to old urdfdom_headers (version < 4.0)
 if( "0.4.0" VERSION_GREATER "${urdfdom_headers_VERSION}")
   set(HAVE_URDFDOM_4 0)
 else()
@@ -38,7 +38,7 @@ else()
 endif()
 set(generated_compat_header "${CATKIN_DEVEL_PREFIX}/include/moveit/urdfdom_compatibility.h")
 include_directories("${CATKIN_DEVEL_PREFIX}/include")
-configure_file(urdfdom_compatibility.h.in "${generated_compat_header}" @ONLY)
+configure_file(version/urdfdom_compatibility.h.in "${generated_compat_header}" @ONLY)
 install(FILES ${generated_compat_header} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 find_package(catkin REQUIRED
@@ -98,7 +98,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 
 catkin_package(
   INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${THIS_PACKAGE_INCLUDE_DIRS} "${CATKIN_DEVEL_PREFIX}/include"
   LIBRARIES
     moveit_exceptions
     moveit_background_processing
