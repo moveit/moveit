@@ -53,7 +53,7 @@
 
 #include <kdl/chainfksolverpos_recursive.hpp>
 
-#include <urdf_world/types.h>
+#include <moveit/urdfdom_compatibility.h>
 
 #include <moveit/kinematics_base/kinematics_base.h>
 

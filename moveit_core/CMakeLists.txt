@@ -28,7 +28,18 @@ set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
 find_package(octomap REQUIRED)
 
 find_package(urdfdom REQUIRED)
-find_package(urdfdom_headers 0.4 REQUIRED)
+find_package(urdfdom_headers REQUIRED)
+
+if("${urdfdom_headers_VERSION}" VERSION_LESS "1.0")
+  # for Wily: maintain compatibility between urdfdom 0.3 and 0.4 (definining SharedPtr types)
+  set(URDFDOM_DECLARE_TYPES 1)
+else()
+  # declare ModelInterface's SharedPtr
+  set(URDFDOM_DECLARE_TYPES 0)
+endif()
+set(generated_compat_header "${CATKIN_DEVEL_PREFIX}/include/moveit/urdfdom_compatibility.h")
+include_directories("${CATKIN_DEVEL_PREFIX}/include")
+configure_file(version/urdfdom_compatibility.h.in "${generated_compat_header}" @ONLY)
 
 find_package(catkin REQUIRED
 COMPONENTS
@@ -87,7 +98,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 
 catkin_package(
   INCLUDE_DIRS
-    ${THIS_PACKAGE_INCLUDE_DIRS}
+    ${THIS_PACKAGE_INCLUDE_DIRS} "${CATKIN_DEVEL_PREFIX}/include"
   LIBRARIES
     moveit_exceptions
     moveit_background_processing
@@ -155,6 +166,7 @@ set(MOVEIT_VERSION "${MOVEIT_VERSION_MAJOR}.${MOVEIT_VERSION_MINOR}.${MOVEIT_VER
 message(STATUS " *** Building MoveIt! ${MOVEIT_VERSION} ***")
 configure_file("version/version.h.in" "${VERSION_FILE_PATH}/moveit/version.h")
 install(FILES "${VERSION_FILE_PATH}/moveit/version.h" DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
+install(FILES ${generated_compat_header} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/moveit)
 
 add_subdirectory(version)
 add_subdirectory(macros)
