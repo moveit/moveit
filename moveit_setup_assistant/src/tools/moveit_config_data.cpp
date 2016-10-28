@@ -418,8 +418,9 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     {
       emitter << YAML::Key << "projection_evaluator";
       emitter << YAML::Value << projection_joints;
+      // OMPL collision checking discretization
       emitter << YAML::Key << "longest_valid_segment_fraction";
-      emitter << YAML::Value << "0.05";
+      emitter << YAML::Value << "0.01";
     }
 
     emitter << YAML::EndMap;
