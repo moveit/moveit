@@ -2,12 +2,11 @@
   <name>moveit_experimental</name>
   <version>0.7.12</version>
   <description>Experimental packages for moveit.</description>
-  <author email="isucan@gmail.com">Ioan Sucan</author>
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
   <author email="acorn.pooley@sri.com">Acorn Pooley</author>
   <author email="jnicho@swri.org">Jorge Nicho</author>
 
-  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
 
