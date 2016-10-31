@@ -719,14 +719,28 @@ public:
    */
   /**@{*/
 
-  /** \brief Pick up an object */
+  /** \brief Pick up an object
+
+      This applies a number of hard-coded default grasps */
   MoveItErrorCode pick(const std::string &object);
 
   /** \brief Pick up an object given a grasp pose */
   MoveItErrorCode pick(const std::string &object, const moveit_msgs::Grasp &grasp);
 
-  /** \brief Pick up an object given possible grasp poses */
+  /** \brief Pick up an object given possible grasp poses
+
+      if the vector is left empty this behaves like pick(const std::string &object) */
   MoveItErrorCode pick(const std::string &object, const std::vector<moveit_msgs::Grasp> &grasps);
+
+  /** \brief Pick up an object
+
+      calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
+  MoveItErrorCode planGraspsAndPick(const std::string &object);
+
+  /** \brief Pick up an object
+
+      calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
+  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject &object);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   MoveItErrorCode place(const std::string &object);
