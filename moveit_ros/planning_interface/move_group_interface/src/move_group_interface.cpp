@@ -102,14 +102,14 @@ public:
     {
       std::string error = "Unable to construct robot model. Please make sure all needed information is on the "
                           "parameter server.";
-      ROS_FATAL_STREAM(error);
+      ROS_FATAL_STREAM_NAMED("move_group_interface", error);
       throw std::runtime_error(error);
     }
 
     if (!getRobotModel()->hasJointModelGroup(opt.group_name_))
     {
       std::string error = "Group '" + opt.group_name_ + "' was not found.";
-      ROS_FATAL_STREAM(error);
+      ROS_FATAL_STREAM_NAMED("move_group_interface", error);
       throw std::runtime_error(error);
     }
 
@@ -176,13 +176,14 @@ public:
 
     plan_grasps_service_ = node_handle_.serviceClient<moveit_msgs::GraspPlanning>(GRASP_PLANNING_SERVICE_NAME);
 
-    ROS_INFO_STREAM("Ready to take commands for planning group " << opt.group_name_ << ".");
+    ROS_INFO_STREAM_NAMED("move_group_interface", "Ready to take commands for planning group " << opt.group_name_
+                                                                                               << ".");
   }
 
   template <typename T>
   void waitForAction(const T &action, const std::string &name, const ros::WallTime &timeout, double allotted_time)
   {
-    ROS_DEBUG("Waiting for move_group action server (%s)...", name.c_str());
+    ROS_DEBUG_NAMED("move_group_interface", "Waiting for move_group action server (%s)...", name.c_str());
 
     // wait for the server (and spin as needed)
     if (timeout == ros::WallTime())
@@ -213,7 +214,7 @@ public:
     }
     else
     {
-      ROS_DEBUG("Connected to '%s'", name.c_str());
+      ROS_DEBUG_NAMED("move_group_interface", "Connected to '%s'", name.c_str());
     }
   }
 
@@ -465,7 +466,7 @@ public:
     const std::string &eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
     if (eef.empty())
     {
-      ROS_ERROR("No end-effector to set the pose for");
+      ROS_ERROR_NAMED("move_group_interface", "No end-effector to set the pose for");
       return false;
     }
     else
@@ -497,7 +498,7 @@ public:
 
     // or return an error
     static const geometry_msgs::PoseStamped unknown;
-    ROS_ERROR("Pose for end effector '%s' not known.", eef.c_str());
+    ROS_ERROR_NAMED("move_group_interface", "Pose for end-effector '%s' not known.", eef.c_str());
     return unknown;
   }
 
@@ -512,7 +513,7 @@ public:
 
     // or return an error
     static const std::vector<geometry_msgs::PoseStamped> empty;
-    ROS_ERROR("Poses for end effector '%s' are not known.", eef.c_str());
+    ROS_ERROR_NAMED("move_group_interface", "Poses for end-effector '%s' are not known.", eef.c_str());
     return empty;
   }
 
@@ -545,7 +546,7 @@ public:
   {
     if (!current_state_monitor_)
     {
-      ROS_ERROR("Unable to monitor current robot state");
+      ROS_ERROR_NAMED("move_group_interface", "Unable to monitor current robot state");
       return false;
     }
 
@@ -561,7 +562,7 @@ public:
   {
     if (!current_state_monitor_)
     {
-      ROS_ERROR("Unable to get current robot state");
+      ROS_ERROR_NAMED("move_group_interface", "Unable to get current robot state");
       return false;
     }
 
@@ -570,7 +571,8 @@ public:
       current_state_monitor_->startStateMonitor();
 
     if (!current_state_monitor_->waitForCompleteState(opt_.group_name_, wait_seconds))
-      ROS_WARN("Joint values for monitored state are requested but the full state is not known");
+      ROS_WARN_NAMED("move_group_interface", "Joint values for monitored state are requested"
+                                             "but the full state is not known.");
 
     current_state = current_state_monitor_->getCurrentState();
     return true;
@@ -597,7 +599,8 @@ public:
       location.place_pose = poses[i];
       locations.push_back(location);
     }
-    ROS_DEBUG("Move group interface has %u place locations", (unsigned int)locations.size());
+    ROS_DEBUG_NAMED("move_group_interface", "Move group interface has %u place locations",
+                    (unsigned int)locations.size());
     return place(object, locations);
   }
 
@@ -605,12 +608,12 @@ public:
   {
     if (!place_action_client_)
     {
-      ROS_ERROR_STREAM("Place action client not found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Place action client not found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     if (!place_action_client_->isServerConnected())
     {
-      ROS_ERROR_STREAM("Place action server not connected");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Place action server not connected");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     moveit_msgs::PlaceGoal goal;
@@ -624,10 +627,10 @@ public:
     goal.planning_options.planning_scene_diff.robot_state.is_diff = true;
 
     place_action_client_->sendGoal(goal);
-    ROS_DEBUG("Sent place goal with %d locations", (int)goal.place_locations.size());
+    ROS_DEBUG_NAMED("move_group_interface", "Sent place goal with %d locations", (int)goal.place_locations.size());
     if (!place_action_client_->waitForResult())
     {
-      ROS_INFO_STREAM("Place action returned early");
+      ROS_INFO_STREAM_NAMED("move_group_interface", "Place action returned early");
     }
     if (place_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -635,8 +638,8 @@ public:
     }
     else
     {
-      ROS_WARN_STREAM("Fail: " << place_action_client_->getState().toString() << ": "
-                               << place_action_client_->getState().getText());
+      ROS_WARN_STREAM_NAMED("move_group_interface", "Fail: " << place_action_client_->getState().toString() << ": "
+                                                             << place_action_client_->getState().getText());
       return MoveItErrorCode(place_action_client_->getResult()->error_code);
     }
   }
@@ -645,12 +648,12 @@ public:
   {
     if (!pick_action_client_)
     {
-      ROS_ERROR_STREAM("Pick action client not found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Pick action client not found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     if (!pick_action_client_->isServerConnected())
     {
-      ROS_ERROR_STREAM("Pick action server not connected");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Pick action server not connected");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
     moveit_msgs::PickupGoal goal;
@@ -666,7 +669,7 @@ public:
     pick_action_client_->sendGoal(goal);
     if (!pick_action_client_->waitForResult())
     {
-      ROS_INFO_STREAM("Pickup action returned early");
+      ROS_INFO_STREAM_NAMED("move_group_interface", "Pickup action returned early");
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -674,8 +677,8 @@ public:
     }
     else
     {
-      ROS_WARN_STREAM("Fail: " << pick_action_client_->getState().toString() << ": "
-                               << pick_action_client_->getState().getText());
+      ROS_WARN_STREAM_NAMED("move_group_interface", "Fail: " << pick_action_client_->getState().toString() << ": "
+                                                             << pick_action_client_->getState().getText());
       return MoveItErrorCode(pick_action_client_->getResult()->error_code);
     }
   }
@@ -688,7 +691,8 @@ public:
 
     if (objects.size() < 1)
     {
-      ROS_ERROR_STREAM("Asked for grasps for the object '" << object << "', but the object could not be found");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Asked for grasps for the object '"
+                                                         << object << "', but the object could not be found");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
@@ -699,9 +703,10 @@ public:
   {
     if (!plan_grasps_service_)
     {
-      ROS_ERROR_STREAM("Grasp planning service '" << GRASP_PLANNING_SERVICE_NAME
-                                                  << "' is not available."
-                                                     " This has to be implemented and started separately.");
+      ROS_ERROR_STREAM_NAMED("move_group_interface", "Grasp planning service '"
+                                                         << GRASP_PLANNING_SERVICE_NAME
+                                                         << "' is not available."
+                                                            " This has to be implemented and started separately.");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 
@@ -712,11 +717,11 @@ public:
     request.target = object;
     request.support_surfaces.push_back(support_surface_);
 
-    ROS_DEBUG("Calling grasp planner...");
+    ROS_DEBUG_NAMED("move_group_interface", "Calling grasp planner...");
     if (!plan_grasps_service_.call(request, response) ||
         response.error_code.val != moveit_msgs::MoveItErrorCodes::SUCCESS)
     {
-      ROS_ERROR("Grasp planning failed. Unable to pick.");
+      ROS_ERROR_NAMED("move_group_interface", "Grasp planning failed. Unable to pick.");
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 
@@ -745,7 +750,7 @@ public:
     move_action_client_->sendGoal(goal);
     if (!move_action_client_->waitForResult())
     {
-      ROS_INFO_STREAM("MoveGroup action returned early");
+      ROS_INFO_STREAM_NAMED("move_group_interface", "MoveGroup action returned early");
     }
     if (move_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
@@ -756,8 +761,8 @@ public:
     }
     else
     {
-      ROS_WARN_STREAM("Fail: " << move_action_client_->getState().toString() << ": "
-                               << move_action_client_->getState().getText());
+      ROS_WARN_STREAM_NAMED("move_group_interface", "Fail: " << move_action_client_->getState().toString() << ": "
+                                                             << move_action_client_->getState().getText());
       return MoveItErrorCode(move_action_client_->getResult()->error_code);
     }
   }
@@ -790,7 +795,7 @@ public:
 
     if (!move_action_client_->waitForResult())
     {
-      ROS_INFO_STREAM("MoveGroup action returned early");
+      ROS_INFO_STREAM_NAMED("move_group_interface", "MoveGroup action returned early");
     }
 
     if (move_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -799,7 +804,8 @@ public:
     }
     else
     {
-      ROS_INFO_STREAM(move_action_client_->getState().toString() << ": " << move_action_client_->getState().getText());
+      ROS_INFO_STREAM_NAMED("move_group_interface", move_action_client_->getState().toString()
+                                                        << ": " << move_action_client_->getState().getText());
       return MoveItErrorCode(move_action_client_->getResult()->error_code);
     }
   }
@@ -839,7 +845,7 @@ public:
 
     if (!execute_action_client_->waitForResult())
     {
-      ROS_INFO_STREAM("ExecuteTrajectory action returned early");
+      ROS_INFO_STREAM_NAMED("move_group_interface", "ExecuteTrajectory action returned early");
     }
 
     if (execute_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
@@ -848,8 +854,8 @@ public:
     }
     else
     {
-      ROS_INFO_STREAM(execute_action_client_->getState().toString() << ": "
-                                                                    << execute_action_client_->getState().getText());
+      ROS_INFO_STREAM_NAMED("move_group_interface", execute_action_client_->getState().toString()
+                                                        << ": " << execute_action_client_->getState().getText());
       return MoveItErrorCode(execute_action_client_->getResult()->error_code);
     }
   }
@@ -914,7 +920,7 @@ public:
     }
     if (l.empty())
     {
-      ROS_ERROR("No known link to attach object '%s' to", object.c_str());
+      ROS_ERROR_NAMED("move_group_interface", "No known link to attach object '%s' to", object.c_str());
       return false;
     }
     moveit_msgs::AttachedCollisionObject aco;
@@ -997,13 +1003,13 @@ public:
   void allowLooking(bool flag)
   {
     can_look_ = flag;
-    ROS_INFO("Looking around: %s", can_look_ ? "yes" : "no");
+    ROS_INFO_NAMED("move_group_interface", "Looking around: %s", can_look_ ? "yes" : "no");
   }
 
   void allowReplanning(bool flag)
   {
     can_replan_ = flag;
-    ROS_INFO("Replanning: %s", can_replan_ ? "yes" : "no");
+    ROS_INFO_NAMED("move_group_interface", "Replanning: %s", can_replan_ ? "yes" : "no");
   }
 
   void setReplanningDelay(double delay)
@@ -1070,7 +1076,7 @@ public:
       }
     }
     else
-      ROS_ERROR("Unable to construct goal representation");
+      ROS_ERROR_NAMED("move_group_interface", "Unable to construct goal representation");
 
     if (path_constraints_)
       goal.request.path_constraints = *path_constraints_;
@@ -1198,7 +1204,7 @@ private:
     }
     catch (std::runtime_error &ex)
     {
-      ROS_ERROR("%s", ex.what());
+      ROS_ERROR_NAMED("move_group_interface", "%s", ex.what());
     }
     initializing_constraints_ = false;
   }
@@ -1744,7 +1750,7 @@ bool moveit::planning_interface::MoveGroupInterface::setPoseTargets(
 {
   if (target.empty())
   {
-    ROS_ERROR("No pose specified as goal target");
+    ROS_ERROR_NAMED("move_group_interface", "No pose specified as goal target");
     return false;
   }
   else
@@ -1940,7 +1946,7 @@ moveit::planning_interface::MoveGroupInterface::getRandomPose(const std::string 
   Eigen::Affine3d pose;
   pose.setIdentity();
   if (eef.empty())
-    ROS_ERROR("No end-effector specified");
+    ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
     robot_state::RobotStatePtr current_state;
@@ -1966,7 +1972,7 @@ moveit::planning_interface::MoveGroupInterface::getCurrentPose(const std::string
   Eigen::Affine3d pose;
   pose.setIdentity();
   if (eef.empty())
-    ROS_ERROR("No end-effector specified");
+    ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
     robot_state::RobotStatePtr current_state;
@@ -1989,7 +1995,7 @@ std::vector<double> moveit::planning_interface::MoveGroupInterface::getCurrentRP
   std::vector<double> result;
   const std::string &eef = end_effector_link.empty() ? getEndEffectorLink() : end_effector_link;
   if (eef.empty())
-    ROS_ERROR("No end-effector specified");
+    ROS_ERROR_NAMED("move_group_interface", "No end-effector specified");
   else
   {
     robot_state::RobotStatePtr current_state;
