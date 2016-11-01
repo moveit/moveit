@@ -242,7 +242,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   if (it == cfg.end())
   {
     optimizer = "PathLengthOptimizationObjective";
-    logInform("No optimization objective specified, defaulting to %s", optimizer.c_str());
+    logDebug("No optimization objective specified, defaulting to %s", optimizer.c_str());
   }
   else
   {
