@@ -1000,7 +1000,7 @@ void ConfigurationFilesWidget::loadTemplateStrings()
 
   // Pair 3
   if (config_data_->urdf_from_xacro_)
-    addTemplateString("[URDF_LOAD_ATTRIBUTE]", "command=\"$(find xacro)/xacro.py '" + urdf_location + "'\"");
+    addTemplateString("[URDF_LOAD_ATTRIBUTE]", "command=\"$(find xacro)/xacro --inorder '" + urdf_location + "'\"");
   else
     addTemplateString("[URDF_LOAD_ATTRIBUTE]", "textfile=\"" + urdf_location + "\"");
 
