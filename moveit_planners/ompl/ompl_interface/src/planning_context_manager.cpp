@@ -355,6 +355,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     if (pc == planner_configs_.end())
       logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.",
               req.group_name.c_str(), req.planner_id.c_str());
+  } else { // No planner_id specified, selecting default
+    pc = planner_configs_.find(req.group_name + "[default]");
   }
   if (pc == planner_configs_.end())
   {
