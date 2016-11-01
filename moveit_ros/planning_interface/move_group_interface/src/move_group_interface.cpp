@@ -120,7 +120,7 @@ public:
     goal_joint_tolerance_ = 1e-4;
     goal_position_tolerance_ = 1e-4;     // 0.1 mm
     goal_orientation_tolerance_ = 1e-3;  // ~0.1 deg
-    planning_time_ = 5.0;
+    allowed_planning_time_ = 5.0;
     num_planning_attempts_ = 1;
     max_velocity_scaling_factor_ = 1.0;
     max_acceleration_scaling_factor_ = 1.0;
@@ -937,12 +937,12 @@ public:
   void setPlanningTime(double seconds)
   {
     if (seconds > 0.0)
-      planning_time_ = seconds;
+      allowed_planning_time_ = seconds;
   }
 
   double getPlanningTime() const
   {
-    return planning_time_;
+    return allowed_planning_time_;
   }
 
   void allowLooking(bool flag)
@@ -975,7 +975,7 @@ public:
     goal.request.num_planning_attempts = num_planning_attempts_;
     goal.request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
     goal.request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
-    goal.request.allowed_planning_time = planning_time_;
+    goal.request.allowed_planning_time = allowed_planning_time_;
     goal.request.planner_id = planner_id_;
     goal.request.workspace_parameters = workspace_parameters_;
 
@@ -1034,7 +1034,7 @@ public:
     goal.target_name = object;
     goal.group_name = opt_.group_name_;
     goal.end_effector = getEndEffector();
-    goal.allowed_planning_time = planning_time_;
+    goal.allowed_planning_time = allowed_planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
     if (!support_surface_.empty())
@@ -1051,7 +1051,7 @@ public:
     moveit_msgs::PlaceGoal goal;
     goal.attached_object_name = object;
     goal.group_name = opt_.group_name_;
-    goal.allowed_planning_time = planning_time_;
+    goal.allowed_planning_time = allowed_planning_time_;
     goal.support_surface_name = support_surface_;
     goal.planner_id = planner_id_;
     if (!support_surface_.empty())
@@ -1167,7 +1167,7 @@ private:
   // general planning params
   robot_state::RobotStatePtr considered_start_state_;
   moveit_msgs::WorkspaceParameters workspace_parameters_;
-  double planning_time_;
+  double allowed_planning_time_;
   std::string planner_id_;
   unsigned int num_planning_attempts_;
   double max_velocity_scaling_factor_;
@@ -2029,11 +2029,13 @@ void moveit::planning_interface::MoveGroupInterface::setWorkspace(double minx, d
   impl_->setWorkspace(minx, miny, minz, maxx, maxy, maxz);
 }
 
+/** \brief Set time allowed to planner to solve problem before aborting */
 void moveit::planning_interface::MoveGroupInterface::setPlanningTime(double seconds)
 {
   impl_->setPlanningTime(seconds);
 }
 
+/** \brief Get time allowed to planner to solve problem before aborting */
 double moveit::planning_interface::MoveGroupInterface::getPlanningTime() const
 {
   return impl_->getPlanningTime();
