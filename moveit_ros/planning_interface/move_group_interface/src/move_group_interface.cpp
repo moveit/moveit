@@ -179,7 +179,7 @@ public:
     ROS_DEBUG("Waiting for move_group action server (%s)...", name.c_str());
 
     // wait for the server (and spin as needed)
-    if (timeout == ros::WallTime())
+    if (timeout == ros::WallTime())  // wait forever
     {
       while (node_handle_.ok() && !action->isServerConnected())
       {
@@ -188,7 +188,7 @@ public:
         ((ros::CallbackQueue *)node_handle_.getCallbackQueue())->callAvailable();
       }
     }
-    else
+    else  // wait with timeout
     {
       while (node_handle_.ok() && !action->isServerConnected() && timeout > ros::WallTime::now())
       {
@@ -211,30 +211,53 @@ public:
     }
   }
 
-  void waitForExecuteActionOrService(ros::WallTime timeout_for_servers)
+  void waitForExecuteActionOrService(ros::WallTime timeout)
   {
+    ROS_DEBUG("Waiting for move_group action server (%s)...", move_group::EXECUTE_ACTION_NAME.c_str());
+
+    // Deprecated service
     execute_service_ =
         node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
 
     // wait for either of action or service
-    while (!execute_action_client_->isServerConnected() && !execute_service_.exists() &&
-           timeout_for_servers > ros::WallTime::now())
+    if (timeout == ros::WallTime())  // wait forever
     {
-      ros::WallDuration(0.001).sleep();
-      // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-      ((ros::CallbackQueue *)node_handle_.getCallbackQueue())->callAvailable();
+      while (!execute_action_client_->isServerConnected() && !execute_service_.exists())
+      {
+        ros::WallDuration(0.001).sleep();
+        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+        ((ros::CallbackQueue *)node_handle_.getCallbackQueue())->callAvailable();
+      }
+    }
+    else  // wait with timeout
+    {
+      while (!execute_action_client_->isServerConnected() && !execute_service_.exists() &&
+             timeout > ros::WallTime::now())
+      {
+        ros::WallDuration(0.001).sleep();
+        // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
+        ((ros::CallbackQueue *)node_handle_.getCallbackQueue())->callAvailable();
+      }
     }
 
     // issue warning
     if (!execute_action_client_->isServerConnected())
     {
       if (execute_service_.exists())
+      {
         ROS_WARN_NAMED("planning_interface",
                        "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
                        "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in "
                        "move_group.launch");
+      }
       else
+      {
+        ROS_ERROR_STREAM_NAMED("planning_interface",
+                               "Unable to find execution action on topic: "
+                                   << node_handle_.getNamespace() + move_group::EXECUTE_ACTION_NAME << " or service: "
+                                   << node_handle_.getNamespace() + move_group::EXECUTE_SERVICE_NAME);
         throw std::runtime_error("No Trajectory execution capability available.");
+      }
       execute_action_client_.reset();
     }
   }
