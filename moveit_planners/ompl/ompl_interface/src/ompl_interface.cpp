@@ -276,6 +276,16 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
                   "'%s')",
                   group_names[i].c_str());
     }
+
+    if (pconfig.find(group_names[i] + "[default]") == pconfig.end())
+    {  // No default found, generate it.
+      planning_interface::PlannerConfigurationSettings pc;
+      pc.name = group_names[i] + "[default]";
+      pc.group = group_names[i];
+      pc.config = specific_group_params;
+      pc.config["type"] = "geometric::RRTConnect";
+      pconfig[pc.name] = pc;
+    }
   }
 
   for (planning_interface::PlannerConfigurationMap::iterator it = pconfig.begin(); it != pconfig.end(); ++it)
