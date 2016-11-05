@@ -24,13 +24,10 @@
   <build_depend>moveit_ros_move_group</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>moveit_msgs</build_depend>
-  <build_depend>manipulation_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>pluginlib</build_depend>
-  <build_depend>household_objects_database_msgs</build_depend>
-  <build_depend>manipulation_msgs</build_depend>
   <build_depend>eigen</build_depend>
 
   <run_depend>actionlib</run_depend>
@@ -43,8 +40,6 @@
   <run_depend>rosconsole</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>pluginlib</run_depend>
-  <run_depend>household_objects_database_msgs</run_depend>
-  <run_depend>manipulation_msgs</run_depend>
 
   <export>
     <moveit_ros_move_group plugin="${prefix}/pick_place_capability_plugin_description.xml"/>
