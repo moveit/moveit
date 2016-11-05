@@ -2,13 +2,12 @@
   <name>moveit_core</name>
   <version>0.9.2</version>
   <description>Core libraries used by MoveIt!</description>
-  <author email="isucan@gmail.com">Ioan Sucan</author>
+  <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
   <author email="acorn.pooley@sri.com">Acorn Pooley</author>
 
-  <maintainer email="robot.moveit@gmail.com">Sachin Chitta</maintainer>
-  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
-  <maintainer email="acorn.pooley@sri.com">Acorn Pooley</maintainer>
+  <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
+  <maintainer email="me@v4hn.de">Michael Görner</maintainer>
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
 
   <license>BSD</license>

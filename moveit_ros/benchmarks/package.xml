@@ -3,7 +3,10 @@
   <version>0.9.2</version>
 
   <description>Enhanced tools for benchmarks in MoveIt!</description>
-  <maintainer email="rluna@rice.edu">Ryan Luna</maintainer>
+
+  <author email="rluna@rice.edu">Ryan Luna</author>
+
+  <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
 
   <url type="website">http://moveit.ros.org</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>

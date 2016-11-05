@@ -4,8 +4,9 @@
   <version>0.9.2</version>
   <description>ros_control controller manager interface for MoveIt!</description>
 
-  <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
   <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
+
+  <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
 
   <license>BSD</license>
 
