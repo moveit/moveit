@@ -134,14 +134,14 @@ public:
     */
   MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf,
-            const ros::Duration &wait_for_servers);
+  MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers);
 
   /**
       \brief Construct a client for the MoveGroup action for a particular \e group.
 
       Optionally, specify a TF instance to use. If not specified, one will be constructed internally.
-      A timeout for connecting to the action server can also be specified. If it is not specified, the wait time is unlimited.
+      A timeout for connecting to the action server can also be specified. If it is not specified, the wait time is
+     unlimited.
       \param tf. Specify a TF instance to use. If not specified, one will be constructed internally.
       \param wait_for_servers. Optional timeout for connecting to action servers. If it is not specified, the wait
       time is unlimited.
@@ -149,8 +149,7 @@ public:
   MoveGroup(const std::string &group,
             const boost::shared_ptr<tf::Transformer> &tf = boost::shared_ptr<tf::Transformer>(),
             const ros::WallDuration &wait_for_servers = ros::WallDuration());
-  MoveGroup(const std::string &group,
-            const boost::shared_ptr<tf::Transformer> &tf,
+  MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf,
             const ros::Duration &wait_for_servers);
 
   ~MoveGroup();

@@ -90,10 +90,9 @@ enum ActiveTargetType
 class MoveGroup::MoveGroupImpl
 {
 public:
-  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::WallDuration &wait_for_servers)
-    : opt_(opt),
-      node_handle_(opt.node_handle_),
-      tf_(tf)
+  MoveGroupImpl(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf,
+                const ros::WallDuration &wait_for_servers)
+    : opt_(opt), node_handle_(opt.node_handle_), tf_(tf)
   {
     robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
@@ -141,23 +140,23 @@ public:
 
     ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
     if (wait_for_servers == ros::WallDuration())
-      timeout_for_servers = ros::WallTime(); // wait for ever
+      timeout_for_servers = ros::WallTime();  // wait for ever
     double allotted_time = wait_for_servers.toSec();
 
-    move_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>
-                              (node_handle_, move_group::MOVE_ACTION, false));
+    move_action_client_.reset(
+        new actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction>(node_handle_, move_group::MOVE_ACTION, false));
     waitForAction(move_action_client_, move_group::MOVE_ACTION, timeout_for_servers, allotted_time);
 
-    pick_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PickupAction>
-                              (node_handle_, move_group::PICKUP_ACTION, false));
+    pick_action_client_.reset(
+        new actionlib::SimpleActionClient<moveit_msgs::PickupAction>(node_handle_, move_group::PICKUP_ACTION, false));
     waitForAction(pick_action_client_, move_group::PICKUP_ACTION, timeout_for_servers, allotted_time);
 
-    place_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>
-                               (node_handle_, move_group::PLACE_ACTION, false));
+    place_action_client_.reset(
+        new actionlib::SimpleActionClient<moveit_msgs::PlaceAction>(node_handle_, move_group::PLACE_ACTION, false));
     waitForAction(place_action_client_, move_group::PLACE_ACTION, timeout_for_servers, allotted_time);
 
-    execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>
-                                 (node_handle_, move_group::EXECUTE_ACTION_NAME, false));
+    execute_action_client_.reset(new actionlib::SimpleActionClient<moveit_msgs::ExecuteTrajectoryAction>(
+        node_handle_, move_group::EXECUTE_ACTION_NAME, false));
     // In Indigo, we maintain backwards compatibility
     // silently falling back to old service when new action is not available
     waitForExecuteActionOrService(timeout_for_servers);
@@ -200,7 +199,8 @@ public:
     if (!action->isServerConnected())
     {
       std::stringstream error;
-      error << "Unable to connect to move_group action server '" << name << "' within allotted time (" << allotted_time << "s)";
+      error << "Unable to connect to move_group action server '" << name << "' within allotted time (" << allotted_time
+            << "s)";
       throw std::runtime_error(error.str());
     }
     else
@@ -211,8 +211,8 @@ public:
 
   void waitForExecuteActionOrService(ros::WallTime timeout)
   {
-    ROS_DEBUG_NAMED("move_group_interface",
-                    "Waiting for move_group action server (%s)...", move_group::EXECUTE_ACTION_NAME.c_str());
+    ROS_DEBUG_NAMED("move_group_interface", "Waiting for move_group action server (%s)...",
+                    move_group::EXECUTE_ACTION_NAME.c_str());
 
     // Deprecated service
     execute_service_ =
@@ -834,7 +834,8 @@ public:
     }
     else
     {
-      ROS_INFO_STREAM(execute_action_client_->getState().toString() << ": " << execute_action_client_->getState().getText());
+      ROS_INFO_STREAM(execute_action_client_->getState().toString() << ": "
+                                                                    << execute_action_client_->getState().getText());
       return MoveItErrorCode(execute_action_client_->getResult()->error_code);
     }
   }
@@ -1246,18 +1247,21 @@ moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group_name,
   impl_ = new MoveGroupImpl(Options(group_name), tf ? tf : getSharedTF(), wait_for_servers);
 }
 
-moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
+moveit::planning_interface::MoveGroup::MoveGroup(const std::string &group, const boost::shared_ptr<tf::Transformer> &tf,
+                                                 const ros::Duration &wait_for_servers)
   : MoveGroup(group, tf, ros::WallDuration(wait_for_servers.toSec()))
 {
 }
 
-moveit::planning_interface::MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf, const ros::WallDuration &wait_for_servers)
+moveit::planning_interface::MoveGroup::MoveGroup(const Options &opt, const boost::shared_ptr<tf::Transformer> &tf,
+                                                 const ros::WallDuration &wait_for_servers)
 {
   impl_ = new MoveGroupImpl(opt, tf ? tf : getSharedTF(), wait_for_servers);
 }
 
 moveit::planning_interface::MoveGroup::MoveGroup(const moveit::planning_interface::MoveGroup::Options &opt,
-                                                 const boost::shared_ptr<tf::Transformer> &tf, const ros::Duration &wait_for_servers)
+                                                 const boost::shared_ptr<tf::Transformer> &tf,
+                                                 const ros::Duration &wait_for_servers)
   : MoveGroup(opt, tf, ros::WallDuration(wait_for_servers.toSec()))
 {
 }

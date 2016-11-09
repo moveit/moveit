@@ -39,9 +39,9 @@
 #include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupExecuteService::MoveGroupExecuteService()
-  : MoveGroupCapability("ExecuteTrajectoryService"),
-    callback_queue_(),
-    spinner_(1 /* spinner threads */, &callback_queue_)
+  : MoveGroupCapability("ExecuteTrajectoryService")
+  , callback_queue_()
+  , spinner_(1 /* spinner threads */, &callback_queue_)
 {
 }
 
