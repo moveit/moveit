@@ -374,8 +374,113 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   PRM.addParameter("max_nearest_neighbors", "10", "use k nearest neighbors. default: 10");
   planner_des.push_back(PRM);
 
-  OMPLPlannerDescription PRMstar("PRMstar", "geometric");  // no delcares in code
+  OMPLPlannerDescription PRMstar("PRMstar", "geometric");  // no declares in code
   planner_des.push_back(PRMstar);
+
+  OMPLPlannerDescription FMT("FMT", "geometric");
+  FMT.addParameter("num_samples", "1000", "number of states that the planner should sample. default: 1000");
+  FMT.addParameter("radius_multiplier", "1.1", "multiplier used for the nearest neighbors search radius. default: 1.1");
+  FMT.addParameter("nearest_k", "1", "use Knearest strategy. default: 1");
+  FMT.addParameter("cache_cc", "1", "use collision checking cache. default: 1");
+  FMT.addParameter("heuristics", "0", "activate cost to go heuristics. default: 0");
+  FMT.addParameter("extended_fmt", "1", "activate the extended FMT*: adding new samples if planner does not finish "
+                                        "successfully. default: 1");
+  planner_des.push_back(FMT);
+
+  OMPLPlannerDescription BFMT("BFMT", "geometric");
+  BFMT.addParameter("num_samples", "1000", "number of states that the planner should sample. default: 1000");
+  BFMT.addParameter("radius_multiplier", "1.1", "multiplier used for the nearest neighbors search radius. default: "
+                                                "1.1");
+  BFMT.addParameter("nearest_k", "1", "use the Knearest strategy. default: 1");
+  BFMT.addParameter("balanced", "0", "exploration strategy: balanced true expands one tree every iteration. False will "
+                                     "select the tree with lowest maximum cost to go. default: 1");
+  BFMT.addParameter("optimality", "1", "termination strategy: optimality true finishes when the best possible path is "
+                                       "found. Otherwise, the algorithm will finish when the first feasible path is "
+                                       "found. default: 1");
+  BFMT.addParameter("heuristics", "0", "activates cost to go heuristics. default: 0");
+  BFMT.addParameter("cache_cc", "1", "use the collision checking cache. default: 1");
+  BFMT.addParameter("extended_fmt", "1", "Activates the extended FMT*: adding new samples if planner does not finish "
+                                         "successfully. default: 1");
+  planner_des.push_back(BFMT);
+
+  OMPLPlannerDescription PDST("PDST", "geometric");
+  RRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
+  planner_des.push_back(PDST);
+
+  OMPLPlannerDescription STRIDE("STRIDE", "geometric");
+  STRIDE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                      "setup()");
+  STRIDE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  STRIDE.addParameter("use_projected_distance", "0", "whether nearest neighbors are computed based on distances in a "
+                                                     "projection of the state rather distances in the state space "
+                                                     "itself. default: 0");
+  STRIDE.addParameter("degree", "16", "desired degree of a node in the Geometric Near-neightbor Access Tree (GNAT). "
+                                      "default: 16 ");
+  STRIDE.addParameter("max_degree", "18", "max degree of a node in the GNAT. default: 12");
+  STRIDE.addParameter("min_degree", "12", "min degree of a node in the GNAT. default: 12");
+  STRIDE.addParameter("max_pts_per_leaf", "6", "max points per leaf in the GNAT. default: 6");
+  STRIDE.addParameter("estimated_dimension", "0.0", "estimated dimension of the free space. default: 0.0");
+  STRIDE.addParameter("min_valid_path_fraction", "0.2", "Accept partially valid moves above fraction. default: 0.2");
+  planner_des.push_back(STRIDE);
+
+  OMPLPlannerDescription BiTRRT("BiTRRT", "geometric");
+  BiTRRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                      "setup()");
+  BiTRRT.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
+  BiTRRT.addParameter("init_temperature", "100", "initial temperature. default: 100");
+  BiTRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
+                                                    "default: 0.0 set in setup() ");
+  BiTRRT.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  BiTRRT.addParameter("cost_threshold", "1e300", "the cost threshold. Any motion cost that is not better will not be "
+                                                 "expanded. default: inf");
+  planner_des.push_back(BiTRRT);
+
+  OMPLPlannerDescription LBTRRT("LBTRRT", "geometric");
+  LBTRRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                      "setup()");
+  LBTRRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  LBTRRT.addParameter("epsilon", "0.4", "optimality approximation factor. default: 0.4");
+  planner_des.push_back(LBTRRT);
+
+  OMPLPlannerDescription BiEST("BiEST", "geometric");
+  BiEST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                     "setup()");
+  planner_des.push_back(BiEST);
+
+  OMPLPlannerDescription ProjEST("ProjEST", "geometric");
+  ProjEST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                       "setup()");
+  ProjEST.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  planner_des.push_back(ProjEST);
+
+  OMPLPlannerDescription LazyPRM("LazyPRM", "geometric");
+  LazyPRM.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                                       "setup()");
+  planner_des.push_back(LazyPRM);
+
+  OMPLPlannerDescription LazyPRMstar("LazyPRMstar", "geometric");  // no declares in code
+  planner_des.push_back(LazyPRMstar);
+
+  OMPLPlannerDescription SPARS("SPARS", "geometric");
+  SPARS.addParameter("stretch_factor", "3.0", "roadmap spanner stretch factor. multiplicative upper bound on path "
+                                              "quality. It does not make sense to make this parameter more than 3. "
+                                              "default: 3.0");
+  SPARS.addParameter("sparse_delta_fraction", "0.25", "delta fraction for connection distance. This value represents "
+                                                      "the visibility range of sparse samples. default: 0.25");
+  SPARS.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
+  SPARS.addParameter("max_failures", "1000", "maximum consecutive failure limit. default: 1000");
+  planner_des.push_back(SPARS);
+
+  OMPLPlannerDescription SPARStwo("SPARStwo", "geometric");
+  SPARStwo.addParameter("stretch_factor", "3.0", "roadmap spanner stretch factor. multiplicative upper bound on path "
+                                                 "quality. It does not make sense to make this parameter more than 3. "
+                                                 "default: 3.0");
+  SPARStwo.addParameter("sparse_delta_fraction", "0.25",
+                        "delta fraction for connection distance. This value represents "
+                        "the visibility range of sparse samples. default: 0.25");
+  SPARStwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
+  SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
+  planner_des.push_back(SPARStwo);
 
   // Add Planners with parameter values
   std::vector<std::string> pconfigs;
@@ -621,9 +726,11 @@ bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
   }
   // Add documentation into joint_limits.yaml
   output_stream << "# joint_limits.yaml allows the dynamics properties specified in the URDF to be overwritten or "
-                   "augmented as needed" << std::endl;
+                   "augmented as needed"
+                << std::endl;
   output_stream << "# Specific joint properties can be changed with the keys [max_position, min_position, "
-                   "max_velocity, max_acceleration]" << std::endl;
+                   "max_velocity, max_acceleration]"
+                << std::endl;
   output_stream << "# Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]" << std::endl;
   output_stream << emitter.c_str();
   output_stream.close();
