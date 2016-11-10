@@ -148,7 +148,8 @@ public:
 
   /** @brief The signature for a callback that can compute IK */
   typedef boost::function<void(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_solution,
-                               moveit_msgs::MoveItErrorCodes &error_code)> IKCallbackFn;
+                               moveit_msgs::MoveItErrorCodes &error_code)>
+      IKCallbackFn;
 
   /**
    * @brief Given a desired pose of the end-effector, compute the joint angles to reach it

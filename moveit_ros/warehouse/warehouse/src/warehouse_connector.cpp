@@ -70,7 +70,7 @@ bool WarehouseConnector::connectToDatabase(const std::string& dirname)
     std::size_t exec_file_pos = dbexec_.find_last_of("/\\");
     if (exec_file_pos != std::string::npos)
     {
-      char** argv = new char* [4];
+      char** argv = new char*[4];
       std::size_t exec_length = 1 + dbexec_.length() - exec_file_pos;
       argv[0] = new char[1 + exec_length];
       snprintf(argv[0], exec_length, "%s", dbexec_.substr(exec_file_pos + 1).c_str());

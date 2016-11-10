@@ -237,7 +237,7 @@ public:
   void attemptShortcut(const trajectory_msgs::JointTrajectory& traj_in, trajectory_msgs::JointTrajectory& traj_out);
 
 protected:
-  bool getGridXYZInt(const Eigen::Affine3d& pose, int(&xyz)[3]) const;
+  bool getGridXYZInt(const Eigen::Affine3d& pose, int (&xyz)[3]) const;
 
   void getMotionPrimitives(const std::string& group);
 

@@ -52,7 +52,8 @@ class PlanningRequestAdapter
 public:
   typedef boost::function<bool(const planning_scene::PlanningSceneConstPtr &planning_scene,
                                const planning_interface::MotionPlanRequest &req,
-                               planning_interface::MotionPlanResponse &res)> PlannerFn;
+                               planning_interface::MotionPlanResponse &res)>
+      PlannerFn;
 
   PlanningRequestAdapter()
   {

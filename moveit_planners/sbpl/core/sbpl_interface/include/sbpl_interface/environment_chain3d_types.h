@@ -115,7 +115,7 @@ struct EnvChain3DPlanningData
   }
 
   EnvChain3DHashEntry* addHashEntry(const std::vector<int>& coord, const std::vector<double>& angles,
-                                    const int(&xyz)[3], int action)
+                                    const int (&xyz)[3], int action)
   {
     EnvChain3DHashEntry* new_hash_entry = new EnvChain3DHashEntry();
     new_hash_entry->stateID = state_ID_to_coord_table_.size();

@@ -59,7 +59,8 @@ MOVEIT_CLASS_FORWARD(RobotState);
     the state is valid or not. Returns true if the state is valid. This call is allowed to modify \e robot_state (e.g.,
    set \e joint_group_variable_values) */
 typedef boost::function<bool(RobotState *robot_state, const JointModelGroup *joint_group,
-                             const double *joint_group_variable_values)> GroupStateValidityCallbackFn;
+                             const double *joint_group_variable_values)>
+    GroupStateValidityCallbackFn;
 
 /** \brief Representation of a robot's state. This includes position,
     velocity, acceleration and effort.
@@ -965,8 +966,8 @@ as the new values that correspond to the group */
                    Eigen::MatrixXd &jacobian, bool use_quaternion_representation = false)
   {
     updateLinkTransforms();
-    return const_cast<const RobotState *>(this)
-        ->getJacobian(group, link, reference_point_position, jacobian, use_quaternion_representation);
+    return const_cast<const RobotState *>(this)->getJacobian(group, link, reference_point_position, jacobian,
+                                                             use_quaternion_representation);
   }
 
   /** \brief Compute the Jacobian with reference to the last link of a specified group. If the group is not a chain, an

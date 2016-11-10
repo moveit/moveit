@@ -86,8 +86,7 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description, const
 
   if (debug)
   {
-    std::cout << std::endl
-              << "Joint Model Variable Names: ------------------------------------------- " << std::endl;
+    std::cout << std::endl << "Joint Model Variable Names: ------------------------------------------- " << std::endl;
     const std::vector<std::string> jm_names = joint_model_group_->getVariableNames();
     std::copy(jm_names.begin(), jm_names.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
     std::cout << std::endl;

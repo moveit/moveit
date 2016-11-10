@@ -52,7 +52,8 @@ MOVEIT_CLASS_FORWARD(Transforms);
 /// @brief Map frame names to the transformation matrix that can transform objects from the frame name to the planning
 /// frame
 typedef std::map<std::string, Eigen::Affine3d, std::less<std::string>,
-                 Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > > FixedTransformsMap;
+                 Eigen::aligned_allocator<std::pair<const std::string, Eigen::Affine3d> > >
+    FixedTransformsMap;
 
 /** @brief Provides an implementation of a snapshot of a transform tree that can be easily queried for
     transforming different quantities. Transforms are maintained as a list of transforms to a particular frame.

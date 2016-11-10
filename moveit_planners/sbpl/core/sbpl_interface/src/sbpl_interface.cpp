@@ -77,12 +77,15 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr &planning_
   std::cerr << "B ret is " << b_ret << " planning time " << el << std::endl;
   std::cerr << "Expansions " << env_chain->getPlanningStatistics().total_expansions_ << " average time "
             << (env_chain->getPlanningStatistics().total_expansion_time_.toSec() /
-                (env_chain->getPlanningStatistics().total_expansions_ * 1.0)) << " hz "
+                (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
+            << " hz "
             << 1.0 / (env_chain->getPlanningStatistics().total_expansion_time_.toSec() /
-                      (env_chain->getPlanningStatistics().total_expansions_ * 1.0)) << std::endl;
+                      (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
+            << std::endl;
   std::cerr << "Total coll checks " << env_chain->getPlanningStatistics().coll_checks_ << " hz "
             << 1.0 / (env_chain->getPlanningStatistics().total_coll_check_time_.toSec() /
-                      (env_chain->getPlanningStatistics().coll_checks_ * 1.0)) << std::endl;
+                      (env_chain->getPlanningStatistics().coll_checks_ * 1.0))
+            << std::endl;
   std::cerr << "Path length is " << solution_state_ids.size() << std::endl;
   if (!b_ret)
   {
