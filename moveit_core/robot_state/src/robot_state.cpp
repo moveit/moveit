@@ -1614,13 +1614,13 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
   // Error check
   if (poses_in.size() != sub_groups.size())
   {
-    logError("Number of poses must be the same as number of sub-groups");
+    logError("Number of poses (%u) must be the same as number of sub-groups (%u)", poses_in.size(), sub_groups.size());
     return false;
   }
 
   if (tips_in.size() != sub_groups.size())
   {
-    logError("Number of tip names must be the same as number of sub-groups");
+    logError("Number of tip names (%u) must be same as number of sub-groups (%u)", tips_in.size(), sub_groups.size());
     return false;
   }
 
@@ -1707,7 +1707,8 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup *jmg, co
 
     if (pose_frame != solver_tip_frame)
     {
-      logError("Cannot compute IK for query pose reference frame '%s'", pose_frame.c_str());
+      logError("Cannot compute IK for query pose reference frame '%s', desired: '%s'", pose_frame.c_str(),
+               solver_tip_frame.c_str());
       return false;
     }
   }
