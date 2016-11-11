@@ -43,6 +43,8 @@
 #include <QButtonGroup>
 #include <QRadioButton>
 #include <QKeyEvent>
+#include <QMenu>
+
 #include "default_collisions_widget.h"
 #include "collision_matrix_model.h"
 #include "collision_linear_model.h"
@@ -144,13 +146,19 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
   progress_bar_->hide();              // only show when computation begins
-  layout_->addWidget(progress_bar_);  //,Qt::AlignCenter);
+  layout_->addWidget(progress_bar_);
 
   // Table Area --------------------------------------------
 
   // Table
   collision_table_ = new QTableView(this);
   layout_->addWidget(collision_table_);
+
+  QAction *action;
+  action = new QAction(tr("hide"), this); header_actions_ << action;
+  connect(action, SIGNAL(triggered()), this, SLOT(hideSections()));
+  action = new QAction(tr("show"), this); header_actions_ << action;
+  connect(action, SIGNAL(triggered()), this, SLOT(showSections()));
 
   // Bottom Area ----------------------------------------
 
@@ -269,7 +277,9 @@ void DefaultCollisionsWidget::loadCollisionTable()
   QAbstractItemModel *model;
 
   if (view_mode_buttons_->checkedId() == MatrixMode)
+  {
     model = matrix_model;
+  }
   else
   {
     CollisionLinearModel *linear_model = new CollisionLinearModel(matrix_model);
@@ -307,6 +317,11 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_checkbox_->hide();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
+
+    horizontal_header->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(horizontal_header, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showHeaderContextMenu(QPoint)));
+    vertical_header->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(vertical_header, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showHeaderContextMenu(QPoint)));
   }
   else
   {
@@ -324,10 +339,16 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_checkbox_->show();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
+
+    vertical_header->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(vertical_header, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showHeaderContextMenu(QPoint)));
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     horizontal_header->setSectionsClickable(true);
+    vertical_header->setSectionsClickable(true);
 #else
     horizontal_header->setClickable(true);
+    vertical_header->setClickable(true);
 #endif
   }
 
@@ -357,6 +378,111 @@ void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
   }
 }
 
+void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
+{
+  // This method might be triggered from either of the headers
+  QPoint global;
+  QMenu menu;
+  if (sender() == collision_table_->verticalHeader())
+  {
+    if ((clicked_section_ = collision_table_->verticalHeader()->logicalIndexAt(p)) == -1)
+      return;
+    clicked_headers_ = Qt::Vertical;
+    global = collision_table_->verticalHeader()->mapToGlobal(p);
+    menu.addActions(header_actions_);
+  }
+  else if (sender() == collision_table_->horizontalHeader())
+  {
+    if ((clicked_section_ = collision_table_->horizontalHeader()->logicalIndexAt(p)) == -1)
+      return;
+    clicked_headers_ = Qt::Horizontal;
+    global = collision_table_->horizontalHeader()->mapToGlobal(p);
+    menu.addActions(header_actions_);
+  }
+  menu.exec(global);
+  clicked_headers_ = 0;
+  clicked_section_ = -1;
+}
+
+void DefaultCollisionsWidget::hideSections()
+{
+  QList<int> list;
+  QHeaderView *header = 0;
+  if (clicked_headers_ == Qt::Horizontal)
+  {
+    for (const QModelIndex& index : selection_model_->selectedColumns())
+      list << index.column();
+    header = collision_table_->horizontalHeader();
+  }
+  else if (clicked_headers_ == Qt::Vertical)
+  {
+    for (const QModelIndex& index : selection_model_->selectedRows())
+      list << index.row();
+    header = collision_table_->verticalHeader();
+  }
+
+  // if somewhere else than the selection was clicked, hide only this row/column
+  if (!list.contains(clicked_section_))
+  {
+    list.clear();
+    list << clicked_section_;
+  }
+
+  for (auto index : list)
+    header->setSectionHidden(index, true);
+}
+
+void DefaultCollisionsWidget::showSections()
+{
+  QList<int> list;
+  if (clicked_headers_ == (Qt::Horizontal | Qt::Vertical)) // show all
+  {
+    // show all columns
+    list.clear(); list << 0 << model_->columnCount()-1;
+    showSections(collision_table_->horizontalHeader(), list);
+
+    // show all rows
+    list.clear(); list << 0 << model_->rowCount()-1;
+    showSections(collision_table_->verticalHeader(), list);
+
+    return;
+  }
+
+  QHeaderView *header = 0;
+  if (clicked_headers_ == Qt::Horizontal)
+  {
+    for (const QModelIndex& index : selection_model_->selectedColumns())
+      list << index.column();
+    header = collision_table_->horizontalHeader();
+  }
+  else if (clicked_headers_ == Qt::Vertical)
+  {
+    for (const QModelIndex& index : selection_model_->selectedRows())
+      list << index.row();
+    header = collision_table_->verticalHeader();
+  }
+
+  // if somewhere else than the selection was clicked, hide only this row/column
+  if (!list.contains(clicked_section_))
+  {
+    list.clear();
+    list << clicked_section_;
+  }
+  showSections(header, list);
+}
+void DefaultCollisionsWidget::showSections(QHeaderView *header, const QList<int> &logicalIndexes)
+{
+  if (logicalIndexes.size() < 2)
+    return;
+  int prev = 0;
+  for (int next = 1, end = logicalIndexes.size(); next != end; prev=next, ++next)
+  {
+    for (int index = logicalIndexes[prev], index_end = logicalIndexes[next]; index <= index_end; ++index)
+      header->setSectionHidden(index, false);
+  }
+}
+
+
 void DefaultCollisionsWidget::revertChanges()
 {
   linkPairsFromSRDF();
@@ -381,43 +507,58 @@ bool DefaultCollisionsWidget::eventFilter(QObject *object, QEvent *event)
     if (keyEvent->key() != Qt::Key_Space)
       return false;
 
-    // set all selected items to inverse value of current item
-    const QModelIndex &cur_idx = selection_model_->currentIndex();
-    if (view_mode_buttons_->checkedId() == MatrixMode)
-    {
-      const QItemSelection selection = selection_model_->selection();
-
-      QModelIndex input_index;
-      if (cur_idx.flags() & Qt::ItemIsUserCheckable)
-        input_index = cur_idx;  // if current index is checkable, this serves as input
-      else
-      {  // search for first checkable index in selection that can serve as input
-        for (const auto idx : selection.indexes())
-        {
-          if (idx.flags() & Qt::ItemIsUserCheckable)
-          {
-            input_index = idx;
-            break;
-          }
-        }
-        if (!input_index.isValid())
-          return true;  // no valid selection
-      }
-
-      bool current = model_->data(input_index, Qt::CheckStateRole) == Qt::Checked;
-      CollisionMatrixModel *m = static_cast<CollisionMatrixModel *>(model_);
-      m->setEnabled(selection, !current);
-    }
-    else
-    {
-      bool current = model_->data(model_->index(cur_idx.row(), 2), Qt::CheckStateRole) == Qt::Checked;
-      SortFilterProxyModel *m = static_cast<SortFilterProxyModel *>(model_);
-      m->setEnabled(selection_model_->selection(), !current);
-    }
+    toggleSelection(selection_model_->selection());
     return true;  // no need for further processing
   }
 
   return false;
+}
+
+void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
+{
+  // remove hidden rows / columns from selection
+  int rows = model_->rowCount();
+  int cols = model_->columnCount();
+  for (int r=0; r != rows; ++r) {
+    if (collision_table_->isRowHidden(r))
+      selection.merge(QItemSelection(model_->index(r, 0), model_->index(r, cols-1)), QItemSelectionModel::Deselect);
+  }
+  for (int c=0; c != cols; ++c) {
+    if (collision_table_->isColumnHidden(c))
+      selection.merge(QItemSelection(model_->index(0, c), model_->index(rows-1, c)), QItemSelectionModel::Deselect);
+  }
+
+  // set all selected items to inverse value of current item
+  const QModelIndex &cur_idx = selection_model_->currentIndex();
+  if (view_mode_buttons_->checkedId() == MatrixMode)
+  {
+    QModelIndex input_index;
+    if (cur_idx.flags() & Qt::ItemIsUserCheckable)
+      input_index = cur_idx;  // if current index is checkable, this serves as input
+    else
+    {  // search for first checkable index in selection that can serve as input
+      for (const auto idx : selection.indexes())
+      {
+        if (idx.flags() & Qt::ItemIsUserCheckable)
+        {
+          input_index = idx;
+          break;
+        }
+      }
+      if (!input_index.isValid())
+        return;  // no valid selection
+    }
+
+    bool current = model_->data(input_index, Qt::CheckStateRole) == Qt::Checked;
+    CollisionMatrixModel *m = static_cast<CollisionMatrixModel *>(model_);
+    m->setEnabled(selection, !current);
+  }
+  else
+  {
+    bool current = model_->data(model_->index(cur_idx.row(), 2), Qt::CheckStateRole) == Qt::Checked;
+    SortFilterProxyModel *m = static_cast<SortFilterProxyModel *>(model_);
+    m->setEnabled(selection, !current);
+  }
 }
 
 // ******************************************************************************************

@@ -50,6 +50,7 @@
 #include <QSpinBox>
 #include <QThread>
 #include <QLineEdit>
+#include <QAction>
 
 #ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
@@ -157,6 +158,10 @@ private Q_SLOTS:
    */
   bool focusLost();
 
+  void showHeaderContextMenu(const QPoint &p);
+  void hideSections();
+  void showSections();
+
 private:
   // ******************************************************************************************
   // Qt Components
@@ -178,6 +183,10 @@ private:
   QSpinBox *fraction_spinbox_;
   QPushButton *btn_revert_;
   QButtonGroup *view_mode_buttons_;
+
+  QList<QAction*> header_actions_; // context actions for header sections
+  Qt::Orientations clicked_headers_; // remember which header section activated context actions
+  int clicked_section_; // remember which header section activated context actions
 
   // ******************************************************************************************
   // Variables
@@ -211,6 +220,15 @@ private:
    * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
    */
   bool eventFilter(QObject *object, QEvent *event);
+
+  /**
+   * \brief Show header's sections in logicalIndexes and everything in between
+   */
+  void showSections(QHeaderView *header, const QList<int> &logicalIndexes);
+  /**
+   * \brief Toggle enabled status of selection
+   */
+  void toggleSelection(QItemSelection selection);
 };
 
 /**
