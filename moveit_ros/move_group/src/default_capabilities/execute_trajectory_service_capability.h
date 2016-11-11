@@ -34,8 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#ifndef MOVEIT_MOVE_GROUP_EXECUTE_SERVICE_CAPABILITY_
-#define MOVEIT_MOVE_GROUP_EXECUTE_SERVICE_CAPABILITY_
+#ifndef MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_SERVICE_CAPABILITY_
+#define MOVEIT_MOVE_GROUP_EXECUTE_TRAJECTORY_SERVICE_CAPABILITY_
 
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>

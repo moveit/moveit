@@ -34,12 +34,14 @@
 
 /* Author: Ioan Sucan */
 
-#include "execute_service_capability.h"
+#include "execute_trajectory_service_capability.h"
 #include <moveit/trajectory_execution_manager/trajectory_execution_manager.h>
 #include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupExecuteService::MoveGroupExecuteService()
-  : MoveGroupCapability("ExecutePathService"), callback_queue_(), spinner_(1 /* spinner threads */, &callback_queue_)
+  : MoveGroupCapability("ExecuteTrajectoryService")
+  , callback_queue_()
+  , spinner_(1 /* spinner threads */, &callback_queue_)
 {
 }
 
