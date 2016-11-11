@@ -1568,6 +1568,7 @@ bool moveit::planning_interface::MoveGroup::setNamedTarget(const std::string &na
       impl_->setTargetType(JOINT);
       return true;
     }
+    ROS_ERROR_NAMED("move_group_interface", "The requested named target '%s' does not exist", name.c_str());
     return false;
   }
 }
