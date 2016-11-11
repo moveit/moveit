@@ -66,14 +66,18 @@ CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &
                                            const std::vector<std::string> &names, QObject *parent)
   : QAbstractTableModel(parent), pairs(pairs), std_names(names)
 {
-  for (std::vector<std::string>::const_iterator it = names.begin(), end = names.end(); it != end; ++it)
+  int idx = 0;
+  for (std::vector<std::string>::const_iterator it = names.begin(), end = names.end(); it != end; ++it, ++idx)
+  {
+    visual_to_index << idx;
     q_names << QString::fromStdString(*it);
+  }
 }
 
 // return item in pairs map given a normalized index, use item(normalized(index))
 moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const QModelIndex &index)
 {
-  int r = index.row(), c = index.column();
+  int r = visual_to_index[index.row()], c = visual_to_index[index.column()];
   if (r == c)
     return pairs.end();
   if (r > c)
@@ -84,12 +88,12 @@ moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const Q
 
 int CollisionMatrixModel::rowCount(const QModelIndex & /*parent*/) const
 {
-  return q_names.size();
+  return visual_to_index.size();
 }
 
 int CollisionMatrixModel::columnCount(const QModelIndex & /*parent*/) const
 {
-  return q_names.size();
+  return visual_to_index.size();
 }
 
 QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
@@ -176,10 +180,23 @@ void CollisionMatrixModel::setEnabled(const QModelIndexList &indexes, bool value
     setData(idx, value ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 }
 
+void CollisionMatrixModel::setFilterRegExp(const QString &filter)
+{
+  beginResetModel();
+  QRegExp regexp(filter);
+  visual_to_index.clear();
+  for (int idx = 0, end = q_names.size(); idx != end; ++idx)
+  {
+    if (q_names[idx].contains(regexp))
+      visual_to_index << idx;
+  }
+  endResetModel();
+}
+
 QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation, int role) const
 {
   if (role == Qt::DisplayRole)
-    return q_names[section];
+    return q_names[visual_to_index[section]];
   return QVariant();
 }
 

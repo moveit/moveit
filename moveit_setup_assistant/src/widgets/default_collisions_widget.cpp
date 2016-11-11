@@ -276,9 +276,9 @@ void DefaultCollisionsWidget::loadCollisionTable()
     SortFilterProxyModel *sorted_model = new SortFilterProxyModel();
     model = sorted_model;
     sorted_model->setSourceModel(linear_model);
-    connect(link_name_filter_, SIGNAL(textChanged(QString)), sorted_model, SLOT(setFilterRegExp(QString)));
-    sorted_model->setFilterRegExp(link_name_filter_->text());
   }
+  connect(link_name_filter_, SIGNAL(textChanged(QString)), model, SLOT(setFilterRegExp(QString)));
+  QMetaObject::invokeMethod(model, "setFilterRegExp", Q_ARG(QString, link_name_filter_->text()));
 
   collision_table_->setModel(model);
   // delete old and remember new model
@@ -304,7 +304,6 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_table_->setVerticalHeader(vertical_header = new RotatedHeaderView(Qt::Vertical, this));
     collision_table_->setSortingEnabled(false);
 
-    link_name_filter_->hide();
     collision_checkbox_->hide();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);
@@ -322,7 +321,6 @@ void DefaultCollisionsWidget::loadCollisionTable()
     collision_table_->sortByColumn(0, Qt::AscendingOrder);
     collision_table_->setSortingEnabled(true);
 
-    link_name_filter_->show();
     collision_checkbox_->show();
     horizontal_header->setVisible(true);
     vertical_header->setVisible(true);

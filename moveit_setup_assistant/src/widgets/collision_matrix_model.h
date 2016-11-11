@@ -60,6 +60,9 @@ public:
   void setEnabled(const QItemSelection &selection, bool value);
   void setEnabled(const QModelIndexList &indexes, bool value);
 
+public Q_SLOTS:
+  void setFilterRegExp(const QString &filter);
+
 private:
   moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex &index);
   moveit_setup_assistant::LinkPairMap::const_iterator item(const QModelIndex &index) const
@@ -69,8 +72,9 @@ private:
 
 private:
   moveit_setup_assistant::LinkPairMap &pairs;
-  const std::vector<std::string> std_names;
-  QList<QString> q_names;
+  const std::vector<std::string> std_names; // names of links
+  QList<QString> q_names; // names of links
+  QList<int> visual_to_index;  // map from visual index to actual index
 };
 
 #endif  // COLLISIONMATRIXMODEL_H
