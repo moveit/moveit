@@ -382,24 +382,31 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
 {
   // This method might be triggered from either of the headers
   QPoint global;
-  QMenu menu;
   if (sender() == collision_table_->verticalHeader())
   {
-    if ((clicked_section_ = collision_table_->verticalHeader()->logicalIndexAt(p)) == -1)
-      return;
+    clicked_section_ = collision_table_->verticalHeader()->logicalIndexAt(p);
     clicked_headers_ = Qt::Vertical;
     global = collision_table_->verticalHeader()->mapToGlobal(p);
-    menu.addActions(header_actions_);
   }
   else if (sender() == collision_table_->horizontalHeader())
   {
-    if ((clicked_section_ = collision_table_->horizontalHeader()->logicalIndexAt(p)) == -1)
-      return;
+    clicked_section_ = collision_table_->horizontalHeader()->logicalIndexAt(p);
     clicked_headers_ = Qt::Horizontal;
     global = collision_table_->horizontalHeader()->mapToGlobal(p);
-    menu.addActions(header_actions_);
   }
+  else
+  {
+    clicked_section_ = -1;
+    clicked_headers_ = 0;
+  }
+
+  QMenu menu;
+  if (clicked_section_ < 0)
+    menu.addAction(header_actions_[1]); // only 'show' action
+  else
+    menu.addActions(header_actions_);
   menu.exec(global);
+
   clicked_headers_ = 0;
   clicked_section_ = -1;
 }
