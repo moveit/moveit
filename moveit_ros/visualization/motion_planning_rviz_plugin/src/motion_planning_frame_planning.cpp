@@ -175,10 +175,7 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
 
   // update query start state to current if neccessary
   if (ui_->start_state_selection->currentText() == "<current>")
-  {
-    ros::Duration(1).sleep();
     useStartStateButtonClicked();
-  }
 }
 
 void MotionPlanningFrame::useStartStateButtonClicked()
