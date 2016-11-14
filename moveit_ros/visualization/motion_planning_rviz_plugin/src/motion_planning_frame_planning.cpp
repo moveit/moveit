@@ -180,8 +180,9 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
 
 void MotionPlanningFrame::useStartStateButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this), "update start "
-                                                                                                        "state");
+  // use background job: fetching the current state might take up to a second
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this),  //
+                                      "update start state");
 }
 
 void MotionPlanningFrame::useStartStateButtonExec()
@@ -193,8 +194,9 @@ void MotionPlanningFrame::useStartStateButtonExec()
 
 void MotionPlanningFrame::useGoalStateButtonClicked()
 {
-  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this), "update goal "
-                                                                                                       "state");
+  // use background job: fetching the current state might take up to a second
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this),  //
+                                      "update goal state");
 }
 
 void MotionPlanningFrame::useGoalStateButtonExec()

@@ -44,5 +44,5 @@ if __name__ == '__main__':
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, RobotStateUpdateTest)
 
-    # suppress cleanup segfault
+    # suppress cleanup segfault in ROS < Kinetic
     os._exit(0)

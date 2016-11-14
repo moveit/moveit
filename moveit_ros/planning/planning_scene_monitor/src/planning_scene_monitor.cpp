@@ -867,7 +867,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration timeout(wait_time);
 
-  ROS_DEBUG_NAMED("planning_scene_monitor", "sync robot state to: %.3fs", fmod(t.toSec(), 10.));
+  ROS_DEBUG_NAMED(LOGNAME, "sync robot state to: %.3fs", fmod(t.toSec(), 10.));
 
   if (current_state_monitor_)
   {
@@ -883,7 +883,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
     if (success)
       return true;
 
-    ROS_WARN_NAMED("planning_scene_monitor", "Failed to fetch current robot state.");
+    ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
     return false;
   }
 
@@ -895,20 +895,18 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   while (last_robot_motion_time_ < t &&  // Wait until the state update actually reaches the scene.
          timeout > ros::WallDuration())
   {
-    ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "last robot motion: " << (t - last_robot_motion_time_).toSec()
-                                                                           << " ago");
+    ROS_DEBUG_STREAM_NAMED(LOGNAME, "last robot motion: " << (t - last_robot_motion_time_).toSec() << " ago");
     new_scene_update_condition_.wait_for(lock, boost::chrono::nanoseconds(timeout.toNSec()));
     timeout -= ros::WallTime::now() - start;  // compute remaining wait_time
   }
   bool success = last_robot_motion_time_ >= t;
   // suppress warning if we received an update at all
   if (!success && prev_robot_motion_time != last_robot_motion_time_)
-    ROS_WARN_NAMED("planning_scene_monitor", "Maybe failed to update robot state, time diff: %.3fs",
+    ROS_WARN_NAMED(LOGNAME, "Maybe failed to update robot state, time diff: %.3fs",
                    (t - last_robot_motion_time_).toSec());
 
-  ROS_DEBUG_STREAM_NAMED("planning_scene_monitor",
-                         "sync done: robot motion: " << (t - last_robot_motion_time_).toSec()
-                                                     << " scene update: " << (t - last_update_time_).toSec());
+  ROS_DEBUG_STREAM_NAMED(LOGNAME, "sync done: robot motion: " << (t - last_robot_motion_time_).toSec()
+                                                              << " scene update: " << (t - last_update_time_).toSec());
   return success;
 }
 
@@ -1179,7 +1177,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
         state_update_pending_ = false;
         last_robot_state_update_wall_time_ = ros::WallTime::now();
         update = true;
-        ROS_DEBUG_STREAM_NAMED("planning_scene_monitor",
+        ROS_DEBUG_STREAM_NAMED(LOGNAME,
                                "performPendingStateUpdate: " << fmod(last_robot_state_update_wall_time_.toSec(), 10));
       }
     }
@@ -1188,7 +1186,7 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
     if (update)
     {
       updateSceneWithCurrentState();
-      ROS_DEBUG_NAMED("planning_scene_monitor", "performPendingStateUpdate done");
+      ROS_DEBUG_NAMED(LOGNAME, "performPendingStateUpdate done");
     }
   }
 }
@@ -1258,8 +1256,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
-      ROS_DEBUG_STREAM_NAMED("planning_scene_monitor", "robot state update "
-                                                           << fmod(last_robot_motion_time_.toSec(), 10.));
+      ROS_DEBUG_STREAM_NAMED(LOGNAME, "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
       scene_->getCurrentStateNonConst().update();  // compute all transforms
     }

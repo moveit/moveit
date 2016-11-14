@@ -595,7 +595,7 @@ public:
 
     if (!current_state_monitor_->waitForCurrentState(ros::Time::now(), wait_seconds))
     {
-      ROS_ERROR("Failed to fetch current robot state");
+      ROS_ERROR_NAMED("move_group_interface", "Failed to fetch current robot state");
       return false;
     }
 

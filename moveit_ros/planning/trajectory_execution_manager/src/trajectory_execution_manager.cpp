@@ -1472,7 +1472,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
       {
         const robot_model::JointModel *jm = cur_state->getJointModel(joint_names[i]);
         if (!jm)
-          continue;
+          continue;  // joint vanished from robot state (shouldn't happen), but we don't care
 
         if (fabs(cur_state->getJointPositions(jm)[0] - prev_state->getJointPositions(jm)[0]) > allowed_start_tolerance_)
         {
