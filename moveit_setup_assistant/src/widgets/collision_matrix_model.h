@@ -34,8 +34,8 @@
 
 /* Author: Robert Haschke */
 
-#ifndef COLLISIONMATRIXMODEL_H
-#define COLLISIONMATRIXMODEL_H
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
 
 #include <QAbstractTableModel>
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
@@ -77,4 +77,4 @@ private:
   QList<int> visual_to_index;                // map from visual index to actual index
 };
 
-#endif  // COLLISIONMATRIXMODEL_H
+#endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
