@@ -72,9 +72,9 @@ private:
 
 private:
   moveit_setup_assistant::LinkPairMap &pairs;
-  const std::vector<std::string> std_names; // names of links
-  QList<QString> q_names; // names of links
-  QList<int> visual_to_index;  // map from visual index to actual index
+  const std::vector<std::string> std_names;  // names of links
+  QList<QString> q_names;                    // names of links
+  QList<int> visual_to_index;                // map from visual index to actual index
 };
 
 #endif  // COLLISIONMATRIXMODEL_H

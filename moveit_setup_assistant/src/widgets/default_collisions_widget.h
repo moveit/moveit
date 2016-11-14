@@ -184,9 +184,9 @@ private:
   QPushButton *btn_revert_;
   QButtonGroup *view_mode_buttons_;
 
-  QList<QAction*> header_actions_; // context actions for header sections
-  Qt::Orientations clicked_headers_; // remember which header section activated context actions
-  int clicked_section_; // remember which header section activated context actions
+  QList<QAction *> header_actions_;   // context actions for header sections
+  Qt::Orientations clicked_headers_;  // remember which header section activated context actions
+  int clicked_section_;               // remember which header section activated context actions
 
   // ******************************************************************************************
   // Variables

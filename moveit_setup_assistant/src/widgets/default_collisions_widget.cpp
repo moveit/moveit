@@ -145,7 +145,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   progress_bar_ = new QProgressBar(this);
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
-  progress_bar_->hide();              // only show when computation begins
+  progress_bar_->hide();  // only show when computation begins
   layout_->addWidget(progress_bar_);
 
   // Table Area --------------------------------------------
@@ -155,9 +155,11 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   layout_->addWidget(collision_table_);
 
   QAction *action;
-  action = new QAction(tr("hide"), this); header_actions_ << action;
+  action = new QAction(tr("hide"), this);
+  header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(hideSections()));
-  action = new QAction(tr("show"), this); header_actions_ << action;
+  action = new QAction(tr("show"), this);
+  header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(showSections()));
 
   // Bottom Area ----------------------------------------
@@ -402,7 +404,7 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
 
   QMenu menu;
   if (clicked_section_ < 0)
-    menu.addAction(header_actions_[1]); // only 'show' action
+    menu.addAction(header_actions_[1]);  // only 'show' action
   else
     menu.addActions(header_actions_);
   menu.exec(global);
@@ -417,13 +419,13 @@ void DefaultCollisionsWidget::hideSections()
   QHeaderView *header = 0;
   if (clicked_headers_ == Qt::Horizontal)
   {
-    for (const QModelIndex& index : selection_model_->selectedColumns())
+    for (const QModelIndex &index : selection_model_->selectedColumns())
       list << index.column();
     header = collision_table_->horizontalHeader();
   }
   else if (clicked_headers_ == Qt::Vertical)
   {
-    for (const QModelIndex& index : selection_model_->selectedRows())
+    for (const QModelIndex &index : selection_model_->selectedRows())
       list << index.row();
     header = collision_table_->verticalHeader();
   }
@@ -442,14 +444,16 @@ void DefaultCollisionsWidget::hideSections()
 void DefaultCollisionsWidget::showSections()
 {
   QList<int> list;
-  if (clicked_headers_ == (Qt::Horizontal | Qt::Vertical)) // show all
+  if (clicked_headers_ == (Qt::Horizontal | Qt::Vertical))  // show all
   {
     // show all columns
-    list.clear(); list << 0 << model_->columnCount()-1;
+    list.clear();
+    list << 0 << model_->columnCount() - 1;
     showSections(collision_table_->horizontalHeader(), list);
 
     // show all rows
-    list.clear(); list << 0 << model_->rowCount()-1;
+    list.clear();
+    list << 0 << model_->rowCount() - 1;
     showSections(collision_table_->verticalHeader(), list);
 
     return;
@@ -458,13 +462,13 @@ void DefaultCollisionsWidget::showSections()
   QHeaderView *header = 0;
   if (clicked_headers_ == Qt::Horizontal)
   {
-    for (const QModelIndex& index : selection_model_->selectedColumns())
+    for (const QModelIndex &index : selection_model_->selectedColumns())
       list << index.column();
     header = collision_table_->horizontalHeader();
   }
   else if (clicked_headers_ == Qt::Vertical)
   {
-    for (const QModelIndex& index : selection_model_->selectedRows())
+    for (const QModelIndex &index : selection_model_->selectedRows())
       list << index.row();
     header = collision_table_->verticalHeader();
   }
@@ -482,13 +486,12 @@ void DefaultCollisionsWidget::showSections(QHeaderView *header, const QList<int>
   if (logicalIndexes.size() < 2)
     return;
   int prev = 0;
-  for (int next = 1, end = logicalIndexes.size(); next != end; prev=next, ++next)
+  for (int next = 1, end = logicalIndexes.size(); next != end; prev = next, ++next)
   {
     for (int index = logicalIndexes[prev], index_end = logicalIndexes[next]; index <= index_end; ++index)
       header->setSectionHidden(index, false);
   }
 }
-
 
 void DefaultCollisionsWidget::revertChanges()
 {
@@ -526,13 +529,15 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
   // remove hidden rows / columns from selection
   int rows = model_->rowCount();
   int cols = model_->columnCount();
-  for (int r=0; r != rows; ++r) {
+  for (int r = 0; r != rows; ++r)
+  {
     if (collision_table_->isRowHidden(r))
-      selection.merge(QItemSelection(model_->index(r, 0), model_->index(r, cols-1)), QItemSelectionModel::Deselect);
+      selection.merge(QItemSelection(model_->index(r, 0), model_->index(r, cols - 1)), QItemSelectionModel::Deselect);
   }
-  for (int c=0; c != cols; ++c) {
+  for (int c = 0; c != cols; ++c)
+  {
     if (collision_table_->isColumnHidden(c))
-      selection.merge(QItemSelection(model_->index(0, c), model_->index(rows-1, c)), QItemSelectionModel::Deselect);
+      selection.merge(QItemSelection(model_->index(0, c), model_->index(rows - 1, c)), QItemSelectionModel::Deselect);
   }
 
   // set all selected items to inverse value of current item
