@@ -389,15 +389,15 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 
   OMPLPlannerDescription BFMT("BFMT", "geometric");
   BFMT.addParameter("num_samples", "1000", "number of states that the planner should sample. default: 1000");
-  BFMT.addParameter("radius_multiplier", "1.1", "multiplier used for the nearest neighbors search radius. default: "
-                                                "1.1");
+  BFMT.addParameter("radius_multiplier", "1.0", "multiplier used for the nearest neighbors search radius. default: "
+                                                "1.0");
   BFMT.addParameter("nearest_k", "1", "use the Knearest strategy. default: 1");
   BFMT.addParameter("balanced", "0", "exploration strategy: balanced true expands one tree every iteration. False will "
                                      "select the tree with lowest maximum cost to go. default: 1");
   BFMT.addParameter("optimality", "1", "termination strategy: optimality true finishes when the best possible path is "
                                        "found. Otherwise, the algorithm will finish when the first feasible path is "
                                        "found. default: 1");
-  BFMT.addParameter("heuristics", "0", "activates cost to go heuristics. default: 0");
+  BFMT.addParameter("heuristics", "1", "activates cost to go heuristics. default: 1");
   BFMT.addParameter("cache_cc", "1", "use the collision checking cache. default: 1");
   BFMT.addParameter("extended_fmt", "1", "Activates the extended FMT*: adding new samples if planner does not finish "
                                          "successfully. default: 1");
