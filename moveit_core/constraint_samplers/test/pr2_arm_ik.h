@@ -38,7 +38,6 @@
 #define PR2_ARM_IK_H
 
 #include <urdf_model/model.h>
-#include <moveit/urdfdom_compatibility.h>
 #include <Eigen/Core>
 #include <Eigen/LU>  // provides LU decomposition
 #include <kdl/chainiksolver.hpp>
