@@ -48,7 +48,7 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
-#include <moveit_msgs/GetKinematicSolverInfo.h>
+#include <moveit_msgs/KinematicSolverInfo.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 
 #include <kdl/chainfksolverpos_recursive.hpp>
