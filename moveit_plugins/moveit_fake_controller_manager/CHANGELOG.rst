@@ -2,7 +2,7 @@
 Changelog for package moveit_fake_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+0.9.3 (2016-11-16)
 -----------
 
 0.5.7 (2016-01-30)
