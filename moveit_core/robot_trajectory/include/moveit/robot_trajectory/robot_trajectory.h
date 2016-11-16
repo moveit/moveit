@@ -114,7 +114,7 @@ public:
    *  @param  The waypoint index.
    *  @return The duration from start; retuns -1.0 if index is out of range.
    */
-  double getWaypointDurationFromStart(std::size_t index) const;
+  double getWayPointDurationFromStart(std::size_t index) const;
 
   double getWayPointDurationFromPrevious(std::size_t index) const
   {
