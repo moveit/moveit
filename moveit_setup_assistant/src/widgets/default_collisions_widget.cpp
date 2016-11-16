@@ -242,7 +242,7 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
   disableControls(false);  // enable everything else
 
   config_data_->changes |= MoveItConfigData::COLLISIONS;
-  worker_->deleteLater();
+  worker_->deleteLater(); worker_ = NULL;
 }
 
 // ******************************************************************************************
@@ -744,7 +744,7 @@ bool DefaultCollisionsWidget::focusLost()
   if (worker_)
   {
     if (QMessageBox::No == QMessageBox::question(this, "Collision Matrix Generation",
-                                                 "Collision Matrix Generation is sill active. Cancel computation?",
+                                                 "Collision Matrix Generation is still active. Cancel computation?",
                                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No))
       return false;
     worker_->cancel();
