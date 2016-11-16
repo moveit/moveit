@@ -2,6 +2,15 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Replace unused service dependency with msg dep (`#361 <https://github.com/ros-planning/moveit/issues/361>`_)
+* [fix] cleanup urdfdom compatibility (`#319 <https://github.com/ros-planning/moveit/issues/319>`_)
+* [fix] Fix missing compatibility header for Wily `#364 <https://github.com/ros-planning/moveit/issues/364>`_)
+* [enhancement] Improved RobotState feedback for setFromIK() (`#342 <https://github.com/ros-planning/moveit/issues/342>`_)
+* [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
+* Contributors: Dave Coleman, Ian McMahon, Robert Haschke
+
 0.9.2 (2016-11-05)
 ------------------
 * [Fix] CHANGELOG encoding for 0.9.1 (Fix `#318 <https://github.com/ros-planning/moveit/issues/318>`_). (`#327 <https://github.com/ros-planning/moveit/issues/327>`_)
