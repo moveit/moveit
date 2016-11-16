@@ -2,8 +2,8 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.3 (2016-11-16)
+------------------
 * Merge pull request `#330 <https://github.com/ros-planning/moveit/issues/330>`_ from davetcoleman/kinetic-package.xml
   Updated package.xml maintainers and author emails
 * Updated package.xml maintainers and author emails

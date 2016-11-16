@@ -2,8 +2,8 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.3 (2016-11-16)
+------------------
 * [capability] add list of default capabilities `#359 <https://github.com/ros-planning/moveit/pull/359>`_
 * [maintenance] Updated package.xml maintainers and author emails `#330 <https://github.com/ros-planning/moveit/issues/330>`_
 * Contributors: Dave Coleman, Michael Goerner, Ian McMahon
