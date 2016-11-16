@@ -39,6 +39,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 #include <QVector>
+#include <QApplication>
 
 using namespace moveit_setup_assistant;
 
@@ -98,6 +99,9 @@ int CollisionMatrixModel::columnCount(const QModelIndex & /*parent*/) const
 
 QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
 {
+  if (index.isValid() && index.row() == index.column() && role == Qt::BackgroundRole)
+    return QApplication::palette().window();
+
   moveit_setup_assistant::LinkPairMap::const_iterator item = this->item(index);
   if (item == pairs.end())
     return QVariant();
