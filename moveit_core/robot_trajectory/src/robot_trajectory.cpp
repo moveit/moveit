@@ -412,6 +412,11 @@ double robot_trajectory::RobotTrajectory::getWayPointDurationFromStart(std::size
   return time;
 }
 
+double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
+{
+  return getWayPointDurationFromStart(index);
+}
+
 bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
                                                                     robot_state::RobotStatePtr &output_state) const
 {
