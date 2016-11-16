@@ -37,7 +37,7 @@
 #include "collision_linear_model.h"
 #include "collision_matrix_model.h"
 
-#include "default_collisions_widget.h"
+#include <QItemSelection>
 #include <QPainter>
 
 using namespace moveit_setup_assistant;

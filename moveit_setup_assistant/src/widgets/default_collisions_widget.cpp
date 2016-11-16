@@ -46,9 +46,9 @@
 #include <QMenu>
 
 #include "default_collisions_widget.h"
-#include "collision_matrix_model.h"
-#include "collision_linear_model.h"
-#include "rotated_header_view.h"
+#include "../tools/collision_matrix_model.h"
+#include "../tools/collision_linear_model.h"
+#include "../tools/rotated_header_view.h"
 #include <ros/console.h>
 
 namespace moveit_setup_assistant
