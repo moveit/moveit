@@ -708,6 +708,8 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
     // Set the link names
     link_pair.first = collision_it->link1_;
     link_pair.second = collision_it->link2_;
+    if (link_pair.first >= link_pair.second)
+       std::swap(link_pair.first, link_pair.second);
 
     // Set the link meta data
     link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString(collision_it->reason_);

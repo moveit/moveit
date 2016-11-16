@@ -84,8 +84,10 @@ moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const Q
   int r = visual_to_index[index.row()], c = visual_to_index[index.column()];
   if (r == c)
     return pairs.end();
-  if (r > c)
-    std::swap(r, c);
+
+  // setLinkPair() actually inserts the pair (A,B) where A < B
+  if (std_names[r] >= std_names[c])
+     std::swap(r, c);
 
   return pairs.find(std::make_pair(std_names[r], std_names[c]));
 }
