@@ -155,12 +155,15 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   layout_->addWidget(collision_table_);
 
   QAction *action;
-  action = new QAction(tr("hide"), this);
-  header_actions_ << action;
-  connect(action, SIGNAL(triggered()), this, SLOT(hideSections()));
   action = new QAction(tr("show"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(showSections()));
+  action = new QAction(tr("hide"), this);
+  header_actions_ << action;
+  connect(action, SIGNAL(triggered()), this, SLOT(hideSections()));
+  action = new QAction(tr("hide others"), this);
+  header_actions_ << action;
+  connect(action, SIGNAL(triggered()), this, SLOT(hideOtherSections()));
 
   // Bottom Area ----------------------------------------
 
@@ -399,12 +402,12 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
   else
   {
     clicked_section_ = -1;
-    clicked_headers_ = 0;
+    clicked_headers_ = Qt::Horizontal | Qt::Vertical;
   }
 
   QMenu menu;
   if (clicked_section_ < 0)
-    menu.addAction(header_actions_[1]);  // only 'show' action
+    menu.addAction(header_actions_.at(0));  // only 'show' action
   else
     menu.addActions(header_actions_);
   menu.exec(global);
@@ -441,21 +444,60 @@ void DefaultCollisionsWidget::hideSections()
     header->setSectionHidden(index, true);
 }
 
+void DefaultCollisionsWidget::hideOtherSections()
+{
+  QList<int> list;
+  QHeaderView *header = 0;
+  if (clicked_headers_ == Qt::Horizontal)
+  {
+    header = collision_table_->horizontalHeader();
+    for (const QModelIndex &index : selection_model_->selectedColumns())
+      if (!header->isSectionHidden(index.column()))
+        list << index.column();
+  }
+  else if (clicked_headers_ == Qt::Vertical)
+  {
+    header = collision_table_->verticalHeader();
+    for (const QModelIndex &index : selection_model_->selectedRows())
+      if (!header->isSectionHidden(index.row()))
+        list << index.row();
+  }
+
+  // if somewhere else than the selection was clicked, hide only this row/column
+  if (!list.contains(clicked_section_))
+  {
+    list.clear();
+    list << clicked_section_;
+  }
+
+  // first hide all sections
+  for (std::size_t index = 0, end = header->count(); index != end; ++index)
+    header->setSectionHidden(index, true);
+
+  // and subsequently show selected ones
+  for (auto index : list)
+    header->setSectionHidden(index, false);
+}
+
 void DefaultCollisionsWidget::showSections()
 {
   QList<int> list;
-  if (clicked_headers_ == (Qt::Horizontal | Qt::Vertical))  // show all
+  if (clicked_section_ < 0)  // show all
   {
-    // show all columns
-    list.clear();
-    list << 0 << model_->columnCount() - 1;
-    showSections(collision_table_->horizontalHeader(), list);
+    if (clicked_headers_.testFlag(Qt::Horizontal))
+    {
+      // show all columns
+      list.clear();
+      list << 0 << model_->columnCount() - 1;
+      showSections(collision_table_->horizontalHeader(), list);
+    }
 
-    // show all rows
-    list.clear();
-    list << 0 << model_->rowCount() - 1;
-    showSections(collision_table_->verticalHeader(), list);
-
+    if (clicked_headers_.testFlag(Qt::Vertical))  // show all rows
+    {
+      list.clear();
+      list << 0 << model_->rowCount() - 1;
+      showSections(collision_table_->verticalHeader(), list);
+    }
     return;
   }
 

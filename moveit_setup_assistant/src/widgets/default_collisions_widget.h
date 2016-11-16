@@ -160,6 +160,7 @@ private Q_SLOTS:
 
   void showHeaderContextMenu(const QPoint &p);
   void hideSections();
+  void hideOtherSections();
   void showSections();
 
 private:
