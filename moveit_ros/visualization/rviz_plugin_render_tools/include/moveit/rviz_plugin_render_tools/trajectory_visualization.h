@@ -120,7 +120,7 @@ protected:
   RobotStateVisualizationPtr display_path_robot_;
 
   // Handle colouring of robot
-  void setRobotColor(rviz::Robot* robot, const QColor &color);
+  void setRobotColor(rviz::Robot* robot, const QColor& color);
   void unsetRobotColor(rviz::Robot* robot);
 
   robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
@@ -151,7 +151,7 @@ protected:
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
   rviz::BoolProperty* interrupt_display_property_;
-  rviz::ColorProperty*  robot_color_property_;
+  rviz::ColorProperty* robot_color_property_;
   rviz::BoolProperty* enable_robot_color_property_;
 };
 

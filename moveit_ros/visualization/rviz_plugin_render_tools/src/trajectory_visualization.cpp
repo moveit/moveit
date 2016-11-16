@@ -99,13 +99,11 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
       "Interrupt Display", false,
       "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
 
-  robot_color_property_ =
-    new rviz::ColorProperty("Robot Color", QColor(150, 50, 150), "The color of the animated robot",
-                            widget, SLOT( changedRobotColor() ), this );
+  robot_color_property_ = new rviz::ColorProperty(
+      "Robot Color", QColor(150, 50, 150), "The color of the animated robot", widget, SLOT(changedRobotColor()), this);
 
-  enable_robot_color_property_ =
-    new rviz::BoolProperty("Color Enabled", false, "Specifies whether robot coloring is enabled",
-                           widget, SLOT( enabledRobotColor() ), this);
+  enable_robot_color_property_ = new rviz::BoolProperty(
+      "Color Enabled", false, "Specifies whether robot coloring is enabled", widget, SLOT(enabledRobotColor()), this);
 }
 
 TrajectoryVisualization::~TrajectoryVisualization()
@@ -196,7 +194,7 @@ void TrajectoryVisualization::changedShowTrail()
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
     r->setAlpha(robot_path_alpha_property_->getFloat());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
-    if(enable_robot_color_property_->getBool())
+    if (enable_robot_color_property_->getBool())
       setRobotColor(r, robot_color_property_->getColor());
     r->setVisible(display_->isEnabled() && (!animating_path_ || i <= current_state_));
     trajectory_trail_[i] = r;
@@ -397,29 +395,28 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
 
 void TrajectoryVisualization::changedRobotColor()
 {
-  if(enable_robot_color_property_->getBool())
+  if (enable_robot_color_property_->getBool())
     setRobotColor(&(display_path_robot_->getRobot()), robot_color_property_->getColor());
 }
 
 void TrajectoryVisualization::enabledRobotColor()
 {
-  if(enable_robot_color_property_->getBool())
+  if (enable_robot_color_property_->getBool())
     setRobotColor(&(display_path_robot_->getRobot()), robot_color_property_->getColor());
   else
     unsetRobotColor(&(display_path_robot_->getRobot()));
 }
 
-void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
+void TrajectoryVisualization::unsetRobotColor(rviz::Robot *robot)
 {
-  for(auto& link : robot->getLinks())
+  for (auto &link : robot->getLinks())
     link.second->unsetColor();
 }
 
-void TrajectoryVisualization::setRobotColor(rviz::Robot* robot,
-                                            const QColor &color)
+void TrajectoryVisualization::setRobotColor(rviz::Robot *robot, const QColor &color)
 {
-  for(auto& link : robot->getLinks())
-    robot->getLink(link.first)->setColor( color.redF(), color.greenF(), color.blueF() );
+  for (auto &link : robot->getLinks())
+    robot->getLink(link.first)->setColor(color.redF(), color.greenF(), color.blueF());
 }
 
 }  // namespace moveit_rviz_plugin
