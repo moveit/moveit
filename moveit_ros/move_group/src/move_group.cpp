@@ -36,12 +36,14 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <tf/transform_listener.h>
+#include <moveit/move_group/capability_names.h>
 #include <moveit/move_group/move_group_capability.h>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/tokenizer.hpp>
 #include <moveit/macros/console_colors.h>
 #include <moveit/move_group/node_name.h>
 #include <memory>
+#include <set>
 
 static const std::string ROBOT_DESCRIPTION =
     "robot_description";  // name of the robot description (a param name, so it can be changed externally)
@@ -102,32 +104,50 @@ private:
       return;
     }
 
-    // add individual capabilities move_group supports
+    std::set<std::string> capabilities;
+
+    // add default capabilities
+    for (size_t i = 0; i < sizeof(DEFAULT_CAPABILITIES) / sizeof(DEFAULT_CAPABILITIES[0]); ++i)
+      capabilities.insert(DEFAULT_CAPABILITIES[i]);
+
+    // add capabilities listed in ROS parameter
     std::string capability_plugins;
     if (node_handle_.getParam("capabilities", capability_plugins))
     {
       boost::char_separator<char> sep(" ");
       boost::tokenizer<boost::char_separator<char> > tok(capability_plugins, sep);
-      for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
+      capabilities.insert(tok.begin(), tok.end());
+    }
+
+    // drop capabilities that have been explicitly disabled
+    if (node_handle_.getParam("disable_capabilities", capability_plugins))
+    {
+      boost::char_separator<char> sep(" ");
+      boost::tokenizer<boost::char_separator<char> > tok(capability_plugins, sep);
+      for (boost::tokenizer<boost::char_separator<char> >::iterator cap_name = tok.begin(); cap_name != tok.end();
+           ++cap_name)
+        capabilities.erase(*cap_name);
+    }
+
+    for (std::set<std::string>::iterator plugin = capabilities.cbegin(); plugin != capabilities.cend(); ++plugin)
+    {
+      try
       {
-        std::string plugin = *beg;
-        try
-        {
-          printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin.c_str());
-          MoveGroupCapability* cap = capability_plugin_loader_->createUnmanagedInstance(plugin);
-          cap->setContext(context_);
-          cap->initialize();
-          capabilities_.push_back(MoveGroupCapabilityPtr(cap));
-        }
-        catch (pluginlib::PluginlibException& ex)
-        {
-          ROS_ERROR_STREAM("Exception while loading move_group capability '"
-                           << plugin << "': " << ex.what() << std::endl
-                           << "Available capabilities: "
-                           << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
-        }
+        printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin->c_str());
+        MoveGroupCapability* cap = capability_plugin_loader_->createUnmanagedInstance(*plugin);
+        cap->setContext(context_);
+        cap->initialize();
+        capabilities_.push_back(MoveGroupCapabilityPtr(cap));
+      }
+      catch (pluginlib::PluginlibException& ex)
+      {
+        ROS_ERROR_STREAM("Exception while loading move_group capability '"
+                         << *plugin << "': " << ex.what() << std::endl
+                         << "Available capabilities: "
+                         << boost::algorithm::join(capability_plugin_loader_->getDeclaredClasses(), ", "));
       }
     }
+
     std::stringstream ss;
     ss << std::endl;
     ss << std::endl;
