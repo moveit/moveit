@@ -55,7 +55,6 @@
 
 namespace moveit_rviz_plugin
 {
-
 TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::Display *display)
   : display_(display), widget_(widget), animating_path_(false), current_state_(-1)
 {
@@ -105,7 +104,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
                             widget, SLOT( changedRobotColor() ), this );
 
   enable_robot_color_property_ =
-    new rviz::BoolProperty("Color Enabled", true, "Specifies whether robot coloring is enabled",
+    new rviz::BoolProperty("Color Enabled", false, "Specifies whether robot coloring is enabled",
                            widget, SLOT( enabledRobotColor() ), this);
 }
 
@@ -198,10 +197,7 @@ void TrajectoryVisualization::changedShowTrail()
     r->setAlpha(robot_path_alpha_property_->getFloat());
     r->update(PlanningLinkUpdater(t->getWayPointPtr(i)));
     if(enable_robot_color_property_->getBool())
-    {
-      QColor color = robot_color_property_->getColor();
-      setRobotColor(r, color);
-    }
+      setRobotColor(r, robot_color_property_->getColor());
     r->setVisible(display_->isEnabled() && (!animating_path_ || i <= current_state_));
     trajectory_trail_[i] = r;
   }
@@ -345,7 +341,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       ++current_state_;
       if ((std::size_t)current_state_ < displaying_trajectory_message_->getWayPointCount())
       {
-        display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_), robot_color);
+        display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
         for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
           trajectory_trail_[i]->setVisible(i <= current_state_);
       }
@@ -402,38 +398,26 @@ void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::Displ
 void TrajectoryVisualization::changedRobotColor()
 {
   if(enable_robot_color_property_->getBool())
-  {
-    QColor color = robot_color_property_->getColor();
-    ROS_WARN_STREAM("robot colour: " << color.redF() << ", "
-                                     << color.greenF() << ", " <<color.blueF());
-    setRobotColor(&(display_path_robot_->getRobot()), color);
-  }
+    setRobotColor(&(display_path_robot_->getRobot()), robot_color_property_->getColor());
 }
 
 void TrajectoryVisualization::enabledRobotColor()
 {
-  ROS_WARN_STREAM("************ BENCE: enable_robot_color_property_->getBool(): " << enable_robot_color_property_->getBool());
   if(enable_robot_color_property_->getBool())
-  {
-    QColor color = robot_color_property_->getColor();
-    setRobotColor(&(display_path_robot_->getRobot()), color);
-  }
+    setRobotColor(&(display_path_robot_->getRobot()), robot_color_property_->getColor());
   else
-  {
     unsetRobotColor(&(display_path_robot_->getRobot()));
-  }
 }
 
 void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
 {
-//  for(auto& link : robot->getLinks())
-//    link.second->unsetColor();
+  for(auto& link : robot->getLinks())
+    link.second->unsetColor();
 }
 
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot,
                                             const QColor &color)
 {
-  ROS_WARN_STREAM("CHANGING ROBOT COLOUR");
   for(auto& link : robot->getLinks())
     robot->getLink(link.first)->setColor( color.redF(), color.greenF(), color.blueF() );
 }

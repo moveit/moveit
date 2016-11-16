@@ -122,7 +122,6 @@ protected:
   // Handle colouring of robot
   void setRobotColor(rviz::Robot* robot, const QColor &color);
   void unsetRobotColor(rviz::Robot* robot);
-  std_msgs::ColorRGBA robot_color;
 
   robot_trajectory::RobotTrajectoryPtr displaying_trajectory_message_;
   robot_trajectory::RobotTrajectoryPtr trajectory_message_to_display_;
