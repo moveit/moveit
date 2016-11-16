@@ -105,7 +105,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::D
                             widget, SLOT( changedRobotColor() ), this );
 
   enable_robot_color_property_ =
-    new rviz::BoolProperty("Use color", true, "Specifies whether robot coloring is enabled",
+    new rviz::BoolProperty("Color Enabled", true, "Specifies whether robot coloring is enabled",
                            widget, SLOT( enabledRobotColor() ), this);
 }
 
