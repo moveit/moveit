@@ -147,7 +147,7 @@ void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr
 
   // Load rviz robot
   display_path_robot_->load(*robot_model_->getURDF());
-  enabledRobotColor(); // force-refresh to account for saved display configuration
+  enabledRobotColor();  // force-refresh to account for saved display configuration
 }
 
 void TrajectoryVisualization::reset()
@@ -189,7 +189,7 @@ void TrajectoryVisualization::changedShowTrail()
   trajectory_trail_.resize(t->getWayPointCount());
   for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
   {
-    rviz::Robot *r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
+    rviz::Robot* r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
     r->setCollisionVisible(display_path_collision_enabled_property_->getBool());
@@ -294,7 +294,7 @@ float TrajectoryVisualization::getStateDisplayTime()
     {
       t = boost::lexical_cast<float>(tm);
     }
-    catch (const boost::bad_lexical_cast &ex)
+    catch (const boost::bad_lexical_cast& ex)
     {
       state_display_time_property_->setStdString("0.05 s");
     }
@@ -410,13 +410,13 @@ void TrajectoryVisualization::enabledRobotColor()
 
 void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
 {
-  for (auto &link : robot->getLinks())
+  for (auto& link : robot->getLinks())
     link.second->unsetColor();
 }
 
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)
 {
-  for (auto &link : robot->getLinks())
+  for (auto& link : robot->getLinks())
     robot->getLink(link.first)->setColor(color.redF(), color.greenF(), color.blueF());
 }
 
