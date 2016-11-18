@@ -55,7 +55,7 @@
 
 namespace moveit_rviz_plugin
 {
-TrajectoryVisualization::TrajectoryVisualization(rviz::Property *widget, rviz::Display *display)
+TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::Display* display)
   : display_(display), widget_(widget), animating_path_(false), current_state_(-1)
 {
   trajectory_topic_property_ =
@@ -115,7 +115,7 @@ TrajectoryVisualization::~TrajectoryVisualization()
   display_path_robot_.reset();
 }
 
-void TrajectoryVisualization::onInitialize(Ogre::SceneNode *scene_node, rviz::DisplayContext *context,
+void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context,
                                            ros::NodeHandle update_nh)
 {
   // Save pointers for later use
@@ -147,6 +147,7 @@ void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr
 
   // Load rviz robot
   display_path_robot_->load(*robot_model_->getURDF());
+  enabledRobotColor(); // force-refresh to account for saved display configuration
 }
 
 void TrajectoryVisualization::reset()
@@ -354,7 +355,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
   }
 }
 
-void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr &msg)
+void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
 {
   // Error check
   if (!robot_state_ || !robot_model_)
@@ -407,13 +408,13 @@ void TrajectoryVisualization::enabledRobotColor()
     unsetRobotColor(&(display_path_robot_->getRobot()));
 }
 
-void TrajectoryVisualization::unsetRobotColor(rviz::Robot *robot)
+void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
 {
   for (auto &link : robot->getLinks())
     link.second->unsetColor();
 }
 
-void TrajectoryVisualization::setRobotColor(rviz::Robot *robot, const QColor &color)
+void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)
 {
   for (auto &link : robot->getLinks())
     robot->getLink(link.first)->setColor(color.redF(), color.greenF(), color.blueF());
