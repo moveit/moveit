@@ -399,7 +399,7 @@ void robot_trajectory::RobotTrajectory::findWayPointIndicesForDurationAfterStart
     blend = (duration - before_time) / duration_from_previous_[index];
 }
 
-double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
+double robot_trajectory::RobotTrajectory::getWayPointDurationFromStart(std::size_t index) const
 {
   if (duration_from_previous_.empty())
     return 0.0;
@@ -410,6 +410,11 @@ double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size
   for (std::size_t i = 0; i <= index; ++i)
     time += duration_from_previous_[i];
   return time;
+}
+
+double robot_trajectory::RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
+{
+  return getWayPointDurationFromStart(index);
 }
 
 bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double request_duration,

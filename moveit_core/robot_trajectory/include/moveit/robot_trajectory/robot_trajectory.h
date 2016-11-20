@@ -38,6 +38,7 @@
 #define MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
 
 #include <moveit/macros/class_forward.h>
+#include <moveit/macros/deprecation.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>
@@ -114,7 +115,9 @@ public:
    *  @param  The waypoint index.
    *  @return The duration from start; retuns -1.0 if index is out of range.
    */
-  double getWaypointDurationFromStart(std::size_t index) const;
+  double getWayPointDurationFromStart(std::size_t index) const;
+
+  MOVEIT_DEPRECATED double getWaypointDurationFromStart(std::size_t index) const;
 
   double getWayPointDurationFromPrevious(std::size_t index) const
   {
