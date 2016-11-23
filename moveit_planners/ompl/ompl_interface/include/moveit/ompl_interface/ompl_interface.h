@@ -161,6 +161,11 @@ public:
   void printStatus();
 
 protected:
+  /** @brief Load planner configurations for specified group into planner_config */
+  bool loadPlannerConfiguration(const std::string &group_name, const std::string &planner_id,
+                                const std::map<std::string, std::string> &group_params,
+                                planning_interface::PlannerConfigurationSettings &planner_config);
+
   /** @brief Configure the planners*/
   void loadPlannerConfigurations();
 
