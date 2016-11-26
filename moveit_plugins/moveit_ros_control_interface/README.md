@@ -6,7 +6,7 @@ Two variantes are provided, `moveit_ros_control_interface::MoveItControllerManag
 
 
 ## moveit_ros_control_interface::MoveItControllerManager
-This plugin intefaces a single ros_control-driven node in the namespace given in the `~ros_control_namespace` ROS parameter.
+This plugin interfaces a single ros_control-driven node in the namespace given in the `~ros_control_namespace` ROS parameter.
 It polls all controllers via the `list_controllers` service and passes their properties to MoveIt!.
 The polling is throttled to 1 Hertz.
 
@@ -22,12 +22,12 @@ In your MoveIt! launch file (e.g. `ROBOT_moveit_config/launch/ROBOT_moveit_contr
 <arg name="moveit_controller_manager" default="moveit_ros_control_interface::MoveItControllerManager" />
 ```
 
-And make sure so set the `ros_control_namespace` parameter to the namespace (without the /contoller_manager/ part) of the ros_control-based node you like to interface.
-If you are using the `moveit_setup_assistent` you can add it to `ROBOT_moveit_config/config/ROBOT_controllers.yaml`, e.g.:
+And make sure to set the `ros_control_namespace` parameter to the namespace (without the /controller_manager/ part) of the ros_control-based node you like to interface.
+If you are using the `moveit_setup_assistent` you can add it to `ROBOT_moveit_config/config/controllers.yaml`, e.g.:
 ```
-ros_control_namespace: /ROBOT
+ros_control_namespace: /ROS_CONTROL_NODE
 controller_list:
-  - name: /ROBOT/position_trajectory_controller
+  - name: /ROS_CONTROL_NODE/position_trajectory_controller
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
@@ -43,7 +43,7 @@ controller_list:
 
 ### Controller switching
 MoveIt! can decide which controllers have to be started and stopped.
-Since only controller names with registered allocator plugins are handed over to MoveIt!, this implementation takes care of stopping other confflicting controllers based on their claimed resources and the resources for the to-be-started controlles.
+Since only controller names with registered allocator plugins are handed over to MoveIt!, this implementation takes care of stopping other conflicting controllers based on their claimed resources and the resources for the to-be-started controllers.
 
 ### Namespaces
 All controller names get prefixed by the namespace of the ros_control node.
