@@ -151,7 +151,7 @@ class PlanningSceneInterface(object):
         
     def attach_mesh(self, link, name, pose = None, filename = '', size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
-        if pose!=None and not filename.empty():
+        if pose!=None and filename:
             aco.object = self.__make_mesh(name, pose, filename, size)
         else:
             aco.object = self.__make_existing(name)
