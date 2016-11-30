@@ -41,6 +41,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/PlanningScene.h>
 
 namespace moveit
 {
@@ -92,11 +93,32 @@ public:
   std::map<std::string, moveit_msgs::AttachedCollisionObject>
   getAttachedObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
 
-  /** \brief Add collision objects to the world.
+  /** \brief Apply collision object to the planning scene of the move_group node.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyCollisionObject(const moveit_msgs::CollisionObject &collision_objects);
+
+  /** \brief Apply collision objects to the planning scene of the move_group node.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects);
+
+  /** \brief Apply attached collision object to the planning scene of the move_group node.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject &attached_collision_objects);
+
+  /** \brief Apply attached collision objects to the planning scene of the move_group node.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool
+  applyAttachedCollisionObjects(const std::vector<moveit_msgs::AttachedCollisionObject> &attached_collision_objects);
+
+  /** \brief Update the planning_scene of the move_group node with the given ps.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyPlanningScene(const moveit_msgs::PlanningScene &ps);
+
+  /** \brief Add collision objects to the world via /planning_scene.
       Make sure object.operation is set to object.ADD. */
   void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
 
-  /** \brief Remove collision objects from the world. */
+  /** \brief Remove collision objects from the world via /planning_scene. */
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
 
   /**@}*/

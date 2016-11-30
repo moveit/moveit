@@ -52,7 +52,8 @@ public:
   {
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
-    apply_planning_scene_service_ = node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
+    apply_planning_scene_service_ =
+        node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   }
 
@@ -212,12 +213,25 @@ public:
     return result;
   }
 
+  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene) const
+  {
+    moveit_msgs::ApplyPlanningScene::Request request;
+    moveit_msgs::ApplyPlanningScene::Response response;
+    request.scene = planning_scene;
+    if (!apply_planning_scene_service_.call(request, response))
+    {
+      ROS_WARN("Failed to call ApplyPlanningScene service");
+      return false;
+    }
+    return response.success;
+  }
+
   void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.is_diff = true;
-    applyPlanningScene(planning_scene);
+    planning_scene_diff_publisher_.publish(planning_scene);
   }
 
   void removeCollisionObjects(const std::vector<std::string> &object_ids) const
@@ -231,7 +245,7 @@ public:
       planning_scene.world.collision_objects.push_back(object);
     }
     planning_scene.is_diff = true;
-    applyPlanningScene(planning_scene);
+    planning_scene_diff_publisher_.publish(planning_scene);
   }
 
 private:
@@ -240,21 +254,6 @@ private:
   mutable ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
   robot_model::RobotModelConstPtr robot_model_;
-
-  // Helper function to call ApplyPlanningScene service with fallback
-  // to asynchronous processing via "planning_scene" topic.
-  void applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene) const
-  {
-    moveit_msgs::ApplyPlanningScene::Request request;
-    moveit_msgs::ApplyPlanningScene::Response response;
-    request.scene = planning_scene;
-    if (!apply_planning_scene_service_.call(request, response))
-    {
-      ROS_WARN("ApplyPlanningScene service call failed. Please add \"move_group/ApplyPlanningSceneService\" capability. Falling back to asynchronous change processing.");
-      planning_scene_diff_publisher_.publish(planning_scene);
-    }
-  }
-
 };
 
 PlanningSceneInterface::PlanningSceneInterface()
@@ -296,6 +295,50 @@ std::map<std::string, moveit_msgs::AttachedCollisionObject>
 PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
 {
   return impl_->getAttachedObjects(object_ids);
+}
+
+bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject &collision_object)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.world.collision_objects.reserve(1);
+  ps.world.collision_objects.push_back(collision_object);
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.world.collision_objects = collision_objects;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject &collision_object)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.robot_state.attached_collision_objects.reserve(1);
+  ps.robot_state.attached_collision_objects.push_back(collision_object);
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObjects(
+    const std::vector<moveit_msgs::AttachedCollisionObject> &attached_collision_objects)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.robot_state.attached_collision_objects = attached_collision_objects;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene &ps)
+{
+  impl_->applyPlanningScene(ps);
 }
 
 void PlanningSceneInterface::addCollisionObjects(
