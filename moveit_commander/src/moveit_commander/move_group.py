@@ -409,7 +409,6 @@ class MoveGroupCommander(object):
         else:
             raise MoveItCommanderException("Expected value in the range from 0 to 1 for scaling factor" )
 
-
     def set_max_acceleration_scaling_factor(self, value):
         """ Set a scaling factor for optionally reducing the maximum joint acceleration. Allowed values are in (0,1]. """
         if value > 0 and value <= 1:
