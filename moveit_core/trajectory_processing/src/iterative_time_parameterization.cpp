@@ -123,7 +123,7 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 
     for (std::size_t j = 0; j < vars.size(); ++j)
     {
-      double v_max = 1.0;
+      double v_max = DEFAULT_VEL_MAX;
       const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
         v_max =
@@ -355,7 +355,7 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
             next_waypoint = rob_trajectory.getWayPointPtr(index + 1);
 
           // Get acceleration limits
-          double a_max = 1.0;
+          double a_max = DEFAULT_ACCEL_MAX;
           const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
           if (b.acceleration_bounded_)
             a_max = std::min(fabs(b.max_acceleration_ * acceleration_scaling_factor),
