@@ -35,6 +35,7 @@
 /* Author: Ken Anderson */
 
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/spline.h>
 #include <moveit_msgs/JointLimits.h>
 #include <console_bridge/console.h>
 #include <moveit/robot_state/conversions.h>
@@ -286,6 +287,35 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
 
       curr_waypoint->setVariableVelocity(idx[j], (v2 + v1) / 2.0);
       curr_waypoint->setVariableAcceleration(idx[j], a);
+    }
+  }
+
+  // Spline fitting using GPL lib
+  for (std::size_t j = 0; j < vars.size(); ++j)
+  {
+    std::vector<double> x, y;
+    for (int i = 0; i < num_points; ++i)
+    {
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+
+      y.push_back(curr_waypoint->getVariablePosition(idx[j]));
+      x.push_back(rob_trajectory.getWaypointDurationFromStart(i));
+    }
+
+    tk::spline s;
+    s.set_boundary(tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0, false);
+    s.set_points(x, y);
+
+    curr_waypoint = rob_trajectory.getWayPointPtr(0);
+    curr_waypoint->setVariableVelocity(idx[j], s.deriv(1, 0.0));
+    curr_waypoint->setVariableAcceleration(idx[j], s.deriv(2, 0.0));
+
+    for (int i = 1; i < num_points; ++i)
+    {
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+
+        curr_waypoint->setVariableVelocity(idx[j], s.deriv(1, x[i]));
+        curr_waypoint->setVariableAcceleration(idx[j], s.deriv(2, x[i]));
     }
   }
 }
