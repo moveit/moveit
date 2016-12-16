@@ -34,7 +34,8 @@
 
 /* Author: Ken Anderson */
 
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/spline_parameterization.h>
+#include <moveit/trajectory_processing/spline.h>
 #include <moveit_msgs/JointLimits.h>
 #include <console_bridge/console.h>
 #include <moveit/robot_state/conversions.h>
@@ -45,13 +46,12 @@ static const double DEFAULT_VEL_MAX = 1.0;
 static const double DEFAULT_ACCEL_MAX = 1.0;
 static const double ROUNDING_THRESHOLD = 0.01;
 
-IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(unsigned int max_iterations,
-                                                                               double max_time_change_per_it)
+SplineParameterization::SplineParameterization(unsigned int max_iterations, double max_time_change_per_it)
   : max_iterations_(max_iterations), max_time_change_per_it_(max_time_change_per_it)
 {
 }
 
-IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization()
+SplineParameterization::~SplineParameterization()
 {
 }
 
@@ -96,9 +96,9 @@ void printStats(const trajectory_msgs::JointTrajectory &trajectory, const std::v
 }
 
 // Applies velocity
-void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory &rob_trajectory,
-                                                                      std::vector<double> &time_diff,
-                                                                      const double max_velocity_scaling_factor) const
+void SplineParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory &rob_trajectory,
+                                                      std::vector<double> &time_diff,
+                                                      const double max_velocity_scaling_factor) const
 {
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
@@ -140,8 +140,8 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 // Iteratively expand dt1 interval by a constant factor until within acceleration constraint
 // In the future we may want to solve to quadratic equation to get the exact timing interval.
 // To do this, use the CubicTrajectory::quadSolve() function in cubic_trajectory.h
-double IterativeParabolicTimeParameterization::findT1(const double dq1, const double dq2, double dt1, const double dt2,
-                                                      const double a_max) const
+double SplineParameterization::findT1(const double dq1, const double dq2, double dt1, const double dt2,
+                                      const double a_max) const
 {
   const double mult_factor = 1.01;
   double v1 = (dq1) / dt1;
@@ -159,8 +159,8 @@ double IterativeParabolicTimeParameterization::findT1(const double dq1, const do
   return dt1;
 }
 
-double IterativeParabolicTimeParameterization::findT2(const double dq1, const double dq2, const double dt1, double dt2,
-                                                      const double a_max) const
+double SplineParameterization::findT2(const double dq1, const double dq2, const double dt1, double dt2,
+                                      const double a_max) const
 {
   const double mult_factor = 1.01;
   double v1 = (dq1) / dt1;
@@ -188,11 +188,7 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
   if (time_diff.empty())
     return;
 
-  double time_sum = 0.0;
-
-  robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
-  robot_state::RobotStatePtr next_waypoint;
 
   const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
   const std::vector<std::string> &vars = group->getVariableNames();
@@ -200,7 +196,8 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
 
   int num_points = rob_trajectory.getWayPointCount();
 
-  rob_trajectory.setWayPointDurationFromPrevious(0, time_sum);
+  // Adding a 1ns offset for prefixing a 0-acceleration state
+  rob_trajectory.setWayPointDurationFromPrevious(0, 1e-9);
 
   // Times
   for (int i = 1; i < num_points; ++i)
@@ -211,90 +208,42 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
   if (num_points <= 1)
     return;
 
-  // Accelerations
-  for (int i = 0; i < num_points; ++i)
+  // Fitting a cubic spline
+  for (std::size_t j = 0; j < vars.size(); ++j)
   {
-    curr_waypoint = rob_trajectory.getWayPointPtr(i);
-
-    if (i > 0)
-      prev_waypoint = rob_trajectory.getWayPointPtr(i - 1);
-
-    if (i < num_points - 1)
-      next_waypoint = rob_trajectory.getWayPointPtr(i + 1);
-
-    for (std::size_t j = 0; j < vars.size(); ++j)
+    std::vector<double> x, y;
+    for (int i = 0; i < num_points; ++i)
     {
-      double q1;
-      double q2;
-      double q3;
-      double dt1;
-      double dt2;
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+      y.push_back(curr_waypoint->getVariablePosition(idx[j]));
+      x.push_back(rob_trajectory.getWaypointDurationFromStart(i));
+    }
 
-      if (i == 0)
-      {
-        // First point
-        q1 = next_waypoint->getVariablePosition(idx[j]);
-        q2 = curr_waypoint->getVariablePosition(idx[j]);
-        q3 = q1;
+    tk::spline s;
+    s.set_boundary(tk::spline::first_deriv, 0.0, tk::spline::first_deriv, 0.0, false);
+    s.set_points(x, y);
 
-        dt1 = dt2 = time_diff[i];
-      }
-      else if (i < num_points - 1)
-      {
-        // middle points
-        q1 = prev_waypoint->getVariablePosition(idx[j]);
-        q2 = curr_waypoint->getVariablePosition(idx[j]);
-        q3 = next_waypoint->getVariablePosition(idx[j]);
-
-        dt1 = time_diff[i - 1];
-        dt2 = time_diff[i];
-      }
-      else
-      {
-        // last point
-        q1 = prev_waypoint->getVariablePosition(idx[j]);
-        q2 = curr_waypoint->getVariablePosition(idx[j]);
-        q3 = q1;
-
-        dt1 = dt2 = time_diff[i - 1];
-      }
-
-      double v1, v2, a;
-
-      bool start_velocity = false;
-      if (dt1 == 0.0 || dt2 == 0.0)
-      {
-        v1 = 0.0;
-        v2 = 0.0;
-        a = 0.0;
-      }
-      else
-      {
-        if (i == 0)
-        {
-          if (curr_waypoint->hasVelocities())
-          {
-            start_velocity = true;
-            v1 = curr_waypoint->getVariableVelocity(idx[j]);
-          }
-        }
-        v1 = start_velocity ? v1 : (q2 - q1) / dt1;
-        // v2 = (q3-q2)/dt2;
-        v2 = start_velocity ? v1 : (q3 - q2) / dt2;  // Needed to ensure continuous velocity for first point
-        a = 2.0 * (v2 - v1) / (dt1 + dt2);
-      }
-
-      curr_waypoint->setVariableVelocity(idx[j], (v2 + v1) / 2.0);
-      curr_waypoint->setVariableAcceleration(idx[j], a);
+    for (int i = 0; i < num_points; ++i)
+    {
+      curr_waypoint = rob_trajectory.getWayPointPtr(i);
+      curr_waypoint->setVariableVelocity(idx[j], s.deriv(1, x[i]));
+      curr_waypoint->setVariableAcceleration(idx[j], s.deriv(2, x[i]));
     }
   }
+
+  // Add prefix waypoint at 50ms to ensure it is not in the past
+  rob_trajectory.addPrefixWayPoint(rob_trajectory.getFirstWayPoint(), 0.05);
+
+  // Set accelerations to 0 on first waypoint
+  std::vector<double> zero_vector(vars.size(), 0.0);
+  rob_trajectory.getWayPointPtr(0)->setVariableAccelerations(zero_vector);
 }
 }
 
 // Applies Acceleration constraints
-void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
-    robot_trajectory::RobotTrajectory &rob_trajectory, std::vector<double> &time_diff,
-    const double max_acceleration_scaling_factor) const
+void SplineParameterization::applyAccelerationConstraints(robot_trajectory::RobotTrajectory &rob_trajectory,
+                                                          std::vector<double> &time_diff,
+                                                          const double max_acceleration_scaling_factor) const
 {
   robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
@@ -449,9 +398,9 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
   } while (num_updates > 0 && iteration < static_cast<int>(max_iterations_));
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory &trajectory,
-                                                               const double max_velocity_scaling_factor,
-                                                               const double max_acceleration_scaling_factor) const
+bool SplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory &trajectory,
+                                               const double max_velocity_scaling_factor,
+                                               const double max_acceleration_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
