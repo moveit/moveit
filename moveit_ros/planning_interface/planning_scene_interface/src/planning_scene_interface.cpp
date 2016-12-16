@@ -213,7 +213,7 @@ public:
     return result;
   }
 
-  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene) const
+  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
     moveit_msgs::ApplyPlanningScene::Response response;
@@ -251,7 +251,7 @@ public:
 private:
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
-  mutable ros::ServiceClient apply_planning_scene_service_;
+  ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
   robot_model::RobotModelConstPtr robot_model_;
 };
