@@ -593,4 +593,4 @@ BOOST_PYTHON_MODULE(_moveit_move_group_interface)
   wrap_move_group_interface();
 }
 
-/** @endcond 
+/** @endcond */
