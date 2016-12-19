@@ -37,8 +37,8 @@
  * Based on iterative_time_parameterization.h, by Ken Anderson
  */
 
-#ifndef MOVEIT_TRAJECTORY_PROCESSING_SPLINE_SMOOTHER_
-#define MOVEIT_TRAJECTORY_PROCESSING_SPLINE_SMOOTHER_
+#ifndef MOVEIT_TRAJECTORY_PROCESSING_SPLINE_PARAMETERIZATION_
+#define MOVEIT_TRAJECTORY_PROCESSING_SPLINE_PARAMETERIZATION_
 
 #include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/JointLimits.h>
