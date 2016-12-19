@@ -37,6 +37,7 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit_msgs/GetPlanningScene.h>
+#include <moveit_msgs/ApplyPlanningScene.h>
 #include <ros/ros.h>
 #include <algorithm>
 
@@ -51,6 +52,8 @@ public:
   {
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
+    apply_planning_scene_service_ =
+        node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>(move_group::APPLY_PLANNING_SCENE_SERVICE_NAME);
     planning_scene_diff_publisher_ = node_handle_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   }
 
@@ -85,7 +88,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN("Could not call planning scene service to get object names");
+      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object names");
       return result;
     }
 
@@ -137,7 +140,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN("Could not call planning scene service to get object names");
+      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object names");
       return result;
     }
 
@@ -168,7 +171,7 @@ public:
     request.components.components = request.components.WORLD_OBJECT_GEOMETRY;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN("Could not call planning scene service to get object geometries");
+      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get object geometries");
       return result;
     }
 
@@ -193,7 +196,8 @@ public:
     request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
     if (!planning_scene_service_.call(request, response))
     {
-      ROS_WARN("Could not call planning scene service to get attached object geometries");
+      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get attached object "
+                                                 "geometries");
       return result;
     }
 
@@ -208,6 +212,19 @@ public:
       }
     }
     return result;
+  }
+
+  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene)
+  {
+    moveit_msgs::ApplyPlanningScene::Request request;
+    moveit_msgs::ApplyPlanningScene::Response response;
+    request.scene = planning_scene;
+    if (!apply_planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED("planning_scene_interface", "Failed to call ApplyPlanningScene service");
+      return false;
+    }
+    return response.success;
   }
 
   void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
@@ -235,6 +252,7 @@ public:
 private:
   ros::NodeHandle node_handle_;
   ros::ServiceClient planning_scene_service_;
+  ros::ServiceClient apply_planning_scene_service_;
   ros::Publisher planning_scene_diff_publisher_;
   robot_model::RobotModelConstPtr robot_model_;
 };
@@ -278,6 +296,50 @@ std::map<std::string, moveit_msgs::AttachedCollisionObject>
 PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
 {
   return impl_->getAttachedObjects(object_ids);
+}
+
+bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject &collision_object)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.world.collision_objects.reserve(1);
+  ps.world.collision_objects.push_back(collision_object);
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.world.collision_objects = collision_objects;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject &collision_object)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.robot_state.attached_collision_objects.reserve(1);
+  ps.robot_state.attached_collision_objects.push_back(collision_object);
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObjects(
+    const std::vector<moveit_msgs::AttachedCollisionObject> &attached_collision_objects)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.robot_state.attached_collision_objects = attached_collision_objects;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene &ps)
+{
+  impl_->applyPlanningScene(ps);
 }
 
 void PlanningSceneInterface::addCollisionObjects(
