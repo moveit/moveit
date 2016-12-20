@@ -28,10 +28,11 @@ catkin_package(
 
 include_directories(include)
 
-add_library(moveit_simple_controller_manager src/moveit_simple_controller_manager.cpp)
-target_link_libraries(moveit_simple_controller_manager ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_library(${PROJECT_NAME} src/moveit_simple_controller_manager.cpp)
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-install(TARGETS moveit_simple_controller_manager LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(FILES moveit_simple_controller_manager_plugin_description.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

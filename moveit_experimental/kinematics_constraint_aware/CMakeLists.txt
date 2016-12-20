@@ -1,6 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_kinematics_constraint_aware)
 
 add_library(${MOVEIT_LIB_NAME} src/kinematics_constraint_aware.cpp)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 
