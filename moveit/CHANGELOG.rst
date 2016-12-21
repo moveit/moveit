@@ -2,8 +2,8 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.3 (2016-12-20)
+------------------
 * [maintenance] Fix `#84 <https://github.com/ros-planning/moveit/issues/84>`_ (line-break is mandatory).
 * Contributors: Isaac I.Y. Saito
 

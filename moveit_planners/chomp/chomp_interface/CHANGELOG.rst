@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_chomp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.3 (2016-12-20)
+------------------
 * [fix] CHOMP planner and CollisionDistanceField (`#155 <https://github.com/ros-planning/moveit/issues/155>`_)
 * [maintenance] Rename chomp_interface to moveit_planners_chomp (`#306 <https://github.com/ros-planning/moveit/issues/306>`_) (`#326 <https://github.com/ros-planning/moveit/issues/326>`_)
 * [maintenance] add full VERSIONs / SONAMEs to all libraries (`#273 <https://github.com/ros-planning/moveit/issues/273>`_)
