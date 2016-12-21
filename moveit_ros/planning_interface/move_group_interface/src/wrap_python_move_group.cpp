@@ -59,7 +59,8 @@ namespace planning_interface
 class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroupInterface
 {
 public:
-  // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
+  // ROSInitializer is constructed first, and ensures ros::init() was called, if
+  // needed
   MoveGroupInterfaceWrapper(const std::string &group_name, const std::string &robot_description)
     : py_bindings_tools::ROScppInitializer()
     , MoveGroupInterface(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(),
@@ -593,6 +594,7 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_planning_time", &MoveGroupInterfaceWrapper::getPlanningTime);
   MoveGroupInterfaceClass.def("set_max_velocity_scaling_factor",
                               &MoveGroupInterfaceWrapper::setMaxVelocityScalingFactor);
+  MoveGroupInterfaceClass.def("set_max_acceleration_scaling_factor", &MoveGroupWrapper::setMaxVelocityScalingFactor);
   MoveGroupInterfaceClass.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
