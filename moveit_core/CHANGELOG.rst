@@ -2,6 +2,12 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+0.7.3 (2016-12-20)
+------------------
+
 0.7.2 (2016-06-17)
 ------------------
 * [feat] planning_scene updates: expose success state to caller. This is required to get the information back for the ApplyPlanningSceneService. `#297 <https://github.com/ros-planning/moveit_core/issues/297>`_

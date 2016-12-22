@@ -2,6 +2,12 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+0.7.3 (2016-12-20)
+------------------
+
 0.7.2 (2016-06-24)
 ------------------
 * [sys] Qt adjustment. 
