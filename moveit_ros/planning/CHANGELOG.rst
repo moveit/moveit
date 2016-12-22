@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
+0.7.3 (2016-12-20)
+------------------
+
 0.7.2 (2016-06-20)
 ------------------
 * apply planning scene: use newly exposed success value of newPlanningSceneMessage
