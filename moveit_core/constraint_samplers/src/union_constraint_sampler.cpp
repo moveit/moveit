@@ -151,7 +151,13 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
 bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState &state, unsigned int max_attempts)
 {
   for (std::size_t i = 0; i < samplers_.size(); ++i)
+  {
+    // ConstraintSampler::project returns states with dirty link transforms (because it only writes values)
+    // but requires a state with clean link transforms as input. This means that we need to clean the link
+    // transforms between calls to ConstraintSampler::sample.
+    state.updateLinkTransforms();
     if (!samplers_[i]->project(state, max_attempts))
       return false;
+  }
   return true;
 }
