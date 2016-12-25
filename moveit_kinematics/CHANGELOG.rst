@@ -2,8 +2,8 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.5 (2016-12-25)
+------------------
 * moveit_kinematics: should not be compiled with c++11 in indigo `388 <https://github.com/ros-planning/moveit/pull/388>`_
 * Contributors: Michael Goerner
 
