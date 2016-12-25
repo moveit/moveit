@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [enhancement] update link transforms in UnionConstraintSampler::project (`#384 <https://github.com/ros-planning/moveit/issues/384>`_). This extends `#186 <https://github.com/ros-planning/moveit/issues/186>`_ (0119d584bd77a754ed5108d0b222cbcb76326863).
+* Contributors: Michael Goerner
+
 0.7.4 (2016-12-22)
 ------------------
 
