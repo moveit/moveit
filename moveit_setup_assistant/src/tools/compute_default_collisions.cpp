@@ -201,11 +201,13 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
   // Create Connection Graph
   computeConnectionGraph(scene->getRobotModel()->getRootLink(), link_graph);
   *progress = 2;  // Progress bar feedback
+  boost::this_thread::interruption_point();
 
   // 2. DISABLE ALL ADJACENT LINK COLLISIONS ---------------------------------------------------------
   // if 2 links are adjacent, or adjacent with a zero-shape between them, disable collision checking for them
   unsigned int num_adjacent = disableAdjacentLinks(*scene, link_graph, link_pairs);
   *progress = 4;  // Progress bar feedback
+  boost::this_thread::interruption_point();
 
   // 3. INITIAL CONTACTS TO CONSIDER GUESS -----------------------------------------------------------
   // Create collision detection request object
@@ -220,6 +222,7 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
   // Disable all collision checks that occur when the robot is started in its default state
   unsigned int num_default = disableDefaultCollisions(*scene, link_pairs, req);
   *progress = 6;  // Progress bar feedback
+  boost::this_thread::interruption_point();
 
   // 5. ALWAYS IN COLLISION --------------------------------------------------------------------
   // Compute the links that are always in collision
@@ -227,6 +230,7 @@ LinkPairMap computeDefaultCollisions(const planning_scene::PlanningSceneConstPtr
       disableAlwaysInCollision(*scene, link_pairs, req, links_seen_colliding, min_collision_fraction);
   // ROS_INFO("Links seen colliding total = %d", int(links_seen_colliding.size()));
   *progress = 8;  // Progress bar feedback
+  boost::this_thread::interruption_point();
 
   // 6. NEVER IN COLLISION -------------------------------------------------------------------
   // Get the pairs of links that are never in collision
@@ -564,7 +568,17 @@ unsigned int disableNeverInCollision(const unsigned int num_trials, planning_sce
     bgroup.create_thread(boost::bind(&disableNeverInCollisionThread, tc));
   }
 
-  bgroup.join_all();  // wait for all threads to finish
+  try
+  {
+    bgroup.join_all();  // wait for all threads to finish
+  }
+  catch (boost::thread_interrupted)
+  {
+    ROS_WARN("disableNeverInCollision interrupted");
+    bgroup.interrupt_all();
+    bgroup.join_all();  // wait for all threads to interrupt
+    throw;
+  }
 
   // Loop through every possible link pair and check if it has ever been seen in collision
   for (LinkPairMap::iterator pair_it = link_pairs.begin(); pair_it != link_pairs.end(); ++pair_it)
@@ -605,10 +619,11 @@ void disableNeverInCollisionThread(ThreadComputation tc)
   // Do a large number of tests
   for (unsigned int i = 0; i < tc.num_trials_; ++i)
   {
+    boost::this_thread::interruption_point();
+
     // Status update at intervals and only for 0 thread
     if (i % progress_interval == 0 && tc.thread_id_ == 0)
     {
-      // ROS_INFO("Collision checking %d%% complete", int(i * 100 / tc.num_trials_ ));
       (*tc.progress_) = i * 92 / tc.num_trials_ + 8;  // 8 is the amount of progress already completed in prev steps
     }
 
