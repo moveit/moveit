@@ -815,6 +815,12 @@ public:
                           const kinematic_constraints::KinematicConstraintSet &constr, bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
+  bool isStateValid(const robot_state::RobotState &state, const moveit::core::JointModelGroup* group, bool verbose) const
+  {
+    return isStateValid(state, group->getName(), verbose);
+  }
+
+  /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
   bool isStateValid(const moveit_msgs::RobotState &state, const std::string &group = "", bool verbose = false) const;
 
   /** \brief Check if a given state is valid. This means checking for collisions and feasibility */
