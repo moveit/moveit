@@ -361,10 +361,10 @@ void MotionPlanningFrame::importResource(const std::string &path)
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
-        QMessageBox::warning(this, QString("Duplicate names"),
-                             QString("An attached object named '")
-                                 .append(name.c_str())
-                                 .append("' already exists. Please rename the attached object before importing."));
+        QMessageBox::warning(
+            this, QString("Duplicate names"),
+            QString("An attached object named '").append(name.c_str()).append("' already exists. Please rename the "
+                                                                              "attached object before importing."));
         return;
       }
 

@@ -191,8 +191,7 @@ namespace
 {
 bool host_is_big_endian(void)
 {
-  union
-  {
+  union {
     uint32_t i;
     char c[sizeof(uint32_t)];
   } bint = { 0x01020304 };

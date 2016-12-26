@@ -599,7 +599,8 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel *link, cons
       global_link_transforms_[parent_link->getLinkIndex()] =
           global_link_transforms_[child_link->getLinkIndex()] *
           (child_link->getJointOriginTransform() *
-           variable_joint_transforms_[child_link->getParentJointModel()->getJointIndex()]).inverse();
+           variable_joint_transforms_[child_link->getParentJointModel()->getJointIndex()])
+              .inverse();
 
       // update link transforms for descendant links only (leaving the transform for the current link untouched)
       // with the exception of the child link we are coming backwards from

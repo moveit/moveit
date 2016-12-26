@@ -941,11 +941,8 @@ void BenchmarkExecutor::writeOutput(const BenchmarkRequest& brequest, const std:
   moveit_msgs::PlanningScene scene_msg;
   planning_scene_->getPlanningSceneMsg(scene_msg);
   out << "<<<|" << std::endl;
-  out << "Motion plan request:" << std::endl
-      << brequest.request << std::endl;
-  out << "Planning scene: " << std::endl
-      << scene_msg << std::endl
-      << "|>>>" << std::endl;
+  out << "Motion plan request:" << std::endl << brequest.request << std::endl;
+  out << "Planning scene: " << std::endl << scene_msg << std::endl << "|>>>" << std::endl;
 
   // Not writing optional cpu information
 

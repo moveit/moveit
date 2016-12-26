@@ -130,7 +130,8 @@ namespace core
 namespace
 {
 typedef std::map<const JointModel *, std::pair<std::set<const LinkModel *, OrderLinksByIndex>,
-                                               std::set<const JointModel *, OrderJointsByIndex> > > DescMap;
+                                               std::set<const JointModel *, OrderJointsByIndex> > >
+    DescMap;
 
 void computeDescendantsHelper(const JointModel *joint, std::vector<const JointModel *> &parents,
                               std::set<const JointModel *> &seen, DescMap &descendants)

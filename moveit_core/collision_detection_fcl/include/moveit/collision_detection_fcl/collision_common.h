@@ -104,8 +104,7 @@ struct CollisionGeometryData
 
   BodyType type;
   int shape_index;
-  union
-  {
+  union {
     const robot_model::LinkModel *link;
     const robot_state::AttachedBody *ab;
     const World::Object *obj;

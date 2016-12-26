@@ -276,8 +276,8 @@ void RobotInteraction::decideActiveEndEffectors(const std::string &group, Intera
   }
 
   const std::vector<srdf::Model::EndEffector> &eef = srdf->getEndEffectors();
-  const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap> &
-      smap = jmg->getGroupKinematics();
+  const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>
+      &smap = jmg->getGroupKinematics();
 
   // if we have an IK solver for the selected group, we check if there are any end effectors attached to this group
   if (smap.first)

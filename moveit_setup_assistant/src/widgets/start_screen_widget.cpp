@@ -330,7 +330,8 @@ bool StartScreenWidget::loadExistingFiles()
     QMessageBox::warning(
         this, "Incorrect Directory/Package",
         QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. "
-                "If this is a mistake, replace the missing file: ").append(setup_assistant_path.c_str()));
+                "If this is a mistake, replace the missing file: ")
+            .append(setup_assistant_path.c_str()));
     return false;
   }
 
@@ -384,7 +385,8 @@ bool StartScreenWidget::loadExistingFiles()
                          QString("Failed to parse kinematics yaml file. This file is not critical but any previous "
                                  "kinematic solver settings have been lost. To re-populate this file edit each "
                                  "existing planning group and choose a solver, then save each change. \n\nFile error "
-                                 "at location ").append(kinematics_yaml_path.make_preferred().native().c_str()));
+                                 "at location ")
+                             .append(kinematics_yaml_path.make_preferred().native().c_str()));
   }
 
   // DONE LOADING --------------------------------------------------------------------------
@@ -693,8 +695,9 @@ bool StartScreenWidget::createFullURDFPath()
     }
     else
     {
-      QMessageBox::warning(this, "Error Loading Files", QString("Unable to locate the URDF file in package. File: ")
-                                                            .append(config_data_->urdf_path_.c_str()));
+      QMessageBox::warning(
+          this, "Error Loading Files",
+          QString("Unable to locate the URDF file in package. File: ").append(config_data_->urdf_path_.c_str()));
     }
     return false;
   }

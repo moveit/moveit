@@ -49,8 +49,8 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
   const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
   if (jmg)
   {
-    const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap> &
-        slv = jmg->getGroupKinematics();
+    const std::pair<robot_model::JointModelGroup::KinematicsSolver, robot_model::JointModelGroup::KinematicsSolverMap>
+        &slv = jmg->getGroupKinematics();
     bool ik = false;
     // check that we have a direct means to compute IK
     if (slv.first)

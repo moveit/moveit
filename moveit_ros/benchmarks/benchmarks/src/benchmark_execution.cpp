@@ -1170,7 +1170,8 @@ void moveit_benchmarks::BenchmarkExecution::runPlanningBenchmark(BenchmarkReques
     {
       // Output name of planning algorithm
       out << planner_interfaces_to_benchmark[q]->getDescription() + "_" +
-                 planner_ids_to_benchmark_per_planner_interface[q][p] << std::endl;
+                 planner_ids_to_benchmark_per_planner_interface[q][p]
+          << std::endl;
 
       // in general, we could have properties specific for a planner;
       // right now, we do not include such properties
@@ -1312,10 +1313,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     out << "Experiment " << (planning_scene_->getName().empty() ? "NO_NAME" : planning_scene_->getName()) << std::endl;
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
-    out << "<<<|" << std::endl
-        << "ROS" << std::endl
-        << req.motion_plan_request << std::endl
-        << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
     out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
     out << duration << " seconds spent to collect the data" << std::endl;
     out << "reachable BOOLEAN" << std::endl;
@@ -1340,10 +1338,7 @@ void moveit_benchmarks::BenchmarkExecution::runGoalExistenceBenchmark(BenchmarkR
     out << "Experiment " << (planning_scene_->getName().empty() ? "NO_NAME" : planning_scene_->getName()) << std::endl;
     out << "Running on " << (host.empty() ? "UNKNOWN" : host) << std::endl;
     out << "Starting at " << boost::posix_time::to_iso_extended_string(startTime.toBoost()) << std::endl;
-    out << "<<<|" << std::endl
-        << "ROS" << std::endl
-        << req.motion_plan_request << std::endl
-        << "|>>>" << std::endl;
+    out << "<<<|" << std::endl << "ROS" << std::endl << req.motion_plan_request << std::endl << "|>>>" << std::endl;
     out << req.motion_plan_request.allowed_planning_time << " seconds per run" << std::endl;
     out << "reachable BOOLEAN" << std::endl;
     out << "collision_free BOOLEAN" << std::endl;

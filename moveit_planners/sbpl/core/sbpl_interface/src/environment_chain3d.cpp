@@ -886,7 +886,7 @@ int EnvironmentChain3D::getEndEffectorHeuristic(int from_stateID, int to_stateID
   //}
 }
 
-bool EnvironmentChain3D::getGridXYZInt(const Eigen::Affine3d& pose, int(&xyz)[3]) const
+bool EnvironmentChain3D::getGridXYZInt(const Eigen::Affine3d& pose, int (&xyz)[3]) const
 {
   if (!gsr_ || !gsr_->dfce_->distance_field_)
   {

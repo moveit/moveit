@@ -257,8 +257,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
   theta4[1] = -acos_angle;
 
 #ifdef DEBUG
-  std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl
-            << theta4[0] << std::endl;
+  std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl << theta4[0] << std::endl;
 #endif
 
   for (int jj = 0; jj < 2; jj++)
@@ -420,9 +419,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
           std::cout << "theta4: " << t4 << std::endl;
           std::cout << "theta5: " << t5 << std::endl;
           std::cout << "theta6: " << t6 << std::endl;
-          std::cout << "theta7: " << t7 << std::endl
-                    << std::endl
-                    << std::endl;
+          std::cout << "theta7: " << t7 << std::endl << std::endl << std::endl;
 #endif
           for (int lll = 0; lll < 2; lll++)
           {
@@ -743,9 +740,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &
             std::cout << "theta4: " << t4 << std::endl;
             std::cout << "theta5: " << t5 << std::endl;
             std::cout << "theta6: " << t6 << std::endl;
-            std::cout << "theta7: " << t7 << std::endl
-                      << std::endl
-                      << std::endl;
+            std::cout << "theta7: " << t7 << std::endl << std::endl << std::endl;
 #endif
 
             solution_ik[0] = normalize_angle(t1 * angle_multipliers_[0]);

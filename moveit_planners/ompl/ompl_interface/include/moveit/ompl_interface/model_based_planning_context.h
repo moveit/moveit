@@ -60,7 +60,8 @@ MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
 typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &name,
-                                       const ModelBasedPlanningContextSpecification &spec)> ConfiguredPlannerAllocator;
+                                       const ModelBasedPlanningContextSpecification &spec)>
+    ConfiguredPlannerAllocator;
 typedef boost::function<ConfiguredPlannerAllocator(const std::string &planner_type)> ConfiguredPlannerSelector;
 
 struct ModelBasedPlanningContextSpecification

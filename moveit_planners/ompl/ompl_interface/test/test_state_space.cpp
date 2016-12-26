@@ -157,11 +157,13 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     ss.copyToOMPLState(state, kstate);
     kstate.setToRandomPositions(kstate.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
     std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+              << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
     ss.copyToRobotState(kstate, state);
     std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+              << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
   }
 

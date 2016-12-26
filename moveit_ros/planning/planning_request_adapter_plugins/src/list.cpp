@@ -70,8 +70,7 @@ int main(int argc, char **argv)
     }
     if (ad)
       std::cout << " \t\t  " << ad->getDescription() << std::endl;
-    std::cout << std::endl
-              << std::endl;
+    std::cout << std::endl << std::endl;
   }
 
   return 0;
