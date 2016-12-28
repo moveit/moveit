@@ -7,7 +7,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/gl_renderer.cpp
   src/gl_mesh.cpp
   )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${gl_LIBS} glut GLEW)
 

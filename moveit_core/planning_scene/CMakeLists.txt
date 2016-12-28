@@ -1,7 +1,7 @@
 set(MOVEIT_LIB_NAME moveit_planning_scene)
 
 add_library(${MOVEIT_LIB_NAME} src/planning_scene.cpp)
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_model
