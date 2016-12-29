@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.11)
 project(moveit_setup_assistant)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -30,6 +30,11 @@ if(rviz_QT_VERSION VERSION_LESS "5")
 else()
   find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
   set(QT_LIBRARIES Qt5::Widgets)
+
+  # this can be removed once CMAKE 2.8.12 is available (jade)
+  # it is due to a change in Qts use of -fPIE and -fPIC
+  # http://code.qt.io/cgit/qt/qtbase.git/tree/dist/changes-5.4.2
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 endif()
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
