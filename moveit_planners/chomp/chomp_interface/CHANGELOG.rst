@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_chomp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.5 (2016-12-25)
 ------------------
 
