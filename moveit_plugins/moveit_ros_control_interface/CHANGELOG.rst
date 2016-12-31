@@ -2,7 +2,7 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+0.8.3 (2016-08-19)
 ------------------
 
 0.5.7 (2016-01-30)
@@ -19,4 +19,4 @@ Changelog for package moveit_ros_control_interface
 * set version to match the others
 * fixed a lot of typos
 * Intitial version of moveit_ros_control_interface package
-* Contributors: Mathias Lüdtke
+* Contributors: Mathias Luedtke

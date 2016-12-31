@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.3 (2016-08-19)
+------------------
+
 0.6.6 (2016-06-08)
 ------------------
 * replaced cmake_modules dependency with eigen
