@@ -1,0 +1,8 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package moveit_runtime
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* * Added a new metapackage as a minimum set of moveit-related packages that can be installed on a robot (eliminating development packages).
+* Contributors: Isaac I.Y. Saito
