@@ -155,13 +155,13 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   layout_->addWidget(collision_table_);
 
   QAction *action;
-  action = new QAction(tr("show"), this);
+  action = new QAction(tr("Show"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(showSections()));
-  action = new QAction(tr("hide"), this);
+  action = new QAction(tr("Hide"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(hideSections()));
-  action = new QAction(tr("hide others"), this);
+  action = new QAction(tr("Hide others"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(hideOtherSections()));
 
@@ -245,7 +245,8 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
   disableControls(false);  // enable everything else
 
   config_data_->changes |= MoveItConfigData::COLLISIONS;
-  worker_->deleteLater(); worker_ = NULL;
+  worker_->deleteLater();
+  worker_ = NULL;
 }
 
 // ******************************************************************************************
@@ -709,7 +710,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
     link_pair.first = collision_it->link1_;
     link_pair.second = collision_it->link2_;
     if (link_pair.first >= link_pair.second)
-       std::swap(link_pair.first, link_pair.second);
+      std::swap(link_pair.first, link_pair.second);
 
     // Set the link meta data
     link_pair_data.reason = moveit_setup_assistant::disabledReasonFromString(collision_it->reason_);
