@@ -24,7 +24,7 @@ Changelog for package moveit_core
   - 2.*acos(theta/2) only covers half range
   - need to consider sign of quaternion axis w.r.t. rotation axis
 * [sys] re-use travis config from jade-devel
-* Contributors: Dave Coleman, Robert Haschke, hamalMarino, Michael Gè´”rner
+* Contributors: Dave Coleman, Robert Haschke, hamalMarino, Michael Goerner
 
 0.7.1 (2016-04-14)
 ------------------
