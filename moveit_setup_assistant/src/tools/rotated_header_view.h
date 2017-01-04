@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2016, CITEC, Bielefeld University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,48 +32,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Dave Coleman */
+/* Author: Robert Haschke */
 
-#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
-#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_SETUP_SCREEN_WIDGET_
+#ifndef MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H
+#define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H
 
-#include <QWidget>
+#include <QHeaderView>
 
-// ******************************************************************************************
-// Provides the title and instructions
-// ******************************************************************************************
-class SetupScreenWidget : public QWidget
+namespace moveit_setup_assistant
 {
-  Q_OBJECT
-
+class RotatedHeaderView : public QHeaderView
+{
 public:
-  SetupScreenWidget(QWidget* parent) : QWidget(parent)
-  {
-  }
-
-  /// function called when widget is activated, allows to update/initialize GUI
-  virtual void focusGiven();
-
-  /// function called when widget lost focus, allows to accept/reject changes and to reject switching (returning false)
-  virtual bool focusLost();
-
-// ******************************************************************************************
-// Emitted Signal Functions
-// ******************************************************************************************
-
-Q_SIGNALS:
-
-  /// Event for when the current screen is in modal view. Essential disabled the left navigation
-  void isModal(bool isModal);
-
-  /// Event for telling rviz to highlight a link of the robot
-  void highlightLink(const std::string& name, const QColor&);
-
-  /// Event for telling rviz to highlight a group of the robot
-  void highlightGroup(const std::string& name);
-
-  /// Event for telling rviz to unhighlight all links of the robot
-  void unhighlightAll();
+  RotatedHeaderView(Qt::Orientation orientation, QWidget *parent = NULL);
+  void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const;
+  QSize sectionSizeFromContents(int logicalIndex) const;
+  int sectionSizeHint(int logicalIndex) const;
 };
+}
 
-#endif
+#endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H

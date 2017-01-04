@@ -192,6 +192,14 @@ void SetupAssistantWidget::moveToScreen(const int index)
 
   if (current_index_ != index)
   {
+    // Send the focus lost command to the screen widget
+    SetupScreenWidget* ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(current_index_));
+    if (!ssw->focusLost())
+    {
+      navs_view_->setSelected(current_index_);
+      return;  // switching not accepted
+    }
+
     current_index_ = index;
 
     // Unhighlight anything on robot
@@ -201,7 +209,7 @@ void SetupAssistantWidget::moveToScreen(const int index)
     main_content_->setCurrentIndex(index);
 
     // Send the focus given command to the screen widget
-    SetupScreenWidget* ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(index));
+    ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(index));
     ssw->focusGiven();
 
     // Change navigation selected option
