@@ -173,6 +173,47 @@ void ompl_interface::OMPLInterface::loadConstraintSamplers()
       new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
 }
 
+bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
+    const std::string &group_name, const std::string &planner_id,
+    const std::map<std::string, std::string> &group_params,
+    planning_interface::PlannerConfigurationSettings &planner_config)
+{
+  XmlRpc::XmlRpcValue xml_config;
+  if (!nh_.getParam("planner_configs/" + planner_id, xml_config))
+  {
+    ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_id.c_str());
+    return false;
+  }
+
+  if (xml_config.getType() != XmlRpc::XmlRpcValue::TypeStruct)
+  {
+    ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')",
+              planner_id.c_str());
+    return false;
+  }
+
+  planner_config.name = group_name + "[" + planner_id + "]";
+  planner_config.group = group_name;
+
+  // default to specified parameters of the group (overridden by configuration specific parameters)
+  planner_config.config = group_params;
+
+  // read parameters specific for this configuration
+  for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
+  {
+    if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+      planner_config.config[it->first] = static_cast<std::string>(it->second);
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+    else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+      planner_config.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
+  }
+
+  return true;
+}
+
 void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 {
   const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();
@@ -196,95 +237,74 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         {
           if (!value.empty())
             specific_group_params[KNOWN_GROUP_PARAMS[k]] = value;
+          continue;
         }
-        else
+
+        double value_d;
+        if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
         {
-          double value_d;
-          if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
-            specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
-          else
-          {
-            int value_i;
-            if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
-              specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
-            else
-            {
-              bool value_b;
-              if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_b))
-                specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_b);
-            }
-          }
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_d);
+          continue;
+        }
+
+        int value_i;
+        if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_d))
+        {
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_i);
+          continue;
+        }
+
+        bool value_b;
+        if (nh_.getParam(group_names[i] + "/" + KNOWN_GROUP_PARAMS[k], value_b))
+        {
+          specific_group_params[KNOWN_GROUP_PARAMS[k]] = boost::lexical_cast<std::string>(value_b);
+          continue;
         }
       }
     }
 
-    // set the parameters (if any) for the default group configuration;
-    if (!specific_group_params.empty())
+    // add default planner configuration
+    planning_interface::PlannerConfigurationSettings default_pc;
+    std::string default_planner_id;
+    if (nh_.getParam(group_names[i] + "/default_planner_config", default_planner_id))
     {
-      planning_interface::PlannerConfigurationSettings pc;
-      pc.name = group_names[i];
-      pc.group = group_names[i];
-      pc.config = specific_group_params;
-      pconfig[pc.name] = pc;
+      if (!loadPlannerConfiguration(group_names[i], default_planner_id, specific_group_params, default_pc))
+        default_planner_id = "";
     }
+    if (default_planner_id.empty())
+    {
+      default_pc.group = group_names[i];
+      default_pc.config = specific_group_params;
+      default_pc.config["type"] = "geometric::RRTConnect";
+    }
+    default_pc.name = group_names[i];  // this is the name of the default config
+    pconfig[default_pc.name] = default_pc;
 
     // get parameters specific to each planner type
     XmlRpc::XmlRpcValue config_names;
     if (nh_.getParam(group_names[i] + "/planner_configs", config_names))
     {
-      if (config_names.getType() == XmlRpc::XmlRpcValue::TypeArray)
+      if (config_names.getType() != XmlRpc::XmlRpcValue::TypeArray)
       {
-        for (int32_t j = 0; j < config_names.size(); ++j)
-          if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
-          {
-            std::string planner_config = static_cast<std::string>(config_names[j]);
-            XmlRpc::XmlRpcValue xml_config;
-            if (nh_.getParam("planner_configs/" + planner_config, xml_config))
-            {
-              if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
-              {
-                planning_interface::PlannerConfigurationSettings pc;
-                pc.name = group_names[i] + "[" + planner_config + "]";
-                pc.group = group_names[i];
-                // inherit parameters from the group (which can be overriden)
-                pc.config = specific_group_params;
-
-                // read parameters specific for this configuration
-                for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
-                  if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
-                    pc.config[it->first] = static_cast<std::string>(it->second);
-                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
-                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
-                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
-                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
-                pconfig[pc.name] = pc;
-              }
-              else
-                ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')",
-                          planner_config.c_str());
-            }
-            else
-              ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
-          }
-          else
-            ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
-      }
-      else
-        ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group "
-                  "'%s')",
+        ROS_ERROR("The planner_configs argument of a group configuration "
+                  "should be an array of strings (for group '%s')",
                   group_names[i].c_str());
-    }
+        continue;
+      }
 
-    if (pconfig.find(group_names[i] + "[default]") == pconfig.end())
-    {  // No default found, generate it.
-      planning_interface::PlannerConfigurationSettings pc;
-      pc.name = group_names[i] + "[default]";
-      pc.group = group_names[i];
-      pc.config = specific_group_params;
-      pc.config["type"] = "geometric::RRTConnect";
-      pconfig[pc.name] = pc;
+      for (std::size_t j = 0; j < config_names.size(); ++j)
+      {
+        if (config_names[j].getType() != XmlRpc::XmlRpcValue::TypeString)
+        {
+          ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+          continue;
+        }
+        std::string planner_id = static_cast<std::string>(config_names[j]);
+
+        planning_interface::PlannerConfigurationSettings pc;
+        if (loadPlannerConfiguration(group_names[i], planner_id, specific_group_params, pc))
+          pconfig[pc.name] = pc;
+      }
     }
   }
 
