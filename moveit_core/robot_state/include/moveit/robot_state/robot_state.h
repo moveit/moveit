@@ -629,7 +629,6 @@ as the new values that correspond to the group */
   /** \brief For a given group, copy the position values of the variables that make up the group into another location,
    * in the order that the variables are found in the group. This is not necessarily a contiguous block of memory in the
    * RobotState itself, so we copy instead of returning a pointer.*/
-
   void copyJointGroupPositions(const std::string& joint_group_name, std::vector<double>& gstate) const
   {
     const JointModelGroup* jmg = robot_model_->getJointModelGroup(joint_group_name);
