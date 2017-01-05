@@ -56,14 +56,14 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDataPtr config_data)
+DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), worker_(NULL), config_data_(config_data), model_(NULL), selection_model_(NULL)
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
 
   // Top Label Area ------------------------------------------------
-  HeaderWidget *header = new HeaderWidget(
+  HeaderWidget* header = new HeaderWidget(
       "Optimize Self-Collision Checking",
       "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be "
       "disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled "
@@ -76,14 +76,14 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox(this);
   layout_->addWidget(controls_box_);
-  QVBoxLayout *controls_box_layout = new QVBoxLayout(controls_box_);
+  QVBoxLayout* controls_box_layout = new QVBoxLayout(controls_box_);
 
-  QHBoxLayout *slider_layout = new QHBoxLayout();
+  QHBoxLayout* slider_layout = new QHBoxLayout();
   slider_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   controls_box_layout->addLayout(slider_layout);
 
   // Slider Label
-  QLabel *density_left_label = new QLabel(this);
+  QLabel* density_left_label = new QLabel(this);
   density_left_label->setText("Sampling Density: Low");
   slider_layout->addWidget(density_left_label);
 
@@ -101,7 +101,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Right Label
-  QLabel *density_right_label = new QLabel(this);
+  QLabel* density_right_label = new QLabel(this);
   density_right_label->setText("High   ");
   slider_layout->addWidget(density_right_label);
 
@@ -111,7 +111,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   slider_layout->addWidget(density_value_label_);
   changeDensityLabel(density_slider_->value());  // initialize label with value
 
-  QHBoxLayout *buttons_layout = new QHBoxLayout();
+  QHBoxLayout* buttons_layout = new QHBoxLayout();
   buttons_layout->setAlignment(Qt::AlignRight);
   controls_box_layout->addLayout(buttons_layout);
 
@@ -154,7 +154,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   collision_table_ = new QTableView(this);
   layout_->addWidget(collision_table_);
 
-  QAction *action;
+  QAction* action;
   action = new QAction(tr("Show"), this);
   header_actions_ << action;
   connect(action, SIGNAL(triggered()), this, SLOT(showSections()));
@@ -167,7 +167,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
 
   // Bottom Area ----------------------------------------
 
-  QHBoxLayout *bottom_layout = new QHBoxLayout();
+  QHBoxLayout* bottom_layout = new QHBoxLayout();
   bottom_layout->setAlignment(Qt::AlignRight);
   layout_->addLayout(bottom_layout);
 
@@ -184,7 +184,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
 
   // View Mode Buttons
   view_mode_buttons_ = new QButtonGroup(this);
-  QRadioButton *radio_btn;
+  QRadioButton* radio_btn;
   radio_btn = new QRadioButton("linear view");
   bottom_layout->addWidget(radio_btn);
   view_mode_buttons_->addButton(radio_btn, LinearMode);
@@ -252,7 +252,7 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
 // ******************************************************************************************
 // The worker function to compute the collision matrix
 // ******************************************************************************************
-void DefaultCollisionsWidget::generateCollisionTable(unsigned int *collision_progress)
+void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
@@ -278,9 +278,9 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int *collision_pro
 // ******************************************************************************************
 void DefaultCollisionsWidget::loadCollisionTable()
 {
-  CollisionMatrixModel *matrix_model = new CollisionMatrixModel(
+  CollisionMatrixModel* matrix_model = new CollisionMatrixModel(
       link_pairs_, config_data_->getPlanningScene()->getRobotModel()->getLinkModelNamesWithCollisionGeometry());
-  QAbstractItemModel *model;
+  QAbstractItemModel* model;
 
   if (view_mode_buttons_->checkedId() == MatrixMode)
   {
@@ -288,8 +288,8 @@ void DefaultCollisionsWidget::loadCollisionTable()
   }
   else
   {
-    CollisionLinearModel *linear_model = new CollisionLinearModel(matrix_model);
-    SortFilterProxyModel *sorted_model = new SortFilterProxyModel();
+    CollisionLinearModel* linear_model = new CollisionLinearModel(matrix_model);
+    SortFilterProxyModel* sorted_model = new SortFilterProxyModel();
     model = sorted_model;
     sorted_model->setSourceModel(linear_model);
   }
@@ -363,7 +363,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
           SLOT(collisionsChanged(QModelIndex)));
 }
 
-void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
+void DefaultCollisionsWidget::collisionsChanged(const QModelIndex& index)
 {
   btn_revert_->setEnabled(true);  // enable revert button
 
@@ -371,7 +371,7 @@ void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
     return;
   // Hm. For some reason, QTableView doesn't change selection if we click a checkbox
   bool linear_mode = (view_mode_buttons_->checkedId() == LinearMode);
-  const QItemSelection &selection = selection_model_->selection();
+  const QItemSelection& selection = selection_model_->selection();
   if ((linear_mode && !selection.contains(index)) ||  // in linear mode: index not in selection
       (!linear_mode &&
        !(selection.contains(index) ||  // in matrix mode: index or symmetric index not in selection
@@ -384,7 +384,7 @@ void DefaultCollisionsWidget::collisionsChanged(const QModelIndex &index)
   }
 }
 
-void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
+void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint& p)
 {
   // This method might be triggered from either of the headers
   QPoint global;
@@ -420,16 +420,16 @@ void DefaultCollisionsWidget::showHeaderContextMenu(const QPoint &p)
 void DefaultCollisionsWidget::hideSections()
 {
   QList<int> list;
-  QHeaderView *header = 0;
+  QHeaderView* header = 0;
   if (clicked_headers_ == Qt::Horizontal)
   {
-    for (const QModelIndex &index : selection_model_->selectedColumns())
+    for (const QModelIndex& index : selection_model_->selectedColumns())
       list << index.column();
     header = collision_table_->horizontalHeader();
   }
   else if (clicked_headers_ == Qt::Vertical)
   {
-    for (const QModelIndex &index : selection_model_->selectedRows())
+    for (const QModelIndex& index : selection_model_->selectedRows())
       list << index.row();
     header = collision_table_->verticalHeader();
   }
@@ -448,18 +448,18 @@ void DefaultCollisionsWidget::hideSections()
 void DefaultCollisionsWidget::hideOtherSections()
 {
   QList<int> list;
-  QHeaderView *header = 0;
+  QHeaderView* header = 0;
   if (clicked_headers_ == Qt::Horizontal)
   {
     header = collision_table_->horizontalHeader();
-    for (const QModelIndex &index : selection_model_->selectedColumns())
+    for (const QModelIndex& index : selection_model_->selectedColumns())
       if (!header->isSectionHidden(index.column()))
         list << index.column();
   }
   else if (clicked_headers_ == Qt::Vertical)
   {
     header = collision_table_->verticalHeader();
-    for (const QModelIndex &index : selection_model_->selectedRows())
+    for (const QModelIndex& index : selection_model_->selectedRows())
       if (!header->isSectionHidden(index.row()))
         list << index.row();
   }
@@ -502,16 +502,16 @@ void DefaultCollisionsWidget::showSections()
     return;
   }
 
-  QHeaderView *header = 0;
+  QHeaderView* header = 0;
   if (clicked_headers_ == Qt::Horizontal)
   {
-    for (const QModelIndex &index : selection_model_->selectedColumns())
+    for (const QModelIndex& index : selection_model_->selectedColumns())
       list << index.column();
     header = collision_table_->horizontalHeader();
   }
   else if (clicked_headers_ == Qt::Vertical)
   {
-    for (const QModelIndex &index : selection_model_->selectedRows())
+    for (const QModelIndex& index : selection_model_->selectedRows())
       list << index.row();
     header = collision_table_->verticalHeader();
   }
@@ -524,7 +524,7 @@ void DefaultCollisionsWidget::showSections()
   }
   showSections(header, list);
 }
-void DefaultCollisionsWidget::showSections(QHeaderView *header, const QList<int> &logicalIndexes)
+void DefaultCollisionsWidget::showSections(QHeaderView* header, const QList<int>& logicalIndexes)
 {
   if (logicalIndexes.size() < 2)
     return;
@@ -543,7 +543,7 @@ void DefaultCollisionsWidget::revertChanges()
   btn_revert_->setEnabled(false);  // no changes to revert
 }
 
-bool DefaultCollisionsWidget::eventFilter(QObject *object, QEvent *event)
+bool DefaultCollisionsWidget::eventFilter(QObject* object, QEvent* event)
 {
   if (object != collision_table_)
     return false;  // leave event unhandled
@@ -556,7 +556,7 @@ bool DefaultCollisionsWidget::eventFilter(QObject *object, QEvent *event)
   }
   else if (event->type() == QEvent::KeyPress)
   {
-    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+    QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
     if (keyEvent->key() != Qt::Key_Space)
       return false;
 
@@ -584,7 +584,7 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
   }
 
   // set all selected items to inverse value of current item
-  const QModelIndex &cur_idx = selection_model_->currentIndex();
+  const QModelIndex& cur_idx = selection_model_->currentIndex();
   if (view_mode_buttons_->checkedId() == MatrixMode)
   {
     QModelIndex input_index;
@@ -605,13 +605,13 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
     }
 
     bool current = model_->data(input_index, Qt::CheckStateRole) == Qt::Checked;
-    CollisionMatrixModel *m = static_cast<CollisionMatrixModel *>(model_);
+    CollisionMatrixModel* m = static_cast<CollisionMatrixModel*>(model_);
     m->setEnabled(selection, !current);
   }
   else
   {
     bool current = model_->data(model_->index(cur_idx.row(), 2), Qt::CheckStateRole) == Qt::Checked;
-    SortFilterProxyModel *m = static_cast<SortFilterProxyModel *>(model_);
+    SortFilterProxyModel* m = static_cast<SortFilterProxyModel*>(model_);
     m->setEnabled(selection, !current);
   }
 }
@@ -651,7 +651,7 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 // ******************************************************************************************
 void DefaultCollisionsWidget::checkedFilterChanged()
 {
-  SortFilterProxyModel *m = qobject_cast<SortFilterProxyModel *>(model_);
+  SortFilterProxyModel* m = qobject_cast<SortFilterProxyModel*>(model_);
   m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
 }
 
@@ -724,7 +724,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
-void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex &index)
+void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex& index)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -741,8 +741,8 @@ void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex &index)
     std::swap(r, c);
 
   // Highlight link pair
-  const QString &first_link = model_->headerData(r, Qt::Vertical, Qt::DisplayRole).toString();
-  const QString &second_link = model_->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
+  const QString& first_link = model_->headerData(r, Qt::Vertical, Qt::DisplayRole).toString();
+  const QString& second_link = model_->headerData(c, Qt::Horizontal, Qt::DisplayRole).toString();
   uint check_state = model_->data(index, Qt::CheckStateRole).toUInt();
 
   QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
@@ -750,7 +750,7 @@ void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex &index)
   Q_EMIT highlightLink(second_link.toStdString(), color);
 }
 
-void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex &index)
+void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex& index)
 {
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -759,8 +759,8 @@ void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex &index)
     return;
 
   // Highlight link pair
-  const QString &first_link = model_->data(model_->index(index.row(), 0), Qt::DisplayRole).toString();
-  const QString &second_link = model_->data(model_->index(index.row(), 1), Qt::DisplayRole).toString();
+  const QString& first_link = model_->data(model_->index(index.row(), 0), Qt::DisplayRole).toString();
+  const QString& second_link = model_->data(model_->index(index.row(), 1), Qt::DisplayRole).toString();
   uint check_state = model_->data(model_->index(index.row(), 2), Qt::CheckStateRole).toUInt();
 
   QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
@@ -801,8 +801,8 @@ bool DefaultCollisionsWidget::focusLost()
   return true;
 }
 
-moveit_setup_assistant::MonitorThread::MonitorThread(const boost::function<void(unsigned int *)> &f,
-                                                     QProgressBar *progress_bar)
+moveit_setup_assistant::MonitorThread::MonitorThread(const boost::function<void(unsigned int*)>& f,
+                                                     QProgressBar* progress_bar)
   : progress_(0), canceled_(false)
 {
   // start worker thread

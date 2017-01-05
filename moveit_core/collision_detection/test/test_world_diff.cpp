@@ -320,7 +320,7 @@ TEST(WorldDiff, SetWorld)
   EXPECT_EQ(8, diff2.getChanges().size());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

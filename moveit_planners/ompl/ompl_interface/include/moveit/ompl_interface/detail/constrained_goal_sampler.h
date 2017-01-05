@@ -54,17 +54,17 @@ class ConstrainedGoalSampler : public ompl::base::GoalLazySamples
 {
 public:
   ConstrainedGoalSampler(
-      const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-      const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
+      const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
+      const constraint_samplers::ConstraintSamplerPtr& cs = constraint_samplers::ConstraintSamplerPtr());
 
 private:
-  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples *gls, ompl::base::State *new_goal);
-  bool stateValidityCallback(ompl::base::State *new_goal, robot_state::RobotState const *state,
-                             const robot_model::JointModelGroup *, const double *, bool verbose = false) const;
-  bool checkStateValidity(ompl::base::State *new_goal, const robot_state::RobotState &state,
+  bool sampleUsingConstraintSampler(const ompl::base::GoalLazySamples* gls, ompl::base::State* new_goal);
+  bool stateValidityCallback(ompl::base::State* new_goal, robot_state::RobotState const* state,
+                             const robot_model::JointModelGroup*, const double*, bool verbose = false) const;
+  bool checkStateValidity(ompl::base::State* new_goal, const robot_state::RobotState& state,
                           bool verbose = false) const;
 
-  const ModelBasedPlanningContext *planning_context_;
+  const ModelBasedPlanningContext* planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr constraint_sampler_;
   ompl::base::StateSamplerPtr default_sampler_;

@@ -12,7 +12,7 @@ namespace sbpl_interface
     boost::this_thread::interruption_point();                                                                          \
   }
 
-void BFS_3D::search(int width, int planeSize, int volatile *distance_grid, int *queue, int &queue_head, int &queue_tail)
+void BFS_3D::search(int width, int planeSize, int volatile* distance_grid, int* queue, int& queue_head, int& queue_tail)
 {
   while (queue_head < queue_tail)
   {

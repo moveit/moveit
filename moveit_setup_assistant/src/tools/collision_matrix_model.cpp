@@ -47,7 +47,7 @@
 using namespace moveit_setup_assistant;
 
 /// Boost mapping of reasons for disabling a link pair to strings
-static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char *> longReasonsToString =
+static const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
     boost::assign::map_list_of  // clang-format off
     ( moveit_setup_assistant::NEVER, "Never in Collision" )
     ( moveit_setup_assistant::DEFAULT, "Collision by Default" )
@@ -66,8 +66,8 @@ static const boost::unordered_map<moveit_setup_assistant::DisabledReason, QVaria
     ( moveit_setup_assistant::USER, QBrush(QColor("yellow")) )
     ( moveit_setup_assistant::NOT_DISABLED, QBrush());  // clang-format on
 
-CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &pairs,
-                                           const std::vector<std::string> &names, QObject *parent)
+CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap& pairs,
+                                           const std::vector<std::string>& names, QObject* parent)
   : QAbstractTableModel(parent), pairs(pairs), std_names(names)
 {
   int idx = 0;
@@ -79,7 +79,7 @@ CollisionMatrixModel::CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &
 }
 
 // return item in pairs map given a normalized index, use item(normalized(index))
-moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const QModelIndex &index)
+moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const QModelIndex& index)
 {
   int r = visual_to_index[index.row()], c = visual_to_index[index.column()];
   if (r == c)
@@ -92,17 +92,17 @@ moveit_setup_assistant::LinkPairMap::iterator CollisionMatrixModel::item(const Q
   return pairs.find(std::make_pair(std_names[r], std_names[c]));
 }
 
-int CollisionMatrixModel::rowCount(const QModelIndex & /*parent*/) const
+int CollisionMatrixModel::rowCount(const QModelIndex& /*parent*/) const
 {
   return visual_to_index.size();
 }
 
-int CollisionMatrixModel::columnCount(const QModelIndex & /*parent*/) const
+int CollisionMatrixModel::columnCount(const QModelIndex& /*parent*/) const
 {
   return visual_to_index.size();
 }
 
-QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
+QVariant CollisionMatrixModel::data(const QModelIndex& index, int role) const
 {
   if (index.isValid() && index.row() == index.column() && role == Qt::BackgroundRole)
     return QApplication::palette().window();
@@ -123,7 +123,7 @@ QVariant CollisionMatrixModel::data(const QModelIndex &index, int role) const
   return QVariant();
 }
 
-moveit_setup_assistant::DisabledReason CollisionMatrixModel::reason(const QModelIndex &index) const
+moveit_setup_assistant::DisabledReason CollisionMatrixModel::reason(const QModelIndex& index) const
 {
   moveit_setup_assistant::LinkPairMap::const_iterator item = this->item(index);
   if (item == pairs.end())
@@ -131,7 +131,7 @@ moveit_setup_assistant::DisabledReason CollisionMatrixModel::reason(const QModel
   return item->second.reason;
 }
 
-bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool CollisionMatrixModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   if (role == Qt::CheckStateRole)
   {
@@ -161,7 +161,7 @@ bool CollisionMatrixModel::setData(const QModelIndex &index, const QVariant &val
   return false;  // reject all other changes
 }
 
-void CollisionMatrixModel::setEnabled(const QItemSelection &selection, bool value)
+void CollisionMatrixModel::setEnabled(const QItemSelection& selection, bool value)
 {
   // perform changes without signalling
   QItemSelection changes;
@@ -170,8 +170,8 @@ void CollisionMatrixModel::setEnabled(const QItemSelection &selection, bool valu
   {
     setEnabled(range.indexes(), value);
 
-    const QModelIndex &top_left = range.topLeft();
-    const QModelIndex &bottom_right = range.bottomRight();
+    const QModelIndex& top_left = range.topLeft();
+    const QModelIndex& bottom_right = range.bottomRight();
     changes.select(top_left, bottom_right);
     changes.select(createIndex(top_left.column(), top_left.row()),
                    createIndex(bottom_right.column(), bottom_right.row()));
@@ -183,13 +183,13 @@ void CollisionMatrixModel::setEnabled(const QItemSelection &selection, bool valu
     Q_EMIT dataChanged(range.topLeft(), range.bottomRight());
 }
 
-void CollisionMatrixModel::setEnabled(const QModelIndexList &indexes, bool value)
+void CollisionMatrixModel::setEnabled(const QModelIndexList& indexes, bool value)
 {
   for (const auto idx : indexes)
     setData(idx, value ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 }
 
-void CollisionMatrixModel::setFilterRegExp(const QString &filter)
+void CollisionMatrixModel::setFilterRegExp(const QString& filter)
 {
   beginResetModel();
   QRegExp regexp(filter);
@@ -209,7 +209,7 @@ QVariant CollisionMatrixModel::headerData(int section, Qt::Orientation, int role
   return QVariant();
 }
 
-Qt::ItemFlags CollisionMatrixModel::flags(const QModelIndex &index) const
+Qt::ItemFlags CollisionMatrixModel::flags(const QModelIndex& index) const
 {
   if (!index.isValid())
     return 0;

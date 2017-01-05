@@ -40,7 +40,7 @@
 #include <limits>
 #include <memory>
 
-planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor,
+planning_scene_monitor::TrajectoryMonitor::TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor,
                                                              double sampling_frequency)
   : current_state_monitor_(state_monitor)
   , sampling_frequency_(5.0)

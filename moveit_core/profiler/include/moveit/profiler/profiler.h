@@ -79,7 +79,7 @@ public:
   {
   public:
     /** \brief Start counting time for the block named \e name of the profiler \e prof */
-    ScopedBlock(const std::string &name, Profiler &prof = Profiler::Instance()) : name_(name), prof_(prof)
+    ScopedBlock(const std::string& name, Profiler& prof = Profiler::Instance()) : name_(name), prof_(prof)
     {
       prof_.begin(name);
     }
@@ -91,7 +91,7 @@ public:
 
   private:
     std::string name_;
-    Profiler &prof_;
+    Profiler& prof_;
   };
 
   /** \brief This instance will call Profiler::start() when constructed and Profiler::stop() when it goes out of scope.
@@ -100,7 +100,7 @@ public:
   {
   public:
     /** \brief Take as argument the profiler instance to operate on (\e prof) */
-    ScopedStart(Profiler &prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
+    ScopedStart(Profiler& prof = Profiler::Instance()) : prof_(prof), wasRunning_(prof_.running())
     {
       if (!wasRunning_)
         prof_.start();
@@ -113,12 +113,12 @@ public:
     }
 
   private:
-    Profiler &prof_;
+    Profiler& prof_;
     bool wasRunning_;
   };
 
   /** \brief Return an instance of the class */
-  static Profiler &Instance(void);
+  static Profiler& Instance(void);
 
   /** \brief Constructor. It is allowed to separately instantiate this
       class (not only as a singleton) */
@@ -163,45 +163,45 @@ public:
   void clear(void);
 
   /** \brief Count a specific event for a number of times */
-  static void Event(const std::string &name, const unsigned int times = 1)
+  static void Event(const std::string& name, const unsigned int times = 1)
   {
     Instance().event(name, times);
   }
 
   /** \brief Count a specific event for a number of times */
-  void event(const std::string &name, const unsigned int times = 1);
+  void event(const std::string& name, const unsigned int times = 1);
 
   /** \brief Maintain the average of a specific value */
-  static void Average(const std::string &name, const double value)
+  static void Average(const std::string& name, const double value)
   {
     Instance().average(name, value);
   }
 
   /** \brief Maintain the average of a specific value */
-  void average(const std::string &name, const double value);
+  void average(const std::string& name, const double value);
 
   /** \brief Begin counting time for a specific chunk of code */
-  static void Begin(const std::string &name)
+  static void Begin(const std::string& name)
   {
     Instance().begin(name);
   }
 
   /** \brief Stop counting time for a specific chunk of code */
-  static void End(const std::string &name)
+  static void End(const std::string& name)
   {
     Instance().end(name);
   }
 
   /** \brief Begin counting time for a specific chunk of code */
-  void begin(const std::string &name);
+  void begin(const std::string& name);
 
   /** \brief Stop counting time for a specific chunk of code */
-  void end(const std::string &name);
+  void end(const std::string& name);
 
   /** \brief Print the status of the profiled code chunks and
       events. Optionally, computation done by different threads
       can be printed separately. */
-  static void Status(std::ostream &out = std::cout, bool merge = true)
+  static void Status(std::ostream& out = std::cout, bool merge = true)
   {
     Instance().status(out, merge);
   }
@@ -209,7 +209,7 @@ public:
   /** \brief Print the status of the profiled code chunks and
       events. Optionally, computation done by different threads
       can be printed separately. */
-  void status(std::ostream &out = std::cout, bool merge = true);
+  void status(std::ostream& out = std::cout, bool merge = true);
 
   /** \brief Print the status of the profiled code chunks and
       events to the console (using msg::Console) */
@@ -267,7 +267,7 @@ private:
     /** \brief Add the counted time to the total time */
     void update(void)
     {
-      const boost::posix_time::time_duration &dt = boost::posix_time::microsec_clock::universal_time() - start;
+      const boost::posix_time::time_duration& dt = boost::posix_time::microsec_clock::universal_time() - start;
       if (dt > longest)
         longest = dt;
       if (dt < shortest)
@@ -303,7 +303,7 @@ private:
     std::map<std::string, TimeInfo> time;
   };
 
-  void printThreadInfo(std::ostream &out, const PerThread &data);
+  void printThreadInfo(std::ostream& out, const PerThread& data);
 
   boost::mutex lock_;
   std::map<boost::thread::id, PerThread> data_;
@@ -331,7 +331,7 @@ public:
   class ScopedBlock
   {
   public:
-    ScopedBlock(const std::string &, Profiler & = Profiler::Instance())
+    ScopedBlock(const std::string&, Profiler& = Profiler::Instance())
     {
     }
 
@@ -343,7 +343,7 @@ public:
   class ScopedStart
   {
   public:
-    ScopedStart(Profiler & = Profiler::Instance())
+    ScopedStart(Profiler& = Profiler::Instance())
     {
     }
 
@@ -352,7 +352,7 @@ public:
     }
   };
 
-  static Profiler &Instance(void);
+  static Profiler& Instance(void);
 
   Profiler(bool = true, bool = true)
   {
@@ -386,43 +386,43 @@ public:
   {
   }
 
-  static void Event(const std::string &, const unsigned int = 1)
+  static void Event(const std::string&, const unsigned int = 1)
   {
   }
 
-  void event(const std::string &, const unsigned int = 1)
+  void event(const std::string&, const unsigned int = 1)
   {
   }
 
-  static void Average(const std::string &, const double)
+  static void Average(const std::string&, const double)
   {
   }
 
-  void average(const std::string &, const double)
+  void average(const std::string&, const double)
   {
   }
 
-  static void Begin(const std::string &)
+  static void Begin(const std::string&)
   {
   }
 
-  static void End(const std::string &)
+  static void End(const std::string&)
   {
   }
 
-  void begin(const std::string &)
+  void begin(const std::string&)
   {
   }
 
-  void end(const std::string &)
+  void end(const std::string&)
   {
   }
 
-  static void Status(std::ostream & = std::cout, bool = true)
+  static void Status(std::ostream& = std::cout, bool = true)
   {
   }
 
-  void status(std::ostream & = std::cout, bool = true)
+  void status(std::ostream& = std::cout, bool = true)
   {
   }
 

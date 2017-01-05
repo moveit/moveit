@@ -48,27 +48,27 @@ class CollisionLinearModel : public QAbstractProxyModel
   Q_OBJECT
 
 public:
-  CollisionLinearModel(CollisionMatrixModel *src, QObject *parent = NULL);
+  CollisionLinearModel(CollisionMatrixModel* src, QObject* parent = NULL);
   ~CollisionLinearModel();
 
   // reimplement to return the model index in the proxy model that to the sourceIndex from the source model
-  QModelIndex mapFromSource(const QModelIndex &sourceIndex) const;
+  QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   // Reimplement this function to return the model index in the source model that corresponds to the proxyIndex in the
   // proxy model
-  QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
+  QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-  int rowCount(const QModelIndex &parent) const;
-  int columnCount(const QModelIndex &parent) const;
+  int rowCount(const QModelIndex& parent) const;
+  int columnCount(const QModelIndex& parent) const;
 
-  QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-  QModelIndex parent(const QModelIndex &child) const;
-  QVariant data(const QModelIndex &index, int role) const;
+  QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+  QModelIndex parent(const QModelIndex& child) const;
+  QVariant data(const QModelIndex& index, int role) const;
   moveit_setup_assistant::DisabledReason reason(int row) const;
 
-  bool setData(const QModelIndex &index, const QVariant &value, int role);
-  void setEnabled(const QItemSelection &selection, bool value);
+  bool setData(const QModelIndex& index, const QVariant& value, int role);
+  void setEnabled(const QItemSelection& selection, bool value);
 
-  Qt::ItemFlags flags(const QModelIndex &index) const;
+  Qt::ItemFlags flags(const QModelIndex& index) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 };
 
@@ -78,15 +78,15 @@ class SortFilterProxyModel : public QSortFilterProxyModel
   Q_OBJECT
 
 public:
-  SortFilterProxyModel(QObject *parent = 0);
+  SortFilterProxyModel(QObject* parent = 0);
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
   void sort(int column, Qt::SortOrder order);
   void setShowAll(bool show_all);
-  void setEnabled(const QItemSelection &selection, bool value);
+  void setEnabled(const QItemSelection& selection, bool value);
 
 protected:
-  bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
-  bool lessThan(const QModelIndex &src_left, const QModelIndex &src_right) const;
+  bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const;
+  bool lessThan(const QModelIndex& src_left, const QModelIndex& src_right) const;
 
 private Q_SLOTS:
   void initSorting();

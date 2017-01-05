@@ -52,13 +52,13 @@ static const int NUM_JOINTS_ARM7DOF = 7;
 
 static const double IK_EPS = 1e-5;
 
-inline double distance(const urdf::Pose &transform)
+inline double distance(const urdf::Pose& transform)
 {
   return sqrt(transform.position.x * transform.position.x + transform.position.y * transform.position.y +
               transform.position.z * transform.position.z);
 }
 
-inline bool solveQuadratic(const double &a, const double &b, const double &c, double *x1, double *x2)
+inline bool solveQuadratic(const double& a, const double& b, const double& c, double* x1, double* x2)
 {
   double discriminant = b * b - 4 * a * c;
   if (fabs(a) < IK_EPS)
@@ -88,7 +88,7 @@ inline bool solveQuadratic(const double &a, const double &b, const double &c, do
   }
 }
 
-inline bool solveCosineEqn(const double &a, const double &b, const double &c, double &soln1, double &soln2)
+inline bool solveCosineEqn(const double& a, const double& b, const double& c, double& soln1, double& soln2)
 {
   double theta1 = atan2(b, a);
   double denom = sqrt(a * a + b * b);
@@ -133,23 +133,23 @@ public:
       @param The tip joint name of the arm
       @return true if initialization was successful, false otherwise.
   */
-  bool init(const urdf::ModelInterface &robot_model, const std::string &root_name, const std::string &tip_name);
+  bool init(const urdf::ModelInterface& robot_model, const std::string& root_name, const std::string& tip_name);
 
   /**
      @brief compute IK based on an initial guess for the shoulder pan angle.
      @param Input pose for end-effector
      @param Initial guess for shoulder pan angle
   */
-  void computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &shoulder_pan_initial_guess,
-                            std::vector<std::vector<double> > &solution) const;
+  void computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& shoulder_pan_initial_guess,
+                            std::vector<std::vector<double> >& solution) const;
 
   /**
      @brief compute IK based on an initial guess for the shoulder roll angle.
      h       @param Input pose for end-effector
      @param Initial guess for shoulder roll angle
   */
-  void computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &shoulder_roll_initial_guess,
-                             std::vector<std::vector<double> > &solution) const;
+  void computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& shoulder_roll_initial_guess,
+                             std::vector<std::vector<double> >& solution) const;
 
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions
 
@@ -158,7 +158,7 @@ public:
      information including names and joint limits.
      @param The response structure to be filled in.
   */
-  void getSolverInfo(moveit_msgs::KinematicSolverInfo &info);
+  void getSolverInfo(moveit_msgs::KinematicSolverInfo& info);
 
   /**
      @brief get chain information about the arm.
@@ -168,11 +168,11 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
-  void addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo &info);
+  void addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo& info);
 
-  bool checkJointLimits(const std::vector<double> &joint_values) const;
+  bool checkJointLimits(const std::vector<double>& joint_values) const;
 
-  bool checkJointLimits(const double &joint_value, const int &joint_num) const;
+  bool checkJointLimits(const double& joint_value, const int& joint_num) const;
 
   Eigen::Matrix4f grhs_, gf_, home_inv_, home_;
 

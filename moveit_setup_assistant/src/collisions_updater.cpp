@@ -42,7 +42,7 @@
 
 namespace po = boost::program_options;
 
-bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_data, const std::string &pkg_path)
+bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData& config_data, const std::string& pkg_path)
 {
   if (!config_data.setPackagePath(pkg_path))
   {
@@ -70,8 +70,8 @@ bool loadSetupAssistantConfig(moveit_setup_assistant::MoveItConfigData &config_d
   return true;
 }
 
-bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old,
-           const std::vector<std::string> &xacro_args)
+bool setup(moveit_setup_assistant::MoveItConfigData& config_data, bool keep_old,
+           const std::vector<std::string>& xacro_args)
 {
   std::string urdf_string;
   if (!rdf_loader::RDFLoader::loadXmlFileToString(urdf_string, config_data.urdf_path_, xacro_args))
@@ -103,7 +103,7 @@ bool setup(moveit_setup_assistant::MoveItConfigData &config_data, bool keep_old,
   return true;
 }
 
-moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfigData &config_data, uint32_t trials,
+moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfigData& config_data, uint32_t trials,
                                             double min_collision_fraction, bool verbose)
 {
   // TODO: spin thread and print progess if verbose
@@ -112,7 +112,7 @@ moveit_setup_assistant::LinkPairMap compute(moveit_setup_assistant::MoveItConfig
                                                           trials > 0, trials, min_collision_fraction, verbose);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   std::string config_pkg_path;
   std::string urdf_path;

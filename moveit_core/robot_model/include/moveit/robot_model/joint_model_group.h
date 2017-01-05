@@ -53,18 +53,18 @@ class RobotModel;
 class JointModelGroup;
 
 /** \brief Function type that allocates a kinematics solver for a particular group */
-typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup *)> SolverAllocatorFn;
+typedef boost::function<kinematics::KinematicsBasePtr(const JointModelGroup*)> SolverAllocatorFn;
 
 /** \brief Map from group instances to allocator functions & bijections */
-typedef std::map<const JointModelGroup *, SolverAllocatorFn> SolverAllocatorMapFn;
+typedef std::map<const JointModelGroup*, SolverAllocatorFn> SolverAllocatorMapFn;
 
 /** \brief Map of names to instances for JointModelGroup */
-typedef std::map<std::string, JointModelGroup *> JointModelGroupMap;
+typedef std::map<std::string, JointModelGroup*> JointModelGroupMap;
 
 /** \brief Map of names to const instances for JointModelGroup */
-typedef std::map<std::string, const JointModelGroup *> JointModelGroupMapConst;
+typedef std::map<std::string, const JointModelGroup*> JointModelGroupMapConst;
 
-typedef std::vector<const JointModel::Bounds *> JointBoundsVector;
+typedef std::vector<const JointModel::Bounds*> JointBoundsVector;
 
 class JointModelGroup
 {
@@ -108,90 +108,90 @@ public:
   };
 
   /// Map from group instances to allocator functions & bijections
-  typedef std::map<const JointModelGroup *, KinematicsSolver> KinematicsSolverMap;
+  typedef std::map<const JointModelGroup*, KinematicsSolver> KinematicsSolverMap;
 
-  JointModelGroup(const std::string &name, const srdf::Model::Group &config,
-                  const std::vector<const JointModel *> &joint_vector, const RobotModel *parent_model);
+  JointModelGroup(const std::string& name, const srdf::Model::Group& config,
+                  const std::vector<const JointModel*>& joint_vector, const RobotModel* parent_model);
 
   ~JointModelGroup();
 
   /** \brief Get the kinematic model this group is part of */
-  const RobotModel &getParentModel() const
+  const RobotModel& getParentModel() const
   {
     return *parent_model_;
   }
 
   /** \brief Get the name of the joint group */
-  const std::string &getName() const
+  const std::string& getName() const
   {
     return name_;
   }
 
   /** \brief get the SRDF configuration this group is based on */
-  const srdf::Model::Group &getConfig() const
+  const srdf::Model::Group& getConfig() const
   {
     return config_;
   }
 
   /** \brief Check if a joint is part of this group */
-  bool hasJointModel(const std::string &joint) const;
+  bool hasJointModel(const std::string& joint) const;
 
   /** \brief Check if a link is part of this group */
-  bool hasLinkModel(const std::string &link) const;
+  bool hasLinkModel(const std::string& link) const;
 
   /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
-  const JointModel *getJointModel(const std::string &joint) const;
+  const JointModel* getJointModel(const std::string& joint) const;
 
   /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
-  const LinkModel *getLinkModel(const std::string &link) const;
+  const LinkModel* getLinkModel(const std::string& link) const;
 
   /** \brief Get all the joints in this group (including fixed and mimic joints). */
-  const std::vector<const JointModel *> &getJointModels() const
+  const std::vector<const JointModel*>& getJointModels() const
   {
     return joint_model_vector_;
   }
 
   /** \brief Get the names of the joints in this group. These are the names of the joints returned by getJointModels().
    */
-  const std::vector<std::string> &getJointModelNames() const
+  const std::vector<std::string>& getJointModelNames() const
   {
     return joint_model_name_vector_;
   }
 
   /** \brief Get the active joints in this group (that  have controllable DOF). This does not include mimic joints. */
-  const std::vector<const JointModel *> &getActiveJointModels() const
+  const std::vector<const JointModel*>& getActiveJointModels() const
   {
     return active_joint_model_vector_;
   }
 
   /** \brief Get the names of the active joints in this group. These are the names of the joints returned by
    * getJointModels(). */
-  const std::vector<std::string> &getActiveJointModelNames() const
+  const std::vector<std::string>& getActiveJointModelNames() const
   {
     return active_joint_model_name_vector_;
   }
 
   /** \brief Get the fixed joints that are part of this group */
-  const std::vector<const JointModel *> &getFixedJointModels() const
+  const std::vector<const JointModel*>& getFixedJointModels() const
   {
     return fixed_joints_;
   }
 
   /** \brief Get the mimic joints that are part of this group */
-  const std::vector<const JointModel *> &getMimicJointModels() const
+  const std::vector<const JointModel*>& getMimicJointModels() const
   {
     return mimic_joints_;
   }
 
   /** \brief Get the array of continuous joints used in this group (may include mimic joints). */
-  const std::vector<const JointModel *> &getContinuousJointModels() const
+  const std::vector<const JointModel*>& getContinuousJointModels() const
   {
     return continuous_joint_model_vector_;
   }
 
   /** \brief Get the names of the variables that make up the joints included in this group. The number of
       returned elements is always equal to getVariableCount(). This includes mimic joints. */
-  const std::vector<std::string> &getVariableNames() const
+  const std::vector<std::string>& getVariableNames() const
   {
     return variable_names_;
   }
@@ -203,31 +203,31 @@ public:
       the roots are on different branches in the kinematic
       tree. This means that in following any root in the given
       list, none of the other returned roots will be encountered. */
-  const std::vector<const JointModel *> &getJointRoots() const
+  const std::vector<const JointModel*>& getJointRoots() const
   {
     return joint_roots_;
   }
 
   /** \brief Get the common root of all joint roots; not necessarily part of this group */
-  const JointModel *getCommonRoot() const
+  const JointModel* getCommonRoot() const
   {
     return common_root_;
   }
 
   /** \brief Get the links that are part of this joint group */
-  const std::vector<const LinkModel *> &getLinkModels() const
+  const std::vector<const LinkModel*>& getLinkModels() const
   {
     return link_model_vector_;
   }
 
   /** \brief Get the names of the links that are part of this joint group */
-  const std::vector<std::string> &getLinkModelNames() const
+  const std::vector<std::string>& getLinkModelNames() const
   {
     return link_model_name_vector_;
   }
 
   /** \brief Get the names of the links that are part of this joint group and also have geometry associated with them */
-  const std::vector<std::string> &getLinkModelNamesWithCollisionGeometry() const
+  const std::vector<std::string>& getLinkModelNamesWithCollisionGeometry() const
   {
     return link_model_with_geometry_name_vector_;
   }
@@ -236,19 +236,19 @@ public:
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. The order is the correct order for updating the corresponding
      states. */
-  const std::vector<const LinkModel *> &getUpdatedLinkModels() const
+  const std::vector<const LinkModel*>& getUpdatedLinkModels() const
   {
     return updated_link_model_vector_;
   }
 
   /** \brief Return the same data as getUpdatedLinkModels() but as a set */
-  const std::set<const LinkModel *> &getUpdatedLinkModelsSet() const
+  const std::set<const LinkModel*>& getUpdatedLinkModelsSet() const
   {
     return updated_link_model_set_;
   }
 
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::vector<std::string> &getUpdatedLinkModelNames() const
+  const std::vector<std::string>& getUpdatedLinkModelNames() const
   {
     return updated_link_model_name_vector_;
   }
@@ -256,25 +256,25 @@ public:
   /** \brief Get the names of the links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. */
-  const std::vector<const LinkModel *> &getUpdatedLinkModelsWithGeometry() const
+  const std::vector<const LinkModel*>& getUpdatedLinkModelsWithGeometry() const
   {
     return updated_link_model_with_geometry_vector_;
   }
 
   /** \brief Return the same data as getUpdatedLinkModelsWithGeometry() but as a set */
-  const std::set<const LinkModel *> &getUpdatedLinkModelsWithGeometrySet() const
+  const std::set<const LinkModel*>& getUpdatedLinkModelsWithGeometrySet() const
   {
     return updated_link_model_with_geometry_set_;
   }
 
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::vector<std::string> &getUpdatedLinkModelsWithGeometryNames() const
+  const std::vector<std::string>& getUpdatedLinkModelsWithGeometryNames() const
   {
     return updated_link_model_with_geometry_name_vector_;
   }
 
   /** \brief Get the names of the links returned by getUpdatedLinkModels() */
-  const std::set<std::string> &getUpdatedLinkModelsWithGeometryNamesSet() const
+  const std::set<std::string>& getUpdatedLinkModelsWithGeometryNamesSet() const
   {
     return updated_link_model_with_geometry_name_set_;
   }
@@ -282,127 +282,127 @@ public:
   /** \brief True if this name is in the set of links that are to be updated when the state of this group changes. This
       includes links that are in the kinematic model but outside this group, if those links are descendants of
       joints in this group that have their values updated. */
-  bool isLinkUpdated(const std::string &name) const
+  bool isLinkUpdated(const std::string& name) const
   {
     return updated_link_model_name_set_.find(name) != updated_link_model_name_set_.end();
   }
 
   /** \brief Get the index locations in the complete robot state for all the variables in this group */
-  const std::vector<int> &getVariableIndexList() const
+  const std::vector<int>& getVariableIndexList() const
   {
     return variable_index_list_;
   }
 
   /** \brief Get the index of a variable within the group. Return -1 on error. */
-  int getVariableGroupIndex(const std::string &variable) const;
+  int getVariableGroupIndex(const std::string& variable) const;
 
   /** \brief Get the names of the known default states (as specified in the SRDF) */
-  const std::vector<std::string> &getDefaultStateNames() const
+  const std::vector<std::string>& getDefaultStateNames() const
   {
     return default_states_names_;
   }
 
-  void addDefaultState(const std::string &name, const std::map<std::string, double> &default_state);
+  void addDefaultState(const std::string& name, const std::map<std::string, double>& default_state);
 
   /** \brief Get the values that correspond to a named state as read from the URDF. Return false on failure. */
-  bool getVariableDefaultPositions(const std::string &name, std::map<std::string, double> &values) const;
+  bool getVariableDefaultPositions(const std::string& name, std::map<std::string, double>& values) const;
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultPositions(std::map<std::string, double> &values) const;
+  void getVariableDefaultPositions(std::map<std::string, double>& values) const;
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultPositions(std::vector<double> &values) const
+  void getVariableDefaultPositions(std::vector<double>& values) const
   {
     values.resize(variable_count_);
     getVariableDefaultPositions(&values[0]);
   }
 
   /** \brief Compute the default values for the joint group */
-  void getVariableDefaultPositions(double *values) const;
+  void getVariableDefaultPositions(double* values) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values) const
   {
     getVariableRandomPositions(rng, values, active_joint_models_bounds_);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values) const
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, std::vector<double>& values) const
   {
     values.resize(variable_count_);
     getVariableRandomPositions(rng, &values[0], active_joint_models_bounds_);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values, const double *near,
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values, const double* near,
                                         const double distance) const
   {
     getVariableRandomPositionsNearBy(rng, values, active_joint_models_bounds_, near, distance);
   }
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                        const std::vector<double> &near, double distance) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, std::vector<double>& values,
+                                        const std::vector<double>& near, double distance) const
   {
     values.resize(variable_count_);
     getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                        const std::vector<double> &near,
-                                        const std::map<JointModel::JointType, double> &distance_map) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, std::vector<double>& values,
+                                        const std::vector<double>& near,
+                                        const std::map<JointModel::JointType, double>& distance_map) const
   {
     values.resize(variable_count_);
     getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distance_map);
   }
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, std::vector<double> &values,
-                                        const std::vector<double> &near, const std::vector<double> &distances) const
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, std::vector<double>& values,
+                                        const std::vector<double>& near, const std::vector<double>& distances) const
   {
     values.resize(variable_count_);
     getVariableRandomPositionsNearBy(rng, &values[0], active_joint_models_bounds_, &near[0], distances);
   }
 
-  void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values,
-                                  const JointBoundsVector &active_joint_bounds) const;
+  void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
+                                  const JointBoundsVector& active_joint_bounds) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                        const JointBoundsVector &active_joint_bounds, const double *near,
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                        const JointBoundsVector& active_joint_bounds, const double* near,
                                         const double distance) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                        const JointBoundsVector &active_joint_bounds, const double *near,
-                                        const std::map<JointModel::JointType, double> &distance_map) const;
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                        const JointBoundsVector& active_joint_bounds, const double* near,
+                                        const std::map<JointModel::JointType, double>& distance_map) const;
 
   /** \brief Compute random values for the state of the joint group */
-  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                        const JointBoundsVector &active_joint_bounds, const double *near,
-                                        const std::vector<double> &distances) const;
+  void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                        const JointBoundsVector& active_joint_bounds, const double* near,
+                                        const std::vector<double>& distances) const;
 
-  bool enforcePositionBounds(double *state) const
+  bool enforcePositionBounds(double* state) const
   {
     return enforcePositionBounds(state, active_joint_models_bounds_);
   }
 
-  bool enforcePositionBounds(double *state, const JointBoundsVector &active_joint_bounds) const;
-  bool satisfiesPositionBounds(const double *state, double margin = 0.0) const
+  bool enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const;
+  bool satisfiesPositionBounds(const double* state, double margin = 0.0) const
   {
     return satisfiesPositionBounds(state, active_joint_models_bounds_, margin);
   }
-  bool satisfiesPositionBounds(const double *state, const JointBoundsVector &active_joint_bounds,
+  bool satisfiesPositionBounds(const double* state, const JointBoundsVector& active_joint_bounds,
                                double margin = 0.0) const;
 
   double getMaximumExtent() const
   {
     return getMaximumExtent(active_joint_models_bounds_);
   }
-  double getMaximumExtent(const JointBoundsVector &active_joint_bounds) const;
+  double getMaximumExtent(const JointBoundsVector& active_joint_bounds) const;
 
-  double distance(const double *state1, const double *state2) const;
-  void interpolate(const double *from, const double *to, double t, double *state) const;
+  double distance(const double* state1, const double* state2) const;
+  void interpolate(const double* from, const double* to, double t, double* state) const;
 
   /** \brief Get the number of variables that describe this joint group. This includes variables necessary for mimic
       joints, so will always be >= the number of items returned by getActiveVariableNames() */
@@ -412,19 +412,19 @@ public:
   }
 
   /** \brief Set the names of the subgroups for this group */
-  void setSubgroupNames(const std::vector<std::string> &subgroups);
+  void setSubgroupNames(const std::vector<std::string>& subgroups);
 
   /** \brief Get the names of the groups that are subsets of this one (in terms of joints set) */
-  const std::vector<std::string> &getSubgroupNames() const
+  const std::vector<std::string>& getSubgroupNames() const
   {
     return subgroup_names_;
   }
 
   /** \brief Get the groups that are subsets of this one (in terms of joints set) */
-  void getSubgroups(std::vector<const JointModelGroup *> &sub_groups) const;
+  void getSubgroups(std::vector<const JointModelGroup*>& sub_groups) const;
 
   /** \brief Check if the joints of group \e group are a subset of the joints in this group */
-  bool isSubgroup(const std::string &group) const
+  bool isSubgroup(const std::string& group) const
   {
     return subgroup_names_set_.find(group) != subgroup_names_set_.end();
   }
@@ -453,31 +453,31 @@ public:
   }
 
   /** \brief Return the name of the end effector, if this group is an end-effector */
-  const std::string &getEndEffectorName() const
+  const std::string& getEndEffectorName() const
   {
     return end_effector_name_;
   }
 
   /** \brief Set the name of the end-effector, and remember this group is indeed an end-effector. */
-  void setEndEffectorName(const std::string &name);
+  void setEndEffectorName(const std::string& name);
 
   /** \brief If this group is an end-effector, specify the parent group (e.g., the arm holding the eef) and the link the
      end
       effector connects to */
-  void setEndEffectorParent(const std::string &group, const std::string &link);
+  void setEndEffectorParent(const std::string& group, const std::string& link);
 
   /** \brief Notify this group that there is an end-effector attached to it */
-  void attachEndEffector(const std::string &eef_name);
+  void attachEndEffector(const std::string& eef_name);
 
   /** \brief Get the name of the group this end-effector attaches to (first) and the name of the link in that group
    * (second) */
-  const std::pair<std::string, std::string> &getEndEffectorParentGroup() const
+  const std::pair<std::string, std::string>& getEndEffectorParentGroup() const
   {
     return end_effector_parent_;
   }
 
   /** \brief Get the names of the end effectors attached to this group */
-  const std::vector<std::string> &getAttachedEndEffectorNames() const
+  const std::vector<std::string>& getAttachedEndEffectorNames() const
   {
     return attached_end_effector_names_;
   }
@@ -489,7 +489,7 @@ public:
    * \param tips - the output vector of link models of the tips
    * \return true on success
    */
-  bool getEndEffectorTips(std::vector<const LinkModel *> &tips) const;
+  bool getEndEffectorTips(std::vector<const LinkModel*>& tips) const;
 
   /**
    * \brief Get a vector of end effector tips included in a particular joint model group as defined by the SRDF end
@@ -498,47 +498,47 @@ public:
    * \param tips - the output vector of link names of the tips
    * \return true on success
    */
-  bool getEndEffectorTips(std::vector<std::string> &tips) const;
+  bool getEndEffectorTips(std::vector<std::string>& tips) const;
 
   /**
    * \brief Get one end effector tip, throwing an error if there ends up being more in the joint model group
    *  This is a useful helper function because most planning groups (almost all) only have one tip
    * \return pointer to LinkModel, or NULL on failure
    */
-  const moveit::core::LinkModel *getOnlyOneEndEffectorTip() const;
+  const moveit::core::LinkModel* getOnlyOneEndEffectorTip() const;
 
   /** \brief Get the bounds for all the active joints */
-  const JointBoundsVector &getActiveJointModelsBounds() const
+  const JointBoundsVector& getActiveJointModelsBounds() const
   {
     return active_joint_models_bounds_;
   }
 
-  const std::pair<KinematicsSolver, KinematicsSolverMap> &getGroupKinematics() const
+  const std::pair<KinematicsSolver, KinematicsSolverMap>& getGroupKinematics() const
   {
     return group_kinematics_;
   }
 
-  void setSolverAllocators(const SolverAllocatorFn &solver,
-                           const SolverAllocatorMapFn &solver_map = SolverAllocatorMapFn())
+  void setSolverAllocators(const SolverAllocatorFn& solver,
+                           const SolverAllocatorMapFn& solver_map = SolverAllocatorMapFn())
   {
     setSolverAllocators(std::make_pair(solver, solver_map));
   }
 
-  void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn> &solvers);
+  void setSolverAllocators(const std::pair<SolverAllocatorFn, SolverAllocatorMapFn>& solvers);
 
-  const kinematics::KinematicsBaseConstPtr &getSolverInstance() const
+  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
   {
     return group_kinematics_.first.solver_instance_const_;
   }
 
-  const kinematics::KinematicsBasePtr &getSolverInstance()
+  const kinematics::KinematicsBasePtr& getSolverInstance()
   {
     return group_kinematics_.first.solver_instance_;
   }
 
-  bool canSetStateFromIK(const std::string &tip) const;
+  bool canSetStateFromIK(const std::string& tip) const;
 
-  bool setRedundantJoints(const std::vector<std::string> &joints)
+  bool setRedundantJoints(const std::vector<std::string>& joints)
   {
     if (group_kinematics_.first.solver_instance_)
       return group_kinematics_.first.solver_instance_->setRedundantJoints(joints);
@@ -567,49 +567,49 @@ public:
      kinematics solver.
       An element bijection[i] at index \e i in this array, maps the variable at index bijection[i] in this group to
       the variable at index i in the kinematic solver. */
-  const std::vector<unsigned int> &getKinematicsSolverJointBijection() const
+  const std::vector<unsigned int>& getKinematicsSolverJointBijection() const
   {
     return group_kinematics_.first.bijection_;
   }
 
   /** \brief Print information about the constructed model */
-  void printGroupInfo(std::ostream &out = std::cout) const;
+  void printGroupInfo(std::ostream& out = std::cout) const;
 
 protected:
-  bool computeIKIndexBijection(const std::vector<std::string> &ik_jnames,
-                               std::vector<unsigned int> &joint_bijection) const;
+  bool computeIKIndexBijection(const std::vector<std::string>& ik_jnames,
+                               std::vector<unsigned int>& joint_bijection) const;
 
   /** \brief Update the variable values for the state of a group with respect to the mimic joints. This only updates
       mimic joints that have the parent in this group. If there is a joint mimicking one that is outside the group,
       there are no values to be read (\e values is only the group state) */
-  void updateMimicJoints(double *values) const;
+  void updateMimicJoints(double* values) const;
 
   /** \brief Owner model */
-  const RobotModel *parent_model_;
+  const RobotModel* parent_model_;
 
   /** \brief Name of group */
   std::string name_;
 
   /** \brief Joint instances in the order they appear in the group state */
-  std::vector<const JointModel *> joint_model_vector_;
+  std::vector<const JointModel*> joint_model_vector_;
 
   /** \brief Names of joints in the order they appear in the group state */
   std::vector<std::string> joint_model_name_vector_;
 
   /** \brief Active joint instances in the order they appear in the group state */
-  std::vector<const JointModel *> active_joint_model_vector_;
+  std::vector<const JointModel*> active_joint_model_vector_;
 
   /** \brief Names of active joints in the order they appear in the group state */
   std::vector<std::string> active_joint_model_name_vector_;
 
   /** \brief The joints that have no DOF (fixed) */
-  std::vector<const JointModel *> fixed_joints_;
+  std::vector<const JointModel*> fixed_joints_;
 
   /** \brief Joints that mimic other joints */
-  std::vector<const JointModel *> mimic_joints_;
+  std::vector<const JointModel*> mimic_joints_;
 
   /** \brief The set of continuous joints this group contains */
-  std::vector<const JointModel *> continuous_joint_model_vector_;
+  std::vector<const JointModel*> continuous_joint_model_vector_;
 
   /** \brief The names of the DOF that make up this group (this is just a sequence of joint variable names; not
       necessarily joint names!) */
@@ -623,10 +623,10 @@ protected:
   JointModelMapConst joint_model_map_;
 
   /** \brief The list of active joint models that are roots in this group */
-  std::vector<const JointModel *> joint_roots_;
+  std::vector<const JointModel*> joint_roots_;
 
   /** \brief The joint that is a common root for all joints in this group (not necessarily part of this group) */
-  const JointModel *common_root_;
+  const JointModel* common_root_;
 
   /** \brief The group includes all the joint variables that make up the joints the group consists of.
       This map gives the position in the state vector of the group for each of these variables.
@@ -647,7 +647,7 @@ protected:
   /** \brief The links that are on the direct lineage between joints
       and joint_roots_, as well as the children of the joint leafs.
       May not be in any particular order */
-  std::vector<const LinkModel *> link_model_vector_;
+  std::vector<const LinkModel*> link_model_vector_;
 
   /** \brief A map from link names to their instances */
   LinkModelMapConst link_model_map_;
@@ -655,18 +655,18 @@ protected:
   /** \brief The names of the links in this group */
   std::vector<std::string> link_model_name_vector_;
 
-  std::vector<const LinkModel *> link_model_with_geometry_vector_;
+  std::vector<const LinkModel*> link_model_with_geometry_vector_;
 
   /** \brief The names of the links in this group that also have geometry */
   std::vector<std::string> link_model_with_geometry_name_vector_;
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in
    * this group) */
-  std::vector<const LinkModel *> updated_link_model_vector_;
+  std::vector<const LinkModel*> updated_link_model_vector_;
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in
    * this group) */
-  std::set<const LinkModel *> updated_link_model_set_;
+  std::set<const LinkModel*> updated_link_model_set_;
 
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in
    * this group) */
@@ -678,11 +678,11 @@ protected:
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in
    * this group) */
-  std::vector<const LinkModel *> updated_link_model_with_geometry_vector_;
+  std::vector<const LinkModel*> updated_link_model_with_geometry_vector_;
 
   /** \brief The list of downstream link models in the order they should be updated (may include links that are not in
    * this group) */
-  std::set<const LinkModel *> updated_link_model_with_geometry_set_;
+  std::set<const LinkModel*> updated_link_model_with_geometry_set_;
 
   /** \brief The list of downstream link names in the order they should be updated (may include links that are not in
    * this group) */

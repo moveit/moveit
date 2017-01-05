@@ -45,9 +45,9 @@ KinematicsCache::KinematicsCache() : min_squared_distance_(1e6), max_squared_dis
 {
 }
 
-bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_solver,
-                                 const robot_model::RobotModelConstPtr &kinematic_model,
-                                 const KinematicsCache::Options &opt)
+bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr& kinematics_solver,
+                                 const robot_model::RobotModelConstPtr& kinematic_model,
+                                 const KinematicsCache::Options& opt)
 {
   options_ = opt;
   kinematics_solver_ = kinematics_solver;
@@ -60,7 +60,7 @@ bool KinematicsCache::initialize(kinematics::KinematicsBaseConstPtr &kinematics_
   return true;
 }
 
-void KinematicsCache::setup(const KinematicsCache::Options &opt)
+void KinematicsCache::setup(const KinematicsCache::Options& opt)
 {
   cache_origin_ = opt.origin;
   cache_resolution_x_ = opt.resolution[0];
@@ -115,7 +115,7 @@ bool KinematicsCache::generateCacheMap(double timeout)
   return true;
 }
 
-bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values,
+bool KinematicsCache::addToCache(const geometry_msgs::Pose& pose, const std::vector<double>& joint_values,
                                  bool overwrite)
 {
   unsigned int grid_index;
@@ -146,7 +146,7 @@ bool KinematicsCache::addToCache(const geometry_msgs::Pose &pose, const std::vec
   return true;
 }
 
-bool KinematicsCache::getGridIndex(const geometry_msgs::Pose &pose, unsigned int &grid_index) const
+bool KinematicsCache::getGridIndex(const geometry_msgs::Pose& pose, unsigned int& grid_index) const
 {
   int x_index = (int)((pose.position.x - cache_origin_.x) / cache_resolution_x_);
   int y_index = (int)((pose.position.y - cache_origin_.y) / cache_resolution_y_);
@@ -172,7 +172,7 @@ bool KinematicsCache::getGridIndex(const geometry_msgs::Pose &pose, unsigned int
   return true;
 }
 
-bool KinematicsCache::getNumSolutions(const geometry_msgs::Pose &pose, unsigned int &num_solutions) const
+bool KinematicsCache::getNumSolutions(const geometry_msgs::Pose& pose, unsigned int& num_solutions) const
 {
   unsigned int grid_index;
   if (!getGridIndex(pose, grid_index))
@@ -182,15 +182,15 @@ bool KinematicsCache::getNumSolutions(const geometry_msgs::Pose &pose, unsigned 
   return true;
 }
 
-unsigned int KinematicsCache::getSolutionLocation(unsigned int &grid_index, unsigned int &solution_index) const
+unsigned int KinematicsCache::getSolutionLocation(unsigned int& grid_index, unsigned int& solution_index) const
 {
   logDebug("[Grid Index, Solution number location]: %d, %d", grid_index,
            grid_index * size_grid_node_ + solution_index * solution_dimension_);
   return (grid_index * size_grid_node_ + solution_index * solution_dimension_);
 }
 
-bool KinematicsCache::getSolution(const geometry_msgs::Pose &pose, unsigned int solution_index,
-                                  std::vector<double> &solution) const
+bool KinematicsCache::getSolution(const geometry_msgs::Pose& pose, unsigned int solution_index,
+                                  std::vector<double>& solution) const
 {
   unsigned int grid_index;
   if (!getGridIndex(pose, grid_index))
@@ -204,7 +204,7 @@ bool KinematicsCache::getSolution(const geometry_msgs::Pose &pose, unsigned int 
   return true;
 }
 
-bool KinematicsCache::getSolutions(const geometry_msgs::Pose &pose, std::vector<std::vector<double> > &solution) const
+bool KinematicsCache::getSolutions(const geometry_msgs::Pose& pose, std::vector<std::vector<double> >& solution) const
 {
   unsigned int grid_index;
   if (!getGridIndex(pose, grid_index))
@@ -229,7 +229,7 @@ std::vector<double> KinematicsCache::getSolution(unsigned int grid_index, unsign
   return solution_local;
 }
 
-bool KinematicsCache::readFromFile(const std::string &filename)
+bool KinematicsCache::readFromFile(const std::string& filename)
 {
   std::ifstream file(filename.c_str());
   if (!file.is_open())
@@ -322,7 +322,7 @@ bool KinematicsCache::readFromFile(const std::string &filename)
   return true;
 }
 
-bool KinematicsCache::writeToFile(const std::string &filename)
+bool KinematicsCache::writeToFile(const std::string& filename)
 {
   logDebug("Writing %d total points to file: %s", (int)num_solutions_vector_.size(), filename.c_str());
   std::ofstream file;
@@ -364,7 +364,7 @@ std::pair<double, double> KinematicsCache::getMinMaxSquaredDistance()
   return std::pair<double, double>(min_squared_distance_, max_squared_distance_);
 }
 
-void KinematicsCache::updateDistances(const geometry_msgs::Pose &pose)
+void KinematicsCache::updateDistances(const geometry_msgs::Pose& pose)
 {
   double distance_squared =
       (pose.position.x * pose.position.x + pose.position.y * pose.position.y + pose.position.z * pose.position.z);

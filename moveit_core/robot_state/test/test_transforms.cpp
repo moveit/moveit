@@ -126,7 +126,7 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
   EXPECT_NEAR(x.translation().z(), 1.24001, 1e-4);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

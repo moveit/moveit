@@ -45,7 +45,7 @@ namespace constraint_sampler_manager_loader
 class ConstraintSamplerManagerLoader::Helper
 {
 public:
-  Helper(const constraint_samplers::ConstraintSamplerManagerPtr &csm) : nh_("~")
+  Helper(const constraint_samplers::ConstraintSamplerManagerPtr& csm) : nh_("~")
   {
     std::string constraint_samplers;
     if (nh_.getParam("constraint_samplers", constraint_samplers))
@@ -56,7 +56,7 @@ public:
             new pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator>(
                 "moveit_core", "constraint_samplers::ConstraintSamplerAllocator"));
       }
-      catch (pluginlib::PluginlibException &ex)
+      catch (pluginlib::PluginlibException& ex)
       {
         ROS_ERROR_STREAM("Exception while creating constraint sampling plugin loader " << ex.what());
         return;
@@ -67,12 +67,12 @@ public:
       {
         try
         {
-          constraint_samplers::ConstraintSamplerAllocator *csa =
+          constraint_samplers::ConstraintSamplerAllocator* csa =
               constraint_sampler_plugin_loader_->createUnmanagedInstance(*beg);
           csm->registerSamplerAllocator(constraint_samplers::ConstraintSamplerAllocatorPtr(csa));
           ROS_INFO("Loaded constraint sampling plugin %s", std::string(*beg).c_str());
         }
-        catch (pluginlib::PluginlibException &ex)
+        catch (pluginlib::PluginlibException& ex)
         {
           ROS_ERROR_STREAM("Exception while planning adapter plugin '" << *beg << "': " << ex.what());
         }
@@ -87,7 +87,7 @@ private:
 };
 
 ConstraintSamplerManagerLoader::ConstraintSamplerManagerLoader(
-    const constraint_samplers::ConstraintSamplerManagerPtr &csm)
+    const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   : constraint_sampler_manager_(csm ? csm : constraint_samplers::ConstraintSamplerManagerPtr(
                                                 new constraint_samplers::ConstraintSamplerManager()))
   , impl_(new Helper(constraint_sampler_manager_))

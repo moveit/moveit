@@ -61,7 +61,7 @@ moveit_msgs::Constraints getConstraints()
   return cmsg;
 }
 
-void computeDB(const robot_model::RobotModelPtr &robot_model, unsigned int ns, unsigned int ne)
+void computeDB(const robot_model::RobotModelPtr& robot_model, unsigned int ns, unsigned int ne)
 {
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
   ompl_interface::OMPLInterface ompl_interface(robot_model);
@@ -104,7 +104,7 @@ req.state_space_parameterization,
 }
 */
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "construct_ompl_state_database", ros::init_options::AnonymousName);
 

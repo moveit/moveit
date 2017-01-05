@@ -40,19 +40,19 @@
 #include <ros/ros.h>
 #include <memory>
 
-static std::vector<std::string> &ROScppArgs()
+static std::vector<std::string>& ROScppArgs()
 {
   static std::vector<std::string> args;
   return args;
 }
 
-static std::string &ROScppNodeName()
+static std::string& ROScppNodeName()
 {
   static std::string node_name("moveit_python_wrappers");
   return node_name;
 }
 
-void moveit::py_bindings_tools::roscpp_set_arguments(const std::string &node_name, boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_set_arguments(const std::string& node_name, boost::python::list& argv)
 {
   ROScppNodeName() = node_name;
   ROScppArgs() = stringFromList(argv);
@@ -64,9 +64,9 @@ struct InitProxy
 {
   InitProxy()
   {
-    const std::vector<std::string> &args = ROScppArgs();
+    const std::vector<std::string>& args = ROScppArgs();
     int fake_argc = args.size();
-    char **fake_argv = new char *[args.size()];
+    char** fake_argv = new char*[args.size()];
     for (std::size_t i = 0; i < args.size(); ++i)
       fake_argv[i] = strdup(args[i].c_str());
 
@@ -124,13 +124,13 @@ void moveit::py_bindings_tools::roscpp_init()
   roscpp_init_or_stop(true);
 }
 
-void moveit::py_bindings_tools::roscpp_init(const std::string &node_name, boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_init(const std::string& node_name, boost::python::list& argv)
 {
   roscpp_set_arguments(node_name, argv);
   roscpp_init();
 }
 
-void moveit::py_bindings_tools::roscpp_init(boost::python::list &argv)
+void moveit::py_bindings_tools::roscpp_init(boost::python::list& argv)
 {
   ROScppArgs() = stringFromList(argv);
   roscpp_init();
@@ -146,12 +146,12 @@ moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer()
   roscpp_init();
 }
 
-moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(boost::python::list &argv)
+moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(boost::python::list& argv)
 {
   roscpp_init(argv);
 }
 
-moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(const std::string &node_name, boost::python::list &argv)
+moveit::py_bindings_tools::ROScppInitializer::ROScppInitializer(const std::string& node_name, boost::python::list& argv)
 {
   roscpp_init(node_name, argv);
 }

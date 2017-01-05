@@ -55,7 +55,7 @@ public:
       ROS parameter under which the robot description can be
       found. This is passed to the kinematics solver initialization as
       well as used to read the SRDF document when needed. */
-  KinematicsPluginLoader(const std::string &robot_description = "robot_description",
+  KinematicsPluginLoader(const std::string& robot_description = "robot_description",
                          double default_search_resolution = 0.0)
     : robot_description_(robot_description), default_search_resolution_(default_search_resolution)
   {
@@ -68,8 +68,8 @@ public:
       parameter under which the robot description can be found. This
       is passed to the kinematics solver initialization as well as
       used to read the SRDF document when needed. */
-  KinematicsPluginLoader(const std::string &solver_plugin, double solve_timeout, unsigned int ik_attempts,
-                         const std::string &robot_description = "robot_description",
+  KinematicsPluginLoader(const std::string& solver_plugin, double solve_timeout, unsigned int ik_attempts,
+                         const std::string& robot_description = "robot_description",
                          double default_search_resolution = 0.0)
     : robot_description_(robot_description)
     , default_search_resolution_(default_search_resolution)
@@ -85,22 +85,22 @@ public:
 
   /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this
    * function reads ROS parameters for the groups defined in the SRDF. */
-  robot_model::SolverAllocatorFn getLoaderFunction(const srdf::ModelSharedPtr &srdf_model);
+  robot_model::SolverAllocatorFn getLoaderFunction(const srdf::ModelSharedPtr& srdf_model);
 
   /** \brief Get the groups for which the function pointer returned by getLoaderFunction() can allocate a solver */
-  const std::vector<std::string> &getKnownGroups() const
+  const std::vector<std::string>& getKnownGroups() const
   {
     return groups_;
   }
 
   /** \brief Get a map from group name to default IK timeout */
-  const std::map<std::string, double> &getIKTimeout() const
+  const std::map<std::string, double>& getIKTimeout() const
   {
     return ik_timeout_;
   }
 
   /** \brief Get a map from group name to default IK attempts */
-  const std::map<std::string, unsigned int> &getIKAttempts() const
+  const std::map<std::string, unsigned int>& getIKAttempts() const
   {
     return ik_attempts_;
   }

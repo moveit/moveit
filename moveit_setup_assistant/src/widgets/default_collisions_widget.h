@@ -88,7 +88,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  DefaultCollisionsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  DefaultCollisionsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
   ~DefaultCollisionsWidget();
 
   /**
@@ -135,7 +135,7 @@ private Q_SLOTS:
   /**
    * \brief Collision model changed
    */
-  void collisionsChanged(const QModelIndex &index);
+  void collisionsChanged(const QModelIndex& index);
 
   /**
    * \brief Revert current changes to collision matrix
@@ -145,8 +145,8 @@ private Q_SLOTS:
   /**
   * \brief Called when current row has changed
   */
-  void previewSelectedMatrix(const QModelIndex &index);
-  void previewSelectedLinear(const QModelIndex &index);
+  void previewSelectedMatrix(const QModelIndex& index);
+  void previewSelectedLinear(const QModelIndex& index);
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
@@ -158,7 +158,7 @@ private Q_SLOTS:
    */
   bool focusLost();
 
-  void showHeaderContextMenu(const QPoint &p);
+  void showHeaderContextMenu(const QPoint& p);
   void hideSections();
   void hideOtherSections();
   void showSections();
@@ -167,32 +167,32 @@ private:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QLabel *page_title_;
-  QTableView *collision_table_;
-  QAbstractItemModel *model_;
-  QItemSelectionModel *selection_model_;
-  QVBoxLayout *layout_;
-  QLabel *density_value_label_;
-  QSlider *density_slider_;
-  QPushButton *btn_generate_;
-  QGroupBox *controls_box_;
-  QProgressBar *progress_bar_;
-  QLabel *progress_label_;
-  QLineEdit *link_name_filter_;
-  QCheckBox *collision_checkbox_;
-  QLabel *fraction_label_;
-  QSpinBox *fraction_spinbox_;
-  QPushButton *btn_revert_;
-  QButtonGroup *view_mode_buttons_;
+  QLabel* page_title_;
+  QTableView* collision_table_;
+  QAbstractItemModel* model_;
+  QItemSelectionModel* selection_model_;
+  QVBoxLayout* layout_;
+  QLabel* density_value_label_;
+  QSlider* density_slider_;
+  QPushButton* btn_generate_;
+  QGroupBox* controls_box_;
+  QProgressBar* progress_bar_;
+  QLabel* progress_label_;
+  QLineEdit* link_name_filter_;
+  QCheckBox* collision_checkbox_;
+  QLabel* fraction_label_;
+  QSpinBox* fraction_spinbox_;
+  QPushButton* btn_revert_;
+  QButtonGroup* view_mode_buttons_;
 
-  QList<QAction *> header_actions_;   // context actions for header sections
+  QList<QAction*> header_actions_;    // context actions for header sections
   Qt::Orientations clicked_headers_;  // remember which header section activated context actions
   int clicked_section_;               // remember which header section activated context actions
 
   // ******************************************************************************************
   // Variables
   // ******************************************************************************************
-  MonitorThread *worker_;
+  MonitorThread* worker_;
 
   /// main storage of link pair data
   moveit_setup_assistant::LinkPairMap link_pairs_;
@@ -209,7 +209,7 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
-  void generateCollisionTable(unsigned int *collision_progress);
+  void generateCollisionTable(unsigned int* collision_progress);
 
   /**
    * \brief Helper function to disable parts of GUI during computation
@@ -220,12 +220,12 @@ private:
   /**
    * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
    */
-  bool eventFilter(QObject *object, QEvent *event);
+  bool eventFilter(QObject* object, QEvent* event);
 
   /**
    * \brief Show header's sections in logicalIndexes and everything in between
    */
-  void showSections(QHeaderView *header, const QList<int> &logicalIndexes);
+  void showSections(QHeaderView* header, const QList<int>& logicalIndexes);
   /**
    * \brief Toggle enabled status of selection
    */
@@ -240,7 +240,7 @@ class MonitorThread : public QThread
   Q_OBJECT
 
 public:
-  MonitorThread(const boost::function<void(unsigned int *)> &f, QProgressBar *progress_bar = NULL);
+  MonitorThread(const boost::function<void(unsigned int*)>& f, QProgressBar* progress_bar = NULL);
   void run();
   void cancel()
   {

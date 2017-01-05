@@ -57,11 +57,11 @@ class CollisionWorld : private boost::noncopyable
 public:
   CollisionWorld();
 
-  explicit CollisionWorld(const WorldPtr &world);
+  explicit CollisionWorld(const WorldPtr& world);
 
   /** \brief A copy constructor. \e other should not be changed while the copy constructor is running.
    * world must be the same world as used by other or a (not-yet-modified) copy of the world used by other */
-  CollisionWorld(const CollisionWorld &other, const WorldPtr &world);
+  CollisionWorld(const CollisionWorld& other, const WorldPtr& world);
 
   virtual ~CollisionWorld()
   {
@@ -76,8 +76,8 @@ public:
    *  @param req A CollisionRequest object that encapsulates the collision request
    *  @param res A CollisionResult object that encapsulates the collision result
    *  @param state The kinematic state for which checks are being made         */
-  virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                              const robot_state::RobotState &state) const;
+  virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                              const robot_state::RobotState& state) const;
 
   /** \brief Check whether the robot model is in collision with itself or the world at a particular state.
    *  Allowed collisions specified by the allowed collision matrix are taken into account.
@@ -85,8 +85,8 @@ public:
    *  @param res A CollisionResult object that encapsulates the collision result
    *  @param state The kinematic state for which checks are being made
    *  @param acm The allowed collision matrix. */
-  virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                              const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+  virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                              const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
   /** \brief Check whether the robot model is in collision with itself or the world in a continuous manner
    *  (between two robot states)
@@ -95,8 +95,8 @@ public:
    *  @param res A CollisionResult object that encapsulates the collision result
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made */
-  virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                              const robot_state::RobotState &state1, const robot_state::RobotState &state2) const;
+  virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                              const robot_state::RobotState& state1, const robot_state::RobotState& state2) const;
 
   /** \brief Check whether the robot model is in collision with itself or the world in a continuous manner
    *  (between two robot states).
@@ -106,9 +106,9 @@ public:
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made
    *  @param acm The allowed collision matrix. */
-  virtual void checkCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                              const robot_state::RobotState &state1, const robot_state::RobotState &state2,
-                              const AllowedCollisionMatrix &acm) const;
+  virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                              const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                              const AllowedCollisionMatrix& acm) const;
 
   /** \brief Check whether the robot model is in collision with the world. Any collisions between a robot link
    *  and the world are considered. Self collisions are not checked.
@@ -117,8 +117,8 @@ public:
    *  @robot robot The collision model for the robot
    *  @param state The kinematic state for which checks are being made
    */
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state) const = 0;
+  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state) const = 0;
 
   /** \brief Check whether the robot model is in collision with the world.
    *  Allowed collisions are ignored. Self collisions are not checked.
@@ -127,8 +127,8 @@ public:
    *  @robot robot The collision model for the robot
    *  @param state The kinematic state for which checks are being made
    *  @param acm The allowed collision matrix.*/
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const = 0;
+  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot
    * states).
@@ -138,9 +138,9 @@ public:
    *  @robot robot The collision model for the robot
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made */
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state1,
-                                   const robot_state::RobotState &state2) const = 0;
+  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state1,
+                                   const robot_state::RobotState& state2) const = 0;
 
   /** \brief Check whether the robot model is in collision with the world in a continuous manner (between two robot
    * states).
@@ -151,9 +151,9 @@ public:
    *  @param state1 The kinematic state at the start of the segment for which checks are being made
    *  @param state2 The kinematic state at the end of the segment for which checks are being made
    *  @param acm The allowed collision matrix.*/
-  virtual void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state1, const robot_state::RobotState &state2,
-                                   const AllowedCollisionMatrix &acm) const = 0;
+  virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                   const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief Check whether a given set of objects is in collision with objects from another world.
    *  Any contacts are considered.
@@ -161,8 +161,8 @@ public:
    *  @param res A CollisionResult object that encapsulates the collision result
    *  @param other_world The other collision world
    */
-  virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res,
-                                   const CollisionWorld &other_world) const = 0;
+  virtual void checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+                                   const CollisionWorld& other_world) const = 0;
 
   /** \brief Check whether a given set of objects is in collision with objects from another world.
    *  Allowed collisions are ignored. Any contacts are considered.
@@ -170,14 +170,14 @@ public:
    *  @param res A CollisionResult object that encapsulates the collision result
    *  @param other_world The other collision world
    *  @param acm The allowed collision matrix.*/
-  virtual void checkWorldCollision(const CollisionRequest &req, CollisionResult &res, const CollisionWorld &other_world,
-                                   const AllowedCollisionMatrix &acm) const = 0;
+  virtual void checkWorldCollision(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
+                                   const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief Compute the shortest distance between a robot and the world
    *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param verbose Output debug information about distance checks */
-  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state,
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
                                bool verbose = false) const = 0;
 
   /** \brief Compute the shortest distance between a robot and the world
@@ -186,31 +186,31 @@ public:
    *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always
    * allowed to be in collision.
    *  @param verbose Output debug information about distance checks */
-  virtual double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state,
-                               const AllowedCollisionMatrix &acm, bool verbose = false) const = 0;
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                               const AllowedCollisionMatrix& acm, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world)
    *  @param verbose Output debug information about distance checks */
-  virtual double distanceWorld(const CollisionWorld &world, bool verbose = false) const = 0;
+  virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
    * that are allowed to collide (as specified by \e acm)
    *  @param verbose Output debug information about distance checks */
-  virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm,
+  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
                                bool verbose = false) const = 0;
   /** set the world to use.
    * This can be expensive unless the new and old world are empty.
    * Passing NULL will result in a new empty world being created. */
-  virtual void setWorld(const WorldPtr &world);
+  virtual void setWorld(const WorldPtr& world);
 
   /** access the world geometry */
-  const WorldPtr &getWorld()
+  const WorldPtr& getWorld()
   {
     return world_;
   }
 
   /** access the world geometry */
-  const WorldConstPtr &getWorld() const
+  const WorldConstPtr& getWorld() const
   {
     return world_const_;
   }

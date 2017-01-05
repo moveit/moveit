@@ -46,32 +46,32 @@ class CollisionMatrixModel : public QAbstractTableModel
 {
   Q_OBJECT
 public:
-  CollisionMatrixModel(moveit_setup_assistant::LinkPairMap &pairs, const std::vector<std::string> &names,
-                       QObject *parent = NULL);
-  int rowCount(const QModelIndex &parent = QModelIndex()) const;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const;
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+  CollisionMatrixModel(moveit_setup_assistant::LinkPairMap& pairs, const std::vector<std::string>& names,
+                       QObject* parent = NULL);
+  int rowCount(const QModelIndex& parent = QModelIndex()) const;
+  int columnCount(const QModelIndex& parent = QModelIndex()) const;
+  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-  moveit_setup_assistant::DisabledReason reason(const QModelIndex &index) const;
+  moveit_setup_assistant::DisabledReason reason(const QModelIndex& index) const;
 
   // for editing
-  Qt::ItemFlags flags(const QModelIndex &index) const;
-  bool setData(const QModelIndex &, const QVariant &value, int role);
-  void setEnabled(const QItemSelection &selection, bool value);
-  void setEnabled(const QModelIndexList &indexes, bool value);
+  Qt::ItemFlags flags(const QModelIndex& index) const;
+  bool setData(const QModelIndex&, const QVariant& value, int role);
+  void setEnabled(const QItemSelection& selection, bool value);
+  void setEnabled(const QModelIndexList& indexes, bool value);
 
 public Q_SLOTS:
-  void setFilterRegExp(const QString &filter);
+  void setFilterRegExp(const QString& filter);
 
 private:
-  moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex &index);
-  moveit_setup_assistant::LinkPairMap::const_iterator item(const QModelIndex &index) const
+  moveit_setup_assistant::LinkPairMap::iterator item(const QModelIndex& index);
+  moveit_setup_assistant::LinkPairMap::const_iterator item(const QModelIndex& index) const
   {
-    return const_cast<CollisionMatrixModel *>(this)->item(index);
+    return const_cast<CollisionMatrixModel*>(this)->item(index);
   }
 
 private:
-  moveit_setup_assistant::LinkPairMap &pairs;
+  moveit_setup_assistant::LinkPairMap& pairs;
   const std::vector<std::string> std_names;  // names of links
   QList<QString> q_names;                    // names of links
   QList<int> visual_to_index;                // map from visual index to actual index

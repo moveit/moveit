@@ -57,10 +57,10 @@ public:
    * \param search_res
    * \param iksolver_to_tip_links - a map between each ik solver and a vector of custom-specified tip link(s)
    */
-  KinematicsLoaderImpl(const std::string &robot_description,
-                       const std::map<std::string, std::vector<std::string> > &possible_kinematics_solvers,
-                       const std::map<std::string, std::vector<double> > &search_res,
-                       const std::map<std::string, std::vector<std::string> > &iksolver_to_tip_links)
+  KinematicsLoaderImpl(const std::string& robot_description,
+                       const std::map<std::string, std::vector<std::string> >& possible_kinematics_solvers,
+                       const std::map<std::string, std::vector<double> >& search_res,
+                       const std::map<std::string, std::vector<std::string> >& iksolver_to_tip_links)
     : robot_description_(robot_description)
     , possible_kinematics_solvers_(possible_kinematics_solvers)
     , search_res_(search_res)
@@ -71,7 +71,7 @@ public:
       kinematics_loader_.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::"
                                                                                                      "KinematicsBase"));
     }
-    catch (pluginlib::PluginlibException &e)
+    catch (pluginlib::PluginlibException& e)
     {
       ROS_ERROR("Unable to construct kinematics loader. Error: %s", e.what());
     }
@@ -82,7 +82,7 @@ public:
    * \param jmg - joint model group pointer
    * \return tips - list of valid links in a planning group to plan for
    */
-  std::vector<std::string> chooseTipFrames(const robot_model::JointModelGroup *jmg)
+  std::vector<std::string> chooseTipFrames(const robot_model::JointModelGroup* jmg)
   {
     std::vector<std::string> tips;
     std::map<std::string, std::vector<std::string> >::const_iterator ik_it =
@@ -122,7 +122,7 @@ public:
     return tips;
   }
 
-  kinematics::KinematicsBasePtr allocKinematicsSolver(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolver(const robot_model::JointModelGroup* jmg)
   {
     kinematics::KinematicsBasePtr result;
     if (!jmg)
@@ -149,10 +149,10 @@ public:
             result = kinematics_loader_->createUniqueInstance(it->second[i]);
             if (result)
             {
-              const std::vector<const robot_model::LinkModel *> &links = jmg->getLinkModels();
+              const std::vector<const robot_model::LinkModel*>& links = jmg->getLinkModels();
               if (!links.empty())
               {
-                const std::string &base = links.front()->getParentJointModel()->getParentLinkModel() ?
+                const std::string& base = links.front()->getParentJointModel()->getParentLinkModel() ?
                                               links.front()->getParentJointModel()->getParentLinkModel()->getName() :
                                               jmg->getParentModel().getModelFrame();
 
@@ -182,7 +182,7 @@ public:
                 ROS_ERROR("No links specified for group '%s'", jmg->getName().c_str());
             }
           }
-          catch (pluginlib::PluginlibException &e)
+          catch (pluginlib::PluginlibException& e)
           {
             ROS_ERROR("The kinematics plugin (%s) failed to load. Error: %s", it->first.c_str(), e.what());
           }
@@ -200,11 +200,11 @@ public:
     return result;
   }
 
-  kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const robot_model::JointModelGroup *jmg)
+  kinematics::KinematicsBasePtr allocKinematicsSolverWithCache(const robot_model::JointModelGroup* jmg)
   {
     {
       boost::mutex::scoped_lock slock(lock_);
-      const std::vector<kinematics::KinematicsBasePtr> &vi = instances_[jmg];
+      const std::vector<kinematics::KinematicsBasePtr>& vi = instances_[jmg];
       for (std::size_t i = 0; i < vi.size(); ++i)
         if (vi[i].unique())
         {
@@ -239,7 +239,7 @@ private:
   std::map<std::string, std::vector<std::string> > iksolver_to_tip_links_;  // a map between each ik solver and a vector
                                                                             // of custom-specified tip link(s)
   std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
-  std::map<const robot_model::JointModelGroup *, std::vector<kinematics::KinematicsBasePtr> > instances_;
+  std::map<const robot_model::JointModelGroup*, std::vector<kinematics::KinematicsBasePtr> > instances_;
   boost::mutex lock_;
 };
 }
@@ -267,7 +267,7 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
 }
 
 robot_model::SolverAllocatorFn
-kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr &srdf_model)
+kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");
@@ -283,7 +283,7 @@ kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::
 
     if (srdf_model)
     {
-      const std::vector<srdf::Model::Group> &known_groups = srdf_model->getGroups();
+      const std::vector<srdf::Model::Group>& known_groups = srdf_model->getGroups();
       if (default_search_resolution_ <= std::numeric_limits<double>::epsilon())
         default_search_resolution_ = kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION;
 

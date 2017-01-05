@@ -39,7 +39,7 @@
 #include <ros/ros.h>
 #include <memory>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "list_planning_adapter_plugins");
 
@@ -49,12 +49,12 @@ int main(int argc, char **argv)
     loader.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>(
         "moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
   }
-  catch (pluginlib::PluginlibException &ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     std::cout << "Exception while creating class loader " << ex.what() << std::endl;
   }
 
-  const std::vector<std::string> &classes = loader->getDeclaredClasses();
+  const std::vector<std::string>& classes = loader->getDeclaredClasses();
   std::cout << "Available planning request adapter plugins:" << std::endl;
   for (std::size_t i = 0; i < classes.size(); ++i)
   {
@@ -64,14 +64,13 @@ int main(int argc, char **argv)
     {
       ad.reset(loader->createUnmanagedInstance(classes[i]));
     }
-    catch (pluginlib::PluginlibException &ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       std::cout << " \t\t  Exception while planning adapter plugin '" << classes[i] << "': " << ex.what() << std::endl;
     }
     if (ad)
       std::cout << " \t\t  " << ad->getDescription() << std::endl;
-    std::cout << std::endl
-              << std::endl;
+    std::cout << std::endl << std::endl;
   }
 
   return 0;

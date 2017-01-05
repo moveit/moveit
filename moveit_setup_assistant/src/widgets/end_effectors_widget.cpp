@@ -46,15 +46,15 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-EndEffectorsWidget::EndEffectorsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+EndEffectorsWidget::EndEffectorsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header =
+  HeaderWidget* header =
       new HeaderWidget("End Effectors", "Setup grippers and other end effectors for your robot", this);
   layout->addWidget(header);
 
@@ -69,7 +69,7 @@ EndEffectorsWidget::EndEffectorsWidget(QWidget *parent, moveit_setup_assistant::
   stacked_layout_->addWidget(effector_edit_widget_);  // screen index 1
 
   // Create Widget wrapper for layout
-  QWidget *stacked_layout_widget = new QWidget(this);
+  QWidget* stacked_layout_widget = new QWidget(this);
   stacked_layout_widget->setLayout(stacked_layout_);
 
   layout->addWidget(stacked_layout_widget);
@@ -81,13 +81,13 @@ EndEffectorsWidget::EndEffectorsWidget(QWidget *parent, moveit_setup_assistant::
 // ******************************************************************************************
 // Create the main content widget
 // ******************************************************************************************
-QWidget *EndEffectorsWidget::createContentsWidget()
+QWidget* EndEffectorsWidget::createContentsWidget()
 {
   // Main widget
-  QWidget *content_widget = new QWidget(this);
+  QWidget* content_widget = new QWidget(this);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Table ------------ ------------------------------------------------
 
@@ -109,10 +109,10 @@ QWidget *EndEffectorsWidget::createContentsWidget()
 
   // Bottom Buttons --------------------------------------------------
 
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
@@ -132,7 +132,7 @@ QWidget *EndEffectorsWidget::createContentsWidget()
   controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
 
   // Add end effector Button
-  QPushButton *btn_add = new QPushButton("&Add End Effector", this);
+  QPushButton* btn_add = new QPushButton("&Add End Effector", this);
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add->setMaximumWidth(300);
   connect(btn_add, SIGNAL(clicked()), this, SLOT(showNewScreen()));
@@ -151,15 +151,15 @@ QWidget *EndEffectorsWidget::createContentsWidget()
 // ******************************************************************************************
 // Create the edit widget
 // ******************************************************************************************
-QWidget *EndEffectorsWidget::createEditWidget()
+QWidget* EndEffectorsWidget::createEditWidget()
 {
   // Main widget
-  QWidget *edit_widget = new QWidget(this);
+  QWidget* edit_widget = new QWidget(this);
   // Layout
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Simple form -------------------------------------------
-  QFormLayout *form_layout = new QFormLayout();
+  QFormLayout* form_layout = new QFormLayout();
   // form_layout->setContentsMargins( 0, 15, 0, 15 );
   form_layout->setRowWrapPolicy(QFormLayout::WrapAllRows);
 
@@ -171,8 +171,8 @@ QWidget *EndEffectorsWidget::createEditWidget()
   group_name_field_ = new QComboBox(this);
   group_name_field_->setEditable(false);
   form_layout->addRow("End Effector Group:", group_name_field_);
-  connect(group_name_field_, SIGNAL(currentIndexChanged(const QString &)), this,
-          SLOT(previewClickedString(const QString &)));
+  connect(group_name_field_, SIGNAL(currentIndexChanged(const QString&)), this,
+          SLOT(previewClickedString(const QString&)));
 
   // Parent Link input
   parent_name_field_ = new QComboBox(this);
@@ -188,23 +188,23 @@ QWidget *EndEffectorsWidget::createEditWidget()
 
   // Bottom Buttons --------------------------------------------------
 
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
   controls_layout->setContentsMargins(0, 25, 0, 15);
 
   // Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton *btn_save_ = new QPushButton("&Save", this);
+  QPushButton* btn_save_ = new QPushButton("&Save", this);
   btn_save_->setMaximumWidth(200);
   connect(btn_save_, SIGNAL(clicked()), this, SLOT(doneEditing()));
   controls_layout->addWidget(btn_save_);
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton *btn_cancel_ = new QPushButton("&Cancel", this);
+  QPushButton* btn_cancel_ = new QPushButton("&Cancel", this);
   btn_cancel_->setMaximumWidth(200);
   connect(btn_cancel_, SIGNAL(clicked()), this, SLOT(cancelEditing()));
   controls_layout->addWidget(btn_cancel_);
@@ -254,14 +254,14 @@ void EndEffectorsWidget::editDoubleClicked(int row, int column)
 void EndEffectorsWidget::previewClicked(int row, int column)
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
     return;
 
   // Find the selected in datastructure
-  srdf::Model::EndEffector *effector = findEffectorByName(selected[0]->text().toStdString());
+  srdf::Model::EndEffector* effector = findEffectorByName(selected[0]->text().toStdString());
 
   // Unhighlight all links
   Q_EMIT unhighlightAll();
@@ -273,7 +273,7 @@ void EndEffectorsWidget::previewClicked(int row, int column)
 // ******************************************************************************************
 // Preview the planning group that is selected
 // ******************************************************************************************
-void EndEffectorsWidget::previewClickedString(const QString &name)
+void EndEffectorsWidget::previewClickedString(const QString& name)
 {
   // Don't highlight if we are on the overview end effectors screen. we are just populating drop down box
   if (stacked_layout_->currentIndex() == 0)
@@ -292,7 +292,7 @@ void EndEffectorsWidget::previewClickedString(const QString &name)
 void EndEffectorsWidget::editSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
@@ -305,13 +305,13 @@ void EndEffectorsWidget::editSelected()
 // ******************************************************************************************
 // Edit effector
 // ******************************************************************************************
-void EndEffectorsWidget::edit(const std::string &name)
+void EndEffectorsWidget::edit(const std::string& name)
 {
   // Remember what we are editing
   current_edit_effector_ = name;
 
   // Find the selected in datastruture
-  srdf::Model::EndEffector *effector = findEffectorByName(name);
+  srdf::Model::EndEffector* effector = findEffectorByName(name);
 
   // Set effector name
   effector_name_field_->setText(effector->name_.c_str());
@@ -378,10 +378,10 @@ void EndEffectorsWidget::loadParentComboBox()
   parent_name_field_->clear();
 
   // Get all links in robot model
-  std::vector<const robot_model::LinkModel *> link_models = config_data_->getRobotModel()->getLinkModels();
+  std::vector<const robot_model::LinkModel*> link_models = config_data_->getRobotModel()->getLinkModels();
 
   // Add all links to combo box
-  for (std::vector<const robot_model::LinkModel *>::const_iterator link_it = link_models.begin();
+  for (std::vector<const robot_model::LinkModel*>::const_iterator link_it = link_models.begin();
        link_it < link_models.end(); ++link_it)
   {
     parent_name_field_->addItem((*link_it)->getName().c_str());
@@ -391,10 +391,10 @@ void EndEffectorsWidget::loadParentComboBox()
 // ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
-srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName(const std::string &name)
+srdf::Model::EndEffector* EndEffectorsWidget::findEffectorByName(const std::string& name)
 {
   // Find the group state we are editing based on the effector name
-  srdf::Model::EndEffector *searched_group = NULL;  // used for holding our search results
+  srdf::Model::EndEffector* searched_group = NULL;  // used for holding our search results
 
   for (std::vector<srdf::Model::EndEffector>::iterator effector_it = config_data_->srdf_->end_effectors_.begin();
        effector_it != config_data_->srdf_->end_effectors_.end(); ++effector_it)
@@ -422,7 +422,7 @@ srdf::Model::EndEffector *EndEffectorsWidget::findEffectorByName(const std::stri
 void EndEffectorsWidget::deleteSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
@@ -467,7 +467,7 @@ void EndEffectorsWidget::doneEditing()
   const std::string effector_name = effector_name_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::EndEffector *searched_data = NULL;
+  srdf::Model::EndEffector* searched_data = NULL;
 
   // Check that name field is not empty
   if (effector_name.empty())
@@ -514,7 +514,7 @@ void EndEffectorsWidget::doneEditing()
     return;
   }
 
-  const robot_model::JointModelGroup *jmg =
+  const robot_model::JointModelGroup* jmg =
       config_data_->getRobotModel()->getJointModelGroup(group_name_field_->currentText().toStdString());
   /*
   if (jmg->hasLinkModel(parent_name_field_->currentText().toStdString()))
@@ -610,13 +610,13 @@ void EndEffectorsWidget::loadDataTable()
        data_it != config_data_->srdf_->end_effectors_.end(); ++data_it)
   {
     // Create row elements
-    QTableWidgetItem *data_name = new QTableWidgetItem(data_it->name_.c_str());
+    QTableWidgetItem* data_name = new QTableWidgetItem(data_it->name_.c_str());
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem *group_name = new QTableWidgetItem(data_it->component_group_.c_str());
+    QTableWidgetItem* group_name = new QTableWidgetItem(data_it->component_group_.c_str());
     group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem *parent_name = new QTableWidgetItem(data_it->parent_link_.c_str());
+    QTableWidgetItem* parent_name = new QTableWidgetItem(data_it->parent_link_.c_str());
     group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem *parent_group_name = new QTableWidgetItem(data_it->parent_group_.c_str());
+    QTableWidgetItem* parent_group_name = new QTableWidgetItem(data_it->parent_group_.c_str());
     parent_group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     // Add to table

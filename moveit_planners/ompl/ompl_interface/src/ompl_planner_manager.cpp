@@ -60,7 +60,7 @@ public:
   {
   }
 
-  virtual bool initialize(const robot_model::RobotModelConstPtr &model, const std::string &ns)
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
   {
     if (!ns.empty())
       nh_ = ros::NodeHandle(ns);
@@ -74,7 +74,7 @@ public:
     return true;
   }
 
-  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req) const
+  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
   {
     return req.trajectory_constraints.constraints.empty();
   }
@@ -84,16 +84,16 @@ public:
     return "OMPL";
   }
 
-  virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const
+  virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const
   {
-    const planning_interface::PlannerConfigurationMap &pconfig = ompl_interface_->getPlannerConfigurations();
+    const planning_interface::PlannerConfigurationMap& pconfig = ompl_interface_->getPlannerConfigurations();
     algs.clear();
     algs.reserve(pconfig.size());
     for (planning_interface::PlannerConfigurationMap::const_iterator it = pconfig.begin(); it != pconfig.end(); ++it)
       algs.push_back(it->first);
   }
 
-  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
+  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig)
   {
     // this call can add a few more configs than we pass in (adds defaults)
     ompl_interface_->setPlannerConfigurations(pconfig);
@@ -102,8 +102,8 @@ public:
   }
 
   virtual planning_interface::PlanningContextPtr
-  getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                     const planning_interface::MotionPlanRequest &req, moveit_msgs::MoveItErrorCodes &error_code) const
+  getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const
   {
     return ompl_interface_->getPlanningContext(planning_scene, req, error_code);
   }
@@ -217,7 +217,7 @@ private:
   }
   */
 
-  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig &config, uint32_t level)
+  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level)
   {
     if (config.link_for_exploration_tree.empty() && !planner_data_link_name_.empty())
     {

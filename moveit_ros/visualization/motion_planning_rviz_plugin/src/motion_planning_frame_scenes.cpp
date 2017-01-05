@@ -66,7 +66,7 @@ void MotionPlanningFrame::saveSceneButtonClicked()
 {
   if (planning_scene_storage_)
   {
-    const std::string &name = planning_display_->getPlanningSceneRO()->getName();
+    const std::string& name = planning_display_->getPlanningSceneRO()->getName();
     if (name.empty() || planning_scene_storage_->hasPlanningScene(name))
     {
       std::unique_ptr<QMessageBox> q;
@@ -79,7 +79,8 @@ void MotionPlanningFrame::saveSceneButtonClicked()
         q.reset(new QMessageBox(QMessageBox::Question, "Confirm Planning Scene Overwrite",
                                 QString("A planning scene named '")
                                     .append(name.c_str())
-                                    .append("' already exists. Do you wish to overwrite that scene?"),
+                                    .append("' already exists. Do you wish to "
+                                            "overwrite that scene?"),
                                 QMessageBox::Yes | QMessageBox::No, this));
       std::unique_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
       if (q->exec() != QMessageBox::Yes)
@@ -92,7 +93,7 @@ void MotionPlanningFrame::saveSceneButtonClicked()
           if (ok)
           {
             planning_display_->getPlanningSceneRW()->setName(new_name.toStdString());
-            rviz::Property *prop = planning_display_->subProp("Scene Geometry")->subProp("Scene Name");
+            rviz::Property* prop = planning_display_->subProp("Scene Geometry")->subProp("Scene Name");
             if (prop)
             {
               bool old = prop->blockSignals(true);
@@ -121,10 +122,10 @@ void MotionPlanningFrame::saveQueryButtonClicked()
 {
   if (planning_scene_storage_)
   {
-    QList<QTreeWidgetItem *> sel = ui_->planning_scene_tree->selectedItems();
+    QList<QTreeWidgetItem*> sel = ui_->planning_scene_tree->selectedItems();
     if (!sel.empty())
     {
-      QTreeWidgetItem *s = sel.front();
+      QTreeWidgetItem* s = sel.front();
 
       // if we have selected a PlanningScene, add the query as a new one, under that planning scene
       if (s->type() == ITEM_TYPE_SCENE)
@@ -151,7 +152,8 @@ void MotionPlanningFrame::saveQueryButtonClicked()
             q.reset(new QMessageBox(QMessageBox::Question, "Confirm Planning Query Overwrite",
                                     QString("A planning query named '")
                                         .append(query_name.c_str())
-                                        .append("' already exists. Do you wish to overwrite that query?"),
+                                        .append("' already exists. Do you wish "
+                                                "to overwrite that query?"),
                                     QMessageBox::Yes | QMessageBox::No, this));
           std::unique_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
           if (q->exec() == QMessageBox::Yes)
@@ -204,7 +206,7 @@ void MotionPlanningFrame::loadQueryButtonClicked()
                                                                                                               "query");
 }
 
-void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem *item, int column)
+void MotionPlanningFrame::warehouseItemNameChanged(QTreeWidgetItem* item, int column)
 {
   if (item->text(column) == item->toolTip(column) || item->toolTip(column).length() == 0)
     return;
@@ -264,7 +266,7 @@ void MotionPlanningFrame::populatePlanningSceneTreeView()
   std::set<std::string> expanded;
   for (int i = 0; i < ui_->planning_scene_tree->topLevelItemCount(); ++i)
   {
-    QTreeWidgetItem *it = ui_->planning_scene_tree->topLevelItem(i);
+    QTreeWidgetItem* it = ui_->planning_scene_tree->topLevelItem(i);
     if (it->isExpanded())
       expanded.insert(it->text(0).toStdString());
   }
@@ -277,13 +279,13 @@ void MotionPlanningFrame::populatePlanningSceneTreeView()
   {
     std::vector<std::string> query_names;
     planning_scene_storage->getPlanningQueriesNames(query_names, names[i]);
-    QTreeWidgetItem *item =
+    QTreeWidgetItem* item =
         new QTreeWidgetItem(ui_->planning_scene_tree, QStringList(QString::fromStdString(names[i])), ITEM_TYPE_SCENE);
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->setToolTip(0, item->text(0));  // we use the tool tip as a backup of the old name when renaming
     for (std::size_t j = 0; j < query_names.size(); ++j)
     {
-      QTreeWidgetItem *subitem =
+      QTreeWidgetItem* subitem =
           new QTreeWidgetItem(item, QStringList(QString::fromStdString(query_names[j])), ITEM_TYPE_QUERY);
       subitem->setFlags(subitem->flags() | Qt::ItemIsEditable);
       subitem->setToolTip(0, subitem->text(0));

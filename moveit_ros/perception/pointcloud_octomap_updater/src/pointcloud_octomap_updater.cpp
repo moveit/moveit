@@ -62,22 +62,22 @@ PointCloudOctomapUpdater::~PointCloudOctomapUpdater()
   stopHelper();
 }
 
-bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
+bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 {
   try
   {
     if (!params.hasMember("point_cloud_topic"))
       return false;
-    point_cloud_topic_ = static_cast<const std::string &>(params["point_cloud_topic"]);
+    point_cloud_topic_ = static_cast<const std::string&>(params["point_cloud_topic"]);
 
     readXmlParam(params, "max_range", &max_range_);
     readXmlParam(params, "padding_offset", &padding_);
     readXmlParam(params, "padding_scale", &scale_);
     readXmlParam(params, "point_subsample", &point_subsample_);
     if (params.hasMember("filtered_cloud_topic"))
-      filtered_cloud_topic_ = static_cast<const std::string &>(params["filtered_cloud_topic"]);
+      filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
   }
-  catch (XmlRpc::XmlRpcException &ex)
+  catch (XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
     return false;
@@ -130,7 +130,7 @@ void PointCloudOctomapUpdater::stop()
   point_cloud_subscriber_ = NULL;
 }
 
-ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
+ShapeHandle PointCloudOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape)
 {
   ShapeHandle h = 0;
   if (shape_mask_)
@@ -146,7 +146,7 @@ void PointCloudOctomapUpdater::forgetShape(ShapeHandle handle)
     shape_mask_->removeShape(handle);
 }
 
-bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const
+bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())
@@ -158,12 +158,12 @@ bool PointCloudOctomapUpdater::getShapeTransform(ShapeHandle h, Eigen::Affine3d 
   return true;
 }
 
-void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2 &cloud, const Eigen::Vector3d &sensor_origin,
-                                          std::vector<int> &mask)
+void PointCloudOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
+                                          std::vector<int>& mask)
 {
 }
 
-void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg)
+void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
   ROS_DEBUG("Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
@@ -184,7 +184,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
         tf_->lookupTransform(monitor_->getMapFrame(), cloud_msg->header.frame_id, cloud_msg->header.stamp,
                              map_H_sensor);
       }
-      catch (tf::TransformException &ex)
+      catch (tf::TransformException& ex)
       {
         ROS_ERROR_STREAM("Transform error of sensor data: " << ex.what() << "; quitting callback");
         return;
@@ -195,7 +195,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   }
 
   /* compute sensor origin in map frame */
-  const tf::Vector3 &sensor_origin_tf = map_H_sensor.getOrigin();
+  const tf::Vector3& sensor_origin_tf = map_H_sensor.getOrigin();
   octomap::point3d sensor_origin(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
   Eigen::Vector3d sensor_origin_eigen(sensor_origin_tf.getX(), sensor_origin_tf.getY(), sensor_origin_tf.getZ());
 

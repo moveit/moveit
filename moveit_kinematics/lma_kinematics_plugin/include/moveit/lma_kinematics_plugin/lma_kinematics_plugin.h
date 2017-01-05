@@ -77,47 +77,47 @@ public:
   LMAKinematicsPlugin();
 
   virtual bool
-  getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   virtual bool
-  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                   std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                   const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   virtual bool
-  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                   const std::vector<double> &consistency_limits, std::vector<double> &solution,
-                   moveit_msgs::MoveItErrorCodes &error_code,
-                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   const std::vector<double>& consistency_limits, std::vector<double>& solution,
+                   moveit_msgs::MoveItErrorCodes& error_code,
+                   const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   virtual bool searchPositionIK(
-      const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-      std::vector<double> &solution, const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
-      const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+      const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+      std::vector<double>& solution, const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   virtual bool
-  searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                   const std::vector<double> &consistency_limits, std::vector<double> &solution,
-                   const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
-                   const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                   const std::vector<double>& consistency_limits, std::vector<double>& solution,
+                   const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+                   const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
-  virtual bool getPositionFK(const std::vector<std::string> &link_names, const std::vector<double> &joint_angles,
-                             std::vector<geometry_msgs::Pose> &poses) const;
+  virtual bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_angles,
+                             std::vector<geometry_msgs::Pose>& poses) const;
 
-  virtual bool initialize(const std::string &robot_description, const std::string &group_name,
-                          const std::string &base_name, const std::string &tip_name, double search_discretization);
+  virtual bool initialize(const std::string& robot_description, const std::string& group_name,
+                          const std::string& base_name, const std::string& tip_name, double search_discretization);
 
   /**
    * @brief  Return all the joint names in the order they are used internally
    */
-  const std::vector<std::string> &getJointNames() const;
+  const std::vector<std::string>& getJointNames() const;
 
   /**
    * @brief  Return all the link names in the order they are represented internally
    */
-  const std::vector<std::string> &getLinkNames() const;
+  const std::vector<std::string>& getLinkNames() const;
 
 protected:
   /**
@@ -136,15 +136,15 @@ protected:
    * [seed_state(redundancy_limit)-consistency_limit,seed_state(redundancy_limit)+consistency_limit]
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                        std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                        moveit_msgs::MoveItErrorCodes &error_code, const std::vector<double> &consistency_limits,
-                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                        std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                        moveit_msgs::MoveItErrorCodes& error_code, const std::vector<double>& consistency_limits,
+                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
-  virtual bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
+  virtual bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices);
 
 private:
-  bool timedOut(const ros::WallTime &start_time, double duration) const;
+  bool timedOut(const ros::WallTime& start_time, double duration) const;
 
   /** @brief Check whether the solution lies within the consistency limit of the seed state
    *  @param seed_state Seed state
@@ -154,14 +154,14 @@ private:
    *  @param solution solution configuration
    *  @return true if check succeeds
    */
-  bool checkConsistency(const KDL::JntArray &seed_state, const std::vector<double> &consistency_limit,
-                        const KDL::JntArray &solution) const;
+  bool checkConsistency(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limit,
+                        const KDL::JntArray& solution) const;
 
-  int getJointIndex(const std::string &name) const;
+  int getJointIndex(const std::string& name) const;
 
-  int getKDLSegmentIndex(const std::string &name) const;
+  int getKDLSegmentIndex(const std::string& name) const;
 
-  void getRandomConfiguration(KDL::JntArray &jnt_array, bool lock_redundancy) const;
+  void getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const;
 
   /** @brief Get a random configuration within joint limits close to the seed state
    *  @param seed_state Seed state
@@ -170,8 +170,8 @@ private:
    * [seed_state(redundancy_limit)-consistency_limit,seed_state(redundancy_limit)+consistency_limit]
    *  @param jnt_array Returned random configuration
    */
-  void getRandomConfiguration(const KDL::JntArray &seed_state, const std::vector<double> &consistency_limits,
-                              KDL::JntArray &jnt_array, bool lock_redundancy) const;
+  void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
+                              KDL::JntArray& jnt_array, bool lock_redundancy) const;
 
   bool isRedundantJoint(unsigned int index) const;
 
@@ -198,7 +198,7 @@ private:
 
   // Storage required for when the set of redundant joints is reset
   bool position_ik_;  // whether this solver is only being used for position ik
-  robot_model::JointModelGroup *joint_model_group_;
+  robot_model::JointModelGroup* joint_model_group_;
   double max_solver_iterations_;
   double epsilon_;
   std::vector<JointMimic> mimic_joints_;

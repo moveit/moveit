@@ -950,7 +950,7 @@ TEST_F(LoadPlanningModelsPr2, TestKinematicConstraintSetEquality)
   EXPECT_TRUE(kcs2.equal(kcs, .1));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

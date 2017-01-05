@@ -80,7 +80,7 @@ public:
   }
 
   std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy,
-                                                    double maxz, bool with_type, std::vector<std::string> &types)
+                                                    double maxz, bool with_type, std::vector<std::string>& types)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -132,7 +132,7 @@ public:
     return result;
   }
 
-  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids)
+  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string>& object_ids)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -163,7 +163,7 @@ public:
     return result;
   }
 
-  std::map<std::string, moveit_msgs::CollisionObject> getObjects(const std::vector<std::string> &object_ids)
+  std::map<std::string, moveit_msgs::CollisionObject> getObjects(const std::vector<std::string>& object_ids)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -188,7 +188,7 @@ public:
   }
 
   std::map<std::string, moveit_msgs::AttachedCollisionObject>
-  getAttachedObjects(const std::vector<std::string> &object_ids)
+  getAttachedObjects(const std::vector<std::string>& object_ids)
   {
     moveit_msgs::GetPlanningScene::Request request;
     moveit_msgs::GetPlanningScene::Response response;
@@ -214,7 +214,7 @@ public:
     return result;
   }
 
-  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene)
+  bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
     moveit_msgs::ApplyPlanningScene::Response response;
@@ -227,7 +227,7 @@ public:
     return response.success;
   }
 
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
@@ -235,7 +235,7 @@ public:
     planning_scene_diff_publisher_.publish(planning_scene);
   }
 
-  void removeCollisionObjects(const std::vector<std::string> &object_ids) const
+  void removeCollisionObjects(const std::vector<std::string>& object_ids) const
   {
     moveit_msgs::PlanningScene planning_scene;
     moveit_msgs::CollisionObject object;
@@ -275,30 +275,30 @@ std::vector<std::string> PlanningSceneInterface::getKnownObjectNames(bool with_t
 std::vector<std::string> PlanningSceneInterface::getKnownObjectNamesInROI(double minx, double miny, double minz,
                                                                           double maxx, double maxy, double maxz,
                                                                           bool with_type,
-                                                                          std::vector<std::string> &types)
+                                                                          std::vector<std::string>& types)
 {
   return impl_->getKnownObjectNamesInROI(minx, miny, minz, maxx, maxy, maxz, with_type, types);
 }
 
 std::map<std::string, geometry_msgs::Pose>
-PlanningSceneInterface::getObjectPoses(const std::vector<std::string> &object_ids)
+PlanningSceneInterface::getObjectPoses(const std::vector<std::string>& object_ids)
 {
   return impl_->getObjectPoses(object_ids);
 }
 
 std::map<std::string, moveit_msgs::CollisionObject>
-PlanningSceneInterface::getObjects(const std::vector<std::string> &object_ids)
+PlanningSceneInterface::getObjects(const std::vector<std::string>& object_ids)
 {
   return impl_->getObjects(object_ids);
 }
 
 std::map<std::string, moveit_msgs::AttachedCollisionObject>
-PlanningSceneInterface::getAttachedObjects(const std::vector<std::string> &object_ids)
+PlanningSceneInterface::getAttachedObjects(const std::vector<std::string>& object_ids)
 {
   return impl_->getAttachedObjects(object_ids);
 }
 
-bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject &collision_object)
+bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject& collision_object)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -308,7 +308,7 @@ bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionOb
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects)
+bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -317,7 +317,7 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject &collision_object)
+bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& collision_object)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -328,7 +328,7 @@ bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::Att
 }
 
 bool PlanningSceneInterface::applyAttachedCollisionObjects(
-    const std::vector<moveit_msgs::AttachedCollisionObject> &attached_collision_objects)
+    const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -337,18 +337,18 @@ bool PlanningSceneInterface::applyAttachedCollisionObjects(
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene &ps)
+bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)
 {
   impl_->applyPlanningScene(ps);
 }
 
 void PlanningSceneInterface::addCollisionObjects(
-    const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+    const std::vector<moveit_msgs::CollisionObject>& collision_objects) const
 {
   return impl_->addCollisionObjects(collision_objects);
 }
 
-void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string> &object_ids) const
+void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string>& object_ids) const
 {
   return impl_->removeCollisionObjects(object_ids);
 }

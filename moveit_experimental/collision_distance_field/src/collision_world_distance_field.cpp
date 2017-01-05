@@ -66,7 +66,7 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(Eigen::Vector3d size, E
       getWorld()->addObserver(boost::bind(&CollisionWorldDistanceField::notifyObjectChange, this, _1, _2));
 }
 
-CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr &world, Eigen::Vector3d size,
+CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr& world, Eigen::Vector3d size,
                                                          Eigen::Vector3d origin, bool use_signed_distance_field,
                                                          double resolution, double collision_tolerance,
                                                          double max_propogation_distance)
@@ -86,8 +86,8 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const WorldPtr &world, 
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField &other,
-                                                         const WorldPtr &world)
+CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDistanceField& other,
+                                                         const WorldPtr& world)
   : CollisionWorld(other, world)
 {
   size_ = other.size_;
@@ -104,21 +104,21 @@ CollisionWorldDistanceField::CollisionWorldDistanceField(const CollisionWorldDis
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, CollisionResult &res,
-                                                 const CollisionRobot &robot,
-                                                 const robot_state::RobotState &state) const
+void CollisionWorldDistanceField::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                                 const CollisionRobot& robot,
+                                                 const robot_state::RobotState& state) const
 {
   GroupStateRepresentationPtr gsr;
   checkCollision(req, res, robot, state, gsr);
 }
 
-void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, CollisionResult &res,
-                                                 const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                 GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                                 const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                 GroupStateRepresentationPtr& gsr) const
 {
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if (!gsr)
     {
       cdr.generateCollisionCheckingStructures(req.group_name, state, NULL, gsr, true);
@@ -137,31 +137,31 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, Co
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 
-  (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
-void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, CollisionResult &res,
-                                                 const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                 const AllowedCollisionMatrix &acm) const
+void CollisionWorldDistanceField::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                                 const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                 const AllowedCollisionMatrix& acm) const
 {
   GroupStateRepresentationPtr gsr;
   checkCollision(req, res, robot, state, acm, gsr);
 }
 
-void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, CollisionResult &res,
-                                                 const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                 const AllowedCollisionMatrix &acm,
-                                                 GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::checkCollision(const CollisionRequest& req, CollisionResult& res,
+                                                 const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                 const AllowedCollisionMatrix& acm,
+                                                 GroupStateRepresentationPtr& gsr) const
 {
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if (!gsr)
     {
       cdr.generateCollisionCheckingStructures(req.group_name, state, &acm, gsr, true);
@@ -180,31 +180,31 @@ void CollisionWorldDistanceField::checkCollision(const CollisionRequest &req, Co
       getEnvironmentCollisions(req, res, distance_field_cache_entry_->distance_field_, gsr);
     }
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 
-  (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
-void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &req, CollisionResult &res,
-                                                      const CollisionRobot &robot,
-                                                      const robot_state::RobotState &state) const
+void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                                      const CollisionRobot& robot,
+                                                      const robot_state::RobotState& state) const
 {
   GroupStateRepresentationPtr gsr;
   checkRobotCollision(req, res, robot, state, gsr);
 }
 
-void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &req, CollisionResult &res,
-                                                      const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                      GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                                      const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                      GroupStateRepresentationPtr& gsr) const
 {
   distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     DistanceFieldCacheEntryConstPtr dfce;
     if (!gsr)
     {
@@ -215,34 +215,34 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
       cdr.updateGroupStateRepresentationState(state, gsr);
     }
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
-    (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+    (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 
     // checkRobotCollisionHelper(req, res, robot, state, &acm);
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 }
 
-void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &req, CollisionResult &res,
-                                                      const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                      const AllowedCollisionMatrix &acm) const
+void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                                      const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                      const AllowedCollisionMatrix& acm) const
 {
   GroupStateRepresentationPtr gsr;
   checkRobotCollision(req, res, robot, state, acm, gsr);
 }
 
-void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &req, CollisionResult &res,
-                                                      const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                      const AllowedCollisionMatrix &acm,
-                                                      GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                                      const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                      const AllowedCollisionMatrix& acm,
+                                                      GroupStateRepresentationPtr& gsr) const
 {
   distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     DistanceFieldCacheEntryPtr dfce;
     if (!gsr)
     {
@@ -253,27 +253,27 @@ void CollisionWorldDistanceField::checkRobotCollision(const CollisionRequest &re
       cdr.updateGroupStateRepresentationState(state, gsr);
     }
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
-    (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+    (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 
     // checkRobotCollisionHelper(req, res, robot, state, &acm);
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 }
 
-void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest &req, CollisionResult &res,
-                                                        const CollisionRobot &robot,
-                                                        const robot_state::RobotState &state,
-                                                        const AllowedCollisionMatrix *acm,
-                                                        GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest& req, CollisionResult& res,
+                                                        const CollisionRobot& robot,
+                                                        const robot_state::RobotState& state,
+                                                        const AllowedCollisionMatrix* acm,
+                                                        GroupStateRepresentationPtr& gsr) const
 {
   distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if (!gsr)
     {
       cdr.generateCollisionCheckingStructures(req.group_name, state, acm, gsr, true);
@@ -286,23 +286,23 @@ void CollisionWorldDistanceField::getCollisionGradients(const CollisionRequest &
     cdr.getIntraGroupProximityGradients(gsr);
     getEnvironmentProximityGradients(env_distance_field, gsr);
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 
-  (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
-void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req, CollisionResult &res,
-                                                   const CollisionRobot &robot, const robot_state::RobotState &state,
-                                                   const AllowedCollisionMatrix *acm,
-                                                   GroupStateRepresentationPtr &gsr) const
+void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest& req, CollisionResult& res,
+                                                   const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                   const AllowedCollisionMatrix* acm,
+                                                   GroupStateRepresentationPtr& gsr) const
 {
   try
   {
-    const CollisionRobotDistanceField &cdr = dynamic_cast<const CollisionRobotDistanceField &>(robot);
+    const CollisionRobotDistanceField& cdr = dynamic_cast<const CollisionRobotDistanceField&>(robot);
     if (!gsr)
     {
       cdr.generateCollisionCheckingStructures(req.group_name, state, acm, gsr, true);
@@ -316,18 +316,18 @@ void CollisionWorldDistanceField::getAllCollisions(const CollisionRequest &req, 
     distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_->distance_field_;
     getEnvironmentCollisions(req, res, env_distance_field, gsr);
   }
-  catch (const std::bad_cast &e)
+  catch (const std::bad_cast& e)
   {
     ROS_ERROR_STREAM("Could not cast CollisionRobot to CollisionRobotDistanceField, " << e.what());
     return;
   }
 
-  (const_cast<CollisionWorldDistanceField *>(this))->last_gsr_ = gsr;
+  (const_cast<CollisionWorldDistanceField*>(this))->last_gsr_ = gsr;
 }
 
 bool CollisionWorldDistanceField::getEnvironmentCollisions(
-    const CollisionRequest &req, CollisionResult &res, const distance_field::DistanceFieldConstPtr &env_distance_field,
-    GroupStateRepresentationPtr &gsr) const
+    const CollisionRequest& req, CollisionResult& res, const distance_field::DistanceFieldConstPtr& env_distance_field,
+    GroupStateRepresentationPtr& gsr) const
 {
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size() + gsr->dfce_->attached_body_names_.size(); i++)
   {
@@ -338,8 +338,8 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
       continue;
     }
 
-    const std::vector<CollisionSphere> *collision_spheres_1;
-    const EigenSTL::vector_Vector3d *sphere_centers_1;
+    const std::vector<CollisionSphere>* collision_spheres_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
 
     if (is_link)
     {
@@ -410,7 +410,7 @@ bool CollisionWorldDistanceField::getEnvironmentCollisions(
 }
 
 bool CollisionWorldDistanceField::getEnvironmentProximityGradients(
-    const distance_field::DistanceFieldConstPtr &env_distance_field, GroupStateRepresentationPtr &gsr) const
+    const distance_field::DistanceFieldConstPtr& env_distance_field, GroupStateRepresentationPtr& gsr) const
 {
   bool in_collision = false;
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
@@ -422,8 +422,8 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(
       continue;
     }
 
-    const std::vector<CollisionSphere> *collision_spheres_1;
-    const EigenSTL::vector_Vector3d *sphere_centers_1;
+    const std::vector<CollisionSphere>* collision_spheres_1;
+    const EigenSTL::vector_Vector3d* sphere_centers_1;
     if (is_link)
     {
       collision_spheres_1 = &(gsr->link_body_decompositions_[i]->getCollisionSpheres());
@@ -447,7 +447,7 @@ bool CollisionWorldDistanceField::getEnvironmentProximityGradients(
   return in_collision;
 }
 
-void CollisionWorldDistanceField::setWorld(const WorldPtr &world)
+void CollisionWorldDistanceField::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;
@@ -468,7 +468,7 @@ void CollisionWorldDistanceField::setWorld(const WorldPtr &world)
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField *self, const ObjectConstPtr &obj,
+void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField* self, const ObjectConstPtr& obj,
                                                      World::Action action)
 {
   ros::WallTime n = ros::WallTime::now();
@@ -494,9 +494,9 @@ void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField
   logDebug("Modifying object %s took %lf s", obj->id_.c_str(), (ros::WallTime::now() - n).toSec());
 }
 
-void CollisionWorldDistanceField::updateDistanceObject(const std::string &id, DistanceFieldCacheEntryPtr &dfce,
-                                                       EigenSTL::vector_Vector3d &add_points,
-                                                       EigenSTL::vector_Vector3d &subtract_points)
+void CollisionWorldDistanceField::updateDistanceObject(const std::string& id, DistanceFieldCacheEntryPtr& dfce,
+                                                       EigenSTL::vector_Vector3d& add_points,
+                                                       EigenSTL::vector_Vector3d& subtract_points)
 {
   std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>>::iterator cur_it =
       dfce->posed_body_point_decompositions_.find(id);
@@ -520,7 +520,7 @@ void CollisionWorldDistanceField::updateDistanceObject(const std::string &id, Di
       shapes::ShapeConstPtr shape = object->shapes_[i];
       if (shape->type == shapes::OCTREE)
       {
-        const shapes::OcTree *octree_shape = static_cast<const shapes::OcTree *>(shape.get());
+        const shapes::OcTree* octree_shape = static_cast<const shapes::OcTree*>(shape.get());
         std::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
 
         shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree));

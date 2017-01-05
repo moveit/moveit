@@ -61,8 +61,8 @@ void moveit_warehouse::PlanningSceneWorldStorage::reset()
   createCollections();
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg,
-                                                                        const std::string &name)
+void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld& msg,
+                                                                        const std::string& name)
 {
   bool replace = false;
   if (hasPlanningSceneWorld(name))
@@ -76,7 +76,7 @@ void moveit_warehouse::PlanningSceneWorldStorage::addPlanningSceneWorld(const mo
   ROS_DEBUG("%s planning scene world '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
 
-bool moveit_warehouse::PlanningSceneWorldStorage::hasPlanningSceneWorld(const std::string &name) const
+bool moveit_warehouse::PlanningSceneWorldStorage::hasPlanningSceneWorld(const std::string& name) const
 {
   Query::Ptr q = planning_scene_world_collection_->createQuery();
   q->append(PLANNING_SCENE_WORLD_ID_NAME, name);
@@ -84,14 +84,14 @@ bool moveit_warehouse::PlanningSceneWorldStorage::hasPlanningSceneWorld(const st
   return !psw.empty();
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(const std::string &regex,
-                                                                              std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(const std::string& regex,
+                                                                              std::vector<std::string>& names) const
 {
   getKnownPlanningSceneWorlds(names);
   filterNames(regex, names);
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(std::vector<std::string>& names) const
 {
   names.clear();
   Query::Ptr q = planning_scene_world_collection_->createQuery();
@@ -102,8 +102,8 @@ void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(st
       names.push_back(constr[i]->lookupString(PLANNING_SCENE_WORLD_ID_NAME));
 }
 
-bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(PlanningSceneWorldWithMetadata &msg_m,
-                                                                        const std::string &name) const
+bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(PlanningSceneWorldWithMetadata& msg_m,
+                                                                        const std::string& name) const
 {
   Query::Ptr q = planning_scene_world_collection_->createQuery();
   q->append(PLANNING_SCENE_WORLD_ID_NAME, name);
@@ -117,8 +117,8 @@ bool moveit_warehouse::PlanningSceneWorldStorage::getPlanningSceneWorld(Planning
   }
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const std::string &old_name,
-                                                                           const std::string &new_name)
+void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const std::string& old_name,
+                                                                           const std::string& new_name)
 {
   Query::Ptr q = planning_scene_world_collection_->createQuery();
   q->append(PLANNING_SCENE_WORLD_ID_NAME, old_name);
@@ -128,7 +128,7 @@ void moveit_warehouse::PlanningSceneWorldStorage::renamePlanningSceneWorld(const
   ROS_DEBUG("Renamed planning scene world from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneWorldStorage::removePlanningSceneWorld(const std::string &name)
+void moveit_warehouse::PlanningSceneWorldStorage::removePlanningSceneWorld(const std::string& name)
 {
   Query::Ptr q = planning_scene_world_collection_->createQuery();
   q->append(PLANNING_SCENE_WORLD_ID_NAME, name);

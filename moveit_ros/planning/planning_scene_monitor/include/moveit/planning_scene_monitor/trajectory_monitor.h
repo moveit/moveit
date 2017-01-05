@@ -45,7 +45,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const robot_state::RobotStateConstPtr &state, const ros::Time &stamp)>
+typedef boost::function<void(const robot_state::RobotStateConstPtr& state, const ros::Time& stamp)>
     TrajectoryStateAddedCallback;
 
 MOVEIT_CLASS_FORWARD(TrajectoryMonitor);
@@ -57,7 +57,7 @@ class TrajectoryMonitor
 public:
   /** @brief Constructor.
    */
-  TrajectoryMonitor(const CurrentStateMonitorConstPtr &state_monitor, double sampling_frequency = 5.0);
+  TrajectoryMonitor(const CurrentStateMonitorConstPtr& state_monitor, double sampling_frequency = 5.0);
 
   ~TrajectoryMonitor();
 
@@ -78,17 +78,17 @@ public:
 
   /// Return the current maintained trajectory. This function is not thread safe (hence NOT const), because the
   /// trajectory could be modified.
-  const robot_trajectory::RobotTrajectory &getTrajectory()
+  const robot_trajectory::RobotTrajectory& getTrajectory()
   {
     return trajectory_;
   }
 
-  void swapTrajectory(robot_trajectory::RobotTrajectory &other)
+  void swapTrajectory(robot_trajectory::RobotTrajectory& other)
   {
     trajectory_.swap(other);
   }
 
-  void setOnStateAddCallback(const TrajectoryStateAddedCallback &callback)
+  void setOnStateAddCallback(const TrajectoryStateAddedCallback& callback)
   {
     state_add_callback_ = callback;
   }

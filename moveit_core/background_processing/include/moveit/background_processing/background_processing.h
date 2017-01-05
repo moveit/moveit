@@ -70,7 +70,7 @@ public:
 
   /** \brief The signature for callback triggered when job events take place: the event that took place and the name of
    * the job */
-  typedef boost::function<void(JobEvent, const std::string &)> JobUpdateCallback;
+  typedef boost::function<void(JobEvent, const std::string&)> JobUpdateCallback;
 
   /** \brief The signature for job callbacks */
   typedef boost::function<void()> JobCallback;
@@ -82,7 +82,7 @@ public:
   ~BackgroundProcessing();
 
   /** \brief Add a job to the queue of jobs to execute. A name is also specifies for the job */
-  void addJob(const JobCallback &job, const std::string &name);
+  void addJob(const JobCallback& job, const std::string& name);
 
   /** \brief Get the size of the queue of jobs (includes currently processed job). */
   std::size_t getJobCount() const;
@@ -91,7 +91,7 @@ public:
   void clear();
 
   /** \brief Set the callback to be triggered when events in JobEvent take place */
-  void setJobUpdateEvent(const JobUpdateCallback &event);
+  void setJobUpdateEvent(const JobUpdateCallback& event);
 
   /** \brief Clear the callback to be triggered when events in JobEvent take place */
   void clearJobUpdateEvent();

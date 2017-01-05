@@ -311,7 +311,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   crobot_->checkSelfCollision(req, res, kstate, *acm_);
   ASSERT_FALSE(res.collision);
 
-  shapes::Shape *shape = new shapes::Box(.25, .25, .25);
+  shapes::Shape* shape = new shapes::Box(.25, .25, .25);
   cworld_->getWorld()->addToObject("box", shapes::ShapeConstPtr(shape), pos1);
 
   res = collision_detection::CollisionResult();
@@ -327,7 +327,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   poses.push_back(Eigen::Affine3d::Identity());
   std::set<std::string> touch_links;
   trajectory_msgs::JointTrajectory empty_state;
-  robot_state::AttachedBody *attached_body = new robot_state::AttachedBody(
+  robot_state::AttachedBody* attached_body = new robot_state::AttachedBody(
       kstate.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
 
   kstate.attachBody(attached_body);
@@ -342,7 +342,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   touch_links.insert("r_gripper_palm_link");
   shapes[0].reset(new shapes::Box(.1, .1, .1));
 
-  robot_state::AttachedBody *attached_body_1 = new robot_state::AttachedBody(
+  robot_state::AttachedBody* attached_body_1 = new robot_state::AttachedBody(
       kstate.getLinkModel("r_gripper_palm_link"), "box", shapes, poses, touch_links, empty_state);
   kstate.attachBody(attached_body_1);
 
@@ -351,7 +351,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   // ASSERT_FALSE(res.collision);
 
   pos1.translation().x() = 1.01;
-  shapes::Shape *coll = new shapes::Box(.1, .1, .1);
+  shapes::Shape* coll = new shapes::Box(.1, .1, .1);
   cworld_->getWorld()->addToObject("coll", shapes::ShapeConstPtr(coll), pos1);
   res = collision_detection::CollisionResult();
   cworld_->checkRobotCollision(req, res, *crobot_, kstate, *acm_);
@@ -363,7 +363,7 @@ TEST_F(DistanceFieldCollisionDetectionTester, AttachedBodyTester)
   ASSERT_TRUE(res.collision);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

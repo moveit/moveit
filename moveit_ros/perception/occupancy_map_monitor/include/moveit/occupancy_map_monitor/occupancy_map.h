@@ -53,7 +53,7 @@ public:
   {
   }
 
-  OccMapTree(const std::string &filename) : octomap::OcTree(filename)
+  OccMapTree(const std::string& filename) : octomap::OcTree(filename)
   {
   }
 
@@ -103,7 +103,7 @@ public:
   }
 
   /** @brief Set the callback to trigger when updates are received */
-  void setUpdateCallback(const boost::function<void()> &update_callback)
+  void setUpdateCallback(const boost::function<void()>& update_callback)
   {
     update_callback_ = update_callback;
   }

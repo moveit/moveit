@@ -54,52 +54,52 @@ public:
                        double resolution = .02, double collision_tolerance = 0.0,
                        double max_propogation_distance = .25);
 
-  explicit CollisionWorldHybrid(const WorldPtr &world, Eigen::Vector3d size = Eigen::Vector3d(3, 3, 4),
+  explicit CollisionWorldHybrid(const WorldPtr& world, Eigen::Vector3d size = Eigen::Vector3d(3, 3, 4),
                                 Eigen::Vector3d origin = Eigen::Vector3d(0, 0, 0),
                                 bool use_signed_distance_field = false, double resolution = .02,
                                 double collision_tolerance = 0.0, double max_propogation_distance = .25);
 
-  CollisionWorldHybrid(const CollisionWorldHybrid &other, const WorldPtr &world);
+  CollisionWorldHybrid(const CollisionWorldHybrid& other, const WorldPtr& world);
 
   virtual ~CollisionWorldHybrid()
   {
   }
 
-  void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state) const;
+  void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state) const;
 
-  void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
+  void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
 
-  void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+  void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
-  void checkCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                   const robot_state::RobotState &state, const AllowedCollisionMatrix &acm,
-                                   GroupStateRepresentationPtr &gsr) const;
+  void checkCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                   const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+                                   GroupStateRepresentationPtr& gsr) const;
 
-  void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                        const robot_state::RobotState &state) const;
+  void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                        const robot_state::RobotState& state) const;
 
-  void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                        const robot_state::RobotState &state, GroupStateRepresentationPtr &gsr) const;
+  void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                        const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
 
-  void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                        const robot_state::RobotState &state, const AllowedCollisionMatrix &acm) const;
+  void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                        const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
-  void checkRobotCollisionDistanceField(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                                        const robot_state::RobotState &state, const AllowedCollisionMatrix &acm,
-                                        GroupStateRepresentationPtr &gsr) const;
+  void checkRobotCollisionDistanceField(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                        const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+                                        GroupStateRepresentationPtr& gsr) const;
 
-  virtual void setWorld(const WorldPtr &world);
+  virtual void setWorld(const WorldPtr& world);
 
-  void getCollisionGradients(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                             const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
-                             GroupStateRepresentationPtr &gsr) const;
+  void getCollisionGradients(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                             const robot_state::RobotState& state, const AllowedCollisionMatrix* acm,
+                             GroupStateRepresentationPtr& gsr) const;
 
-  void getAllCollisions(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot,
-                        const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
-                        GroupStateRepresentationPtr &gsr) const;
+  void getAllCollisions(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                        const robot_state::RobotState& state, const AllowedCollisionMatrix* acm,
+                        GroupStateRepresentationPtr& gsr) const;
 
   const CollisionWorldDistanceFieldConstPtr getCollisionWorldDistanceField() const
   {
