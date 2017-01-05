@@ -38,14 +38,14 @@
 
 namespace collision_detection
 {
-CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr &kmodel) : CollisionRobotFCL(kmodel)
+CollisionRobotHybrid::CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel) : CollisionRobotFCL(kmodel)
 {
   crobot_distance_.reset(new collision_detection::CollisionRobotDistanceField(kmodel));
 }
 
 CollisionRobotHybrid::CollisionRobotHybrid(
-    const robot_model::RobotModelConstPtr &kmodel,
-    const std::map<std::string, std::vector<CollisionSphere>> &link_body_decompositions, double size_x, double size_y,
+    const robot_model::RobotModelConstPtr& kmodel,
+    const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions, double size_x, double size_y,
     double size_z, bool use_signed_distance_field, double resolution, double collision_tolerance,
     double max_propogation_distance, double padding, double scale)
   : CollisionRobotFCL(kmodel)
@@ -55,40 +55,40 @@ CollisionRobotHybrid::CollisionRobotHybrid(
       collision_tolerance, max_propogation_distance, padding, scale));
 }
 
-CollisionRobotHybrid::CollisionRobotHybrid(const CollisionRobotHybrid &other) : CollisionRobotFCL(other)
+CollisionRobotHybrid::CollisionRobotHybrid(const CollisionRobotHybrid& other) : CollisionRobotFCL(other)
 {
   crobot_distance_.reset(
       new collision_detection::CollisionRobotDistanceField(*other.getCollisionRobotDistanceField().get()));
 }
 
-void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                                           collision_detection::CollisionResult &res,
-                                                           const robot_state::RobotState &state) const
+void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult& res,
+                                                           const robot_state::RobotState& state) const
 {
   crobot_distance_->checkSelfCollision(req, res, state);
 }
 
-void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                                           collision_detection::CollisionResult &res,
-                                                           const robot_state::RobotState &state,
-                                                           GroupStateRepresentationPtr &gsr) const
+void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult& res,
+                                                           const robot_state::RobotState& state,
+                                                           GroupStateRepresentationPtr& gsr) const
 {
   crobot_distance_->checkSelfCollision(req, res, state, gsr);
 }
 
-void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                                           collision_detection::CollisionResult &res,
-                                                           const robot_state::RobotState &state,
-                                                           const collision_detection::AllowedCollisionMatrix &acm) const
+void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult& res,
+                                                           const robot_state::RobotState& state,
+                                                           const collision_detection::AllowedCollisionMatrix& acm) const
 {
   crobot_distance_->checkSelfCollision(req, res, state, acm);
 }
 
-void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                                           collision_detection::CollisionResult &res,
-                                                           const robot_state::RobotState &state,
-                                                           const collision_detection::AllowedCollisionMatrix &acm,
-                                                           GroupStateRepresentationPtr &gsr) const
+void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                                           collision_detection::CollisionResult& res,
+                                                           const robot_state::RobotState& state,
+                                                           const collision_detection::AllowedCollisionMatrix& acm,
+                                                           GroupStateRepresentationPtr& gsr) const
 {
   crobot_distance_->checkSelfCollision(req, res, state, acm, gsr);
 }

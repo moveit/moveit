@@ -56,16 +56,16 @@ struct BodyDecompositionCache
   boost::mutex lock_;
 };
 
-BodyDecompositionCache &getBodyDecompositionCache()
+BodyDecompositionCache& getBodyDecompositionCache()
 {
   static BodyDecompositionCache cache;
   return cache;
 }
 
-BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr &shape, double resolution)
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape, double resolution)
 {
   // TODO - deal with changing resolution?
-  BodyDecompositionCache &cache = getBodyDecompositionCache();
+  BodyDecompositionCache& cache = getBodyDecompositionCache();
   std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
@@ -86,7 +86,7 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
   // TODO - clean cache
 }
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object &obj,
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
                                                                           double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
@@ -100,7 +100,7 @@ PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const 
   return ret;
 }
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody *att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
                                                                          double resolution)
 {
   PosedBodySphereDecompositionVectorPtr ret(new PosedBodySphereDecompositionVector());
@@ -114,7 +114,7 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const r
   return ret;
 }
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody *att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution)
 {
   PosedBodyPointDecompositionVectorPtr ret(new PosedBodyPointDecompositionVector());
@@ -128,8 +128,8 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const rob
   return ret;
 }
 
-void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr, std::string reference_frame,
-                                       visualization_msgs::MarkerArray &body_marker_array)
+void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, std::string reference_frame,
+                                       visualization_msgs::MarkerArray& body_marker_array)
 {
   // creating namespaces
   std::string robot_ns = gsr->dfce_->group_name_ + "_sphere_decomposition";
@@ -163,11 +163,11 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr, st
   sphere_marker.color = robot_color;
   sphere_marker.lifetime = ros::Duration(0);
 
-  const moveit::core::RobotState &state = *(gsr->dfce_->state_);
+  const moveit::core::RobotState& state = *(gsr->dfce_->state_);
   unsigned int id = 0;
   for (unsigned int i = 0; i < gsr->dfce_->link_names_.size(); i++)
   {
-    const moveit::core::LinkModel *ls = state.getLinkModel(gsr->dfce_->link_names_[i]);
+    const moveit::core::LinkModel* ls = state.getLinkModel(gsr->dfce_->link_names_[i]);
     if (gsr->dfce_->link_has_geometry_[i])
     {
       gsr->link_body_decompositions_[i]->updatePose(state.getFrameTransform(ls->getName()));
@@ -192,7 +192,7 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr &gsr, st
   for (unsigned int i = 0; i < gsr->dfce_->attached_body_names_.size(); i++)
   {
     int link_index = gsr->dfce_->attached_body_link_state_indices_[i];
-    const moveit::core::AttachedBody *att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
+    const moveit::core::AttachedBody* att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
     if (!att)
     {
       ROS_WARN("Attached body '%s' was not found, skipping sphere "

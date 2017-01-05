@@ -54,7 +54,7 @@ PR2ArmIK::PR2ArmIK()
 {
 }
 
-bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &root_name, const std::string &tip_name)
+bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& root_name, const std::string& tip_name)
 {
   std::vector<urdf::Pose> link_offset;
   int num_joints = 0;
@@ -150,7 +150,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface &robot_model, const std::string &
   return true;
 }
 
-void PR2ArmIK::addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo &info)
+void PR2ArmIK::addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo& info)
 {
   moveit_msgs::JointLimits limit;
   info.joint_names.push_back(joint->name);  // Joints are coming in reverse order
@@ -188,13 +188,13 @@ void PR2ArmIK::addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs:
   info.limits.push_back(limit);
 }
 
-void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo &info)
+void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo& info)
 {
   info = solver_info_;
 }
 
-void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t1_in,
-                                    std::vector<std::vector<double> > &solution) const
+void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
+                                    std::vector<std::vector<double> >& solution) const
 {
   // t1 = shoulder/turret pan is specified
   //  solution_ik_.resize(0);
@@ -257,8 +257,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
   theta4[1] = -acos_angle;
 
 #ifdef DEBUG
-  std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl
-            << theta4[0] << std::endl;
+  std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl << theta4[0] << std::endl;
 #endif
 
   for (int jj = 0; jj < 2; jj++)
@@ -420,9 +419,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
           std::cout << "theta4: " << t4 << std::endl;
           std::cout << "theta5: " << t5 << std::endl;
           std::cout << "theta6: " << t6 << std::endl;
-          std::cout << "theta7: " << t7 << std::endl
-                    << std::endl
-                    << std::endl;
+          std::cout << "theta7: " << t7 << std::endl << std::endl << std::endl;
 #endif
           for (int lll = 0; lll < 2; lll++)
           {
@@ -463,8 +460,8 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f &g_in, const double &t
   }
 }
 
-void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &t3,
-                                     std::vector<std::vector<double> > &solution) const
+void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
+                                     std::vector<std::vector<double> >& solution) const
 {
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
   //  ROS_INFO(" ");
@@ -743,9 +740,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &
             std::cout << "theta4: " << t4 << std::endl;
             std::cout << "theta5: " << t5 << std::endl;
             std::cout << "theta6: " << t6 << std::endl;
-            std::cout << "theta7: " << t7 << std::endl
-                      << std::endl
-                      << std::endl;
+            std::cout << "theta7: " << t7 << std::endl << std::endl << std::endl;
 #endif
 
             solution_ik[0] = normalize_angle(t1 * angle_multipliers_[0]);
@@ -769,7 +764,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f &g_in, const double &
   }
 }
 
-bool PR2ArmIK::checkJointLimits(const std::vector<double> &joint_values) const
+bool PR2ArmIK::checkJointLimits(const std::vector<double>& joint_values) const
 {
   for (int i = 0; i < NUM_JOINTS_ARM7DOF; i++)
   {
@@ -781,7 +776,7 @@ bool PR2ArmIK::checkJointLimits(const std::vector<double> &joint_values) const
   return true;
 }
 
-bool PR2ArmIK::checkJointLimits(const double &joint_value, const int &joint_num) const
+bool PR2ArmIK::checkJointLimits(const double& joint_value, const int& joint_num) const
 {
   double jv;
   if (continuous_joint_[joint_num])

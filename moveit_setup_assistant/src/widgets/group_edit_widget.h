@@ -59,10 +59,10 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Set the previous data
-  void setSelected(const std::string &group_name);
+  void setSelected(const std::string& group_name);
 
   /// Populate the combo dropdown box with kinematic planners
   void loadKinematicPlannersComboBox();
@@ -71,21 +71,21 @@ public:
   // Qt Components
   // ******************************************************************************************
 
-  QLabel *title_;  // specify the title from the parent widget
-  QLineEdit *group_name_field_;
-  QComboBox *kinematics_solver_field_;
-  QLineEdit *kinematics_resolution_field_;
-  QLineEdit *kinematics_timeout_field_;
-  QLineEdit *kinematics_attempts_field_;
-  QPushButton *btn_delete_;      // this button is hidden for new groups
-  QPushButton *btn_save_;        // this button is hidden for new groups
-  QWidget *new_buttons_widget_;  // for showing/hiding the new group buttons
+  QLabel* title_;  // specify the title from the parent widget
+  QLineEdit* group_name_field_;
+  QComboBox* kinematics_solver_field_;
+  QLineEdit* kinematics_resolution_field_;
+  QLineEdit* kinematics_timeout_field_;
+  QLineEdit* kinematics_attempts_field_;
+  QPushButton* btn_delete_;      // this button is hidden for new groups
+  QPushButton* btn_save_;        // this button is hidden for new groups
+  QWidget* new_buttons_widget_;  // for showing/hiding the new group buttons
 
 private Q_SLOTS:
 
-// ******************************************************************************************
-// Slot Event Functions
-// ******************************************************************************************
+  // ******************************************************************************************
+  // Slot Event Functions
+  // ******************************************************************************************
 
 Q_SIGNALS:
 

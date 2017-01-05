@@ -76,7 +76,7 @@ void TrajectoryDisplay::loadRobotModel()
   }
   this->setStatus(rviz::StatusProperty::Ok, "Robot Model", "Successfully loaded");
 
-  const srdf::ModelSharedPtr &srdf =
+  const srdf::ModelSharedPtr& srdf =
       rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
   robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
 

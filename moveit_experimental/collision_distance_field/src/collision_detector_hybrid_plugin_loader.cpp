@@ -3,7 +3,7 @@
 
 namespace collision_detection
 {
-bool CollisionDetectorHybridPluginLoader::initialize(const planning_scene::PlanningScenePtr &scene,
+bool CollisionDetectorHybridPluginLoader::initialize(const planning_scene::PlanningScenePtr& scene,
                                                      bool exclusive) const
 {
   scene->setActiveCollisionDetector(CollisionDetectorAllocatorHybrid::create(), exclusive);

@@ -41,8 +41,8 @@
 
 namespace moveit_rviz_plugin
 {
-RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode *root_node, rviz::DisplayContext *context,
-                                                 const std::string &name, rviz::Property *parent_property)
+RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rviz::DisplayContext* context,
+                                                 const std::string& name, rviz::Property* parent_property)
   : robot_(root_node, context, name, parent_property)
   , octree_voxel_render_mode_(OCTOMAP_OCCUPIED_VOXELS)
   , octree_voxel_color_mode_(OCTOMAP_Z_AXIS_COLOR)
@@ -57,7 +57,7 @@ RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode *root_node, rvi
   render_shapes_.reset(new RenderShapes(context));
 }
 
-void RobotStateVisualization::load(const urdf::ModelInterface &descr, bool visual, bool collision)
+void RobotStateVisualization::load(const urdf::ModelInterface& descr, bool visual, bool collision)
 {
   robot_.load(descr, visual, collision);
   robot_.setVisualVisible(visual_visible_);
@@ -72,37 +72,37 @@ void RobotStateVisualization::clear()
   render_shapes_->clear();
 }
 
-void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::ColorRGBA &default_attached_object_color)
+void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color)
 {
   default_attached_object_color_ = default_attached_object_color;
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state)
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state)
 {
   updateHelper(kinematic_state, default_attached_object_color_, NULL);
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state,
-                                     const std_msgs::ColorRGBA &default_attached_object_color)
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
+                                     const std_msgs::ColorRGBA& default_attached_object_color)
 {
   updateHelper(kinematic_state, default_attached_object_color, NULL);
 }
 
-void RobotStateVisualization::update(const robot_state::RobotStateConstPtr &kinematic_state,
-                                     const std_msgs::ColorRGBA &default_attached_object_color,
-                                     const std::map<std::string, std_msgs::ColorRGBA> &color_map)
+void RobotStateVisualization::update(const robot_state::RobotStateConstPtr& kinematic_state,
+                                     const std_msgs::ColorRGBA& default_attached_object_color,
+                                     const std::map<std::string, std_msgs::ColorRGBA>& color_map)
 {
   updateHelper(kinematic_state, default_attached_object_color, &color_map);
 }
 
-void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr &kinematic_state,
-                                           const std_msgs::ColorRGBA &default_attached_object_color,
-                                           const std::map<std::string, std_msgs::ColorRGBA> *color_map)
+void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr& kinematic_state,
+                                           const std_msgs::ColorRGBA& default_attached_object_color,
+                                           const std::map<std::string, std_msgs::ColorRGBA>* color_map)
 {
   robot_.update(PlanningLinkUpdater(kinematic_state));
   render_shapes_->clear();
 
-  std::vector<const robot_state::AttachedBody *> attached_bodies;
+  std::vector<const robot_state::AttachedBody*> attached_bodies;
   kinematic_state->getAttachedBodies(attached_bodies);
   for (std::size_t i = 0; i < attached_bodies.size(); ++i)
   {
@@ -120,8 +120,8 @@ void RobotStateVisualization::updateHelper(const robot_state::RobotStateConstPtr
       }
     }
     rviz::Color rcolor(color.r, color.g, color.b);
-    const EigenSTL::vector_Affine3d &ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
-    const std::vector<shapes::ShapeConstPtr> &ab_shapes = attached_bodies[i]->getShapes();
+    const EigenSTL::vector_Affine3d& ab_t = attached_bodies[i]->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr>& ab_shapes = attached_bodies[i]->getShapes();
     for (std::size_t j = 0; j < ab_shapes.size(); ++j)
     {
       render_shapes_->renderShape(robot_.getVisualNode(), ab_shapes[j].get(), ab_t[j], octree_voxel_render_mode_,

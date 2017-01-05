@@ -48,8 +48,8 @@
 
 /* ------------------------ RobotModel ------------------------ */
 
-moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr &urdf_model,
-                                     const srdf::ModelConstSharedPtr &srdf_model)
+moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
+                                     const srdf::ModelConstSharedPtr& srdf_model)
 {
   root_joint_ = NULL;
   urdf_ = urdf_model;
@@ -67,17 +67,17 @@ moveit::core::RobotModel::~RobotModel()
     delete link_model_vector_[i];
 }
 
-const moveit::core::JointModel *moveit::core::RobotModel::getRootJoint() const
+const moveit::core::JointModel* moveit::core::RobotModel::getRootJoint() const
 {
   return root_joint_;
 }
 
-const moveit::core::LinkModel *moveit::core::RobotModel::getRootLink() const
+const moveit::core::LinkModel* moveit::core::RobotModel::getRootLink() const
 {
   return root_link_;
 }
 
-void moveit::core::RobotModel::buildModel(const urdf::ModelInterface &urdf_model, const srdf::Model &srdf_model)
+void moveit::core::RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::Model& srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
@@ -91,7 +91,7 @@ void moveit::core::RobotModel::buildModel(const urdf::ModelInterface &urdf_model
 
   if (urdf_model.getRoot())
   {
-    const urdf::Link *root_link_ptr = urdf_model.getRoot().get();
+    const urdf::Link* root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
 
     logDebug("... building kinematic chain");
@@ -129,11 +129,12 @@ namespace core
 {
 namespace
 {
-typedef std::map<const JointModel *, std::pair<std::set<const LinkModel *, OrderLinksByIndex>,
-                                               std::set<const JointModel *, OrderJointsByIndex> > > DescMap;
+typedef std::map<const JointModel*, std::pair<std::set<const LinkModel*, OrderLinksByIndex>,
+                                              std::set<const JointModel*, OrderJointsByIndex> > >
+    DescMap;
 
-void computeDescendantsHelper(const JointModel *joint, std::vector<const JointModel *> &parents,
-                              std::set<const JointModel *> &seen, DescMap &descendants)
+void computeDescendantsHelper(const JointModel* joint, std::vector<const JointModel*>& parents,
+                              std::set<const JointModel*>& seen, DescMap& descendants)
 {
   if (!joint)
     return;
@@ -144,7 +145,7 @@ void computeDescendantsHelper(const JointModel *joint, std::vector<const JointMo
   for (std::size_t i = 0; i < parents.size(); ++i)
     descendants[parents[i]].second.insert(joint);
 
-  const LinkModel *lm = joint->getChildLinkModel();
+  const LinkModel* lm = joint->getChildLinkModel();
   if (!lm)
     return;
 
@@ -153,30 +154,30 @@ void computeDescendantsHelper(const JointModel *joint, std::vector<const JointMo
   descendants[joint].first.insert(lm);
 
   parents.push_back(joint);
-  const std::vector<const JointModel *> &ch = lm->getChildJointModels();
+  const std::vector<const JointModel*>& ch = lm->getChildJointModels();
   for (std::size_t i = 0; i < ch.size(); ++i)
     computeDescendantsHelper(ch[i], parents, seen, descendants);
-  const std::vector<const JointModel *> &mim = joint->getMimicRequests();
+  const std::vector<const JointModel*>& mim = joint->getMimicRequests();
   for (std::size_t i = 0; i < mim.size(); ++i)
     computeDescendantsHelper(mim[i], parents, seen, descendants);
   parents.pop_back();
 }
 
-void computeCommonRootsHelper(const JointModel *joint, std::vector<int> &common_roots, int size)
+void computeCommonRootsHelper(const JointModel* joint, std::vector<int>& common_roots, int size)
 {
   if (!joint)
     return;
-  const LinkModel *lm = joint->getChildLinkModel();
+  const LinkModel* lm = joint->getChildLinkModel();
   if (!lm)
     return;
 
-  const std::vector<const JointModel *> &ch = lm->getChildJointModels();
+  const std::vector<const JointModel*>& ch = lm->getChildJointModels();
   for (std::size_t i = 0; i < ch.size(); ++i)
   {
-    const std::vector<const JointModel *> &a = ch[i]->getDescendantJointModels();
+    const std::vector<const JointModel*>& a = ch[i]->getDescendantJointModels();
     for (std::size_t j = i + 1; j < ch.size(); ++j)
     {
-      const std::vector<const JointModel *> &b = ch[j]->getDescendantJointModels();
+      const std::vector<const JointModel*>& b = ch[j]->getDescendantJointModels();
       for (std::size_t m = 0; m < b.size(); ++m)
         common_roots[ch[i]->getJointIndex() * size + b[m]->getJointIndex()] =
             common_roots[ch[i]->getJointIndex() + b[m]->getJointIndex() * size] = joint->getJointIndex();
@@ -219,7 +220,7 @@ void moveit::core::RobotModel::computeCommonRoots()
         joint_model_vector_[i]->getJointIndex();
 
     // a node N and one of its descendants have as common root the node N itself:
-    const std::vector<const JointModel *> &d = joint_model_vector_[i]->getDescendantJointModels();
+    const std::vector<const JointModel*>& d = joint_model_vector_[i]->getDescendantJointModels();
     for (std::size_t j = 0; j < d.size(); ++j)
       common_joint_roots_[d[j]->getJointIndex() * joint_model_vector_.size() +
                           joint_model_vector_[i]->getJointIndex()] =
@@ -232,18 +233,18 @@ void moveit::core::RobotModel::computeCommonRoots()
 void moveit::core::RobotModel::computeDescendants()
 {
   // compute the list of descendants for all joints
-  std::vector<const JointModel *> parents;
-  std::set<const JointModel *> seen;
+  std::vector<const JointModel*> parents;
+  std::set<const JointModel*> seen;
 
   DescMap descendants;
   computeDescendantsHelper(root_joint_, parents, seen, descendants);
   for (DescMap::iterator it = descendants.begin(); it != descendants.end(); ++it)
   {
-    JointModel *jm = const_cast<JointModel *>(it->first);
-    for (std::set<const JointModel *>::const_iterator jt = it->second.second.begin(); jt != it->second.second.end();
+    JointModel* jm = const_cast<JointModel*>(it->first);
+    for (std::set<const JointModel*>::const_iterator jt = it->second.second.begin(); jt != it->second.second.end();
          ++jt)
       jm->addDescendantJointModel(*jt);
-    for (std::set<const LinkModel *>::const_iterator jt = it->second.first.begin(); jt != it->second.first.end(); ++jt)
+    for (std::set<const LinkModel*>::const_iterator jt = it->second.first.begin(); jt != it->second.first.end(); ++jt)
       jm->addDescendantLinkModel(*jt);
   }
 }
@@ -262,7 +263,7 @@ void moveit::core::RobotModel::buildJointInfo()
   for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
   {
     joint_model_vector_[i]->setJointIndex(i);
-    const std::vector<std::string> &name_order = joint_model_vector_[i]->getVariableNames();
+    const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
 
     // compute index map
     if (!name_order.empty())
@@ -282,7 +283,7 @@ void moveit::core::RobotModel::buildJointInfo()
       }
 
       if (joint_model_vector_[i]->getType() == JointModel::REVOLUTE &&
-          static_cast<const RevoluteJointModel *>(joint_model_vector_[i])->isContinuous())
+          static_cast<const RevoluteJointModel*>(joint_model_vector_[i])->isContinuous())
         continuous_joint_model_vector_.push_back(joint_model_vector_[i]);
 
       joint_model_vector_[i]->setFirstVariableIndex(variable_count_);
@@ -318,23 +319,23 @@ void moveit::core::RobotModel::buildJointInfo()
   computeCommonRoots();  // must be called _after_ list of descendants was computed
 }
 
-void moveit::core::RobotModel::buildGroupStates(const srdf::Model &srdf_model)
+void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
 {
   // copy the default states to the groups
-  const std::vector<srdf::Model::GroupState> &ds = srdf_model.getGroupStates();
+  const std::vector<srdf::Model::GroupState>& ds = srdf_model.getGroupStates();
   for (std::size_t i = 0; i < ds.size(); ++i)
   {
     if (hasJointModelGroup(ds[i].group_))
     {
-      JointModelGroup *jmg = getJointModelGroup(ds[i].group_);
+      JointModelGroup* jmg = getJointModelGroup(ds[i].group_);
       std::map<std::string, double> state;
       for (std::map<std::string, std::vector<double> >::const_iterator jt = ds[i].joint_values_.begin();
            jt != ds[i].joint_values_.end(); ++jt)
       {
         if (jmg->hasJointModel(jt->first))
         {
-          const JointModel *jm = jmg->getJointModel(jt->first);
-          const std::vector<std::string> &vn = jm->getVariableNames();
+          const JointModel* jm = jmg->getJointModel(jt->first);
+          const std::vector<std::string>& vn = jm->getVariableNames();
           if (vn.size() == jt->second.size())
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
@@ -357,12 +358,12 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model &srdf_model)
   }
 }
 
-void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface &urdf_model)
+void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
 {
   // compute mimic joints
   for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
   {
-    const urdf::Joint *jm = urdf_model.getJoint(joint_model_vector_[i]->getName()).get();
+    const urdf::Joint* jm = urdf_model.getJoint(joint_model_vector_[i]->getName()).get();
     if (jm)
       if (jm->mimic)
       {
@@ -412,17 +413,17 @@ void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface &urdf_model
   for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
     if (joint_model_vector_[i]->getMimic())
     {
-      const_cast<JointModel *>(joint_model_vector_[i]->getMimic())->addMimicRequest(joint_model_vector_[i]);
+      const_cast<JointModel*>(joint_model_vector_[i]->getMimic())->addMimicRequest(joint_model_vector_[i]);
       mimic_joints_.push_back(joint_model_vector_[i]);
     }
 }
 
-bool moveit::core::RobotModel::hasEndEffector(const std::string &eef) const
+bool moveit::core::RobotModel::hasEndEffector(const std::string& eef) const
 {
   return end_effectors_map_.find(eef) != end_effectors_map_.end();
 }
 
-const moveit::core::JointModelGroup *moveit::core::RobotModel::getEndEffector(const std::string &name) const
+const moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const std::string& name) const
 {
   JointModelGroupMap::const_iterator it = end_effectors_map_.find(name);
   if (it == end_effectors_map_.end())
@@ -436,7 +437,7 @@ const moveit::core::JointModelGroup *moveit::core::RobotModel::getEndEffector(co
   return it->second;
 }
 
-moveit::core::JointModelGroup *moveit::core::RobotModel::getEndEffector(const std::string &name)
+moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const std::string& name)
 {
   JointModelGroupMap::const_iterator it = end_effectors_map_.find(name);
   if (it == end_effectors_map_.end())
@@ -450,12 +451,12 @@ moveit::core::JointModelGroup *moveit::core::RobotModel::getEndEffector(const st
   return it->second;
 }
 
-bool moveit::core::RobotModel::hasJointModelGroup(const std::string &name) const
+bool moveit::core::RobotModel::hasJointModelGroup(const std::string& name) const
 {
   return joint_model_group_map_.find(name) != joint_model_group_map_.end();
 }
 
-const moveit::core::JointModelGroup *moveit::core::RobotModel::getJointModelGroup(const std::string &name) const
+const moveit::core::JointModelGroup* moveit::core::RobotModel::getJointModelGroup(const std::string& name) const
 {
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
@@ -466,7 +467,7 @@ const moveit::core::JointModelGroup *moveit::core::RobotModel::getJointModelGrou
   return it->second;
 }
 
-moveit::core::JointModelGroup *moveit::core::RobotModel::getJointModelGroup(const std::string &name)
+moveit::core::JointModelGroup* moveit::core::RobotModel::getJointModelGroup(const std::string& name)
 {
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
@@ -477,9 +478,9 @@ moveit::core::JointModelGroup *moveit::core::RobotModel::getJointModelGroup(cons
   return it->second;
 }
 
-void moveit::core::RobotModel::buildGroups(const srdf::Model &srdf_model)
+void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
 {
-  const std::vector<srdf::Model::Group> &group_configs = srdf_model.getGroups();
+  const std::vector<srdf::Model::Group>& group_configs = srdf_model.getGroups();
 
   // the only thing tricky is dealing with subgroups
   std::vector<bool> processed(group_configs.size(), false);
@@ -528,21 +529,21 @@ void moveit::core::RobotModel::buildGroups(const srdf::Model &srdf_model)
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
-void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model &srdf_model)
+void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
   {
-    JointModelGroup *jmg = it->second;
+    JointModelGroup* jmg = it->second;
     std::vector<std::string> subgroup_names;
-    std::set<const JointModel *> joints(jmg->getJointModels().begin(), jmg->getJointModels().end());
+    std::set<const JointModel*> joints(jmg->getJointModels().begin(), jmg->getJointModels().end());
     for (JointModelGroupMap::const_iterator jt = joint_model_group_map_.begin(); jt != joint_model_group_map_.end();
          ++jt)
       if (jt->first != it->first)
       {
         bool ok = true;
-        JointModelGroup *sub_jmg = jt->second;
-        const std::vector<const JointModel *> &sub_joints = sub_jmg->getJointModels();
+        JointModelGroup* sub_jmg = jt->second;
+        const std::vector<const JointModel*>& sub_joints = sub_jmg->getJointModels();
         for (std::size_t k = 0; k < sub_joints.size(); ++k)
           if (joints.find(sub_joints[k]) == joints.end())
           {
@@ -557,10 +558,10 @@ void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model &srdf
   }
 }
 
-void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &srdf_model)
+void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
 {
   // set the end-effector flags
-  const std::vector<srdf::Model::EndEffector> &eefs = srdf_model.getEndEffectors();
+  const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEffectors();
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
   {
     // check if this group is a known end effector
@@ -574,7 +575,7 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
 
         // check to see if there are groups that contain the parent link of this end effector.
         // record this information if found;
-        std::vector<JointModelGroup *> possible_parent_groups;
+        std::vector<JointModelGroup*> possible_parent_groups;
         for (JointModelGroupMap::const_iterator jt = joint_model_group_map_.begin(); jt != joint_model_group_map_.end();
              ++jt)
           if (jt->first != it->first)
@@ -586,7 +587,7 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
             }
           }
 
-        JointModelGroup *eef_parent_group = NULL;
+        JointModelGroup* eef_parent_group = NULL;
         // if a parent group is specified in SRDF, try to use it
         if (!eefs[k].parent_group_.empty())
         {
@@ -640,7 +641,7 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model &s
   std::sort(end_effectors_.begin(), end_effectors_.end(), OrderGroupsByName());
 }
 
-bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
+bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
@@ -648,18 +649,18 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
     return false;
   }
 
-  std::set<const JointModel *> jset;
+  std::set<const JointModel*> jset;
 
   // add joints from chains
   for (std::size_t i = 0; i < gc.chains_.size(); ++i)
   {
-    const LinkModel *base_link = getLinkModel(gc.chains_[i].first);
-    const LinkModel *tip_link = getLinkModel(gc.chains_[i].second);
+    const LinkModel* base_link = getLinkModel(gc.chains_[i].first);
+    const LinkModel* tip_link = getLinkModel(gc.chains_[i].second);
     if (base_link && tip_link)
     {
       // go from tip, up the chain, until we hit the root or we find the base_link
-      const LinkModel *lm = tip_link;
-      std::vector<const JointModel *> cj;
+      const LinkModel* lm = tip_link;
+      std::vector<const JointModel*> cj;
       while (lm)
       {
         if (lm == base_link)
@@ -674,7 +675,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
         // we go up the chain from the base this time, and see where we intersect the other chain
         lm = base_link;
         std::size_t index = 0;
-        std::vector<const JointModel *> cj2;
+        std::vector<const JointModel*> cj2;
         while (lm)
         {
           for (std::size_t j = 0; j < cj.size(); ++j)
@@ -703,7 +704,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
   // add joints
   for (std::size_t i = 0; i < gc.joints_.size(); ++i)
   {
-    const JointModel *j = getJointModel(gc.joints_[i]);
+    const JointModel* j = getJointModel(gc.joints_[i]);
     if (j)
       jset.insert(j);
   }
@@ -711,7 +712,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
   // add joints that are parents of included links
   for (std::size_t i = 0; i < gc.links_.size(); ++i)
   {
-    const LinkModel *l = getLinkModel(gc.links_[i]);
+    const LinkModel* l = getLinkModel(gc.links_[i]);
     if (l)
       jset.insert(l->getParentJointModel());
   }
@@ -719,21 +720,21 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
   // add joints from subgroups
   for (std::size_t i = 0; i < gc.subgroups_.size(); ++i)
   {
-    const JointModelGroup *sg = getJointModelGroup(gc.subgroups_[i]);
+    const JointModelGroup* sg = getJointModelGroup(gc.subgroups_[i]);
     if (sg)
     {
       // active joints
-      const std::vector<const JointModel *> &js = sg->getJointModels();
+      const std::vector<const JointModel*>& js = sg->getJointModels();
       for (std::size_t j = 0; j < js.size(); ++j)
         jset.insert(js[j]);
 
       // fixed joints
-      const std::vector<const JointModel *> &fs = sg->getFixedJointModels();
+      const std::vector<const JointModel*>& fs = sg->getFixedJointModels();
       for (std::size_t j = 0; j < fs.size(); ++j)
         jset.insert(fs[j]);
 
       // mimic joints
-      const std::vector<const JointModel *> &ms = sg->getMimicJointModels();
+      const std::vector<const JointModel*>& ms = sg->getMimicJointModels();
       for (std::size_t j = 0; j < ms.size(); ++j)
         jset.insert(ms[j]);
     }
@@ -745,21 +746,21 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group &gc)
     return false;
   }
 
-  std::vector<const JointModel *> joints;
-  for (std::set<const JointModel *>::iterator it = jset.begin(); it != jset.end(); ++it)
+  std::vector<const JointModel*> joints;
+  for (std::set<const JointModel*>::iterator it = jset.begin(); it != jset.end(); ++it)
     joints.push_back(*it);
 
-  JointModelGroup *jmg = new JointModelGroup(gc.name_, gc, joints, this);
+  JointModelGroup* jmg = new JointModelGroup(gc.name_, gc, joints, this);
   joint_model_group_map_[gc.name_] = jmg;
 
   return true;
 }
 
-moveit::core::JointModel *moveit::core::RobotModel::buildRecursive(LinkModel *parent, const urdf::Link *urdf_link,
-                                                                   const srdf::Model &srdf_model)
+moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf_link,
+                                                                   const srdf::Model& srdf_model)
 {
   // construct the joint
-  JointModel *joint = urdf_link->parent_joint ?
+  JointModel* joint = urdf_link->parent_joint ?
                           constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
                           constructJointModel(NULL, urdf_link, srdf_model);
   if (joint == NULL)
@@ -774,7 +775,7 @@ moveit::core::JointModel *moveit::core::RobotModel::buildRecursive(LinkModel *pa
   joint->setParentLinkModel(parent);
 
   // construct the link
-  LinkModel *link = constructLinkModel(urdf_link);
+  LinkModel* link = constructLinkModel(urdf_link);
   joint->setChildLinkModel(link);
   link->setParentLinkModel(parent);
 
@@ -796,7 +797,7 @@ moveit::core::JointModel *moveit::core::RobotModel::buildRecursive(LinkModel *pa
   // recursively build child links (and joints)
   for (std::size_t i = 0; i < urdf_link->child_links.size(); ++i)
   {
-    JointModel *jm = buildRecursive(link, urdf_link->child_links[i].get(), srdf_model);
+    JointModel* jm = buildRecursive(link, urdf_link->child_links[i].get(), srdf_model);
     if (jm)
       link->addChildJointModel(jm);
   }
@@ -806,7 +807,7 @@ moveit::core::JointModel *moveit::core::RobotModel::buildRecursive(LinkModel *pa
 namespace
 {
 // construct bounds for 1DOF joint
-static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint *urdf_joint)
+static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
 {
   moveit::core::VariableBounds b;
   if (urdf_joint->safety)
@@ -841,11 +842,11 @@ static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint
 }
 }
 
-moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const urdf::Joint *urdf_joint,
-                                                                        const urdf::Link *child_link,
-                                                                        const srdf::Model &srdf_model)
+moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const urdf::Joint* urdf_joint,
+                                                                        const urdf::Link* child_link,
+                                                                        const srdf::Model& srdf_model)
 {
-  JointModel *result = NULL;
+  JointModel* result = NULL;
 
   // must be the root link transform
   if (urdf_joint)
@@ -854,7 +855,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
     {
       case urdf::Joint::REVOLUTE:
       {
-        RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
+        RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(false);
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
@@ -863,7 +864,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
       break;
       case urdf::Joint::CONTINUOUS:
       {
-        RevoluteJointModel *j = new RevoluteJointModel(urdf_joint->name);
+        RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(true);
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
@@ -872,7 +873,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
       break;
       case urdf::Joint::PRISMATIC:
       {
-        PrismaticJointModel *j = new PrismaticJointModel(urdf_joint->name);
+        PrismaticJointModel* j = new PrismaticJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
         result = j;
@@ -894,7 +895,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
   }
   else
   {
-    const std::vector<srdf::Model::VirtualJoint> &vjoints = srdf_model.getVirtualJoints();
+    const std::vector<srdf::Model::VirtualJoint>& vjoints = srdf_model.getVirtualJoints();
     for (std::size_t i = 0; i < vjoints.size(); ++i)
     {
       if (vjoints[i].child_link_ != child_link->name)
@@ -937,7 +938,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
   if (result)
   {
     result->setDistanceFactor(result->getStateSpaceDimension());
-    const std::vector<srdf::Model::PassiveJoint> &pjoints = srdf_model.getPassiveJoints();
+    const std::vector<srdf::Model::PassiveJoint>& pjoints = srdf_model.getPassiveJoints();
     for (std::size_t i = 0; i < pjoints.size(); ++i)
     {
       if (result->getName() == pjoints[i].name_)
@@ -953,7 +954,7 @@ moveit::core::JointModel *moveit::core::RobotModel::constructJointModel(const ur
 
 namespace
 {
-static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
+static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
 {
   Eigen::Quaterniond q(pose.rotation.w, pose.rotation.x, pose.rotation.y, pose.rotation.z);
   Eigen::Affine3d af(Eigen::Translation3d(pose.position.x, pose.position.y, pose.position.z) * q.toRotationMatrix());
@@ -961,11 +962,11 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose &pose)
 }
 }
 
-moveit::core::LinkModel *moveit::core::RobotModel::constructLinkModel(const urdf::Link *urdf_link)
+moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {
-  LinkModel *result = new LinkModel(urdf_link->name);
+  LinkModel* result = new LinkModel(urdf_link->name);
 
-  const std::vector<urdf::CollisionSharedPtr> &col_array =
+  const std::vector<urdf::CollisionSharedPtr>& col_array =
       urdf_link->collision_array.empty() ? std::vector<urdf::CollisionSharedPtr>(1, urdf_link->collision) :
                                            urdf_link->collision_array;
 
@@ -984,7 +985,7 @@ moveit::core::LinkModel *moveit::core::RobotModel::constructLinkModel(const urdf
     }
   if (shapes.empty())
   {
-    const std::vector<urdf::VisualSharedPtr> &vis_array = urdf_link->visual_array.empty() ?
+    const std::vector<urdf::VisualSharedPtr>& vis_array = urdf_link->visual_array.empty() ?
                                                               std::vector<urdf::VisualSharedPtr>(1, urdf_link->visual) :
                                                               urdf_link->visual_array;
     for (std::size_t i = 0; i < vis_array.size(); ++i)
@@ -1006,7 +1007,7 @@ moveit::core::LinkModel *moveit::core::RobotModel::constructLinkModel(const urdf
   {
     if (urdf_link->visual->geometry->type == urdf::Geometry::MESH)
     {
-      const urdf::Mesh *mesh = static_cast<const urdf::Mesh *>(urdf_link->visual->geometry.get());
+      const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(urdf_link->visual->geometry.get());
       if (!mesh->filename.empty())
         result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->visual->origin),
                               Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
@@ -1016,7 +1017,7 @@ moveit::core::LinkModel *moveit::core::RobotModel::constructLinkModel(const urdf
   {
     if (urdf_link->collision->geometry->type == urdf::Geometry::MESH)
     {
-      const urdf::Mesh *mesh = static_cast<const urdf::Mesh *>(urdf_link->collision->geometry.get());
+      const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(urdf_link->collision->geometry.get());
       if (!mesh->filename.empty())
         result->setVisualMesh(mesh->filename, urdfPose2Affine3d(urdf_link->collision->origin),
                               Eigen::Vector3d(mesh->scale.x, mesh->scale.y, mesh->scale.z));
@@ -1029,33 +1030,33 @@ moveit::core::LinkModel *moveit::core::RobotModel::constructLinkModel(const urdf
   return result;
 }
 
-shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry *geom)
+shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry* geom)
 {
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
-  shapes::Shape *result = NULL;
+  shapes::Shape* result = NULL;
   switch (geom->type)
   {
     case urdf::Geometry::SPHERE:
-      result = new shapes::Sphere(static_cast<const urdf::Sphere *>(geom)->radius);
+      result = new shapes::Sphere(static_cast<const urdf::Sphere*>(geom)->radius);
       break;
     case urdf::Geometry::BOX:
     {
-      urdf::Vector3 dim = static_cast<const urdf::Box *>(geom)->dim;
+      urdf::Vector3 dim = static_cast<const urdf::Box*>(geom)->dim;
       result = new shapes::Box(dim.x, dim.y, dim.z);
     }
     break;
     case urdf::Geometry::CYLINDER:
-      result = new shapes::Cylinder(static_cast<const urdf::Cylinder *>(geom)->radius,
-                                    static_cast<const urdf::Cylinder *>(geom)->length);
+      result = new shapes::Cylinder(static_cast<const urdf::Cylinder*>(geom)->radius,
+                                    static_cast<const urdf::Cylinder*>(geom)->length);
       break;
     case urdf::Geometry::MESH:
     {
-      const urdf::Mesh *mesh = static_cast<const urdf::Mesh *>(geom);
+      const urdf::Mesh* mesh = static_cast<const urdf::Mesh*>(geom);
       if (!mesh->filename.empty())
       {
         Eigen::Vector3d scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
-        shapes::Mesh *m = shapes::createMeshFromResource(mesh->filename, scale);
+        shapes::Mesh* m = shapes::createMeshFromResource(mesh->filename, scale);
         result = m;
       }
     }
@@ -1068,17 +1069,17 @@ shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry *
   return shapes::ShapePtr(result);
 }
 
-bool moveit::core::RobotModel::hasJointModel(const std::string &name) const
+bool moveit::core::RobotModel::hasJointModel(const std::string& name) const
 {
   return joint_model_map_.find(name) != joint_model_map_.end();
 }
 
-bool moveit::core::RobotModel::hasLinkModel(const std::string &name) const
+bool moveit::core::RobotModel::hasLinkModel(const std::string& name) const
 {
   return link_model_map_.find(name) != link_model_map_.end();
 }
 
-const moveit::core::JointModel *moveit::core::RobotModel::getJointModel(const std::string &name) const
+const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name) const
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
@@ -1087,7 +1088,7 @@ const moveit::core::JointModel *moveit::core::RobotModel::getJointModel(const st
   return NULL;
 }
 
-const moveit::core::JointModel *moveit::core::RobotModel::getJointModel(int index) const
+const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(joint_model_vector_.size()))
   {
@@ -1098,7 +1099,7 @@ const moveit::core::JointModel *moveit::core::RobotModel::getJointModel(int inde
   return joint_model_vector_[index];
 }
 
-moveit::core::JointModel *moveit::core::RobotModel::getJointModel(const std::string &name)
+moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name)
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
@@ -1107,7 +1108,7 @@ moveit::core::JointModel *moveit::core::RobotModel::getJointModel(const std::str
   return NULL;
 }
 
-const moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(const std::string &name) const
+const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
 {
   LinkModelMap::const_iterator it = link_model_map_.find(name);
   if (it != link_model_map_.end())
@@ -1116,7 +1117,7 @@ const moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(const std:
   return NULL;
 }
 
-const moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(int index) const
+const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(link_model_vector_.size()))
   {
@@ -1127,7 +1128,7 @@ const moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(int index)
   return link_model_vector_[index];
 }
 
-moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(const std::string &name)
+moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name)
 {
   LinkModelMap::const_iterator it = link_model_map_.find(name);
   if (it != link_model_map_.end())
@@ -1136,7 +1137,7 @@ moveit::core::LinkModel *moveit::core::RobotModel::getLinkModel(const std::strin
   return NULL;
 }
 
-void moveit::core::RobotModel::updateMimicJoints(double *values) const
+void moveit::core::RobotModel::updateMimicJoints(double* values) const
 {
   for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
   {
@@ -1146,16 +1147,16 @@ void moveit::core::RobotModel::updateMimicJoints(double *values) const
   }
 }
 
-void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
-                                                          double *values) const
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                          double* values) const
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableRandomPositions(rng, values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
-                                                          std::map<std::string, double> &values) const
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                          std::map<std::string, double>& values) const
 {
   std::vector<double> tmp(variable_count_);
   getVariableRandomPositions(rng, &tmp[0]);
@@ -1164,14 +1165,14 @@ void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::Random
     values[variable_names_[i]] = tmp[i];
 }
 
-void moveit::core::RobotModel::getVariableDefaultPositions(double *values) const
+void moveit::core::RobotModel::getVariableDefaultPositions(double* values) const
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableDefaultPositions(values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string, double> &values) const
+void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string, double>& values) const
 {
   std::vector<double> tmp(variable_count_);
   getVariableDefaultPositions(&tmp[0]);
@@ -1180,8 +1181,8 @@ void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string,
     values[variable_names_[i]] = tmp[i];
 }
 
-void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::string> &variables,
-                                                       std::vector<std::string> &missing_variables) const
+void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::string>& variables,
+                                                       std::vector<std::string>& missing_variables) const
 {
   missing_variables.clear();
   std::set<std::string> keys(variables.begin(), variables.end());
@@ -1191,7 +1192,7 @@ void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::st
         missing_variables.push_back(variable_names_[i]);
 }
 
-int moveit::core::RobotModel::getVariableIndex(const std::string &variable) const
+int moveit::core::RobotModel::getVariableIndex(const std::string& variable) const
 {
   VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
@@ -1199,7 +1200,7 @@ int moveit::core::RobotModel::getVariableIndex(const std::string &variable) cons
   return it->second;
 }
 
-double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector &active_joint_bounds) const
+double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds) const
 {
   double max_distance = 0.0;
   for (std::size_t j = 0; j < active_joint_model_vector_.size(); ++j)
@@ -1208,8 +1209,8 @@ double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector &activ
   return max_distance;
 }
 
-bool moveit::core::RobotModel::satisfiesPositionBounds(const double *state,
-                                                       const JointBoundsVector &active_joint_bounds,
+bool moveit::core::RobotModel::satisfiesPositionBounds(const double* state,
+                                                       const JointBoundsVector& active_joint_bounds,
                                                        double margin) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
@@ -1220,7 +1221,7 @@ bool moveit::core::RobotModel::satisfiesPositionBounds(const double *state,
   return true;
 }
 
-bool moveit::core::RobotModel::enforcePositionBounds(double *state, const JointBoundsVector &active_joint_bounds) const
+bool moveit::core::RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   bool change = false;
@@ -1233,7 +1234,7 @@ bool moveit::core::RobotModel::enforcePositionBounds(double *state, const JointB
   return change;
 }
 
-double moveit::core::RobotModel::distance(const double *state1, const double *state2) const
+double moveit::core::RobotModel::distance(const double* state1, const double* state2) const
 {
   double d = 0.0;
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1243,7 +1244,7 @@ double moveit::core::RobotModel::distance(const double *state1, const double *st
   return d;
 }
 
-void moveit::core::RobotModel::interpolate(const double *from, const double *to, double t, double *state) const
+void moveit::core::RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
 {
   // we interpolate values only for active joint models (non-mimic)
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1254,7 +1255,7 @@ void moveit::core::RobotModel::interpolate(const double *from, const double *to,
   updateMimicJoints(state);
 }
 
-void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn> &allocators)
+void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
 {
   // we first set all the "simple" allocators -- where a group has one IK solver
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -1272,34 +1273,34 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
   // setSolverAllocators()
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
   {
-    JointModelGroup *jmg = it->second;
+    JointModelGroup* jmg = it->second;
     std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
     std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt == allocators.end())
     {
       // if an kinematics allocator is NOT available for this group, we try to see if we can use subgroups for IK
-      std::set<const JointModel *> joints;
+      std::set<const JointModel*> joints;
       joints.insert(jmg->getJointModels().begin(), jmg->getJointModels().end());
 
-      std::vector<const JointModelGroup *> subs;
+      std::vector<const JointModelGroup*> subs;
 
       // go through the groups that we know have IK allocators and see if they are included in the group that does not;
       // if so, put that group in sub
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin(); kt != allocators.end();
            ++kt)
       {
-        const JointModelGroup *sub = getJointModelGroup(kt->first);
+        const JointModelGroup* sub = getJointModelGroup(kt->first);
         if (!sub)
         {
           subs.clear();
           break;
         }
-        std::set<const JointModel *> sub_joints;
+        std::set<const JointModel*> sub_joints;
         sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
 
         if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
         {
-          std::set<const JointModel *> resultj;
+          std::set<const JointModel*> resultj;
           std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
                               std::inserter(resultj, resultj.end()));
           subs.push_back(sub);
@@ -1323,7 +1324,7 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
   }
 }
 
-void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
+void moveit::core::RobotModel::printModelInfo(std::ostream& out) const
 {
   out << "Model " << model_name_ << " in frame " << model_frame_ << ", using " << getVariableCount() << " variables"
       << std::endl;
@@ -1338,7 +1339,7 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
     out << " '" << joint_model_vector_[i]->getName() << "' (" << joint_model_vector_[i]->getTypeName() << ")"
         << std::endl;
     out << "  * Joint Index: " << joint_model_vector_[i]->getJointIndex() << std::endl;
-    const std::vector<std::string> &vn = joint_model_vector_[i]->getVariableNames();
+    const std::vector<std::string>& vn = joint_model_vector_[i]->getVariableNames();
     out << "  * " << vn.size() << (vn.size() > 1 ? " variables:" : (vn.empty() ? " variables" : " variable:"))
         << std::endl;
     int idx = joint_model_vector_[i]->getFirstVariableIndex();
@@ -1374,8 +1375,8 @@ void moveit::core::RobotModel::printModelInfo(std::ostream &out) const
     joint_model_groups_[i]->printGroupInfo(out);
 }
 
-void moveit::core::RobotModel::computeFixedTransforms(const LinkModel *link, const Eigen::Affine3d &transform,
-                                                      LinkTransformMap &associated_transforms)
+void moveit::core::RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+                                                      LinkTransformMap& associated_transforms)
 {
   associated_transforms[link] = transform * link->getJointOriginTransform();
   for (std::size_t i = 0; i < link->getChildJointModels().size(); ++i)

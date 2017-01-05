@@ -45,8 +45,8 @@
 
 namespace kinematics_constraint_aware
 {
-KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotModelConstPtr &kinematic_model,
-                                                     const std::string &group_name)
+KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotModelConstPtr& kinematic_model,
+                                                     const std::string& group_name)
 {
   if (!kinematic_model->hasJointModelGroup(group_name))
   {
@@ -98,9 +98,9 @@ KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotMod
   ik_attempts_ = 10;
 }
 
-bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                      const kinematics_constraint_aware::KinematicsRequest &request,
-                                      kinematics_constraint_aware::KinematicsResponse &response) const
+bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                      const kinematics_constraint_aware::KinematicsRequest& request,
+                                      kinematics_constraint_aware::KinematicsResponse& response) const
 {
   if (!joint_model_group_)
   {
@@ -193,11 +193,11 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
   return result;
 }
 
-bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                   const kinematics_constraint_aware::KinematicsRequest &request,
-                                                   kinematics_constraint_aware::KinematicsResponse &response,
-                                                   robot_state::JointStateGroup *joint_state_group,
-                                                   const std::vector<double> &joint_group_variable_values) const
+bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                   const kinematics_constraint_aware::KinematicsRequest& request,
+                                                   kinematics_constraint_aware::KinematicsResponse& response,
+                                                   robot_state::JointStateGroup* joint_state_group,
+                                                   const std::vector<double>& joint_group_variable_values) const
 {
   joint_state_group->setVariableValues(joint_group_variable_values);
 
@@ -244,9 +244,9 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
   return true;
 }
 
-bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                      const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
-                                      moveit_msgs::GetConstraintAwarePositionIK::Response &response) const
+bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                      const moveit_msgs::GetConstraintAwarePositionIK::Request& request,
+                                      moveit_msgs::GetConstraintAwarePositionIK::Response& response) const
 {
   if (!joint_model_group_)
   {
@@ -276,10 +276,10 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 }
 
 bool KinematicsConstraintAware::convertServiceRequest(
-    const planning_scene::PlanningSceneConstPtr &planning_scene,
-    const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
-    kinematics_constraint_aware::KinematicsRequest &kinematics_request,
-    kinematics_constraint_aware::KinematicsResponse &kinematics_response) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene,
+    const moveit_msgs::GetConstraintAwarePositionIK::Request& request,
+    kinematics_constraint_aware::KinematicsRequest& kinematics_request,
+    kinematics_constraint_aware::KinematicsResponse& kinematics_response) const
 {
   if (request.ik_request.group_name != group_name_)
   {
@@ -330,8 +330,8 @@ bool KinematicsConstraintAware::convertServiceRequest(
 }
 
 EigenSTL::vector_Affine3d KinematicsConstraintAware::transformPoses(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const robot_state::RobotState &kinematic_state,
-    const std::vector<geometry_msgs::PoseStamped> &poses, const std::string &target_frame) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const robot_state::RobotState& kinematic_state,
+    const std::vector<geometry_msgs::PoseStamped>& poses, const std::string& target_frame) const
 {
   Eigen::Affine3d eigen_pose, eigen_pose_2;
   EigenSTL::vector_Affine3d result(poses.size());
@@ -352,8 +352,8 @@ EigenSTL::vector_Affine3d KinematicsConstraintAware::transformPoses(
 }
 
 geometry_msgs::Pose KinematicsConstraintAware::getTipFramePose(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const robot_state::RobotState &kinematic_state,
-    const geometry_msgs::Pose &pose, const std::string &link_name, unsigned int sub_group_index) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const robot_state::RobotState& kinematic_state,
+    const geometry_msgs::Pose& pose, const std::string& link_name, unsigned int sub_group_index) const
 {
   geometry_msgs::Pose result;
   Eigen::Affine3d eigen_pose_in, eigen_pose_link, eigen_pose_tip;

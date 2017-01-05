@@ -52,36 +52,36 @@ MOVEIT_CLASS_FORWARD(BaseFakeController);
 class BaseFakeController : public moveit_controller_manager::MoveItControllerHandle
 {
 public:
-  BaseFakeController(const std::string &name, const std::vector<std::string> &joints, const ros::Publisher &pub);
+  BaseFakeController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
 
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus();
-  void getJoints(std::vector<std::string> &joints) const;
+  void getJoints(std::vector<std::string>& joints) const;
 
 protected:
   std::vector<std::string> joints_;
-  const ros::Publisher &pub_;
+  const ros::Publisher& pub_;
 };
 
 class LastPointController : public BaseFakeController
 {
 public:
-  LastPointController(const std::string &name, const std::vector<std::string> &joints, const ros::Publisher &pub);
+  LastPointController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~LastPointController();
 
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t);
+  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
   virtual bool cancelExecution();
-  virtual bool waitForExecution(const ros::Duration &);
+  virtual bool waitForExecution(const ros::Duration&);
 };
 
 class ThreadedController : public BaseFakeController
 {
 public:
-  ThreadedController(const std::string &name, const std::vector<std::string> &joints, const ros::Publisher &pub);
+  ThreadedController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~ThreadedController();
 
-  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t);
+  virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& t);
   virtual bool cancelExecution();
-  virtual bool waitForExecution(const ros::Duration &);
+  virtual bool waitForExecution(const ros::Duration&);
   virtual moveit_controller_manager::ExecutionStatus getLastExecutionStatus();
 
 protected:
@@ -91,7 +91,7 @@ protected:
   }
 
 private:
-  virtual void execTrajectory(const moveit_msgs::RobotTrajectory &t) = 0;
+  virtual void execTrajectory(const moveit_msgs::RobotTrajectory& t) = 0;
   virtual void cancelTrajectory();
 
 private:
@@ -103,21 +103,21 @@ private:
 class ViaPointController : public ThreadedController
 {
 public:
-  ViaPointController(const std::string &name, const std::vector<std::string> &joints, const ros::Publisher &pub);
+  ViaPointController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~ViaPointController();
 
 protected:
-  virtual void execTrajectory(const moveit_msgs::RobotTrajectory &t);
+  virtual void execTrajectory(const moveit_msgs::RobotTrajectory& t);
 };
 
 class InterpolatingController : public ThreadedController
 {
 public:
-  InterpolatingController(const std::string &name, const std::vector<std::string> &joints, const ros::Publisher &pub);
+  InterpolatingController(const std::string& name, const std::vector<std::string>& joints, const ros::Publisher& pub);
   ~InterpolatingController();
 
 protected:
-  virtual void execTrajectory(const moveit_msgs::RobotTrajectory &t);
+  virtual void execTrajectory(const moveit_msgs::RobotTrajectory& t);
 
 private:
   ros::WallRate rate_;

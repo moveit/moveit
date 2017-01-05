@@ -92,7 +92,8 @@ public:
   /// Definition of a post-run benchmark event function.  Invoked immediately after each planner calls solve().
   typedef boost::function<void(const moveit_msgs::MotionPlanRequest& request,
                                const planning_interface::MotionPlanDetailedResponse& response,
-                               PlannerRunData& run_data)> PostRunEventFunction;
+                               PlannerRunData& run_data)>
+      PostRunEventFunction;
 
   BenchmarkExecutor(const std::string& robot_description_param = "robot_description");
   virtual ~BenchmarkExecutor();

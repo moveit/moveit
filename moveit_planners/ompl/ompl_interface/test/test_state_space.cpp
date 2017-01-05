@@ -97,7 +97,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
     ss.sanityChecks();
     passed = true;
   }
-  catch (ompl::Exception &ex)
+  catch (ompl::Exception& ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -140,7 +140,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     ss.sanityChecks();
     passed = true;
   }
-  catch (ompl::Exception &ex)
+  catch (ompl::Exception& ex)
   {
     logError("Sanity checks did not pass: %s", ex.what());
   }
@@ -149,7 +149,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   robot_state::RobotState kstate(robot_model_);
   kstate.setToRandomPositions();
   EXPECT_TRUE(kstate.distance(kstate) < 1e-12);
-  ompl::base::State *state = ss.allocState();
+  ompl::base::State* state = ss.allocState();
   for (int i = 0; i < 10; ++i)
   {
     robot_state::RobotState kstate2(kstate);
@@ -157,18 +157,20 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
     ss.copyToOMPLState(state, kstate);
     kstate.setToRandomPositions(kstate.getRobotModel()->getJointModelGroup(ss.getJointModelGroupName()));
     std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+              << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) > 1e-12);
     ss.copyToRobotState(kstate, state);
     std::cout << (kstate.getGlobalLinkTransform("r_wrist_roll_link").translation() -
-                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation()) << std::endl;
+                  kstate2.getGlobalLinkTransform("r_wrist_roll_link").translation())
+              << std::endl;
     EXPECT_TRUE(kstate.distance(kstate2) < 1e-12);
   }
 
   ss.freeState(state);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

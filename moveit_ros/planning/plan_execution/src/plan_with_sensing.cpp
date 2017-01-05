@@ -49,7 +49,7 @@ using namespace moveit_ros_planning;
 class PlanWithSensing::DynamicReconfigureImpl
 {
 public:
-  DynamicReconfigureImpl(PlanWithSensing *owner)
+  DynamicReconfigureImpl(PlanWithSensing* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
     dynamic_reconfigure_server_.setCallback(
@@ -57,7 +57,7 @@ public:
   }
 
 private:
-  void dynamicReconfigureCallback(SenseForPlanDynamicReconfigureConfig &config, uint32_t level)
+  void dynamicReconfigureCallback(SenseForPlanDynamicReconfigureConfig& config, uint32_t level)
   {
     owner_->setMaxSafePathCost(config.max_safe_path_cost);
     owner_->setMaxCostSources(config.max_cost_sources);
@@ -65,13 +65,13 @@ private:
     owner_->setDiscardOverlappingCostSources(config.discard_overlapping_cost_sources);
   }
 
-  PlanWithSensing *owner_;
+  PlanWithSensing* owner_;
   dynamic_reconfigure::Server<SenseForPlanDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 }
 
 plan_execution::PlanWithSensing::PlanWithSensing(
-    const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution)
+    const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution)
   : node_handle_("~"), trajectory_execution_manager_(trajectory_execution)
 {
   default_max_look_attempts_ = 3;
@@ -91,7 +91,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(
       sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>(
           "moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
     }
-    catch (pluginlib::PluginlibException &ex)
+    catch (pluginlib::PluginlibException& ex)
     {
       ROS_ERROR_STREAM("Exception while creating sensor manager plugin loader: " << ex.what());
     }
@@ -103,7 +103,7 @@ plan_execution::PlanWithSensing::PlanWithSensing(
         {
           sensor_manager_ = sensor_manager_loader_->createUniqueInstance(manager);
         }
-        catch (pluginlib::PluginlibException &ex)
+        catch (pluginlib::PluginlibException& ex)
         {
           ROS_ERROR_STREAM("Exception while loading sensor manager '" << manager << "': " << ex.what());
         }
@@ -136,8 +136,8 @@ void plan_execution::PlanWithSensing::displayCostSources(bool flag)
   display_cost_sources_ = flag;
 }
 
-bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan,
-                                                  const ExecutableMotionPlanComputationFn &motion_planner,
+bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan& plan,
+                                                  const ExecutableMotionPlanComputationFn& motion_planner,
                                                   unsigned int max_look_attempts, double max_safe_path_cost)
 {
   if (max_safe_path_cost <= std::numeric_limits<double>::epsilon())
@@ -243,8 +243,8 @@ bool plan_execution::PlanWithSensing::computePlan(ExecutableMotionPlan &plan,
   return false;
 }
 
-bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection::CostSource> &cost_sources,
-                                             const std::string &frame_id)
+bool plan_execution::PlanWithSensing::lookAt(const std::set<collision_detection::CostSource>& cost_sources,
+                                             const std::string& frame_id)
 {
   if (!sensor_manager_)
   {

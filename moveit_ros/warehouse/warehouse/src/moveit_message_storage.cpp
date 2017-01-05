@@ -44,8 +44,8 @@ moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::Data
 {
 }
 
-void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex,
-                                                         std::vector<std::string> &names) const
+void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string& regex,
+                                                         std::vector<std::string>& names) const
 {
   if (!regex.empty())
   {

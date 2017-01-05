@@ -47,24 +47,24 @@ namespace core
 class FloatingJointModel : public JointModel
 {
 public:
-  FloatingJointModel(const std::string &name);
+  FloatingJointModel(const std::string& name);
 
-  virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values,
-                                          const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                                const Bounds &other_bounds, const double *near,
+  virtual void getVariableDefaultPositions(double* values, const Bounds& other_bounds) const;
+  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
+                                          const Bounds& other_bounds) const;
+  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                                const Bounds& other_bounds, const double* near,
                                                 const double distance) const;
-  virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const;
-  virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const;
+  virtual bool enforcePositionBounds(double* values, const Bounds& other_bounds) const;
+  virtual bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const;
 
-  virtual void interpolate(const double *from, const double *to, const double t, double *state) const;
+  virtual void interpolate(const double* from, const double* to, const double t, double* state) const;
   virtual unsigned int getStateSpaceDimension() const;
-  virtual double getMaximumExtent(const Bounds &other_bounds) const;
-  virtual double distance(const double *values1, const double *values2) const;
+  virtual double getMaximumExtent(const Bounds& other_bounds) const;
+  virtual double distance(const double* values1, const double* values2) const;
 
-  virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeVariablePositions(const Eigen::Affine3d &transf, double *joint_values) const;
+  virtual void computeTransform(const double* joint_values, Eigen::Affine3d& transf) const;
+  virtual void computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const;
 
   double getAngularDistanceWeight() const
   {
@@ -78,13 +78,13 @@ public:
 
   /// Normalize the quaternion (warn if norm is 0, and set to identity);
   /// Return true if any change was made
-  bool normalizeRotation(double *values) const;
+  bool normalizeRotation(double* values) const;
 
   /// Get the distance between the rotation components of two states
-  double distanceRotation(const double *values1, const double *values2) const;
+  double distanceRotation(const double* values1, const double* values2) const;
 
   /// Get the distance between the translation components of two states
-  double distanceTranslation(const double *values1, const double *values2) const;
+  double distanceTranslation(const double* values1, const double* values2) const;
 
 private:
   double angular_distance_weight_;

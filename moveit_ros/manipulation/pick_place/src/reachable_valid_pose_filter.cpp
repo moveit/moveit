@@ -41,9 +41,9 @@
 #include <ros/console.h>
 
 pick_place::ReachableAndValidPoseFilter::ReachableAndValidPoseFilter(
-    const planning_scene::PlanningSceneConstPtr &scene,
-    const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-    const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager)
+    const planning_scene::PlanningSceneConstPtr& scene,
+    const collision_detection::AllowedCollisionMatrixConstPtr& collision_matrix,
+    const constraint_samplers::ConstraintSamplerManagerPtr& constraints_sampler_manager)
   : ManipulationStage("reachable & valid pose filter")
   , planning_scene_(scene)
   , collision_matrix_(collision_matrix)
@@ -53,10 +53,10 @@ pick_place::ReachableAndValidPoseFilter::ReachableAndValidPoseFilter(
 
 namespace
 {
-bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
-                          const collision_detection::AllowedCollisionMatrix *collision_matrix, bool verbose,
-                          const pick_place::ManipulationPlan *manipulation_plan, robot_state::RobotState *state,
-                          const robot_model::JointModelGroup *group, const double *joint_group_variable_values)
+bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
+                          const collision_detection::AllowedCollisionMatrix* collision_matrix, bool verbose,
+                          const pick_place::ManipulationPlan* manipulation_plan, robot_state::RobotState* state,
+                          const robot_model::JointModelGroup* group, const double* joint_group_variable_values)
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
@@ -89,8 +89,8 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
 }
 }
 
-bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr &plan,
-                                                                robot_state::RobotState &token_state) const
+bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const ManipulationPlanPtr& plan,
+                                                                robot_state::RobotState& token_state) const
 {
   tf::poseMsgToEigen(plan->goal_pose_.pose, plan->transformed_goal_pose_);
   plan->transformed_goal_pose_ =
@@ -104,7 +104,7 @@ bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const Manipulati
   return res.collision == false;
 }
 
-bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr &plan) const
+bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr& plan) const
 {
   // initialize with scene state
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
@@ -124,7 +124,7 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
     plan->goal_constraints_ =
         kinematic_constraints::constructGoalConstraints(plan->shared_data_->ik_link_->getName(), plan->goal_pose_);
 
-    const std::string &planning_group = plan->shared_data_->planning_group_->getName();
+    const std::string& planning_group = plan->shared_data_->planning_group_->getName();
 
     // construct a sampler for the specified constraints; this can end up calling just IK, but it is more general
     // and allows for robot-specific samplers, producing samples that also change the base position if needed, etc

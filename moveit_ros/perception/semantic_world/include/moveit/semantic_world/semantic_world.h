@@ -69,7 +69,7 @@ public:
    * @brief A (simple) semantic world representation for pick and place and other tasks.
    * Currently this is used only to represent tables.
    */
-  SemanticWorld(const planning_scene::PlanningSceneConstPtr &planning_scene);
+  SemanticWorld(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
   /**
    * @brief Get all the tables within a region of interest
@@ -88,9 +88,9 @@ public:
    * values for min_distance_from_edge and for height_above_table based on the object properties.
    * The assumption is that the object is represented by a mesh.
    */
-  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const std::string &table_name,
-                                                             const shapes::ShapeConstPtr &object_shape,
-                                                             const geometry_msgs::Quaternion &object_orientation,
+  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const std::string& table_name,
+                                                             const shapes::ShapeConstPtr& object_shape,
+                                                             const geometry_msgs::Quaternion& object_orientation,
                                                              double resolution, double delta_height = 0.01,
                                                              unsigned int num_heights = 2) const;
 
@@ -99,9 +99,9 @@ public:
    * values for min_distance_from_edge and for height_above_table based on the object properties.
    * The assumption is that the object is represented by a mesh.
    */
-  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
-                                                             const shapes::ShapeConstPtr &object_shape,
-                                                             const geometry_msgs::Quaternion &object_orientation,
+  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table& table,
+                                                             const shapes::ShapeConstPtr& object_shape,
+                                                             const geometry_msgs::Quaternion& object_orientation,
                                                              double resolution, double delta_height = 0.01,
                                                              unsigned int num_heights = 2) const;
   /**
@@ -111,7 +111,7 @@ public:
    * times) incremented by delta_height. Locations are only accepted if they are at least min_distance_from_edge
    * meters from the edge of the table.
    */
-  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table &table,
+  std::vector<geometry_msgs::PoseStamped> generatePlacePoses(const object_recognition_msgs::Table& table,
                                                              double resolution, double height_above_table,
                                                              double delta_height = 0.01, unsigned int num_heights = 2,
                                                              double min_distance_from_edge = 0.10) const;
@@ -120,27 +120,27 @@ public:
 
   bool addTablesToCollisionWorld();
 
-  visualization_msgs::MarkerArray getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped> &poses) const;
+  visualization_msgs::MarkerArray getPlaceLocationsMarker(const std::vector<geometry_msgs::PoseStamped>& poses) const;
 
-  void addTableCallback(const TableCallbackFn &table_callback)
+  void addTableCallback(const TableCallbackFn& table_callback)
   {
     table_callback_ = table_callback;
   }
 
-  std::string findObjectTable(const geometry_msgs::Pose &pose, double min_distance_from_edge = 0.0,
+  std::string findObjectTable(const geometry_msgs::Pose& pose, double min_distance_from_edge = 0.0,
                               double min_vertical_offset = 0.0) const;
 
-  bool isInsideTableContour(const geometry_msgs::Pose &pose, const object_recognition_msgs::Table &table,
+  bool isInsideTableContour(const geometry_msgs::Pose& pose, const object_recognition_msgs::Table& table,
                             double min_distance_from_edge = 0.0, double min_vertical_offset = 0.0) const;
 
 private:
-  shapes::Mesh *createSolidMeshFromPlanarPolygon(const shapes::Mesh &polygon, double thickness) const;
+  shapes::Mesh* createSolidMeshFromPlanarPolygon(const shapes::Mesh& polygon, double thickness) const;
 
-  shapes::Mesh *orientPlanarPolygon(const shapes::Mesh &polygon) const;
+  shapes::Mesh* orientPlanarPolygon(const shapes::Mesh& polygon) const;
 
-  void tableCallback(const object_recognition_msgs::TableArrayPtr &msg);
+  void tableCallback(const object_recognition_msgs::TableArrayPtr& msg);
 
-  void transformTableArray(object_recognition_msgs::TableArray &table_array) const;
+  void transformTableArray(object_recognition_msgs::TableArray& table_array) const;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
 

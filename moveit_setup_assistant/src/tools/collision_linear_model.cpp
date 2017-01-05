@@ -42,7 +42,7 @@
 
 using namespace moveit_setup_assistant;
 
-CollisionLinearModel::CollisionLinearModel(CollisionMatrixModel *src, QObject *parent) : QAbstractProxyModel(parent)
+CollisionLinearModel::CollisionLinearModel(CollisionMatrixModel* src, QObject* parent) : QAbstractProxyModel(parent)
 {
   setSourceModel(src);
 }
@@ -51,7 +51,7 @@ CollisionLinearModel::~CollisionLinearModel()
   delete sourceModel();
 }
 
-QModelIndex CollisionLinearModel::mapFromSource(const QModelIndex &sourceIndex) const
+QModelIndex CollisionLinearModel::mapFromSource(const QModelIndex& sourceIndex) const
 {
   // map (row,column) index to linear index k
   // http://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
@@ -66,7 +66,7 @@ QModelIndex CollisionLinearModel::mapFromSource(const QModelIndex &sourceIndex) 
   return index(k, 2);
 }
 
-QModelIndex CollisionLinearModel::mapToSource(const QModelIndex &proxyIndex) const
+QModelIndex CollisionLinearModel::mapToSource(const QModelIndex& proxyIndex) const
 {
   // map linear index k to (row, column)
   // http://stackoverflow.com/questions/27086195/linear-index-upper-triangular-matrix
@@ -77,28 +77,28 @@ QModelIndex CollisionLinearModel::mapToSource(const QModelIndex &proxyIndex) con
   return sourceModel()->index(r, c);
 }
 
-int CollisionLinearModel::rowCount(const QModelIndex &parent) const
+int CollisionLinearModel::rowCount(const QModelIndex& parent) const
 {
   int n = this->sourceModel()->rowCount();
   return (n * (n - 1) / 2);
 }
 
-int CollisionLinearModel::columnCount(const QModelIndex &parent) const
+int CollisionLinearModel::columnCount(const QModelIndex& parent) const
 {
   return 4;
 }
 
-QModelIndex CollisionLinearModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex CollisionLinearModel::index(int row, int column, const QModelIndex& parent) const
 {
   return createIndex(row, column);
 }
 
-QModelIndex CollisionLinearModel::parent(const QModelIndex &child) const
+QModelIndex CollisionLinearModel::parent(const QModelIndex& child) const
 {
   return QModelIndex();
 }
 
-QVariant CollisionLinearModel::data(const QModelIndex &index, int role) const
+QVariant CollisionLinearModel::data(const QModelIndex& index, int role) const
 {
   QModelIndex srcIndex = this->mapToSource(index);
   switch (index.column())
@@ -129,10 +129,10 @@ QVariant CollisionLinearModel::data(const QModelIndex &index, int role) const
 DisabledReason CollisionLinearModel::reason(int row) const
 {
   QModelIndex srcIndex = this->mapToSource(index(row, 0));
-  return qobject_cast<CollisionMatrixModel *>(sourceModel())->reason(srcIndex);
+  return qobject_cast<CollisionMatrixModel*>(sourceModel())->reason(srcIndex);
 }
 
-bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool CollisionLinearModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   QModelIndex srcIndex = this->mapToSource(index);
 
@@ -146,7 +146,7 @@ bool CollisionLinearModel::setData(const QModelIndex &index, const QVariant &val
   return false;  // reject all other changes
 }
 
-void CollisionLinearModel::setEnabled(const QItemSelection &selection, bool value)
+void CollisionLinearModel::setEnabled(const QItemSelection& selection, bool value)
 {
   for (const auto idx : selection.indexes())
   {
@@ -156,7 +156,7 @@ void CollisionLinearModel::setEnabled(const QItemSelection &selection, bool valu
   }
 }
 
-Qt::ItemFlags CollisionLinearModel::flags(const QModelIndex &index) const
+Qt::ItemFlags CollisionLinearModel::flags(const QModelIndex& index) const
 {
   if (index.column() == 2)
     return Qt::ItemIsUserCheckable | QAbstractItemModel::flags(index);
@@ -190,7 +190,7 @@ QVariant CollisionLinearModel::headerData(int section, Qt::Orientation orientati
   return QVariant();
 }
 
-SortFilterProxyModel::SortFilterProxyModel(QObject *parent) : QSortFilterProxyModel(parent), show_all_(false)
+SortFilterProxyModel::SortFilterProxyModel(QObject* parent) : QSortFilterProxyModel(parent), show_all_(false)
 {
   connect(this, SIGNAL(sourceModelChanged()), this, SLOT(initSorting()));
 
@@ -207,9 +207,9 @@ QVariant SortFilterProxyModel::headerData(int section, Qt::Orientation orientati
     return QSortFilterProxyModel::headerData(section, orientation, role);
 }
 
-void SortFilterProxyModel::setEnabled(const QItemSelection &selection, bool value)
+void SortFilterProxyModel::setEnabled(const QItemSelection& selection, bool value)
 {
-  static_cast<CollisionLinearModel *>(sourceModel())->setEnabled(mapSelectionToSource(selection), value);
+  static_cast<CollisionLinearModel*>(sourceModel())->setEnabled(mapSelectionToSource(selection), value);
 }
 
 void SortFilterProxyModel::initSorting()
@@ -233,9 +233,9 @@ void SortFilterProxyModel::setShowAll(bool show_all)
   invalidateFilter();
 }
 
-bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
 {
-  CollisionLinearModel *m = qobject_cast<CollisionLinearModel *>(sourceModel());
+  CollisionLinearModel* m = qobject_cast<CollisionLinearModel*>(sourceModel());
   if (!(show_all_ || m->reason(source_row) <= moveit_setup_assistant::ALWAYS ||
         m->data(m->index(source_row, 2), Qt::CheckStateRole) == Qt::Checked))
     return false;  // not accepted due to check state
@@ -248,11 +248,11 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &s
          m->data(m->index(source_row, 1, source_parent), Qt::DisplayRole).toString().contains(regexp);
 }
 
-bool SortFilterProxyModel::lessThan(const QModelIndex &src_left, const QModelIndex &src_right) const
+bool SortFilterProxyModel::lessThan(const QModelIndex& src_left, const QModelIndex& src_right) const
 {
   int row_left = src_left.row();
   int row_right = src_right.row();
-  QAbstractItemModel *m = sourceModel();
+  QAbstractItemModel* m = sourceModel();
 
   for (int i = 0, end = sort_columns_.size(); i < end && sort_columns_[i] >= 0; ++i)
   {

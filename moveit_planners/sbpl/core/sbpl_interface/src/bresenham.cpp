@@ -36,7 +36,7 @@
 
 #include <sbpl_interface/bresenham.h>
 
-void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int p2z, bresenham3d_param_t *params)
+void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int p2z, bresenham3d_param_t* params)
 {
   params->X1 = p1x;
   params->Y1 = p1y;
@@ -93,14 +93,14 @@ void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int
   }
 }
 
-void get_current_point3d(bresenham3d_param_t *params, int *x, int *y, int *z)
+void get_current_point3d(bresenham3d_param_t* params, int* x, int* y, int* z)
 {
   *x = params->XIndex;
   *y = params->YIndex;
   *z = params->ZIndex;
 }
 
-int get_next_point3d(bresenham3d_param_t *params)
+int get_next_point3d(bresenham3d_param_t* params)
 {
   // check to see if at end of line
   if (params->XIndex == params->X2 && params->YIndex == params->Y2 && params->ZIndex == params->Z2)

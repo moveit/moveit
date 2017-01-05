@@ -39,7 +39,7 @@
 
 namespace occupancy_map_monitor
 {
-LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const OccMapTreePtr &tree, unsigned int max_batch_size)
+LazyFreeSpaceUpdater::LazyFreeSpaceUpdater(const OccMapTreePtr& tree, unsigned int max_batch_size)
   : tree_(tree)
   , running_(true)
   , max_batch_size_(max_batch_size)
@@ -67,8 +67,8 @@ LazyFreeSpaceUpdater::~LazyFreeSpaceUpdater()
   process_thread_.join();
 }
 
-void LazyFreeSpaceUpdater::pushLazyUpdate(octomap::KeySet *occupied_cells, octomap::KeySet *model_cells,
-                                          const octomap::point3d &sensor_origin)
+void LazyFreeSpaceUpdater::pushLazyUpdate(octomap::KeySet* occupied_cells, octomap::KeySet* model_cells,
+                                          const octomap::point3d& sensor_origin)
 {
   ROS_DEBUG("Pushing %lu occupied cells and %lu model cells for lazy updating...",
             (long unsigned int)occupied_cells->size(), (long unsigned int)model_cells->size());
@@ -79,8 +79,8 @@ void LazyFreeSpaceUpdater::pushLazyUpdate(octomap::KeySet *occupied_cells, octom
   update_condition_.notify_one();
 }
 
-void LazyFreeSpaceUpdater::pushBatchToProcess(OcTreeKeyCountMap *occupied_cells, octomap::KeySet *model_cells,
-                                              const octomap::point3d &sensor_origin)
+void LazyFreeSpaceUpdater::pushBatchToProcess(OcTreeKeyCountMap* occupied_cells, octomap::KeySet* model_cells,
+                                              const octomap::point3d& sensor_origin)
 {
   // this is basically a queue of size 1. if this function is called repeatedly without any work being done by
   // processThread(),
@@ -203,8 +203,8 @@ void LazyFreeSpaceUpdater::processThread()
 
 void LazyFreeSpaceUpdater::lazyUpdateThread()
 {
-  OcTreeKeyCountMap *occupied_cells_set = NULL;
-  octomap::KeySet *model_cells_set = NULL;
+  OcTreeKeyCountMap* occupied_cells_set = NULL;
+  octomap::KeySet* model_cells_set = NULL;
   octomap::point3d sensor_origin;
   unsigned int batch_size = 0;
 
@@ -220,7 +220,7 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
     if (batch_size == 0)
     {
       occupied_cells_set = new OcTreeKeyCountMap();
-      octomap::KeySet *s = occupied_cells_sets_.front();
+      octomap::KeySet* s = occupied_cells_sets_.front();
       occupied_cells_sets_.pop_front();
       for (octomap::KeySet::iterator it = s->begin(), end = s->end(); it != end; ++it)
         (*occupied_cells_set)[*it]++;
@@ -243,12 +243,12 @@ void LazyFreeSpaceUpdater::lazyUpdateThread()
       }
       sensor_origins_.pop_front();
 
-      octomap::KeySet *add_occ = occupied_cells_sets_.front();
+      octomap::KeySet* add_occ = occupied_cells_sets_.front();
       for (octomap::KeySet::iterator it = add_occ->begin(), end = add_occ->end(); it != end; ++it)
         (*occupied_cells_set)[*it]++;
       occupied_cells_sets_.pop_front();
       delete add_occ;
-      octomap::KeySet *mod_occ = model_cells_sets_.front();
+      octomap::KeySet* mod_occ = model_cells_sets_.front();
       model_cells_set->insert(mod_occ->begin(), mod_occ->end());
       model_cells_sets_.pop_front();
       delete mod_occ;

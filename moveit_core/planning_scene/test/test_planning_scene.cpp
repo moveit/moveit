@@ -43,7 +43,7 @@
 
 // This function needs to return void so the gtest FAIL() macro inside
 // it works right.
-void loadRobotModel(urdf::ModelInterfaceSharedPtr &robot_model_out)
+void loadRobotModel(urdf::ModelInterfaceSharedPtr& robot_model_out)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
@@ -79,7 +79,7 @@ TEST(PlanningScene, LoadRestoreDiff)
 
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
-  collision_detection::World &world = *ps->getWorldNonConst();
+  collision_detection::World& world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
@@ -116,7 +116,7 @@ TEST(PlanningScene, MakeAttachedDiff)
 
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(urdf_model, srdf_model));
 
-  collision_detection::World &world = *ps->getWorldNonConst();
+  collision_detection::World& world = *ps->getWorldNonConst();
   Eigen::Affine3d id = Eigen::Affine3d::Identity();
   world.addToObject("sphere", shapes::ShapeConstPtr(new shapes::Sphere(0.4)), id);
 
@@ -135,7 +135,7 @@ TEST(PlanningScene, MakeAttachedDiff)
   ps->checkCollision(req, res);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -40,7 +40,7 @@
 
 namespace moveit_setup_assistant
 {
-RotatedHeaderView::RotatedHeaderView(Qt::Orientation orientation, QWidget *parent) : QHeaderView(orientation, parent)
+RotatedHeaderView::RotatedHeaderView(Qt::Orientation orientation, QWidget* parent) : QHeaderView(orientation, parent)
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
   setSectionsClickable(true);
@@ -52,7 +52,7 @@ RotatedHeaderView::RotatedHeaderView(Qt::Orientation orientation, QWidget *paren
   setDefaultSectionSize(27);
 }
 
-void RotatedHeaderView::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const
+void RotatedHeaderView::paintSection(QPainter* painter, const QRect& rect, int logicalIndex) const
 {
   if (orientation() == Qt::Vertical)
   {

@@ -59,7 +59,7 @@ struct GroupStateRepresentation
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   GroupStateRepresentation(){};
-  GroupStateRepresentation(const GroupStateRepresentation &gsr)
+  GroupStateRepresentation(const GroupStateRepresentation& gsr)
   {
     link_body_decompositions_.resize(gsr.link_body_decompositions_.size());
     for (unsigned int i = 0; i < gsr.link_body_decompositions_.size(); i++)
@@ -166,18 +166,18 @@ struct DistanceFieldCacheEntry
   std::vector<std::vector<bool>> intra_group_collision_enabled_;
 };
 
-BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr &shape, double resolution);
+BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeConstPtr& shape, double resolution);
 
-PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object &obj,
+PosedBodyPointDecompositionVectorPtr getCollisionObjectPointDecomposition(const collision_detection::World::Object& obj,
                                                                           double resolution);
 
-PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody *att,
+PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const robot_state::AttachedBody* att,
                                                                          double resolution);
 
-PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody *att,
+PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution);
 
-void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr &gsr, std::string reference_frame,
-                                       visualization_msgs::MarkerArray &body_marker_array);
+void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr& gsr, std::string reference_frame,
+                                       visualization_msgs::MarkerArray& body_marker_array);
 }
 #endif

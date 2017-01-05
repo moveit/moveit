@@ -222,7 +222,7 @@ struct TestAction
 };
 
 /* notification callback */
-static void TrackChangesNotify(TestAction *ta, const collision_detection::World::ObjectConstPtr &obj,
+static void TrackChangesNotify(TestAction* ta, const collision_detection::World::ObjectConstPtr& obj,
                                collision_detection::World::Action action)
 {
   ta->obj_ = *obj;
@@ -365,7 +365,7 @@ TEST(World, TrackChanges)
   EXPECT_EQ(4, ta3.cnt_);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

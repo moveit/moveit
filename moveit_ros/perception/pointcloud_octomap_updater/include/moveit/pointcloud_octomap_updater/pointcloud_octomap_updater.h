@@ -55,21 +55,21 @@ public:
   PointCloudOctomapUpdater();
   virtual ~PointCloudOctomapUpdater();
 
-  virtual bool setParams(XmlRpc::XmlRpcValue &params);
+  virtual bool setParams(XmlRpc::XmlRpcValue& params);
 
   virtual bool initialize();
   virtual void start();
   virtual void stop();
-  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  virtual ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape);
   virtual void forgetShape(ShapeHandle handle);
 
 protected:
-  virtual void updateMask(const sensor_msgs::PointCloud2 &cloud, const Eigen::Vector3d &sensor_origin,
-                          std::vector<int> &mask);
+  virtual void updateMask(const sensor_msgs::PointCloud2& cloud, const Eigen::Vector3d& sensor_origin,
+                          std::vector<int>& mask);
 
 private:
-  bool getShapeTransform(ShapeHandle h, Eigen::Affine3d &transform) const;
-  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr &cloud_msg);
+  bool getShapeTransform(ShapeHandle h, Eigen::Affine3d& transform) const;
+  void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
   void stopHelper();
 
   ros::NodeHandle root_nh_;
@@ -85,8 +85,8 @@ private:
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
 
-  message_filters::Subscriber<sensor_msgs::PointCloud2> *point_cloud_subscriber_;
-  tf::MessageFilter<sensor_msgs::PointCloud2> *point_cloud_filter_;
+  message_filters::Subscriber<sensor_msgs::PointCloud2>* point_cloud_subscriber_;
+  tf::MessageFilter<sensor_msgs::PointCloud2>* point_cloud_filter_;
 
   /* used to store all cells in the map which a given ray passes through during raycasting.
      we cache this here because it dynamically pre-allocates a lot of memory in its contsructor */

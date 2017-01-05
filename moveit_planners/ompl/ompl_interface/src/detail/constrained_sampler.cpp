@@ -38,8 +38,8 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext *pc,
-                                                       const constraint_samplers::ConstraintSamplerPtr &cs)
+ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext* pc,
+                                                       const constraint_samplers::ConstraintSamplerPtr& cs)
   : ob::StateSampler(pc->getOMPLStateSpace().get())
   , planning_context_(pc)
   , default_(space_->allocDefaultStateSampler())
@@ -59,7 +59,7 @@ double ompl_interface::ConstrainedSampler::getConstrainedSamplingRate() const
     return (double)constrained_success_ / (double)(constrained_success_ + constrained_failure_);
 }
 
-bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
+bool ompl_interface::ConstrainedSampler::sampleC(ob::State* state)
 {
   //  moveit::Profiler::ScopedBlock sblock("sampleWithConstraints");
 
@@ -77,13 +77,13 @@ bool ompl_interface::ConstrainedSampler::sampleC(ob::State *state)
   return false;
 }
 
-void ompl_interface::ConstrainedSampler::sampleUniform(ob::State *state)
+void ompl_interface::ConstrainedSampler::sampleUniform(ob::State* state)
 {
   if (!sampleC(state) && !sampleC(state) && !sampleC(state))
     default_->sampleUniform(state);
 }
 
-void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, const ob::State *near,
+void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State* state, const ob::State* near,
                                                            const double distance)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
@@ -99,7 +99,7 @@ void ompl_interface::ConstrainedSampler::sampleUniformNear(ob::State *state, con
     default_->sampleUniformNear(state, near, distance);
 }
 
-void ompl_interface::ConstrainedSampler::sampleGaussian(ob::State *state, const ob::State *mean, const double stdDev)
+void ompl_interface::ConstrainedSampler::sampleGaussian(ob::State* state, const ob::State* mean, const double stdDev)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
   {

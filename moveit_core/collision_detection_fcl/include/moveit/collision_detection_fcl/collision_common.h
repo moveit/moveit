@@ -52,23 +52,23 @@ MOVEIT_CLASS_FORWARD(CollisionGeometryData);
 
 struct CollisionGeometryData
 {
-  CollisionGeometryData(const robot_model::LinkModel *link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
+  CollisionGeometryData(const robot_model::LinkModel* link, int index) : type(BodyTypes::ROBOT_LINK), shape_index(index)
   {
     ptr.link = link;
   }
 
-  CollisionGeometryData(const robot_state::AttachedBody *ab, int index)
+  CollisionGeometryData(const robot_state::AttachedBody* ab, int index)
     : type(BodyTypes::ROBOT_ATTACHED), shape_index(index)
   {
     ptr.ab = ab;
   }
 
-  CollisionGeometryData(const World::Object *obj, int index) : type(BodyTypes::WORLD_OBJECT), shape_index(index)
+  CollisionGeometryData(const World::Object* obj, int index) : type(BodyTypes::WORLD_OBJECT), shape_index(index)
   {
     ptr.obj = obj;
   }
 
-  const std::string &getID() const
+  const std::string& getID() const
   {
     switch (type)
     {
@@ -97,7 +97,7 @@ struct CollisionGeometryData
   }
 
   /** \brief Check if two CollisionGeometryData objects point to the same source object */
-  bool sameObject(const CollisionGeometryData &other) const
+  bool sameObject(const CollisionGeometryData& other) const
   {
     return type == other.type && ptr.raw == other.ptr.raw;
   }
@@ -106,10 +106,10 @@ struct CollisionGeometryData
   int shape_index;
   union
   {
-    const robot_model::LinkModel *link;
-    const robot_state::AttachedBody *ab;
-    const World::Object *obj;
-    const void *raw;
+    const robot_model::LinkModel* link;
+    const robot_state::AttachedBody* ab;
+    const World::Object* obj;
+    const void* raw;
   } ptr;
 };
 
@@ -119,7 +119,7 @@ struct CollisionData
   {
   }
 
-  CollisionData(const CollisionRequest *req, CollisionResult *res, const AllowedCollisionMatrix *acm)
+  CollisionData(const CollisionRequest* req, CollisionResult* res, const AllowedCollisionMatrix* acm)
     : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
   {
   }
@@ -129,21 +129,21 @@ struct CollisionData
   }
 
   /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr &kmodel);
+  void enableGroup(const robot_model::RobotModelConstPtr& kmodel);
 
   /// The collision request passed by the user
-  const CollisionRequest *req_;
+  const CollisionRequest* req_;
 
   /// If the collision request includes a group name, this set contains the pointers to the link models that are
   /// considered for collision;
   /// If the pointer is NULL, all collisions are considered.
-  const std::set<const robot_model::LinkModel *> *active_components_only_;
+  const std::set<const robot_model::LinkModel*>* active_components_only_;
 
   /// The user specified response location
-  CollisionResult *res_;
+  CollisionResult* res_;
 
   /// The user specified collision matrix (may be NULL)
-  const AllowedCollisionMatrix *acm_;
+  const AllowedCollisionMatrix* acm_;
 
   /// Flag indicating whether collision checking is complete
   bool done_;
@@ -157,29 +157,29 @@ struct FCLGeometry
   {
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_model::LinkModel *link, int shape_index)
+  FCLGeometry(fcl::CollisionGeometry* collision_geometry, const robot_model::LinkModel* link, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(link, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const robot_state::AttachedBody *ab, int shape_index)
+  FCLGeometry(fcl::CollisionGeometry* collision_geometry, const robot_state::AttachedBody* ab, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(ab, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
-  FCLGeometry(fcl::CollisionGeometry *collision_geometry, const World::Object *obj, int shape_index)
+  FCLGeometry(fcl::CollisionGeometry* collision_geometry, const World::Object* obj, int shape_index)
     : collision_geometry_(collision_geometry), collision_geometry_data_(new CollisionGeometryData(obj, shape_index))
   {
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
   template <typename T>
-  void updateCollisionGeometryData(const T *data, int shape_index, bool newType)
+  void updateCollisionGeometryData(const T* data, int shape_index, bool newType)
   {
     if (!newType && collision_geometry_data_)
-      if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void *>(data))
+      if (collision_geometry_data_->ptr.raw == reinterpret_cast<const void*>(data))
         return;
     collision_geometry_data_.reset(new CollisionGeometryData(data, shape_index));
     collision_geometry_->setUserData(collision_geometry_data_.get());
@@ -194,8 +194,8 @@ typedef std::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
 
 struct FCLObject
 {
-  void registerTo(fcl::BroadPhaseCollisionManager *manager);
-  void unregisterFrom(fcl::BroadPhaseCollisionManager *manager);
+  void registerTo(fcl::BroadPhaseCollisionManager* manager);
+  void unregisterFrom(fcl::BroadPhaseCollisionManager* manager);
   void clear();
 
   std::vector<FCLCollisionObjectPtr> collision_objects_;
@@ -208,52 +208,52 @@ struct FCLManager
   std::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
 };
 
-bool collisionCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data);
+bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data);
 
-bool distanceCallback(fcl::CollisionObject *o1, fcl::CollisionObject *o2, void *data, double &min_dist);
+bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data, double& min_dist);
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const robot_model::LinkModel *link,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
                                             int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const robot_state::AttachedBody *ab,
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_state::AttachedBody* ab,
                                             int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, const World::Object *obj);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const World::Object* obj);
 
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_model::LinkModel *link, int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const robot_state::AttachedBody *ab, int shape_index);
-FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr &shape, double scale, double padding,
-                                            const World::Object *obj);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                            const robot_model::LinkModel* link, int shape_index);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                            const robot_state::AttachedBody* ab, int shape_index);
+FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, double scale, double padding,
+                                            const World::Object* obj);
 void cleanCollisionGeometryCache();
 
-inline void transform2fcl(const Eigen::Affine3d &b, fcl::Transform3f &f)
+inline void transform2fcl(const Eigen::Affine3d& b, fcl::Transform3f& f)
 {
   Eigen::Quaterniond q(b.rotation());
   f.setTranslation(fcl::Vec3f(b.translation().x(), b.translation().y(), b.translation().z()));
   f.setQuatRotation(fcl::Quaternion3f(q.w(), q.x(), q.y(), q.z()));
 }
 
-inline fcl::Transform3f transform2fcl(const Eigen::Affine3d &b)
+inline fcl::Transform3f transform2fcl(const Eigen::Affine3d& b)
 {
   fcl::Transform3f t;
   transform2fcl(b, t);
   return t;
 }
 
-inline void fcl2contact(const fcl::Contact &fc, Contact &c)
+inline void fcl2contact(const fcl::Contact& fc, Contact& c)
 {
   c.pos = Eigen::Vector3d(fc.pos[0], fc.pos[1], fc.pos[2]);
   c.normal = Eigen::Vector3d(fc.normal[0], fc.normal[1], fc.normal[2]);
   c.depth = fc.penetration_depth;
-  const CollisionGeometryData *cgd1 = static_cast<const CollisionGeometryData *>(fc.o1->getUserData());
+  const CollisionGeometryData* cgd1 = static_cast<const CollisionGeometryData*>(fc.o1->getUserData());
   c.body_name_1 = cgd1->getID();
   c.body_type_1 = cgd1->type;
-  const CollisionGeometryData *cgd2 = static_cast<const CollisionGeometryData *>(fc.o2->getUserData());
+  const CollisionGeometryData* cgd2 = static_cast<const CollisionGeometryData*>(fc.o2->getUserData());
   c.body_name_2 = cgd2->getID();
   c.body_type_2 = cgd2->type;
 }
 
-inline void fcl2costsource(const fcl::CostSource &fcs, CostSource &cs)
+inline void fcl2costsource(const fcl::CostSource& fcs, CostSource& cs)
 {
   cs.aabb_min[0] = fcs.aabb_min[0];
   cs.aabb_min[1] = fcs.aabb_min[1];

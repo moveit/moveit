@@ -56,7 +56,7 @@
 
 namespace moveit_rviz_plugin
 {
-RenderShapes::RenderShapes(rviz::DisplayContext *context) : context_(context)
+RenderShapes::RenderShapes(rviz::DisplayContext* context) : context_(context)
 {
 }
 
@@ -71,16 +71,16 @@ void RenderShapes::clear()
   octree_voxel_grids_.clear();
 }
 
-void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, const Eigen::Affine3d &p,
+void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, const Eigen::Affine3d& p,
                                OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
-                               const rviz::Color &color, float alpha)
+                               const rviz::Color& color, float alpha)
 {
-  rviz::Shape *ogre_shape = NULL;
+  rviz::Shape* ogre_shape = NULL;
 
   // we don't know how to render cones directly, but we can convert them to a mesh
   if (s->type == shapes::CONE)
   {
-    std::unique_ptr<shapes::Mesh> m(shapes::createMeshFromShape(static_cast<const shapes::Cone &>(*s)));
+    std::unique_ptr<shapes::Mesh> m(shapes::createMeshFromShape(static_cast<const shapes::Cone&>(*s)));
     if (m)
       renderShape(node, m.get(), p, octree_voxel_rendering, octree_color_mode, color, alpha);
     return;
@@ -91,32 +91,32 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
     case shapes::SPHERE:
     {
       ogre_shape = new rviz::Shape(rviz::Shape::Sphere, context_->getSceneManager(), node);
-      double d = 2.0 * static_cast<const shapes::Sphere *>(s)->radius;
+      double d = 2.0 * static_cast<const shapes::Sphere*>(s)->radius;
       ogre_shape->setScale(Ogre::Vector3(d, d, d));
     }
     break;
     case shapes::BOX:
     {
       ogre_shape = new rviz::Shape(rviz::Shape::Cube, context_->getSceneManager(), node);
-      const double *sz = static_cast<const shapes::Box *>(s)->size;
+      const double* sz = static_cast<const shapes::Box*>(s)->size;
       ogre_shape->setScale(Ogre::Vector3(sz[0], sz[1], sz[2]));
     }
     break;
     case shapes::CYLINDER:
     {
       ogre_shape = new rviz::Shape(rviz::Shape::Cylinder, context_->getSceneManager(), node);
-      double d = 2.0 * static_cast<const shapes::Cylinder *>(s)->radius;
-      double z = static_cast<const shapes::Cylinder *>(s)->length;
+      double d = 2.0 * static_cast<const shapes::Cylinder*>(s)->radius;
+      double z = static_cast<const shapes::Cylinder*>(s)->length;
       ogre_shape->setScale(Ogre::Vector3(d, z, d));  // the shape has z as major axis, but the rendered cylinder has y
                                                      // as major axis (assuming z is upright);
     }
     break;
     case shapes::MESH:
     {
-      const shapes::Mesh *mesh = static_cast<const shapes::Mesh *>(s);
+      const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(s);
       if (mesh->triangle_count > 0)
       {
-        rviz::MeshShape *m = new rviz::MeshShape(context_->getSceneManager(), node);
+        rviz::MeshShape* m = new rviz::MeshShape(context_->getSceneManager(), node);
         ogre_shape = m;
 
         Ogre::Vector3 normal(0.0, 0.0, 0.0);
@@ -152,7 +152,7 @@ void RenderShapes::renderShape(Ogre::SceneNode *node, const shapes::Shape *s, co
 
     case shapes::OCTREE:
     {
-      OcTreeRenderPtr octree(new OcTreeRender(static_cast<const shapes::OcTree *>(s)->octree, octree_voxel_rendering,
+      OcTreeRenderPtr octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree, octree_voxel_rendering,
                                               octree_color_mode, 0u, context_->getSceneManager(), node));
 
       octree_voxel_grids_.push_back(octree);

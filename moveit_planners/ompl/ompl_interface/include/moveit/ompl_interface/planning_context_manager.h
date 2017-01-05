@@ -51,16 +51,16 @@ namespace ompl_interface
 class PlanningContextManager
 {
 public:
-  PlanningContextManager(const robot_model::RobotModelConstPtr &kmodel,
-                         const constraint_samplers::ConstraintSamplerManagerPtr &csm);
+  PlanningContextManager(const robot_model::RobotModelConstPtr& kmodel,
+                         const constraint_samplers::ConstraintSamplerManagerPtr& csm);
   ~PlanningContextManager();
 
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
-  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig);
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig);
 
   /** @brief Return the previously set planner configurations */
-  const planning_interface::PlannerConfigurationMap &getPlannerConfigurations() const
+  const planning_interface::PlannerConfigurationMap& getPlannerConfigurations() const
   {
     return planner_configs_;
   }
@@ -136,36 +136,36 @@ public:
     minimum_waypoint_count_ = mwc;
   }
 
-  const robot_model::RobotModelConstPtr &getRobotModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
   }
 
   ModelBasedPlanningContextPtr getLastPlanningContext() const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const std::string &config,
-                                                  const std::string &factory_type = "") const;
+  ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
+                                                  const std::string& factory_type = "") const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                  const planning_interface::MotionPlanRequest &req,
-                                                  moveit_msgs::MoveItErrorCodes &error_code) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                  const planning_interface::MotionPlanRequest& req,
+                                                  moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  void registerPlannerAllocator(const std::string &planner_id, const ConfiguredPlannerAllocator &pa)
+  void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
   {
     known_planners_[planner_id] = pa;
   }
 
-  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr &factory)
+  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr& factory)
   {
     state_space_factories_[factory->getType()] = factory;
   }
 
-  const std::map<std::string, ConfiguredPlannerAllocator> &getRegisteredPlannerAllocators() const
+  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators() const
   {
     return known_planners_;
   }
 
-  const std::map<std::string, ModelBasedStateSpaceFactoryPtr> &getRegisteredStateSpaceFactories() const
+  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories() const
   {
     return state_space_factories_;
   }
@@ -173,22 +173,22 @@ public:
   ConfiguredPlannerSelector getPlannerSelector() const;
 
 protected:
-  typedef boost::function<const ModelBasedStateSpaceFactoryPtr &(const std::string &)> StateSpaceFactoryTypeSelector;
+  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
 
-  ConfiguredPlannerAllocator plannerSelector(const std::string &planner) const;
+  ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
 
   void registerDefaultPlanners();
   void registerDefaultStateSpaces();
 
   /** \brief This is the function that constructs new planning contexts if no previous ones exist that are suitable */
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings &config,
-                                                  const StateSpaceFactoryTypeSelector &factory_selector,
-                                                  const moveit_msgs::MotionPlanRequest &req) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings& config,
+                                                  const StateSpaceFactoryTypeSelector& factory_selector,
+                                                  const moveit_msgs::MotionPlanRequest& req) const;
 
-  const ModelBasedStateSpaceFactoryPtr &getStateSpaceFactory1(const std::string &group_name,
-                                                              const std::string &factory_type) const;
-  const ModelBasedStateSpaceFactoryPtr &getStateSpaceFactory2(const std::string &group_name,
-                                                              const moveit_msgs::MotionPlanRequest &req) const;
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string& group_name,
+                                                              const std::string& factory_type) const;
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
+                                                              const moveit_msgs::MotionPlanRequest& req) const;
 
   /** \brief The kinematic model for which motion plans are computed */
   robot_model::RobotModelConstPtr kmodel_;

@@ -58,14 +58,15 @@ class JointModel;
 class LinkModel;
 
 /** \brief Map of names to instances for LinkModel */
-typedef std::map<std::string, LinkModel *> LinkModelMap;
+typedef std::map<std::string, LinkModel*> LinkModelMap;
 
 /** \brief Map of names to const instances for LinkModel */
-typedef std::map<std::string, const LinkModel *> LinkModelMapConst;
+typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
 
 /** \brief Map from link model instances to Eigen transforms */
-typedef std::map<const LinkModel *, Eigen::Affine3d, std::less<const LinkModel *>,
-                 Eigen::aligned_allocator<std::pair<const LinkModel *, Eigen::Affine3d> > > LinkTransformMap;
+typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
+                 Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > >
+    LinkTransformMap;
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */
 class LinkModel
@@ -73,11 +74,11 @@ class LinkModel
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  LinkModel(const std::string &name);
+  LinkModel(const std::string& name);
   ~LinkModel();
 
   /** \brief The name of this link */
-  const std::string &getName() const
+  const std::string& getName() const
   {
     return name_;
   }
@@ -104,32 +105,32 @@ public:
   }
 
   /** \brief Get the joint model whose child this link is. There will always be a parent joint */
-  const JointModel *getParentJointModel() const
+  const JointModel* getParentJointModel() const
   {
     return parent_joint_model_;
   }
 
-  void setParentJointModel(const JointModel *joint);
+  void setParentJointModel(const JointModel* joint);
 
   /** \brief Get the link model whose child this link is (through some joint). There may not always be a parent link
    * (NULL is returned for the root link) */
-  const LinkModel *getParentLinkModel() const
+  const LinkModel* getParentLinkModel() const
   {
     return parent_link_model_;
   }
 
-  void setParentLinkModel(const LinkModel *link)
+  void setParentLinkModel(const LinkModel* link)
   {
     parent_link_model_ = link;
   }
 
   /** \brief A link may have 0 or more child joints. From those joints there will certainly be other descendant links */
-  const std::vector<const JointModel *> &getChildJointModels() const
+  const std::vector<const JointModel*>& getChildJointModels() const
   {
     return child_joint_models_;
   }
 
-  void addChildJointModel(const JointModel *joint)
+  void addChildJointModel(const JointModel* joint)
   {
     child_joint_models_.push_back(joint);
   }
@@ -138,7 +139,7 @@ public:
       they are usually applied to the link's origin. The
       joint origin transform acts as an offset -- it is
       pre-applied before any other transform */
-  const Eigen::Affine3d &getJointOriginTransform() const
+  const Eigen::Affine3d& getJointOriginTransform() const
   {
     return joint_origin_transform_;
   }
@@ -153,82 +154,82 @@ public:
     return is_parent_joint_fixed_;
   }
 
-  void setJointOriginTransform(const Eigen::Affine3d &transform);
+  void setJointOriginTransform(const Eigen::Affine3d& transform);
 
   /** \brief In addition to the link transform, the geometry
       of a link that is used for collision checking may have
       a different offset itself, with respect to the origin */
-  const EigenSTL::vector_Affine3d &getCollisionOriginTransforms() const
+  const EigenSTL::vector_Affine3d& getCollisionOriginTransforms() const
   {
     return collision_origin_transform_;
   }
 
   /** \brief Return flags for each transform specifying whether they are identity or not */
-  const std::vector<int> &areCollisionOriginTransformsIdentity() const
+  const std::vector<int>& areCollisionOriginTransformsIdentity() const
   {
     return collision_origin_transform_is_identity_;
   }
 
   /** \brief Get shape associated to the collision geometry for this link */
-  const std::vector<shapes::ShapeConstPtr> &getShapes() const
+  const std::vector<shapes::ShapeConstPtr>& getShapes() const
   {
     return shapes_;
   }
 
-  void setGeometry(const std::vector<shapes::ShapeConstPtr> &shapes, const EigenSTL::vector_Affine3d &origins);
+  void setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Affine3d& origins);
 
   /** \brief Get the extents of the link's geometry (dimensions of axis-aligned bounding box around all shapes that make
      up the
       link, when the link is positioned at origin -- only collision origin transforms are considered) */
-  const Eigen::Vector3d &getShapeExtentsAtOrigin() const
+  const Eigen::Vector3d& getShapeExtentsAtOrigin() const
   {
     return shape_extents_;
   }
 
   /** \brief Get the set of links that are attached to this one via fixed transforms */
-  const LinkTransformMap &getAssociatedFixedTransforms() const
+  const LinkTransformMap& getAssociatedFixedTransforms() const
   {
     return associated_fixed_transforms_;
   }
 
   /** \brief Remember that \e link_model is attached to this link using a fixed transform */
-  void addAssociatedFixedTransform(const LinkModel *link_model, const Eigen::Affine3d &transform)
+  void addAssociatedFixedTransform(const LinkModel* link_model, const Eigen::Affine3d& transform)
   {
     associated_fixed_transforms_[link_model] = transform;
   }
 
   /** \brief Get the filename of the mesh resource used for visual display of this link */
-  const std::string &getVisualMeshFilename() const
+  const std::string& getVisualMeshFilename() const
   {
     return visual_mesh_filename_;
   }
 
   /** \brief Get the scale of the mesh resource for this link */
-  const Eigen::Vector3d &getVisualMeshScale() const
+  const Eigen::Vector3d& getVisualMeshScale() const
   {
     return visual_mesh_scale_;
   }
 
   /** \brief Get the transform for the visual mesh origin */
-  const Eigen::Affine3d &getVisualMeshOrigin() const
+  const Eigen::Affine3d& getVisualMeshOrigin() const
   {
     return visual_mesh_origin_;
   }
 
-  void setVisualMesh(const std::string &visual_mesh, const Eigen::Affine3d &origin, const Eigen::Vector3d &scale);
+  void setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin, const Eigen::Vector3d& scale);
 
 private:
   /** \brief Name of the link */
   std::string name_;
 
   /** \brief JointModel that connects this link to the parent link */
-  const JointModel *parent_joint_model_;
+  const JointModel* parent_joint_model_;
 
   /** \brief The parent link model (NULL for the root link) */
-  const LinkModel *parent_link_model_;
+  const LinkModel* parent_link_model_;
 
   /** \brief List of directly descending joints (each connects to a child link) */
-  std::vector<const JointModel *> child_joint_models_;
+  std::vector<const JointModel*> child_joint_models_;
 
   /** \brief True if the parent joint of this link is fixed */
   bool is_parent_joint_fixed_;

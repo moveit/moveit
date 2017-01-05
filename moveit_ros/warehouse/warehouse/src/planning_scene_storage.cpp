@@ -69,7 +69,7 @@ void moveit_warehouse::PlanningSceneStorage::reset()
   createCollections();
 }
 
-void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene &scene)
+void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs::PlanningScene& scene)
 {
   bool replace = false;
   if (hasPlanningScene(scene.name))
@@ -83,7 +83,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningScene(const moveit_msgs:
   ROS_DEBUG("%s scene '%s'", replace ? "Replaced" : "Added", scene.name.c_str());
 }
 
-bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string &name) const
+bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string& name) const
 {
   Query::Ptr q = planning_scene_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, name);
@@ -92,7 +92,7 @@ bool moveit_warehouse::PlanningSceneStorage::hasPlanningScene(const std::string 
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
-    const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name) const
+    const moveit_msgs::MotionPlanRequest& planning_query, const std::string& scene_name) const
 {
   // get all existing motion planning requests for this planning scene
   Query::Ptr q = motion_plan_request_collection_->createQuery();
@@ -108,18 +108,18 @@ std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
   boost::shared_array<uint8_t> buffer_arg(new uint8_t[serial_size_arg]);
   ros::serialization::OStream stream_arg(buffer_arg.get(), serial_size_arg);
   ros::serialization::serialize(stream_arg, planning_query);
-  const void *data_arg = buffer_arg.get();
+  const void* data_arg = buffer_arg.get();
 
   for (std::size_t i = 0; i < existing_requests.size(); ++i)
   {
     const size_t serial_size = ros::serialization::serializationLength(
-        static_cast<const moveit_msgs::MotionPlanRequest &>(*existing_requests[i]));
+        static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
     if (serial_size != serial_size_arg)
       continue;
     boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);
     ros::serialization::OStream stream(buffer.get(), serial_size);
-    ros::serialization::serialize(stream, static_cast<const moveit_msgs::MotionPlanRequest &>(*existing_requests[i]));
-    const void *data = buffer.get();
+    ros::serialization::serialize(stream, static_cast<const moveit_msgs::MotionPlanRequest&>(*existing_requests[i]));
+    const void* data = buffer.get();
     if (memcmp(data_arg, data, serial_size) == 0)
       // we found the same message twice
       return existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME);
@@ -127,9 +127,9 @@ std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
   return "";
 }
 
-void moveit_warehouse::PlanningSceneStorage::addPlanningQuery(const moveit_msgs::MotionPlanRequest &planning_query,
-                                                              const std::string &scene_name,
-                                                              const std::string &query_name)
+void moveit_warehouse::PlanningSceneStorage::addPlanningQuery(const moveit_msgs::MotionPlanRequest& planning_query,
+                                                              const std::string& scene_name,
+                                                              const std::string& query_name)
 {
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
 
@@ -142,7 +142,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningQuery(const moveit_msgs:
 }
 
 std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(
-    const moveit_msgs::MotionPlanRequest &planning_query, const std::string &scene_name, const std::string &query_name)
+    const moveit_msgs::MotionPlanRequest& planning_query, const std::string& scene_name, const std::string& query_name)
 {
   std::string id = query_name;
   if (id.empty())
@@ -168,9 +168,9 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(
   return id;
 }
 
-void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs::MotionPlanRequest &planning_query,
-                                                               const moveit_msgs::RobotTrajectory &result,
-                                                               const std::string &scene_name)
+void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs::MotionPlanRequest& planning_query,
+                                                               const moveit_msgs::RobotTrajectory& result,
+                                                               const std::string& scene_name)
 {
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
   if (id.empty())
@@ -181,7 +181,7 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs
   robot_trajectory_collection_->insert(result, metadata);
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string>& names) const
 {
   names.clear();
   Query::Ptr q = planning_scene_collection_->createQuery();
@@ -192,15 +192,15 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<s
       names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(const std::string &regex,
-                                                                   std::vector<std::string> &names) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(const std::string& regex,
+                                                                   std::vector<std::string>& names) const
 {
   getPlanningSceneNames(names);
   filterNames(regex, names);
 }
 
-bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld &world,
-                                                                   const std::string &scene_name) const
+bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::PlanningSceneWorld& world,
+                                                                   const std::string& scene_name) const
 {
   PlanningSceneWithMetadata scene_m;
   if (getPlanningScene(scene_m, scene_name))
@@ -212,8 +212,8 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningSceneWorld(moveit_msgs::
     return false;
 }
 
-bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata &scene_m,
-                                                              const std::string &scene_name) const
+bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithMetadata& scene_m,
+                                                              const std::string& scene_name) const
 {
   Query::Ptr q = planning_scene_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -225,14 +225,14 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningScene(PlanningSceneWithM
   }
   scene_m = planning_scenes.back();
   // in case the scene was renamed, the name in the message may be out of date
-  const_cast<moveit_msgs::PlanningScene *>(static_cast<const moveit_msgs::PlanningScene *>(scene_m.get()))->name =
+  const_cast<moveit_msgs::PlanningScene*>(static_cast<const moveit_msgs::PlanningScene*>(scene_m.get()))->name =
       scene_name;
   return true;
 }
 
-bool moveit_warehouse::PlanningSceneStorage::getPlanningQuery(MotionPlanRequestWithMetadata &query_m,
-                                                              const std::string &scene_name,
-                                                              const std::string &query_name)
+bool moveit_warehouse::PlanningSceneStorage::getPlanningQuery(MotionPlanRequestWithMetadata& query_m,
+                                                              const std::string& scene_name,
+                                                              const std::string& query_name)
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -251,15 +251,15 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningQuery(MotionPlanRequestW
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(
-    std::vector<MotionPlanRequestWithMetadata> &planning_queries, const std::string &scene_name) const
+    std::vector<MotionPlanRequestWithMetadata>& planning_queries, const std::string& scene_name) const
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
   planning_queries = motion_plan_request_collection_->queryList(q, false);
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector<std::string> &query_names,
-                                                                     const std::string &scene_name) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector<std::string>& query_names,
+                                                                     const std::string& scene_name) const
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -270,9 +270,9 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector
       query_names.push_back(planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
 }
 
-void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(const std::string &regex,
-                                                                     std::vector<std::string> &query_names,
-                                                                     const std::string &scene_name) const
+void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(const std::string& regex,
+                                                                     std::vector<std::string>& query_names,
+                                                                     const std::string& scene_name) const
 {
   getPlanningQueriesNames(query_names, scene_name);
 
@@ -293,8 +293,8 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(const std::
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(
-    std::vector<MotionPlanRequestWithMetadata> &planning_queries, std::vector<std::string> &query_names,
-    const std::string &scene_name) const
+    std::vector<MotionPlanRequestWithMetadata>& planning_queries, std::vector<std::string>& query_names,
+    const std::string& scene_name) const
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -308,8 +308,8 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(
-    std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name,
-    const moveit_msgs::MotionPlanRequest &planning_query) const
+    std::vector<RobotTrajectoryWithMetadata>& planning_results, const std::string& scene_name,
+    const moveit_msgs::MotionPlanRequest& planning_query) const
 {
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
   if (id.empty())
@@ -319,8 +319,8 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningResults(
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningResults(
-    std::vector<RobotTrajectoryWithMetadata> &planning_results, const std::string &scene_name,
-    const std::string &planning_query) const
+    std::vector<RobotTrajectoryWithMetadata>& planning_results, const std::string& scene_name,
+    const std::string& planning_query) const
 {
   Query::Ptr q = robot_trajectory_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -328,8 +328,8 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningResults(
   planning_results = robot_trajectory_collection_->queryList(q, false);
 }
 
-bool moveit_warehouse::PlanningSceneStorage::hasPlanningQuery(const std::string &scene_name,
-                                                              const std::string &query_name) const
+bool moveit_warehouse::PlanningSceneStorage::hasPlanningQuery(const std::string& scene_name,
+                                                              const std::string& query_name) const
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -338,8 +338,8 @@ bool moveit_warehouse::PlanningSceneStorage::hasPlanningQuery(const std::string 
   return !queries.empty();
 }
 
-void moveit_warehouse::PlanningSceneStorage::renamePlanningScene(const std::string &old_scene_name,
-                                                                 const std::string &new_scene_name)
+void moveit_warehouse::PlanningSceneStorage::renamePlanningScene(const std::string& old_scene_name,
+                                                                 const std::string& new_scene_name)
 {
   Query::Ptr q = planning_scene_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, old_scene_name);
@@ -349,9 +349,9 @@ void moveit_warehouse::PlanningSceneStorage::renamePlanningScene(const std::stri
   ROS_DEBUG("Renamed planning scene from '%s' to '%s'", old_scene_name.c_str(), new_scene_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::renamePlanningQuery(const std::string &scene_name,
-                                                                 const std::string &old_query_name,
-                                                                 const std::string &new_query_name)
+void moveit_warehouse::PlanningSceneStorage::renamePlanningQuery(const std::string& scene_name,
+                                                                 const std::string& old_query_name,
+                                                                 const std::string& new_query_name)
 {
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -363,7 +363,7 @@ void moveit_warehouse::PlanningSceneStorage::renamePlanningQuery(const std::stri
             new_query_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::removePlanningScene(const std::string &scene_name)
+void moveit_warehouse::PlanningSceneStorage::removePlanningScene(const std::string& scene_name)
 {
   removePlanningQueries(scene_name);
   Query::Ptr q = planning_scene_collection_->createQuery();
@@ -372,7 +372,7 @@ void moveit_warehouse::PlanningSceneStorage::removePlanningScene(const std::stri
   ROS_DEBUG("Removed %u PlanningScene messages (named '%s')", rem, scene_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::removePlanningQueries(const std::string &scene_name)
+void moveit_warehouse::PlanningSceneStorage::removePlanningQueries(const std::string& scene_name)
 {
   removePlanningResults(scene_name);
   Query::Ptr q = motion_plan_request_collection_->createQuery();
@@ -381,8 +381,8 @@ void moveit_warehouse::PlanningSceneStorage::removePlanningQueries(const std::st
   ROS_DEBUG("Removed %u MotionPlanRequest messages for scene '%s'", rem, scene_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::removePlanningQuery(const std::string &scene_name,
-                                                                 const std::string &query_name)
+void moveit_warehouse::PlanningSceneStorage::removePlanningQuery(const std::string& scene_name,
+                                                                 const std::string& query_name)
 {
   removePlanningResults(scene_name, query_name);
   Query::Ptr q = motion_plan_request_collection_->createQuery();
@@ -393,7 +393,7 @@ void moveit_warehouse::PlanningSceneStorage::removePlanningQuery(const std::stri
             query_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::removePlanningResults(const std::string &scene_name)
+void moveit_warehouse::PlanningSceneStorage::removePlanningResults(const std::string& scene_name)
 {
   Query::Ptr q = robot_trajectory_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
@@ -401,8 +401,8 @@ void moveit_warehouse::PlanningSceneStorage::removePlanningResults(const std::st
   ROS_DEBUG("Removed %u RobotTrajectory messages for scene '%s'", rem, scene_name.c_str());
 }
 
-void moveit_warehouse::PlanningSceneStorage::removePlanningResults(const std::string &scene_name,
-                                                                   const std::string &query_name)
+void moveit_warehouse::PlanningSceneStorage::removePlanningResults(const std::string& scene_name,
+                                                                   const std::string& query_name)
 {
   Query::Ptr q = robot_trajectory_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);

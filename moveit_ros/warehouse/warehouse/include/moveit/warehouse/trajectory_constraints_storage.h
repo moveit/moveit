@@ -60,24 +60,24 @@ public:
 
   TrajectoryConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
-  void addTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints &msg, const std::string &name,
-                                const std::string &robot = "", const std::string &group = "");
-  bool hasTrajectoryConstraints(const std::string &name, const std::string &robot = "",
-                                const std::string &group = "") const;
-  void getKnownTrajectoryConstraints(std::vector<std::string> &names, const std::string &robot = "",
-                                     const std::string &group = "") const;
-  void getKnownTrajectoryConstraints(const std::string &regex, std::vector<std::string> &names,
-                                     const std::string &robot = "", const std::string &group = "") const;
+  void addTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& msg, const std::string& name,
+                                const std::string& robot = "", const std::string& group = "");
+  bool hasTrajectoryConstraints(const std::string& name, const std::string& robot = "",
+                                const std::string& group = "") const;
+  void getKnownTrajectoryConstraints(std::vector<std::string>& names, const std::string& robot = "",
+                                     const std::string& group = "") const;
+  void getKnownTrajectoryConstraints(const std::string& regex, std::vector<std::string>& names,
+                                     const std::string& robot = "", const std::string& group = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getTrajectoryConstraints(TrajectoryConstraintsWithMetadata &msg_m, const std::string &name,
-                                const std::string &robot = "", const std::string &group = "") const;
+  bool getTrajectoryConstraints(TrajectoryConstraintsWithMetadata& msg_m, const std::string& name,
+                                const std::string& robot = "", const std::string& group = "") const;
 
-  void renameTrajectoryConstraints(const std::string &old_name, const std::string &new_name,
-                                   const std::string &robot = "", const std::string &group = "");
+  void renameTrajectoryConstraints(const std::string& old_name, const std::string& new_name,
+                                   const std::string& robot = "", const std::string& group = "");
 
-  void removeTrajectoryConstraints(const std::string &name, const std::string &robot = "",
-                                   const std::string &group = "");
+  void removeTrajectoryConstraints(const std::string& name, const std::string& robot = "",
+                                   const std::string& group = "");
 
   void reset(void);
 

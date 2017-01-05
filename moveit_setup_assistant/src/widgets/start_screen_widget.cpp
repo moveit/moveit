@@ -69,18 +69,18 @@ namespace fs = boost::filesystem;
 // ******************************************************************************************
 // Start screen user interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-StartScreenWidget::StartScreenWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Horizontal layout splitter
-  QHBoxLayout *hlayout = new QHBoxLayout();
+  QHBoxLayout* hlayout = new QHBoxLayout();
   // Left side of screen
-  QVBoxLayout *left_layout = new QVBoxLayout();
+  QVBoxLayout* left_layout = new QVBoxLayout();
   // Right side of screen
-  QVBoxLayout *right_layout = new QVBoxLayout();
+  QVBoxLayout* right_layout = new QVBoxLayout();
 
   // Right Image Area ----------------------------------------------
   right_image_ = new QImage();
@@ -117,7 +117,7 @@ StartScreenWidget::StartScreenWidget(QWidget *parent, moveit_setup_assistant::Mo
   }
 
   // Top Label Area ---------------------------------------------------
-  HeaderWidget *header = new HeaderWidget(
+  HeaderWidget* header = new HeaderWidget(
       "MoveIt Setup Assistant", "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a "
                                 "MoveIt configuration package that is required to run MoveIt. This includes generating "
                                 "a Semantic Robot Description Format (SRDF) file, kinematics configuration file and "
@@ -155,7 +155,7 @@ StartScreenWidget::StartScreenWidget(QWidget *parent, moveit_setup_assistant::Mo
   left_layout->addWidget(urdf_file_);
 
   // Load settings box ---------------------------------------------
-  QHBoxLayout *load_files_layout = new QHBoxLayout();
+  QHBoxLayout* load_files_layout = new QHBoxLayout();
 
   progress_bar_ = new QProgressBar(this);
   progress_bar_->setMaximum(100);
@@ -201,7 +201,7 @@ StartScreenWidget::StartScreenWidget(QWidget *parent, moveit_setup_assistant::Mo
   layout->addLayout(hlayout);
 
   // Verticle Spacer
-  QWidget *vspacer = new QWidget(this);
+  QWidget* vspacer = new QWidget(this);
   vspacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   layout->addWidget(vspacer);
 
@@ -218,7 +218,7 @@ StartScreenWidget::StartScreenWidget(QWidget *parent, moveit_setup_assistant::Mo
   {
     // select_mode_->btn_exist_->click();
 
-    QTimer *update_timer = new QTimer(this);
+    QTimer* update_timer = new QTimer(this);
     update_timer->setSingleShot(true);  // only run once
     connect(update_timer, SIGNAL(timeout()), btn_load_, SLOT(click()));
     update_timer->start(100);
@@ -330,7 +330,8 @@ bool StartScreenWidget::loadExistingFiles()
     QMessageBox::warning(
         this, "Incorrect Directory/Package",
         QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. "
-                "If this is a mistake, replace the missing file: ").append(setup_assistant_path.c_str()));
+                "If this is a mistake, replace the missing file: ")
+            .append(setup_assistant_path.c_str()));
     return false;
   }
 
@@ -384,7 +385,8 @@ bool StartScreenWidget::loadExistingFiles()
                          QString("Failed to parse kinematics yaml file. This file is not critical but any previous "
                                  "kinematic solver settings have been lost. To re-populate this file edit each "
                                  "existing planning group and choose a solver, then save each change. \n\nFile error "
-                                 "at location ").append(kinematics_yaml_path.make_preferred().native().c_str()));
+                                 "at location ")
+                             .append(kinematics_yaml_path.make_preferred().native().c_str()));
   }
 
   // DONE LOADING --------------------------------------------------------------------------
@@ -490,7 +492,7 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 // Load URDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadURDFFile(const std::string &urdf_file_path)
+bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path)
 {
   const std::vector<std::string> xacro_args;  // TODO: somehow allow arguments to be passed in when parsing xacro URDFs
 
@@ -533,7 +535,7 @@ bool StartScreenWidget::loadURDFFile(const std::string &urdf_file_path)
 // ******************************************************************************************
 // Load SRDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadSRDFFile(const std::string &srdf_file_path)
+bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path)
 {
   const std::vector<std::string> xacro_args;
 
@@ -551,7 +553,7 @@ bool StartScreenWidget::loadSRDFFile(const std::string &srdf_file_path)
 // ******************************************************************************************
 // Put SRDF File on Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::setSRDFFile(const std::string &srdf_string)
+bool StartScreenWidget::setSRDFFile(const std::string& srdf_string)
 {
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if (!config_data_->srdf_->initString(*config_data_->urdf_model_, srdf_string))
@@ -693,8 +695,9 @@ bool StartScreenWidget::createFullURDFPath()
     }
     else
     {
-      QMessageBox::warning(this, "Error Loading Files", QString("Unable to locate the URDF file in package. File: ")
-                                                            .append(config_data_->urdf_path_.c_str()));
+      QMessageBox::warning(
+          this, "Error Loading Files",
+          QString("Unable to locate the URDF file in package. File: ").append(config_data_->urdf_path_.c_str()));
     }
     return false;
   }
@@ -712,7 +715,7 @@ bool StartScreenWidget::createFullURDFPath()
 // ******************************************************************************************
 // Make the full SRDF path using the loaded .setup_assistant data
 // ******************************************************************************************
-bool StartScreenWidget::createFullSRDFPath(const std::string &package_path)
+bool StartScreenWidget::createFullSRDFPath(const std::string& package_path)
 {
   if (!config_data_->createFullSRDFPath(package_path))
   {
@@ -756,7 +759,7 @@ bool StartScreenWidget::createFullPackagePath()
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
-SelectModeWidget::SelectModeWidget(QWidget *parent) : QFrame(parent)
+SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
 {
   // Set frame graphics
   setFrameShape(QFrame::StyledPanel);
@@ -765,13 +768,13 @@ SelectModeWidget::SelectModeWidget(QWidget *parent) : QFrame(parent)
   setMidLineWidth(0);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Horizontal layout splitter
-  QHBoxLayout *hlayout = new QHBoxLayout();
+  QHBoxLayout* hlayout = new QHBoxLayout();
 
   // Widget Title
-  QLabel *widget_title = new QLabel(this);
+  QLabel* widget_title = new QLabel(this);
   widget_title->setText("Choose mode:");
   QFont widget_title_font("Arial", 12, QFont::Bold);
   widget_title->setFont(widget_title_font);
@@ -779,7 +782,7 @@ SelectModeWidget::SelectModeWidget(QWidget *parent) : QFrame(parent)
   layout->setAlignment(widget_title, Qt::AlignTop);
 
   // Widget Instructions
-  QTextEdit *widget_instructions = new QTextEdit(this);
+  QTextEdit* widget_instructions = new QTextEdit(this);
   widget_instructions->setText("All settings for MoveIt are stored in a Moveit configuration package. Here you have "
                                "the option to create a new configuration package, or load an existing one. Note: any "
                                "changes to a MoveIt configuration package outside this setup assistant will likely be "

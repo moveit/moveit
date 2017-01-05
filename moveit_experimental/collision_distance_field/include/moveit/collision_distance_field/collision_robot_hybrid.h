@@ -51,18 +51,18 @@ class CollisionRobotHybrid : public collision_detection::CollisionRobotFCL
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr &kmodel);
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel);
 
-  CollisionRobotHybrid(const robot_model::RobotModelConstPtr &kmodel,
-                       const std::map<std::string, std::vector<CollisionSphere>> &link_body_decompositions,
+  CollisionRobotHybrid(const robot_model::RobotModelConstPtr& kmodel,
+                       const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
                        double size_x = 3.0, double size_y = 3.0, double size_z = 4.0,
                        bool use_signed_distance_field = false, double resolution = .02,
                        double collision_tolerance = 0.0, double max_propogation_distance = .25, double padding = 0.0,
                        double scale = 1.0);
 
-  CollisionRobotHybrid(const CollisionRobotHybrid &other);
+  CollisionRobotHybrid(const CollisionRobotHybrid& other);
 
-  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere>> &link_body_decompositions,
+  void initializeRobotDistanceField(const std::map<std::string, std::vector<CollisionSphere>>& link_body_decompositions,
                                     double size_x, double size_y, double size_z, bool use_signed_distance_field,
                                     double resolution, double collision_tolerance, double max_propogation_distance)
   {
@@ -71,22 +71,22 @@ public:
                                  max_propogation_distance);
   }
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                       collision_detection::CollisionResult &res,
-                                       const robot_state::RobotState &state) const;
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                       collision_detection::CollisionResult& res,
+                                       const robot_state::RobotState& state) const;
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
-                                       GroupStateRepresentationPtr &gsr) const;
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       GroupStateRepresentationPtr& gsr) const;
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
-                                       const collision_detection::AllowedCollisionMatrix &acm) const;
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       const collision_detection::AllowedCollisionMatrix& acm) const;
 
-  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest &req,
-                                       collision_detection::CollisionResult &res, const robot_state::RobotState &state,
-                                       const collision_detection::AllowedCollisionMatrix &acm,
-                                       GroupStateRepresentationPtr &gsr) const;
+  void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
+                                       collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+                                       const collision_detection::AllowedCollisionMatrix& acm,
+                                       GroupStateRepresentationPtr& gsr) const;
   const CollisionRobotDistanceFieldConstPtr getCollisionRobotDistanceField() const
   {
     return crobot_distance_;

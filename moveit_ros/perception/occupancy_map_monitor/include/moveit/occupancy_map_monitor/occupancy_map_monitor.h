@@ -57,11 +57,11 @@ namespace occupancy_map_monitor
 class OccupancyMapMonitor
 {
 public:
-  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, const std::string &map_frame = "",
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer>& tf, const std::string& map_frame = "",
                       double map_resolution = 0.0);
   OccupancyMapMonitor(double map_resolution = 0.0);
-  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer> &tf, ros::NodeHandle &nh,
-                      const std::string &map_frame = "", double map_resolution = 0.0);
+  OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer>& tf, ros::NodeHandle& nh,
+                      const std::string& map_frame = "", double map_resolution = 0.0);
 
   ~OccupancyMapMonitor();
 
@@ -72,50 +72,50 @@ public:
 
   /** @brief Get a pointer to the underlying octree for this monitor. Lock the tree before reading or writing using this
    *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
-  const OccMapTreePtr &getOcTreePtr()
+  const OccMapTreePtr& getOcTreePtr()
   {
     return tree_;
   }
 
   /** @brief Get a const pointer to the underlying octree for this monitor. Lock the
    *  tree before reading this pointer */
-  const OccMapTreeConstPtr &getOcTreePtr() const
+  const OccMapTreeConstPtr& getOcTreePtr() const
   {
     return tree_const_;
   }
 
-  const std::string &getMapFrame() const
+  const std::string& getMapFrame() const
   {
     return map_frame_;
   }
 
-  void setMapFrame(const std::string &frame);
+  void setMapFrame(const std::string& frame);
 
   double getMapResolution() const
   {
     return map_resolution_;
   }
 
-  const boost::shared_ptr<tf::Transformer> &getTFClient() const
+  const boost::shared_ptr<tf::Transformer>& getTFClient() const
   {
     return tf_;
   }
 
-  void addUpdater(const OccupancyMapUpdaterPtr &updater);
+  void addUpdater(const OccupancyMapUpdaterPtr& updater);
 
   /** \brief Add this shape to the set of shapes to be filtered out from the octomap */
-  ShapeHandle excludeShape(const shapes::ShapeConstPtr &shape);
+  ShapeHandle excludeShape(const shapes::ShapeConstPtr& shape);
 
   /** \brief Forget about this shape handle and the shapes it corresponds to */
   void forgetShape(ShapeHandle handle);
 
   /** @brief Set the callback to trigger when updates to the maintained octomap are received */
-  void setUpdateCallback(const boost::function<void()> &update_callback)
+  void setUpdateCallback(const boost::function<void()>& update_callback)
   {
     tree_->setUpdateCallback(update_callback);
   }
 
-  void setTransformCacheCallback(const TransformCacheProvider &transform_cache_callback);
+  void setTransformCacheCallback(const TransformCacheProvider& transform_cache_callback);
 
   void publishDebugInformation(bool flag);
 
@@ -128,13 +128,13 @@ private:
   void initialize();
 
   /** @brief Save the current octree to a binary file */
-  bool saveMapCallback(moveit_msgs::SaveMap::Request &request, moveit_msgs::SaveMap::Response &response);
+  bool saveMapCallback(moveit_msgs::SaveMap::Request& request, moveit_msgs::SaveMap::Response& response);
 
   /** @brief Load octree from a binary file (gets rid of current octree data) */
-  bool loadMapCallback(moveit_msgs::LoadMap::Request &request, moveit_msgs::LoadMap::Response &response);
+  bool loadMapCallback(moveit_msgs::LoadMap::Request& request, moveit_msgs::LoadMap::Response& response);
 
-  bool getShapeTransformCache(std::size_t index, const std::string &target_frame, const ros::Time &target_time,
-                              ShapeTransformCache &cache) const;
+  bool getShapeTransformCache(std::size_t index, const std::string& target_frame, const ros::Time& target_time,
+                              ShapeTransformCache& cache) const;
 
   boost::shared_ptr<tf::Transformer> tf_;
   std::string map_frame_;

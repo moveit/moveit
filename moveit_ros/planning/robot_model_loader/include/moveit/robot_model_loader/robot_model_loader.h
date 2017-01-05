@@ -53,12 +53,12 @@ public:
   /** @brief Structure that encodes the options to be passed to the RobotModelLoader constructor */
   struct Options
   {
-    Options(const std::string &robot_description = "robot_description")
+    Options(const std::string& robot_description = "robot_description")
       : robot_description_(robot_description), urdf_doc_(NULL), srdf_doc_(NULL), load_kinematics_solvers_(true)
     {
     }
 
-    Options(const std::string &urdf_string, const std::string &srdf_string)
+    Options(const std::string& urdf_string, const std::string& srdf_string)
       : urdf_string_(urdf_string)
       , srdf_string_(srdf_string)
       , urdf_doc_(NULL)
@@ -67,7 +67,7 @@ public:
     {
     }
 
-    Options(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc)
+    Options(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
       : urdf_doc_(urdf_doc), srdf_doc_(srdf_doc), load_kinematics_solvers_(true)
     {
     }
@@ -90,56 +90,56 @@ public:
   };
 
   /** @brief Default constructor */
-  RobotModelLoader(const Options &opt = Options());
+  RobotModelLoader(const Options& opt = Options());
 
-  RobotModelLoader(const std::string &robot_description, bool load_kinematics_solvers = true);
+  RobotModelLoader(const std::string& robot_description, bool load_kinematics_solvers = true);
 
   ~RobotModelLoader();
 
   /** @brief Get the constructed planning_models::RobotModel */
-  const robot_model::RobotModelPtr &getModel() const
+  const robot_model::RobotModelPtr& getModel() const
   {
     return model_;
   }
 
   /** @brief Get the resolved parameter name for the robot description */
-  const std::string &getRobotDescription() const
+  const std::string& getRobotDescription() const
   {
     return rdf_loader_->getRobotDescription();
   }
 
   /** @brief Get the parsed URDF model*/
-  const urdf::ModelInterfaceSharedPtr &getURDF() const
+  const urdf::ModelInterfaceSharedPtr& getURDF() const
   {
     return rdf_loader_->getURDF();
   }
 
   /** @brief Get the parsed SRDF model*/
-  const srdf::ModelSharedPtr &getSRDF() const
+  const srdf::ModelSharedPtr& getSRDF() const
   {
     return rdf_loader_->getSRDF();
   }
 
   /** @brief Get the instance of rdf_loader::RDFLoader that was used to load the robot description */
-  const rdf_loader::RDFLoaderPtr &getRDFLoader() const
+  const rdf_loader::RDFLoaderPtr& getRDFLoader() const
   {
     return rdf_loader_;
   }
 
   /** \brief Get the kinematics solvers plugin loader.
       \note This instance needs to be kept in scope, otherwise kinematics solver plugins may get unloaded. */
-  const kinematics_plugin_loader::KinematicsPluginLoaderPtr &getKinematicsPluginLoader() const
+  const kinematics_plugin_loader::KinematicsPluginLoaderPtr& getKinematicsPluginLoader() const
   {
     return kinematics_loader_;
   }
 
   /** @brief Load the kinematics solvers into the kinematic model. This is done by default, unless disabled explicitly
    * by the options passed to the constructor */
-  void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr &kloader =
+  void loadKinematicsSolvers(const kinematics_plugin_loader::KinematicsPluginLoaderPtr& kloader =
                                  kinematics_plugin_loader::KinematicsPluginLoaderPtr());
 
 private:
-  void configure(const Options &opt);
+  void configure(const Options& opt);
 
   robot_model::RobotModelPtr model_;
   rdf_loader::RDFLoaderPtr rdf_loader_;

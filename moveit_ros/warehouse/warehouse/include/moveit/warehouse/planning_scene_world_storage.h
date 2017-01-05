@@ -53,17 +53,17 @@ public:
 
   PlanningSceneWorldStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
-  void addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg, const std::string &name);
-  bool hasPlanningSceneWorld(const std::string &name) const;
-  void getKnownPlanningSceneWorlds(std::vector<std::string> &names) const;
-  void getKnownPlanningSceneWorlds(const std::string &regex, std::vector<std::string> &names) const;
+  void addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld& msg, const std::string& name);
+  bool hasPlanningSceneWorld(const std::string& name) const;
+  void getKnownPlanningSceneWorlds(std::vector<std::string>& names) const;
+  void getKnownPlanningSceneWorlds(const std::string& regex, std::vector<std::string>& names) const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getPlanningSceneWorld(PlanningSceneWorldWithMetadata &msg_m, const std::string &name) const;
+  bool getPlanningSceneWorld(PlanningSceneWorldWithMetadata& msg_m, const std::string& name) const;
 
-  void renamePlanningSceneWorld(const std::string &old_name, const std::string &new_name);
+  void renamePlanningSceneWorld(const std::string& old_name, const std::string& new_name);
 
-  void removePlanningSceneWorld(const std::string &name);
+  void removePlanningSceneWorld(const std::string& name);
 
   void reset();
 
