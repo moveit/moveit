@@ -73,11 +73,11 @@ public:
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
     while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)) && ++attempts < 3)
-      ROS_INFO_STREAM("MoveitSimpleControllerManager: Waiting for " << getActionName() << " to come up");
+      ROS_INFO_STREAM("MoveItSimpleControllerManager: Waiting for " << getActionName() << " to come up");
 
     if (!controller_action_client_->isServerConnected())
     {
-      ROS_ERROR_STREAM("MoveitSimpleControllerManager: Action client not connected: " << getActionName());
+      ROS_ERROR_STREAM("MoveItSimpleControllerManager: Action client not connected: " << getActionName());
       controller_action_client_.reset();
     }
 
@@ -95,7 +95,7 @@ public:
       return false;
     if (!done_)
     {
-      ROS_INFO_STREAM("MoveitSimpleControllerManager: Cancelling execution for " << name_);
+      ROS_INFO_STREAM("MoveItSimpleControllerManager: Cancelling execution for " << name_);
       controller_action_client_->cancelGoal();
       last_exec_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       done_ = true;
@@ -136,7 +136,7 @@ protected:
 
   void finishControllerExecution(const actionlib::SimpleClientGoalState &state)
   {
-    ROS_DEBUG_STREAM("MoveitSimpleControllerManager: Controller " << name_ << " is done with state " << state.toString()
+    ROS_DEBUG_STREAM("MoveItSimpleControllerManager: Controller " << name_ << " is done with state " << state.toString()
                                                                   << ": " << state.getText());
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
       last_exec_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
