@@ -37,8 +37,8 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <eigen_conversions/eigen_msg.h>
 
-void collision_detection::getCostMarkers(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                                         std::set<CostSource> &cost_sources)
+void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                         std::set<CostSource>& cost_sources)
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -48,9 +48,9 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray &arr, c
   getCostMarkers(arr, frame_id, cost_sources, color, ros::Duration(60.0));
 }
 
-void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray &arr,
-                                                          const std::string &frame_id,
-                                                          const CollisionResult::ContactMap &con)
+void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                                          const std::string& frame_id,
+                                                          const CollisionResult::ContactMap& con)
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -60,9 +60,9 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   getCollisionMarkersFromContacts(arr, frame_id, con, color, ros::Duration(60.0));
 }
 
-void collision_detection::getCostMarkers(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                                         std::set<CostSource> &cost_sources, const std_msgs::ColorRGBA &color,
-                                         const ros::Duration &lifetime)
+void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                         std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color,
+                                         const ros::Duration& lifetime)
 {
   int id = 0;
   for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
@@ -92,11 +92,11 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray &arr, c
   }
 }
 
-void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray &arr,
-                                                          const std::string &frame_id,
-                                                          const CollisionResult::ContactMap &con,
-                                                          const std_msgs::ColorRGBA &color,
-                                                          const ros::Duration &lifetime, double radius)
+void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
+                                                          const std::string& frame_id,
+                                                          const CollisionResult::ContactMap& con,
+                                                          const std_msgs::ColorRGBA& color,
+                                                          const ros::Duration& lifetime, double radius)
 
 {
   std::map<std::string, unsigned> ns_counts;
@@ -133,7 +133,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   }
 }
 
-bool collision_detection::getSensorPositioning(geometry_msgs::Point &point, const std::set<CostSource> &cost_sources)
+bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource>& cost_sources)
 {
   if (cost_sources.empty())
     return false;
@@ -146,7 +146,7 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point &point, cons
   return true;
 }
 
-double collision_detection::getTotalCost(const std::set<CostSource> &cost_sources)
+double collision_detection::getTotalCost(const std::set<CostSource>& cost_sources)
 {
   double cost = 0.0;
   for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin(); it != cost_sources.end();
@@ -155,8 +155,8 @@ double collision_detection::getTotalCost(const std::set<CostSource> &cost_source
   return cost;
 }
 
-void collision_detection::intersectCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &a,
-                                               const std::set<CostSource> &b)
+void collision_detection::intersectCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& a,
+                                               const std::set<CostSource>& b)
 {
   cost_sources.clear();
   CostSource tmp;
@@ -179,7 +179,7 @@ void collision_detection::intersectCostSources(std::set<CostSource> &cost_source
     }
 }
 
-void collision_detection::removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fraction)
+void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction)
 {
   double p[3], q[3];
   for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
@@ -209,8 +209,8 @@ void collision_detection::removeOverlapping(std::set<CostSource> &cost_sources, 
   }
 }
 
-void collision_detection::removeCostSources(std::set<CostSource> &cost_sources,
-                                            const std::set<CostSource> &cost_sources_to_remove, double overlap_fraction)
+void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
+                                            const std::set<CostSource>& cost_sources_to_remove, double overlap_fraction)
 {
   // remove all the boxes that overlap with the intersection previously computed in \e rem
   double p[3], q[3];
@@ -263,7 +263,7 @@ void collision_detection::removeCostSources(std::set<CostSource> &cost_sources,
   }
 }
 
-void collision_detection::costSourceToMsg(const CostSource &cost_source, moveit_msgs::CostSource &msg)
+void collision_detection::costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg)
 {
   msg.cost_density = cost_source.cost;
   msg.aabb_min.x = cost_source.aabb_min[0];
@@ -274,7 +274,7 @@ void collision_detection::costSourceToMsg(const CostSource &cost_source, moveit_
   msg.aabb_max.z = cost_source.aabb_max[2];
 }
 
-void collision_detection::contactToMsg(const Contact &contact, moveit_msgs::ContactInformation &msg)
+void collision_detection::contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg)
 {
   tf::pointEigenToMsg(contact.pos, msg.position);
   tf::vectorEigenToMsg(contact.normal, msg.normal);

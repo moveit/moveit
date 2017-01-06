@@ -51,13 +51,13 @@ public:
   virtual void initialize();
 
 private:
-  bool computeIKService(moveit_msgs::GetPositionIK::Request &req, moveit_msgs::GetPositionIK::Response &res);
-  bool computeFKService(moveit_msgs::GetPositionFK::Request &req, moveit_msgs::GetPositionFK::Response &res);
+  bool computeIKService(moveit_msgs::GetPositionIK::Request& req, moveit_msgs::GetPositionIK::Response& res);
+  bool computeFKService(moveit_msgs::GetPositionFK::Request& req, moveit_msgs::GetPositionFK::Response& res);
 
   void computeIK(
-      moveit_msgs::PositionIKRequest &req, moveit_msgs::RobotState &solution, moveit_msgs::MoveItErrorCodes &error_code,
-      robot_state::RobotState &rs,
-      const robot_state::GroupStateValidityCallbackFn &constraint = robot_state::GroupStateValidityCallbackFn()) const;
+      moveit_msgs::PositionIKRequest& req, moveit_msgs::RobotState& solution, moveit_msgs::MoveItErrorCodes& error_code,
+      robot_state::RobotState& rs,
+      const robot_state::GroupStateValidityCallbackFn& constraint = robot_state::GroupStateValidityCallbackFn()) const;
 
   ros::ServiceServer fk_service_;
   ros::ServiceServer ik_service_;

@@ -42,18 +42,18 @@
 
 namespace constraint_samplers
 {
-void visualizeDistribution(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state,
-                           const std::string &link_name, unsigned int sample_count,
-                           visualization_msgs::MarkerArray &markers);
+void visualizeDistribution(const ConstraintSamplerPtr& sampler, const robot_state::RobotState& reference_state,
+                           const std::string& link_name, unsigned int sample_count,
+                           visualization_msgs::MarkerArray& markers);
 
-void visualizeDistribution(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene,
-                           const std::string &group, const std::string &link_name, unsigned int sample_count,
-                           visualization_msgs::MarkerArray &markers);
+void visualizeDistribution(const moveit_msgs::Constraints& constr, const planning_scene::PlanningSceneConstPtr& scene,
+                           const std::string& group, const std::string& link_name, unsigned int sample_count,
+                           visualization_msgs::MarkerArray& markers);
 
-double countSamplesPerSecond(const ConstraintSamplerPtr &sampler, const robot_state::RobotState &reference_state);
+double countSamplesPerSecond(const ConstraintSamplerPtr& sampler, const robot_state::RobotState& reference_state);
 
-double countSamplesPerSecond(const moveit_msgs::Constraints &constr, const planning_scene::PlanningSceneConstPtr &scene,
-                             const std::string &group);
+double countSamplesPerSecond(const moveit_msgs::Constraints& constr, const planning_scene::PlanningSceneConstPtr& scene,
+                             const std::string& group);
 }
 
 #endif

@@ -40,25 +40,25 @@
 
 namespace kinematics_metrics
 {
-double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &state,
-                                                const robot_model::JointModelGroup *joint_model_group) const
+double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState& state,
+                                                const robot_model::JointModelGroup* joint_model_group) const
 {
   if (fabs(penalty_multiplier_) <= boost::math::tools::epsilon<double>())
     return 1.0;
   double joint_limits_multiplier(1.0);
-  const std::vector<const robot_model::JointModel *> &joint_model_vector = joint_model_group->getJointModels();
+  const std::vector<const robot_model::JointModel*>& joint_model_vector = joint_model_group->getJointModels();
   for (std::size_t i = 0; i < joint_model_vector.size(); ++i)
   {
     if (joint_model_vector[i]->getType() == robot_model::JointModel::REVOLUTE)
     {
-      const robot_model::RevoluteJointModel *revolute_model =
-          static_cast<const robot_model::RevoluteJointModel *>(joint_model_vector[i]);
+      const robot_model::RevoluteJointModel* revolute_model =
+          static_cast<const robot_model::RevoluteJointModel*>(joint_model_vector[i]);
       if (revolute_model->isContinuous())
         continue;
     }
     if (joint_model_vector[i]->getType() == robot_model::JointModel::PLANAR)
     {
-      const robot_model::JointModel::Bounds &bounds = joint_model_vector[i]->getVariableBounds();
+      const robot_model::JointModel::Bounds& bounds = joint_model_vector[i]->getVariableBounds();
       if (bounds[0].min_position_ == -std::numeric_limits<double>::max() ||
           bounds[0].max_position_ == std::numeric_limits<double>::max() ||
           bounds[1].min_position_ == -std::numeric_limits<double>::max() ||
@@ -72,8 +72,8 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &s
       // Joint limits are not well-defined for floating joints
       continue;
     }
-    const double *joint_values = state.getJointPositions(joint_model_vector[i]);
-    const robot_model::JointModel::Bounds &bounds = joint_model_vector[i]->getVariableBounds();
+    const double* joint_values = state.getJointPositions(joint_model_vector[i]);
+    const robot_model::JointModel::Bounds& bounds = joint_model_vector[i]->getVariableBounds();
     std::vector<double> lower_bounds, upper_bounds;
     for (std::size_t j = 0; j < bounds.size(); ++j)
     {
@@ -90,19 +90,19 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState &s
   return (1.0 - exp(-penalty_multiplier_ * joint_limits_multiplier));
 }
 
-bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &state, const std::string &group_name,
-                                               double &manipulability_index, bool translation) const
+bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& state, const std::string& group_name,
+                                               double& manipulability_index, bool translation) const
 {
-  const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (joint_model_group)
     return getManipulabilityIndex(state, joint_model_group, manipulability_index, translation);
   else
     return false;
 }
 
-bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &state,
-                                               const robot_model::JointModelGroup *joint_model_group,
-                                               double &manipulability_index, bool translation) const
+bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& state,
+                                               const robot_model::JointModelGroup* joint_model_group,
+                                               double& manipulability_index, bool translation) const
 {
   // state.getJacobian() only works for chain groups.
   if (!joint_model_group->isChain())
@@ -161,21 +161,21 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState &st
   return true;
 }
 
-bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState &state, const std::string &group_name,
-                                                   Eigen::MatrixXcd &eigen_values,
-                                                   Eigen::MatrixXcd &eigen_vectors) const
+bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState& state, const std::string& group_name,
+                                                   Eigen::MatrixXcd& eigen_values,
+                                                   Eigen::MatrixXcd& eigen_vectors) const
 {
-  const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (joint_model_group)
     return getManipulabilityEllipsoid(state, joint_model_group, eigen_values, eigen_vectors);
   else
     return false;
 }
 
-bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState &state,
-                                                   const robot_model::JointModelGroup *joint_model_group,
-                                                   Eigen::MatrixXcd &eigen_values,
-                                                   Eigen::MatrixXcd &eigen_vectors) const
+bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState& state,
+                                                   const robot_model::JointModelGroup* joint_model_group,
+                                                   Eigen::MatrixXcd& eigen_values,
+                                                   Eigen::MatrixXcd& eigen_vectors) const
 {
   // state.getJacobian() only works for chain groups.
   if (!joint_model_group->isChain())
@@ -191,18 +191,18 @@ bool KinematicsMetrics::getManipulabilityEllipsoid(const robot_state::RobotState
   return true;
 }
 
-bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state, const std::string &group_name,
-                                          double &manipulability, bool translation) const
+bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state, const std::string& group_name,
+                                          double& manipulability, bool translation) const
 {
-  const robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (joint_model_group)
     return getManipulability(state, joint_model_group, manipulability, translation);
   else
     return false;
 }
 
-bool KinematicsMetrics::getManipulability(const robot_state::RobotState &state,
-                                          const robot_model::JointModelGroup *joint_model_group, double &manipulability,
+bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
+                                          const robot_model::JointModelGroup* joint_model_group, double& manipulability,
                                           bool translation) const
 {
   // state.getJacobian() only works for chain groups.

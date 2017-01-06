@@ -54,15 +54,15 @@ class ValidConstrainedSampler : public ompl::base::ValidStateSampler
 {
 public:
   ValidConstrainedSampler(
-      const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-      const constraint_samplers::ConstraintSamplerPtr &cs = constraint_samplers::ConstraintSamplerPtr());
+      const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
+      const constraint_samplers::ConstraintSamplerPtr& cs = constraint_samplers::ConstraintSamplerPtr());
 
-  virtual bool sample(ompl::base::State *state);
-  virtual bool project(ompl::base::State *state);
-  virtual bool sampleNear(ompl::base::State *state, const ompl::base::State *near, const double distance);
+  virtual bool sample(ompl::base::State* state);
+  virtual bool project(ompl::base::State* state);
+  virtual bool sampleNear(ompl::base::State* state, const ompl::base::State* near, const double distance);
 
 private:
-  const ModelBasedPlanningContext *planning_context_;
+  const ModelBasedPlanningContext* planning_context_;
   kinematic_constraints::KinematicConstraintSetPtr kinematic_constraint_set_;
   constraint_samplers::ConstraintSamplerPtr constraint_sampler_;
   ompl::base::StateSamplerPtr default_sampler_;

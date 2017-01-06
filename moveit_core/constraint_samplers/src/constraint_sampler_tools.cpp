@@ -37,25 +37,25 @@
 #include <moveit/constraint_samplers/constraint_sampler_tools.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 
-void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints &constr,
-                                                const planning_scene::PlanningSceneConstPtr &scene,
-                                                const std::string &group, const std::string &link_name,
-                                                unsigned int sample_count, visualization_msgs::MarkerArray &markers)
+void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints& constr,
+                                                const planning_scene::PlanningSceneConstPtr& scene,
+                                                const std::string& group, const std::string& link_name,
+                                                unsigned int sample_count, visualization_msgs::MarkerArray& markers)
 {
   visualizeDistribution(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState(),
                         link_name, sample_count, markers);
 }
 
-double constraint_samplers::countSamplesPerSecond(const moveit_msgs::Constraints &constr,
-                                                  const planning_scene::PlanningSceneConstPtr &scene,
-                                                  const std::string &group)
+double constraint_samplers::countSamplesPerSecond(const moveit_msgs::Constraints& constr,
+                                                  const planning_scene::PlanningSceneConstPtr& scene,
+                                                  const std::string& group)
 {
   return countSamplesPerSecond(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr),
                                scene->getCurrentState());
 }
 
-double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sampler,
-                                                  const robot_state::RobotState &reference_state)
+double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr& sampler,
+                                                  const robot_state::RobotState& reference_state)
 {
   if (!sampler)
   {
@@ -79,17 +79,17 @@ double constraint_samplers::countSamplesPerSecond(const ConstraintSamplerPtr &sa
   return (double)valid / (double)total;
 }
 
-void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &sampler,
-                                                const robot_state::RobotState &reference_state,
-                                                const std::string &link_name, unsigned int sample_count,
-                                                visualization_msgs::MarkerArray &markers)
+void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr& sampler,
+                                                const robot_state::RobotState& reference_state,
+                                                const std::string& link_name, unsigned int sample_count,
+                                                visualization_msgs::MarkerArray& markers)
 {
   if (!sampler)
   {
     logError("No sampler specified for visualizing distribution of samples");
     return;
   }
-  const robot_state::LinkModel *lm = reference_state.getLinkModel(link_name);
+  const robot_state::LinkModel* lm = reference_state.getLinkModel(link_name);
   if (!lm)
     return;
   robot_state::RobotState ks(reference_state);
@@ -102,7 +102,7 @@ void constraint_samplers::visualizeDistribution(const ConstraintSamplerPtr &samp
   {
     if (!sampler->sample(ks))
       continue;
-    const Eigen::Vector3d &pos = ks.getGlobalLinkTransform(lm).translation();
+    const Eigen::Vector3d& pos = ks.getGlobalLinkTransform(lm).translation();
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
     mk.header.frame_id = sampler->getJointModelGroup()->getParentModel().getModelFrame();

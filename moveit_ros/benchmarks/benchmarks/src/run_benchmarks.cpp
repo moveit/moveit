@@ -42,7 +42,7 @@
 static const std::string ROBOT_DESCRIPTION =
     "robot_description";  // name of the robot description (a param name, so it can be changed externally)
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "moveit_benchmarks", ros::init_options::AnonymousName);
 
@@ -90,8 +90,7 @@ int main(int argc, char **argv)
     {
       std::stringstream ss;
       be.printOptions(ss);
-      std::cout << "Calling benchmark with options:" << std::endl
-                << ss.str() << std::endl;
+      std::cout << "Calling benchmark with options:" << std::endl << ss.str() << std::endl;
       be.runAllBenchmarks(btype);
       proc++;
     }

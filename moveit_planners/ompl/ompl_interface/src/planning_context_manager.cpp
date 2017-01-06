@@ -69,7 +69,7 @@ public:
     return last_planning_context_solve_;
   }
 
-  void setContext(const ModelBasedPlanningContextPtr &context)
+  void setContext(const ModelBasedPlanningContextPtr& context)
   {
     boost::mutex::scoped_lock slock(lock_);
     last_planning_context_solve_ = context;
@@ -96,7 +96,7 @@ struct PlanningContextManager::CachedContexts
 }  // namespace ompl_interface
 
 ompl_interface::PlanningContextManager::PlanningContextManager(
-    const robot_model::RobotModelConstPtr &kmodel, const constraint_samplers::ConstraintSamplerManagerPtr &csm)
+    const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   : kmodel_(kmodel)
   , constraint_sampler_manager_(csm)
   , max_goal_samples_(10)
@@ -121,8 +121,8 @@ namespace
 using namespace ompl_interface;
 
 template <typename T>
-static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si, const std::string &new_name,
-                                              const ModelBasedPlanningContextSpecification &spec)
+static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
+                                              const ModelBasedPlanningContextSpecification& spec)
 {
   ompl::base::PlannerPtr planner(new T(si));
   if (!new_name.empty())
@@ -134,7 +134,7 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr &si,
 }
 
 ompl_interface::ConfiguredPlannerAllocator
-ompl_interface::PlanningContextManager::plannerSelector(const std::string &planner) const
+ompl_interface::PlanningContextManager::plannerSelector(const std::string& planner) const
 {
   std::map<std::string, ConfiguredPlannerAllocator>::const_iterator it = known_planners_.find(planner);
   if (it != known_planners_.end())
@@ -174,13 +174,13 @@ ompl_interface::ConfiguredPlannerSelector ompl_interface::PlanningContextManager
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(
-    const planning_interface::PlannerConfigurationMap &pconfig)
+    const planning_interface::PlannerConfigurationMap& pconfig)
 {
   planner_configs_ = pconfig;
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const std::string &config, const std::string &factory_type) const
+    const std::string& config, const std::string& factory_type) const
 {
   planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.find(config);
 
@@ -198,10 +198,10 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_interface::PlannerConfigurationSettings &config,
-    const StateSpaceFactoryTypeSelector &factory_selector, const moveit_msgs::MotionPlanRequest &req) const
+    const planning_interface::PlannerConfigurationSettings& config,
+    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& req) const
 {
-  const ompl_interface::ModelBasedStateSpaceFactoryPtr &factory = factory_selector(config.group);
+  const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
 
   // Check for a cached planning context
   ModelBasedPlanningContextPtr context;
@@ -245,7 +245,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       boost::tokenizer<boost::char_separator<char> > tok(config.config.at("subspaces"), sep);
       for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
       {
-        const ompl_interface::ModelBasedStateSpaceFactoryPtr &sub_fact = factory_selector(*beg);
+        const ompl_interface::ModelBasedStateSpaceFactoryPtr& sub_fact = factory_selector(*beg);
         if (sub_fact)
         {
           ModelBasedStateSpaceSpecification sub_space_spec(kmodel_, *beg);
@@ -280,8 +280,8 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningContextManager::getStateSpaceFactory1(
-    const std::string & /* dummy */, const std::string &factory_type) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(
+    const std::string& /* dummy */, const std::string& factory_type) const
 {
   std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
       factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
@@ -295,8 +295,8 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningCo
   }
 }
 
-const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningContextManager::getStateSpaceFactory2(
-    const std::string &group, const moveit_msgs::MotionPlanRequest &req) const
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(
+    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
   std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
@@ -327,8 +327,8 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr &ompl_interface::PlanningCo
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const moveit_msgs::MotionPlanRequest &req,
-    moveit_msgs::MoveItErrorCodes &error_code) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
+    moveit_msgs::MoveItErrorCodes& error_code) const
 {
   if (req.group_name.empty())
   {
@@ -392,7 +392,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       logDebug("%s: New planning context is set.", context->getName().c_str());
       error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
-    catch (ompl::Exception &ex)
+    catch (ompl::Exception& ex)
     {
       logError("OMPL encountered an error: %s", ex.what());
       context.reset();

@@ -77,24 +77,24 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(int argc, char **argv, QWidget *parent = 0);
+  MainWindow(int argc, char** argv, QWidget* parent = 0);
 
   ~MainWindow();
 public Q_SLOTS:
 
   void exitActionTriggered(bool);
   void openActionTriggered(bool);
-  void planningGroupChanged(const QString &text);
+  void planningGroupChanged(const QString& text);
   void dbConnectButtonClicked();
   void dbConnectButtonClickedBackgroundJob();
   void robotInteractionButtonClicked();
 
   void loadSceneButtonClicked(void);
-  void loadSceneButtonClicked(QListWidgetItem *item);
+  void loadSceneButtonClicked(QListWidgetItem* item);
 
   // Goals and states
-  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose);
+  void goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
+  void createGoalAtPose(const std::string& name, const Eigen::Affine3d& pose);
   void createGoalPoseButtonClicked(void);
   void showBBoxGoalsDialog();
   void createBBoxGoalsButtonClicked(void);
@@ -102,7 +102,7 @@ public Q_SLOTS:
   void removeAllGoalsButtonClicked(void);
   void goalPoseSelectionChanged(void);
   void switchGoalVisibilityButtonClicked(void);
-  void goalPoseDoubleClicked(QListWidgetItem *item);
+  void goalPoseDoubleClicked(QListWidgetItem* item);
   void copySelectedGoalPoses(void);
   void visibleAxisChanged(int state);
   void checkGoalsInCollision(void);
@@ -113,14 +113,14 @@ public Q_SLOTS:
   void runBenchmarkButtonClicked(void);
   void benchmarkFolderButtonClicked(void);
   void loadBenchmarkResults(void);
-  void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state);
-  void updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state);
+  void updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState& state);
+  void updateGoalMarkerStateFromName(const std::string& name, const GripperMarker::GripperMarkerState& state);
   void goalOffsetChanged();
 
   void saveStartStateButtonClicked(void);
   void removeSelectedStatesButtonClicked(void);
   void removeAllStatesButtonClicked(void);
-  void startStateItemDoubleClicked(QListWidgetItem *item);
+  void startStateItemDoubleClicked(QListWidgetItem* item);
 
   void loadGoalsFromDBButtonClicked(void);
   void saveGoalsOnDBButtonClicked(void);
@@ -142,8 +142,8 @@ public Q_SLOTS:
   void MainLoop();
 
 private:
-  const static char *ROBOT_DESCRIPTION_PARAM;
-  const static char *ROBOT_DESCRIPTION_SEMANTIC_PARAM;
+  const static char* ROBOT_DESCRIPTION_PARAM;
+  const static char* ROBOT_DESCRIPTION_SEMANTIC_PARAM;
   const static unsigned int DEFAULT_WAREHOUSE_PORT;
 
   Ui::MainWindow ui_;
@@ -154,24 +154,24 @@ private:
   boost::shared_ptr<QSettings> settings_;
 
   // rviz
-  rviz::RenderPanel *render_panel_;
-  rviz::VisualizationManager *visualization_manager_;
-  moveit_rviz_plugin::PlanningSceneDisplay *scene_display_;
+  rviz::RenderPanel* render_panel_;
+  rviz::VisualizationManager* visualization_manager_;
+  moveit_rviz_plugin::PlanningSceneDisplay* scene_display_;
 
-  bool waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display);
+  bool waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay* scene_display);
   void scheduleStateUpdate();
   void scheduleStateUpdateBackgroundJob();
-  bool isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group,
-                                 const double *ik_solution);
+  bool isIKSolutionCollisionFree(robot_state::RobotState* state, const robot_model::JointModelGroup* group,
+                                 const double* ik_solution);
   bool configure();
-  void loadNewRobot(const std::string &urdf_path, const std::string &srdf_path);
-  void setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list);
-  void selectItemJob(QListWidgetItem *item, bool flag);
+  void loadNewRobot(const std::string& urdf_path, const std::string& srdf_path);
+  void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
+  void selectItemJob(QListWidgetItem* item, bool flag);
   void saveGoalsToDB();
 
   // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
-  rviz::Display *int_marker_display_;
+  rviz::Display* int_marker_display_;
 
   // Warehouse
   std::string database_host_;
@@ -207,10 +207,10 @@ private:
     StartState() : selected(false)
     {
     }
-    StartState(const moveit_msgs::RobotState &state) : state_msg(state), selected(false)
+    StartState(const moveit_msgs::RobotState& state) : state_msg(state), selected(false)
     {
     }
-    StartState(const moveit_msgs::RobotState &state, bool is_selected) : state_msg(state), selected(is_selected)
+    StartState(const moveit_msgs::RobotState& state, bool is_selected) : state_msg(state), selected(is_selected)
     {
     }
   };
@@ -222,8 +222,8 @@ private:
   void populateGoalPosesList();
   void populateStartStatesList();
   void populateTrajectoriesList();
-  void computeGoalPoseDoubleClicked(QListWidgetItem *item);
-  void switchGoalPoseMarkerSelection(const std::string &marker_name);
+  void computeGoalPoseDoubleClicked(QListWidgetItem* item);
+  void switchGoalPoseMarkerSelection(const std::string& marker_name);
   typedef std::pair<visualization_msgs::InteractiveMarker, boost::shared_ptr<rviz::InteractiveMarker> > MsgMarkerPair;
 
   /** @brief Return true if any links of the given @a group_name are
@@ -232,23 +232,23 @@ private:
    *
    * This function helps display collision state for a disconnected
    * end-effector which is used to show goal poses. */
-  bool isGroupCollidingWithWorld(robot_state::RobotState &robot_state, const std::string &group_name);
+  bool isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name);
 
-  void checkIfGoalInCollision(const std::string &goal_name);
-  void checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable = false);
-  void computeLoadBenchmarkResults(const std::string &file);
+  void checkIfGoalInCollision(const std::string& goal_name);
+  void checkIfGoalReachable(const std::string& goal_name, bool update_if_reachable = false);
+  void computeLoadBenchmarkResults(const std::string& file);
 
   void updateGoalPoseMarkers(float wall_dt, float ros_dt);
 
   // Trajectories
-  void switchTrajectorySelection(const std::string &marker_name);
-  void animateTrajectory(const std::vector<robot_state::RobotStatePtr> &traj);
+  void switchTrajectorySelection(const std::string& marker_name);
+  void animateTrajectory(const std::vector<robot_state::RobotStatePtr>& traj);
 
   typedef std::map<std::string, TrajectoryPtr> TrajectoryMap;
   typedef std::pair<std::string, TrajectoryPtr> TrajectoryPair;
   TrajectoryMap trajectories_;
 
-  void createTrajectoryStartMarker(const GripperMarker &marker);
+  void createTrajectoryStartMarker(const GripperMarker& marker);
 
   // Background processing
   void loadSceneButtonClickedBackgroundJob(void);
@@ -258,13 +258,8 @@ private:
   boost::shared_ptr<QTimer> main_loop_jobs_timer_;
 
   // Status and logging
-  typedef enum
-  {
-    STATUS_WARN,
-    STATUS_ERROR,
-    STATUS_INFO
-  } StatusType;
-  void setStatus(StatusType st, const QString &text)
+  typedef enum { STATUS_WARN, STATUS_ERROR, STATUS_INFO } StatusType;
+  void setStatus(StatusType st, const QString& text)
   {
     if (st == STATUS_WARN)
     {
@@ -282,7 +277,7 @@ private:
     }
   }
 
-  void setStatusFromBackground(StatusType st, const QString &text)
+  void setStatusFromBackground(StatusType st, const QString& text)
   {
     JobProcessing::addMainLoopJob(boost::bind(&MainWindow::setStatus, this, st, text));
   }

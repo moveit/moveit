@@ -80,47 +80,47 @@ class PlanningContext
 {
 public:
   /** \brief Construct a planning context named \e name for the group \e group */
-  PlanningContext(const std::string &name, const std::string &group);
+  PlanningContext(const std::string& name, const std::string& group);
 
   virtual ~PlanningContext();
 
   /** \brief Get the name of the group this planning context is for */
-  const std::string &getGroupName() const
+  const std::string& getGroupName() const
   {
     return group_;
   }
 
   /** \brief Get the name of this planning context */
-  const std::string &getName() const
+  const std::string& getName() const
   {
     return name_;
   }
 
   /** \brief Get the planning scene associated to this planning context */
-  const planning_scene::PlanningSceneConstPtr &getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return planning_scene_;
   }
 
   /** \brief Get the motion plan request associated to this planning context */
-  const MotionPlanRequest &getMotionPlanRequest() const
+  const MotionPlanRequest& getMotionPlanRequest() const
   {
     return request_;
   }
 
   /** \brief Set the planning scene for this context */
-  void setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene);
+  void setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene);
 
   /** \brief Set the planning request for this context */
-  void setMotionPlanRequest(const MotionPlanRequest &request);
+  void setMotionPlanRequest(const MotionPlanRequest& request);
 
   /** \brief Solve the motion planning problem and store the result in \e res. This function should not clear data
    * structures before computing. The constructor and clear() do that. */
-  virtual bool solve(MotionPlanResponse &res) = 0;
+  virtual bool solve(MotionPlanResponse& res) = 0;
 
   /** \brief Solve the motion planning problem and store the detailed result in \e res. This function should not clear
    * data structures before computing. The constructor and clear() do that. */
-  virtual bool solve(MotionPlanDetailedResponse &res) = 0;
+  virtual bool solve(MotionPlanDetailedResponse& res) = 0;
 
   /** \brief If solve() is running, terminate the computation. Return false if termination not possible. No-op if
    * solve() is not running (returns true).*/
@@ -162,14 +162,14 @@ public:
   /// It is assumed that motion plans will be computed for the robot described by \e model and that any exposed ROS
   /// functionality
   /// or required ROS parameters are namespaced by \e ns
-  virtual bool initialize(const robot_model::RobotModelConstPtr &model, const std::string &ns);
+  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns);
 
   /// Get \brief a short string that identifies the planning interface
   virtual std::string getDescription() const;
 
   /// \brief Get the names of the known planning algorithms (values that can be filled as planner_id in the planning
   /// request)
-  virtual void getPlanningAlgorithms(std::vector<std::string> &algs) const;
+  virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const;
 
   /// \brief Construct a planning context given the current scene and a planning request. If a problem is encountered,
   /// error code is set and empty ptr is returned.
@@ -178,22 +178,22 @@ public:
   /// \param planning_scene A const planning scene to use for planning
   /// \param req The representation of the planning request
   /// \param error_code This is where the error is set if constructing the planning context fails
-  virtual PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                const MotionPlanRequest &req,
-                                                moveit_msgs::MoveItErrorCodes &error_code) const = 0;
+  virtual PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                const MotionPlanRequest& req,
+                                                moveit_msgs::MoveItErrorCodes& error_code) const = 0;
 
   /// \brief Calls the function above but ignores the error_code
-  PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                        const MotionPlanRequest &req) const;
+  PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                        const MotionPlanRequest& req) const;
 
   /// \brief Determine whether this plugin instance is able to represent this planning request
-  virtual bool canServiceRequest(const MotionPlanRequest &req) const = 0;
+  virtual bool canServiceRequest(const MotionPlanRequest& req) const = 0;
 
   /// \brief Specify the settings to be used for specific algorithms
-  virtual void setPlannerConfigurations(const PlannerConfigurationMap &pcs);
+  virtual void setPlannerConfigurations(const PlannerConfigurationMap& pcs);
 
   /// \brief Get the settings for a specific algorithm
-  const PlannerConfigurationMap &getPlannerConfigurations() const
+  const PlannerConfigurationMap& getPlannerConfigurations() const
   {
     return config_settings_;
   }

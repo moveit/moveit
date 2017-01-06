@@ -55,29 +55,29 @@ MOVEIT_CLASS_FORWARD(ConstraintApproximation)
 class ConstraintApproximation
 {
 public:
-  ConstraintApproximation(const std::string &group, const std::string &state_space_parameterization,
-                          bool explicit_motions, const moveit_msgs::Constraints &msg, const std::string &filename,
-                          const ompl::base::StateStoragePtr &storage, std::size_t milestones = 0);
+  ConstraintApproximation(const std::string& group, const std::string& state_space_parameterization,
+                          bool explicit_motions, const moveit_msgs::Constraints& msg, const std::string& filename,
+                          const ompl::base::StateStoragePtr& storage, std::size_t milestones = 0);
 
   virtual ~ConstraintApproximation()
   {
   }
 
-  const std::string &getName() const
+  const std::string& getName() const
   {
     return constraint_msg_.name;
   }
 
-  ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints &msg) const;
+  ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const;
 
   InterpolationFunction getInterpolationFunction() const;
 
-  const std::vector<int> &getSpaceSignature() const
+  const std::vector<int>& getSpaceSignature() const
   {
     return space_signature_;
   }
 
-  const std::string &getGroup() const
+  const std::string& getGroup() const
   {
     return group_;
   }
@@ -92,22 +92,22 @@ public:
     return milestones_;
   }
 
-  const std::string &getStateSpaceParameterization() const
+  const std::string& getStateSpaceParameterization() const
   {
     return state_space_parameterization_;
   }
 
-  const moveit_msgs::Constraints &getConstraintsMsg() const
+  const moveit_msgs::Constraints& getConstraintsMsg() const
   {
     return constraint_msg_;
   }
 
-  const ompl::base::StateStoragePtr &getStateStorage() const
+  const ompl::base::StateStoragePtr& getStateStorage() const
   {
     return state_storage_ptr_;
   }
 
-  const std::string &getFilename() const
+  const std::string& getFilename() const
   {
     return ompldb_filename_;
   }
@@ -123,7 +123,7 @@ protected:
 
   std::string ompldb_filename_;
   ompl::base::StateStoragePtr state_storage_ptr_;
-  ConstraintApproximationStateStorage *state_storage_;
+  ConstraintApproximationStateStorage* state_storage_;
   std::size_t milestones_;
 };
 
@@ -162,40 +162,40 @@ MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 class ConstraintsLibrary
 {
 public:
-  ConstraintsLibrary(const PlanningContextManager &pcontext) : context_manager_(pcontext)
+  ConstraintsLibrary(const PlanningContextManager& pcontext) : context_manager_(pcontext)
   {
   }
 
-  void loadConstraintApproximations(const std::string &path);
+  void loadConstraintApproximations(const std::string& path);
 
-  void saveConstraintApproximations(const std::string &path);
-
-  ConstraintApproximationConstructionResults addConstraintApproximation(
-      const moveit_msgs::Constraints &constr_sampling, const moveit_msgs::Constraints &constr_hard,
-      const std::string &group, const planning_scene::PlanningSceneConstPtr &scene,
-      const ConstraintApproximationConstructionOptions &options);
+  void saveConstraintApproximations(const std::string& path);
 
   ConstraintApproximationConstructionResults addConstraintApproximation(
-      const moveit_msgs::Constraints &constr, const std::string &group,
-      const planning_scene::PlanningSceneConstPtr &scene, const ConstraintApproximationConstructionOptions &options);
+      const moveit_msgs::Constraints& constr_sampling, const moveit_msgs::Constraints& constr_hard,
+      const std::string& group, const planning_scene::PlanningSceneConstPtr& scene,
+      const ConstraintApproximationConstructionOptions& options);
 
-  void printConstraintApproximations(std::ostream &out = std::cout) const;
+  ConstraintApproximationConstructionResults addConstraintApproximation(
+      const moveit_msgs::Constraints& constr, const std::string& group,
+      const planning_scene::PlanningSceneConstPtr& scene, const ConstraintApproximationConstructionOptions& options);
+
+  void printConstraintApproximations(std::ostream& out = std::cout) const;
   void clearConstraintApproximations();
 
-  void registerConstraintApproximation(const ConstraintApproximationPtr &approx)
+  void registerConstraintApproximation(const ConstraintApproximationPtr& approx)
   {
     constraint_approximations_[approx->getName()] = approx;
   }
 
-  const ConstraintApproximationPtr &getConstraintApproximation(const moveit_msgs::Constraints &msg) const;
+  const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
 
 private:
   ompl::base::StateStoragePtr constructConstraintApproximation(
-      const ModelBasedPlanningContextPtr &pcontext, const moveit_msgs::Constraints &constr_sampling,
-      const moveit_msgs::Constraints &constr_hard, const ConstraintApproximationConstructionOptions &options,
-      ConstraintApproximationConstructionResults &result);
+      const ModelBasedPlanningContextPtr& pcontext, const moveit_msgs::Constraints& constr_sampling,
+      const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
+      ConstraintApproximationConstructionResults& result);
 
-  const PlanningContextManager &context_manager_;
+  const PlanningContextManager& context_manager_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;
 };
 }

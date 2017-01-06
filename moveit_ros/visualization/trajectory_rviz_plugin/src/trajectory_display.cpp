@@ -74,7 +74,7 @@ void TrajectoryDisplay::loadRobotModel()
     return;
   }
 
-  const boost::shared_ptr<srdf::Model> &srdf =
+  const boost::shared_ptr<srdf::Model>& srdf =
       rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
   robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
 

@@ -41,7 +41,7 @@
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
 #include <octomap_msgs/conversions.h>
 
-static void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_monitor::OccupancyMapMonitor *server)
+static void publishOctomap(ros::Publisher* octree_binary_pub, occupancy_map_monitor::OccupancyMapMonitor* server)
 {
   octomap_msgs::Octomap map;
 
@@ -63,7 +63,7 @@ static void publishOctomap(ros::Publisher *octree_binary_pub, occupancy_map_moni
   octree_binary_pub->publish(map);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "occupancy_map_server");
   ros::NodeHandle nh;

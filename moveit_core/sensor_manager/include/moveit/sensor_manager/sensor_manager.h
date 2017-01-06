@@ -85,10 +85,10 @@ public:
   }
 
   /** \brief Get the list of known sensors */
-  virtual void getSensorsList(std::vector<std::string> &names) const = 0;
+  virtual void getSensorsList(std::vector<std::string>& names) const = 0;
 
   /** \brief Get the sensor information for a particular sensor */
-  virtual SensorInfo getSensorInfo(const std::string &name) const = 0;
+  virtual SensorInfo getSensorInfo(const std::string& name) const = 0;
 
   /** \brief Check if any sensors are known to this manager */
   virtual bool hasSensors() const = 0;
@@ -99,8 +99,8 @@ public:
   /// of this function can perform checks on the safety of the trajectory.
   /// The function returns true on success (either completing execution succesfully or computing a trajecotory
   /// successufully)
-  virtual bool pointSensorTo(const std::string &name, const geometry_msgs::PointStamped &target,
-                             moveit_msgs::RobotTrajectory &sensor_trajectory) = 0;
+  virtual bool pointSensorTo(const std::string& name, const geometry_msgs::PointStamped& target,
+                             moveit_msgs::RobotTrajectory& sensor_trajectory) = 0;
 };
 }
 

@@ -256,7 +256,7 @@ void mesh_filter::MeshFilter::getFilteredDepth(float* depth) const
     const float offset = depth_filter_.getNearClippingDistance();
     while (depth < depthEnd && idx++ < first)
       if (*depth != 0 && *depth != 1.0)
-        *depth = *depth* scale + offset;
+        *depth = *depth * scale + offset;
       else
         *depth = 0;
 
@@ -265,7 +265,7 @@ void mesh_filter::MeshFilter::getFilteredDepth(float* depth) const
     float* depth2 = depthEnd - last;
     while (depth2 < depthEnd)
       if (*depth2 != 0 && *depth != 1.0)
-        *depth2 = *depth2* scale + offset;
+        *depth2 = *depth2 * scale + offset;
       else
         *depth2 = 0;
 
@@ -291,7 +291,7 @@ void mesh_filter::MeshFilter::getFilteredDepth(float* depth) const
     // 0 = on near clipping plane -> we used 0 to mark invalid points -> not visible
     // points on far clipping plane needs to be removed too
     if (*depth != 0 && *depth != 1.0)
-      *depth = *depth* scale + offset;
+      *depth = *depth * scale + offset;
     else
       *depth = 0;
 

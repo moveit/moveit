@@ -76,7 +76,7 @@ public:
    *  @param solution The actual solution
    *  @return False if desired pose lies outside the grid
    */
-  bool getSolution(const geometry_msgs::Pose &pose, unsigned int solution_index, std::vector<double> &solution) const;
+  bool getSolution(const geometry_msgs::Pose& pose, unsigned int solution_index, std::vector<double>& solution) const;
 
   /** @brief Get all candidate solutions for a particular pose. Note that the pose will be projected onto the grid used
    * in the caching process. The size of the solutions vector MUST be pre-allocated to num_solutions (see
@@ -87,7 +87,7 @@ public:
    *  @return False if desired pose lies outside the grid or if size(solutions) is not set to num_solutions (see
    * getNumSolutions)
    */
-  bool getSolutions(const geometry_msgs::Pose &pose, std::vector<std::vector<double> > &solutions) const;
+  bool getSolutions(const geometry_msgs::Pose& pose, std::vector<std::vector<double> >& solutions) const;
 
   /** @brief Get number of candidate solutions for a particular pose.
    *  @param pose The desired pose
@@ -95,7 +95,7 @@ public:
    *  @param solution The actual solution
    *  @return False if desired pose lies outside the grid
    */
-  bool getNumSolutions(const geometry_msgs::Pose &pose, unsigned int &num_solutions) const;
+  bool getNumSolutions(const geometry_msgs::Pose& pose, unsigned int& num_solutions) const;
 
   /** @brief Initialize the cache class
    *  @param solver An instance of a kinematics solver
@@ -103,56 +103,56 @@ public:
    *  @param opt Parameters needed for defining the cache workspace
    *  @return False if any error occured during initialization
    */
-  bool initialize(kinematics::KinematicsBaseConstPtr &solver, const robot_model::RobotModelConstPtr &kinematic_model,
-                  const KinematicsCache::Options &opt);
+  bool initialize(kinematics::KinematicsBaseConstPtr& solver, const robot_model::RobotModelConstPtr& kinematic_model,
+                  const KinematicsCache::Options& opt);
 
   /** @brief Return the instance of the kinematics solver */
-  const kinematics::KinematicsBaseConstPtr &getSolverInstance() const
+  const kinematics::KinematicsBaseConstPtr& getSolverInstance() const
   {
     return kinematics_solver_;
   }
 
   /** @brief Return the instance of the kinematics model */
-  const robot_model::RobotModelConstPtr &getModelInstance() const
+  const robot_model::RobotModelConstPtr& getModelInstance() const
   {
     return kinematic_model_;
   }
 
   /** @brief Return the cache parameters used for cache construction */
-  const Options &getCacheParameters() const
+  const Options& getCacheParameters() const
   {
     return options_;
   }
 
-  const std::string &getGroupName() const
+  const std::string& getGroupName() const
   {
     return kinematics_solver_->getGroupName();
   }
 
   /** @brief Add a new solution to the cache at the given location
    **/
-  bool addToCache(const geometry_msgs::Pose &pose, const std::vector<double> &joint_values, bool overwrite = false);
+  bool addToCache(const geometry_msgs::Pose& pose, const std::vector<double>& joint_values, bool overwrite = false);
 
-  bool writeToFile(const std::string &filename);
+  bool writeToFile(const std::string& filename);
 
-  bool readFromFile(const std::string &filename);
+  bool readFromFile(const std::string& filename);
 
   std::pair<double, double> getMinMaxSquaredDistance();
 
 private:
   /** @brief Get the location of a solution given the grid index and solution index */
-  unsigned int getSolutionLocation(unsigned int &grid_index, unsigned int &solution_index) const;
+  unsigned int getSolutionLocation(unsigned int& grid_index, unsigned int& solution_index) const;
 
   /** @brief Get a solution for the grid index given the solution index */
   std::vector<double> getSolution(unsigned int grid_index, unsigned int solution_index) const;
 
   /** @brief Get the grid index for a given pose */
-  bool getGridIndex(const geometry_msgs::Pose &pose, unsigned int &grid_index) const;
+  bool getGridIndex(const geometry_msgs::Pose& pose, unsigned int& grid_index) const;
 
   /** @brief Setup the cache */
-  void setup(const KinematicsCache::Options &opt);
+  void setup(const KinematicsCache::Options& opt);
 
-  void updateDistances(const geometry_msgs::Pose &pose);
+  void updateDistances(const geometry_msgs::Pose& pose);
 
   KinematicsCache::Options options_;                                    /** Internal copy of cache parameters */
   geometry_msgs::Point cache_origin_;                                   /** Origin for cache workspace */
@@ -172,7 +172,7 @@ private:
   robot_model::RobotModelConstPtr kinematic_model_; /** An instance of the kinematic model */
   robot_state::RobotStatePtr kinematic_state_;      /** An instance of the kinematic state */
 
-  const robot_model::JointModelGroup *joint_model_group_; /** Joint model group associated with this cache */
+  const robot_model::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
   boost::shared_ptr<robot_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
 
   //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */

@@ -67,7 +67,7 @@ public:
      frame reported by getPlanningFrame()).
        +      If \e with_type is set to true, only return objects that have a known type. */
   std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy,
-                                                    double maxz, bool with_type, std::vector<std::string> &types);
+                                                    double maxz, bool with_type, std::vector<std::string>& types);
 
   /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the
      frame reported by getPlanningFrame()).
@@ -80,30 +80,30 @@ public:
   };
 
   /** \brief Get the poses from the objects identified by the given object ids list. */
-  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);
+  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string>& object_ids);
 
   /** \brief Get the objects identified by the given object ids list. If no ids are provided, return all the known
    * objects. */
   std::map<std::string, moveit_msgs::CollisionObject>
-  getObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
+  getObjects(const std::vector<std::string>& object_ids = std::vector<std::string>());
 
   /** \brief Get the attached objects identified by the given object ids list. If no ids are provided, return all the
    * attached objects. */
   std::map<std::string, moveit_msgs::AttachedCollisionObject>
-  getAttachedObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
+  getAttachedObjects(const std::vector<std::string>& object_ids = std::vector<std::string>());
 
   /** \brief Add collision objects to the world.
       Make sure object.operation is set to object.ADD. */
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const;
 
   /** \brief Remove collision objects from the world. */
-  void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
+  void removeCollisionObjects(const std::vector<std::string>& object_ids) const;
 
   /**@}*/
 
 private:
   class PlanningSceneInterfaceImpl;
-  PlanningSceneInterfaceImpl *impl_;
+  PlanningSceneInterfaceImpl* impl_;
 };
 }
 }

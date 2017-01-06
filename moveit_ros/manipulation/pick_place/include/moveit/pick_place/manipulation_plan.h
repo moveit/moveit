@@ -64,9 +64,9 @@ struct ManipulationPlanSharedData
   {
   }
 
-  const robot_model::JointModelGroup *planning_group_;
-  const robot_model::JointModelGroup *end_effector_group_;
-  const robot_model::LinkModel *ik_link_;
+  const robot_model::JointModelGroup* planning_group_;
+  const robot_model::JointModelGroup* end_effector_group_;
+  const robot_model::LinkModel* ik_link_;
 
   unsigned int max_goal_sampling_attempts_;
 
@@ -85,7 +85,7 @@ MOVEIT_CLASS_FORWARD(ManipulationPlan);
 
 struct ManipulationPlan
 {
-  ManipulationPlan(const ManipulationPlanSharedDataConstPtr &shared_data)
+  ManipulationPlan(const ManipulationPlanSharedDataConstPtr& shared_data)
     : shared_data_(shared_data), processing_stage_(0)
   {
   }

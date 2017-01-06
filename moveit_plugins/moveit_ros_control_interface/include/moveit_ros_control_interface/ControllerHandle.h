@@ -50,8 +50,8 @@ MOVEIT_CLASS_FORWARD(ControllerHandleAllocator);
 class ControllerHandleAllocator
 {
 public:
-  virtual moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string &name,
-                                                                     const std::vector<std::string> &resources) = 0;
+  virtual moveit_controller_manager::MoveItControllerHandlePtr alloc(const std::string& name,
+                                                                     const std::vector<std::string>& resources) = 0;
   virtual ~ControllerHandleAllocator()
   {
   }

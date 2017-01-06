@@ -50,12 +50,12 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 //
 // ******************************************************************************************
-DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
+DoubleListWidget::DoubleListWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data,
                                    QString long_name, QString short_name, bool add_ok_cancel)
   : QWidget(parent), long_name_(long_name), short_name_(short_name), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Label ------------------------------------------------
   title_ = new QLabel("", this);  // specify the title from the parent widget
@@ -64,10 +64,10 @@ DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::Move
   layout->addWidget(title_);
 
   // Double selection lists -------------------------------
-  QHBoxLayout *hlayout = new QHBoxLayout();
+  QHBoxLayout* hlayout = new QHBoxLayout();
 
   // Left column -------------------------------------------
-  QVBoxLayout *column1 = new QVBoxLayout();
+  QVBoxLayout* column1 = new QVBoxLayout();
 
   // Label
   column1_label_ = new QLabel(QString("Available ").append(short_name_).append('s'), this);
@@ -91,17 +91,17 @@ DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::Move
   hlayout->addLayout(column1);
 
   // Center column ------------------------------------------
-  QVBoxLayout *column2 = new QVBoxLayout();
+  QVBoxLayout* column2 = new QVBoxLayout();
   column2->setSizeConstraint(QLayout::SetFixedSize);  // constraint it
 
   // Right Arrow Button
-  QPushButton *btn_right = new QPushButton(">", this);
+  QPushButton* btn_right = new QPushButton(">", this);
   btn_right->setMaximumSize(25, 80);
   connect(btn_right, SIGNAL(clicked()), this, SLOT(selectDataButtonClicked()));
   column2->addWidget(btn_right);
 
   // Left Arrow Button
-  QPushButton *btn_left = new QPushButton("<", this);
+  QPushButton* btn_left = new QPushButton("<", this);
   btn_left->setMaximumSize(25, 80);
   connect(btn_left, SIGNAL(clicked()), this, SLOT(deselectDataButtonClicked()));
   column2->addWidget(btn_left);
@@ -110,7 +110,7 @@ DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::Move
   hlayout->addLayout(column2);
 
   // Right column -------------------------------------------
-  QVBoxLayout *column3 = new QVBoxLayout();
+  QVBoxLayout* column3 = new QVBoxLayout();
 
   // Label
   column2_label_ = new QLabel(QString("Selected ").append(short_name_).append("s"), this);
@@ -136,23 +136,23 @@ DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::Move
   if (add_ok_cancel)
   {
     // Button controls -------------------------------------------
-    QHBoxLayout *controls_layout = new QHBoxLayout();
+    QHBoxLayout* controls_layout = new QHBoxLayout();
     controls_layout->setContentsMargins(0, 25, 0, 15);
 
     // Spacer
-    QWidget *spacer = new QWidget(this);
+    QWidget* spacer = new QWidget(this);
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     controls_layout->addWidget(spacer);
 
     // Save
-    QPushButton *btn_save = new QPushButton("&Save", this);
+    QPushButton* btn_save = new QPushButton("&Save", this);
     // btn_save->setMaximumWidth( 200 );
     connect(btn_save, SIGNAL(clicked()), this, SIGNAL(doneEditing()));
     controls_layout->addWidget(btn_save);
     controls_layout->setAlignment(btn_save, Qt::AlignRight);
 
     // Cancel
-    QPushButton *btn_cancel = new QPushButton("&Cancel", this);
+    QPushButton* btn_cancel = new QPushButton("&Cancel", this);
     // btn_cancel->setMaximumWidth( 200 );
     connect(btn_cancel, SIGNAL(clicked()), this, SIGNAL(cancelEditing()));
     controls_layout->addWidget(btn_cancel);
@@ -169,7 +169,7 @@ DoubleListWidget::DoubleListWidget(QWidget *parent, moveit_setup_assistant::Move
 // ******************************************************************************************
 // Set the left box
 // ******************************************************************************************
-void DoubleListWidget::setAvailable(const std::vector<std::string> &items)
+void DoubleListWidget::setAvailable(const std::vector<std::string>& items)
 {
   setTable(items, data_table_);
 
@@ -181,7 +181,7 @@ void DoubleListWidget::setAvailable(const std::vector<std::string> &items)
 // ******************************************************************************************
 // Set the right box
 // ******************************************************************************************
-void DoubleListWidget::setSelected(const std::vector<std::string> &items)
+void DoubleListWidget::setSelected(const std::vector<std::string>& items)
 {
   setTable(items, selected_data_table_);
 }
@@ -192,7 +192,7 @@ void DoubleListWidget::clearContents()
   data_table_->clearContents();
 }
 
-void DoubleListWidget::setColumnNames(const QString &col1, const QString &col2)
+void DoubleListWidget::setColumnNames(const QString& col1, const QString& col2)
 {
   column1_label_->setText(col1);
   column2_label_->setText(col2);
@@ -201,7 +201,7 @@ void DoubleListWidget::setColumnNames(const QString &col1, const QString &col2)
 // ******************************************************************************************
 // Convenience function for reusing set table code
 // ******************************************************************************************
-void DoubleListWidget::setTable(const std::vector<std::string> &items, QTableWidget *table)
+void DoubleListWidget::setTable(const std::vector<std::string>& items, QTableWidget* table)
 {
   // Disable Table
   table->setUpdatesEnabled(false);  // prevent table from updating until we are completely done
@@ -221,7 +221,7 @@ void DoubleListWidget::setTable(const std::vector<std::string> &items, QTableWid
       continue;
 
     // Create row elements
-    QTableWidgetItem *data_name = new QTableWidgetItem(data_it->c_str());
+    QTableWidgetItem* data_name = new QTableWidgetItem(data_it->c_str());
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     // Add to table
@@ -244,7 +244,7 @@ void DoubleListWidget::setTable(const std::vector<std::string> &items, QTableWid
 void DoubleListWidget::selectDataButtonClicked()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Loop through all selected items
   for (int i = 0; i < selected.size(); i++)
@@ -256,7 +256,7 @@ void DoubleListWidget::selectDataButtonClicked()
     // Check if this selected joint is already in the selected joint table
     for (int r = 0; r < selected_data_table_->rowCount(); r++)
     {
-      QTableWidgetItem *item = selected_data_table_->item(r, 0);
+      QTableWidgetItem* item = selected_data_table_->item(r, 0);
 
       if (item->text().toStdString() == name)
       {
@@ -270,7 +270,7 @@ void DoubleListWidget::selectDataButtonClicked()
     if (!alreadyExists)
     {
       selected_data_table_->setRowCount(selected_data_table_->rowCount() + 1);
-      QTableWidgetItem *newItem = new QTableWidgetItem(name.c_str());
+      QTableWidgetItem* newItem = new QTableWidgetItem(name.c_str());
       newItem->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       selected_data_table_->setItem(rowToAdd, 0, newItem);
     }
@@ -285,7 +285,7 @@ void DoubleListWidget::selectDataButtonClicked()
 void DoubleListWidget::deselectDataButtonClicked()
 {
   // Get list of joints to be removed from selected list
-  QList<QTableWidgetItem *> deselected = selected_data_table_->selectedItems();
+  QList<QTableWidgetItem*> deselected = selected_data_table_->selectedItems();
 
   // loop through deselect list and remove
   for (int i = 0; i < deselected.size(); i++)
@@ -299,25 +299,25 @@ void DoubleListWidget::deselectDataButtonClicked()
 // ******************************************************************************************
 // Highlight links of robot for left list
 // ******************************************************************************************
-void DoubleListWidget::previewSelectedLeft(const QItemSelection &selected, const QItemSelection &deselected)
+void DoubleListWidget::previewSelectedLeft(const QItemSelection& selected, const QItemSelection& deselected)
 {
-  const QList<QTableWidgetItem *> selected_items = data_table_->selectedItems();
+  const QList<QTableWidgetItem*> selected_items = data_table_->selectedItems();
   previewSelected(selected_items);
 }
 
 // ******************************************************************************************
 // Highlight links of robot for right list
 // ******************************************************************************************
-void DoubleListWidget::previewSelectedRight(const QItemSelection &selected, const QItemSelection &deselected)
+void DoubleListWidget::previewSelectedRight(const QItemSelection& selected, const QItemSelection& deselected)
 {
-  const QList<QTableWidgetItem *> selected_items = selected_data_table_->selectedItems();
+  const QList<QTableWidgetItem*> selected_items = selected_data_table_->selectedItems();
   previewSelected(selected_items);
 }
 
 // ******************************************************************************************
 // Highlight links of robot
 // ******************************************************************************************
-void DoubleListWidget::previewSelected(const QList<QTableWidgetItem *> &selected)
+void DoubleListWidget::previewSelected(const QList<QTableWidgetItem*>& selected)
 {
   // Check that an element was selected
   if (!selected.size())
