@@ -64,24 +64,24 @@ public:
       If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
      runtime exception is thrown. */
-  ConstraintsStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  ConstraintsStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
-  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "",
-                      const std::string &group = "");
-  bool hasConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "") const;
-  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "",
-                           const std::string &group = "") const;
-  void getKnownConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "",
-                           const std::string &group = "") const;
+  void addConstraints(const moveit_msgs::Constraints& msg, const std::string& robot = "",
+                      const std::string& group = "");
+  bool hasConstraints(const std::string& name, const std::string& robot = "", const std::string& group = "") const;
+  void getKnownConstraints(std::vector<std::string>& names, const std::string& robot = "",
+                           const std::string& group = "") const;
+  void getKnownConstraints(const std::string& regex, std::vector<std::string>& names, const std::string& robot = "",
+                           const std::string& group = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "",
-                      const std::string &group = "") const;
+  bool getConstraints(ConstraintsWithMetadata& msg_m, const std::string& name, const std::string& robot = "",
+                      const std::string& group = "") const;
 
-  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "",
-                         const std::string &group = "");
+  void renameConstraints(const std::string& old_name, const std::string& new_name, const std::string& robot = "",
+                         const std::string& group = "");
 
-  void removeConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "");
+  void removeConstraints(const std::string& name, const std::string& robot = "", const std::string& group = "");
 
   void reset();
 

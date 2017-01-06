@@ -50,7 +50,7 @@ using namespace moveit_ros_planning;
 class PlanExecution::DynamicReconfigureImpl
 {
 public:
-  DynamicReconfigureImpl(PlanExecution *owner)
+  DynamicReconfigureImpl(PlanExecution* owner)
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/plan_execution"))
   {
     dynamic_reconfigure_server_.setCallback(
@@ -58,20 +58,20 @@ public:
   }
 
 private:
-  void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig &config, uint32_t level)
+  void dynamicReconfigureCallback(PlanExecutionDynamicReconfigureConfig& config, uint32_t level)
   {
     owner_->setMaxReplanAttempts(config.max_replan_attempts);
     owner_->setTrajectoryStateRecordingFrequency(config.record_trajectory_state_frequency);
   }
 
-  PlanExecution *owner_;
+  PlanExecution* owner_;
   dynamic_reconfigure::Server<PlanExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 }
 
 plan_execution::PlanExecution::PlanExecution(
-    const planning_scene_monitor::PlanningSceneMonitorPtr &planning_scene_monitor,
-    const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution)
+    const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor,
+    const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution)
   : node_handle_("~")
   , planning_scene_monitor_(planning_scene_monitor)
   , trajectory_execution_manager_(trajectory_execution)
@@ -102,7 +102,7 @@ void plan_execution::PlanExecution::stop()
   preempt_requested_ = true;
 }
 
-std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs::MoveItErrorCodes &error_code)
+std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code)
 {
   if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
     return "Success";
@@ -131,15 +131,15 @@ std::string plan_execution::PlanExecution::getErrorCodeString(const moveit_msgs:
   return "Unknown event";
 }
 
-void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan, const Options &opt)
+void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan, const Options& opt)
 {
   plan.planning_scene_monitor_ = planning_scene_monitor_;
   plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
   planAndExecuteHelper(plan, opt);
 }
 
-void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan,
-                                                   const moveit_msgs::PlanningScene &scene_diff, const Options &opt)
+void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan,
+                                                   const moveit_msgs::PlanningScene& scene_diff, const Options& opt)
 {
   if (planning_scene::PlanningScene::isEmpty(scene_diff))
     planAndExecute(plan, opt);
@@ -157,7 +157,7 @@ void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan &plan,
   }
 }
 
-void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &plan, const Options &opt)
+void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt)
 {
   // perform initial configuration steps & various checks
   preempt_requested_ = false;
@@ -260,15 +260,15 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan &p
               getErrorCodeString(plan.error_code_).c_str());
 }
 
-bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan)
+bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan)
 {
   // check the validity of the currently executed path segment only, since there could be
   // changes in the world in between path segments
   return isRemainingPathValid(plan, trajectory_execution_manager_->getCurrentExpectedTrajectoryIndex());
 }
 
-bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan &plan,
-                                                         const std::pair<int, int> &path_segment)
+bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
+                                                         const std::pair<int, int>& path_segment)
 {
   if (path_segment.first >= 0 && path_segment.second >= 0 &&
       plan.plan_components_[path_segment.first].trajectory_monitoring_)
@@ -277,8 +277,8 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
                                                                                          // does not modify the world
                                                                                          // representation while
                                                                                          // isStateValid() is called
-    const robot_trajectory::RobotTrajectory &t = *plan.plan_components_[path_segment.first].trajectory_;
-    const collision_detection::AllowedCollisionMatrix *acm =
+    const robot_trajectory::RobotTrajectory& t = *plan.plan_components_[path_segment.first].trajectory_;
+    const collision_detection::AllowedCollisionMatrix* acm =
         plan.plan_components_[path_segment.first].allowed_collision_matrix_.get();
     std::size_t wpc = t.getWayPointCount();
     collision_detection::CollisionRequest req;
@@ -312,7 +312,7 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   return true;
 }
 
-moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(const ExecutableMotionPlan &plan)
+moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(const ExecutableMotionPlan& plan)
 {
   moveit_msgs::MoveItErrorCodes result;
 
@@ -469,12 +469,12 @@ void plan_execution::PlanExecution::planningSceneUpdatedCallback(
 }
 
 void plan_execution::PlanExecution::doneWithTrajectoryExecution(
-    const moveit_controller_manager::ExecutionStatus &status)
+    const moveit_controller_manager::ExecutionStatus& status)
 {
   execution_complete_ = true;
 }
 
-void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan *plan,
+void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan,
                                                                          std::size_t index)
 {
   ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());

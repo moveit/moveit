@@ -90,16 +90,16 @@ struct BenchmarkRequest
 class BenchmarkExecution
 {
 public:
-  BenchmarkExecution(const planning_scene::PlanningScenePtr &scene, const std::string &host, std::size_t port);
+  BenchmarkExecution(const planning_scene::PlanningScenePtr& scene, const std::string& host, std::size_t port);
 
-  bool readOptions(const std::string &filename);
-  void printOptions(std::ostream &out);
+  bool readOptions(const std::string& filename);
+  void printOptions(std::ostream& out);
 
   void runAllBenchmarks(BenchmarkType type);
 
-  void runBenchmark(BenchmarkRequest &req);
-  void runPlanningBenchmark(BenchmarkRequest &req);
-  void runGoalExistenceBenchmark(BenchmarkRequest &req);
+  void runBenchmark(BenchmarkRequest& req);
+  void runPlanningBenchmark(BenchmarkRequest& req);
+  void runGoalExistenceBenchmark(BenchmarkRequest& req);
 
 private:
   struct BenchmarkOptions
@@ -142,8 +142,8 @@ private:
   /// Contains the parameter combination for one test
   typedef std::map<std::string, double> ParameterInstance;
 
-  void collectMetrics(std::map<std::string, std::string> &rundata,
-                      const planning_interface::MotionPlanDetailedResponse &mp_res, bool solved, double total_time);
+  void collectMetrics(std::map<std::string, std::string>& rundata,
+                      const planning_interface::MotionPlanDetailedResponse& mp_res, bool solved, double total_time);
 
   /**
    * @brief Called within the benchmarking solve loop to allow parameters to be swept/tested
@@ -152,8 +152,8 @@ private:
    * @param param_combinations_id_ - keeps track of what parameter combo we are currently iterating on
    * @param parameter_data - used for outputting log information to file (results)
    */
-  void modifyPlannerConfiguration(planning_interface::PlannerManager &planner, const std::string &planner_id,
-                                  std::size_t param_combinations_id_, RunData &parameter_data);
+  void modifyPlannerConfiguration(planning_interface::PlannerManager& planner, const std::string& planner_id,
+                                  std::size_t param_combinations_id_, RunData& parameter_data);
 
   /**
    * @brief Populates the param_combinations_ vector with all combinations of desired parameters to be tested
@@ -170,7 +170,7 @@ private:
   void recursiveParamCombinations(int options_id, ParameterInstance param_instance);
 
   /// Output to console the settings
-  void printConfigurationSettings(const planning_interface::PlannerConfigurationMap &settings, std::ostream &out);
+  void printConfigurationSettings(const planning_interface::PlannerConfigurationMap& settings, std::ostream& out);
 
   BenchmarkOptions options_;
   std::vector<ParameterOptions> param_options_;

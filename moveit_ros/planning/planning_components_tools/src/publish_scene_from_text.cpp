@@ -36,7 +36,7 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "publish_planning_scene", ros::init_options::AnonymousName);
 

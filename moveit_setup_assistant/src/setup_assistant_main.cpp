@@ -47,13 +47,13 @@ static void siginthandler(int param)
   QApplication::quit();
 }
 
-void usage(boost::program_options::options_description &desc, int exit_code)
+void usage(boost::program_options::options_description& desc, int exit_code)
 {
   std::cout << desc << std::endl;
   exit(exit_code);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   // Parse parameters
   namespace po = boost::program_options;
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     if (vm.count("help"))
       usage(desc, 0);
   }
-  catch (const std::exception &e)
+  catch (const std::exception& e)
   {
     std::cerr << e.what() << std::endl;
     usage(desc, 1);

@@ -67,7 +67,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  VirtualJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  VirtualJointsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -75,18 +75,18 @@ public:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QTableWidget *data_table_;
-  QPushButton *btn_edit_;
-  QPushButton *btn_delete_;
-  QPushButton *btn_save_;
-  QPushButton *btn_cancel_;
-  QStackedLayout *stacked_layout_;
-  QLineEdit *vjoint_name_field_;
-  QLineEdit *parent_name_field_;
-  QComboBox *child_link_field_;
-  QComboBox *joint_type_field_;
-  QWidget *vjoint_list_widget_;
-  QWidget *vjoint_edit_widget_;
+  QTableWidget* data_table_;
+  QPushButton* btn_edit_;
+  QPushButton* btn_delete_;
+  QPushButton* btn_save_;
+  QPushButton* btn_cancel_;
+  QStackedLayout* stacked_layout_;
+  QLineEdit* vjoint_name_field_;
+  QLineEdit* parent_name_field_;
+  QComboBox* child_link_field_;
+  QComboBox* joint_type_field_;
+  QWidget* vjoint_list_widget_;
+  QWidget* vjoint_edit_widget_;
 
 private Q_SLOTS:
 
@@ -145,21 +145,21 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::VirtualJoint *findVJointByName(const std::string &name);
+  srdf::Model::VirtualJoint* findVJointByName(const std::string& name);
 
   /**
    * Create the main list view of vjoints for robot
    *
    * @return the widget
    */
-  QWidget *createContentsWidget();
+  QWidget* createContentsWidget();
 
   /**
    * Create the screen for editing vjoints
    *
    * @return the widget
    */
-  QWidget *createEditWidget();
+  QWidget* createEditWidget();
 
   /**
    * Load the robot vjoints into the table
@@ -184,7 +184,7 @@ private:
    *
    * @param name name of vjoint
    */
-  void edit(const std::string &name);
+  void edit(const std::string& name);
 };
 
 }  // namespace

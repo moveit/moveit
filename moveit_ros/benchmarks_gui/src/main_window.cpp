@@ -50,11 +50,11 @@
 
 namespace benchmark_tool
 {
-const char *MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
-const char *MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
+const char* MainWindow::ROBOT_DESCRIPTION_PARAM = "robot_description";
+const char* MainWindow::ROBOT_DESCRIPTION_SEMANTIC_PARAM = "robot_description_semantic";
 const unsigned int MainWindow::DEFAULT_WAREHOUSE_PORT = 33830;
 
-MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(parent), goal_pose_dragging_(false)
+MainWindow::MainWindow(int argc, char** argv, QWidget* parent) : QMainWindow(parent), goal_pose_dragging_(false)
 {
   QMessageBox::warning(this, "Development", "This GUI is under development and has many issues. Use at your own risk.");
 
@@ -120,7 +120,7 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(par
       planningGroupChanged(ui_.planning_group_combo->currentText());
     }
 
-    rviz::Tool *interact_tool = visualization_manager_->getToolManager()->addTool("rviz/Interact");
+    rviz::Tool* interact_tool = visualization_manager_->getToolManager()->addTool("rviz/Interact");
     if (interact_tool)
     {
       visualization_manager_->getToolManager()->setCurrentTool(interact_tool);
@@ -162,12 +162,12 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(par
     // Connect signals and slots
     connect(ui_.actionExit, SIGNAL(triggered(bool)), this, SLOT(exitActionTriggered(bool)));
     connect(ui_.actionOpen, SIGNAL(triggered(bool)), this, SLOT(openActionTriggered(bool)));
-    connect(ui_.planning_group_combo, SIGNAL(currentIndexChanged(const QString &)), this,
-            SLOT(planningGroupChanged(const QString &)));
+    connect(ui_.planning_group_combo, SIGNAL(currentIndexChanged(const QString&)), this,
+            SLOT(planningGroupChanged(const QString&)));
     connect(ui_.db_connect_button, SIGNAL(clicked()), this, SLOT(dbConnectButtonClicked()));
     connect(ui_.load_scene_button, SIGNAL(clicked()), this, SLOT(loadSceneButtonClicked()));
-    connect(ui_.planning_scene_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
-            SLOT(loadSceneButtonClicked(QListWidgetItem *)));
+    connect(ui_.planning_scene_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this,
+            SLOT(loadSceneButtonClicked(QListWidgetItem*)));
     connect(ui_.robot_interaction_button, SIGNAL(clicked()), this, SLOT(robotInteractionButtonClicked()));
 
     run_benchmark_ui_.benchmark_select_folder_button->setIcon(
@@ -187,9 +187,9 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(par
             run_benchmark_ui_.planning_algorithms_label, SLOT(setEnabled(bool)));
 
     // Goal poses
-    QMenu *add_button_menu = new QMenu(ui_.goal_poses_add_button);
-    QAction *add_single_goal_action = new QAction("Single goal", add_button_menu);
-    QAction *bbox_goals_action = new QAction("Goals in a bounding box", add_button_menu);
+    QMenu* add_button_menu = new QMenu(ui_.goal_poses_add_button);
+    QAction* add_single_goal_action = new QAction("Single goal", add_button_menu);
+    QAction* bbox_goals_action = new QAction("Goals in a bounding box", add_button_menu);
     add_button_menu->addAction(add_single_goal_action);
     add_button_menu->addAction(bbox_goals_action);
     ui_.goal_poses_add_button->setMenu(add_button_menu);
@@ -203,8 +203,8 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(par
     connect(ui_.goal_poses_save_button, SIGNAL(clicked()), this, SLOT(saveGoalsOnDBButtonClicked()));
     connect(ui_.goal_switch_visibility_button, SIGNAL(clicked()), this, SLOT(switchGoalVisibilityButtonClicked()));
     connect(ui_.goal_poses_list, SIGNAL(itemSelectionChanged()), this, SLOT(goalPoseSelectionChanged()));
-    connect(ui_.goal_poses_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
-            SLOT(goalPoseDoubleClicked(QListWidgetItem *)));
+    connect(ui_.goal_poses_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this,
+            SLOT(goalPoseDoubleClicked(QListWidgetItem*)));
     connect(ui_.show_x_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
     connect(ui_.show_y_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
     connect(ui_.show_z_checkbox, SIGNAL(stateChanged(int)), this, SLOT(visibleAxisChanged(int)));
@@ -222,10 +222,10 @@ MainWindow::MainWindow(int argc, char **argv, QWidget *parent) : QMainWindow(par
     connect(ui_.load_states_filter_text, SIGNAL(returnPressed()), this, SLOT(loadStatesFromDBButtonClicked()));
     connect(ui_.start_states_open_button, SIGNAL(clicked()), this, SLOT(loadStatesFromDBButtonClicked()));
     connect(ui_.start_states_save_button, SIGNAL(clicked()), this, SLOT(saveStatesOnDBButtonClicked()));
-    connect(ui_.start_states_list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this,
-            SLOT(startStateItemDoubleClicked(QListWidgetItem *)));
+    connect(ui_.start_states_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this,
+            SLOT(startStateItemDoubleClicked(QListWidgetItem*)));
 
-    QShortcut *copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), ui_.goal_poses_list);
+    QShortcut* copy_goals_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_D), ui_.goal_poses_list);
     connect(copy_goals_shortcut, SIGNAL(activated()), this, SLOT(copySelectedGoalPoses()));
 
     // Trajectories
@@ -253,7 +253,7 @@ MainWindow::~MainWindow()
 {
 }
 
-bool MainWindow::waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay *scene_display)
+bool MainWindow::waitForPlanningSceneMonitor(moveit_rviz_plugin::PlanningSceneDisplay* scene_display)
 {
   // Wait until the planning scene monitor is up
   ros::Time tstart = ros::Time::now();
@@ -289,7 +289,7 @@ void MainWindow::openActionTriggered(bool)
   }
 }
 
-void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &srdf_path)
+void MainWindow::loadNewRobot(const std::string& urdf_path, const std::string& srdf_path)
 {
   load_robot_ui_.status_label->setText("");
   load_robot_ui_.load_progress_bar->setValue(0);
@@ -382,7 +382,7 @@ void MainWindow::loadNewRobot(const std::string &urdf_path, const std::string &s
       // Reload the scene geometry if one scene was already loaded
       load_robot_ui_.status_label->setText(QString("Reloading scene... "));
       load_robot_ui_.load_progress_bar->setValue(90);
-      QList<QListWidgetItem *> found_items =
+      QList<QListWidgetItem*> found_items =
           ui_.planning_scene_list->findItems(QString::fromStdString(old_scene_name), Qt::MatchExactly);
       if (found_items.size() > 0)
       {
@@ -516,7 +516,7 @@ bool MainWindow::configure()
   return true;
 }
 
-void MainWindow::planningGroupChanged(const QString &text)
+void MainWindow::planningGroupChanged(const QString& text)
 {
   if (robot_interaction_ && !text.isEmpty())
   {
@@ -567,8 +567,8 @@ void MainWindow::robotInteractionButtonClicked()
   robot_interaction_->publishInteractiveMarkers();
 }
 
-bool MainWindow::isIKSolutionCollisionFree(robot_state::RobotState *state, const robot_model::JointModelGroup *group,
-                                           const double *ik_solution)
+bool MainWindow::isIKSolutionCollisionFree(robot_state::RobotState* state, const robot_model::JointModelGroup* group,
+                                           const double* ik_solution)
 {
   if (scene_display_)
   {
@@ -664,7 +664,7 @@ void MainWindow::dbConnectButtonClickedBackgroundJob()
         JobProcessing::addMainLoopJob(
             boost::bind(&setButtonState, ui_.db_connect_button, true, "Disconnect", "QPushButton { color : blue }"));
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("%s", ex.what());
         JobProcessing::addMainLoopJob(
@@ -703,7 +703,7 @@ void MainWindow::populatePlanningSceneList(void)
   ui_.planning_scene_list->setUpdatesEnabled(true);
 }
 
-void MainWindow::loadSceneButtonClicked(QListWidgetItem *item)
+void MainWindow::loadSceneButtonClicked(QListWidgetItem* item)
 {
   loadSceneButtonClicked();
 }
@@ -725,10 +725,10 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
 {
   if (planning_scene_storage_)
   {
-    QList<QListWidgetItem *> sel = ui_.planning_scene_list->selectedItems();
+    QList<QListWidgetItem*> sel = ui_.planning_scene_list->selectedItems();
     if (!sel.empty())
     {
-      QListWidgetItem *s = sel.front();
+      QListWidgetItem* s = sel.front();
       std::string scene = s->text().toStdString();
 
       setStatusFromBackground(STATUS_INFO, QString::fromStdString("Attempting to load scene" + scene + "..."));
@@ -740,7 +740,7 @@ void MainWindow::loadSceneButtonClickedBackgroundJob(void)
       {
         got_ps = planning_scene_storage_->getPlanningScene(scene_m, scene);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -804,14 +804,14 @@ void MainWindow::MainLoop()
   JobProcessing::executeMainLoopJobs();
 }
 
-void MainWindow::selectItemJob(QListWidgetItem *item, bool flag)
+void MainWindow::selectItemJob(QListWidgetItem* item, bool flag)
 {
   item->setSelected(flag);
 }
 
-void MainWindow::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
+void MainWindow::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
 {
-  QList<QListWidgetItem *> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
+  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
   for (std::size_t i = 0; i < found_items.size(); ++i)
     found_items[i]->setSelected(selection);
 }

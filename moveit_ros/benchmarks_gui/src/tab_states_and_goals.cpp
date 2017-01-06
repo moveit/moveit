@@ -61,7 +61,7 @@
 
 namespace benchmark_tool
 {
-void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d &pose)
+void MainWindow::createGoalAtPose(const std::string& name, const Eigen::Affine3d& pose)
 {
   goals_initial_pose_.insert(std::pair<std::string, Eigen::Affine3d>(name, pose));
 
@@ -76,7 +76,7 @@ void MainWindow::createGoalAtPose(const std::string &name, const Eigen::Affine3d
   goal_poses_.insert(GoalPosePair(name, goal_pose));
 
   // Connect signals
-  goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 
   // If connected to a database, save all the goals back to the database
   if (constraints_storage_)
@@ -126,7 +126,7 @@ void MainWindow::saveGoalsToDB()
       {
         constraints_storage_->addConstraints(constraints);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("Cannot save constraint: %s", ex.what());
       }
@@ -143,7 +143,7 @@ void MainWindow::createGoalPoseButtonClicked(void)
   std::stringstream ss;
 
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = scene_display_->getPlanningSceneRO();
     if (!ps || robot_interaction_->getActiveEndEffectors().empty())
     {
       if (!ps)
@@ -189,7 +189,7 @@ void MainWindow::showBBoxGoalsDialog()
 {
   std::string goals_base_name;
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = scene_display_->getPlanningSceneRO();
     if (!ps || robot_interaction_->getActiveEndEffectors().empty())
     {
       if (!ps)
@@ -242,7 +242,7 @@ void MainWindow::createBBoxGoalsButtonClicked(void)
 
 void MainWindow::removeSelectedGoalsButtonClicked(void)
 {
-  QList<QListWidgetItem *> found_items = ui_.goal_poses_list->selectedItems();
+  QList<QListWidgetItem*> found_items = ui_.goal_poses_list->selectedItems();
   for (unsigned int i = 0; i < found_items.size(); i++)
   {
     goal_poses_.erase(found_items[i]->text().toStdString());
@@ -270,7 +270,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
     {
       constraints_storage_->getKnownConstraints(ui_.load_poses_filter_text->text().toStdString(), names);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       QMessageBox::warning(this, "Cannot query the database",
                            QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
@@ -286,7 +286,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
       {
         got_constraint = constraints_storage_->getConstraints(c, names[i]);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -319,7 +319,7 @@ void MainWindow::loadGoalsFromDBButtonClicked(void)
             robot_interaction_->getActiveEndEffectors()[0], shape_pose, marker_scale, GripperMarker::NOT_TESTED, false,
             ui_.show_x_checkbox->isChecked(), ui_.show_y_checkbox->isChecked(), ui_.show_z_checkbox->isChecked()));
         // Connect signals
-        goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+        goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 
         goal_poses_.insert(GoalPosePair(c->name, goal_pose));
       }
@@ -355,14 +355,14 @@ void MainWindow::deleteGoalsOnDBButtonClicked(void)
       case QMessageBox::Yes:
       {
         // Go through the list of goal poses, and delete those selected
-        QList<QListWidgetItem *> found_items = ui_.goal_poses_list->selectedItems();
+        QList<QListWidgetItem*> found_items = ui_.goal_poses_list->selectedItems();
         for (std::size_t i = 0; i < found_items.size(); i++)
         {
           try
           {
             constraints_storage_->removeConstraints(found_items[i]->text().toStdString());
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("%s", ex.what());
           }
@@ -387,7 +387,7 @@ void MainWindow::loadStatesFromDBButtonClicked(void)
     {
       robot_state_storage_->getKnownRobotStates(ui_.load_states_filter_text->text().toStdString(), names);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       QMessageBox::warning(this, "Cannot query the database",
                            QString("Wrongly formatted regular expression for goal poses: ").append(ex.what()));
@@ -402,7 +402,7 @@ void MainWindow::loadStatesFromDBButtonClicked(void)
       {
         got_state = robot_state_storage_->getRobotState(rs, names[i]);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -436,7 +436,7 @@ void MainWindow::saveStatesOnDBButtonClicked(void)
       {
         robot_state_storage_->addRobotState(it->second->state_msg, it->first);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("Cannot save robot state: %s", ex.what());
       }
@@ -463,14 +463,14 @@ void MainWindow::deleteStatesOnDBButtonClicked(void)
     {
       case QMessageBox::Yes:
       {
-        QList<QListWidgetItem *> found_items = ui_.start_states_list->selectedItems();
+        QList<QListWidgetItem*> found_items = ui_.start_states_list->selectedItems();
         for (unsigned int i = 0; i < found_items.size(); ++i)
         {
           try
           {
             robot_state_storage_->removeRobotState(found_items[i]->text().toStdString());
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("%s", ex.what());
           }
@@ -502,7 +502,7 @@ void MainWindow::populateGoalPosesList(void)
   ui_.goal_poses_list->clear();
   for (GoalPoseMap::iterator it = goal_poses_.begin(); it != goal_poses_.end(); ++it)
   {
-    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem* item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.goal_poses_list->addItem(item);
     if (!it->second->isVisible())
     {
@@ -518,7 +518,7 @@ void MainWindow::populateGoalPosesList(void)
 
 void MainWindow::switchGoalVisibilityButtonClicked(void)
 {
-  QList<QListWidgetItem *> selection = ui_.goal_poses_list->selectedItems();
+  QList<QListWidgetItem*> selection = ui_.goal_poses_list->selectedItems();
   for (std::size_t i = 0; i < selection.size(); ++i)
   {
     std::string name = selection[i]->text().toStdString();
@@ -541,7 +541,7 @@ void MainWindow::goalPoseSelectionChanged(void)
 {
   for (unsigned int i = 0; i < ui_.goal_poses_list->count(); ++i)
   {
-    QListWidgetItem *item = ui_.goal_poses_list->item(i);
+    QListWidgetItem* item = ui_.goal_poses_list->item(i);
     std::string name = item->text().toStdString();
     if (goal_poses_.find(name) != goal_poses_.end() && ((item->isSelected() && !goal_poses_[name]->isSelected()) ||
                                                         (!item->isSelected() && goal_poses_[name]->isSelected())))
@@ -549,12 +549,12 @@ void MainWindow::goalPoseSelectionChanged(void)
   }
 }
 
-void MainWindow::goalPoseDoubleClicked(QListWidgetItem *item)
+void MainWindow::goalPoseDoubleClicked(QListWidgetItem* item)
 {
   JobProcessing::addBackgroundJob(boost::bind(&MainWindow::computeGoalPoseDoubleClicked, this, item));
 }
 
-void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem *item)
+void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem* item)
 {
   if (!robot_interaction_ || robot_interaction_->getActiveEndEffectors().empty())
     return;
@@ -569,12 +569,12 @@ void MainWindow::computeGoalPoseDoubleClicked(QListWidgetItem *item)
 }
 
 /* Receives feedback from the interactive marker attached to a goal pose */
-void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void MainWindow::goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
   if (feedback.event_type == feedback.BUTTON_CLICK)
   {
     // Unselect all but the clicked one. Needs to be in order, first unselect, then select.
-    QListWidgetItem *item = 0;
+    QListWidgetItem* item = 0;
     for (unsigned int i = 0; i < ui_.goal_poses_list->count(); ++i)
     {
       item = ui_.goal_poses_list->item(i);
@@ -684,7 +684,7 @@ void MainWindow::checkGoalsInCollision(void)
     JobProcessing::addBackgroundJob(boost::bind(&MainWindow::checkIfGoalInCollision, this, it->first));
 }
 
-void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_if_reachable)
+void MainWindow::checkIfGoalReachable(const std::string& goal_name, bool update_if_reachable)
 {
   if (goal_poses_.find(goal_name) == goal_poses_.end())
     return;
@@ -692,7 +692,7 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   if (!goal_poses_[goal_name]->isVisible())
     return;
 
-  const boost::shared_ptr<rviz::InteractiveMarker> &imarker = goal_poses_[goal_name]->imarker;
+  const boost::shared_ptr<rviz::InteractiveMarker>& imarker = goal_poses_[goal_name]->imarker;
 
   geometry_msgs::Pose current_pose_msg;
   current_pose_msg.position.x = imarker->getPosition().x;
@@ -733,15 +733,15 @@ void MainWindow::checkIfGoalReachable(const std::string &goal_name, bool update_
   setStatusFromBackground(STATUS_INFO, "");
 }
 
-bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState &robot_state, const std::string &group_name)
+bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState& robot_state, const std::string& group_name)
 {
   collision_detection::AllowedCollisionMatrix acm(scene_display_->getPlanningSceneRO()->getAllowedCollisionMatrix());
   // get link names in group_name
-  const std::vector<std::string> &group_link_names =
+  const std::vector<std::string>& group_link_names =
       scene_display_->getRobotModel()->getJointModelGroup(group_name)->getLinkModelNamesWithCollisionGeometry();
 
   // Create a set of links which is all links minus links in the group.
-  const std::vector<std::string> &all_links = scene_display_->getRobotModel()->getLinkModelNames();
+  const std::vector<std::string>& all_links = scene_display_->getRobotModel()->getLinkModelNames();
   std::set<std::string> link_set(all_links.begin(), all_links.end());
   for (size_t i = 0; i < group_link_names.size(); i++)
   {
@@ -765,7 +765,7 @@ bool MainWindow::isGroupCollidingWithWorld(robot_state::RobotState &robot_state,
   return res.collision;
 }
 
-void MainWindow::checkIfGoalInCollision(const std::string &goal_name)
+void MainWindow::checkIfGoalInCollision(const std::string& goal_name)
 {
   if (goal_poses_.find(goal_name) == goal_poses_.end())
     return;
@@ -774,9 +774,9 @@ void MainWindow::checkIfGoalInCollision(const std::string &goal_name)
   if (!goal_poses_[goal_name]->isVisible())
     return;
 
-  const robot_interaction::RobotInteraction::EndEffector &eef = robot_interaction_->getActiveEndEffectors()[0];
+  const robot_interaction::RobotInteraction::EndEffector& eef = robot_interaction_->getActiveEndEffectors()[0];
 
-  const boost::shared_ptr<rviz::InteractiveMarker> &im = goal_poses_[goal_name]->imarker;
+  const boost::shared_ptr<rviz::InteractiveMarker>& im = goal_poses_[goal_name]->imarker;
   Eigen::Affine3d marker_pose_eigen;
   goal_poses_[goal_name]->getPose(marker_pose_eigen);
 
@@ -796,7 +796,7 @@ void MainWindow::checkIfGoalInCollision(const std::string &goal_name)
   }
 }
 
-void MainWindow::switchGoalPoseMarkerSelection(const std::string &marker_name)
+void MainWindow::switchGoalPoseMarkerSelection(const std::string& marker_name)
 {
   if (robot_interaction_->getActiveEndEffectors().empty() || !goal_poses_[marker_name]->isVisible())
     return;
@@ -820,13 +820,13 @@ void MainWindow::switchGoalPoseMarkerSelection(const std::string &marker_name)
 
 void MainWindow::copySelectedGoalPoses(void)
 {
-  QList<QListWidgetItem *> sel = ui_.goal_poses_list->selectedItems();
+  QList<QListWidgetItem*> sel = ui_.goal_poses_list->selectedItems();
   if (sel.empty() || robot_interaction_->getActiveEndEffectors().empty())
     return;
 
   std::string scene_name;
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = scene_display_->getPlanningSceneRO();
     if (!ps)
       return;
     else
@@ -863,7 +863,7 @@ void MainWindow::copySelectedGoalPoses(void)
     goal_poses_.insert(GoalPosePair(ss.str(), goal_pose));
 
     // Connect signals
-    goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+    goal_pose->connect(this, SLOT(goalPoseFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 
     // Unselect the marker source of the copy
     switchGoalPoseMarkerSelection(name);
@@ -907,7 +907,7 @@ void MainWindow::saveStartStateButtonClicked(void)
           {
             robot_state_storage_->addRobotState(msg, name);
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("Cannot save robot state on the database: %s", ex.what());
           }
@@ -922,7 +922,7 @@ void MainWindow::saveStartStateButtonClicked(void)
 
 void MainWindow::removeSelectedStatesButtonClicked(void)
 {
-  QList<QListWidgetItem *> found_items = ui_.start_states_list->selectedItems();
+  QList<QListWidgetItem*> found_items = ui_.start_states_list->selectedItems();
   for (unsigned int i = 0; i < found_items.size(); i++)
   {
     start_states_.erase(found_items[i]->text().toStdString());
@@ -941,7 +941,7 @@ void MainWindow::populateStartStatesList(void)
   ui_.start_states_list->clear();
   for (StartStateMap::iterator it = start_states_.begin(); it != start_states_.end(); ++it)
   {
-    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem* item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.start_states_list->addItem(item);
     if (it->second->selected)
     {
@@ -951,7 +951,7 @@ void MainWindow::populateStartStatesList(void)
   }
 }
 
-void MainWindow::startStateItemDoubleClicked(QListWidgetItem *item)
+void MainWindow::startStateItemDoubleClicked(QListWidgetItem* item)
 {
   scene_display_->getPlanningSceneRW()->setCurrentState(start_states_[item->text().toStdString()]->state_msg);
   scene_display_->queueRenderSceneGeometry();
@@ -976,7 +976,7 @@ void MainWindow::runBenchmark(void)
     planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
         "moveit_core", "planning_interface::PlannerManager"));
   }
-  catch (pluginlib::PluginlibException &ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
   }
@@ -984,7 +984,7 @@ void MainWindow::runBenchmark(void)
   if (planner_plugin_loader)
   {
     // load the planning plugins
-    const std::vector<std::string> &classes = planner_plugin_loader->getDeclaredClasses();
+    const std::vector<std::string>& classes = planner_plugin_loader->getDeclaredClasses();
     for (std::size_t i = 0; i < classes.size(); ++i)
     {
       ROS_DEBUG("Attempting to load and configure %s", classes[i].c_str());
@@ -994,7 +994,7 @@ void MainWindow::runBenchmark(void)
         p->initialize(scene_display_->getPlanningSceneRO()->getRobotModel(), "");
         planner_interfaces[classes[i]] = p;
       }
-      catch (pluginlib::PluginlibException &ex)
+      catch (pluginlib::PluginlibException& ex)
       {
         ROS_ERROR_STREAM("Exception while loading planner '" << classes[i] << "': " << ex.what());
       }
@@ -1065,8 +1065,7 @@ bool MainWindow::saveBenchmarkConfigButtonClicked(void)
     outfile << "goal=" << run_benchmark_ui_.benchmark_goal_text->text().toStdString() << std::endl;
     outfile << "goal_offset_roll=" << ui_.goal_offset_roll->value() << std::endl;
     outfile << "goal_offset_pitch=" << ui_.goal_offset_pitch->value() << std::endl;
-    outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl
-            << std::endl;
+    outfile << "goal_offset_yaw=" << ui_.goal_offset_yaw->value() << std::endl << std::endl;
 
     outfile << "[plugin]" << std::endl;
     outfile << "name=" << run_benchmark_ui_.planning_interfaces_text->text().toStdString() << std::endl;
@@ -1115,8 +1114,7 @@ void MainWindow::runBenchmarkButtonClicked(void)
       {
         std::stringstream ss;
         be.printOptions(ss);
-        ROS_INFO_STREAM("Calling benchmark with options:" << std::endl
-                                                          << ss.str() << std::endl);
+        ROS_INFO_STREAM("Calling benchmark with options:" << std::endl << ss.str() << std::endl);
 
         BenchmarkProcessingThread benchmark_thread(be, btype, this);
         benchmark_thread.startAndShow();
@@ -1151,7 +1149,7 @@ void MainWindow::loadBenchmarkResults(void)
   }
 }
 
-void MainWindow::computeLoadBenchmarkResults(const std::string &file)
+void MainWindow::computeLoadBenchmarkResults(const std::string& file)
 {
   std::string logid, basename, logid_text;
   try
@@ -1323,13 +1321,13 @@ void MainWindow::computeLoadBenchmarkResults(const std::string &file)
   }
 }
 
-void MainWindow::updateGoalMarkerStateFromName(const std::string &name, const GripperMarker::GripperMarkerState &state)
+void MainWindow::updateGoalMarkerStateFromName(const std::string& name, const GripperMarker::GripperMarkerState& state)
 {
   if (goal_poses_.find(name) != goal_poses_.end())
     goal_poses_[name]->setState(state);
 }
 
-void MainWindow::updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState &state)
+void MainWindow::updateMarkerState(GripperMarkerPtr marker, const GripperMarker::GripperMarkerState& state)
 {
   marker->setState(state);
 }

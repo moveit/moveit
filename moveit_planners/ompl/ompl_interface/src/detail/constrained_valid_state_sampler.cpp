@@ -39,8 +39,8 @@
 #include <moveit/profiler/profiler.h>
 
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(
-    const ModelBasedPlanningContext *pc, const kinematic_constraints::KinematicConstraintSetPtr &ks,
-    const constraint_samplers::ConstraintSamplerPtr &cs)
+    const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
+    const constraint_samplers::ConstraintSamplerPtr& cs)
   : ob::ValidStateSampler(pc->getOMPLSimpleSetup()->getSpaceInformation().get())
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)
@@ -53,7 +53,7 @@ ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(
   logDebug("Constructed a ValidConstrainedSampler instance at address %p", this);
 }
 
-bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State *state)
+bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State* state)
 {
   if (constraint_sampler_)
   {
@@ -70,7 +70,7 @@ bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State *state)
   return false;
 }
 
-bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
+bool ompl_interface::ValidConstrainedSampler::sample(ob::State* state)
 {
   //  moveit::Profiler::ScopedBlock pblock("ValidConstrainedSampler::sample");
   if (constraint_sampler_)
@@ -96,7 +96,7 @@ bool ompl_interface::ValidConstrainedSampler::sample(ob::State *state)
   return false;
 }
 
-bool ompl_interface::ValidConstrainedSampler::sampleNear(ompl::base::State *state, const ompl::base::State *near,
+bool ompl_interface::ValidConstrainedSampler::sampleNear(ompl::base::State* state, const ompl::base::State* near,
                                                          const double distance)
 {
   if (!sample(state))

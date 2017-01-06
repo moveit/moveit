@@ -48,7 +48,7 @@
 namespace moveit_setup_assistant
 {
 /// Boost mapping of reasons for disabling a link pair to strings
-const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char *> longReasonsToString =
+const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
     boost::assign::map_list_of(moveit_setup_assistant::NEVER, "Never in Collision")(moveit_setup_assistant::DEFAULT,
                                                                                     "Collision by Default")(
         moveit_setup_assistant::ADJACENT, "Adjacent Links")(moveit_setup_assistant::ALWAYS, "Always in Collision")(
@@ -63,7 +63,7 @@ public:
   /**
    * \brief Override the standard comparision operator
    */
-  bool operator<(const QTableWidgetItem &other) const
+  bool operator<(const QTableWidgetItem& other) const
   {
     return checkState() < other.checkState();
   }
@@ -72,14 +72,14 @@ public:
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
-DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDataPtr config_data)
+DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
 
   // Top Label Area ------------------------------------------------
-  HeaderWidget *header = new HeaderWidget(
+  HeaderWidget* header = new HeaderWidget(
       "Optimize Self-Collision Checking",
       "The Default Self-Collision Matrix Generator will search for pairs of links on the robot that can safely be "
       "disabled from collision checking, decreasing motion planning processing time. These pairs of links are disabled "
@@ -92,11 +92,11 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox(this);
   layout_->addWidget(controls_box_);
-  QHBoxLayout *controls_box_layout = new QHBoxLayout(controls_box_);
+  QHBoxLayout* controls_box_layout = new QHBoxLayout(controls_box_);
   controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
   // Slider Label
-  QLabel *density_left_label = new QLabel(this);
+  QLabel* density_left_label = new QLabel(this);
   density_left_label->setText("Sampling Density: Low");
   controls_box_layout->addWidget(density_left_label);
 
@@ -114,7 +114,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Right Label
-  QLabel *density_right_label = new QLabel(this);
+  QLabel* density_right_label = new QLabel(this);
   density_right_label->setText("High   ");
   controls_box_layout->addWidget(density_right_label);
 
@@ -175,7 +175,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget *parent, MoveItConfigDa
   // Bottom Area ----------------------------------------
   controls_box_bottom_ = new QGroupBox(this);
   layout_->addWidget(controls_box_bottom_);
-  QHBoxLayout *controls_box_bottom_layout = new QHBoxLayout(controls_box_bottom_);
+  QHBoxLayout* controls_box_bottom_layout = new QHBoxLayout(controls_box_bottom_);
 
   // Checkbox
   collision_checkbox_ = new QCheckBox(this);
@@ -267,7 +267,7 @@ void DefaultCollisionsWidget::generateCollisionTable()
 // ******************************************************************************************
 // The thread that is called to allow the GUI to update. Calls an external function to do calcs
 // ******************************************************************************************
-void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int *collision_progress)
+void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int* collision_progress)
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
@@ -314,7 +314,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
   if (link_pairs_.empty())
   {
     collision_table_->setRowCount(1);
-    QTableWidgetItem *no_collide = new QTableWidgetItem("No Link Pairs Of This Kind");
+    QTableWidgetItem* no_collide = new QTableWidgetItem("No Link Pairs Of This Kind");
     collision_table_->setItem(0, 0, no_collide);
   }
   else
@@ -333,20 +333,20 @@ void DefaultCollisionsWidget::loadCollisionTable()
     if (pair_it->second.disable_check || collision_checkbox_->isChecked())
     {
       // Create row elements
-      QTableWidgetItem *linkA = new QTableWidgetItem(pair_it->first.first.c_str());
+      QTableWidgetItem* linkA = new QTableWidgetItem(pair_it->first.first.c_str());
       linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      QTableWidgetItem *linkB = new QTableWidgetItem(pair_it->first.second.c_str());
+      QTableWidgetItem* linkB = new QTableWidgetItem(pair_it->first.second.c_str());
       linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
-      CheckboxSortWidgetItem *disable_check = new CheckboxSortWidgetItem();
+      CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem();
       disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
       if (pair_it->second.disable_check)  // Checked means no collision checking
         disable_check->setCheckState(Qt::Checked);
       else
         disable_check->setCheckState(Qt::Unchecked);
 
-      QTableWidgetItem *reason = new QTableWidgetItem(longReasonsToString.at(pair_it->second.reason));
+      QTableWidgetItem* reason = new QTableWidgetItem(longReasonsToString.at(pair_it->second.reason));
       reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
       // Insert row elements into collision table
@@ -555,12 +555,12 @@ void DefaultCollisionsWidget::previewSelected(int row)
   Q_EMIT unhighlightAll();
 
   // Highlight link
-  QTableWidgetItem *first_link_item = collision_table_->item(row, 0);
+  QTableWidgetItem* first_link_item = collision_table_->item(row, 0);
   if (!first_link_item)
     return;  // nothing to highlight
 
-  const QString &first_link = first_link_item->text();
-  const QString &second_link = collision_table_->item(row, 1)->text();
+  const QString& first_link = first_link_item->text();
+  const QString& second_link = collision_table_->item(row, 1)->text();
   Qt::CheckState check_state = collision_table_->item(row, 2)->checkState();
 
   QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);

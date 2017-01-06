@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <benchmark_processing_thread.h>
 
-BenchmarkProcessingThread::BenchmarkProcessingThread(const moveit_benchmarks::BenchmarkExecution &be,
-                                                     const moveit_benchmarks::BenchmarkType &bt, QObject *parent)
+BenchmarkProcessingThread::BenchmarkProcessingThread(const moveit_benchmarks::BenchmarkExecution& be,
+                                                     const moveit_benchmarks::BenchmarkType& bt, QObject* parent)
   : QThread(parent), be_(be), bt_(bt)
 {
   setTerminationEnabled();

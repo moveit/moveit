@@ -37,7 +37,7 @@
 #include <moveit/robot_model/prismatic_joint_model.h>
 #include <limits>
 
-moveit::core::PrismaticJointModel::PrismaticJointModel(const std::string &name) : JointModel(name), axis_(0.0, 0.0, 0.0)
+moveit::core::PrismaticJointModel::PrismaticJointModel(const std::string& name) : JointModel(name), axis_(0.0, 0.0, 0.0)
 {
   type_ = PRISMATIC;
   variable_names_.push_back(name_);
@@ -54,12 +54,12 @@ unsigned int moveit::core::PrismaticJointModel::getStateSpaceDimension() const
   return 1;
 }
 
-double moveit::core::PrismaticJointModel::getMaximumExtent(const Bounds &other_bounds) const
+double moveit::core::PrismaticJointModel::getMaximumExtent(const Bounds& other_bounds) const
 {
   return variable_bounds_[0].max_position_ - other_bounds[0].min_position_;
 }
 
-void moveit::core::PrismaticJointModel::getVariableDefaultPositions(double *values, const Bounds &bounds) const
+void moveit::core::PrismaticJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
 {
   // if zero is a valid value
   if (bounds[0].min_position_ <= 0.0 && bounds[0].max_position_ >= 0.0)
@@ -68,7 +68,7 @@ void moveit::core::PrismaticJointModel::getVariableDefaultPositions(double *valu
     values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
-bool moveit::core::PrismaticJointModel::satisfiesPositionBounds(const double *values, const Bounds &bounds,
+bool moveit::core::PrismaticJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
                                                                 double margin) const
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
@@ -76,22 +76,22 @@ bool moveit::core::PrismaticJointModel::satisfiesPositionBounds(const double *va
   return true;
 }
 
-void moveit::core::PrismaticJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng,
-                                                                   double *values, const Bounds &bounds) const
+void moveit::core::PrismaticJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                                   double* values, const Bounds& bounds) const
 {
   values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
-void moveit::core::PrismaticJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng,
-                                                                         double *values, const Bounds &bounds,
-                                                                         const double *near,
+void moveit::core::PrismaticJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
+                                                                         double* values, const Bounds& bounds,
+                                                                         const double* near,
                                                                          const double distance) const
 {
   values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
                               std::min(bounds[0].max_position_, near[0] + distance));
 }
 
-bool moveit::core::PrismaticJointModel::enforcePositionBounds(double *values, const Bounds &bounds) const
+bool moveit::core::PrismaticJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
 {
   if (values[0] < bounds[0].min_position_)
   {
@@ -106,20 +106,20 @@ bool moveit::core::PrismaticJointModel::enforcePositionBounds(double *values, co
   return false;
 }
 
-double moveit::core::PrismaticJointModel::distance(const double *values1, const double *values2) const
+double moveit::core::PrismaticJointModel::distance(const double* values1, const double* values2) const
 {
   return fabs(values1[0] - values2[0]);
 }
 
-void moveit::core::PrismaticJointModel::interpolate(const double *from, const double *to, const double t,
-                                                    double *state) const
+void moveit::core::PrismaticJointModel::interpolate(const double* from, const double* to, const double t,
+                                                    double* state) const
 {
   state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
-void moveit::core::PrismaticJointModel::computeTransform(const double *joint_values, Eigen::Affine3d &transf) const
+void moveit::core::PrismaticJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
 {
-  double *d = transf.data();
+  double* d = transf.data();
   d[0] = 1.0;
   d[1] = 0.0;
   d[2] = 0.0;
@@ -144,8 +144,8 @@ void moveit::core::PrismaticJointModel::computeTransform(const double *joint_val
   //  transf.translation() = Eigen::Vector3d(axis_ * joint_values[0]);
 }
 
-void moveit::core::PrismaticJointModel::computeVariablePositions(const Eigen::Affine3d &transf,
-                                                                 double *joint_values) const
+void moveit::core::PrismaticJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
+                                                                 double* joint_values) const
 {
   joint_values[0] = transf.translation().dot(axis_);
 }

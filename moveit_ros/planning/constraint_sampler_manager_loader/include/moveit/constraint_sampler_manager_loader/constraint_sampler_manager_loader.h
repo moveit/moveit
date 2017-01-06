@@ -48,9 +48,9 @@ class ConstraintSamplerManagerLoader
 {
 public:
   ConstraintSamplerManagerLoader(
-      const constraint_samplers::ConstraintSamplerManagerPtr &csm = constraint_samplers::ConstraintSamplerManagerPtr());
+      const constraint_samplers::ConstraintSamplerManagerPtr& csm = constraint_samplers::ConstraintSamplerManagerPtr());
 
-  const constraint_samplers::ConstraintSamplerManagerPtr &getConstraintSamplerManager() const
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager() const
   {
     return constraint_sampler_manager_;
   }

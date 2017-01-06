@@ -66,26 +66,26 @@ public:
       If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
      runtime exception is thrown. */
-  TrajectoryConstraintsStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  TrajectoryConstraintsStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
-  void addTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints &msg, const std::string &name,
-                                const std::string &robot = "", const std::string &group = "");
-  bool hasTrajectoryConstraints(const std::string &name, const std::string &robot = "",
-                                const std::string &group = "") const;
-  void getKnownTrajectoryConstraints(std::vector<std::string> &names, const std::string &robot = "",
-                                     const std::string &group = "") const;
-  void getKnownTrajectoryConstraints(const std::string &regex, std::vector<std::string> &names,
-                                     const std::string &robot = "", const std::string &group = "") const;
+  void addTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& msg, const std::string& name,
+                                const std::string& robot = "", const std::string& group = "");
+  bool hasTrajectoryConstraints(const std::string& name, const std::string& robot = "",
+                                const std::string& group = "") const;
+  void getKnownTrajectoryConstraints(std::vector<std::string>& names, const std::string& robot = "",
+                                     const std::string& group = "") const;
+  void getKnownTrajectoryConstraints(const std::string& regex, std::vector<std::string>& names,
+                                     const std::string& robot = "", const std::string& group = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getTrajectoryConstraints(TrajectoryConstraintsWithMetadata &msg_m, const std::string &name,
-                                const std::string &robot = "", const std::string &group = "") const;
+  bool getTrajectoryConstraints(TrajectoryConstraintsWithMetadata& msg_m, const std::string& name,
+                                const std::string& robot = "", const std::string& group = "") const;
 
-  void renameTrajectoryConstraints(const std::string &old_name, const std::string &new_name,
-                                   const std::string &robot = "", const std::string &group = "");
+  void renameTrajectoryConstraints(const std::string& old_name, const std::string& new_name,
+                                   const std::string& robot = "", const std::string& group = "");
 
-  void removeTrajectoryConstraints(const std::string &name, const std::string &robot = "",
-                                   const std::string &group = "");
+  void removeTrajectoryConstraints(const std::string& name, const std::string& robot = "",
+                                   const std::string& group = "");
 
   void reset(void);
 

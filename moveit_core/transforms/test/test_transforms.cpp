@@ -61,7 +61,7 @@ TEST(Transforms, Simple)
   EXPECT_TRUE(tf.isFixedFrame("global"));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

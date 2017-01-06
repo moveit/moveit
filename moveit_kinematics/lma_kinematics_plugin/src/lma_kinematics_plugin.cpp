@@ -55,7 +55,7 @@ LMAKinematicsPlugin::LMAKinematicsPlugin() : active_(false)
 {
 }
 
-void LMAKinematicsPlugin::getRandomConfiguration(KDL::JntArray &jnt_array, bool lock_redundancy) const
+void LMAKinematicsPlugin::getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const
 {
   std::vector<double> jnt_array_vector(dimension_, 0.0);
   state_->setToRandomPositions(joint_model_group_);
@@ -77,9 +77,9 @@ bool LMAKinematicsPlugin::isRedundantJoint(unsigned int index) const
   return false;
 }
 
-void LMAKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state,
-                                                 const std::vector<double> &consistency_limits,
-                                                 KDL::JntArray &jnt_array, bool lock_redundancy) const
+void LMAKinematicsPlugin::getRandomConfiguration(const KDL::JntArray& seed_state,
+                                                 const std::vector<double>& consistency_limits,
+                                                 KDL::JntArray& jnt_array, bool lock_redundancy) const
 {
   std::vector<double> values(dimension_, 0.0);
   std::vector<double> near(dimension_, 0.0);
@@ -114,9 +114,9 @@ void LMAKinematicsPlugin::getRandomConfiguration(const KDL::JntArray &seed_state
   }
 }
 
-bool LMAKinematicsPlugin::checkConsistency(const KDL::JntArray &seed_state,
-                                           const std::vector<double> &consistency_limits,
-                                           const KDL::JntArray &solution) const
+bool LMAKinematicsPlugin::checkConsistency(const KDL::JntArray& seed_state,
+                                           const std::vector<double>& consistency_limits,
+                                           const KDL::JntArray& solution) const
 {
   for (std::size_t i = 0; i < dimension_; ++i)
     if (fabs(seed_state(i) - solution(i)) > consistency_limits[i])
@@ -124,16 +124,16 @@ bool LMAKinematicsPlugin::checkConsistency(const KDL::JntArray &seed_state,
   return true;
 }
 
-bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const std::string &group_name,
-                                     const std::string &base_frame, const std::string &tip_frame,
+bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
+                                     const std::string& base_frame, const std::string& tip_frame,
                                      double search_discretization)
 {
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   ros::NodeHandle private_handle("~");
   rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface> &urdf_model = rdf_loader.getURDF();
+  const boost::shared_ptr<srdf::Model>& srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
 
   if (!urdf_model || !srdf)
   {
@@ -143,7 +143,7 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const
 
   robot_model_.reset(new robot_model::RobotModel(urdf_model, srdf));
 
-  robot_model::JointModelGroup *joint_model_group = robot_model_->getJointModelGroup(group_name);
+  robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup(group_name);
   if (!joint_model_group)
     return false;
 
@@ -178,7 +178,7 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const
         joint_model_group->getJointModels()[i]->getType() == moveit::core::JointModel::PRISMATIC)
     {
       ik_chain_info_.joint_names.push_back(joint_model_group->getJointModelNames()[i]);
-      const std::vector<moveit_msgs::JointLimits> &jvec =
+      const std::vector<moveit_msgs::JointLimits>& jvec =
           joint_model_group->getJointModels()[i]->getVariableBoundsMsg();
       ik_chain_info_.limits.insert(ik_chain_info_.limits.end(), jvec.begin(), jvec.end());
     }
@@ -229,7 +229,7 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
   {
-    const robot_model::JointModel *jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
+    const robot_model::JointModel* jm = robot_model_->getJointModel(kdl_chain_.segments[i].getJoint().getName());
 
     // first check whether it belongs to the set of active joints in the group
     if (jm->getMimic() == NULL && jm->getVariableCount() > 0)
@@ -260,7 +260,7 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const
   {
     if (!mimic_joints[i].active)
     {
-      const robot_model::JointModel *joint_model =
+      const robot_model::JointModel* joint_model =
           joint_model_group->getJointModel(mimic_joints[i].joint_name)->getMimic();
       for (std::size_t j = 0; j < mimic_joints.size(); ++j)
       {
@@ -288,7 +288,7 @@ bool LMAKinematicsPlugin::initialize(const std::string &robot_description, const
   return true;
 }
 
-bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &redundant_joints)
+bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joints)
 {
   if (num_possible_redundant_joints_ < 0)
   {
@@ -346,7 +346,7 @@ bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &re
   return true;
 }
 
-int LMAKinematicsPlugin::getJointIndex(const std::string &name) const
+int LMAKinematicsPlugin::getJointIndex(const std::string& name) const
 {
   for (unsigned int i = 0; i < ik_chain_info_.joint_names.size(); i++)
   {
@@ -356,7 +356,7 @@ int LMAKinematicsPlugin::getJointIndex(const std::string &name) const
   return -1;
 }
 
-int LMAKinematicsPlugin::getKDLSegmentIndex(const std::string &name) const
+int LMAKinematicsPlugin::getKDLSegmentIndex(const std::string& name) const
 {
   int i = 0;
   while (i < (int)kdl_chain_.getNrOfSegments())
@@ -370,14 +370,14 @@ int LMAKinematicsPlugin::getKDLSegmentIndex(const std::string &name) const
   return -1;
 }
 
-bool LMAKinematicsPlugin::timedOut(const ros::WallTime &start_time, double duration) const
+bool LMAKinematicsPlugin::timedOut(const ros::WallTime& start_time, double duration) const
 {
   return ((ros::WallTime::now() - start_time).toSec() >= duration);
 }
 
-bool LMAKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                        std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                        const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                        std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                        const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
@@ -386,10 +386,10 @@ bool LMAKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, cons
                           consistency_limits, options);
 }
 
-bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
@@ -398,43 +398,43 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, c
                           options);
 }
 
-bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, const std::vector<double> &consistency_limits,
-                                           std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, const std::vector<double>& consistency_limits,
+                                           std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   std::vector<double> consistency_limits;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, const std::vector<double> &consistency_limits,
-                                           std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, const std::vector<double>& consistency_limits,
+                                           std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const std::vector<double> &consistency_limits,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const std::vector<double>& consistency_limits,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
@@ -566,9 +566,9 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, c
   return false;
 }
 
-bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_names,
-                                        const std::vector<double> &joint_angles,
-                                        std::vector<geometry_msgs::Pose> &poses) const
+bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
+                                        const std::vector<double>& joint_angles,
+                                        std::vector<geometry_msgs::Pose>& poses) const
 {
   ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
@@ -612,12 +612,12 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
   return valid;
 }
 
-const std::vector<std::string> &LMAKinematicsPlugin::getJointNames() const
+const std::vector<std::string>& LMAKinematicsPlugin::getJointNames() const
 {
   return ik_chain_info_.joint_names;
 }
 
-const std::vector<std::string> &LMAKinematicsPlugin::getLinkNames() const
+const std::vector<std::string>& LMAKinematicsPlugin::getLinkNames() const
 {
   return ik_chain_info_.link_names;
 }

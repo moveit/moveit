@@ -73,7 +73,7 @@ public:
    * joint model group cannot be found in the kinematic model
    *
    */
-  ConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name);
+  ConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name);
 
   virtual ~ConstraintSampler()
   {
@@ -87,14 +87,14 @@ public:
    * @return True if the configuration is successful.  If true, \ref isValid should also true.
    *         If false, \ref isValid should return false
    */
-  virtual bool configure(const moveit_msgs::Constraints &constr) = 0;
+  virtual bool configure(const moveit_msgs::Constraints& constr) = 0;
 
   /**
    * \brief Gets the group name set in the constructor
    *
    * @return The group name
    */
-  const std::string &getGroupName() const
+  const std::string& getGroupName() const
   {
     return getJointModelGroup()->getName();
   }
@@ -105,7 +105,7 @@ public:
    *
    * @return The joint model group
    */
-  const robot_model::JointModelGroup *getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return jmg_;
   }
@@ -116,7 +116,7 @@ public:
    *
    * @return The planning scene as a const ptr
    */
-  const planning_scene::PlanningSceneConstPtr &getPlanningScene() const
+  const planning_scene::PlanningSceneConstPtr& getPlanningScene() const
   {
     return scene_;
   }
@@ -132,7 +132,7 @@ public:
    *
    * @return The list of names whose pose is needed
    */
-  const std::vector<std::string> &getFrameDependency() const
+  const std::vector<std::string>& getFrameDependency() const
   {
     return frame_depends_;
   }
@@ -141,7 +141,7 @@ public:
    * \brief Gets the callback used to determine state validity during sampling. The sampler will attempt
    *        to satisfy this constraint if possible, but there is no guarantee.
    */
-  const robot_state::GroupStateValidityCallbackFn &getGroupStateValidityCallback() const
+  const robot_state::GroupStateValidityCallbackFn& getGroupStateValidityCallback() const
   {
     return group_state_validity_callback_;
   }
@@ -152,7 +152,7 @@ public:
    *
    * @param callback The callback to set
    */
-  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn &callback)
+  void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback)
   {
     group_state_validity_callback_ = callback;
   }
@@ -167,7 +167,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState &state)
+  bool sample(robot_state::RobotState& state)
   {
     return sample(state, state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -183,7 +183,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState &state, unsigned int max_attempts)
+  bool sample(robot_state::RobotState& state, unsigned int max_attempts)
   {
     return sample(state, state, max_attempts);
   }
@@ -198,7 +198,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  bool sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state)
+  bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state)
   {
     return sample(state, reference_state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -213,7 +213,7 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  bool project(robot_state::RobotState &state)
+  bool project(robot_state::RobotState& state)
   {
     return project(state, DEFAULT_MAX_SAMPLING_ATTEMPTS);
   }
@@ -229,7 +229,7 @@ public:
    *
    * @return True if a sample was successfully taken, false otherwise
    */
-  virtual bool sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state,
+  virtual bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
                       unsigned int max_attempts) = 0;
 
   /**
@@ -243,7 +243,7 @@ public:
    *
    * @return True if a sample was successfully projected, false otherwise
    */
-  virtual bool project(robot_state::RobotState &state, unsigned int max_attempts) = 0;
+  virtual bool project(robot_state::RobotState& state, unsigned int max_attempts) = 0;
 
   /**
    * \brief Returns whether or not the constraint sampler is valid or not.
@@ -274,7 +274,7 @@ public:
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual const std::string &getName() const = 0;
+  virtual const std::string& getName() const = 0;
 
 protected:
   /**
@@ -286,7 +286,7 @@ protected:
   bool is_valid_; /**< \brief  Holds the value for validity */
 
   planning_scene::PlanningSceneConstPtr scene_; /**< \brief Holds the planning scene */
-  const robot_model::JointModelGroup *jmg_; /**< \brief Holds the joint model group associated with this constraint */
+  const robot_model::JointModelGroup* jmg_; /**< \brief Holds the joint model group associated with this constraint */
   /** \brief Holds the set of frames that must exist in the reference state to allow samples to be drawn */
   std::vector<std::string> frame_depends_;
   robot_state::GroupStateValidityCallbackFn group_state_validity_callback_; /**< \brief Holds the callback for state

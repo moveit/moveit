@@ -51,18 +51,18 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-RobotPosesWidget::RobotPosesWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+RobotPosesWidget::RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Set pointer to null so later we can tell if we need to delete it
   joint_list_layout_ = NULL;
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header =
+  HeaderWidget* header =
       new HeaderWidget("Robot Poses", "Create poses for the robot. Poses are defined as sets of joint values for "
                                       "particular planning groups. This is useful for things like <i>folded arms</i>.",
                        this);
@@ -78,7 +78,7 @@ RobotPosesWidget::RobotPosesWidget(QWidget *parent, moveit_setup_assistant::Move
   stacked_layout_->addWidget(pose_edit_widget_);  // screen index 1
 
   // Create Widget wrapper for layout
-  QWidget *stacked_layout_widget = new QWidget(this);
+  QWidget* stacked_layout_widget = new QWidget(this);
   stacked_layout_widget->setLayout(stacked_layout_);
 
   layout->addWidget(stacked_layout_widget);
@@ -107,13 +107,13 @@ RobotPosesWidget::RobotPosesWidget(QWidget *parent, moveit_setup_assistant::Move
 // ******************************************************************************************
 // Create the main content widget
 // ******************************************************************************************
-QWidget *RobotPosesWidget::createContentsWidget()
+QWidget* RobotPosesWidget::createContentsWidget()
 {
   // Main widget
-  QWidget *content_widget = new QWidget(this);
+  QWidget* content_widget = new QWidget(this);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Table ------------ ------------------------------------------------
 
@@ -133,10 +133,10 @@ QWidget *RobotPosesWidget::createContentsWidget()
 
   // Bottom Buttons --------------------------------------------------
 
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Set Default Button
-  QPushButton *btn_default = new QPushButton("&Show Default Pose", this);
+  QPushButton* btn_default = new QPushButton("&Show Default Pose", this);
   btn_default->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_default->setMaximumWidth(300);
   connect(btn_default, SIGNAL(clicked()), this, SLOT(showDefaultPose()));
@@ -144,7 +144,7 @@ QWidget *RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment(btn_default, Qt::AlignLeft);
 
   // Set play button
-  QPushButton *btn_play = new QPushButton("&MoveIt!", this);
+  QPushButton* btn_play = new QPushButton("&MoveIt!", this);
   btn_play->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_play->setMaximumWidth(300);
   connect(btn_play, SIGNAL(clicked()), this, SLOT(playPoses()));
@@ -152,7 +152,7 @@ QWidget *RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment(btn_play, Qt::AlignLeft);
 
   // Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
@@ -172,7 +172,7 @@ QWidget *RobotPosesWidget::createContentsWidget()
   controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
 
   // Add Group Button
-  QPushButton *btn_add = new QPushButton("&Add Pose", this);
+  QPushButton* btn_add = new QPushButton("&Add Pose", this);
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add->setMaximumWidth(300);
   connect(btn_add, SIGNAL(clicked()), this, SLOT(showNewScreen()));
@@ -191,23 +191,23 @@ QWidget *RobotPosesWidget::createContentsWidget()
 // ******************************************************************************************
 // Create the edit widget
 // ******************************************************************************************
-QWidget *RobotPosesWidget::createEditWidget()
+QWidget* RobotPosesWidget::createEditWidget()
 {
   // Main widget
-  QWidget *edit_widget = new QWidget(this);
+  QWidget* edit_widget = new QWidget(this);
   // Layout
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // 2 columns -------------------------------------------------------
 
-  QHBoxLayout *columns_layout = new QHBoxLayout();
-  QVBoxLayout *column1 = new QVBoxLayout();
+  QHBoxLayout* columns_layout = new QHBoxLayout();
+  QVBoxLayout* column1 = new QVBoxLayout();
   column2_ = new QVBoxLayout();
 
   // Column 1 --------------------------------------------------------
 
   // Simple form -------------------------------------------
-  QFormLayout *form_layout = new QFormLayout();
+  QFormLayout* form_layout = new QFormLayout();
   // form_layout->setContentsMargins( 0, 15, 0, 15 );
   form_layout->setRowWrapPolicy(QFormLayout::WrapAllRows);
 
@@ -220,8 +220,7 @@ QWidget *RobotPosesWidget::createEditWidget()
   group_name_field_ = new QComboBox(this);
   group_name_field_->setEditable(false);
   // Connect the signal for changes to the drop down box
-  connect(group_name_field_, SIGNAL(currentIndexChanged(const QString &)), this,
-          SLOT(loadJointSliders(const QString &)));
+  connect(group_name_field_, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(loadJointSliders(const QString&)));
   // group_name_field_->setMaximumWidth( 300 );
   form_layout->addRow("Planning Group:", group_name_field_);
 
@@ -253,23 +252,23 @@ QWidget *RobotPosesWidget::createEditWidget()
 
   // Bottom Buttons --------------------------------------------------
 
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
   controls_layout->setContentsMargins(0, 25, 0, 15);
 
   // Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
   // Save
-  QPushButton *btn_save_ = new QPushButton("&Save", this);
+  QPushButton* btn_save_ = new QPushButton("&Save", this);
   btn_save_->setMaximumWidth(200);
   connect(btn_save_, SIGNAL(clicked()), this, SLOT(doneEditing()));
   controls_layout->addWidget(btn_save_);
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton *btn_cancel_ = new QPushButton("&Cancel", this);
+  QPushButton* btn_cancel_ = new QPushButton("&Cancel", this);
   btn_cancel_->setMaximumWidth(200);
   connect(btn_cancel_, SIGNAL(clicked()), this, SLOT(cancelEditing()));
   controls_layout->addWidget(btn_cancel_);
@@ -321,14 +320,14 @@ void RobotPosesWidget::editDoubleClicked(int row, int column)
 void RobotPosesWidget::previewClicked(int row, int column)
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
     return;
 
   // Find the selected in datastructure
-  srdf::Model::GroupState *pose = findPoseByName(selected[0]->text().toStdString());
+  srdf::Model::GroupState* pose = findPoseByName(selected[0]->text().toStdString());
 
   showPose(pose);
 }
@@ -336,7 +335,7 @@ void RobotPosesWidget::previewClicked(int row, int column)
 // ******************************************************************************************
 // Show the robot in the current pose
 // ******************************************************************************************
-void RobotPosesWidget::showPose(srdf::Model::GroupState *pose)
+void RobotPosesWidget::showPose(srdf::Model::GroupState* pose)
 {
   // Set pose joint values by adding them to the local joint state map
   for (std::map<std::string, std::vector<double> >::const_iterator value_it = pose->joint_values_.begin();
@@ -362,10 +361,10 @@ void RobotPosesWidget::showPose(srdf::Model::GroupState *pose)
 void RobotPosesWidget::showDefaultPose()
 {
   // Get list of all joints for the robot
-  std::vector<const robot_model::JointModel *> joint_models = config_data_->getRobotModel()->getJointModels();
+  std::vector<const robot_model::JointModel*> joint_models = config_data_->getRobotModel()->getJointModels();
 
   // Iterate through the joints
-  for (std::vector<const robot_model::JointModel *>::const_iterator joint_it = joint_models.begin();
+  for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
        joint_it < joint_models.end(); ++joint_it)
   {
     // Check that this joint only represents 1 variable.
@@ -411,7 +410,7 @@ void RobotPosesWidget::playPoses()
 void RobotPosesWidget::editSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
@@ -424,13 +423,13 @@ void RobotPosesWidget::editSelected()
 // ******************************************************************************************
 // Edit pose
 // ******************************************************************************************
-void RobotPosesWidget::edit(const std::string &name)
+void RobotPosesWidget::edit(const std::string& name)
 {
   // Remember what we are editing
   current_edit_pose_ = name;
 
   // Find the selected in datastruture
-  srdf::Model::GroupState *pose = findPoseByName(name);
+  srdf::Model::GroupState* pose = findPoseByName(name);
 
   // Set pose name
   pose_name_field_->setText(pose->name_.c_str());
@@ -486,7 +485,7 @@ void RobotPosesWidget::loadGroupsComboBox()
 // ******************************************************************************************
 // Load the joint sliders based on group selected from combo box
 // ******************************************************************************************
-void RobotPosesWidget::loadJointSliders(const QString &selected)
+void RobotPosesWidget::loadJointSliders(const QString& selected)
 {
   // Ignore this event if the combo box is empty. This occurs when clearing the combo box and reloading with the
   // newest groups. Also ignore if we are not on the edit screen
@@ -520,12 +519,12 @@ void RobotPosesWidget::loadJointSliders(const QString &selected)
   joint_list_widget_->setMinimumSize(50, 50);  // w, h
 
   // Get list of associated joints
-  const robot_model::JointModelGroup *joint_model_group = config_data_->getRobotModel()->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* joint_model_group = config_data_->getRobotModel()->getJointModelGroup(group_name);
   joint_models_ = joint_model_group->getJointModels();
 
   // Iterate through the joints
   int num_joints = 0;
-  for (std::vector<const robot_model::JointModel *>::const_iterator joint_it = joint_models_.begin();
+  for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it)
   {
     // Check that this joint only represents 1 variable.
@@ -547,12 +546,12 @@ void RobotPosesWidget::loadJointSliders(const QString &selected)
       }
 
       // For each joint in group add slider
-      SliderWidget *sw = new SliderWidget(this, *joint_it, init_value);
+      SliderWidget* sw = new SliderWidget(this, *joint_it, init_value);
       joint_list_layout_->addWidget(sw);
 
       // Connect value change event
-      connect(sw, SIGNAL(jointValueChanged(const std::string &, double)), this,
-              SLOT(updateRobotModel(const std::string &, double)));
+      connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
+              SLOT(updateRobotModel(const std::string&, double)));
 
       ++num_joints;
     }
@@ -572,10 +571,10 @@ void RobotPosesWidget::loadJointSliders(const QString &selected)
 // ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
-srdf::Model::GroupState *RobotPosesWidget::findPoseByName(const std::string &name)
+srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& name)
 {
   // Find the group state we are editing based on the pose name
-  srdf::Model::GroupState *searched_group = NULL;  // used for holding our search results
+  srdf::Model::GroupState* searched_group = NULL;  // used for holding our search results
 
   for (std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin();
        pose_it != config_data_->srdf_->group_states_.end(); ++pose_it)
@@ -603,7 +602,7 @@ srdf::Model::GroupState *RobotPosesWidget::findPoseByName(const std::string &nam
 void RobotPosesWidget::deleteSelected()
 {
   // Get list of all selected items
-  QList<QTableWidgetItem *> selected = data_table_->selectedItems();
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
 
   // Check that an element was selected
   if (!selected.size())
@@ -647,7 +646,7 @@ void RobotPosesWidget::doneEditing()
   const std::string pose_name = pose_name_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::GroupState *searched_data = NULL;
+  srdf::Model::GroupState* searched_data = NULL;
 
   // Check that name field is not empty
   if (pose_name.empty())
@@ -707,7 +706,7 @@ void RobotPosesWidget::doneEditing()
   searched_data->joint_values_.clear();
 
   // Iterate through the current group's joints and add to SRDF
-  for (std::vector<const robot_model::JointModel *>::const_iterator joint_it = joint_models_.begin();
+  for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
        joint_it < joint_models_.end(); ++joint_it)
   {
     // Check that this joint only represents 1 variable.
@@ -771,9 +770,9 @@ void RobotPosesWidget::loadDataTable()
        data_it != config_data_->srdf_->group_states_.end(); ++data_it)
   {
     // Create row elements
-    QTableWidgetItem *data_name = new QTableWidgetItem(data_it->name_.c_str());
+    QTableWidgetItem* data_name = new QTableWidgetItem(data_it->name_.c_str());
     data_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    QTableWidgetItem *group_name = new QTableWidgetItem(data_it->group_.c_str());
+    QTableWidgetItem* group_name = new QTableWidgetItem(data_it->group_.c_str());
     group_name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 
     // Add to table
@@ -815,7 +814,7 @@ void RobotPosesWidget::focusGiven()
 // ******************************************************************************************
 // Call when one of the sliders has its value changed
 // ******************************************************************************************
-void RobotPosesWidget::updateRobotModel(const std::string &name, double value)
+void RobotPosesWidget::updateRobotModel(const std::string& name, double value)
 {
   // Save the new value
   joint_state_map_[name] = value;
@@ -870,12 +869,12 @@ void RobotPosesWidget::publishJoints()
 // ******************************************************************************************
 // Simple widget for adjusting joints of a robot
 // ******************************************************************************************
-SliderWidget::SliderWidget(QWidget *parent, const robot_model::JointModel *joint_model, double init_value)
+SliderWidget::SliderWidget(QWidget* parent, const robot_model::JointModel* joint_model, double init_value)
   : QWidget(parent), joint_model_(joint_model)
 {
   // Create layouts
-  QVBoxLayout *layout = new QVBoxLayout();
-  QHBoxLayout *row2 = new QHBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
+  QHBoxLayout* row2 = new QHBoxLayout();
 
   // Row 1
   joint_label_ = new QLabel(joint_model_->getName().c_str(), this);
@@ -899,7 +898,7 @@ SliderWidget::SliderWidget(QWidget *parent, const robot_model::JointModel *joint
   row2->addWidget(joint_value_);
 
   // Joint Limits ----------------------------------------------------
-  const std::vector<moveit_msgs::JointLimits> &limits = joint_model_->getVariableBoundsMsg();
+  const std::vector<moveit_msgs::JointLimits>& limits = joint_model_->getVariableBoundsMsg();
   if (limits.empty())
   {
     QMessageBox::critical(this, "Error Loading", "An internal error has occured while loading the joints");

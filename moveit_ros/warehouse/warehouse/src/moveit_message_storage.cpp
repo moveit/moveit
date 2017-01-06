@@ -38,7 +38,7 @@
 #include <boost/regex.hpp>
 #include <ros/ros.h>
 
-moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string &host, const unsigned int port,
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string& host, const unsigned int port,
                                                              double wait_seconds)
   : db_host_(host), db_port_(port), timeout_(wait_seconds)
 {
@@ -75,14 +75,14 @@ moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage()
 {
 }
 
-void moveit_warehouse::MoveItMessageStorage::drop(const std::string &db)
+void moveit_warehouse::MoveItMessageStorage::drop(const std::string& db)
 {
   mongo_ros::dropDatabase(db, db_host_, db_port_, timeout_);
   ROS_DEBUG("Dropped database '%s'", db.c_str());
 }
 
-void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string &regex,
-                                                         std::vector<std::string> &names) const
+void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string& regex,
+                                                         std::vector<std::string>& names) const
 {
   if (!regex.empty())
   {

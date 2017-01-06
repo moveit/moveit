@@ -60,32 +60,32 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  DoubleListWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, QString long_name,
+  DoubleListWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data, QString long_name,
                    QString short_name, bool add_ok_cancel = true);
 
   /// Loads the availble data list
-  void setAvailable(const std::vector<std::string> &items);
+  void setAvailable(const std::vector<std::string>& items);
 
   /// Set the right box
-  void setSelected(const std::vector<std::string> &items);
+  void setSelected(const std::vector<std::string>& items);
 
   void clearContents(void);
 
   /// Convenience function for reusing set table code
-  void setTable(const std::vector<std::string> &items, QTableWidget *table);
+  void setTable(const std::vector<std::string>& items, QTableWidget* table);
 
   /// Set the names of the two columns in the widget
-  void setColumnNames(const QString &col1, const QString &col2);
+  void setColumnNames(const QString& col1, const QString& col2);
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
 
-  QTableWidget *data_table_;
-  QTableWidget *selected_data_table_;
-  QLabel *title_;  // specify the title from the parent widget
-  QLabel *column1_label_;
-  QLabel *column2_label_;
+  QTableWidget* data_table_;
+  QTableWidget* selected_data_table_;
+  QLabel* title_;  // specify the title from the parent widget
+  QLabel* column1_label_;
+  QLabel* column2_label_;
 
   /// Name of datatype
   QString long_name_;
@@ -104,8 +104,8 @@ private Q_SLOTS:
   void deselectDataButtonClicked();
 
   /// Event when data table is clicked
-  void previewSelectedLeft(const QItemSelection &selected, const QItemSelection &deselected);
-  void previewSelectedRight(const QItemSelection &selected, const QItemSelection &deselected);
+  void previewSelectedLeft(const QItemSelection& selected, const QItemSelection& deselected);
+  void previewSelectedRight(const QItemSelection& selected, const QItemSelection& deselected);
 
 Q_SIGNALS:
 
@@ -137,7 +137,7 @@ private:
   // ******************************************************************************************
 
   /// Event when data table is clicked
-  void previewSelected(const QList<QTableWidgetItem *> &selected);
+  void previewSelected(const QList<QTableWidgetItem*>& selected);
 };
 
 }  // namespace moveit_setup_assistant

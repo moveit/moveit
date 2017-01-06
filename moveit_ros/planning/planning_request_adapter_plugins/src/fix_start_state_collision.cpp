@@ -88,10 +88,10 @@ public:
     return "Fix Start State In Collision";
   }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
-                            const planning_interface::MotionPlanRequest &req,
-                            planning_interface::MotionPlanResponse &res,
-                            std::vector<std::size_t> &added_path_index) const
+  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                            const planning_interface::MotionPlanRequest& req,
+                            planning_interface::MotionPlanResponse& res,
+                            std::vector<std::size_t>& added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -117,9 +117,9 @@ public:
         ROS_INFO_STREAM("Start state appears to be in collision with respect to group " << creq.group_name);
 
       robot_state::RobotStatePtr prefix_state(new robot_state::RobotState(start_state));
-      random_numbers::RandomNumberGenerator &rng = prefix_state->getRandomNumberGenerator();
+      random_numbers::RandomNumberGenerator& rng = prefix_state->getRandomNumberGenerator();
 
-      const std::vector<const robot_model::JointModel *> &jmodels =
+      const std::vector<const robot_model::JointModel*>& jmodels =
           planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
               planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
               planning_scene->getRobotModel()->getJointModels();
@@ -130,7 +130,7 @@ public:
         for (std::size_t i = 0; !found && i < jmodels.size(); ++i)
         {
           std::vector<double> sampled_variable_values(jmodels[i]->getVariableCount());
-          const double *original_values = prefix_state->getJointPositions(jmodels[i]);
+          const double* original_values = prefix_state->getJointPositions(jmodels[i]);
           jmodels[i]->getVariableRandomPositionsNearBy(rng, &sampled_variable_values[0], original_values,
                                                        jmodels[i]->getMaximumExtent() * jiggle_fraction_);
           start_state.setJointPositions(jmodels[i], sampled_variable_values);

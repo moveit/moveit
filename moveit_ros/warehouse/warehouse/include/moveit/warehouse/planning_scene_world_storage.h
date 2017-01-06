@@ -58,19 +58,19 @@ public:
       If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
      runtime exception is thrown. */
-  PlanningSceneWorldStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  PlanningSceneWorldStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
-  void addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld &msg, const std::string &name);
-  bool hasPlanningSceneWorld(const std::string &name) const;
-  void getKnownPlanningSceneWorlds(std::vector<std::string> &names) const;
-  void getKnownPlanningSceneWorlds(const std::string &regex, std::vector<std::string> &names) const;
+  void addPlanningSceneWorld(const moveit_msgs::PlanningSceneWorld& msg, const std::string& name);
+  bool hasPlanningSceneWorld(const std::string& name) const;
+  void getKnownPlanningSceneWorlds(std::vector<std::string>& names) const;
+  void getKnownPlanningSceneWorlds(const std::string& regex, std::vector<std::string>& names) const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getPlanningSceneWorld(PlanningSceneWorldWithMetadata &msg_m, const std::string &name) const;
+  bool getPlanningSceneWorld(PlanningSceneWorldWithMetadata& msg_m, const std::string& name) const;
 
-  void renamePlanningSceneWorld(const std::string &old_name, const std::string &new_name);
+  void renamePlanningSceneWorld(const std::string& old_name, const std::string& new_name);
 
-  void removePlanningSceneWorld(const std::string &name);
+  void removePlanningSceneWorld(const std::string& name);
 
   void reset();
 

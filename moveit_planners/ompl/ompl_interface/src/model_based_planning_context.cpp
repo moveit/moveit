@@ -57,8 +57,8 @@
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 
-ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string &name,
-                                                                     const ModelBasedPlanningContextSpecification &spec)
+ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string& name,
+                                                                     const ModelBasedPlanningContextSpecification& spec)
   : planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName())
   , spec_(spec)
   , complete_initial_robot_state_(spec.state_space_->getRobotModel())
@@ -82,7 +82,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
       boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
-void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string &peval)
+void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string& peval)
 {
   if (!spec_.state_space_)
   {
@@ -95,7 +95,7 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
 }
 
 ompl::base::ProjectionEvaluatorPtr
-ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::string &peval) const
+ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::string& peval) const
 {
   if (peval.find_first_of("link(") == 0 && peval[peval.length() - 1] == ')')
   {
@@ -145,7 +145,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
 }
 
 ompl::base::StateSamplerPtr
-ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const
+ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const
 {
   if (spec_.state_space_.get() != ss)
   {
@@ -159,7 +159,7 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
   {
     if (spec_.constraints_library_)
     {
-      const ConstraintApproximationPtr &ca =
+      const ConstraintApproximationPtr& ca =
           spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
       if (ca)
       {
@@ -202,7 +202,7 @@ void ompl_interface::ModelBasedPlanningContext::configure()
 
   if (path_constraints_ && spec_.constraints_library_)
   {
-    const ConstraintApproximationPtr &ca =
+    const ConstraintApproximationPtr& ca =
         spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
     if (ca)
     {
@@ -218,7 +218,7 @@ void ompl_interface::ModelBasedPlanningContext::configure()
 
 void ompl_interface::ModelBasedPlanningContext::useConfig()
 {
-  const std::map<std::string, std::string> &config = spec_.config_;
+  const std::map<std::string, std::string>& config = spec_.config_;
   if (config.empty())
     return;
   std::map<std::string, std::string> cfg = config;
@@ -300,7 +300,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   ompl_simple_setup_->getSpaceInformation()->setup();
 }
 
-void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams)
+void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams)
 {
   if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
       wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
@@ -325,14 +325,14 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
 {
   if (ompl_simple_setup_->haveSolutionPath())
   {
-    og::PathGeometric &pg = ompl_simple_setup_->getSolutionPath();
+    og::PathGeometric& pg = ompl_simple_setup_->getSolutionPath();
     pg.interpolate(
         std::max((unsigned int)floor(0.5 + pg.length() / max_solution_segment_length_), minimum_waypoint_count_));
   }
 }
 
-void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric &pg,
-                                                            robot_trajectory::RobotTrajectory &traj) const
+void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometric::PathGeometric& pg,
+                                                            robot_trajectory::RobotTrajectory& traj) const
 {
   robot_state::RobotState ks = complete_initial_robot_state_;
   for (std::size_t i = 0; i < pg.getStateCount(); ++i)
@@ -342,7 +342,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
   }
 }
 
-bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory &traj) const
+bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory::RobotTrajectory& traj) const
 {
   traj.clear();
   if (!ompl_simple_setup_->haveSolutionPath())
@@ -354,7 +354,7 @@ bool ompl_interface::ModelBasedPlanningContext::getSolutionPath(robot_trajectory
 void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bool flag)
 {
   if (ompl_simple_setup_->getStateValidityChecker())
-    static_cast<StateValidityChecker *>(ompl_simple_setup_->getStateValidityChecker().get())->setVerbose(flag);
+    static_cast<StateValidityChecker*>(ompl_simple_setup_->getStateValidityChecker().get())->setVerbose(flag);
 }
 
 ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
@@ -384,7 +384,7 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
 }
 
 void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
-    const robot_state::RobotState &complete_initial_robot_state)
+    const robot_state::RobotState& complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
 }
@@ -400,8 +400,8 @@ void ompl_interface::ModelBasedPlanningContext::clear()
   getOMPLStateSpace()->setInterpolationFunction(InterpolationFunction());
 }
 
-bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints &path_constraints,
-                                                                   moveit_msgs::MoveItErrorCodes *error)
+bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_msgs::Constraints& path_constraints,
+                                                                   moveit_msgs::MoveItErrorCodes* error)
 {
   // ******************* set the path constraints to use
   path_constraints_.reset(new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
@@ -412,8 +412,8 @@ bool ompl_interface::ModelBasedPlanningContext::setPathConstraints(const moveit_
 }
 
 bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
-    const std::vector<moveit_msgs::Constraints> &goal_constraints, const moveit_msgs::Constraints &path_constraints,
-    moveit_msgs::MoveItErrorCodes *error)
+    const std::vector<moveit_msgs::Constraints>& goal_constraints, const moveit_msgs::Constraints& path_constraints,
+    moveit_msgs::MoveItErrorCodes* error)
 {
   // ******************* check if the input is correct
   goal_constraints_.clear();
@@ -444,7 +444,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 }
 
 bool ompl_interface::ModelBasedPlanningContext::benchmark(double timeout, unsigned int count,
-                                                          const std::string &filename)
+                                                          const std::string& filename)
 {
   ompl_benchmark_.clearPlanners();
   ompl_simple_setup_->setup();
@@ -465,20 +465,20 @@ void ompl_interface::ModelBasedPlanningContext::startSampling()
 {
   bool gls = ompl_simple_setup_->getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
   if (gls)
-    static_cast<ob::GoalLazySamples *>(ompl_simple_setup_->getGoal().get())->startSampling();
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_->getGoal().get())->startSampling();
   else
     // we know this is a GoalSampleableMux by elimination
-    static_cast<GoalSampleableRegionMux *>(ompl_simple_setup_->getGoal().get())->startSampling();
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_->getGoal().get())->startSampling();
 }
 
 void ompl_interface::ModelBasedPlanningContext::stopSampling()
 {
   bool gls = ompl_simple_setup_->getGoal()->hasType(ob::GOAL_LAZY_SAMPLES);
   if (gls)
-    static_cast<ob::GoalLazySamples *>(ompl_simple_setup_->getGoal().get())->stopSampling();
+    static_cast<ob::GoalLazySamples*>(ompl_simple_setup_->getGoal().get())->stopSampling();
   else
     // we know this is a GoalSampleableMux by elimination
-    static_cast<GoalSampleableRegionMux *>(ompl_simple_setup_->getGoal().get())->stopSampling();
+    static_cast<GoalSampleableRegionMux*>(ompl_simple_setup_->getGoal().get())->stopSampling();
 }
 
 void ompl_interface::ModelBasedPlanningContext::preSolve()
@@ -503,7 +503,7 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
     logWarn("Computed solution is approximate");
 }
 
-bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse &res)
+bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 {
   if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
   {
@@ -532,7 +532,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   }
 }
 
-bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
+bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
   if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
   {
@@ -658,7 +658,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   return result;
 }
 
-void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition &ptc)
+void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition& ptc)
 {
   boost::mutex::scoped_lock slock(ptc_lock_);
   ptc_ = &ptc;

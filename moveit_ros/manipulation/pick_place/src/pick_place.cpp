@@ -50,7 +50,7 @@ const double PickPlace::DEFAULT_GRASP_POSTURE_COMPLETION_DURATION = 7.0;  // sec
 // functionality specific to pick-only is in pick.cpp;
 // functionality specific to place-only is in place.cpp;
 
-PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr &pick_place, const std::string &name)
+PickPlacePlanBase::PickPlacePlanBase(const PickPlaceConstPtr& pick_place, const std::string& name)
   : pick_place_(pick_place), pipeline_(name, 4), last_plan_time_(0.0), done_(false)
 {
   pipeline_.setSolutionCallback(boost::bind(&PickPlacePlanBase::foundSolution, this));
@@ -84,7 +84,7 @@ void PickPlacePlanBase::initialize()
   pushed_all_poses_ = false;
 }
 
-void PickPlacePlanBase::waitForPipeline(const ros::WallTime &endtime)
+void PickPlacePlanBase::waitForPipeline(const ros::WallTime& endtime)
 {
   // wait till we're done
   boost::unique_lock<boost::mutex> lock(done_mutex_);
@@ -93,7 +93,7 @@ void PickPlacePlanBase::waitForPipeline(const ros::WallTime &endtime)
     done_condition_.timed_wait(lock, (endtime - ros::WallTime::now()).toBoost());
 }
 
-PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr &planning_pipeline)
+PickPlace::PickPlace(const planning_pipeline::PlanningPipelinePtr& planning_pipeline)
   : nh_("~"), planning_pipeline_(planning_pipeline), display_computed_motion_plans_(false), display_grasps_(false)
 {
   constraint_sampler_manager_loader_.reset(new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader());
@@ -117,7 +117,7 @@ void PickPlace::displayComputedMotionPlans(bool flag)
   display_computed_motion_plans_ = flag;
 }
 
-void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
+void PickPlace::visualizePlan(const ManipulationPlanPtr& plan) const
 {
   moveit_msgs::DisplayTrajectory dtraj;
   dtraj.model_id = getRobotModel()->getName();
@@ -138,7 +138,7 @@ void PickPlace::visualizePlan(const ManipulationPlanPtr &plan) const
   display_path_publisher_.publish(dtraj);
 }
 
-void PickPlace::visualizeGrasp(const ManipulationPlanPtr &plan) const
+void PickPlace::visualizeGrasp(const ManipulationPlanPtr& plan) const
 {
   visualizeGrasps(std::vector<ManipulationPlanPtr>(1, plan));
 }
@@ -177,7 +177,7 @@ std::vector<std_msgs::ColorRGBA> setupDefaultGraspColors()
 }
 }
 
-void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr> &plans) const
+void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr>& plans) const
 {
   if (plans.empty())
     return;
@@ -189,7 +189,7 @@ void PickPlace::visualizeGrasps(const std::vector<ManipulationPlanPtr> &plans) c
   visualization_msgs::MarkerArray ma;
   for (std::size_t i = 0; i < plans.size(); ++i)
   {
-    const robot_model::JointModelGroup *jmg = plans[i]->shared_data_->end_effector_group_;
+    const robot_model::JointModelGroup* jmg = plans[i]->shared_data_->end_effector_group_;
     if (jmg)
     {
       unsigned int type = std::min(plans[i]->processing_stage_, colors.size() - 1);
