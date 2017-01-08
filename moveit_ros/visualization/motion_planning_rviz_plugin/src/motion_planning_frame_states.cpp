@@ -51,7 +51,7 @@ void MotionPlanningFrame::populateRobotStatesList(void)
   ui_->list_states->clear();
   for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
   {
-    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem* item = new QListWidgetItem(QString(it->first.c_str()));
     ui_->list_states->addItem(item);
   }
 }
@@ -75,14 +75,14 @@ void MotionPlanningFrame::loadStateButtonClicked()
   }
 }
 
-void MotionPlanningFrame::loadStoredStates(const std::string &pattern)
+void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
 {
   std::vector<std::string> names;
   try
   {
     robot_state_storage_->getKnownRobotStates(pattern, names);
   }
-  catch (std::runtime_error &ex)
+  catch (std::runtime_error& ex)
   {
     QMessageBox::warning(this, "Cannot query the database",
                          QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
@@ -100,7 +100,7 @@ void MotionPlanningFrame::loadStoredStates(const std::string &pattern)
     {
       got_state = robot_state_storage_->getRobotState(rs, names[i]);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -119,7 +119,7 @@ void MotionPlanningFrame::loadStoredStates(const std::string &pattern)
   populateRobotStatesList();
 }
 
-void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotState &state)
+void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotState& state)
 {
   bool ok = false;
 
@@ -154,7 +154,7 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
           {
             robot_state_storage_->addRobotState(msg, name, planning_display_->getRobotModel()->getName());
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("Cannot save robot state on the database: %s", ex.what());
           }
@@ -184,7 +184,7 @@ void MotionPlanningFrame::saveGoalStateButtonClicked()
 
 void MotionPlanningFrame::setAsStartStateButtonClicked()
 {
-  QListWidgetItem *item = ui_->list_states->currentItem();
+  QListWidgetItem* item = ui_->list_states->currentItem();
 
   if (item)
   {
@@ -196,7 +196,7 @@ void MotionPlanningFrame::setAsStartStateButtonClicked()
 
 void MotionPlanningFrame::setAsGoalStateButtonClicked()
 {
-  QListWidgetItem *item = ui_->list_states->currentItem();
+  QListWidgetItem* item = ui_->list_states->currentItem();
 
   if (item)
   {
@@ -222,16 +222,16 @@ void MotionPlanningFrame::removeStateButtonClicked()
     {
       case QMessageBox::Yes:
       {
-        QList<QListWidgetItem *> found_items = ui_->list_states->selectedItems();
+        QList<QListWidgetItem*> found_items = ui_->list_states->selectedItems();
         for (std::size_t i = 0; i < found_items.size(); ++i)
         {
-          const std::string &name = found_items[i]->text().toStdString();
+          const std::string& name = found_items[i]->text().toStdString();
           try
           {
             robot_state_storage_->removeRobotState(name);
             robot_states_.erase(name);
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("%s", ex.what());
           }

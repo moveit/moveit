@@ -41,7 +41,7 @@
 #include <moveit/profiler/profiler.h>
 #include <fstream>
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh)
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh)
   : nh_(nh)
   , kmodel_(kmodel)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
@@ -56,9 +56,9 @@ ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstP
   loadConstraintSamplers();
 }
 
-ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr &kmodel,
-                                             const planning_interface::PlannerConfigurationMap &pconfig,
-                                             const ros::NodeHandle &nh)
+ompl_interface::OMPLInterface::OMPLInterface(const robot_model::RobotModelConstPtr& kmodel,
+                                             const planning_interface::PlannerConfigurationMap& pconfig,
+                                             const ros::NodeHandle& nh)
   : nh_(nh)
   , kmodel_(kmodel)
   , constraint_sampler_manager_(new constraint_samplers::ConstraintSamplerManager())
@@ -77,12 +77,12 @@ ompl_interface::OMPLInterface::~OMPLInterface()
 {
 }
 
-void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig)
+void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig)
 {
   planning_interface::PlannerConfigurationMap pconfig2 = pconfig;
 
   // construct default configurations for planning groups that don't have configs already passed in
-  const std::vector<const robot_model::JointModelGroup *> &groups = kmodel_->getJointModelGroups();
+  const std::vector<const robot_model::JointModelGroup*>& groups = kmodel_->getJointModelGroups();
   for (std::size_t i = 0; i < groups.size(); ++i)
   {
     if (pconfig.find(groups[i]->getName()) == pconfig.end())
@@ -97,15 +97,15 @@ void ompl_interface::OMPLInterface::setPlannerConfigurations(const planning_inte
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const planning_interface::MotionPlanRequest &req) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req) const
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const planning_interface::MotionPlanRequest &req,
-    moveit_msgs::MoveItErrorCodes &error_code) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
+    moveit_msgs::MoveItErrorCodes& error_code) const
 {
   ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(planning_scene, req, error_code);
   if (ctx)
@@ -114,7 +114,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::OMPLInterface::getP
 }
 
 ompl_interface::ModelBasedPlanningContextPtr
-ompl_interface::OMPLInterface::getPlanningContext(const std::string &config, const std::string &factory_type) const
+ompl_interface::OMPLInterface::getPlanningContext(const std::string& config, const std::string& factory_type) const
 {
   ModelBasedPlanningContextPtr ctx = context_manager_.getPlanningContext(config, factory_type);
   if (ctx)
@@ -122,7 +122,7 @@ ompl_interface::OMPLInterface::getPlanningContext(const std::string &config, con
   return ctx;
 }
 
-void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningContextPtr &context) const
+void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningContextPtr& context) const
 {
   if (use_constraints_approximations_)
     context->setConstraintsApproximations(constraints_library_);
@@ -131,7 +131,7 @@ void ompl_interface::OMPLInterface::configureContext(const ModelBasedPlanningCon
   context->simplifySolutions(simplify_solutions_);
 }
 
-void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string &path)
+void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::string& path)
 {
   constraints_library_->loadConstraintApproximations(path);
   std::stringstream ss;
@@ -139,7 +139,7 @@ void ompl_interface::OMPLInterface::loadConstraintApproximations(const std::stri
   ROS_INFO_STREAM(ss.str());
 }
 
-void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::string &path)
+void ompl_interface::OMPLInterface::saveConstraintApproximations(const std::string& path)
 {
   constraints_library_->saveConstraintApproximations(path);
 }
@@ -175,7 +175,7 @@ void ompl_interface::OMPLInterface::loadConstraintSamplers()
 
 void ompl_interface::OMPLInterface::loadPlannerConfigurations()
 {
-  const std::vector<std::string> &group_names = kmodel_->getJointModelGroupNames();
+  const std::vector<std::string>& group_names = kmodel_->getJointModelGroupNames();
   planning_interface::PlannerConfigurationMap pconfig;
 
   // read the planning configuration for each group

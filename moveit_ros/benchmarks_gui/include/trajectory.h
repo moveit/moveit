@@ -53,10 +53,10 @@ class Trajectory : public QObject
   Q_OBJECT
 
 public Q_SLOTS:
-  void trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
-  void endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback);
+  void trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
+  void handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
+  void startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
+  void endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback);
 
 public:
   static const int TRAJECTORY_SET_START_POSE = 1;
@@ -77,10 +77,10 @@ public:
   Eigen::Affine3d control_marker_start_pose;  // The control marker pose corresponding to the start marker
   Eigen::Affine3d control_marker_end_pose;    // The control marker pose corresponding to the end marker
 
-  Trajectory(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node, rviz::DisplayContext *context,
-             const std::string &name, const std::string &frame_id,
-             const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose, double scale,
-             const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints, bool is_selected = true,
+  Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode* parent_node, rviz::DisplayContext* context,
+             const std::string& name, const std::string& frame_id,
+             const robot_interaction::RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& pose, double scale,
+             const GripperMarker::GripperMarkerState& state, unsigned int nwaypoints, bool is_selected = true,
              bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
   void setControlMarker(const GripperMarkerPtr control_marker);
@@ -110,7 +110,7 @@ public:
     }
   }
 
-  void show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
+  void show(Ogre::SceneNode* scene_node, rviz::DisplayContext* context)
   {
     if (control_marker)
       control_marker->show(scene_node, context);
@@ -131,10 +131,10 @@ public:
   }
 
 protected:
-  void createControlMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
-                           rviz::DisplayContext *context, const std::string &name, const std::string &frame_id,
-                           const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose,
-                           double scale, const GripperMarker::GripperMarkerState &state, bool is_selected = true,
+  void createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode* parent_node,
+                           rviz::DisplayContext* context, const std::string& name, const std::string& frame_id,
+                           const robot_interaction::RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& pose,
+                           double scale, const GripperMarker::GripperMarkerState& state, bool is_selected = true,
                            bool visible_x = true, bool visible_y = true, bool visible_z = true);
 
   void createHandMarker();
@@ -159,11 +159,7 @@ private:
 
   unsigned int nwaypoints_;
 
-  typedef enum
-  {
-    CONTROL_MARKER_FLOATING,
-    CONTROL_MARKER_FIXED
-  } ControlMarkerModeType;
+  typedef enum { CONTROL_MARKER_FLOATING, CONTROL_MARKER_FIXED } ControlMarkerModeType;
   ControlMarkerModeType control_marker_mode_;
 };
 }

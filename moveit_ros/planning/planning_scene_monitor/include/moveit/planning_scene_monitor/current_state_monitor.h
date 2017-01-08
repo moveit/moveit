@@ -47,7 +47,7 @@
 
 namespace planning_scene_monitor
 {
-typedef boost::function<void(const sensor_msgs::JointStateConstPtr &joint_state)> JointStateUpdateCallback;
+typedef boost::function<void(const sensor_msgs::JointStateConstPtr& joint_state)> JointStateUpdateCallback;
 
 /** @class CurrentStateMonitor
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
@@ -59,14 +59,14 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf A pointer to the tf transformer to use
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf);
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model, const boost::shared_ptr<tf::Transformer>& tf);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
    *  @param tf A pointer to the tf transformer to use
    *  @param nh A ros::NodeHandle to pass node specific options
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr &robot_model, const boost::shared_ptr<tf::Transformer> &tf,
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model, const boost::shared_ptr<tf::Transformer>& tf,
                       ros::NodeHandle nh);
 
   ~CurrentStateMonitor();
@@ -74,7 +74,7 @@ public:
   /** @brief Start monitoring joint states on a particular topic
    *  @param joint_states_topic The topic name for joint states (defaults to "joint_states")
    */
-  void startStateMonitor(const std::string &joint_states_topic = "joint_states");
+  void startStateMonitor(const std::string& joint_states_topic = "joint_states");
 
   /** @brief Stop monitoring the "joint_states" topic
    */
@@ -84,7 +84,7 @@ public:
   bool isActive() const;
 
   /** @brief Get the RobotModel for which we are monitoring state */
-  const robot_model::RobotModelConstPtr &getRobotModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return robot_model_;
   }
@@ -101,27 +101,27 @@ public:
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old
    */
-  bool haveCompleteState(const ros::Duration &age) const;
+  bool haveCompleteState(const ros::Duration& age) const;
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param missing_joints Returns the list of joints that are missing
    *  @return False if we have no joint state information for one or more of the joints
    */
-  bool haveCompleteState(std::vector<std::string> &missing_joints) const;
+  bool haveCompleteState(std::vector<std::string>& missing_joints) const;
 
   /** @brief Query whether we have joint state information for all DOFs in the kinematic model
    *  @param age The max allowed age of the joint state information
    *  @param missing_states Returns the list of joints that are missing
    *  @return False if we have no joint state information for one of the joints or if our state
    *  information is more than \e age old*/
-  bool haveCompleteState(const ros::Duration &age, std::vector<std::string> &missing_states) const;
+  bool haveCompleteState(const ros::Duration& age, std::vector<std::string>& missing_states) const;
 
   /** @brief Get the current state
    *  @return Returns the current state */
   robot_state::RobotStatePtr getCurrentState() const;
 
   /** @brief Set the state \e upd to the current state maintained by this class. */
-  void setToCurrentState(robot_state::RobotState &upd) const;
+  void setToCurrentState(robot_state::RobotState& upd) const;
 
   /** @brief Get the time stamp for the current state */
   ros::Time getCurrentStateTime() const;
@@ -140,16 +140,16 @@ public:
 
   /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true
    * if values for all joints in \e group are known */
-  bool waitForCurrentState(const std::string &group, double wait_time) const;
+  bool waitForCurrentState(const std::string& group, double wait_time) const;
 
   /** @brief Get the time point when the monitor was started */
-  const ros::Time &getMonitorStartTime() const
+  const ros::Time& getMonitorStartTime() const
   {
     return monitor_start_time_;
   }
 
   /** @brief Add a function that will be called whenever the joint state is updated*/
-  void addUpdateCallback(const JointStateUpdateCallback &fn);
+  void addUpdateCallback(const JointStateUpdateCallback& fn);
 
   /** @brief Clear the functions to be called when an update to the joint state is received */
   void clearUpdateCallbacks();
@@ -173,8 +173,8 @@ public:
   }
 
 private:
-  void jointStateCallback(const sensor_msgs::JointStateConstPtr &joint_state);
-  bool isPassiveOrMimicDOF(const std::string &dof) const;
+  void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+  bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   ros::NodeHandle nh_;
   boost::shared_ptr<tf::Transformer> tf_;

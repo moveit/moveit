@@ -63,20 +63,20 @@ public:
       If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
      runtime exception is thrown. */
-  RobotStateStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  RobotStateStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
-  void addRobotState(const moveit_msgs::RobotState &msg, const std::string &name, const std::string &robot = "");
-  bool hasRobotState(const std::string &name, const std::string &robot = "") const;
-  void getKnownRobotStates(std::vector<std::string> &names, const std::string &robot = "") const;
-  void getKnownRobotStates(const std::string &regex, std::vector<std::string> &names,
-                           const std::string &robot = "") const;
+  void addRobotState(const moveit_msgs::RobotState& msg, const std::string& name, const std::string& robot = "");
+  bool hasRobotState(const std::string& name, const std::string& robot = "") const;
+  void getKnownRobotStates(std::vector<std::string>& names, const std::string& robot = "") const;
+  void getKnownRobotStates(const std::string& regex, std::vector<std::string>& names,
+                           const std::string& robot = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getRobotState(RobotStateWithMetadata &msg_m, const std::string &name, const std::string &robot = "") const;
+  bool getRobotState(RobotStateWithMetadata& msg_m, const std::string& name, const std::string& robot = "") const;
 
-  void renameRobotState(const std::string &old_name, const std::string &new_name, const std::string &robot = "");
+  void renameRobotState(const std::string& old_name, const std::string& new_name, const std::string& robot = "");
 
-  void removeRobotState(const std::string &name, const std::string &robot = "");
+  void removeRobotState(const std::string& name, const std::string& robot = "");
 
   void reset();
 

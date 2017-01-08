@@ -46,7 +46,7 @@ class JointModelStateSpace : public ModelBasedStateSpace
 public:
   static const std::string PARAMETERIZATION_TYPE;
 
-  JointModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
+  JointModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
 };
 }
 

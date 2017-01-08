@@ -49,8 +49,8 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-void parseStart(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *psm,
-                moveit_warehouse::RobotStateStorage *rs)
+void parseStart(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* psm,
+                moveit_warehouse::RobotStateStorage* rs)
 {
   int count;
   in >> count;
@@ -92,8 +92,8 @@ void parseStart(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *
   }
 }
 
-void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *psm,
-                         moveit_warehouse::ConstraintsStorage *cs)
+void parseLinkConstraint(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* psm,
+                         moveit_warehouse::ConstraintsStorage* cs)
 {
   Eigen::Translation3d pos;
   Eigen::Quaterniond rot;
@@ -150,8 +150,8 @@ void parseLinkConstraint(std::istream &in, planning_scene_monitor::PlanningScene
   }
 }
 
-void parseGoal(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *psm,
-               moveit_warehouse::ConstraintsStorage *cs)
+void parseGoal(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* psm,
+               moveit_warehouse::ConstraintsStorage* cs)
 {
   int count;
   in >> count;
@@ -178,8 +178,8 @@ void parseGoal(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *p
   }
 }
 
-void parseQueries(std::istream &in, planning_scene_monitor::PlanningSceneMonitor *psm,
-                  moveit_warehouse::RobotStateStorage *rs, moveit_warehouse::ConstraintsStorage *cs)
+void parseQueries(std::istream& in, planning_scene_monitor::PlanningSceneMonitor* psm,
+                  moveit_warehouse::RobotStateStorage* rs, moveit_warehouse::ConstraintsStorage* cs)
 {
   std::string scene_name;
   in >> scene_name;
@@ -200,7 +200,7 @@ void parseQueries(std::istream &in, planning_scene_monitor::PlanningSceneMonitor
   }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "import_from_text_to_warehouse", ros::init_options::AnonymousName);
 

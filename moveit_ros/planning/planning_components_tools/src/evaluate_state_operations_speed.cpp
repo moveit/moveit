@@ -41,7 +41,7 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "evaluate_state_operations_speed");
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
       moveit::tools::Profiler::End("FK Random");
     }
 
-    std::vector<robot_state::RobotState *> copies(N, (robot_state::RobotState *)NULL);
+    std::vector<robot_state::RobotState*> copies(N, (robot_state::RobotState*)NULL);
     printf("Evaluating Copy State ...\n");
     for (int i = 0; i < N; ++i)
     {
@@ -97,11 +97,11 @@ int main(int argc, char **argv)
       moveit::tools::Profiler::End("Free State");
     }
 
-    const std::vector<std::string> &groups = robot_model->getJointModelGroupNames();
+    const std::vector<std::string>& groups = robot_model->getJointModelGroupNames();
     for (std::size_t j = 0; j < groups.size(); ++j)
     {
       printf("\n");
-      const robot_model::JointModelGroup *jmg = robot_model->getJointModelGroup(groups[j]);
+      const robot_model::JointModelGroup* jmg = robot_model->getJointModelGroup(groups[j]);
 
       printf("%s: Evaluating FK Random ...\n", groups[j].c_str());
       std::string pname = groups[j] + ":FK Random";

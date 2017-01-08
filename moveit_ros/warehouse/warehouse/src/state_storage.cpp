@@ -41,7 +41,7 @@ const std::string moveit_warehouse::RobotStateStorage::DATABASE_NAME = "moveit_r
 const std::string moveit_warehouse::RobotStateStorage::STATE_NAME = "state_id";
 const std::string moveit_warehouse::RobotStateStorage::ROBOT_NAME = "robot_id";
 
-moveit_warehouse::RobotStateStorage::RobotStateStorage(const std::string &host, const unsigned int port,
+moveit_warehouse::RobotStateStorage::RobotStateStorage(const std::string& host, const unsigned int port,
                                                        double wait_seconds)
   : MoveItMessageStorage(host, port, wait_seconds)
 {
@@ -62,8 +62,8 @@ void moveit_warehouse::RobotStateStorage::reset()
   createCollections();
 }
 
-void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState &msg, const std::string &name,
-                                                        const std::string &robot)
+void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::RobotState& msg, const std::string& name,
+                                                        const std::string& robot)
 {
   bool replace = false;
   if (hasRobotState(name, robot))
@@ -76,7 +76,7 @@ void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::Robot
   ROS_DEBUG("%s robot state '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
 
-bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name, const std::string &robot) const
+bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string& name, const std::string& robot) const
 {
   mongo_ros::Query q(STATE_NAME, name);
   if (!robot.empty())
@@ -85,15 +85,15 @@ bool moveit_warehouse::RobotStateStorage::hasRobotState(const std::string &name,
   return !constr.empty();
 }
 
-void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string &regex, std::vector<std::string> &names,
-                                                              const std::string &robot) const
+void moveit_warehouse::RobotStateStorage::getKnownRobotStates(const std::string& regex, std::vector<std::string>& names,
+                                                              const std::string& robot) const
 {
   getKnownRobotStates(names, robot);
   filterNames(regex, names);
 }
 
-void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string> &names,
-                                                              const std::string &robot) const
+void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::string>& names,
+                                                              const std::string& robot) const
 {
   names.clear();
   mongo_ros::Query q;
@@ -105,8 +105,8 @@ void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::s
       names.push_back(constr[i]->lookupString(STATE_NAME));
 }
 
-bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &msg_m, const std::string &name,
-                                                        const std::string &robot) const
+bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata& msg_m, const std::string& name,
+                                                        const std::string& robot) const
 {
   mongo_ros::Query q(STATE_NAME, name);
   if (!robot.empty())
@@ -121,8 +121,8 @@ bool moveit_warehouse::RobotStateStorage::getRobotState(RobotStateWithMetadata &
   }
 }
 
-void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &old_name, const std::string &new_name,
-                                                           const std::string &robot)
+void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string& old_name, const std::string& new_name,
+                                                           const std::string& robot)
 {
   mongo_ros::Query q(STATE_NAME, old_name);
   if (!robot.empty())
@@ -132,7 +132,7 @@ void moveit_warehouse::RobotStateStorage::renameRobotState(const std::string &ol
   ROS_DEBUG("Renamed robot state from '%s' to '%s'", old_name.c_str(), new_name.c_str());
 }
 
-void moveit_warehouse::RobotStateStorage::removeRobotState(const std::string &name, const std::string &robot)
+void moveit_warehouse::RobotStateStorage::removeRobotState(const std::string& name, const std::string& robot)
 {
   mongo_ros::Query q(STATE_NAME, name);
   if (!robot.empty())

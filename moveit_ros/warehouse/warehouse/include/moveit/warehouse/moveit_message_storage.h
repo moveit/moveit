@@ -57,11 +57,11 @@ public:
       If no values are found, the defaults are left to be the ones MongoDB uses.
       If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
      runtime exception is thrown. */
-  MoveItMessageStorage(const std::string &host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+  MoveItMessageStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
 
   virtual ~MoveItMessageStorage();
 
-  const std::string &getDatabaseHost() const
+  const std::string& getDatabaseHost() const
   {
     return db_host_;
   }
@@ -73,9 +73,9 @@ public:
 
 protected:
   /// Keep only the \e names that match \e regex
-  void filterNames(const std::string &regex, std::vector<std::string> &names) const;
+  void filterNames(const std::string& regex, std::vector<std::string>& names) const;
 
-  void drop(const std::string &db);
+  void drop(const std::string& db);
 
   std::string db_host_;
   unsigned int db_port_;

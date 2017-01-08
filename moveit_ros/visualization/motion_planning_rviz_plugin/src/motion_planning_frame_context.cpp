@@ -59,7 +59,7 @@ void MotionPlanningFrame::databaseConnectButtonClicked()
 
 void MotionPlanningFrame::publishSceneButtonClicked()
 {
-  const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
   if (ps)
   {
     moveit_msgs::PlanningScene msg;
@@ -130,7 +130,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked()
       constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(ui_->database_host->text().toStdString(),
                                                                           ui_->database_port->value(), 5.0));
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       planning_display_->addMainLoopJob(
           boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));
@@ -198,7 +198,7 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper(int mode)
   }
 }
 
-void MotionPlanningFrame::computeResetDbButtonClicked(const std::string &db)
+void MotionPlanningFrame::computeResetDbButtonClicked(const std::string& db)
 {
   if (db == "Constraints" && constraints_storage_)
     constraints_storage_->reset();

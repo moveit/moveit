@@ -69,7 +69,7 @@ public:
    *
    * @param sa The constraint sampler allocator that will be used
    */
-  void registerSamplerAllocator(const ConstraintSamplerAllocatorPtr &sa)
+  void registerSamplerAllocator(const ConstraintSamplerAllocatorPtr& sa)
   {
     sampler_alloc_.push_back(sa);
   }
@@ -89,8 +89,8 @@ public:
    * @return An allocated ConstraintSamplerPtr,
    * or an empty pointer if none could be allocated
    */
-  ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
-                                     const moveit_msgs::Constraints &constr) const;
+  ConstraintSamplerPtr selectSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+                                     const moveit_msgs::Constraints& constr) const;
 
   /**
    * \brief Default logic to select a ConstraintSampler given a
@@ -135,9 +135,9 @@ public:
    * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref
    *ConstraintSamplerPtr
    */
-  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr &scene,
-                                                   const std::string &group_name,
-                                                   const moveit_msgs::Constraints &constr);
+  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                                   const std::string& group_name,
+                                                   const moveit_msgs::Constraints& constr);
 
 private:
   std::vector<ConstraintSamplerAllocatorPtr>

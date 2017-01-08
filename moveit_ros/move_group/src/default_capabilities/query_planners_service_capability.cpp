@@ -48,10 +48,10 @@ void move_group::MoveGroupQueryPlannersService::initialize()
                                                       &MoveGroupQueryPlannersService::queryInterface, this);
 }
 
-bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request &req,
-                                                               moveit_msgs::QueryPlannerInterfaces::Response &res)
+bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& req,
+                                                               moveit_msgs::QueryPlannerInterfaces::Response& res)
 {
-  const planning_interface::PlannerManagerPtr &planner_interface = context_->planning_pipeline_->getPlannerManager();
+  const planning_interface::PlannerManagerPtr& planner_interface = context_->planning_pipeline_->getPlannerManager();
   if (planner_interface)
   {
     std::vector<std::string> algs;

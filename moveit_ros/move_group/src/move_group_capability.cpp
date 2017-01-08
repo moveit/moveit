@@ -37,14 +37,14 @@
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit/robot_state/conversions.h>
 
-void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr &context)
+void move_group::MoveGroupCapability::setContext(const MoveGroupContextPtr& context)
 {
   context_ = context;
 }
 
-void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
-                                                   moveit_msgs::RobotState &first_state_msg,
-                                                   std::vector<moveit_msgs::RobotTrajectory> &trajectory_msg) const
+void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory>& trajectory,
+                                                   moveit_msgs::RobotState& first_state_msg,
+                                                   std::vector<moveit_msgs::RobotTrajectory>& trajectory_msg) const
 {
   if (!trajectory.empty())
   {
@@ -65,9 +65,9 @@ void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execut
   }
 }
 
-void move_group::MoveGroupCapability::convertToMsg(const robot_trajectory::RobotTrajectoryPtr &trajectory,
-                                                   moveit_msgs::RobotState &first_state_msg,
-                                                   moveit_msgs::RobotTrajectory &trajectory_msg) const
+void move_group::MoveGroupCapability::convertToMsg(const robot_trajectory::RobotTrajectoryPtr& trajectory,
+                                                   moveit_msgs::RobotState& first_state_msg,
+                                                   moveit_msgs::RobotTrajectory& trajectory_msg) const
 {
   if (trajectory && !trajectory->empty())
   {
@@ -76,9 +76,9 @@ void move_group::MoveGroupCapability::convertToMsg(const robot_trajectory::Robot
   }
 }
 
-void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory> &trajectory,
-                                                   moveit_msgs::RobotState &first_state_msg,
-                                                   moveit_msgs::RobotTrajectory &trajectory_msg) const
+void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execution::ExecutableTrajectory>& trajectory,
+                                                   moveit_msgs::RobotState& first_state_msg,
+                                                   moveit_msgs::RobotTrajectory& trajectory_msg) const
 {
   if (trajectory.size() > 1)
     ROS_ERROR_STREAM("Internal logic error: trajectory component ignored. !!! THIS IS A SERIOUS ERROR !!!");
@@ -87,7 +87,7 @@ void move_group::MoveGroupCapability::convertToMsg(const std::vector<plan_execut
 }
 
 planning_interface::MotionPlanRequest
-move_group::MoveGroupCapability::clearRequestStartState(const planning_interface::MotionPlanRequest &request) const
+move_group::MoveGroupCapability::clearRequestStartState(const planning_interface::MotionPlanRequest& request) const
 {
   planning_interface::MotionPlanRequest r = request;
   r.start_state = moveit_msgs::RobotState();
@@ -98,7 +98,7 @@ move_group::MoveGroupCapability::clearRequestStartState(const planning_interface
 }
 
 moveit_msgs::PlanningScene
-move_group::MoveGroupCapability::clearSceneRobotState(const moveit_msgs::PlanningScene &scene) const
+move_group::MoveGroupCapability::clearSceneRobotState(const moveit_msgs::PlanningScene& scene) const
 {
   moveit_msgs::PlanningScene r = scene;
   r.robot_state = moveit_msgs::RobotState();
@@ -108,7 +108,7 @@ move_group::MoveGroupCapability::clearSceneRobotState(const moveit_msgs::Plannin
   return r;
 }
 
-std::string move_group::MoveGroupCapability::getActionResultString(const moveit_msgs::MoveItErrorCodes &error_code,
+std::string move_group::MoveGroupCapability::getActionResultString(const moveit_msgs::MoveItErrorCodes& error_code,
                                                                    bool planned_trajectory_empty, bool plan_only)
 {
   if (error_code.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
@@ -169,8 +169,8 @@ std::string move_group::MoveGroupCapability::stateToStr(MoveGroupState state) co
   }
 }
 
-bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStamped &pose_msg,
-                                                       const std::string &target_frame) const
+bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStamped& pose_msg,
+                                                       const std::string& target_frame) const
 {
   if (!context_ || !context_->planning_scene_monitor_->getTFClient())
     return false;
@@ -197,7 +197,7 @@ bool move_group::MoveGroupCapability::performTransform(geometry_msgs::PoseStampe
     context_->planning_scene_monitor_->getTFClient()->transformPose(target_frame, pose_tf, pose_tf_out);
     tf::poseStampedTFToMsg(pose_tf_out, pose_msg);
   }
-  catch (tf::TransformException &ex)
+  catch (tf::TransformException& ex)
   {
     ROS_ERROR("TF Problem: %s", ex.what());
     return false;

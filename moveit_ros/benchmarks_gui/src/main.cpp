@@ -38,7 +38,7 @@
 #include <QApplication>
 #include <main_window.h>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "benchmark_tool");
 

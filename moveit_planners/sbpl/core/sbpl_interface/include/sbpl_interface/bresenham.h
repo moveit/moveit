@@ -51,10 +51,10 @@ typedef struct
   int err1, err2;
 } bresenham3d_param_t;
 
-void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int p2z, bresenham3d_param_t *params);
+void get_bresenham3d_parameters(int p1x, int p1y, int p1z, int p2x, int p2y, int p2z, bresenham3d_param_t* params);
 
-void get_current_point3d(bresenham3d_param_t *params, int *x, int *y, int *z);
+void get_current_point3d(bresenham3d_param_t* params, int* x, int* y, int* z);
 
-int get_next_point3d(bresenham3d_param_t *params);
+int get_next_point3d(bresenham3d_param_t* params);
 
 #endif

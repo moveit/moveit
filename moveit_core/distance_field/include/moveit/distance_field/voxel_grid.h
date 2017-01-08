@@ -348,8 +348,7 @@ VoxelGrid<T>::VoxelGrid(double size_x, double size_y, double size_z, double reso
 }
 
 template <typename T>
-VoxelGrid<T>::VoxelGrid()
-  : data_(NULL)
+VoxelGrid<T>::VoxelGrid() : data_(NULL)
 {
   for (int i = DIM_X; i <= DIM_Z; ++i)
   {

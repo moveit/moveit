@@ -77,7 +77,7 @@ void moveit::tools::BackgroundProcessing::processingThread()
         fn();
         logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
       }
@@ -93,7 +93,7 @@ void moveit::tools::BackgroundProcessing::processingThread()
   }
 }
 
-void moveit::tools::BackgroundProcessing::addJob(const boost::function<void()> &job, const std::string &name)
+void moveit::tools::BackgroundProcessing::addJob(const boost::function<void()>& job, const std::string& name)
 {
   {
     boost::mutex::scoped_lock _(action_lock_);
@@ -126,7 +126,7 @@ std::size_t moveit::tools::BackgroundProcessing::getJobCount() const
   return actions_.size() + (processing_ ? 1 : 0);
 }
 
-void moveit::tools::BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback &event)
+void moveit::tools::BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback& event)
 {
   boost::mutex::scoped_lock _(action_lock_);
   queue_change_event_ = event;

@@ -51,7 +51,7 @@ static const std::string ROBOT_DESCRIPTION =
 class OMPLPlannerService
 {
 public:
-  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor &psm, bool debug = false)
+  OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor& psm, bool debug = false)
     : nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
@@ -62,7 +62,7 @@ public:
     }
   }
 
-  bool computePlan(moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+  bool computePlan(moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res)
   {
     ROS_INFO("Received new planning request...");
     if (debug_)
@@ -90,7 +90,7 @@ public:
     return result;
   }
 
-  void displaySolution(const moveit_msgs::MotionPlanResponse &mplan_res)
+  void displaySolution(const moveit_msgs::MotionPlanResponse& mplan_res)
   {
     moveit_msgs::DisplayTrajectory d;
     d.model_id = psm_.getPlanningScene()->getRobotModel()->getName();
@@ -109,7 +109,7 @@ public:
 
 private:
   ros::NodeHandle nh_;
-  planning_scene_monitor::PlanningSceneMonitor &psm_;
+  planning_scene_monitor::PlanningSceneMonitor& psm_;
   ompl_interface::OMPLInterface ompl_interface_;
   ros::ServiceServer plan_service_;
   ros::ServiceServer display_states_service_;
@@ -118,7 +118,7 @@ private:
   bool debug_;
 };
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, PLANNER_NODE_NAME);
 

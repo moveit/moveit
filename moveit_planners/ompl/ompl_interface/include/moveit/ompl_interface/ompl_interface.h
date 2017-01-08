@@ -58,69 +58,69 @@ class OMPLInterface
 public:
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
    * NodeHandle */
-  OMPLInterface(const robot_model::RobotModelConstPtr &kmodel, const ros::NodeHandle &nh = ros::NodeHandle("~"));
+  OMPLInterface(const robot_model::RobotModelConstPtr& kmodel, const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
   /** \brief Initialize OMPL-based planning for a particular robot model. ROS configuration is read from the specified
      NodeHandle. However,
       planner configurations are used as specified in \e pconfig instead of reading them from the ROS parameter server
      */
-  OMPLInterface(const robot_model::RobotModelConstPtr &kmodel,
-                const planning_interface::PlannerConfigurationMap &pconfig,
-                const ros::NodeHandle &nh = ros::NodeHandle("~"));
+  OMPLInterface(const robot_model::RobotModelConstPtr& kmodel,
+                const planning_interface::PlannerConfigurationMap& pconfig,
+                const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
   virtual ~OMPLInterface();
 
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
-  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pconfig);
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig);
 
   /** @brief Get the configurations for the planners that are already loaded
       @param pconfig Configurations for the different planners */
-  const planning_interface::PlannerConfigurationMap &getPlannerConfigurations() const
+  const planning_interface::PlannerConfigurationMap& getPlannerConfigurations() const
   {
     return context_manager_.getPlannerConfigurations();
   }
 
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                  const planning_interface::MotionPlanRequest &req) const;
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                  const planning_interface::MotionPlanRequest &req,
-                                                  moveit_msgs::MoveItErrorCodes &error_code) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                  const planning_interface::MotionPlanRequest& req) const;
+  ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                  const planning_interface::MotionPlanRequest& req,
+                                                  moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const std::string &config,
-                                                  const std::string &factory_type = "") const;
+  ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
+                                                  const std::string& factory_type = "") const;
 
   ModelBasedPlanningContextPtr getLastPlanningContext() const
   {
     return context_manager_.getLastPlanningContext();
   }
 
-  const PlanningContextManager &getPlanningContextManager() const
+  const PlanningContextManager& getPlanningContextManager() const
   {
     return context_manager_;
   }
 
-  PlanningContextManager &getPlanningContextManager()
+  PlanningContextManager& getPlanningContextManager()
   {
     return context_manager_;
   }
 
-  ConstraintsLibrary &getConstraintsLibrary()
+  ConstraintsLibrary& getConstraintsLibrary()
   {
     return *constraints_library_;
   }
 
-  const ConstraintsLibrary &getConstraintsLibrary() const
+  const ConstraintsLibrary& getConstraintsLibrary() const
   {
     return *constraints_library_;
   }
 
-  constraint_samplers::ConstraintSamplerManager &getConstraintSamplerManager()
+  constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager()
   {
     return *constraint_sampler_manager_;
   }
 
-  const constraint_samplers::ConstraintSamplerManager &getConstraintSamplerManager() const
+  const constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager() const
   {
     return *constraint_sampler_manager_;
   }
@@ -135,9 +135,9 @@ public:
     return use_constraints_approximations_;
   }
 
-  void loadConstraintApproximations(const std::string &path);
+  void loadConstraintApproximations(const std::string& path);
 
-  void saveConstraintApproximations(const std::string &path);
+  void saveConstraintApproximations(const std::string& path);
 
   bool simplifySolutions() const
   {
@@ -167,13 +167,13 @@ protected:
   /** @brief Load the additional plugins for sampling constraints */
   void loadConstraintSamplers();
 
-  void configureContext(const ModelBasedPlanningContextPtr &context) const;
+  void configureContext(const ModelBasedPlanningContextPtr& context) const;
 
   /** \brief Configure the OMPL planning context for a new planning request */
-  ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest &req,
-                                               const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                               moveit_msgs::MoveItErrorCodes *error_code, unsigned int *attempts,
-                                               double *timeout) const;
+  ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest& req,
+                                               const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                               moveit_msgs::MoveItErrorCodes* error_code, unsigned int* attempts,
+                                               double* timeout) const;
 
   ros::NodeHandle nh_;  /// The ROS node handle
 

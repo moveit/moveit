@@ -60,23 +60,23 @@ class MoveGroupWrapper : protected py_bindings_tools::ROScppInitializer, public 
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  MoveGroupWrapper(const std::string &group_name, const std::string &robot_description)
+  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description)
     : py_bindings_tools::ROScppInitializer()
     , MoveGroup(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(), ros::WallDuration(5, 0))
   {
   }
 
-  bool setJointValueTargetPerJointPythonList(const std::string &joint, bp::list &values)
+  bool setJointValueTargetPerJointPythonList(const std::string& joint, bp::list& values)
   {
     return setJointValueTarget(joint, py_bindings_tools::doubleFromList(values));
   }
 
-  bool setJointValueTargetPythonIterable(bp::object &values)
+  bool setJointValueTargetPythonIterable(bp::object& values)
   {
     return setJointValueTarget(py_bindings_tools::doubleFromList(values));
   }
 
-  bool setJointValueTargetPythonDict(bp::dict &values)
+  bool setJointValueTargetPythonDict(bp::dict& values)
   {
     bp::list k = values.keys();
     int l = bp::len(k);
@@ -86,21 +86,21 @@ public:
     return setJointValueTarget(v);
   }
 
-  bool setJointValueTargetFromPosePython(const std::string &pose_str, const std::string &eef, bool approx)
+  bool setJointValueTargetFromPosePython(const std::string& pose_str, const std::string& eef, bool approx)
   {
     geometry_msgs::Pose pose_msg;
     py_bindings_tools::deserializeMsg(pose_str, pose_msg);
     return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
   }
 
-  bool setJointValueTargetFromPoseStampedPython(const std::string &pose_str, const std::string &eef, bool approx)
+  bool setJointValueTargetFromPoseStampedPython(const std::string& pose_str, const std::string& eef, bool approx)
   {
     geometry_msgs::PoseStamped pose_msg;
     py_bindings_tools::deserializeMsg(pose_str, pose_msg);
     return approx ? setApproximateJointValueTarget(pose_msg, eef) : setJointValueTarget(pose_msg, eef);
   }
 
-  bool setJointValueTargetFromJointStatePython(const std::string &js_str)
+  bool setJointValueTargetFromJointStatePython(const std::string& js_str)
   {
     sensor_msgs::JointState js_msg;
     py_bindings_tools::deserializeMsg(js_str, js_msg);
@@ -109,19 +109,19 @@ public:
 
   bp::list getJointValueTargetPythonList()
   {
-    const robot_state::RobotState &values = moveit::planning_interface::MoveGroup::getJointValueTarget();
+    const robot_state::RobotState& values = moveit::planning_interface::MoveGroup::getJointValueTarget();
     bp::list l;
     for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
       l.append(*it);
     return l;
   }
 
-  void rememberJointValuesFromPythonList(const std::string &string, bp::list &values)
+  void rememberJointValuesFromPythonList(const std::string& string, bp::list& values)
   {
     rememberJointValues(string, py_bindings_tools::doubleFromList(values));
   }
 
-  const char *getPlanningFrameCStr() const
+  const char* getPlanningFrameCStr() const
   {
     return getPlanningFrame().c_str();
   }
@@ -148,14 +148,14 @@ public:
 
   bp::dict getRememberedJointValuesPython() const
   {
-    const std::map<std::string, std::vector<double> > &rv = getRememberedJointValues();
+    const std::map<std::string, std::vector<double> >& rv = getRememberedJointValues();
     bp::dict d;
     for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin(); it != rv.end(); ++it)
       d[it->first] = py_bindings_tools::listFromDouble(it->second);
     return d;
   }
 
-  bp::list convertPoseToList(const geometry_msgs::Pose &pose) const
+  bp::list convertPoseToList(const geometry_msgs::Pose& pose) const
   {
     std::vector<double> v(7);
     v[0] = pose.position.x;
@@ -168,7 +168,7 @@ public:
     return moveit::py_bindings_tools::listFromDouble(v);
   }
 
-  bp::list convertTransformToList(const geometry_msgs::Transform &tr) const
+  bp::list convertTransformToList(const geometry_msgs::Transform& tr) const
   {
     std::vector<double> v(7);
     v[0] = tr.translation.x;
@@ -181,7 +181,7 @@ public:
     return py_bindings_tools::listFromDouble(v);
   }
 
-  void convertListToTransform(const bp::list &l, geometry_msgs::Transform &tr) const
+  void convertListToTransform(const bp::list& l, geometry_msgs::Transform& tr) const
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(l);
     tr.translation.x = v[0];
@@ -193,7 +193,7 @@ public:
     tr.rotation.w = v[6];
   }
 
-  void convertListToPose(const bp::list &l, geometry_msgs::Pose &p) const
+  void convertListToPose(const bp::list& l, geometry_msgs::Pose& p) const
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(l);
     p.position.x = v[0];
@@ -205,18 +205,18 @@ public:
     p.orientation.w = v[6];
   }
 
-  bp::list getCurrentRPYPython(const std::string &end_effector_link = "")
+  bp::list getCurrentRPYPython(const std::string& end_effector_link = "")
   {
     return py_bindings_tools::listFromDouble(getCurrentRPY(end_effector_link));
   }
 
-  bp::list getCurrentPosePython(const std::string &end_effector_link = "")
+  bp::list getCurrentPosePython(const std::string& end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getCurrentPose(end_effector_link);
     return convertPoseToList(pose.pose);
   }
 
-  bp::list getRandomPosePython(const std::string &end_effector_link = "")
+  bp::list getRandomPosePython(const std::string& end_effector_link = "")
   {
     geometry_msgs::PoseStamped pose = getRandomPose(end_effector_link);
     return convertPoseToList(pose.pose);
@@ -227,7 +227,7 @@ public:
     return py_bindings_tools::listFromString(getKnownConstraints());
   }
 
-  bool placePose(const std::string &object_name, const bp::list &pose)
+  bool placePose(const std::string& object_name, const bp::list& pose)
   {
     geometry_msgs::PoseStamped msg;
     convertListToPose(pose, msg.pose);
@@ -236,24 +236,24 @@ public:
     return place(object_name, msg);
   }
 
-  bool placeLocation(const std::string &object_name, const std::string &location_str)
+  bool placeLocation(const std::string& object_name, const std::string& location_str)
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
     return place(object_name, locations);
   }
 
-  bool placeAnywhere(const std::string &object_name)
+  bool placeAnywhere(const std::string& object_name)
   {
     return place(object_name);
   }
 
-  void convertListToArrayOfPoses(const bp::list &poses, std::vector<geometry_msgs::Pose> &msg)
+  void convertListToArrayOfPoses(const bp::list& poses, std::vector<geometry_msgs::Pose>& msg)
   {
     int l = bp::len(poses);
     for (int i = 0; i < l; ++i)
     {
-      const bp::list &pose = bp::extract<bp::list>(poses[i]);
+      const bp::list& pose = bp::extract<bp::list>(poses[i]);
       std::vector<double> v = py_bindings_tools::doubleFromList(pose);
       if (v.size() == 6 || v.size() == 7)
       {
@@ -288,21 +288,21 @@ public:
     return output;
   }
 
-  void setStartStatePython(const std::string &msg_str)
+  void setStartStatePython(const std::string& msg_str)
   {
     moveit_msgs::RobotState msg;
     py_bindings_tools::deserializeMsg(msg_str, msg);
     setStartState(msg);
   }
 
-  bool setPoseTargetsPython(bp::list &poses, const std::string &end_effector_link = "")
+  bool setPoseTargetsPython(bp::list& poses, const std::string& end_effector_link = "")
   {
     std::vector<geometry_msgs::Pose> msg;
     convertListToArrayOfPoses(poses, msg);
     return setPoseTargets(msg, end_effector_link);
   }
 
-  bool setPoseTargetPython(bp::list &pose, const std::string &end_effector_link = "")
+  bool setPoseTargetPython(bp::list& pose, const std::string& end_effector_link = "")
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(pose);
     geometry_msgs::Pose msg;
@@ -326,22 +326,22 @@ public:
     return setPoseTarget(msg, end_effector_link);
   }
 
-  const char *getEndEffectorLinkCStr() const
+  const char* getEndEffectorLinkCStr() const
   {
     return getEndEffectorLink().c_str();
   }
 
-  const char *getPoseReferenceFrameCStr() const
+  const char* getPoseReferenceFrameCStr() const
   {
     return getPoseReferenceFrame().c_str();
   }
 
-  const char *getNameCStr() const
+  const char* getNameCStr() const
   {
     return getName().c_str();
   }
 
-  bp::dict getNamedTargetValuesPython(const std::string &name)
+  bp::dict getNamedTargetValuesPython(const std::string& name)
   {
     bp::dict output;
     std::map<std::string, double> positions = getNamedTargetValues(name);
@@ -367,19 +367,19 @@ public:
     return asyncMove();
   }
 
-  bool attachObjectPython(const std::string &object_name, const std::string &link_name, const bp::list &touch_links)
+  bool attachObjectPython(const std::string& object_name, const std::string& link_name, const bp::list& touch_links)
   {
     return attachObject(object_name, link_name, py_bindings_tools::stringFromList(touch_links));
   }
 
-  bool executePython(const std::string &plan_str)
+  bool executePython(const std::string& plan_str)
   {
     MoveGroup::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
     return execute(plan);
   }
 
-  bool asyncExecutePython(const std::string &plan_str)
+  bool asyncExecutePython(const std::string& plan_str)
   {
     MoveGroup::Plan plan;
     py_bindings_tools::deserializeMsg(plan_str, plan.trajectory_);
@@ -393,7 +393,7 @@ public:
     return py_bindings_tools::serializeMsg(plan.trajectory_);
   }
 
-  bp::tuple computeCartesianPathPython(const bp::list &waypoints, double eef_step, double jump_threshold,
+  bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
                                        bool avoid_collisions)
   {
     std::vector<geometry_msgs::Pose> poses;
@@ -403,14 +403,14 @@ public:
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
-  int pickGrasp(const std::string &object, const std::string &grasp_str)
+  int pickGrasp(const std::string& object, const std::string& grasp_str)
   {
     moveit_msgs::Grasp grasp;
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
     return pick(object, grasp).val;
   }
 
-  int pickGrasps(const std::string &object, const bp::list &grasp_list)
+  int pickGrasps(const std::string& object, const bp::list& grasp_list)
   {
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
@@ -419,7 +419,7 @@ public:
     return pick(object, grasps).val;
   }
 
-  void setPathConstraintsFromMsg(const std::string &constraints_str)
+  void setPathConstraintsFromMsg(const std::string& constraints_str)
   {
     moveit_msgs::Constraints constraints_msg;
     py_bindings_tools::deserializeMsg(constraints_str, constraints_msg);
@@ -433,7 +433,7 @@ public:
     return constraints_str;
   }
 
-  std::string retimeTrajectory(const std::string &ref_state_str, const std::string &traj_str,
+  std::string retimeTrajectory(const std::string& ref_state_str, const std::string& traj_str,
                                double velocity_scaling_factor)
   {
     // Convert reference state message to object
@@ -475,8 +475,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
   MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
   MoveGroupClass.def("async_execute", &MoveGroupWrapper::asyncExecutePython);
-  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string &) =
-      &MoveGroupWrapper::pick;
+  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
   MoveGroupClass.def("pick", pick_1);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
   MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
@@ -521,7 +520,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
 
   MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
-  bool (MoveGroupWrapper::*setJointValueTarget_4)(const std::string &, double) = &MoveGroupWrapper::setJointValueTarget;
+  bool (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
   MoveGroupClass.def("set_joint_value_target", setJointValueTarget_4);
 
   MoveGroupClass.def("set_joint_value_target_from_pose", &MoveGroupWrapper::setJointValueTargetFromPosePython);
@@ -535,7 +534,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget);
   MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget);
 
-  void (MoveGroupWrapper::*rememberJointValues_2)(const std::string &) = &MoveGroupWrapper::rememberJointValues;
+  void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
   MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
 
   MoveGroupClass.def("remember_joint_values", &MoveGroupWrapper::rememberJointValuesFromPythonList);
@@ -559,7 +558,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_start_state_to_current_state", &MoveGroupWrapper::setStartStateToCurrentState);
   MoveGroupClass.def("set_start_state", &MoveGroupWrapper::setStartStatePython);
 
-  bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string &) = &MoveGroupWrapper::setPathConstraints;
+  bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
   MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
   MoveGroupClass.def("set_path_constraints_from_msg", &MoveGroupWrapper::setPathConstraintsFromMsg);
   MoveGroupClass.def("get_path_constraints", &MoveGroupWrapper::getPathConstraintsPython);

@@ -47,23 +47,23 @@ namespace sbpl_interface_ros
 class SBPLPlanner : public planning_interface::Planner
 {
 public:
-  void init(const planning_models::RobotModelConstPtr &model)
+  void init(const planning_models::RobotModelConstPtr& model)
   {
     ros::NodeHandle nh;
     display_bfs_publisher_ = nh.advertise<visualization_msgs::Marker>("planning_components_visualization", 10, true);
     sbpl_interface_.reset(new sbpl_interface::SBPLInterface(model));
   }
 
-  bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request &req,
-                         planning_interface::PlannerCapability &capabilities) const
+  bool canServiceRequest(const moveit_msgs::GetMotionPlan::Request& req,
+                         planning_interface::PlannerCapability& capabilities) const
   {
     // TODO: this is a dummy implementation
     //      capabilities.dummy = false;
     return true;
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res) const
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
@@ -71,8 +71,8 @@ public:
     return solve_ok;
   }
 
-  bool solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
-             const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::MotionPlanDetailedResponse &res) const
+  bool solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::MotionPlanDetailedResponse& res) const
   {
     sbpl_interface::PlanningParameters params;
     params.use_bfs_ = false;
@@ -95,7 +95,7 @@ public:
     return "SBPL";
   }
 
-  void getPlanningAlgorithms(std::vector<std::string> &algs) const
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const
   {
     algs.resize(1);
     algs[0] = "SBPL";
