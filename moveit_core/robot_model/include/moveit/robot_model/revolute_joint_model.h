@@ -49,23 +49,23 @@ class RevoluteJointModel : public JointModel
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  RevoluteJointModel(const std::string &name);
-  virtual void getVariableDefaultPositions(double *values, const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator &rng, double *values,
-                                          const Bounds &other_bounds) const;
-  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator &rng, double *values,
-                                                const Bounds &other_bounds, const double *near,
+  RevoluteJointModel(const std::string& name);
+  virtual void getVariableDefaultPositions(double* values, const Bounds& other_bounds) const;
+  virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
+                                          const Bounds& other_bounds) const;
+  virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
+                                                const Bounds& other_bounds, const double* near,
                                                 const double distance) const;
-  virtual bool enforcePositionBounds(double *values, const Bounds &other_bounds) const;
-  virtual bool satisfiesPositionBounds(const double *values, const Bounds &other_bounds, double margin) const;
+  virtual bool enforcePositionBounds(double* values, const Bounds& other_bounds) const;
+  virtual bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const;
 
-  virtual void interpolate(const double *from, const double *to, const double t, double *state) const;
+  virtual void interpolate(const double* from, const double* to, const double t, double* state) const;
   virtual unsigned int getStateSpaceDimension() const;
-  virtual double getMaximumExtent(const Bounds &other_bounds) const;
-  virtual double distance(const double *values1, const double *values2) const;
+  virtual double getMaximumExtent(const Bounds& other_bounds) const;
+  virtual double distance(const double* values1, const double* values2) const;
 
-  virtual void computeTransform(const double *joint_values, Eigen::Affine3d &transf) const;
-  virtual void computeVariablePositions(const Eigen::Affine3d &transf, double *joint_values) const;
+  virtual void computeTransform(const double* joint_values, Eigen::Affine3d& transf) const;
+  virtual void computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const;
 
   void setContinuous(bool flag);
 
@@ -76,13 +76,13 @@ public:
   }
 
   /** \brief Get the axis of rotation */
-  const Eigen::Vector3d &getAxis() const
+  const Eigen::Vector3d& getAxis() const
   {
     return axis_;
   }
 
   /** \brief Set the axis of rotation */
-  void setAxis(const Eigen::Vector3d &axis);
+  void setAxis(const Eigen::Vector3d& axis);
 
 protected:
   /** \brief The axis of the joint */

@@ -101,7 +101,7 @@ public:
         for (int j = 0; j < controller_list[i]["joints"].size(); ++j)
           joints.push_back(std::string(controller_list[i]["joints"][j]));
 
-        const std::string &type =
+        const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
         if (type == "last point")
           controllers_[name].reset(new LastPointController(name, joints, pub_));
@@ -119,7 +119,7 @@ public:
     }
   }
 
-  sensor_msgs::JointState loadInitialJointValues(XmlRpc::XmlRpcValue &param) const
+  sensor_msgs::JointState loadInitialJointValues(XmlRpc::XmlRpcValue& param) const
   {
     sensor_msgs::JointState js;
 
@@ -146,9 +146,9 @@ public:
           ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint model group: " << group_name);
           continue;
         }
-        moveit::core::JointModelGroup *jmg = robot_model->getJointModelGroup(group_name);
+        moveit::core::JointModelGroup* jmg = robot_model->getJointModelGroup(group_name);
         moveit::core::RobotState robot_state(robot_model);
-        const std::vector<std::string> &joint_names = jmg->getActiveJointModelNames();
+        const std::vector<std::string>& joint_names = jmg->getActiveJointModelNames();
 
         if (!robot_state.setToDefaultValues(jmg, pose_name))
         {
@@ -162,7 +162,7 @@ public:
         for (std::vector<std::string>::const_iterator jit = joint_names.begin(), end = joint_names.end(); jit != end;
              ++jit)
         {
-          const moveit::core::JointModel *jm = robot_state.getJointModel(*jit);
+          const moveit::core::JointModel* jm = robot_state.getJointModel(*jit);
           if (!jm)
           {
             ROS_WARN_STREAM_NAMED("loadInitialJointValues", "Unknown joint: " << *jit);
@@ -199,7 +199,7 @@ public:
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml
    */
-  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string &name)
+  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
   {
     std::map<std::string, BaseFakeControllerPtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -212,7 +212,7 @@ public:
   /*
    * Get the list of controller names.
    */
-  virtual void getControllersList(std::vector<std::string> &names)
+  virtual void getControllersList(std::vector<std::string>& names)
   {
     for (std::map<std::string, BaseFakeControllerPtr>::const_iterator it = controllers_.begin();
          it != controllers_.end(); ++it)
@@ -223,7 +223,7 @@ public:
   /*
    * Fake controllers are always active
    */
-  virtual void getActiveControllers(std::vector<std::string> &names)
+  virtual void getActiveControllers(std::vector<std::string>& names)
   {
     getControllersList(names);
   }
@@ -231,7 +231,7 @@ public:
   /*
    * Fake controllers are always loaded
    */
-  virtual void getLoadedControllers(std::vector<std::string> &names)
+  virtual void getLoadedControllers(std::vector<std::string>& names)
   {
     getControllersList(names);
   }
@@ -239,7 +239,7 @@ public:
   /*
    * Get the list of joints that a controller can control.
    */
-  virtual void getControllerJoints(const std::string &name, std::vector<std::string> &joints)
+  virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints)
   {
     std::map<std::string, BaseFakeControllerPtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -259,7 +259,7 @@ public:
    * Controllers are all active and default.
    */
   virtual moveit_controller_manager::MoveItControllerManager::ControllerState
-  getControllerState(const std::string &name)
+  getControllerState(const std::string& name)
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = true;
@@ -268,7 +268,7 @@ public:
   }
 
   /* Cannot switch our controllers */
-  virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate)
+  virtual bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate)
   {
     return false;
   }

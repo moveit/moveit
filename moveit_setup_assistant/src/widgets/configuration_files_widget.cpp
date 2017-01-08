@@ -188,8 +188,9 @@ bool ConfigurationFilesWidget::loadGenFiles()
 
   if (!fs::is_directory(config_data_->template_package_path_))
   {
-    QMessageBox::critical(this, "Error Generating", QString("Unable to find package template directory: ")
-                                                        .append(config_data_->template_package_path_.c_str()));
+    QMessageBox::critical(
+        this, "Error Generating",
+        QString("Unable to find package template directory: ").append(config_data_->template_package_path_.c_str()));
     return false;
   }
 
@@ -851,7 +852,8 @@ bool ConfigurationFilesWidget::generatePackage()
           this, "Incorrect Folder/Package",
           QString("The chosen package location already exists but was not previously created using this MoveIt Setup "
                   "Assistant. "
-                  "If this is a mistake, add the missing file: ").append(setup_assistant_file.c_str()));
+                  "If this is a mistake, add the missing file: ")
+              .append(setup_assistant_file.c_str()));
       return false;
     }
 

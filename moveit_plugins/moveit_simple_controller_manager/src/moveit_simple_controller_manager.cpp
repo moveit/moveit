@@ -108,7 +108,7 @@ public:
         if (type == "GripperCommand")
         {
           new_handle.reset(new GripperControllerHandle(name, action_ns));
-          if (static_cast<GripperControllerHandle *>(new_handle.get())->isConnected())
+          if (static_cast<GripperControllerHandle*>(new_handle.get())->isConnected())
           {
             if (controller_list[i].hasMember("parallel"))
             {
@@ -117,21 +117,21 @@ public:
                 ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two joints");
                 continue;
               }
-              static_cast<GripperControllerHandle *>(new_handle.get())
+              static_cast<GripperControllerHandle*>(new_handle.get())
                   ->setParallelJawGripper(controller_list[i]["joints"][0], controller_list[i]["joints"][1]);
             }
             else
             {
               if (controller_list[i].hasMember("command_joint"))
-                static_cast<GripperControllerHandle *>(new_handle.get())
+                static_cast<GripperControllerHandle*>(new_handle.get())
                     ->setCommandJoint(controller_list[i]["command_joint"]);
               else
-                static_cast<GripperControllerHandle *>(new_handle.get())
+                static_cast<GripperControllerHandle*>(new_handle.get())
                     ->setCommandJoint(controller_list[i]["joints"][0]);
             }
 
             if (controller_list[i].hasMember("allow_failure"))
-              static_cast<GripperControllerHandle *>(new_handle.get())->allowFailure(true);
+              static_cast<GripperControllerHandle*>(new_handle.get())->allowFailure(true);
 
             ROS_INFO_STREAM_NAMED("manager", "Added GripperCommand controller for " << name);
             controllers_[name] = new_handle;
@@ -140,7 +140,7 @@ public:
         else if (type == "FollowJointTrajectory")
         {
           new_handle.reset(new FollowJointTrajectoryControllerHandle(name, action_ns));
-          if (static_cast<FollowJointTrajectoryControllerHandle *>(new_handle.get())->isConnected())
+          if (static_cast<FollowJointTrajectoryControllerHandle*>(new_handle.get())->isConnected())
           {
             ROS_INFO_STREAM_NAMED("manager", "Added FollowJointTrajectory controller for " << name);
             controllers_[name] = new_handle;
@@ -175,7 +175,7 @@ public:
   /*
    * Get a controller, by controller name (which was specified in the controllers.yaml
    */
-  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string &name)
+  virtual moveit_controller_manager::MoveItControllerHandlePtr getControllerHandle(const std::string& name)
   {
     std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -188,7 +188,7 @@ public:
   /*
    * Get the list of controller names.
    */
-  virtual void getControllersList(std::vector<std::string> &names)
+  virtual void getControllersList(std::vector<std::string>& names)
   {
     for (std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.begin();
          it != controllers_.end(); ++it)
@@ -200,7 +200,7 @@ public:
    * This plugin assumes that all controllers are already active -- and if they are not, well, it has no way to deal
    * with it anyways!
    */
-  virtual void getActiveControllers(std::vector<std::string> &names)
+  virtual void getActiveControllers(std::vector<std::string>& names)
   {
     getControllersList(names);
   }
@@ -208,7 +208,7 @@ public:
   /*
    * Controller must be loaded to be active, see comment above about active controllers...
    */
-  virtual void getLoadedControllers(std::vector<std::string> &names)
+  virtual void getLoadedControllers(std::vector<std::string>& names)
   {
     getControllersList(names);
   }
@@ -216,7 +216,7 @@ public:
   /*
    * Get the list of joints that a controller can control.
    */
-  virtual void getControllerJoints(const std::string &name, std::vector<std::string> &joints)
+  virtual void getControllerJoints(const std::string& name, std::vector<std::string>& joints)
   {
     std::map<std::string, ActionBasedControllerHandleBasePtr>::const_iterator it = controllers_.find(name);
     if (it != controllers_.end())
@@ -236,7 +236,7 @@ public:
    * Controllers are all active and default -- that's what makes this thing simple.
    */
   virtual moveit_controller_manager::MoveItControllerManager::ControllerState
-  getControllerState(const std::string &name)
+  getControllerState(const std::string& name)
   {
     moveit_controller_manager::MoveItControllerManager::ControllerState state;
     state.active_ = true;
@@ -245,7 +245,7 @@ public:
   }
 
   /* Cannot switch our controllers */
-  virtual bool switchControllers(const std::vector<std::string> &activate, const std::vector<std::string> &deactivate)
+  virtual bool switchControllers(const std::vector<std::string>& activate, const std::vector<std::string>& deactivate)
   {
     return false;
   }

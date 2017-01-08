@@ -40,8 +40,8 @@
 #include <sstream>
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectSampler(
-    const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
-    const moveit_msgs::Constraints &constr) const
+    const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+    const moveit_msgs::Constraints& constr) const
 {
   for (std::size_t i = 0; i < sampler_alloc_.size(); ++i)
     if (sampler_alloc_[i]->canService(scene, group_name, constr))
@@ -52,10 +52,10 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
 }
 
 constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(
-    const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
-    const moveit_msgs::Constraints &constr)
+    const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+    const moveit_msgs::Constraints& constr)
 {
-  const robot_model::JointModelGroup *jmg = scene->getRobotModel()->getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* jmg = scene->getRobotModel()->getJointModelGroup(group_name);
   if (!jmg)
     return constraint_samplers::ConstraintSamplerPtr();
   std::stringstream ss;
@@ -129,8 +129,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     samplers.push_back(joint_sampler);
 
   // read the ik allocators, if any
-  const robot_model::JointModelGroup::KinematicsSolver &ik_alloc = jmg->getGroupKinematics().first;
-  const robot_model::JointModelGroup::KinematicsSolverMap &ik_subgroup_alloc = jmg->getGroupKinematics().second;
+  const robot_model::JointModelGroup::KinematicsSolver& ik_alloc = jmg->getGroupKinematics().first;
+  const robot_model::JointModelGroup::KinematicsSolverMap& ik_subgroup_alloc = jmg->getGroupKinematics().second;
 
   // if we have a means of computing complete states for the group using IK, then we try to see if any IK constraints
   // should be used

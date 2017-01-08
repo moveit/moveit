@@ -54,10 +54,10 @@ void move_group::MoveGroupKinematicsService::initialize()
 
 namespace
 {
-bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
-                       const kinematic_constraints::KinematicConstraintSet *constraint_set,
-                       robot_state::RobotState *state, const robot_model::JointModelGroup *jmg,
-                       const double *ik_solution)
+bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
+                       const kinematic_constraints::KinematicConstraintSet* constraint_set,
+                       robot_state::RobotState* state, const robot_model::JointModelGroup* jmg,
+                       const double* ik_solution)
 {
   state->setJointGroupPositions(jmg, ik_solution);
   state->update();
@@ -67,14 +67,14 @@ bool isIKSolutionValid(const planning_scene::PlanningScene *planning_scene,
 }
 
 void move_group::MoveGroupKinematicsService::computeIK(
-    moveit_msgs::PositionIKRequest &req, moveit_msgs::RobotState &solution, moveit_msgs::MoveItErrorCodes &error_code,
-    robot_state::RobotState &rs, const robot_state::GroupStateValidityCallbackFn &constraint) const
+    moveit_msgs::PositionIKRequest& req, moveit_msgs::RobotState& solution, moveit_msgs::MoveItErrorCodes& error_code,
+    robot_state::RobotState& rs, const robot_state::GroupStateValidityCallbackFn& constraint) const
 {
-  const robot_state::JointModelGroup *jmg = rs.getJointModelGroup(req.group_name);
+  const robot_state::JointModelGroup* jmg = rs.getJointModelGroup(req.group_name);
   if (jmg)
   {
     robot_state::robotStateMsgToRobotState(req.robot_state, rs);
-    const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
+    const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
 
     if (req.pose_stamped_vector.empty() || req.pose_stamped_vector.size() == 1)
     {
@@ -140,8 +140,8 @@ void move_group::MoveGroupKinematicsService::computeIK(
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
 }
 
-bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request &req,
-                                                              moveit_msgs::GetPositionIK::Response &res)
+bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPositionIK::Request& req,
+                                                              moveit_msgs::GetPositionIK::Response& res)
 {
   context_->planning_scene_monitor_->updateFrameTransforms();
 
@@ -154,7 +154,7 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
     kset.add(req.ik_request.constraints, ls->getTransforms());
     computeIK(req.ik_request, res.solution, res.error_code, rs,
               boost::bind(&isIKSolutionValid, req.ik_request.avoid_collisions ?
-                                                  static_cast<const planning_scene::PlanningSceneConstPtr &>(ls).get() :
+                                                  static_cast<const planning_scene::PlanningSceneConstPtr&>(ls).get() :
                                                   NULL,
                           kset.empty() ? NULL : &kset, _1, _2, _3));
   }
@@ -169,8 +169,8 @@ bool move_group::MoveGroupKinematicsService::computeIKService(moveit_msgs::GetPo
   return true;
 }
 
-bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPositionFK::Request &req,
-                                                              moveit_msgs::GetPositionFK::Response &res)
+bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPositionFK::Request& req,
+                                                              moveit_msgs::GetPositionFK::Response& res)
 {
   if (req.fk_link_names.empty())
   {
@@ -181,7 +181,7 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
 
   context_->planning_scene_monitor_->updateFrameTransforms();
 
-  const std::string &default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
+  const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
   bool do_transform = !req.header.frame_id.empty() &&
                       !robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) &&
                       context_->planning_scene_monitor_->getTFClient();

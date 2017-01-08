@@ -46,14 +46,14 @@ namespace pick_place
 class ReachableAndValidPoseFilter : public ManipulationStage
 {
 public:
-  ReachableAndValidPoseFilter(const planning_scene::PlanningSceneConstPtr &scene,
-                              const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                              const constraint_samplers::ConstraintSamplerManagerPtr &constraints_sampler_manager);
+  ReachableAndValidPoseFilter(const planning_scene::PlanningSceneConstPtr& scene,
+                              const collision_detection::AllowedCollisionMatrixConstPtr& collision_matrix,
+                              const constraint_samplers::ConstraintSamplerManagerPtr& constraints_sampler_manager);
 
-  virtual bool evaluate(const ManipulationPlanPtr &plan) const;
+  virtual bool evaluate(const ManipulationPlanPtr& plan) const;
 
 private:
-  bool isEndEffectorFree(const ManipulationPlanPtr &plan, robot_state::RobotState &token_state) const;
+  bool isEndEffectorFree(const ManipulationPlanPtr& plan, robot_state::RobotState& token_state) const;
 
   planning_scene::PlanningSceneConstPtr planning_scene_;
   collision_detection::AllowedCollisionMatrixConstPtr collision_matrix_;

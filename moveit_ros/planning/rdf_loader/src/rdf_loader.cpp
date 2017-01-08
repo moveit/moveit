@@ -38,7 +38,7 @@
 #include <moveit/profiler/profiler.h>
 #include <ros/ros.h>
 
-rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
+rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(robot_description)");
@@ -53,7 +53,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
     return;
   }
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   if (!umodel->initString(content))
   {
     ROS_ERROR("Unable to parse URDF from parameter '%s'", robot_description_.c_str());
@@ -81,12 +81,12 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &robot_description)
   ROS_DEBUG_STREAM_NAMED("rdf", "Loaded robot model in " << (ros::WallTime::now() - start).toSec() << " seconds");
 }
 
-rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::string &srdf_string)
+rdf_loader::RDFLoader::RDFLoader(const std::string& urdf_string, const std::string& srdf_string)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(string)");
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   urdf_.reset(umodel);
   if (umodel->initString(urdf_string))
   {
@@ -104,12 +104,12 @@ rdf_loader::RDFLoader::RDFLoader(const std::string &urdf_string, const std::stri
   }
 }
 
-rdf_loader::RDFLoader::RDFLoader(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc)
+rdf_loader::RDFLoader::RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(XML)");
 
-  urdf::Model *umodel = new urdf::Model();
+  urdf::Model* umodel = new urdf::Model();
   urdf_.reset(umodel);
   if (umodel->initXml(urdf_doc))
   {

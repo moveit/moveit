@@ -59,7 +59,7 @@ void sendKnife()
   aco.touch_links.push_back("r_gripper_r_finger_tip_link");
   aco.touch_links.push_back("r_gripper_l_finger_tip_frame");
 
-  moveit_msgs::CollisionObject &co = aco.object;
+  moveit_msgs::CollisionObject& co = aco.object;
   co.id = "knife";
   co.header.stamp = ros::Time::now();
   co.header.frame_id = aco.link_name;
@@ -82,7 +82,7 @@ void sendKnife()
   ros::Duration(1.5).sleep();
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "demo", ros::init_options::AnonymousName);
 

@@ -44,7 +44,7 @@ namespace moveit_setup_assistant
 // CLASS
 // ******************************************************************************************
 
-NavigationWidget::NavigationWidget(QWidget *parent) : QListView(parent)
+NavigationWidget::NavigationWidget(QWidget* parent) : QListView(parent)
 {
   setItemDelegate(new NavDelegate(this));
   setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -69,14 +69,14 @@ NavigationWidget::NavigationWidget(QWidget *parent) : QListView(parent)
   setModel(model_);
 }
 
-void NavigationWidget::setNavs(const QList<QString> &navs)
+void NavigationWidget::setNavs(const QList<QString>& navs)
 {
   setModel(NULL);
   model_->clear();
 
   for (int i = 0; i < navs.size(); i++)
   {
-    QStandardItem *item = new QStandardItem();
+    QStandardItem* item = new QStandardItem();
     item->setData(QVariant::fromValue(navs.at(i)), Qt::DisplayRole);
     item->setFlags(Qt::NoItemFlags);
     model_->appendRow(item);
@@ -85,7 +85,7 @@ void NavigationWidget::setNavs(const QList<QString> &navs)
   setModel(model_);
 }
 
-void NavigationWidget::setEnabled(const int &index, bool enabled)
+void NavigationWidget::setEnabled(const int& index, bool enabled)
 {
   if (enabled)
     model_->item(index)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled |
@@ -94,7 +94,7 @@ void NavigationWidget::setEnabled(const int &index, bool enabled)
     model_->item(index)->setFlags(Qt::NoItemFlags);
 }
 
-void NavigationWidget::setSelected(const int &index)
+void NavigationWidget::setSelected(const int& index)
 {
   // First make sure item is enabled
   setEnabled(index, true);
@@ -112,16 +112,16 @@ void NavigationWidget::setSelected(const int &index)
 // CLASS
 // ******************************************************************************************
 
-NavDelegate::NavDelegate(QObject *parent) : QStyledItemDelegate(parent)
+NavDelegate::NavDelegate(QObject* parent) : QStyledItemDelegate(parent)
 {
 }
 
-QSize NavDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+QSize NavDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   return QSize(option.rect.width(), 45);
 }
 
-void NavDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   const bool isSelected = option.state & QStyle::State_Selected;
 

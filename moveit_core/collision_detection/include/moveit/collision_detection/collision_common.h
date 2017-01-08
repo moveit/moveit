@@ -115,7 +115,7 @@ struct CostSource
   }
 
   /// Order cost sources so that the most costly source is at the top
-  bool operator<(const CostSource &other) const
+  bool operator<(const CostSource& other) const
   {
     double c1 = cost * getVolume();
     double c2 = other.cost * other.getVolume();
@@ -212,7 +212,7 @@ struct CollisionRequest
   double min_cost_density;
 
   /** \brief Function call that decides whether collision detection should stop. */
-  boost::function<bool(const CollisionResult &)> is_done;
+  boost::function<bool(const CollisionResult&)> is_done;
 
   /** \brief Flag indicating whether information about detected collisions should be reported */
   bool verbose;

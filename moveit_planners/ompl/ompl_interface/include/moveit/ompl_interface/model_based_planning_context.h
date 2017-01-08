@@ -59,9 +59,10 @@ MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
 MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
-typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr &si, const std::string &name,
-                                       const ModelBasedPlanningContextSpecification &spec)> ConfiguredPlannerAllocator;
-typedef boost::function<ConfiguredPlannerAllocator(const std::string &planner_type)> ConfiguredPlannerSelector;
+typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
+                                       const ModelBasedPlanningContextSpecification& spec)>
+    ConfiguredPlannerAllocator;
+typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
 
 struct ModelBasedPlanningContextSpecification
 {
@@ -78,74 +79,74 @@ struct ModelBasedPlanningContextSpecification
 class ModelBasedPlanningContext : public planning_interface::PlanningContext
 {
 public:
-  ModelBasedPlanningContext(const std::string &name, const ModelBasedPlanningContextSpecification &spec);
+  ModelBasedPlanningContext(const std::string& name, const ModelBasedPlanningContextSpecification& spec);
 
   virtual ~ModelBasedPlanningContext()
   {
   }
 
-  virtual bool solve(planning_interface::MotionPlanResponse &res);
-  virtual bool solve(planning_interface::MotionPlanDetailedResponse &res);
+  virtual bool solve(planning_interface::MotionPlanResponse& res);
+  virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);
 
   virtual void clear();
   virtual bool terminate();
 
-  const ModelBasedPlanningContextSpecification &getSpecification() const
+  const ModelBasedPlanningContextSpecification& getSpecification() const
   {
     return spec_;
   }
 
-  const std::map<std::string, std::string> &getSpecificationConfig() const
+  const std::map<std::string, std::string>& getSpecificationConfig() const
   {
     return spec_.config_;
   }
 
-  void setSpecificationConfig(const std::map<std::string, std::string> &config)
+  void setSpecificationConfig(const std::map<std::string, std::string>& config)
   {
     spec_.config_ = config;
   }
 
-  const robot_model::RobotModelConstPtr &getRobotModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return spec_.state_space_->getRobotModel();
   }
 
-  const robot_model::JointModelGroup *getJointModelGroup() const
+  const robot_model::JointModelGroup* getJointModelGroup() const
   {
     return spec_.state_space_->getJointModelGroup();
   }
 
-  const robot_state::RobotState &getCompleteInitialRobotState() const
+  const robot_state::RobotState& getCompleteInitialRobotState() const
   {
     return complete_initial_robot_state_;
   }
 
-  const ModelBasedStateSpacePtr &getOMPLStateSpace() const
+  const ModelBasedStateSpacePtr& getOMPLStateSpace() const
   {
     return spec_.state_space_;
   }
 
-  const og::SimpleSetupPtr &getOMPLSimpleSetup() const
+  const og::SimpleSetupPtr& getOMPLSimpleSetup() const
   {
     return ompl_simple_setup_;
   }
 
-  og::SimpleSetupPtr &getOMPLSimpleSetup()
+  og::SimpleSetupPtr& getOMPLSimpleSetup()
   {
     return ompl_simple_setup_;
   }
 
-  const ot::Benchmark &getOMPLBenchmark() const
+  const ot::Benchmark& getOMPLBenchmark() const
   {
     return ompl_benchmark_;
   }
 
-  ot::Benchmark &getOMPLBenchmark()
+  ot::Benchmark& getOMPLBenchmark()
   {
     return ompl_benchmark_;
   }
 
-  const kinematic_constraints::KinematicConstraintSetPtr &getPathConstraints() const
+  const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints() const
   {
     return path_constraints_;
   }
@@ -221,29 +222,29 @@ public:
     minimum_waypoint_count_ = mwc;
   }
 
-  const constraint_samplers::ConstraintSamplerManagerPtr &getConstraintSamplerManager()
+  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
   {
     return spec_.constraint_sampler_manager_;
   }
 
-  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr &csm)
+  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   {
     spec_.constraint_sampler_manager_ = csm;
   }
 
   void setVerboseStateValidityChecks(bool flag);
 
-  void setProjectionEvaluator(const std::string &peval);
+  void setProjectionEvaluator(const std::string& peval);
 
-  void setPlanningVolume(const moveit_msgs::WorkspaceParameters &wparams);
+  void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams);
 
-  void setCompleteInitialState(const robot_state::RobotState &complete_initial_robot_state);
+  void setCompleteInitialState(const robot_state::RobotState& complete_initial_robot_state);
 
-  bool setGoalConstraints(const std::vector<moveit_msgs::Constraints> &goal_constraints,
-                          const moveit_msgs::Constraints &path_constraints, moveit_msgs::MoveItErrorCodes *error);
-  bool setPathConstraints(const moveit_msgs::Constraints &path_constraints, moveit_msgs::MoveItErrorCodes *error);
+  bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
+                          const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
+  bool setPathConstraints(const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
 
-  void setConstraintsApproximations(const ConstraintsLibraryConstPtr &constraints_library)
+  void setConstraintsApproximations(const ConstraintsLibraryConstPtr& constraints_library)
   {
     spec_.constraints_library_ = constraints_library;
   }
@@ -280,7 +281,7 @@ public:
      @param filename The name of the file to which the benchmark results are to be saved (automatic names can be
      provided if a name is not specified)
   */
-  bool benchmark(double timeout, unsigned int count, const std::string &filename = "");
+  bool benchmark(double timeout, unsigned int count, const std::string& filename = "");
 
   /* @brief Get the amount of time spent computing the last plan */
   double getLastPlanTime() const
@@ -302,9 +303,9 @@ public:
   void interpolateSolution();
 
   /* @brief Get the solution as a RobotTrajectory object*/
-  bool getSolutionPath(robot_trajectory::RobotTrajectory &traj) const;
+  bool getSolutionPath(robot_trajectory::RobotTrajectory& traj) const;
 
-  void convertPath(const og::PathGeometric &pg, robot_trajectory::RobotTrajectory &traj) const;
+  void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
   virtual void configure();
 
@@ -315,12 +316,12 @@ protected:
   void startSampling();
   void stopSampling();
 
-  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string &peval) const;
-  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace *ss) const;
+  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string& peval) const;
+  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const;
   virtual void useConfig();
   virtual ob::GoalPtr constructGoal();
 
-  void registerTerminationCondition(const ob::PlannerTerminationCondition &ptc);
+  void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
 
   ModelBasedPlanningContextSpecification spec_;
@@ -342,7 +343,7 @@ protected:
   moveit_msgs::Constraints path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
 
-  const ob::PlannerTerminationCondition *ptc_;
+  const ob::PlannerTerminationCondition* ptc_;
   boost::mutex ptc_lock_;
 
   /// the time spent computing the last plan

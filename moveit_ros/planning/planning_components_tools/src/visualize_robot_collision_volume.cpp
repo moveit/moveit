@@ -39,7 +39,7 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "visualize_robot_collision_volume");
 

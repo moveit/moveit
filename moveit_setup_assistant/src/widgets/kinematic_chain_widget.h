@@ -61,27 +61,27 @@ public:
   // ******************************************************************************************
 
   /// Constructor
-  KinematicChainWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  KinematicChainWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Loads the availble data list
   void setAvailable();
 
   /// Set the link field with previous value
-  void setSelected(const std::string &base_link, const std::string &tip_link);
+  void setSelected(const std::string& base_link, const std::string& tip_link);
 
-  void addLinktoTreeRecursive(const robot_model::LinkModel *link, const robot_model::LinkModel *parent);
+  void addLinktoTreeRecursive(const robot_model::LinkModel* link, const robot_model::LinkModel* parent);
 
-  bool addLinkChildRecursive(QTreeWidgetItem *parent, const robot_model::LinkModel *link,
-                             const std::string &parent_name);
+  bool addLinkChildRecursive(QTreeWidgetItem* parent, const robot_model::LinkModel* link,
+                             const std::string& parent_name);
 
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
 
-  QLabel *title_;  // specify the title from the parent widget
-  QTreeWidget *link_tree_;
-  QLineEdit *base_link_field_;
-  QLineEdit *tip_link_field_;
+  QLabel* title_;  // specify the title from the parent widget
+  QTreeWidget* link_tree_;
+  QLineEdit* base_link_field_;
+  QLineEdit* tip_link_field_;
 
 private Q_SLOTS:
 
@@ -96,7 +96,7 @@ private Q_SLOTS:
   void tipLinkTreeClick();
 
   /// Expand/Collapse Tree
-  void alterTree(const QString &link);
+  void alterTree(const QString& link);
 
   /// Highlight the selected link in the kinematic chain
   void itemSelected();
@@ -114,7 +114,7 @@ Q_SIGNALS:
   void cancelEditing();
 
   /// Event for telling rviz to highlight a link of the robot
-  void highlightLink(const std::string &name, const QColor &);
+  void highlightLink(const std::string& name, const QColor&);
 
   /// Event for telling rviz to unhighlight all links of the robot
   void unhighlightAll();

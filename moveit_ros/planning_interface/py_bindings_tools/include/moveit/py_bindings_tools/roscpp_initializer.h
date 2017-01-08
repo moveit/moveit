@@ -53,19 +53,19 @@ class ROScppInitializer
 {
 public:
   ROScppInitializer();
-  ROScppInitializer(boost::python::list &argv);
-  ROScppInitializer(const std::string &node_name, boost::python::list &argv);
+  ROScppInitializer(boost::python::list& argv);
+  ROScppInitializer(const std::string& node_name, boost::python::list& argv);
 };
 
 /** \brief This function can be used to specify the ROS command line arguments for the internal ROScpp instance;
     Usually this function would also be exposed in the py module that uses ROScppInitializer. */
-void roscpp_set_arguments(const std::string &node_name, boost::python::list &argv);
+void roscpp_set_arguments(const std::string& node_name, boost::python::list& argv);
 
 /** \brief Initialize ROScpp with specified command line args */
-void roscpp_init(const std::string &node_name, boost::python::list &argv);
+void roscpp_init(const std::string& node_name, boost::python::list& argv);
 
 /** \brief Initialize ROScpp with specified command line args */
-void roscpp_init(boost::python::list &argv);
+void roscpp_init(boost::python::list& argv);
 
 /** \brief Initialize ROScpp with default command line args */
 void roscpp_init();

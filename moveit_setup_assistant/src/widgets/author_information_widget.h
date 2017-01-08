@@ -59,7 +59,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  AuthorInformationWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  AuthorInformationWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -68,9 +68,9 @@ public:
   // Qt Components
   // ******************************************************************************************
 
-  QLineEdit *name_edit_;
+  QLineEdit* name_edit_;
 
-  QLineEdit *email_edit_;
+  QLineEdit* email_edit_;
 
 private Q_SLOTS:
 

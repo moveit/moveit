@@ -49,15 +49,15 @@ class ModelBasedPlanningContext;
 class ProjectionEvaluatorLinkPose : public ompl::base::ProjectionEvaluator
 {
 public:
-  ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext *pc, const std::string &link);
+  ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext* pc, const std::string& link);
 
   virtual unsigned int getDimension() const;
   virtual void defaultCellSizes();
-  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  virtual void project(const ompl::base::State* state, ompl::base::EuclideanProjection& projection) const;
 
 private:
-  const ModelBasedPlanningContext *planning_context_;
-  const robot_model::LinkModel *link_;
+  const ModelBasedPlanningContext* planning_context_;
+  const robot_model::LinkModel* link_;
   TSStateStorage tss_;
 };
 
@@ -66,14 +66,14 @@ private:
 class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 {
 public:
-  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext *pc, const std::vector<unsigned int> &variables);
+  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc, const std::vector<unsigned int>& variables);
 
   virtual unsigned int getDimension() const;
   virtual void defaultCellSizes();
-  virtual void project(const ompl::base::State *state, ompl::base::EuclideanProjection &projection) const;
+  virtual void project(const ompl::base::State* state, ompl::base::EuclideanProjection& projection) const;
 
 private:
-  const ModelBasedPlanningContext *planning_context_;
+  const ModelBasedPlanningContext* planning_context_;
   std::vector<unsigned int> variables_;
 };
 }

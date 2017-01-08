@@ -212,17 +212,17 @@ void PlanningSceneDisplay::reset()
   }
 }
 
-void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()> &job, const std::string &name)
+void PlanningSceneDisplay::addBackgroundJob(const boost::function<void()>& job, const std::string& name)
 {
   background_process_.addJob(job, name);
 }
 
-void PlanningSceneDisplay::spawnBackgroundJob(const boost::function<void()> &job)
+void PlanningSceneDisplay::spawnBackgroundJob(const boost::function<void()>& job)
 {
   boost::thread t(job);
 }
 
-void PlanningSceneDisplay::addMainLoopJob(const boost::function<void()> &job)
+void PlanningSceneDisplay::addMainLoopJob(const boost::function<void()>& job)
 {
   boost::unique_lock<boost::mutex> ulock(main_loop_jobs_lock_);
   main_loop_jobs_.push_back(job);
@@ -247,7 +247,7 @@ void PlanningSceneDisplay::executeMainLoopJobs()
     {
       fn();
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
     }
@@ -261,7 +261,7 @@ void PlanningSceneDisplay::executeMainLoopJobs()
   main_loop_jobs_lock_.unlock();
 }
 
-const planning_scene_monitor::PlanningSceneMonitorPtr &PlanningSceneDisplay::getPlanningSceneMonitor()
+const planning_scene_monitor::PlanningSceneMonitorPtr& PlanningSceneDisplay::getPlanningSceneMonitor()
 {
   return planning_scene_monitor_;
 }
@@ -271,7 +271,7 @@ const std::string PlanningSceneDisplay::getMoveGroupNS() const
   return move_group_ns_property_->getStdString();
 }
 
-const robot_model::RobotModelConstPtr &PlanningSceneDisplay::getRobotModel() const
+const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel() const
 {
   if (planning_scene_monitor_)
     return planning_scene_monitor_->getRobotModel();
@@ -333,7 +333,7 @@ void PlanningSceneDisplay::renderPlanningScene()
 
     try
     {
-      const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
+      const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
       planning_scene_render_->renderPlanningScene(
           ps, env_color, attached_color, static_cast<OctreeVoxelRenderMode>(octree_render_property_->getOptionInt()),
           static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
@@ -410,68 +410,68 @@ void PlanningSceneDisplay::changedSceneEnabled()
     planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 }
 
-void PlanningSceneDisplay::setGroupColor(rviz::Robot *robot, const std::string &group_name, const QColor &color)
+void PlanningSceneDisplay::setGroupColor(rviz::Robot* robot, const std::string& group_name, const QColor& color)
 {
   if (getRobotModel())
   {
-    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
+    const robot_model::JointModelGroup* jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
-      const std::vector<std::string> &links = jmg->getLinkModelNamesWithCollisionGeometry();
+      const std::vector<std::string>& links = jmg->getLinkModelNamesWithCollisionGeometry();
       for (std::size_t i = 0; i < links.size(); ++i)
         setLinkColor(robot, links[i], color);
     }
   }
 }
 
-void PlanningSceneDisplay::unsetAllColors(rviz::Robot *robot)
+void PlanningSceneDisplay::unsetAllColors(rviz::Robot* robot)
 {
   if (getRobotModel())
   {
-    const std::vector<std::string> &links = getRobotModel()->getLinkModelNamesWithCollisionGeometry();
+    const std::vector<std::string>& links = getRobotModel()->getLinkModelNamesWithCollisionGeometry();
     for (std::size_t i = 0; i < links.size(); ++i)
       unsetLinkColor(robot, links[i]);
   }
 }
 
-void PlanningSceneDisplay::unsetGroupColor(rviz::Robot *robot, const std::string &group_name)
+void PlanningSceneDisplay::unsetGroupColor(rviz::Robot* robot, const std::string& group_name)
 {
   if (getRobotModel())
   {
-    const robot_model::JointModelGroup *jmg = getRobotModel()->getJointModelGroup(group_name);
+    const robot_model::JointModelGroup* jmg = getRobotModel()->getJointModelGroup(group_name);
     if (jmg)
     {
-      const std::vector<std::string> &links = jmg->getLinkModelNamesWithCollisionGeometry();
+      const std::vector<std::string>& links = jmg->getLinkModelNamesWithCollisionGeometry();
       for (std::size_t i = 0; i < links.size(); ++i)
         unsetLinkColor(robot, links[i]);
     }
   }
 }
 
-void PlanningSceneDisplay::setLinkColor(const std::string &link_name, const QColor &color)
+void PlanningSceneDisplay::setLinkColor(const std::string& link_name, const QColor& color)
 {
   if (planning_scene_robot_)
     setLinkColor(&planning_scene_robot_->getRobot(), link_name, color);
 }
 
-void PlanningSceneDisplay::unsetLinkColor(const std::string &link_name)
+void PlanningSceneDisplay::unsetLinkColor(const std::string& link_name)
 {
   if (planning_scene_robot_)
     unsetLinkColor(&planning_scene_robot_->getRobot(), link_name);
 }
 
-void PlanningSceneDisplay::setLinkColor(rviz::Robot *robot, const std::string &link_name, const QColor &color)
+void PlanningSceneDisplay::setLinkColor(rviz::Robot* robot, const std::string& link_name, const QColor& color)
 {
-  rviz::RobotLink *link = robot->getLink(link_name);
+  rviz::RobotLink* link = robot->getLink(link_name);
 
   // Check if link exists
   if (link)
     link->setColor(color.redF(), color.greenF(), color.blueF());
 }
 
-void PlanningSceneDisplay::unsetLinkColor(rviz::Robot *robot, const std::string &link_name)
+void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& link_name)
 {
-  rviz::RobotLink *link = robot->getLink(link_name);
+  rviz::RobotLink* link = robot->getLink(link_name);
 
   // Check if link exists
   if (link)
@@ -534,11 +534,11 @@ void PlanningSceneDisplay::onRobotModelLoaded()
   planning_scene_render_.reset(new PlanningSceneRender(planning_scene_node_, context_, planning_scene_robot_));
   planning_scene_render_->getGeometryNode()->setVisible(scene_enabled_property_->getBool());
 
-  const planning_scene_monitor::LockedPlanningSceneRO &ps = getPlanningSceneRO();
+  const planning_scene_monitor::LockedPlanningSceneRO& ps = getPlanningSceneRO();
   if (planning_scene_robot_)
   {
     planning_scene_robot_->load(*getRobotModel()->getURDF());
-    robot_state::RobotState *rs = new robot_state::RobotState(ps->getCurrentState());
+    robot_state::RobotState* rs = new robot_state::RobotState(ps->getCurrentState());
     rs->update();
     planning_scene_robot_->update(robot_state::RobotStateConstPtr(rs));
   }
@@ -625,7 +625,7 @@ void PlanningSceneDisplay::updateInternal(float wall_dt, float ros_dt)
   }
 }
 
-void PlanningSceneDisplay::load(const rviz::Config &config)
+void PlanningSceneDisplay::load(const rviz::Config& config)
 {
   Display::load(config);
 }

@@ -50,7 +50,7 @@
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "initialize_demo_db", ros::init_options::AnonymousName);
 
@@ -105,13 +105,13 @@ int main(int argc, char **argv)
   rs.addRobotState(rsmsg, "default");
   ROS_INFO("Added default state");
 
-  const std::vector<std::string> &gnames = psm.getRobotModel()->getJointModelGroupNames();
+  const std::vector<std::string>& gnames = psm.getRobotModel()->getJointModelGroupNames();
   for (std::size_t i = 0; i < gnames.size(); ++i)
   {
-    const robot_model::JointModelGroup *jmg = psm.getRobotModel()->getJointModelGroup(gnames[i]);
+    const robot_model::JointModelGroup* jmg = psm.getRobotModel()->getJointModelGroup(gnames[i]);
     if (!jmg->isChain())
       continue;
-    const std::vector<std::string> &lnames = jmg->getLinkModelNames();
+    const std::vector<std::string>& lnames = jmg->getLinkModelNames();
     if (lnames.empty())
       continue;
 

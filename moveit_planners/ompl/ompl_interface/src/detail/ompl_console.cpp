@@ -46,7 +46,7 @@ public:
   {
   }
 
-  virtual void log(const std::string &text, ompl::msg::LogLevel level, const char *filename, int line)
+  virtual void log(const std::string& text, ompl::msg::LogLevel level, const char* filename, int line)
   {
     switch (level)
     {

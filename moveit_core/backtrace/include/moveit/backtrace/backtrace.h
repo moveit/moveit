@@ -40,15 +40,15 @@
 namespace moveit
 {
 /** \brief Get the current backtrace. This may not work on all compilers */
-void get_backtrace(std::ostream &out);
+void get_backtrace(std::ostream& out);
 
 #ifdef __GLIBC__
 #include <execinfo.h>
-void get_backtrace(std::ostream &out)
+void get_backtrace(std::ostream& out)
 {
-  void *array[500];
+  void* array[500];
   size_t size = backtrace(array, 500);
-  char **strings = backtrace_symbols((void *const *)array, size);
+  char** strings = backtrace_symbols((void* const*)array, size);
   out << "Backtrace:" << std::endl;
   for (size_t i = 0; i < size; ++i)
   {
@@ -57,7 +57,7 @@ void get_backtrace(std::ostream &out)
   free(strings);
 }
 #else
-void get_backtrace(std::ostream &out)
+void get_backtrace(std::ostream& out)
 {
   out << "Unable to get backtrace with the used compiler." << std::endl;
 }

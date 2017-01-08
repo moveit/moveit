@@ -59,7 +59,7 @@ struct SharedStorage
   std::map<std::string, planning_scene_monitor::CurrentStateMonitorPtr> state_monitors_;
 };
 
-SharedStorage &getSharedStorage()
+SharedStorage& getSharedStorage()
 {
 #if 0  // destruction of static storage interferes with static destruction in class_loader
   // More specifically, class_loader's static variables might be already destroyed
@@ -67,7 +67,7 @@ SharedStorage &getSharedStorage()
   static SharedStorage storage;
   return storage;
 #else  // thus avoid destruction at all (until class_loader is fixed)
-  static SharedStorage *storage = new SharedStorage;
+  static SharedStorage* storage = new SharedStorage;
   return *storage;
 #endif
 }
@@ -79,16 +79,16 @@ namespace planning_interface
 {
 boost::shared_ptr<tf::Transformer> getSharedTF()
 {
-  SharedStorage &s = getSharedStorage();
+  SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
   if (!s.tf_)
     s.tf_.reset(new tf::TransformListener());
   return s.tf_;
 }
 
-robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_description)
+robot_model::RobotModelConstPtr getSharedRobotModel(const std::string& robot_description)
 {
-  SharedStorage &s = getSharedStorage();
+  SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
   if (s.model_loaders_.find(robot_description) != s.model_loaders_.end())
     return s.model_loaders_[robot_description]->getModel();
@@ -102,17 +102,17 @@ robot_model::RobotModelConstPtr getSharedRobotModel(const std::string &robot_des
   }
 }
 
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel,
-                                                                     const boost::shared_ptr<tf::Transformer> &tf)
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& kmodel,
+                                                                     const boost::shared_ptr<tf::Transformer>& tf)
 {
   return getSharedStateMonitor(kmodel, tf, ros::NodeHandle());
 }
 
-planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr &kmodel,
-                                                                     const boost::shared_ptr<tf::Transformer> &tf,
+planning_scene_monitor::CurrentStateMonitorPtr getSharedStateMonitor(const robot_model::RobotModelConstPtr& kmodel,
+                                                                     const boost::shared_ptr<tf::Transformer>& tf,
                                                                      ros::NodeHandle nh)
 {
-  SharedStorage &s = getSharedStorage();
+  SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
   if (s.state_monitors_.find(kmodel->getName()) != s.state_monitors_.end())
     return s.state_monitors_[kmodel->getName()];

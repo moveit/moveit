@@ -87,45 +87,45 @@ public:
         flags &= ~POSE_COMPUTED;
     }
 
-    ompl::base::SE3StateSpace::StateType **poses;
+    ompl::base::SE3StateSpace::StateType** poses;
   };
 
-  PoseModelStateSpace(const ModelBasedStateSpaceSpecification &spec);
+  PoseModelStateSpace(const ModelBasedStateSpaceSpecification& spec);
   virtual ~PoseModelStateSpace();
 
-  virtual ompl::base::State *allocState() const;
-  virtual void freeState(ompl::base::State *state) const;
-  virtual void copyState(ompl::base::State *destination, const ompl::base::State *source) const;
-  virtual void interpolate(const ompl::base::State *from, const ompl::base::State *to, const double t,
-                           ompl::base::State *state) const;
-  virtual double distance(const ompl::base::State *state1, const ompl::base::State *state2) const;
+  virtual ompl::base::State* allocState() const;
+  virtual void freeState(ompl::base::State* state) const;
+  virtual void copyState(ompl::base::State* destination, const ompl::base::State* source) const;
+  virtual void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t,
+                           ompl::base::State* state) const;
+  virtual double distance(const ompl::base::State* state1, const ompl::base::State* state2) const;
   virtual double getMaximumExtent() const;
 
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
 
-  bool computeStateFK(ompl::base::State *state) const;
-  bool computeStateIK(ompl::base::State *state) const;
-  bool computeStateK(ompl::base::State *state) const;
+  bool computeStateFK(ompl::base::State* state) const;
+  bool computeStateIK(ompl::base::State* state) const;
+  bool computeStateK(ompl::base::State* state) const;
 
   virtual void setPlanningVolume(double minX, double maxX, double minY, double maxY, double minZ, double maxZ);
-  virtual void copyToOMPLState(ompl::base::State *state, const robot_state::RobotState &rstate) const;
+  virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
   virtual void sanityChecks() const;
 
 private:
   struct PoseComponent
   {
-    PoseComponent(const robot_model::JointModelGroup *subgroup,
-                  const robot_model::JointModelGroup::KinematicsSolver &k);
+    PoseComponent(const robot_model::JointModelGroup* subgroup,
+                  const robot_model::JointModelGroup::KinematicsSolver& k);
 
-    bool computeStateFK(StateType *full_state, unsigned int idx) const;
-    bool computeStateIK(StateType *full_state, unsigned int idx) const;
+    bool computeStateFK(StateType* full_state, unsigned int idx) const;
+    bool computeStateIK(StateType* full_state, unsigned int idx) const;
 
-    bool operator<(const PoseComponent &o) const
+    bool operator<(const PoseComponent& o) const
     {
       return subgroup_->getName() < o.subgroup_->getName();
     }
 
-    const robot_model::JointModelGroup *subgroup_;
+    const robot_model::JointModelGroup* subgroup_;
     kinematics::KinematicsBasePtr kinematics_solver_;
     std::vector<unsigned int> bijection_;
     ompl::base::StateSpacePtr state_space_;

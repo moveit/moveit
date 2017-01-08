@@ -76,7 +76,7 @@ public:
    * @param group_name The name of the group to configure this solver for
    * @return False if any error occurs
    */
-  KinematicsConstraintAware(const robot_model::RobotModelConstPtr &kinematic_model, const std::string &group_name);
+  KinematicsConstraintAware(const robot_model::RobotModelConstPtr& kinematic_model, const std::string& group_name);
 
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
@@ -84,9 +84,9 @@ public:
    * @param response The solution (if it exists)
    * @return False if group_name is invalid or ik fails
    */
-  bool getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
-             const kinematics_constraint_aware::KinematicsRequest &request,
-             kinematics_constraint_aware::KinematicsResponse &response) const;
+  bool getIK(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const kinematics_constraint_aware::KinematicsRequest& request,
+             kinematics_constraint_aware::KinematicsResponse& response) const;
 
   /** @brief Solve the planning problem
    * @param planning_scene A const reference to the planning scene
@@ -94,46 +94,46 @@ public:
    * @param response The solution (if it exists)
    * @return False if group_name is invalid or ik fails
    */
-  bool getIK(const planning_scene::PlanningSceneConstPtr &planning_scene,
-             const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
-             moveit_msgs::GetConstraintAwarePositionIK::Response &response) const;
+  bool getIK(const planning_scene::PlanningSceneConstPtr& planning_scene,
+             const moveit_msgs::GetConstraintAwarePositionIK::Request& request,
+             moveit_msgs::GetConstraintAwarePositionIK::Response& response) const;
 
-  const std::string &getGroupName() const
+  const std::string& getGroupName() const
   {
     return group_name_;
   }
 
-  const robot_model::RobotModelConstPtr &getRobotModel() const
+  const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kinematic_model_;
   }
 
 private:
-  EigenSTL::vector_Affine3d transformPoses(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                           const robot_state::RobotState &kinematic_state,
-                                           const std::vector<geometry_msgs::PoseStamped> &poses,
-                                           const std::string &target_frame) const;
+  EigenSTL::vector_Affine3d transformPoses(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                           const robot_state::RobotState& kinematic_state,
+                                           const std::vector<geometry_msgs::PoseStamped>& poses,
+                                           const std::string& target_frame) const;
 
-  bool convertServiceRequest(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                             const moveit_msgs::GetConstraintAwarePositionIK::Request &request,
-                             kinematics_constraint_aware::KinematicsRequest &kinematics_request,
-                             kinematics_constraint_aware::KinematicsResponse &kinematics_response) const;
+  bool convertServiceRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                             const moveit_msgs::GetConstraintAwarePositionIK::Request& request,
+                             kinematics_constraint_aware::KinematicsRequest& kinematics_request,
+                             kinematics_constraint_aware::KinematicsResponse& kinematics_response) const;
 
-  geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                      const robot_state::RobotState &kinematic_state, const geometry_msgs::Pose &pose,
-                                      const std::string &link_name, unsigned int sub_group_index) const;
+  geometry_msgs::Pose getTipFramePose(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                      const robot_state::RobotState& kinematic_state, const geometry_msgs::Pose& pose,
+                                      const std::string& link_name, unsigned int sub_group_index) const;
 
-  bool validityCallbackFn(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                          const kinematics_constraint_aware::KinematicsRequest &request,
-                          kinematics_constraint_aware::KinematicsResponse &response,
-                          robot_state::JointStateGroup *joint_state_group,
-                          const std::vector<double> &joint_group_variable_values) const;
+  bool validityCallbackFn(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                          const kinematics_constraint_aware::KinematicsRequest& request,
+                          kinematics_constraint_aware::KinematicsResponse& response,
+                          robot_state::JointStateGroup* joint_state_group,
+                          const std::vector<double>& joint_group_variable_values) const;
 
   std::vector<std::string> sub_groups_names_;
 
   robot_model::RobotModelConstPtr kinematic_model_;
 
-  const robot_model::JointModelGroup *joint_model_group_;
+  const robot_model::JointModelGroup* joint_model_group_;
 
   std::string group_name_;
 

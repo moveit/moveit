@@ -53,15 +53,15 @@ MOVEIT_CLASS_FORWARD(PlanWithSensing);
 class PlanWithSensing
 {
 public:
-  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr &trajectory_execution);
+  PlanWithSensing(const trajectory_execution_manager::TrajectoryExecutionManagerPtr& trajectory_execution);
   ~PlanWithSensing();
 
-  const trajectory_execution_manager::TrajectoryExecutionManagerPtr &getTrajectoryExecutionManager() const
+  const trajectory_execution_manager::TrajectoryExecutionManagerPtr& getTrajectoryExecutionManager() const
   {
     return trajectory_execution_manager_;
   }
 
-  bool computePlan(ExecutableMotionPlan &plan, const ExecutableMotionPlanComputationFn &motion_planner,
+  bool computePlan(ExecutableMotionPlan& plan, const ExecutableMotionPlanComputationFn& motion_planner,
                    unsigned int max_look_attempts, double max_safe_path_cost);
 
   double getMaxSafePathCost() const
@@ -104,7 +104,7 @@ public:
     discard_overlapping_cost_sources_ = value;
   }
 
-  void setBeforeLookCallback(const boost::function<void()> &callback)
+  void setBeforeLookCallback(const boost::function<void()>& callback)
   {
     before_look_callback_ = callback;
   }
@@ -112,7 +112,7 @@ public:
   void displayCostSources(bool flag);
 
 private:
-  bool lookAt(const std::set<collision_detection::CostSource> &cost_sources, const std::string &frame_id);
+  bool lookAt(const std::set<collision_detection::CostSource>& cost_sources, const std::string& frame_id);
 
   ros::NodeHandle node_handle_;
   trajectory_execution_manager::TrajectoryExecutionManagerPtr trajectory_execution_manager_;
@@ -131,7 +131,7 @@ private:
   boost::function<void()> before_look_callback_;
 
   class DynamicReconfigureImpl;
-  DynamicReconfigureImpl *reconfigure_impl_;
+  DynamicReconfigureImpl* reconfigure_impl_;
 };
 }
 #endif

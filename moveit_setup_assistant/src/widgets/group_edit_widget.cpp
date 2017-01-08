@@ -47,11 +47,11 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 //
 // ******************************************************************************************
-GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : QWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Label ------------------------------------------------
   title_ = new QLabel(this);  // specify the title from the parent widget
@@ -60,7 +60,7 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
   layout->addWidget(title_);
 
   // Simple form -------------------------------------------
-  QFormLayout *form_layout = new QFormLayout();
+  QFormLayout* form_layout = new QFormLayout();
   form_layout->setContentsMargins(0, 15, 0, 15);
 
   // Name input
@@ -94,42 +94,42 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
 
   // New Group Options  ---------------------------------------------------------
   new_buttons_widget_ = new QWidget();
-  QVBoxLayout *new_buttons_layout = new QVBoxLayout();
+  QVBoxLayout* new_buttons_layout = new QVBoxLayout();
 
-  QLabel *save_and_add = new QLabel("Next, Add Components To Group:", this);
+  QLabel* save_and_add = new QLabel("Next, Add Components To Group:", this);
   QFont save_and_add_font("Arial", 12, QFont::Bold);
   save_and_add->setFont(save_and_add_font);
   new_buttons_layout->addWidget(save_and_add);
 
-  QLabel *add_subtitle = new QLabel("Recommended: ", this);
+  QLabel* add_subtitle = new QLabel("Recommended: ", this);
   QFont add_subtitle_font("Arial", 10, QFont::Bold);
   add_subtitle->setFont(add_subtitle_font);
   new_buttons_layout->addWidget(add_subtitle);
 
   // Save and add joints
-  QPushButton *btn_save_joints = new QPushButton("Add Joints", this);
+  QPushButton* btn_save_joints = new QPushButton("Add Joints", this);
   btn_save_joints->setMaximumWidth(200);
   connect(btn_save_joints, SIGNAL(clicked()), this, SIGNAL(saveJoints()));
   new_buttons_layout->addWidget(btn_save_joints);
 
-  QLabel *add_subtitle2 = new QLabel("Advanced Options:", this);
+  QLabel* add_subtitle2 = new QLabel("Advanced Options:", this);
   add_subtitle2->setFont(add_subtitle_font);
   new_buttons_layout->addWidget(add_subtitle2);
 
   // Save and add links
-  QPushButton *btn_save_links = new QPushButton("Add Links", this);
+  QPushButton* btn_save_links = new QPushButton("Add Links", this);
   btn_save_links->setMaximumWidth(200);
   connect(btn_save_links, SIGNAL(clicked()), this, SIGNAL(saveLinks()));
   new_buttons_layout->addWidget(btn_save_links);
 
   // Save and add chain
-  QPushButton *btn_save_chain = new QPushButton("Add Kin. Chain", this);
+  QPushButton* btn_save_chain = new QPushButton("Add Kin. Chain", this);
   btn_save_chain->setMaximumWidth(200);
   connect(btn_save_chain, SIGNAL(clicked()), this, SIGNAL(saveChain()));
   new_buttons_layout->addWidget(btn_save_chain);
 
   // Save and add subgroups
-  QPushButton *btn_save_subgroups = new QPushButton("Add Subgroups", this);
+  QPushButton* btn_save_subgroups = new QPushButton("Add Subgroups", this);
   btn_save_subgroups->setMaximumWidth(200);
   connect(btn_save_subgroups, SIGNAL(clicked()), this, SIGNAL(saveSubgroups()));
   new_buttons_layout->addWidget(btn_save_subgroups);
@@ -139,12 +139,12 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
   layout->addWidget(new_buttons_widget_);
 
   // Verticle Spacer -----------------------------------------------------
-  QWidget *vspacer = new QWidget(this);
+  QWidget* vspacer = new QWidget(this);
   vspacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   layout->addWidget(vspacer);
 
   // Bottom Controls ---------------------------------------------------------
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Delete
   btn_delete_ = new QPushButton("&Delete Group", this);
@@ -154,7 +154,7 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
   controls_layout->setAlignment(btn_delete_, Qt::AlignRight);
 
   // Horizontal Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
@@ -166,7 +166,7 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
   controls_layout->setAlignment(btn_save_, Qt::AlignRight);
 
   // Cancel
-  QPushButton *btn_cancel = new QPushButton("&Cancel", this);
+  QPushButton* btn_cancel = new QPushButton("&Cancel", this);
   btn_cancel->setMaximumWidth(200);
   connect(btn_cancel, SIGNAL(clicked()), this, SIGNAL(cancelEditing()));
   controls_layout->addWidget(btn_cancel);
@@ -182,14 +182,14 @@ GroupEditWidget::GroupEditWidget(QWidget *parent, moveit_setup_assistant::MoveIt
 // ******************************************************************************************
 // Set the link field with previous value
 // ******************************************************************************************
-void GroupEditWidget::setSelected(const std::string &group_name)
+void GroupEditWidget::setSelected(const std::string& group_name)
 {
   group_name_field_->setText(QString(group_name.c_str()));
 
   // Load properties from moveit_config_data.cpp ----------------------------------------------
 
   // Load resolution
-  double *resolution = &config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_;
+  double* resolution = &config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_;
   if (*resolution == 0)
   {
     // Set default value
@@ -198,7 +198,7 @@ void GroupEditWidget::setSelected(const std::string &group_name)
   kinematics_resolution_field_->setText(QString::number(*resolution));
 
   // Load timeout
-  double *timeout = &config_data_->group_meta_data_[group_name].kinematics_solver_timeout_;
+  double* timeout = &config_data_->group_meta_data_[group_name].kinematics_solver_timeout_;
   if (*timeout == 0)
   {
     // Set default value
@@ -207,7 +207,7 @@ void GroupEditWidget::setSelected(const std::string &group_name)
   kinematics_timeout_field_->setText(QString::number(*timeout));
 
   // Load attempts
-  int *attempts = &config_data_->group_meta_data_[group_name].kinematics_solver_attempts_;
+  int* attempts = &config_data_->group_meta_data_[group_name].kinematics_solver_attempts_;
   if (*attempts == 0)
   {
     // Set default value
@@ -266,7 +266,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   {
     loader.reset(new pluginlib::ClassLoader<kinematics::KinematicsBase>("moveit_core", "kinematics::KinematicsBase"));
   }
-  catch (pluginlib::PluginlibException &ex)
+  catch (pluginlib::PluginlibException& ex)
   {
     QMessageBox::warning(this, "Missing Kinematic Solvers", "Exception while creating class loader for kinematic "
                                                             "solver plugins");
@@ -275,7 +275,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 
   // Get classes
-  const std::vector<std::string> &classes = loader->getDeclaredClasses();
+  const std::vector<std::string>& classes = loader->getDeclaredClasses();
 
   // Loop through all planners and add to combo box
   for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
