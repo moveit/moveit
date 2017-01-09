@@ -498,6 +498,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr& scene)
       {
         scene->world_->removeObject(it->first);
         scene->removeObjectColor(it->first);
+        scene->removeObjectType(it->first);
       }
       else
       {
@@ -1312,6 +1313,7 @@ void planning_scene::PlanningScene::removeAllCollisionObjects()
     if (object_ids[i] != OCTOMAP_NS){
       world_->removeObject(object_ids[i]);
       removeObjectColor(object_ids[i]);
+      removeObjectType(object_ids[i]);
     }
 }
 
@@ -1698,6 +1700,7 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     else {
       world_->removeObject(object.id);
       removeObjectColor(object.id);
+      removeObjectType(object.id);
     }
     return true;
   }
