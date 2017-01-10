@@ -214,7 +214,7 @@ public:
     return result;
   }
 
-  bool applyPlanningScene(const moveit_msgs::PlanningScene &planning_scene)
+  bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
     moveit_msgs::ApplyPlanningScene::Response response;
@@ -227,7 +227,7 @@ public:
     return response.success;
   }
 
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
@@ -298,7 +298,7 @@ PlanningSceneInterface::getAttachedObjects(const std::vector<std::string>& objec
   return impl_->getAttachedObjects(object_ids);
 }
 
-bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject &collision_object)
+bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject& collision_object)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -308,7 +308,7 @@ bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionOb
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects)
+bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -317,7 +317,7 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject &collision_object)
+bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& collision_object)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -328,7 +328,7 @@ bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::Att
 }
 
 bool PlanningSceneInterface::applyAttachedCollisionObjects(
-    const std::vector<moveit_msgs::AttachedCollisionObject> &attached_collision_objects)
+    const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -337,7 +337,7 @@ bool PlanningSceneInterface::applyAttachedCollisionObjects(
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene &ps)
+bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)
 {
   impl_->applyPlanningScene(ps);
 }
