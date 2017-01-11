@@ -192,7 +192,9 @@ QVariant CollisionLinearModel::headerData(int section, Qt::Orientation orientati
 
 SortFilterProxyModel::SortFilterProxyModel(QObject* parent) : QSortFilterProxyModel(parent), show_all_(false)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
   connect(this, SIGNAL(sourceModelChanged()), this, SLOT(initSorting()));
+#endif
 
   // by default: sort by link A (col 0), then link B (col 1)
   sort_columns_ << 0 << 1;
@@ -247,6 +249,18 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex& s
   return m->data(m->index(source_row, 0, source_parent), Qt::DisplayRole).toString().contains(regexp) ||
          m->data(m->index(source_row, 1, source_parent), Qt::DisplayRole).toString().contains(regexp);
 }
+
+// define a fallback comparison operator for QVariants
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+namespace {
+bool operator<(const QVariant& left, const QVariant& right) {
+  if (left.userType() == QVariant::Type::Int)
+    return left.toInt() < right.toInt();
+  else
+    return left.toString() < right.toString();
+}
+}
+#endif
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& src_left, const QModelIndex& src_right) const
 {
