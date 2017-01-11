@@ -1,4 +1,5 @@
 if (CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources)
   find_package(rostest)
 
   add_rostest_gtest(test_cleanup cleanup.test cleanup.cpp)
