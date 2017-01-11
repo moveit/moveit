@@ -1,4 +1,5 @@
 if (CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources)
   find_package(rostest)
 
   # This test fails due to a ROS core bug: https://github.com/ros/ros_comm/pull/871
