@@ -300,7 +300,7 @@ void SortFilterProxyModel::sort(int column, Qt::SortOrder order)
     if (prev_idx < 0)
       prev_idx = sort_columns_.size() - 1;
     // remove old entries
-    sort_columns_.takeAt(prev_idx);
+    sort_columns_.remove(prev_idx);
     sort_orders_.remove(prev_idx);
     // add new entries at front
     sort_columns_.insert(0, column);
