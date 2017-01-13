@@ -8,3 +8,6 @@ if (CATKIN_ENABLE_TESTING)
 
   add_rostest(python_move_group.test)
 endif()
+
+install(PROGRAMS python_move_group.py DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)
+install(FILES python_move_group.test DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test)
