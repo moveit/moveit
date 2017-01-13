@@ -192,7 +192,9 @@ QVariant CollisionLinearModel::headerData(int section, Qt::Orientation orientati
 
 SortFilterProxyModel::SortFilterProxyModel(QObject* parent) : QSortFilterProxyModel(parent), show_all_(false)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
   connect(this, SIGNAL(sourceModelChanged()), this, SLOT(initSorting()));
+#endif
 
   // by default: sort by link A (col 0), then link B (col 1)
   sort_columns_ << 0 << 1;
@@ -248,6 +250,20 @@ bool SortFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex& s
          m->data(m->index(source_row, 1, source_parent), Qt::DisplayRole).toString().contains(regexp);
 }
 
+// define a fallback comparison operator for QVariants
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+namespace
+{
+bool operator<(const QVariant& left, const QVariant& right)
+{
+  if (left.userType() == QVariant::Type::Int)
+    return left.toInt() < right.toInt();
+  else
+    return left.toString() < right.toString();
+}
+}
+#endif
+
 bool SortFilterProxyModel::lessThan(const QModelIndex& src_left, const QModelIndex& src_right) const
 {
   int row_left = src_left.row();
@@ -256,8 +272,10 @@ bool SortFilterProxyModel::lessThan(const QModelIndex& src_left, const QModelInd
 
   for (int i = 0, end = sort_columns_.size(); i < end && sort_columns_[i] >= 0; ++i)
   {
-    QVariant value_left = m->data(m->index(row_left, sort_columns_[i]));
-    QVariant value_right = m->data(m->index(row_right, sort_columns_[i]));
+    int sc = sort_columns_[i];
+    int role = sc == 2 ? Qt::CheckStateRole : Qt::DisplayRole;
+    QVariant value_left = m->data(m->index(row_left, sc), role);
+    QVariant value_right = m->data(m->index(row_right, sc), role);
 
     if (value_left == value_right)
       continue;
@@ -282,7 +300,7 @@ void SortFilterProxyModel::sort(int column, Qt::SortOrder order)
     if (prev_idx < 0)
       prev_idx = sort_columns_.size() - 1;
     // remove old entries
-    sort_columns_.takeAt(prev_idx);
+    sort_columns_.remove(prev_idx);
     sort_orders_.remove(prev_idx);
     // add new entries at front
     sort_columns_.insert(0, column);

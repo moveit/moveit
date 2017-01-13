@@ -358,9 +358,13 @@ void DefaultCollisionsWidget::loadCollisionTable()
 #endif
   }
 
-  // notice changes to the model
+// notice changes to the model
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
   connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this,
           SLOT(collisionsChanged(QModelIndex)));
+#else
+  connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex)), this, SLOT(collisionsChanged(QModelIndex)));
+#endif
 }
 
 void DefaultCollisionsWidget::collisionsChanged(const QModelIndex& index)
