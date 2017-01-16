@@ -346,30 +346,13 @@ bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::Att
   return applyPlanningScene(ps);
 }
 
-bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& collision_object,
-                                                          const std_msgs::ColorRGBA& object_color)
-{
-  moveit_msgs::PlanningScene ps;
-  ps.robot_state.is_diff = true;
-  ps.is_diff = true;
-  ps.robot_state.attached_collision_objects.reserve(1);
-  ps.robot_state.attached_collision_objects.push_back(collision_object);
-  moveit_msgs::ObjectColor oc;
-  oc.id = collision_object.object.id;
-  oc.color = object_color;
-  ps.object_colors.push_back(oc);
-  return applyPlanningScene(ps);
-}
-
 bool PlanningSceneInterface::applyAttachedCollisionObjects(
-    const std::vector<moveit_msgs::AttachedCollisionObject>& collision_objects,
-    const std::vector<moveit_msgs::ObjectColor>& object_colors)
+    const std::vector<moveit_msgs::AttachedCollisionObject>& collision_objects)
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
   ps.is_diff = true;
   ps.robot_state.attached_collision_objects = collision_objects;
-  ps.object_colors = object_colors;
   return applyPlanningScene(ps);
 }
 

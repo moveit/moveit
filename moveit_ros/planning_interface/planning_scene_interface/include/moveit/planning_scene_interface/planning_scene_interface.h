@@ -113,16 +113,10 @@ public:
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_object);
 
-  /** \brief Apply attached collision object to the planning scene of the move_group node synchronously.
-      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
-  bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_object,
-                                    const std_msgs::ColorRGBA& object_color);
-
   /** \brief Apply attached collision objects to the planning scene of the move_group node synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyAttachedCollisionObjects(
-      const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects,
-      const std::vector<moveit_msgs::ObjectColor>& object_colors = std::vector<moveit_msgs::ObjectColor>());
+      const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects);
 
   /** \brief Update the planning_scene of the move_group node with the given ps synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
