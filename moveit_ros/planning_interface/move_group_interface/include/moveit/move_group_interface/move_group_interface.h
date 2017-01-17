@@ -79,7 +79,9 @@ public:
 
 MOVEIT_CLASS_FORWARD(MoveGroupInterface);
 
-/** \brief Client class to conveniently use the ROS interfaces provided by the move_group node.
+/** \class MoveGroupInterface move_group_interface.h moveit/planning_interface/move_group_interface.h
+
+    \brief Client class to conveniently use the ROS interfaces provided by the move_group node.
 
     This class includes many default settings to make things easy to use. */
 class MoveGroupInterface
