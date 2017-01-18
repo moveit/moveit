@@ -455,6 +455,84 @@ void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup* gr
     values(i) = position_[il[i]];
 }
 
+void moveit::core::RobotState::setJointGroupVelocities(const JointModelGroup* group, const double* gstate)
+{
+  markVelocity();
+  const std::vector<int>& il = group->getVariableIndexList();
+  if (group->isContiguousWithinState())
+    memcpy(velocity_ + il[0], gstate, group->getVariableCount() * sizeof(double));
+  else
+  {
+    for (std::size_t i = 0; i < il.size(); ++i)
+      velocity_[il[i]] = gstate[i];
+  }
+}
+
+void moveit::core::RobotState::setJointGroupVelocities(const JointModelGroup* group, const Eigen::VectorXd& values)
+{
+  markVelocity();
+  const std::vector<int>& il = group->getVariableIndexList();
+  for (std::size_t i = 0; i < il.size(); ++i)
+    velocity_[il[i]] = values(i);
+}
+
+void moveit::core::RobotState::copyJointGroupVelocities(const JointModelGroup* group, double* gstate) const
+{
+  const std::vector<int>& il = group->getVariableIndexList();
+  if (group->isContiguousWithinState())
+    memcpy(gstate, velocity_ + il[0], group->getVariableCount() * sizeof(double));
+  else
+    for (std::size_t i = 0; i < il.size(); ++i)
+      gstate[i] = velocity_[il[i]];
+}
+
+void moveit::core::RobotState::copyJointGroupVelocities(const JointModelGroup* group, Eigen::VectorXd& values) const
+{
+  const std::vector<int>& il = group->getVariableIndexList();
+  values.resize(il.size());
+  for (std::size_t i = 0; i < il.size(); ++i)
+    values(i) = velocity_[il[i]];
+}
+
+void moveit::core::RobotState::setJointGroupAccelerations(const JointModelGroup* group, const double* gstate)
+{
+  markAcceleration();
+  const std::vector<int>& il = group->getVariableIndexList();
+  if (group->isContiguousWithinState())
+    memcpy(acceleration_ + il[0], gstate, group->getVariableCount() * sizeof(double));
+  else
+  {
+    for (std::size_t i = 0; i < il.size(); ++i)
+      acceleration_[il[i]] = gstate[i];
+  }
+}
+
+void moveit::core::RobotState::setJointGroupAccelerations(const JointModelGroup* group, const Eigen::VectorXd& values)
+{
+  markAcceleration();
+  const std::vector<int>& il = group->getVariableIndexList();
+  for (std::size_t i = 0; i < il.size(); ++i)
+    acceleration_[il[i]] = values(i);
+}
+
+void moveit::core::RobotState::copyJointGroupAccelerations(const JointModelGroup* group, double* gstate) const
+{
+  const std::vector<int>& il = group->getVariableIndexList();
+  if (group->isContiguousWithinState())
+    memcpy(gstate, acceleration_ + il[0], group->getVariableCount() * sizeof(double));
+  else
+    for (std::size_t i = 0; i < il.size(); ++i)
+      gstate[i] = acceleration_[il[i]];
+}
+
+void moveit::core::RobotState::copyJointGroupAccelerations(const JointModelGroup* group, Eigen::VectorXd& values) const
+{
+  const std::vector<int>& il = group->getVariableIndexList();
+  values.resize(il.size());
+  for (std::size_t i = 0; i < il.size(); ++i)
+    values(i) = acceleration_[il[i]];
+}
+
 void moveit::core::RobotState::update(bool force)
 {
   // make sure we do everything from scratch if needed
