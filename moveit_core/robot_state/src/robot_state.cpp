@@ -983,9 +983,9 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
     return identity_transform;
   }
   if (tf.size() > 1)
-    logWarn("There are multiple geometries associated to attached body '%s'. Returning the transform for the first "
-            "one.",
-            id.c_str());
+    logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform for the first "
+             "one.",
+             id.c_str());
   return tf[0];
 }
 
@@ -996,7 +996,7 @@ bool moveit::core::RobotState::knowsFrameTransform(const std::string& id) const
   if (robot_model_->hasLinkModel(id))
     return true;
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
-  return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() == 1;
+  return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() >= 1;
 }
 
 void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr,
