@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package>
+  <name>moveit_runtime</name>
+  <version>0.7.6</version>
+  <description>moveit_runtime meta package contains MoveIt! packages that are essential for its runtime (e.g. running MoveIt! on robots).</description>
+
+  <author email="gm130s@gmail.com">Isaac I. Y. Saito</author>
+  <maintainer email="gm130s@gmail.com">Isaac I. Y. Saito</maintainer>
+
+  <license>BSD</license>
+  <url type="website">http://moveit.ros.org</url>
+  <url type="website">http://wiki.ros.org/moveit_runtime</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_planners</run_depend>
+  <run_depend>moveit_plugins</run_depend>
+  <run_depend>moveit_ros_manipulation</run_depend>
+  <run_depend>moveit_ros_move_group</run_depend>
+  <run_depend>moveit_ros_perception</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>moveit_ros_warehouse</run_depend>
+  <export>
+    <metapackage/>
+  </export>
+</package>
