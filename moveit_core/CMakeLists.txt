@@ -127,11 +127,11 @@ catkin_package(
     )
 
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
-                           ${Boost_INCLUDE_DIR}
                            )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH}
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${console_bridge_INCLUDE_DIRS}
                     ${urdfdom_INCLUDE_DIRS}

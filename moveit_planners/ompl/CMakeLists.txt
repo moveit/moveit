@@ -32,10 +32,8 @@ catkin_package(
     moveit_core
 )
 
-include_directories(SYSTEM
-                    ${Boost_INCLUDE_DIRS})
-
 include_directories(ompl_interface/include
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     ${OMPL_INCLUDE_DIRS})
 

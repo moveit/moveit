@@ -36,10 +36,10 @@ catkin_package(
 include_directories(pick_place/include)
 include_directories(move_group_pick_place_capability/include)
 
-include_directories(${catkin_INCLUDE_DIRS})
-include_directories(SYSTEM
-                    ${EIGEN_INCLUDE_DIRS}
+include_directories(${catkin_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM
+                    ${EIGEN_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})

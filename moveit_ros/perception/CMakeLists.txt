@@ -66,12 +66,12 @@ include_directories(mesh_filter/include
                     occupancy_map_monitor/include
                     pointcloud_octomap_updater/include
                     semantic_world/include
+                    ${OpenCV_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
-                    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
                     ${GLEW_INCLUDE_DIR}
                     ${GLUT_INCLUDE_DIR}
                     )
