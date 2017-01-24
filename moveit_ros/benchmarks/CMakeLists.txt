@@ -27,7 +27,7 @@ catkin_package(
   INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-include_directories(${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR}/include)
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR}/include)
 link_directories(${catkin_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME} src/BenchmarkOptions.cpp

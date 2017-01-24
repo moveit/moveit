@@ -29,10 +29,8 @@ catkin_package(
 )
 
 include_directories(include)
-include_directories(${catkin_INCLUDE_DIRS})
-include_directories(SYSTEM
-                    ${Boost_INCLUDE_DIRS}
-                    )
+include_directories(${catkin_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})

@@ -30,9 +30,9 @@ catkin_package(
     )
 
 include_directories(include
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS})
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${orocos_kdl_LIBRARY_DIRS})
 
 add_library(${MOVEIT_LIB_NAME}
