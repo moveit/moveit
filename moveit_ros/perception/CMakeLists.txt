@@ -75,7 +75,6 @@ include_directories(mesh_filter/include
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
-                    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${GLEW_INCLUDE_DIR}
                     ${GLUT_INCLUDE_DIR}
