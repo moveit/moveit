@@ -183,7 +183,15 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else
+        {
+          ros::spinOnce();
+        }
       }
     }
     else  // wait with timeout
@@ -192,7 +200,15 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else
+        {
+          ros::spinOnce();
+        }
       }
     }
 
@@ -225,7 +241,15 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else
+        {
+          ros::spinOnce();
+        }
       }
     }
     else  // wait with timeout
@@ -235,7 +259,15 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else
+        {
+          ros::spinOnce();
+        }
       }
     }
 
