@@ -38,8 +38,8 @@
 #include <geometric_shapes/solid_primitive_dims.h>
 #include <eigen_conversions/eigen_msg.h>
 
-moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints &first,
-                                                                 const moveit_msgs::Constraints &second)
+moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints& first,
+                                                                 const moveit_msgs::Constraints& second)
 {
   moveit_msgs::Constraints r;
 
@@ -54,8 +54,8 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
         add = false;
         // now we merge
         moveit_msgs::JointConstraint m;
-        const moveit_msgs::JointConstraint &a = first.joint_constraints[i];
-        const moveit_msgs::JointConstraint &b = second.joint_constraints[j];
+        const moveit_msgs::JointConstraint& a = first.joint_constraints[i];
+        const moveit_msgs::JointConstraint& b = second.joint_constraints[j];
         double low = std::max(a.position - a.tolerance_below, b.position - b.tolerance_below);
         double high = std::min(a.position + a.tolerance_above, b.position + b.tolerance_above);
         if (low > high)
@@ -107,27 +107,27 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   return r;
 }
 
-bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints &constr)
+bool kinematic_constraints::isEmpty(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.empty() && constr.orientation_constraints.empty() &&
          constr.visibility_constraints.empty() && constr.joint_constraints.empty();
 }
 
-std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints &constr)
+std::size_t kinematic_constraints::countIndividualConstraints(const moveit_msgs::Constraints& constr)
 {
   return constr.position_constraints.size() + constr.orientation_constraints.size() +
          constr.visibility_constraints.size() + constr.joint_constraints.size();
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state,
-                                                                         const robot_model::JointModelGroup *jmg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
+                                                                         const robot_model::JointModelGroup* jmg,
                                                                          double tolerance)
 {
   return constructGoalConstraints(state, jmg, tolerance, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState &state,
-                                                                         const robot_model::JointModelGroup *jmg,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const robot_state::RobotState& state,
+                                                                         const robot_model::JointModelGroup* jmg,
                                                                          double tolerance_below, double tolerance_above)
 {
   moveit_msgs::Constraints goal;
@@ -146,20 +146,20 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const r
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name,
-                                                                         const geometry_msgs::PoseStamped &pose,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
+                                                                         const geometry_msgs::PoseStamped& pose,
                                                                          double tolerance_pos, double tolerance_angle)
 {
   moveit_msgs::Constraints goal;
 
   goal.position_constraints.resize(1);
-  moveit_msgs::PositionConstraint &pcm = goal.position_constraints[0];
+  moveit_msgs::PositionConstraint& pcm = goal.position_constraints[0];
   pcm.link_name = link_name;
   pcm.target_point_offset.x = 0;
   pcm.target_point_offset.y = 0;
   pcm.target_point_offset.z = 0;
   pcm.constraint_region.primitives.resize(1);
-  shape_msgs::SolidPrimitive &bv = pcm.constraint_region.primitives[0];
+  shape_msgs::SolidPrimitive& bv = pcm.constraint_region.primitives[0];
   bv.type = shape_msgs::SolidPrimitive::SPHERE;
   bv.dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
   bv.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = tolerance_pos;
@@ -176,7 +176,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   pcm.weight = 1.0;
 
   goal.orientation_constraints.resize(1);
-  moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
+  moveit_msgs::OrientationConstraint& ocm = goal.orientation_constraints[0];
   ocm.link_name = link_name;
   ocm.header = pose.header;
   ocm.orientation = pose.pose.orientation;
@@ -188,15 +188,15 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name,
-                                                                         const geometry_msgs::PoseStamped &pose,
-                                                                         const std::vector<double> &tolerance_pos,
-                                                                         const std::vector<double> &tolerance_angle)
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
+                                                                         const geometry_msgs::PoseStamped& pose,
+                                                                         const std::vector<double>& tolerance_pos,
+                                                                         const std::vector<double>& tolerance_angle)
 {
   moveit_msgs::Constraints goal = constructGoalConstraints(link_name, pose);
   if (tolerance_pos.size() == 3)
   {
-    shape_msgs::SolidPrimitive &bv = goal.position_constraints[0].constraint_region.primitives[0];
+    shape_msgs::SolidPrimitive& bv = goal.position_constraints[0].constraint_region.primitives[0];
     bv.type = shape_msgs::SolidPrimitive::BOX;
     bv.dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
     bv.dimensions[shape_msgs::SolidPrimitive::BOX_X] = tolerance_pos[0];
@@ -205,7 +205,7 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   }
   if (tolerance_angle.size() == 3)
   {
-    moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
+    moveit_msgs::OrientationConstraint& ocm = goal.orientation_constraints[0];
     ocm.absolute_x_axis_tolerance = tolerance_angle[0];
     ocm.absolute_y_axis_tolerance = tolerance_angle[1];
     ocm.absolute_z_axis_tolerance = tolerance_angle[2];
@@ -213,13 +213,13 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name,
-                                                                         const geometry_msgs::QuaternionStamped &quat,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
+                                                                         const geometry_msgs::QuaternionStamped& quat,
                                                                          double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.orientation_constraints.resize(1);
-  moveit_msgs::OrientationConstraint &ocm = goal.orientation_constraints[0];
+  moveit_msgs::OrientationConstraint& ocm = goal.orientation_constraints[0];
   ocm.link_name = link_name;
   ocm.header = quat.header;
   ocm.orientation = quat.quaternion;
@@ -230,8 +230,8 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return goal;
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name,
-                                                                         const geometry_msgs::PointStamped &goal_point,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
+                                                                         const geometry_msgs::PointStamped& goal_point,
                                                                          double tolerance)
 {
   geometry_msgs::Point p;
@@ -241,14 +241,14 @@ moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const s
   return constructGoalConstraints(link_name, p, goal_point, tolerance);
 }
 
-moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string &link_name,
-                                                                         const geometry_msgs::Point &reference_point,
-                                                                         const geometry_msgs::PointStamped &goal_point,
+moveit_msgs::Constraints kinematic_constraints::constructGoalConstraints(const std::string& link_name,
+                                                                         const geometry_msgs::Point& reference_point,
+                                                                         const geometry_msgs::PointStamped& goal_point,
                                                                          double tolerance)
 {
   moveit_msgs::Constraints goal;
   goal.position_constraints.resize(1);
-  moveit_msgs::PositionConstraint &pcm = goal.position_constraints[0];
+  moveit_msgs::PositionConstraint& pcm = goal.position_constraints[0];
   pcm.link_name = link_name;
   pcm.target_point_offset.x = reference_point.x;
   pcm.target_point_offset.y = reference_point.y;

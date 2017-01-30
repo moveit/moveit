@@ -9,8 +9,8 @@
 
 namespace chomp_interface
 {
-CHOMPPlanningContext::CHOMPPlanningContext(const std::string &name, const std::string &group,
-                                           const robot_model::RobotModelConstPtr &model)
+CHOMPPlanningContext::CHOMPPlanningContext(const std::string& name, const std::string& group,
+                                           const robot_model::RobotModelConstPtr& model)
   : planning_interface::PlanningContext(name, group), robot_model_(model)
 {
   chomp_interface_ = CHOMPInterfacePtr(new CHOMPInterface());
@@ -31,7 +31,7 @@ CHOMPPlanningContext::~CHOMPPlanningContext()
 {
 }
 
-bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse &res)
+bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse& res)
 {
   moveit_msgs::MotionPlanDetailedResponse res2;
   if (chomp_interface_->solve(planning_scene_, request_, chomp_interface_->getParams(), res2))
@@ -60,7 +60,7 @@ bool CHOMPPlanningContext::solve(planning_interface::MotionPlanDetailedResponse 
   }
 }
 
-bool CHOMPPlanningContext::solve(planning_interface::MotionPlanResponse &res)
+bool CHOMPPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 {
   planning_interface::MotionPlanDetailedResponse res_detailed;
   bool result = solve(res_detailed);

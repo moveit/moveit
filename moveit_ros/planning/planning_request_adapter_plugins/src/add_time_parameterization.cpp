@@ -53,10 +53,10 @@ public:
     return "Add Time Parameterization";
   }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
-                            const planning_interface::MotionPlanRequest &req,
-                            planning_interface::MotionPlanResponse &res,
-                            std::vector<std::size_t> &added_path_index) const
+  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                            const planning_interface::MotionPlanRequest& req,
+                            planning_interface::MotionPlanResponse& res,
+                            std::vector<std::size_t>& added_path_index) const
   {
     bool result = planner(planning_scene, req, res);
     if (result && res.trajectory_)

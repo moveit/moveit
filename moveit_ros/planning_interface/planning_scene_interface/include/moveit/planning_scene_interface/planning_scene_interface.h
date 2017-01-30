@@ -41,6 +41,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
+#include <moveit_msgs/PlanningScene.h>
 
 namespace moveit
 {
@@ -67,7 +68,7 @@ public:
      frame reported by getPlanningFrame()).
        +      If \e with_type is set to true, only return objects that have a known type. */
   std::vector<std::string> getKnownObjectNamesInROI(double minx, double miny, double minz, double maxx, double maxy,
-                                                    double maxz, bool with_type, std::vector<std::string> &types);
+                                                    double maxz, bool with_type, std::vector<std::string>& types);
 
   /** \brief Get the names of known objects in the world that are located within a bounding region (specified in the
      frame reported by getPlanningFrame()).
@@ -80,30 +81,57 @@ public:
   };
 
   /** \brief Get the poses from the objects identified by the given object ids list. */
-  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string> &object_ids);
+  std::map<std::string, geometry_msgs::Pose> getObjectPoses(const std::vector<std::string>& object_ids);
 
   /** \brief Get the objects identified by the given object ids list. If no ids are provided, return all the known
    * objects. */
   std::map<std::string, moveit_msgs::CollisionObject>
-  getObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
+  getObjects(const std::vector<std::string>& object_ids = std::vector<std::string>());
 
   /** \brief Get the attached objects identified by the given object ids list. If no ids are provided, return all the
    * attached objects. */
   std::map<std::string, moveit_msgs::AttachedCollisionObject>
-  getAttachedObjects(const std::vector<std::string> &object_ids = std::vector<std::string>());
+  getAttachedObjects(const std::vector<std::string>& object_ids = std::vector<std::string>());
 
-  /** \brief Add collision objects to the world.
-      Make sure object.operation is set to object.ADD. */
-  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject> &collision_objects) const;
+  /** \brief Apply collision object to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyCollisionObject(const moveit_msgs::CollisionObject& collision_objects);
 
-  /** \brief Remove collision objects from the world. */
-  void removeCollisionObjects(const std::vector<std::string> &object_ids) const;
+  /** \brief Apply collision objects to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects);
+
+  /** \brief Apply attached collision object to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_objects);
+
+  /** \brief Apply attached collision objects to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool
+  applyAttachedCollisionObjects(const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects);
+
+  /** \brief Update the planning_scene of the move_group node with the given ps synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyPlanningScene(const moveit_msgs::PlanningScene& ps);
+
+  /** \brief Add collision objects to the world via /planning_scene.
+      Make sure object.operation is set to object.ADD.
+
+      The update runs asynchronously. If you need the objects to be available *directly* after you called this function,
+      consider using `applyCollisionObjects` instead. */
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const;
+
+  /** \brief Remove collision objects from the world via /planning_scene.
+
+      The update runs asynchronously. If you need the objects to be removed *directly* after you called this function,
+      consider using `applyCollisionObjects` instead. */
+  void removeCollisionObjects(const std::vector<std::string>& object_ids) const;
 
   /**@}*/
 
 private:
   class PlanningSceneInterfaceImpl;
-  PlanningSceneInterfaceImpl *impl_;
+  PlanningSceneInterfaceImpl* impl_;
 };
 }
 }

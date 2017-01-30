@@ -38,13 +38,13 @@
 
 namespace sbpl_interface
 {
-bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                          const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res,
-                          const PlanningParameters &params) const
+bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                          const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res,
+                          const PlanningParameters& params) const
 {
   res.trajectory.joint_trajectory.points.clear();
-  (const_cast<SBPLInterface *>(this))->last_planning_statistics_ = PlanningStatistics();
-  planning_models::RobotState *start_state(planning_scene->getCurrentState());
+  (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = PlanningStatistics();
+  planning_models::RobotState* start_state(planning_scene->getCurrentState());
   planning_models::robotStateMsgToRobotState(*planning_scene->getTransforms(), req.motion_plan_request.start_state,
                                              start_state);
 
@@ -77,12 +77,15 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr &planning_
   std::cerr << "B ret is " << b_ret << " planning time " << el << std::endl;
   std::cerr << "Expansions " << env_chain->getPlanningStatistics().total_expansions_ << " average time "
             << (env_chain->getPlanningStatistics().total_expansion_time_.toSec() /
-                (env_chain->getPlanningStatistics().total_expansions_ * 1.0)) << " hz "
+                (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
+            << " hz "
             << 1.0 / (env_chain->getPlanningStatistics().total_expansion_time_.toSec() /
-                      (env_chain->getPlanningStatistics().total_expansions_ * 1.0)) << std::endl;
+                      (env_chain->getPlanningStatistics().total_expansions_ * 1.0))
+            << std::endl;
   std::cerr << "Total coll checks " << env_chain->getPlanningStatistics().coll_checks_ << " hz "
             << 1.0 / (env_chain->getPlanningStatistics().total_coll_check_time_.toSec() /
-                      (env_chain->getPlanningStatistics().coll_checks_ * 1.0)) << std::endl;
+                      (env_chain->getPlanningStatistics().coll_checks_ * 1.0))
+            << std::endl;
   std::cerr << "Path length is " << solution_state_ids.size() << std::endl;
   if (!b_ret)
   {
@@ -111,7 +114,7 @@ bool SBPLInterface::solve(const planning_scene::PlanningSceneConstPtr &planning_
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   PlanningStatistics stats = env_chain->getPlanningStatistics();
   stats.total_planning_time_ = ros::WallDuration(el);
-  (const_cast<SBPLInterface *>(this))->last_planning_statistics_ = stats;
+  (const_cast<SBPLInterface*>(this))->last_planning_statistics_ = stats;
   return true;
 }
 }

@@ -42,7 +42,7 @@ namespace bp = boost::python;
 
 static void wrap_roscpp_initializer()
 {
-  void (*init_fn)(const std::string &, bp::list &) = &moveit::py_bindings_tools::roscpp_init;
+  void (*init_fn)(const std::string&, bp::list&) = &moveit::py_bindings_tools::roscpp_init;
   bp::def("roscpp_init", init_fn);
   bp::def("roscpp_shutdown", &moveit::py_bindings_tools::roscpp_shutdown);
 }

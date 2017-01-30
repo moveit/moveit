@@ -51,9 +51,9 @@ const float GripperMarker::GOAL_NOT_REACHABLE_COLOR[4] = { 1.0, 0.0, 0.0, 1.0 };
 const float GripperMarker::GOAL_REACHABLE_COLOR[4] = { 0.0, 1.0, 0.0, 1.0 };
 const float GripperMarker::GOAL_COLLISION_COLOR[4] = { 1.0, 1.0, 0.0, 1.0 };
 
-FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                         const std::string &frame_id, const geometry_msgs::Pose &pose, double scale,
-                         const std_msgs::ColorRGBA &color, bool is_selected, bool visible_x, bool visible_y,
+FrameMarker::FrameMarker(Ogre::SceneNode* parent_node, rviz::DisplayContext* context, const std::string& name,
+                         const std::string& frame_id, const geometry_msgs::Pose& pose, double scale,
+                         const std_msgs::ColorRGBA& color, bool is_selected, bool visible_x, bool visible_y,
                          bool visible_z)
   : parent_node_(parent_node)
   , context_(context)
@@ -68,8 +68,8 @@ FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *con
   buildFrom(name, frame_id, pose, scale, color);
 }
 
-FrameMarker::FrameMarker(Ogre::SceneNode *parent_node, rviz::DisplayContext *context, const std::string &name,
-                         const std::string &frame_id, const geometry_msgs::Pose &pose, double scale,
+FrameMarker::FrameMarker(Ogre::SceneNode* parent_node, rviz::DisplayContext* context, const std::string& name,
+                         const std::string& frame_id, const geometry_msgs::Pose& pose, double scale,
                          const float color[4], bool is_selected, bool visible_x, bool visible_y, bool visible_z)
   : parent_node_(parent_node)
   , context_(context)
@@ -97,7 +97,7 @@ void FrameMarker::hide(void)
   }
 }
 
-void FrameMarker::show(Ogre::SceneNode *scene_node, rviz::DisplayContext *context)
+void FrameMarker::show(Ogre::SceneNode* scene_node, rviz::DisplayContext* context)
 {
   if (!isVisible())
   {
@@ -105,7 +105,7 @@ void FrameMarker::show(Ogre::SceneNode *scene_node, rviz::DisplayContext *contex
   }
 }
 
-void FrameMarker::showDescription(const std::string &description)
+void FrameMarker::showDescription(const std::string& description)
 {
   imarker_msg.description = description;
 
@@ -124,7 +124,7 @@ void FrameMarker::hideDescription()
   imarker->setShowDescription(false);
 }
 
-void FrameMarker::getPosition(geometry_msgs::Point &position)
+void FrameMarker::getPosition(geometry_msgs::Point& position)
 {
   if (imarker)
   {
@@ -140,7 +140,7 @@ void FrameMarker::getPosition(geometry_msgs::Point &position)
   }
 }
 
-void FrameMarker::getOrientation(geometry_msgs::Quaternion &orientation)
+void FrameMarker::getOrientation(geometry_msgs::Quaternion& orientation)
 {
   if (imarker)
   {
@@ -158,14 +158,14 @@ void FrameMarker::getOrientation(geometry_msgs::Quaternion &orientation)
   }
 }
 
-void FrameMarker::getPose(Eigen::Affine3d &pose)
+void FrameMarker::getPose(Eigen::Affine3d& pose)
 {
   pose = Eigen::Affine3d(Eigen::Quaterniond(imarker->getOrientation().w, imarker->getOrientation().x,
                                             imarker->getOrientation().y, imarker->getOrientation().z));
   pose.translation() = Eigen::Vector3d(imarker->getPosition().x, imarker->getPosition().y, imarker->getPosition().z);
 }
 
-void FrameMarker::setPose(Eigen::Affine3d &pose)
+void FrameMarker::setPose(Eigen::Affine3d& pose)
 {
   Eigen::Quaterniond q(pose.rotation());
   imarker->setPose(Ogre::Vector3(pose.translation().x(), pose.translation().y(), pose.translation().z()),
@@ -224,8 +224,8 @@ void FrameMarker::rebuild()
   buildFrom(imarker_msg.name, imarker_msg.header.frame_id, pose, imarker_msg.scale, color_);
 }
 
-void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
-                            double scale, const std_msgs::ColorRGBA &color)
+void FrameMarker::buildFrom(const std::string& name, const std::string& frame_id, const geometry_msgs::Pose& pose,
+                            double scale, const std_msgs::ColorRGBA& color)
 {
   color_ = color;
 
@@ -323,10 +323,10 @@ void FrameMarker::buildFrom(const std::string &name, const std::string &frame_id
   imarker_msg = int_marker;
 }
 
-GripperMarker::GripperMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
-                             rviz::DisplayContext *context, const std::string &name, const std::string &frame_id,
-                             const robot_interaction::RobotInteraction::EndEffector &eef,
-                             const geometry_msgs::Pose &pose, double scale, const GripperMarkerState &state,
+GripperMarker::GripperMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode* parent_node,
+                             rviz::DisplayContext* context, const std::string& name, const std::string& frame_id,
+                             const robot_interaction::RobotInteraction::EndEffector& eef,
+                             const geometry_msgs::Pose& pose, double scale, const GripperMarkerState& state,
                              bool is_selected, bool visible_x, bool visible_y, bool visible_z)
   : FrameMarker(parent_node, context, name, frame_id, pose, scale, stateToColor(state), is_selected, visible_x,
                 visible_y, visible_z)
@@ -349,8 +349,8 @@ void GripperMarker::unselect(bool display_gripper_mesh)
   FrameMarker::unselect();
 }
 
-void GripperMarker::buildFrom(const std::string &name, const std::string &frame_id, const geometry_msgs::Pose &pose,
-                              double scale, const std_msgs::ColorRGBA &color)
+void GripperMarker::buildFrom(const std::string& name, const std::string& frame_id, const geometry_msgs::Pose& pose,
+                              double scale, const std_msgs::ColorRGBA& color)
 {
   color_ = color;
 
@@ -379,8 +379,8 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   if (display_gripper_mesh_)
   {
     // If selected and gripper_mesh enabled, display the actual end effector mesh
-    const robot_state::JointModelGroup *joint_model_group = robot_state_->getJointModelGroup(eef_.eef_group);
-    const std::vector<std::string> &link_names = joint_model_group->getLinkModelNames();
+    const robot_state::JointModelGroup* joint_model_group = robot_state_->getJointModelGroup(eef_.eef_group);
+    const std::vector<std::string>& link_names = joint_model_group->getLinkModelNames();
 
     std_msgs::ColorRGBA marker_color;
     marker_color = color;
@@ -474,9 +474,9 @@ void GripperMarker::buildFrom(const std::string &name, const std::string &frame_
   imarker_msg = int_marker;
 }
 
-const float *GripperMarker::stateToColor(const GripperMarkerState &state)
+const float* GripperMarker::stateToColor(const GripperMarkerState& state)
 {
-  const float *color = 0;
+  const float* color = 0;
   if (state == NOT_TESTED)
     color = GOAL_NOT_TESTED_COLOR;
   else if (state == PROCESSING)

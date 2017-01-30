@@ -39,7 +39,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <console_bridge/console.h>
 
-moveit::core::Transforms::Transforms(const std::string &target_frame) : target_frame_(target_frame)
+moveit::core::Transforms::Transforms(const std::string& target_frame) : target_frame_(target_frame)
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
@@ -56,7 +56,7 @@ moveit::core::Transforms::Transforms(const std::string &target_frame) : target_f
   }
 }
 
-bool moveit::core::Transforms::sameFrame(const std::string &frame1, const std::string &frame2)
+bool moveit::core::Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
 {
   if (frame1.empty() || frame2.empty())
     return false;
@@ -71,22 +71,22 @@ moveit::core::Transforms::~Transforms()
 {
 }
 
-const std::string &moveit::core::Transforms::getTargetFrame() const
+const std::string& moveit::core::Transforms::getTargetFrame() const
 {
   return target_frame_;
 }
 
-const moveit::core::FixedTransformsMap &moveit::core::Transforms::getAllTransforms() const
+const moveit::core::FixedTransformsMap& moveit::core::Transforms::getAllTransforms() const
 {
   return transforms_;
 }
 
-void moveit::core::Transforms::setAllTransforms(const FixedTransformsMap &transforms)
+void moveit::core::Transforms::setAllTransforms(const FixedTransformsMap& transforms)
 {
   transforms_ = transforms;
 }
 
-bool moveit::core::Transforms::isFixedFrame(const std::string &frame) const
+bool moveit::core::Transforms::isFixedFrame(const std::string& frame) const
 {
   if (frame.empty())
     return false;
@@ -94,7 +94,7 @@ bool moveit::core::Transforms::isFixedFrame(const std::string &frame) const
     return (frame[0] == '/' ? transforms_.find(frame) : transforms_.find('/' + frame)) != transforms_.end();
 }
 
-const Eigen::Affine3d &moveit::core::Transforms::getTransform(const std::string &from_frame) const
+const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string& from_frame) const
 {
   if (!from_frame.empty())
   {
@@ -112,7 +112,7 @@ const Eigen::Affine3d &moveit::core::Transforms::getTransform(const std::string 
   return identity;
 }
 
-bool moveit::core::Transforms::canTransform(const std::string &from_frame) const
+bool moveit::core::Transforms::canTransform(const std::string& from_frame) const
 {
   if (from_frame.empty())
     return false;
@@ -121,7 +121,7 @@ bool moveit::core::Transforms::canTransform(const std::string &from_frame) const
            transforms_.end();
 }
 
-void moveit::core::Transforms::setTransform(const Eigen::Affine3d &t, const std::string &from_frame)
+void moveit::core::Transforms::setTransform(const Eigen::Affine3d& t, const std::string& from_frame)
 {
   if (from_frame.empty())
     logError("Cannot record transform with empty name");
@@ -137,7 +137,7 @@ void moveit::core::Transforms::setTransform(const Eigen::Affine3d &t, const std:
   }
 }
 
-void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStamped &transform)
+void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
 {
   if (sameFrame(transform.child_frame_id, target_frame_))
   {
@@ -152,13 +152,13 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
   }
 }
 
-void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped> &transforms)
+void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
 {
   for (std::size_t i = 0; i < transforms.size(); ++i)
     setTransform(transforms[i]);
 }
 
-void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped> &transforms) const
+void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;

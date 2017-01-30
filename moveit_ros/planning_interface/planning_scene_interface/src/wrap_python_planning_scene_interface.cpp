@@ -91,7 +91,7 @@ public:
     return py_bindings_tools::dictFromType(ser_objs);
   }
 
-  bp::dict getAttachedObjectsPython(const bp::list &object_ids)
+  bp::dict getAttachedObjectsPython(const bp::list& object_ids)
   {
     std::map<std::string, moveit_msgs::AttachedCollisionObject> aobjs =
         getAttachedObjects(py_bindings_tools::stringFromList(object_ids));

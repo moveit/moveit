@@ -283,7 +283,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
     for (j = 0; j < rows; j++)
     {
       if (!position_ik)
-        sum += U[j](i)*v_in(j);
+        sum += U[j](i) * v_in(j);
       else
         sum += U_translate(j, i) * v_in(j);
     }
@@ -302,7 +302,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
     for (j = 0; j < jac_reduced.columns(); j++)
     {
       if (!position_ik)
-        sum += V[i](j)*tmp(j);
+        sum += V[i](j) * tmp(j);
       else
         sum += V_translate(i, j) * tmp(j);
     }

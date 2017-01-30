@@ -42,10 +42,10 @@ namespace constraint_samplers
 {
 struct OrderSamplers
 {
-  bool operator()(const ConstraintSamplerPtr &a, const ConstraintSamplerPtr &b) const
+  bool operator()(const ConstraintSamplerPtr& a, const ConstraintSamplerPtr& b) const
   {
-    const std::vector<std::string> &alinks = a->getJointModelGroup()->getUpdatedLinkModelNames();
-    const std::vector<std::string> &blinks = b->getJointModelGroup()->getUpdatedLinkModelNames();
+    const std::vector<std::string>& alinks = a->getJointModelGroup()->getUpdatedLinkModelNames();
+    const std::vector<std::string>& blinks = b->getJointModelGroup()->getUpdatedLinkModelNames();
     std::set<std::string> a_updates(alinks.begin(), alinks.end());
     std::set<std::string> b_updates(blinks.begin(), blinks.end());
 
@@ -62,8 +62,8 @@ struct OrderSamplers
     // sets are equal or disjoint
     bool a_depends_on_b = false;
     bool b_depends_on_a = false;
-    const std::vector<std::string> &fda = a->getFrameDependency();
-    const std::vector<std::string> &fdb = b->getFrameDependency();
+    const std::vector<std::string>& fda = a->getFrameDependency();
+    const std::vector<std::string>& fdb = b->getFrameDependency();
     for (std::size_t i = 0; i < fda.size() && !a_depends_on_b; ++i)
       for (std::size_t j = 0; j < blinks.size(); ++j)
         if (blinks[j] == fda[i])
@@ -91,8 +91,8 @@ struct OrderSamplers
       return false;
 
     // prefer sampling JointConstraints first
-    JointConstraintSampler *ja = dynamic_cast<JointConstraintSampler *>(a.get());
-    JointConstraintSampler *jb = dynamic_cast<JointConstraintSampler *>(b.get());
+    JointConstraintSampler* ja = dynamic_cast<JointConstraintSampler*>(a.get());
+    JointConstraintSampler* jb = dynamic_cast<JointConstraintSampler*>(b.get());
     if (ja && jb == NULL)
       return true;
     if (jb && ja == NULL)
@@ -104,9 +104,9 @@ struct OrderSamplers
 };
 }
 
-constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene,
-                                                                    const std::string &group_name,
-                                                                    const std::vector<ConstraintSamplerPtr> &samplers)
+constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                                                    const std::string& group_name,
+                                                                    const std::vector<ConstraintSamplerPtr>& samplers)
   : ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents
@@ -114,7 +114,7 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
 
   for (std::size_t i = 0; i < samplers_.size(); ++i)
   {
-    const std::vector<std::string> &fd = samplers_[i]->getFrameDependency();
+    const std::vector<std::string>& fd = samplers_[i]->getFrameDependency();
     for (std::size_t j = 0; j < fd.size(); ++j)
       frame_depends_.push_back(fd[j]);
 
@@ -123,8 +123,8 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
   }
 }
 
-bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState &state,
-                                                         const robot_state::RobotState &reference_state,
+bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState& state,
+                                                         const robot_state::RobotState& reference_state,
                                                          unsigned int max_attempts)
 {
   state = reference_state;
@@ -148,10 +148,16 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
   return true;
 }
 
-bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState &state, unsigned int max_attempts)
+bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
 {
   for (std::size_t i = 0; i < samplers_.size(); ++i)
+  {
+    // ConstraintSampler::project returns states with dirty link transforms (because it only writes values)
+    // but requires a state with clean link transforms as input. This means that we need to clean the link
+    // transforms between calls to ConstraintSampler::sample.
+    state.updateLinkTransforms();
     if (!samplers_[i]->project(state, max_attempts))
       return false;
+  }
   return true;
 }

@@ -59,22 +59,22 @@ public:
 
   ConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn);
 
-  void addConstraints(const moveit_msgs::Constraints &msg, const std::string &robot = "",
-                      const std::string &group = "");
-  bool hasConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "") const;
-  void getKnownConstraints(std::vector<std::string> &names, const std::string &robot = "",
-                           const std::string &group = "") const;
-  void getKnownConstraints(const std::string &regex, std::vector<std::string> &names, const std::string &robot = "",
-                           const std::string &group = "") const;
+  void addConstraints(const moveit_msgs::Constraints& msg, const std::string& robot = "",
+                      const std::string& group = "");
+  bool hasConstraints(const std::string& name, const std::string& robot = "", const std::string& group = "") const;
+  void getKnownConstraints(std::vector<std::string>& names, const std::string& robot = "",
+                           const std::string& group = "") const;
+  void getKnownConstraints(const std::string& regex, std::vector<std::string>& names, const std::string& robot = "",
+                           const std::string& group = "") const;
 
   /** \brief Get the constraints named \e name. Return false on failure. */
-  bool getConstraints(ConstraintsWithMetadata &msg_m, const std::string &name, const std::string &robot = "",
-                      const std::string &group = "") const;
+  bool getConstraints(ConstraintsWithMetadata& msg_m, const std::string& name, const std::string& robot = "",
+                      const std::string& group = "") const;
 
-  void renameConstraints(const std::string &old_name, const std::string &new_name, const std::string &robot = "",
-                         const std::string &group = "");
+  void renameConstraints(const std::string& old_name, const std::string& new_name, const std::string& robot = "",
+                         const std::string& group = "");
 
-  void removeConstraints(const std::string &name, const std::string &robot = "", const std::string &group = "");
+  void removeConstraints(const std::string& name, const std::string& robot = "", const std::string& group = "");
 
   void reset();
 

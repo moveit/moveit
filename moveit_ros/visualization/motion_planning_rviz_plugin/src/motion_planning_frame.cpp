@@ -53,8 +53,8 @@
 
 namespace moveit_rviz_plugin
 {
-MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::DisplayContext *context,
-                                         QWidget *parent)
+MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::DisplayContext* context,
+                                         QWidget* parent)
   : QWidget(parent)
   , planning_display_(pdisplay)
   , context_(context)
@@ -103,13 +103,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect(ui_->object_rz, SIGNAL(valueChanged(double)), this, SLOT(objectPoseValueChanged(double)));
   connect(ui_->publish_current_scene_button, SIGNAL(clicked()), this, SLOT(publishSceneButtonClicked()));
   connect(ui_->collision_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedCollisionObjectChanged()));
-  connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem *)), this,
-          SLOT(collisionObjectChanged(QListWidgetItem *)));
+  connect(ui_->collision_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
+          SLOT(collisionObjectChanged(QListWidgetItem*)));
   connect(ui_->path_constraints_combo_box, SIGNAL(currentIndexChanged(int)), this,
           SLOT(pathConstraintsIndexChanged(int)));
   connect(ui_->clear_octomap_button, SIGNAL(clicked()), this, SLOT(onClearOctomapClicked()));
-  connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem *, int)), this,
-          SLOT(warehouseItemNameChanged(QTreeWidgetItem *, int)));
+  connect(ui_->planning_scene_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this,
+          SLOT(warehouseItemNameChanged(QTreeWidgetItem*, int)));
   connect(ui_->reset_db_button, SIGNAL(clicked()), this, SLOT(resetDbButtonClicked()));
   connect(ui_->export_scene_text_button, SIGNAL(clicked()), this, SLOT(exportAsTextButtonClicked()));
   connect(ui_->import_scene_text_button, SIGNAL(clicked()), this, SLOT(importFromTextButtonClicked()));
@@ -126,13 +126,13 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   connect(ui_->pick_button, SIGNAL(clicked()), this, SLOT(pickObjectButtonClicked()));
   connect(ui_->place_button, SIGNAL(clicked()), this, SLOT(placeObjectButtonClicked()));
   connect(ui_->detected_objects_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedDetectedObjectChanged()));
-  connect(ui_->detected_objects_list, SIGNAL(itemChanged(QListWidgetItem *)), this,
-          SLOT(detectedObjectChanged(QListWidgetItem *)));
+  connect(ui_->detected_objects_list, SIGNAL(itemChanged(QListWidgetItem*)), this,
+          SLOT(detectedObjectChanged(QListWidgetItem*)));
   connect(ui_->support_surfaces_list, SIGNAL(itemSelectionChanged()), this, SLOT(selectedSupportSurfaceChanged()));
 
   connect(ui_->tabWidget, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-  QShortcut *copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
+  QShortcut* copy_object_shortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C), ui_->collision_objects_list);
   connect(copy_object_shortcut, SIGNAL(activated()), this, SLOT(copySelectedCollisionObject()));
 
   ui_->reset_db_button->hide();
@@ -158,7 +158,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       //      ROS_ERROR("Object recognition action: %s", ex.what());
       object_recognition_client_.reset();
@@ -168,14 +168,14 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
   {
     planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   }
-  catch (std::runtime_error &ex)
+  catch (std::runtime_error& ex)
   {
     ROS_ERROR("%s", ex.what());
   }
 
   try
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
@@ -187,7 +187,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay *pdisplay, rviz::
       semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
     }
   }
-  catch (std::runtime_error &ex)
+  catch (std::runtime_error& ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -202,9 +202,9 @@ void MotionPlanningFrame::approximateIKChanged(int state)
   planning_display_->useApproximateIK(state == Qt::Checked);
 }
 
-void MotionPlanningFrame::setItemSelectionInList(const std::string &item_name, bool selection, QListWidget *list)
+void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list)
 {
-  QList<QListWidgetItem *> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
+  QList<QListWidgetItem*> found_items = list->findItems(QString(item_name.c_str()), Qt::MatchExactly);
   for (std::size_t i = 0; i < found_items.size(); ++i)
     found_items[i]->setSelected(selection);
 }
@@ -240,11 +240,11 @@ void MotionPlanningFrame::fillStateSelectionOptions()
   if (!planning_display_->getPlanningSceneMonitor())
     return;
 
-  const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
+  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   if (group.empty())
     return;
-  const robot_model::JointModelGroup *jmg = kmodel->getJointModelGroup(group);
+  const robot_model::JointModelGroup* jmg = kmodel->getJointModelGroup(group);
   if (jmg)
   {
     ui_->start_state_selection->addItem(QString("<random valid>"));
@@ -257,7 +257,7 @@ void MotionPlanningFrame::fillStateSelectionOptions()
     ui_->goal_state_selection->addItem(QString("<current>"));
     ui_->goal_state_selection->addItem(QString("<same as start>"));
 
-    const std::vector<std::string> &known_states = jmg->getDefaultStateNames();
+    const std::vector<std::string>& known_states = jmg->getDefaultStateNames();
     if (!known_states.empty())
     {
       ui_->start_state_selection->insertSeparator(ui_->start_state_selection->count());
@@ -282,7 +282,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningFrame::populateConstraintsList, this, std::vector<std::string>()));
 
-  const robot_model::RobotModelConstPtr &kmodel = planning_display_->getRobotModel();
+  const robot_model::RobotModelConstPtr& kmodel = planning_display_->getRobotModel();
   std::string group = planning_display_->getCurrentPlanningGroup();
   planning_display_->addMainLoopJob(
       boost::bind(&MotionPlanningParamWidget::setGroupName, ui_->planner_param_treeview, group));
@@ -304,7 +304,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -323,7 +323,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       if (first_time_)
       {
         first_time_ = false;
-        const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+        const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
         if (ps)
         {
           planning_display_->setQueryStartState(ps->getCurrentState());
@@ -346,11 +346,11 @@ void MotionPlanningFrame::sceneUpdate(planning_scene_monitor::PlanningSceneMonit
     planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::populateCollisionObjectsList, this));
 }
 
-void MotionPlanningFrame::importResource(const std::string &path)
+void MotionPlanningFrame::importResource(const std::string& path)
 {
   if (planning_display_->getPlanningSceneMonitor())
   {
-    shapes::Mesh *mesh = shapes::createMeshFromResource(path);
+    shapes::Mesh* mesh = shapes::createMeshFromResource(path);
     if (mesh)
     {
       std::size_t slash = path.find_last_of("/\\");
@@ -361,10 +361,10 @@ void MotionPlanningFrame::importResource(const std::string &path)
 
       if (planning_display_->getPlanningSceneRO()->getCurrentState().hasAttachedBody(name))
       {
-        QMessageBox::warning(this, QString("Duplicate names"),
-                             QString("An attached object named '")
-                                 .append(name.c_str())
-                                 .append("' already exists. Please rename the attached object before importing."));
+        QMessageBox::warning(this, QString("Duplicate names"), QString("An attached object named '")
+                                                                   .append(name.c_str())
+                                                                   .append("' already exists. Please rename the "
+                                                                           "attached object before importing."));
         return;
       }
 

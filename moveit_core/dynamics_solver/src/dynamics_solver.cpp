@@ -49,7 +49,7 @@ namespace dynamics_solver
 {
 namespace
 {
-inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, const geometry_msgs::Vector3 &vector)
+inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d& transform, const geometry_msgs::Vector3& vector)
 {
   Eigen::Vector3d p;
   p = Eigen::Vector3d(vector.x, vector.y, vector.z);
@@ -64,8 +64,8 @@ inline geometry_msgs::Vector3 transformVector(const Eigen::Affine3d &transform, 
 }
 }
 
-DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_model, const std::string &group_name,
-                               const geometry_msgs::Vector3 &gravity_vector)
+DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_model, const std::string& group_name,
+                               const geometry_msgs::Vector3& gravity_vector)
 {
   robot_model_ = robot_model;
   joint_model_group_ = robot_model_->getJointModelGroup(group_name);
@@ -88,7 +88,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
     return;
   }
 
-  const robot_model::JointModel *joint = joint_model_group_->getJointRoots()[0];
+  const robot_model::JointModel* joint = joint_model_group_->getJointRoots()[0];
   if (!joint->getParentLinkModel())
   {
     logError("moveit.dynamics_solver: Group '%s' does not have a parent link", group_name.c_str());
@@ -123,10 +123,10 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
   state_.reset(new robot_state::RobotState(robot_model_));
   state_->setToDefaultValues();
 
-  const std::vector<std::string> &joint_model_names = joint_model_group_->getJointModelNames();
+  const std::vector<std::string>& joint_model_names = joint_model_group_->getJointModelNames();
   for (std::size_t i = 0; i < joint_model_names.size(); ++i)
   {
-    const urdf::Joint *ujoint = urdf_model->getJoint(joint_model_names[i]).get();
+    const urdf::Joint* ujoint = urdf_model->getJoint(joint_model_names[i]).get();
     if (ujoint && ujoint->limits)
       max_torques_.push_back(ujoint->limits->effort);
     else
@@ -141,9 +141,9 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr &robot_mode
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
 }
 
-bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles, const std::vector<double> &joint_velocities,
-                                const std::vector<double> &joint_accelerations,
-                                const std::vector<geometry_msgs::Wrench> &wrenches, std::vector<double> &torques) const
+bool DynamicsSolver::getTorques(const std::vector<double>& joint_angles, const std::vector<double>& joint_velocities,
+                                const std::vector<double>& joint_accelerations,
+                                const std::vector<geometry_msgs::Wrench>& wrenches, std::vector<double>& torques) const
 {
   if (!joint_model_group_)
   {
@@ -210,8 +210,8 @@ bool DynamicsSolver::getTorques(const std::vector<double> &joint_angles, const s
   return true;
 }
 
-bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles, double &payload,
-                                   unsigned int &joint_saturated) const
+bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, double& payload,
+                                   unsigned int& joint_saturated) const
 {
   if (!joint_model_group_)
   {
@@ -241,8 +241,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles, doub
   }
 
   state_->setJointGroupPositions(joint_model_group_, joint_angles);
-  const Eigen::Affine3d &base_frame = state_->getFrameTransform(base_name_);
-  const Eigen::Affine3d &tip_frame = state_->getFrameTransform(tip_name_);
+  const Eigen::Affine3d& base_frame = state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d& tip_frame = state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
   wrenches.back().force.z = 1.0;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
@@ -274,8 +274,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double> &joint_angles, doub
   return true;
 }
 
-bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles, double payload,
-                                       std::vector<double> &joint_torques) const
+bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, double payload,
+                                       std::vector<double>& joint_torques) const
 {
   if (!joint_model_group_)
   {
@@ -296,8 +296,8 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles, 
   std::vector<geometry_msgs::Wrench> wrenches(num_segments_);
   state_->setJointGroupPositions(joint_model_group_, joint_angles);
 
-  const Eigen::Affine3d &base_frame = state_->getFrameTransform(base_name_);
-  const Eigen::Affine3d &tip_frame = state_->getFrameTransform(tip_name_);
+  const Eigen::Affine3d& base_frame = state_->getFrameTransform(base_name_);
+  const Eigen::Affine3d& tip_frame = state_->getFrameTransform(tip_name_);
   Eigen::Affine3d transform = tip_frame.inverse() * base_frame;
   wrenches.back().force.z = payload * gravity_;
   wrenches.back().force = transformVector(transform, wrenches.back().force);
@@ -311,7 +311,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double> &joint_angles, 
   return true;
 }
 
-const std::vector<double> &DynamicsSolver::getMaxTorques() const
+const std::vector<double>& DynamicsSolver::getMaxTorques() const
 {
   return max_torques_;
 }

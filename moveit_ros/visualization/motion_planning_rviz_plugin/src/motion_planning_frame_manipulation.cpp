@@ -50,7 +50,7 @@ void MotionPlanningFrame::detectObjectsButtonClicked()
 {
   if (!semantic_world_)
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
     if (ps)
     {
       semantic_world_.reset(new moveit::semantic_world::SemanticWorld(ps));
@@ -91,7 +91,7 @@ void MotionPlanningFrame::processDetectedObjects()
 
 void MotionPlanningFrame::selectedDetectedObjectChanged()
 {
-  QList<QListWidgetItem *> sel = ui_->detected_objects_list->selectedItems();
+  QList<QListWidgetItem*> sel = ui_->detected_objects_list->selectedItems();
   if (sel.empty())
   {
     ROS_INFO("No objects to select");
@@ -113,7 +113,7 @@ void MotionPlanningFrame::selectedDetectedObjectChanged()
   }
 }
 
-void MotionPlanningFrame::detectedObjectChanged(QListWidgetItem *item)
+void MotionPlanningFrame::detectedObjectChanged(QListWidgetItem* item)
 {
 }
 
@@ -128,7 +128,7 @@ void MotionPlanningFrame::triggerObjectDetection()
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       ROS_ERROR("Object recognition action: %s", ex.what());
       return;
@@ -147,14 +147,14 @@ void MotionPlanningFrame::triggerObjectDetection()
   }
 }
 
-void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr &msg)
+void MotionPlanningFrame::listenDetectedObjects(const object_recognition_msgs::RecognizedObjectArrayPtr& msg)
 {
   ros::Duration(1.0).sleep();
   planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::processDetectedObjects, this));
 }
 
-void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string> &object_ids,
-                                                    const std::vector<std::string> &objects)
+void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::string>& object_ids,
+                                                    const std::vector<std::string>& objects)
 {
   ui_->detected_objects_list->setUpdatesEnabled(false);
   bool oldState = ui_->detected_objects_list->blockSignals(true);
@@ -162,7 +162,7 @@ void MotionPlanningFrame::updateDetectedObjectsList(const std::vector<std::strin
   {
     for (std::size_t i = 0; i < object_ids.size(); ++i)
     {
-      QListWidgetItem *item =
+      QListWidgetItem* item =
           new QListWidgetItem(QString::fromStdString(object_ids[i]), ui_->detected_objects_list, (int)i);
       item->setToolTip(item->text());
       Qt::ItemFlags flags = item->flags();
@@ -192,7 +192,7 @@ void MotionPlanningFrame::publishTables()
 
 void MotionPlanningFrame::selectedSupportSurfaceChanged()
 {
-  QList<QListWidgetItem *> sel = ui_->support_surfaces_list->selectedItems();
+  QList<QListWidgetItem*> sel = ui_->support_surfaces_list->selectedItems();
   if (sel.empty())
   {
     ROS_INFO("No tables to select");
@@ -232,7 +232,7 @@ void MotionPlanningFrame::updateSupportSurfacesList()
   {
     for (std::size_t i = 0; i < support_ids.size(); ++i)
     {
-      QListWidgetItem *item =
+      QListWidgetItem* item =
           new QListWidgetItem(QString::fromStdString(support_ids[i]), ui_->support_surfaces_list, (int)i);
       item->setToolTip(item->text());
       Qt::ItemFlags flags = item->flags();
@@ -248,8 +248,8 @@ void MotionPlanningFrame::updateSupportSurfacesList()
 /////////////////////////////// Pick & Place /////////////////////////////////
 void MotionPlanningFrame::pickObjectButtonClicked()
 {
-  QList<QListWidgetItem *> sel = ui_->detected_objects_list->selectedItems();
-  QList<QListWidgetItem *> sel_table = ui_->support_surfaces_list->selectedItems();
+  QList<QListWidgetItem*> sel = ui_->detected_objects_list->selectedItems();
+  QList<QListWidgetItem*> sel_table = ui_->support_surfaces_list->selectedItems();
 
   std::string group_name = planning_display_->getCurrentPlanningGroup();
   if (sel.empty())
@@ -286,7 +286,7 @@ void MotionPlanningFrame::pickObjectButtonClicked()
 
 void MotionPlanningFrame::placeObjectButtonClicked()
 {
-  QList<QListWidgetItem *> sel_table = ui_->support_surfaces_list->selectedItems();
+  QList<QListWidgetItem*> sel_table = ui_->support_surfaces_list->selectedItems();
   std::string group_name = planning_display_->getCurrentPlanningGroup();
 
   if (!sel_table.empty())
@@ -301,14 +301,14 @@ void MotionPlanningFrame::placeObjectButtonClicked()
   ui_->pick_button->setEnabled(false);
   ui_->place_button->setEnabled(false);
 
-  std::vector<const robot_state::AttachedBody *> attached_bodies;
-  const planning_scene_monitor::LockedPlanningSceneRO &ps = planning_display_->getPlanningSceneRO();
+  std::vector<const robot_state::AttachedBody*> attached_bodies;
+  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
   if (!ps)
   {
     ROS_ERROR("No planning scene");
     return;
   }
-  const robot_model::JointModelGroup *jmg = ps->getCurrentState().getJointModelGroup(group_name);
+  const robot_model::JointModelGroup* jmg = ps->getCurrentState().getJointModelGroup(group_name);
   if (jmg)
     ps->getCurrentState().getAttachedBodies(attached_bodies, jmg);
 

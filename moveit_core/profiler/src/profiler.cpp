@@ -36,7 +36,7 @@
 
 #include "moveit/profiler/profiler.h"
 
-moveit::tools::Profiler &moveit::tools::Profiler::Instance(void)
+moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
 {
   static Profiler p(false, false);
   return p;
@@ -81,31 +81,31 @@ void moveit::tools::Profiler::clear(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::event(const std::string &name, const unsigned int times)
+void moveit::tools::Profiler::event(const std::string& name, const unsigned int times)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].events[name] += times;
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::average(const std::string &name, const double value)
+void moveit::tools::Profiler::average(const std::string& name, const double value)
 {
   lock_.lock();
-  AvgInfo &a = data_[boost::this_thread::get_id()].avg[name];
+  AvgInfo& a = data_[boost::this_thread::get_id()].avg[name];
   a.total += value;
   a.totalSqr += value * value;
   a.parts++;
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::begin(const std::string &name)
+void moveit::tools::Profiler::begin(const std::string& name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].set();
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::end(const std::string &name)
+void moveit::tools::Profiler::end(const std::string& name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].update();
@@ -114,13 +114,13 @@ void moveit::tools::Profiler::end(const std::string &name)
 
 namespace
 {
-inline double to_seconds(const boost::posix_time::time_duration &d)
+inline double to_seconds(const boost::posix_time::time_duration& d)
 {
   return (double)d.total_microseconds() / 1000000.0;
 }
 }
 
-void moveit::tools::Profiler::status(std::ostream &out, bool merge)
+void moveit::tools::Profiler::status(std::ostream& out, bool merge)
 {
   stop();
   lock_.lock();
@@ -147,7 +147,7 @@ void moveit::tools::Profiler::status(std::ostream &out, bool merge)
       for (std::map<std::string, TimeInfo>::const_iterator itm = it->second.time.begin(); itm != it->second.time.end();
            ++itm)
       {
-        TimeInfo &tc = combined.time[itm->first];
+        TimeInfo& tc = combined.time[itm->first];
         tc.total = tc.total + itm->second.total;
         tc.parts = tc.parts + itm->second.parts;
         if (tc.shortest > itm->second.shortest)
@@ -186,7 +186,7 @@ struct dataIntVal
 
 struct SortIntByValue
 {
-  bool operator()(const dataIntVal &a, const dataIntVal &b) const
+  bool operator()(const dataIntVal& a, const dataIntVal& b) const
   {
     return a.value > b.value;
   }
@@ -200,7 +200,7 @@ struct dataDoubleVal
 
 struct SortDoubleByValue
 {
-  bool operator()(const dataDoubleVal &a, const dataDoubleVal &b) const
+  bool operator()(const dataDoubleVal& a, const dataDoubleVal& b) const
   {
     return a.value > b.value;
   }
@@ -208,7 +208,7 @@ struct SortDoubleByValue
 }
 /// @endcond
 
-void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread &data)
+void moveit::tools::Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
 {
   double total = to_seconds(tinfo_.total);
 
@@ -236,7 +236,7 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
     out << "Averages:" << std::endl;
   for (unsigned int i = 0; i < avg.size(); ++i)
   {
-    const AvgInfo &a = data.avg.find(avg[i].name)->second;
+    const AvgInfo& a = data.avg.find(avg[i].name)->second;
     out << avg[i].name << ": " << avg[i].value << " (stddev = "
         << sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")"
         << std::endl;
@@ -257,7 +257,7 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream &out, const PerThread
   double unaccounted = total;
   for (unsigned int i = 0; i < time.size(); ++i)
   {
-    const TimeInfo &d = data.time.find(time[i].name)->second;
+    const TimeInfo& d = data.time.find(time[i].name)->second;
 
     double tS = to_seconds(d.shortest);
     double tL = to_seconds(d.longest);

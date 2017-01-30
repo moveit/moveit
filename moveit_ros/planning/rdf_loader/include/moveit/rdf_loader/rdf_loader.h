@@ -56,28 +56,28 @@ public:
   /** @brief Default constructor
    *  @param robot_description The string name corresponding to the ROS param where the URDF is loaded; the SRDF is
    * assumed to be at the same param name + the "_semantic" suffix */
-  RDFLoader(const std::string &robot_description = "robot_description");
+  RDFLoader(const std::string& robot_description = "robot_description");
 
   /** \brief Initialize the robot model from a string representation of the URDF and SRDF documents */
-  RDFLoader(const std::string &urdf_string, const std::string &srdf_string);
+  RDFLoader(const std::string& urdf_string, const std::string& srdf_string);
 
   /** \brief Initialize the robot model from a parsed XML representation of the URDF and SRDF */
-  RDFLoader(TiXmlDocument *urdf_doc, TiXmlDocument *srdf_doc);
+  RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc);
 
   /** @brief Get the resolved parameter name for the robot description */
-  const std::string &getRobotDescription() const
+  const std::string& getRobotDescription() const
   {
     return robot_description_;
   }
 
   /** @brief Get the parsed URDF model*/
-  const boost::shared_ptr<urdf::ModelInterface> &getURDF() const
+  const boost::shared_ptr<urdf::ModelInterface>& getURDF() const
   {
     return urdf_;
   }
 
   /** @brief Get the parsed SRDF model*/
-  const boost::shared_ptr<srdf::Model> &getSRDF() const
+  const boost::shared_ptr<srdf::Model>& getSRDF() const
   {
     return srdf_;
   }

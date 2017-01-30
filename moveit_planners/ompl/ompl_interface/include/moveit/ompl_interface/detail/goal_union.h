@@ -44,14 +44,14 @@ class GoalSampleableRegionMux : public ompl::base::GoalSampleableRegion
 public:
   /** @brief Constructor
    *  @param goals The input set of goals*/
-  GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr> &goals);
+  GoalSampleableRegionMux(const std::vector<ompl::base::GoalPtr>& goals);
 
   virtual ~GoalSampleableRegionMux()
   {
   }
 
   /** @brief Sample a goal*/
-  virtual void sampleGoal(ompl::base::State *st) const;
+  virtual void sampleGoal(ompl::base::State* st) const;
 
   /** @brief Get the max sample count*/
   virtual unsigned int maxSampleCount() const;
@@ -63,10 +63,10 @@ public:
   virtual bool couldSample() const;
 
   /** @brief Is the goal satisfied for this state (given a distance)*/
-  virtual bool isSatisfied(const ompl::base::State *st, double *distance) const;
+  virtual bool isSatisfied(const ompl::base::State* st, double* distance) const;
 
   /** @brief Find the distance of this state from the goal*/
-  virtual double distanceGoal(const ompl::base::State *st) const;
+  virtual double distanceGoal(const ompl::base::State* st) const;
 
   /** @brief If there are any member lazy samplers, start them */
   void startSampling();
@@ -75,7 +75,7 @@ public:
   void stopSampling();
 
   /** @brief Pretty print goal information*/
-  virtual void print(std::ostream &out = std::cout) const;
+  virtual void print(std::ostream& out = std::cout) const;
 
 protected:
   std::vector<ompl::base::GoalPtr> goals_;

@@ -50,7 +50,7 @@ public:
   virtual void initialize();
 
 private:
-  bool clearOctomap(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+  bool clearOctomap(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
 
   ros::ServiceServer service_;
 };

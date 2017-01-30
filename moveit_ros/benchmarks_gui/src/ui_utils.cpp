@@ -39,7 +39,7 @@
 
 namespace benchmark_tool
 {
-void setButtonState(QPushButton *button, bool checked, const QString &text, const QString &style)
+void setButtonState(QPushButton* button, bool checked, const QString& text, const QString& style)
 {
   button->setUpdatesEnabled(false);
   button->setText(text);
@@ -48,12 +48,12 @@ void setButtonState(QPushButton *button, bool checked, const QString &text, cons
   button->setUpdatesEnabled(true);
 }
 
-void showCriticalMessage(QWidget *parent, const QString &title, const QString &text)
+void showCriticalMessage(QWidget* parent, const QString& title, const QString& text)
 {
   QMessageBox::critical(parent, title, text);
 }
 
-void selectFirstItemInList(QListWidget *list)
+void selectFirstItemInList(QListWidget* list)
 {
   if (list->count() > 0)
   {
@@ -61,7 +61,7 @@ void selectFirstItemInList(QListWidget *list)
   }
 }
 
-void selectLastItemInList(QListWidget *list)
+void selectLastItemInList(QListWidget* list)
 {
   if (list->count() > 0)
   {
