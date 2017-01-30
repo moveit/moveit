@@ -204,7 +204,7 @@ public:
   const Eigen::Affine3d& getFrameTransform(robot_state::RobotState& state, const std::string& id) const
   {
     state.updateLinkTransforms();
-    return getFrameTransform(const_cast<const robot_state::RobotState&>(state), id);
+    return getFrameTransform(static_cast<const robot_state::RobotState&>(state), id);
   }
 
   /** \brief Get the transform corresponding to the frame \e id. This will be known if \e id is a link name, an attached
@@ -368,7 +368,7 @@ public:
   bool isStateColliding(robot_state::RobotState& state, const std::string& group = "", bool verbose = false) const
   {
     state.updateCollisionBodyTransforms();
-    return isStateColliding(const_cast<const robot_state::RobotState&>(state), group, verbose);
+    return isStateColliding(static_cast<const robot_state::RobotState&>(state), group, verbose);
   }
 
   /** \brief Check if a given state is in collision (with the environment or self collision)
@@ -398,7 +398,7 @@ public:
                       robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkCollision(req, res, const_cast<const robot_state::RobotState&>(kstate));
+    checkCollision(req, res, static_cast<const robot_state::RobotState&>(kstate));
   }
 
   /** \brief Check whether a specified state (\e kstate) is in collision. The collision transforms of \e kstate are
@@ -413,7 +413,7 @@ public:
                       robot_state::RobotState& kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+    checkCollision(req, res, static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
@@ -451,7 +451,7 @@ public:
                               collision_detection::CollisionResult& res, robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkCollisionUnpadded(req, res, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+    checkCollisionUnpadded(req, res, static_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
   }
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
@@ -462,7 +462,7 @@ public:
                               const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkCollisionUnpadded(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+    checkCollisionUnpadded(req, res, static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief Check whether a specified state (\e kstate) is in collision, with respect to a given
@@ -486,7 +486,7 @@ public:
                           robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkSelfCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+    checkSelfCollision(req, res, static_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
   }
 
   /** \brief Check whether a specified state (\e kstate) is in self collision */
@@ -503,7 +503,7 @@ public:
                           robot_state::RobotState& kstate, const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    checkSelfCollision(req, res, const_cast<const robot_state::RobotState&>(kstate), acm);
+    checkSelfCollision(req, res, static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief Check whether a specified state (\e kstate) is in self collision, with respect to a given
@@ -530,7 +530,7 @@ public:
   void getCollidingLinks(std::vector<std::string>& links, robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    getCollidingLinks(links, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+    getCollidingLinks(links, static_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
   }
 
   /** \brief Get the names of the links that are involved in collisions for the state \e kstate */
@@ -545,7 +545,7 @@ public:
                          const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    getCollidingLinks(links, const_cast<const robot_state::RobotState&>(kstate), acm);
+    getCollidingLinks(links, static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
@@ -576,7 +576,7 @@ public:
                          robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    getCollidingPairs(contacts, const_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
+    getCollidingPairs(contacts, static_cast<const robot_state::RobotState&>(kstate), getAllowedCollisionMatrix());
   }
 
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
@@ -585,7 +585,7 @@ public:
                          const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    getCollidingPairs(contacts, const_cast<const robot_state::RobotState&>(kstate), acm);
+    getCollidingPairs(contacts, static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief  Get the names of the links that are involved in collisions for the state \e kstate given the
@@ -606,7 +606,7 @@ public:
   double distanceToCollision(robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate));
+    return distanceToCollision(static_cast<const robot_state::RobotState&>(kstate));
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions)
@@ -621,7 +621,7 @@ public:
   double distanceToCollisionUnpadded(robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate));
+    return distanceToCollisionUnpadded(static_cast<const robot_state::RobotState&>(kstate));
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring
@@ -637,7 +637,7 @@ public:
                              const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollision(const_cast<const robot_state::RobotState&>(kstate), acm);
+    return distanceToCollision(static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
@@ -654,7 +654,7 @@ public:
                                      const collision_detection::AllowedCollisionMatrix& acm) const
   {
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollisionUnpadded(const_cast<const robot_state::RobotState&>(kstate), acm);
+    return distanceToCollisionUnpadded(static_cast<const robot_state::RobotState&>(kstate), acm);
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
