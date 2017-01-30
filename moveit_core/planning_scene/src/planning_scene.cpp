@@ -686,7 +686,7 @@ collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getA
 const robot_state::Transforms& planning_scene::PlanningScene::getTransforms()
 {
   getCurrentStateNonConst().update();
-  return const_cast<const PlanningScene*>(this)->getTransforms();
+  return static_cast<const PlanningScene*>(this)->getTransforms();
 }
 
 robot_state::Transforms& planning_scene::PlanningScene::getTransformsNonConst()
