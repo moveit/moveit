@@ -44,4 +44,6 @@
   <run_depend>tf_conversions</run_depend>
   <run_depend>python</run_depend>
 
+  <test_depend>moveit_resources</test_depend>
+  <test_depend>rostest</test_depend>
 </package>

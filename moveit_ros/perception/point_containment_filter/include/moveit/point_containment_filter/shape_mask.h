@@ -63,25 +63,25 @@ public:
     CLIP = 2
   };
 
-  typedef boost::function<bool(ShapeHandle, Eigen::Affine3d &)> TransformCallback;
+  typedef boost::function<bool(ShapeHandle, Eigen::Affine3d&)> TransformCallback;
 
   /** \brief Construct the filter */
-  ShapeMask(const TransformCallback &transform_callback = TransformCallback());
+  ShapeMask(const TransformCallback& transform_callback = TransformCallback());
 
   /** \brief Destructor to clean up */
   ~ShapeMask();
 
-  ShapeHandle addShape(const shapes::ShapeConstPtr &shape, double scale = 1.0, double padding = 0.0);
+  ShapeHandle addShape(const shapes::ShapeConstPtr& shape, double scale = 1.0, double padding = 0.0);
   void removeShape(ShapeHandle handle);
 
-  void setTransformCallback(const TransformCallback &transform_callback);
+  void setTransformCallback(const TransformCallback& transform_callback);
 
   /** \brief Compute the containment mask (INSIDE or OUTSIDE) for a given pointcloud. If a mask element is INSIDE, the
      point
       is inside the robot. The point is outside if the mask element is OUTSIDE.
   */
-  void maskContainment(const sensor_msgs::PointCloud2 &data_in, const Eigen::Vector3d &sensor_pos,
-                       const double min_sensor_dist, const double max_sensor_dist, std::vector<int> &mask);
+  void maskContainment(const sensor_msgs::PointCloud2& data_in, const Eigen::Vector3d& sensor_pos,
+                       const double min_sensor_dist, const double max_sensor_dist, std::vector<int>& mask);
 
   /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point.
       It is assumed the point is in the frame corresponding to the TransformCallback */
@@ -89,7 +89,7 @@ public:
 
   /** \brief Get the containment mask (INSIDE or OUTSIDE) value for an individual point.
       It is assumed the point is in the frame corresponding to the TransformCallback */
-  int getMaskContainment(const Eigen::Vector3d &pt) const;
+  int getMaskContainment(const Eigen::Vector3d& pt) const;
 
 private:
   struct SeeShape
@@ -99,14 +99,14 @@ private:
       body = NULL;
     }
 
-    bodies::Body *body;
+    bodies::Body* body;
     ShapeHandle handle;
     double volume;
   };
 
   struct SortBodies
   {
-    bool operator()(const SeeShape &b1, const SeeShape &b2)
+    bool operator()(const SeeShape& b1, const SeeShape& b2)
     {
       if (b1.volume > b2.volume)
         return true;

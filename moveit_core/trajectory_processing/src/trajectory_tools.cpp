@@ -38,12 +38,12 @@
 
 namespace trajectory_processing
 {
-bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory &trajectory)
+bool isTrajectoryEmpty(const moveit_msgs::RobotTrajectory& trajectory)
 {
   return trajectory.joint_trajectory.points.empty() && trajectory.multi_dof_joint_trajectory.points.empty();
 }
 
-std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory &trajectory)
+std::size_t trajectoryWaypointCount(const moveit_msgs::RobotTrajectory& trajectory)
 {
   return std::max(trajectory.joint_trajectory.points.size(), trajectory.multi_dof_joint_trajectory.points.size());
 }

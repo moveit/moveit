@@ -50,7 +50,7 @@ public:
   virtual void initialize();
 
 private:
-  bool computeService(moveit_msgs::GetStateValidity::Request &req, moveit_msgs::GetStateValidity::Response &res);
+  bool computeService(moveit_msgs::GetStateValidity::Request& req, moveit_msgs::GetStateValidity::Response& res);
 
   ros::ServiceServer validity_service_;
 };

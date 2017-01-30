@@ -82,7 +82,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  ConfigurationFilesWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  ConfigurationFilesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -90,12 +90,12 @@ public:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QPushButton *btn_save_;
-  LoadPathWidget *stack_path_;
-  QProgressBar *progress_bar_;
-  QListWidget *action_list_;
-  QLabel *action_label_;
-  QLabel *success_label_;
+  QPushButton* btn_save_;
+  LoadPathWidget* stack_path_;
+  QProgressBar* progress_bar_;
+  QListWidget* action_list_;
+  QLabel* action_label_;
+  QLabel* success_label_;
   QList<QString> action_desc_;  // Holds the descriptions explaining all performed actions
 
 private Q_SLOTS:
@@ -117,7 +117,7 @@ private Q_SLOTS:
   void changeActionDesc(int id);
 
   /// Disable or enable item in gen_files_ array
-  void changeCheckedState(QListWidgetItem *item);
+  void changeCheckedState(QListWidgetItem* item);
 
 private:
   // ******************************************************************************************
@@ -183,7 +183,7 @@ private:
    * \param value string to replace with
    * \return void
    */
-  bool addTemplateString(const std::string &key, const std::string &value);
+  bool addTemplateString(const std::string& key, const std::string& value);
 
   /**
    * Copy a template from location <template_path> to location <output_path> and replace package name
@@ -194,14 +194,14 @@ private:
    *
    * @return bool if the template was copied correctly
    */
-  bool copyTemplate(const std::string &template_path, const std::string &output_path);
+  bool copyTemplate(const std::string& template_path, const std::string& output_path);
 
   /**
    * \brief Create a folder
    * \param output_path name of folder relative to package
    * \return bool if success
    */
-  bool createFolder(const std::string &output_path);
+  bool createFolder(const std::string& output_path);
 };
 
 }  // namespace moveit_setup_assistant

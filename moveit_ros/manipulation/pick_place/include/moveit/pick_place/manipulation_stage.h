@@ -48,7 +48,7 @@ MOVEIT_CLASS_FORWARD(ManipulationStage);
 class ManipulationStage
 {
 public:
-  ManipulationStage(const std::string &name) : name_(name), signal_stop_(false), verbose_(false)
+  ManipulationStage(const std::string& name) : name_(name), signal_stop_(false), verbose_(false)
   {
   }
 
@@ -56,7 +56,7 @@ public:
   {
   }
 
-  const std::string &getName() const
+  const std::string& getName() const
   {
     return name_;
   }
@@ -76,7 +76,7 @@ public:
     signal_stop_ = true;
   }
 
-  virtual bool evaluate(const ManipulationPlanPtr &plan) const = 0;
+  virtual bool evaluate(const ManipulationPlanPtr& plan) const = 0;
 
 protected:
   std::string name_;

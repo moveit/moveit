@@ -38,14 +38,14 @@
 
 namespace sbpl_interface
 {
-SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr &kmodel)
+SBPLMetaInterface::SBPLMetaInterface(const planning_models::RobotModelConstPtr& kmodel)
 {
   sbpl_interface_first_.reset(new sbpl_interface::SBPLInterface(kmodel));
   sbpl_interface_second_.reset(new sbpl_interface::SBPLInterface(kmodel));
 }
 
-bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                              const moveit_msgs::GetMotionPlan::Request &req, moveit_msgs::GetMotionPlan::Response &res)
+bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                              const moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res)
 {
   first_ok_ = false;
   first_done_ = false;
@@ -145,9 +145,9 @@ bool SBPLMetaInterface::solve(const planning_scene::PlanningSceneConstPtr &plann
   return true;
 }
 
-void SBPLMetaInterface::runSolver(bool use_first, const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                  const moveit_msgs::GetMotionPlan::Request &req,
-                                  moveit_msgs::GetMotionPlan::Response &res, const PlanningParameters &params)
+void SBPLMetaInterface::runSolver(bool use_first, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                  const moveit_msgs::GetMotionPlan::Request& req,
+                                  moveit_msgs::GetMotionPlan::Response& res, const PlanningParameters& params)
 {
   try
   {

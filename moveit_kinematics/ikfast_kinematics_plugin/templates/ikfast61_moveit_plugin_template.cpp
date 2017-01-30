@@ -150,11 +150,11 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   std::vector<int> free_params_;
   bool active_;  // Internal variable that indicates whether solvers are configured and ready
 
-  const std::vector<std::string> &getJointNames() const
+  const std::vector<std::string>& getJointNames() const
   {
     return joint_names_;
   }
-  const std::vector<std::string> &getLinkNames() const
+  const std::vector<std::string>& getLinkNames() const
   {
     return link_names_;
   }
@@ -181,9 +181,9 @@ public:
    */
 
   // Returns the first IK solution that is within joint limits, this is called by get_ik() service
-  bool getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                     std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                     const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                     std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                     const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, compute the set joint angles solutions that are able to reach it.
@@ -200,9 +200,9 @@ public:
    *                other will result in failure.
    * @return True if a valid set of solutions was found, false otherwise.
    */
-  bool getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses, const std::vector<double> &ik_seed_state,
-                     std::vector<std::vector<double> > &solutions, kinematics::KinematicsResult &result,
-                     const kinematics::KinematicsQueryOptions &options) const;
+  bool getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses, const std::vector<double>& ik_seed_state,
+                     std::vector<std::vector<double> >& solutions, kinematics::KinematicsResult& result,
+                     const kinematics::KinematicsQueryOptions& options) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -212,9 +212,9 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                        std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                        std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -225,10 +225,10 @@ public:
    * @param the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                        const std::vector<double> &consistency_limits, std::vector<double> &solution,
-                        moveit_msgs::MoveItErrorCodes &error_code,
-                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                        const std::vector<double>& consistency_limits, std::vector<double>& solution,
+                        moveit_msgs::MoveItErrorCodes& error_code,
+                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -238,10 +238,10 @@ public:
    * @param ik_seed_state an initial guess solution for the inverse kinematics
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                        std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                        moveit_msgs::MoveItErrorCodes &error_code,
-                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                        std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                        moveit_msgs::MoveItErrorCodes& error_code,
+                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a desired pose of the end-effector, search for the joint angles required to reach it.
@@ -253,10 +253,10 @@ public:
    * @param consistency_limit the distance that the redundancy can be from the current position
    * @return True if a valid solution was found, false otherwise
    */
-  bool searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state, double timeout,
-                        const std::vector<double> &consistency_limits, std::vector<double> &solution,
-                        const IKCallbackFn &solution_callback, moveit_msgs::MoveItErrorCodes &error_code,
-                        const kinematics::KinematicsQueryOptions &options = kinematics::KinematicsQueryOptions()) const;
+  bool searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state, double timeout,
+                        const std::vector<double>& consistency_limits, std::vector<double>& solution,
+                        const IKCallbackFn& solution_callback, moveit_msgs::MoveItErrorCodes& error_code,
+                        const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
 
   /**
    * @brief Given a set of joint angles and a set of links, compute their pose
@@ -266,8 +266,8 @@ public:
    * @param poses The resultant set of poses (in the frame returned by getBaseFrame())
    * @return True if a valid solution was found, false otherwise
    */
-  bool getPositionFK(const std::vector<std::string> &link_names, const std::vector<double> &joint_angles,
-                     std::vector<geometry_msgs::Pose> &poses) const;
+  bool getPositionFK(const std::vector<std::string>& link_names, const std::vector<double>& joint_angles,
+                     std::vector<geometry_msgs::Pose>& poses) const;
 
   /**
    * @brief Sets the discretization value for the redundant joint.
@@ -278,34 +278,34 @@ public:
    *
    * @param discretization a map of joint indices and discretization value pairs.
    */
-  void setSearchDiscretization(const std::map<int, double> &discretization);
+  void setSearchDiscretization(const std::map<int, double>& discretization);
 
   /**
    * @brief Overrides the default method to prevent changing the redundant joints
    */
-  bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
+  bool setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices);
 
 private:
-  bool initialize(const std::string &robot_description, const std::string &group_name, const std::string &base_name,
-                  const std::string &tip_name, double search_discretization);
+  bool initialize(const std::string& robot_description, const std::string& group_name, const std::string& base_name,
+                  const std::string& tip_name, double search_discretization);
 
   /**
    * @brief Calls the IK solver from IKFast
    * @return The number of solutions found
    */
-  int solve(KDL::Frame &pose_frame, const std::vector<double> &vfree, IkSolutionList<IkReal> &solutions) const;
+  int solve(KDL::Frame& pose_frame, const std::vector<double>& vfree, IkSolutionList<IkReal>& solutions) const;
 
   /**
    * @brief Gets a specific solution from the set
    */
-  void getSolution(const IkSolutionList<IkReal> &solutions, int i, std::vector<double> &solution) const;
+  void getSolution(const IkSolutionList<IkReal>& solutions, int i, std::vector<double>& solution) const;
 
-  double harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution) const;
+  double harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const;
   // void getOrderedSolutions(const std::vector<double> &ik_seed_state, std::vector<std::vector<double> >& solslist);
-  void getClosestSolution(const IkSolutionList<IkReal> &solutions, const std::vector<double> &ik_seed_state,
-                          std::vector<double> &solution) const;
-  void fillFreeParams(int count, int *array);
-  bool getCount(int &count, const int &max_count, const int &min_count) const;
+  void getClosestSolution(const IkSolutionList<IkReal>& solutions, const std::vector<double>& ik_seed_state,
+                          std::vector<double>& solution) const;
+  void fillFreeParams(int count, int* array);
+  bool getCount(int& count, const int& max_count, const int& min_count) const;
 
   /**
   * @brief samples the designated redundant joint using the chosen discretization method
@@ -313,12 +313,12 @@ private:
   * @param  sampled_joint_vals  Sampled joint values for the redundant joint
   * @return True if sampling succeeded.
   */
-  bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double> &sampled_joint_vals) const;
+  bool sampleRedundantJoint(kinematics::DiscretizationMethod method, std::vector<double>& sampled_joint_vals) const;
 
 };  // end class
 
-bool IKFastKinematicsPlugin::initialize(const std::string &robot_description, const std::string &group_name,
-                                        const std::string &base_name, const std::string &tip_name,
+bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
+                                        const std::string& base_name, const std::string& tip_name,
                                         double search_discretization)
 {
   setValues(robot_description, group_name, base_name, tip_name, search_discretization);
@@ -440,7 +440,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string &robot_description, co
   return true;
 }
 
-void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int, double> &discretization)
+void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int, double>& discretization)
 {
   if (discretization.empty())
   {
@@ -473,14 +473,14 @@ void IKFastKinematicsPlugin::setSearchDiscretization(const std::map<int, double>
   redundant_joint_discretization_[redundant_joint_indices_[0]] = discretization.begin()->second;
 }
 
-bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices)
+bool IKFastKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
 {
   ROS_ERROR_STREAM("Changing the redundant joints isn't permitted by this group's solver ");
   return false;
 }
 
-int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<double> &vfree,
-                                  IkSolutionList<IkReal> &solutions) const
+int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<double>& vfree,
+                                  IkSolutionList<IkReal>& solutions) const
 {
   // IKFast56/61
   solutions.Clear();
@@ -557,14 +557,14 @@ int IKFastKinematicsPlugin::solve(KDL::Frame &pose_frame, const std::vector<doub
   }
 }
 
-void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal> &solutions, int i,
-                                         std::vector<double> &solution) const
+void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions, int i,
+                                         std::vector<double>& solution) const
 {
   solution.clear();
   solution.resize(num_joints_);
 
   // IKFast56/61
-  const IkSolutionBase<IkReal> &sol = solutions.GetSolution(i);
+  const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
   std::vector<IkReal> vsolfree(sol.GetFree().size());
   sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
 
@@ -576,7 +576,7 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal> &solutions
   // ROS_ERROR("%f %d",solution[2],vsolfree.size());
 }
 
-double IKFastKinematicsPlugin::harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution) const
+double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
 {
   double dist_sqr = 0;
   std::vector<double> ss = ik_seed_state;
@@ -626,9 +626,9 @@ double IKFastKinematicsPlugin::harmonize(const std::vector<double> &ik_seed_stat
 //   }
 // }
 
-void IKFastKinematicsPlugin::getClosestSolution(const IkSolutionList<IkReal> &solutions,
-                                                const std::vector<double> &ik_seed_state,
-                                                std::vector<double> &solution) const
+void IKFastKinematicsPlugin::getClosestSolution(const IkSolutionList<IkReal>& solutions,
+                                                const std::vector<double>& ik_seed_state,
+                                                std::vector<double>& solution) const
 {
   double mindist = DBL_MAX;
   int minindex = -1;
@@ -654,14 +654,14 @@ void IKFastKinematicsPlugin::getClosestSolution(const IkSolutionList<IkReal> &so
   }
 }
 
-void IKFastKinematicsPlugin::fillFreeParams(int count, int *array)
+void IKFastKinematicsPlugin::fillFreeParams(int count, int* array)
 {
   free_params_.clear();
   for (int i = 0; i < count; ++i)
     free_params_.push_back(array[i]);
 }
 
-bool IKFastKinematicsPlugin::getCount(int &count, const int &max_count, const int &min_count) const
+bool IKFastKinematicsPlugin::getCount(int& count, const int& max_count, const int& min_count) const
 {
   if (count > 0)
   {
@@ -697,9 +697,9 @@ bool IKFastKinematicsPlugin::getCount(int &count, const int &max_count, const in
   }
 }
 
-bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_names,
-                                           const std::vector<double> &joint_angles,
-                                           std::vector<geometry_msgs::Pose> &poses) const
+bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
+                                           const std::vector<double>& joint_angles,
+                                           std::vector<geometry_msgs::Pose>& poses) const
 {
   if (GetIkType() != IKP_Transform6D)
   {
@@ -746,10 +746,10 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_
   return valid;
 }
 
-bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                              const std::vector<double> &ik_seed_state, double timeout,
-                                              std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                              const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose,
+                                              const std::vector<double>& ik_seed_state, double timeout,
+                                              std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                              const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
@@ -758,34 +758,34 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
                           options);
 }
 
-bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                              const std::vector<double> &ik_seed_state, double timeout,
-                                              const std::vector<double> &consistency_limits,
-                                              std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                              const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose,
+                                              const std::vector<double>& ik_seed_state, double timeout,
+                                              const std::vector<double>& consistency_limits,
+                                              std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                              const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, solution_callback, error_code,
                           options);
 }
 
-bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                              const std::vector<double> &ik_seed_state, double timeout,
-                                              std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                                              moveit_msgs::MoveItErrorCodes &error_code,
-                                              const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose,
+                                              const std::vector<double>& ik_seed_state, double timeout,
+                                              std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                                              moveit_msgs::MoveItErrorCodes& error_code,
+                                              const kinematics::KinematicsQueryOptions& options) const
 {
   std::vector<double> consistency_limits;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, consistency_limits, solution, solution_callback, error_code,
                           options);
 }
 
-bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose,
-                                              const std::vector<double> &ik_seed_state, double timeout,
-                                              const std::vector<double> &consistency_limits,
-                                              std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                                              moveit_msgs::MoveItErrorCodes &error_code,
-                                              const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose,
+                                              const std::vector<double>& ik_seed_state, double timeout,
+                                              const std::vector<double>& consistency_limits,
+                                              std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                                              moveit_msgs::MoveItErrorCodes& error_code,
+                                              const kinematics::KinematicsQueryOptions& options) const
 {
   ROS_DEBUG_STREAM_NAMED("ikfast", "searchPositionIK");
 
@@ -994,9 +994,9 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose
 }
 
 // Used when there are no redundant joints - aka no free params
-bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   ROS_DEBUG_STREAM_NAMED("ikfast", "getPositionIK");
 
@@ -1064,11 +1064,11 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, c
   return false;
 }
 
-bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
-                                           const std::vector<double> &ik_seed_state,
-                                           std::vector<std::vector<double> > &solutions,
-                                           kinematics::KinematicsResult &result,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
+                                           const std::vector<double>& ik_seed_state,
+                                           std::vector<std::vector<double> >& solutions,
+                                           kinematics::KinematicsResult& result,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   ROS_DEBUG_STREAM_NAMED("ikfast", "getPositionIK with multiple solutions");
 
@@ -1208,7 +1208,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
 }
 
 bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMethod method,
-                                                  std::vector<double> &sampled_joint_vals) const
+                                                  std::vector<double>& sampled_joint_vals) const
 {
   double joint_min = -M_PI;
   double joint_max = M_PI;

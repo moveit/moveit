@@ -57,8 +57,8 @@ SrvKinematicsPlugin::SrvKinematicsPlugin() : active_(false)
 {
 }
 
-bool SrvKinematicsPlugin::initialize(const std::string &robot_description, const std::string &group_name,
-                                     const std::string &base_frame, const std::vector<std::string> &tip_frames,
+bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const std::string& group_name,
+                                     const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                      double search_discretization)
 {
   bool debug = false;
@@ -69,8 +69,8 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description, const
 
   ros::NodeHandle private_handle("~");
   rdf_loader::RDFLoader rdf_loader(robot_description_);
-  const boost::shared_ptr<srdf::Model> &srdf = rdf_loader.getSRDF();
-  const boost::shared_ptr<urdf::ModelInterface> &urdf_model = rdf_loader.getURDF();
+  const boost::shared_ptr<srdf::Model>& srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
 
   if (!urdf_model || !srdf)
   {
@@ -86,8 +86,7 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description, const
 
   if (debug)
   {
-    std::cout << std::endl
-              << "Joint Model Variable Names: ------------------------------------------- " << std::endl;
+    std::cout << std::endl << "Joint Model Variable Names: ------------------------------------------- " << std::endl;
     const std::vector<std::string> jm_names = joint_model_group_->getVariableNames();
     std::copy(jm_names.begin(), jm_names.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
     std::cout << std::endl;
@@ -150,7 +149,7 @@ bool SrvKinematicsPlugin::initialize(const std::string &robot_description, const
   return true;
 }
 
-bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int> &redundant_joints)
+bool SrvKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& redundant_joints)
 {
   if (num_possible_redundant_joints_ < 0)
   {
@@ -174,7 +173,7 @@ bool SrvKinematicsPlugin::isRedundantJoint(unsigned int index) const
   return false;
 }
 
-int SrvKinematicsPlugin::getJointIndex(const std::string &name) const
+int SrvKinematicsPlugin::getJointIndex(const std::string& name) const
 {
   for (unsigned int i = 0; i < ik_group_info_.joint_names.size(); i++)
   {
@@ -184,14 +183,14 @@ int SrvKinematicsPlugin::getJointIndex(const std::string &name) const
   return -1;
 }
 
-bool SrvKinematicsPlugin::timedOut(const ros::WallTime &start_time, double duration) const
+bool SrvKinematicsPlugin::timedOut(const ros::WallTime& start_time, double duration) const
 {
   return ((ros::WallTime::now() - start_time).toSec() >= duration);
 }
 
-bool SrvKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                        std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                        const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                        std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                        const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
@@ -200,10 +199,10 @@ bool SrvKinematicsPlugin::getPositionIK(const geometry_msgs::Pose &ik_pose, cons
                           consistency_limits, options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   std::vector<double> consistency_limits;
@@ -212,43 +211,43 @@ bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, c
                           options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, const std::vector<double> &consistency_limits,
-                                           std::vector<double> &solution, moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, const std::vector<double>& consistency_limits,
+                                           std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   const IKCallbackFn solution_callback = 0;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   std::vector<double> consistency_limits;
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, const std::vector<double> &consistency_limits,
-                                           std::vector<double> &solution, const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, const std::vector<double>& consistency_limits,
+                                           std::vector<double>& solution, const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   return searchPositionIK(ik_pose, ik_seed_state, timeout, solution, solution_callback, error_code, consistency_limits,
                           options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, const std::vector<double> &ik_seed_state,
-                                           double timeout, std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const std::vector<double> &consistency_limits,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
+                                           double timeout, std::vector<double>& solution,
+                                           const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const std::vector<double>& consistency_limits,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   // Convert single pose into a vector of one pose
   std::vector<geometry_msgs::Pose> ik_poses;
@@ -258,12 +257,12 @@ bool SrvKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose &ik_pose, c
                           options);
 }
 
-bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose> &ik_poses,
-                                           const std::vector<double> &ik_seed_state, double timeout,
-                                           const std::vector<double> &consistency_limits, std::vector<double> &solution,
-                                           const IKCallbackFn &solution_callback,
-                                           moveit_msgs::MoveItErrorCodes &error_code,
-                                           const kinematics::KinematicsQueryOptions &options) const
+bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
+                                           const std::vector<double>& ik_seed_state, double timeout,
+                                           const std::vector<double>& consistency_limits, std::vector<double>& solution,
+                                           const IKCallbackFn& solution_callback,
+                                           moveit_msgs::MoveItErrorCodes& error_code,
+                                           const kinematics::KinematicsQueryOptions& options) const
 {
   // Check if active
   if (!active_)
@@ -397,9 +396,9 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
   return true;
 }
 
-bool SrvKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_names,
-                                        const std::vector<double> &joint_angles,
-                                        std::vector<geometry_msgs::Pose> &poses) const
+bool SrvKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_names,
+                                        const std::vector<double>& joint_angles,
+                                        std::vector<geometry_msgs::Pose>& poses) const
 {
   ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
@@ -419,17 +418,17 @@ bool SrvKinematicsPlugin::getPositionFK(const std::vector<std::string> &link_nam
   return false;
 }
 
-const std::vector<std::string> &SrvKinematicsPlugin::getJointNames() const
+const std::vector<std::string>& SrvKinematicsPlugin::getJointNames() const
 {
   return ik_group_info_.joint_names;
 }
 
-const std::vector<std::string> &SrvKinematicsPlugin::getLinkNames() const
+const std::vector<std::string>& SrvKinematicsPlugin::getLinkNames() const
 {
   return ik_group_info_.link_names;
 }
 
-const std::vector<std::string> &SrvKinematicsPlugin::getVariableNames() const
+const std::vector<std::string>& SrvKinematicsPlugin::getVariableNames() const
 {
   return joint_model_group_->getVariableNames();
 }

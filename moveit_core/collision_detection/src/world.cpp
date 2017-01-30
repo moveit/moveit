@@ -41,7 +41,7 @@ collision_detection::World::World()
 {
 }
 
-collision_detection::World::World(const World &other)
+collision_detection::World::World(const World& other)
 {
   objects_ = other.objects_;
 }
@@ -52,15 +52,15 @@ collision_detection::World::~World()
     removeObserver(observers_.front());
 }
 
-inline void collision_detection::World::addToObjectInternal(const ObjectPtr &obj, const shapes::ShapeConstPtr &shape,
-                                                            const Eigen::Affine3d &pose)
+inline void collision_detection::World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
+                                                            const Eigen::Affine3d& pose)
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
-void collision_detection::World::addToObject(const std::string &id, const std::vector<shapes::ShapeConstPtr> &shapes,
-                                             const EigenSTL::vector_Affine3d &poses)
+void collision_detection::World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                                             const EigenSTL::vector_Affine3d& poses)
 {
   if (shapes.size() != poses.size())
   {
@@ -73,7 +73,7 @@ void collision_detection::World::addToObject(const std::string &id, const std::v
 
   int action = ADD_SHAPE;
 
-  ObjectPtr &obj = objects_[id];
+  ObjectPtr& obj = objects_[id];
   if (!obj)
   {
     obj.reset(new Object(id));
@@ -88,12 +88,12 @@ void collision_detection::World::addToObject(const std::string &id, const std::v
   notify(obj, Action(action));
 }
 
-void collision_detection::World::addToObject(const std::string &id, const shapes::ShapeConstPtr &shape,
-                                             const Eigen::Affine3d &pose)
+void collision_detection::World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape,
+                                             const Eigen::Affine3d& pose)
 {
   int action = ADD_SHAPE;
 
-  ObjectPtr &obj = objects_[id];
+  ObjectPtr& obj = objects_[id];
   if (!obj)
   {
     obj.reset(new Object(id));
@@ -114,7 +114,7 @@ std::vector<std::string> collision_detection::World::getObjectIds() const
   return id;
 }
 
-collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string &id) const
+collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string& id) const
 {
   std::map<std::string, ObjectPtr>::const_iterator it = objects_.find(id);
   if (it == objects_.end())
@@ -123,19 +123,19 @@ collision_detection::World::ObjectConstPtr collision_detection::World::getObject
     return it->second;
 }
 
-void collision_detection::World::ensureUnique(ObjectPtr &obj)
+void collision_detection::World::ensureUnique(ObjectPtr& obj)
 {
   if (obj && !obj.unique())
     obj.reset(new Object(*obj));
 }
 
-bool collision_detection::World::hasObject(const std::string &id) const
+bool collision_detection::World::hasObject(const std::string& id) const
 {
   return objects_.find(id) != objects_.end();
 }
 
-bool collision_detection::World::moveShapeInObject(const std::string &id, const shapes::ShapeConstPtr &shape,
-                                                   const Eigen::Affine3d &pose)
+bool collision_detection::World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape,
+                                                   const Eigen::Affine3d& pose)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -154,7 +154,7 @@ bool collision_detection::World::moveShapeInObject(const std::string &id, const 
   return false;
 }
 
-bool collision_detection::World::removeShapeFromObject(const std::string &id, const shapes::ShapeConstPtr &shape)
+bool collision_detection::World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -182,7 +182,7 @@ bool collision_detection::World::removeShapeFromObject(const std::string &id, co
   return false;
 }
 
-bool collision_detection::World::removeObject(const std::string &id)
+bool collision_detection::World::removeObject(const std::string& id)
 {
   std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
   if (it != objects_.end())
@@ -200,16 +200,16 @@ void collision_detection::World::clearObjects()
   objects_.clear();
 }
 
-collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn &callback)
+collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
 {
-  Observer *o = new Observer(callback);
+  Observer* o = new Observer(callback);
   observers_.push_back(o);
   return ObserverHandle(o);
 }
 
 void collision_detection::World::removeObserver(ObserverHandle observer_handle)
 {
-  for (std::vector<Observer *>::iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+  for (std::vector<Observer*>::iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
@@ -226,15 +226,15 @@ void collision_detection::World::notifyAll(Action action)
     notify(it->second, action);
 }
 
-void collision_detection::World::notify(const ObjectConstPtr &obj, Action action)
+void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
 {
-  for (std::vector<Observer *>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
     (*obs)->callback_(obj, action);
 }
 
 void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
-  for (std::vector<Observer *>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
     if (*obs == observer_handle.observer_)
     {

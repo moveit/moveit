@@ -76,7 +76,7 @@ DepthImageOctomapUpdater::~DepthImageOctomapUpdater()
   stopHelper();
 }
 
-bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
+bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 {
   try
   {
@@ -94,9 +94,9 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue &params)
     readXmlParam(params, "skip_vertical_pixels", &skip_vertical_pixels_);
     readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
     if (params.hasMember("filtered_cloud_topic"))
-      filtered_cloud_topic_ = static_cast<const std::string &>(params["filtered_cloud_topic"]);
+      filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
   }
-  catch (XmlRpc::XmlRpcException &ex)
+  catch (XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR("XmlRpc Exception: %s", ex.getMessage().c_str());
     return false;
@@ -148,13 +148,13 @@ void DepthImageOctomapUpdater::stopHelper()
   sub_depth_image_.shutdown();
 }
 
-mesh_filter::MeshHandle DepthImageOctomapUpdater::excludeShape(const shapes::ShapeConstPtr &shape)
+mesh_filter::MeshHandle DepthImageOctomapUpdater::excludeShape(const shapes::ShapeConstPtr& shape)
 {
   mesh_filter::MeshHandle h = 0;
   if (mesh_filter_)
   {
     if (shape->type == shapes::MESH)
-      h = mesh_filter_->addMesh(static_cast<const shapes::Mesh &>(*shape));
+      h = mesh_filter_->addMesh(static_cast<const shapes::Mesh&>(*shape));
     else
     {
       boost::scoped_ptr<shapes::Mesh> m(shapes::createMeshFromShape(shape.get()));
@@ -173,7 +173,7 @@ void DepthImageOctomapUpdater::forgetShape(mesh_filter::MeshHandle handle)
     mesh_filter_->removeMesh(handle);
 }
 
-bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d &transform) const
+bool DepthImageOctomapUpdater::getShapeTransform(mesh_filter::MeshHandle h, Eigen::Affine3d& transform) const
 {
   ShapeTransformCache::const_iterator it = transform_cache_.find(h);
   if (it == transform_cache_.end())
@@ -200,8 +200,8 @@ bool host_is_big_endian(void)
 
 static const bool HOST_IS_BIG_ENDIAN = host_is_big_endian();
 
-void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr &depth_msg,
-                                                  const sensor_msgs::CameraInfoConstPtr &info_msg)
+void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstPtr& depth_msg,
+                                                  const sensor_msgs::CameraInfoConstPtr& info_msg)
 {
   ROS_DEBUG("Received a new depth image message (frame = '%s', encoding='%s')", depth_msg->header.frame_id.c_str(),
             depth_msg->encoding.c_str());
@@ -252,7 +252,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
           found = true;
           break;
         }
-        catch (tf::TransformException &ex)
+        catch (tf::TransformException& ex)
         {
           static const ros::Duration d(TEST_DT);
           err = ex.what();
@@ -304,7 +304,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   const int h = depth_msg->height;
 
   // call the mesh filter
-  mesh_filter::StereoCameraModel::Parameters &params = mesh_filter_->parameters();
+  mesh_filter::StereoCameraModel::Parameters& params = mesh_filter_->parameters();
   params.setCameraParameters(info_msg->K[0], info_msg->K[4], info_msg->K[2], info_msg->K[5]);
   params.setImageSize(w, h);
 
@@ -359,10 +359,10 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   const octomap::point3d sensor_origin(map_H_sensor.getOrigin().getX(), map_H_sensor.getOrigin().getY(),
                                        map_H_sensor.getOrigin().getZ());
 
-  octomap::KeySet *occupied_cells_ptr = new octomap::KeySet();
-  octomap::KeySet *model_cells_ptr = new octomap::KeySet();
-  octomap::KeySet &occupied_cells = *occupied_cells_ptr;
-  octomap::KeySet &model_cells = *model_cells_ptr;
+  octomap::KeySet* occupied_cells_ptr = new octomap::KeySet();
+  octomap::KeySet* model_cells_ptr = new octomap::KeySet();
+  octomap::KeySet& occupied_cells = *occupied_cells_ptr;
+  octomap::KeySet& model_cells = *model_cells_ptr;
 
   // allocate memory if needed
   std::size_t img_size = h * w;
@@ -370,7 +370,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     filtered_labels_.resize(img_size);
 
   // get the labels of the filtered data
-  const unsigned int *labels_row = &filtered_labels_[0];
+  const unsigned int* labels_row = &filtered_labels_[0];
   mesh_filter_->getFilteredLabels(&filtered_labels_[0]);
 
   // publish debug information if needed
@@ -384,7 +384,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     debug_msg.is_bigendian = depth_msg->is_bigendian;
     debug_msg.step = depth_msg->step;
     debug_msg.data.resize(img_size * sizeof(float));
-    mesh_filter_->getModelDepth(reinterpret_cast<float *>(&debug_msg.data[0]));
+    mesh_filter_->getModelDepth(reinterpret_cast<float*>(&debug_msg.data[0]));
     pub_model_depth_image_.publish(debug_msg, *info_msg);
 
     sensor_msgs::Image filtered_depth_msg;
@@ -396,7 +396,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     filtered_depth_msg.step = depth_msg->step;
     filtered_depth_msg.data.resize(img_size * sizeof(float));
 
-    mesh_filter_->getFilteredDepth(reinterpret_cast<float *>(&filtered_depth_msg.data[0]));
+    mesh_filter_->getFilteredDepth(reinterpret_cast<float*>(&filtered_depth_msg.data[0]));
     pub_filtered_depth_image_.publish(filtered_depth_msg, *info_msg);
 
     sensor_msgs::Image label_msg;
@@ -407,7 +407,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     label_msg.is_bigendian = depth_msg->is_bigendian;
     label_msg.step = w * sizeof(unsigned int);
     label_msg.data.resize(img_size * sizeof(unsigned int));
-    mesh_filter_->getFilteredLabels(reinterpret_cast<unsigned int *>(&label_msg.data[0]));
+    mesh_filter_->getFilteredLabels(reinterpret_cast<unsigned int*>(&label_msg.data[0]));
 
     pub_filtered_label_image_.publish(label_msg, *info_msg);
   }
@@ -425,8 +425,8 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     filtered_msg.data.resize(img_size * sizeof(unsigned short));
     if (filtered_data.size() < img_size)
       filtered_data.resize(img_size);
-    mesh_filter_->getFilteredDepth(reinterpret_cast<float *>(&filtered_data[0]));
-    unsigned short *tmp_ptr = (unsigned short *)&filtered_msg.data[0];
+    mesh_filter_->getFilteredDepth(reinterpret_cast<float*>(&filtered_data[0]));
+    unsigned short* tmp_ptr = (unsigned short*)&filtered_msg.data[0];
     for (std::size_t i = 0; i < img_size; ++i)
     {
       tmp_ptr[i] = (unsigned short)(filtered_data[i] * 1000 + 0.5);
@@ -444,7 +444,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
 
     if (is_u_short)
     {
-      const uint16_t *input_row = reinterpret_cast<const uint16_t *>(&depth_msg->data[0]);
+      const uint16_t* input_row = reinterpret_cast<const uint16_t*>(&depth_msg->data[0]);
 
       for (int y = skip_vertical_pixels_; y < h_bound; ++y, labels_row += w, input_row += w)
         for (int x = skip_horizontal_pixels_; x < w_bound; ++x)
@@ -474,7 +474,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     }
     else
     {
-      const float *input_row = reinterpret_cast<const float *>(&depth_msg->data[0]);
+      const float* input_row = reinterpret_cast<const float*>(&depth_msg->data[0]);
 
       for (int y = skip_vertical_pixels_; y < h_bound; ++y, labels_row += w, input_row += w)
         for (int x = skip_horizontal_pixels_; x < w_bound; ++x)

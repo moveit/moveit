@@ -59,24 +59,24 @@ namespace fs = boost::filesystem;
 // ******************************************************************************************
 // Outer User Interface for MoveIt Configuration Assistant
 // ******************************************************************************************
-AuthorInformationWidget::AuthorInformationWidget(QWidget *parent,
+AuthorInformationWidget::AuthorInformationWidget(QWidget* parent,
                                                  moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
   layout->setAlignment(Qt::AlignTop);
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header =
+  HeaderWidget* header =
       new HeaderWidget("Author Information", "Specify contact information of the author and initial maintainer of the "
                                              "generated package. catkin requires valid details in the package's "
                                              "package.xml",
                        this);
   layout->addWidget(header);
 
-  QLabel *name_title = new QLabel(this);
+  QLabel* name_title = new QLabel(this);
   name_title->setText("Name of the maintainer this MoveIt! configuration:");
   layout->addWidget(name_title);
 
@@ -84,7 +84,7 @@ AuthorInformationWidget::AuthorInformationWidget(QWidget *parent,
   connect(name_edit_, SIGNAL(editingFinished()), this, SLOT(edited_name()));
   layout->addWidget(name_edit_);
 
-  QLabel *email_title = new QLabel(this);
+  QLabel* email_title = new QLabel(this);
   email_title->setText("Email of the maintainer of this MoveIt! configuration:");
   layout->addWidget(email_title);
 

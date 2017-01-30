@@ -71,7 +71,7 @@ public:
   // Public Functions
   // ******************************************************************************************
 
-  RobotPosesWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  RobotPosesWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /// Recieved when this widget is chosen from the navigation menu
   virtual void focusGiven();
@@ -79,21 +79,21 @@ public:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QTableWidget *data_table_;
-  QPushButton *btn_edit_;
-  QPushButton *btn_delete_;
-  QPushButton *btn_save_;
-  QPushButton *btn_cancel_;
-  QStackedLayout *stacked_layout_;
-  QScrollArea *scroll_area_;
-  QVBoxLayout *column2_;
-  QLineEdit *pose_name_field_;
-  QComboBox *group_name_field_;
-  QWidget *joint_list_widget_;
-  QVBoxLayout *joint_list_layout_;
-  QWidget *pose_list_widget_;
-  QWidget *pose_edit_widget_;
-  QLabel *collision_warning_;
+  QTableWidget* data_table_;
+  QPushButton* btn_edit_;
+  QPushButton* btn_delete_;
+  QPushButton* btn_save_;
+  QPushButton* btn_cancel_;
+  QStackedLayout* stacked_layout_;
+  QScrollArea* scroll_area_;
+  QVBoxLayout* column2_;
+  QLineEdit* pose_name_field_;
+  QComboBox* group_name_field_;
+  QWidget* joint_list_widget_;
+  QVBoxLayout* joint_list_layout_;
+  QWidget* pose_list_widget_;
+  QWidget* pose_edit_widget_;
+  QLabel* collision_warning_;
 
 private Q_SLOTS:
 
@@ -123,7 +123,7 @@ private Q_SLOTS:
   void cancelEditing();
 
   /// Run this whenever the group is changed
-  void loadJointSliders(const QString &selected);
+  void loadJointSliders(const QString& selected);
 
   /// Show the robot in its default joint positions
   void showDefaultPose();
@@ -137,7 +137,7 @@ private Q_SLOTS:
    * @param name - name of joint being changed
    * @param value - value of joint
    */
-  void updateRobotModel(const std::string &name, double value);
+  void updateRobotModel(const std::string& name, double value);
 
   /// Publishes a joint state message based on all the slider locations in a planning group, to rviz
   void publishJoints();
@@ -157,7 +157,7 @@ private:
   std::map<std::string, double> joint_state_map_;
 
   /// The joints currently in the selected planning group
-  std::vector<const robot_model::JointModel *> joint_models_;
+  std::vector<const robot_model::JointModel*> joint_models_;
 
   /// Remember the publisher for quick publishing later
   ros::Publisher pub_robot_state_;
@@ -177,21 +177,21 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::GroupState *findPoseByName(const std::string &name);
+  srdf::Model::GroupState* findPoseByName(const std::string& name);
 
   /**
    * Create the main list view of poses for robot
    *
    * @return the widget
    */
-  QWidget *createContentsWidget();
+  QWidget* createContentsWidget();
 
   /**
    * Create the screen for editing poses
    *
    * @return the widget
    */
-  QWidget *createEditWidget();
+  QWidget* createEditWidget();
 
   /**
    * Load the robot poses into the table
@@ -210,12 +210,12 @@ private:
    *
    * @param name name of pose
    */
-  void edit(const std::string &name);
+  void edit(const std::string& name);
 
   /**
    * Show the robot in the current pose
    */
-  void showPose(srdf::Model::GroupState *pose);
+  void showPose(srdf::Model::GroupState* pose);
 };
 
 // ******************************************************************************************
@@ -238,7 +238,7 @@ public:
    * @param parent - parent QWidget
    * @param joint_model_ - a ptr reference to the joint this widget represents
    */
-  SliderWidget(QWidget *parent, const robot_model::JointModel *joint_model, double init_value);
+  SliderWidget(QWidget* parent, const robot_model::JointModel* joint_model, double init_value);
 
   /**
    * Deconstructor
@@ -249,9 +249,9 @@ public:
   // Qt Components
   // ******************************************************************************************
 
-  QLabel *joint_label_;
-  QSlider *joint_slider_;
-  QLineEdit *joint_value_;
+  QLabel* joint_label_;
+  QSlider* joint_slider_;
+  QLineEdit* joint_value_;
 
 private Q_SLOTS:
 
@@ -272,7 +272,7 @@ Q_SIGNALS:
   // ******************************************************************************************
 
   /// Indicate joint name and value when slider widget changed
-  void jointValueChanged(const std::string &name, double value);
+  void jointValueChanged(const std::string& name, double value);
 
 private:
   // ******************************************************************************************
@@ -280,7 +280,7 @@ private:
   // ******************************************************************************************
 
   // Ptr to the joint's data
-  const robot_model::JointModel *joint_model_;
+  const robot_model::JointModel* joint_model_;
 
   // Max & min position
   double max_position_;

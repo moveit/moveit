@@ -50,10 +50,10 @@ const std::string Trajectory::TRAJECTORY_SET_END_POSE_STRING = "Set end pose";
 const std::string Trajectory::TRAJECTORY_EDIT_CONTROL_FRAME_STRING = "Edit control frame";
 const std::string Trajectory::TRAJECTORY_FIX_CONTROL_FRAME_STRING = "Fix control frame";
 
-Trajectory::Trajectory(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
-                       rviz::DisplayContext *context, const std::string &name, const std::string &frame_id,
-                       const robot_interaction::RobotInteraction::EndEffector &eef, const geometry_msgs::Pose &pose,
-                       double scale, const GripperMarker::GripperMarkerState &state, unsigned int nwaypoints,
+Trajectory::Trajectory(const robot_state::RobotState& robot_state, Ogre::SceneNode* parent_node,
+                       rviz::DisplayContext* context, const std::string& name, const std::string& frame_id,
+                       const robot_interaction::RobotInteraction::EndEffector& eef, const geometry_msgs::Pose& pose,
+                       double scale, const GripperMarker::GripperMarkerState& state, unsigned int nwaypoints,
                        bool is_selected, bool visible_x, bool visible_y, bool visible_z)
   : dragging_(false), nwaypoints_(nwaypoints), control_marker_mode_(CONTROL_MARKER_FIXED)
 {
@@ -62,12 +62,12 @@ Trajectory::Trajectory(const robot_state::RobotState &robot_state, Ogre::SceneNo
   createHandMarker();
 }
 
-void Trajectory::createControlMarker(const robot_state::RobotState &robot_state, Ogre::SceneNode *parent_node,
-                                     rviz::DisplayContext *context, const std::string &name,
-                                     const std::string &frame_id,
-                                     const robot_interaction::RobotInteraction::EndEffector &eef,
-                                     const geometry_msgs::Pose &pose, double scale,
-                                     const GripperMarker::GripperMarkerState &state, bool is_selected, bool visible_x,
+void Trajectory::createControlMarker(const robot_state::RobotState& robot_state, Ogre::SceneNode* parent_node,
+                                     rviz::DisplayContext* context, const std::string& name,
+                                     const std::string& frame_id,
+                                     const robot_interaction::RobotInteraction::EndEffector& eef,
+                                     const geometry_msgs::Pose& pose, double scale,
+                                     const GripperMarker::GripperMarkerState& state, bool is_selected, bool visible_x,
                                      bool visible_y, bool visible_z)
 {
   GripperMarkerPtr control(
@@ -145,21 +145,21 @@ void Trajectory::createEndMarker()
 
 void Trajectory::connectControlMarker()
 {
-  control_marker->connect(this, SLOT(trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  control_marker->connect(this, SLOT(trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 }
 
 void Trajectory::connectHandMarker()
 {
-  hand_marker->connect(this, SLOT(handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  hand_marker->connect(this, SLOT(handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 }
 
 void Trajectory::connectStartMarker()
 {
-  start_marker->connect(this, SLOT(startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  start_marker->connect(this, SLOT(startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 }
 void Trajectory::connectEndMarker()
 {
-  end_marker->connect(this, SLOT(endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &)));
+  end_marker->connect(this, SLOT(endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback&)));
 }
 
 void Trajectory::rebuildWayPointMarkers()
@@ -205,7 +205,7 @@ void Trajectory::rebuildWayPointMarkers()
   }
 }
 
-void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void Trajectory::trajectoryMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
   if (feedback.event_type == feedback.MENU_SELECT)
   {
@@ -334,15 +334,15 @@ void Trajectory::fixControlFrame()
   JobProcessing::addMainLoopJob(boost::bind(&benchmark_tool::Trajectory::connectControlMarker, this));
 }
 
-void Trajectory::startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void Trajectory::startMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
 }
 
-void Trajectory::endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void Trajectory::endMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
 }
 
-void Trajectory::handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback &feedback)
+void Trajectory::handMarkerFeedback(visualization_msgs::InteractiveMarkerFeedback& feedback)
 {
 }
 

@@ -50,12 +50,12 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 typedef std::pair<geometry_msgs::Point, geometry_msgs::Quaternion> LinkConstraintPair;
 typedef std::map<std::string, LinkConstraintPair> LinkConstraintMap;
 
-void collectLinkConstraints(const moveit_msgs::Constraints &constraints, LinkConstraintMap &lcmap)
+void collectLinkConstraints(const moveit_msgs::Constraints& constraints, LinkConstraintMap& lcmap)
 {
   for (std::size_t i = 0; i < constraints.position_constraints.size(); ++i)
   {
     LinkConstraintPair lcp;
-    const moveit_msgs::PositionConstraint &pc = constraints.position_constraints[i];
+    const moveit_msgs::PositionConstraint& pc = constraints.position_constraints[i];
     lcp.first = pc.constraint_region.primitive_poses[0].position;
     lcmap[constraints.position_constraints[i].link_name] = lcp;
   }
@@ -75,7 +75,7 @@ void collectLinkConstraints(const moveit_msgs::Constraints &constraints, LinkCon
   }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "save_warehouse_as_text", ros::init_options::AnonymousName);
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     if (pss.getPlanningScene(pswm, scene_names[i]))
     {
       ROS_INFO("Saving scene '%s'", scene_names[i].c_str());
-      psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene &>(*pswm));
+      psm.getPlanningScene()->setPlanningSceneMsg(static_cast<const moveit_msgs::PlanningScene&>(*pswm));
       std::ofstream fout((scene_names[i] + ".scene").c_str());
       psm.getPlanningScene()->saveGeometryToStream(fout);
       fout.close();

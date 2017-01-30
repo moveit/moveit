@@ -43,8 +43,8 @@
 namespace pick_place
 {
 ApproachAndTranslateStage::ApproachAndTranslateStage(
-    const planning_scene::PlanningSceneConstPtr &scene,
-    const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix)
+    const planning_scene::PlanningSceneConstPtr& scene,
+    const collision_detection::AllowedCollisionMatrixConstPtr& collision_matrix)
   : ManipulationStage("approach & translate"), planning_scene_(scene), collision_matrix_(collision_matrix)
 {
   max_goal_count_ = GetGlobalPickPlaceParams().max_goal_count_;
@@ -55,10 +55,10 @@ ApproachAndTranslateStage::ApproachAndTranslateStage(
 
 namespace
 {
-bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
-                          const collision_detection::AllowedCollisionMatrix *collision_matrix, bool verbose,
-                          const trajectory_msgs::JointTrajectory *grasp_posture, robot_state::RobotState *state,
-                          const robot_state::JointModelGroup *group, const double *joint_group_variable_values)
+bool isStateCollisionFree(const planning_scene::PlanningScene* planning_scene,
+                          const collision_detection::AllowedCollisionMatrix* collision_matrix, bool verbose,
+                          const trajectory_msgs::JointTrajectory* grasp_posture, robot_state::RobotState* state,
+                          const robot_state::JointModelGroup* group, const double* joint_group_variable_values)
 {
   state->setJointGroupPositions(group, joint_group_variable_values);
 
@@ -89,7 +89,7 @@ bool isStateCollisionFree(const planning_scene::PlanningScene *planning_scene,
   return planning_scene->isStateFeasible(*state);
 }
 
-bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state::RobotState &reference_state,
+bool samplePossibleGoalStates(const ManipulationPlanPtr& plan, const robot_state::RobotState& reference_state,
                               double min_distance, unsigned int attempts)
 {
   // initialize with scene state
@@ -120,9 +120,9 @@ bool samplePossibleGoalStates(const ManipulationPlanPtr &plan, const robot_state
 
 // This function is called during trajectory execution, after the gripper is closed, to attach the currently gripped
 // object
-bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_data,
-                         const trajectory_msgs::JointTrajectory &detach_posture,
-                         const plan_execution::ExecutableMotionPlan *motion_plan)
+bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_data,
+                         const trajectory_msgs::JointTrajectory& detach_posture,
+                         const plan_execution::ExecutableMotionPlan* motion_plan)
 {
   ROS_DEBUG_NAMED("manipulation", "Applying attached object diff to maintained planning scene (attaching/detaching "
                                   "object to end effector)");
@@ -143,9 +143,9 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr &shared_plan_d
 }
 
 // Add the close end effector trajectory to the overall plan (after the approach trajectory, before the retreat)
-void addGripperTrajectory(const ManipulationPlanPtr &plan,
-                          const collision_detection::AllowedCollisionMatrixConstPtr &collision_matrix,
-                          const std::string &name)
+void addGripperTrajectory(const ManipulationPlanPtr& plan,
+                          const collision_detection::AllowedCollisionMatrixConstPtr& collision_matrix,
+                          const std::string& name)
 {
   // Check if a "closed" end effector configuration was specified
   if (!plan->retreat_posture_.joint_names.empty())
@@ -183,9 +183,9 @@ void addGripperTrajectory(const ManipulationPlanPtr &plan,
 
 }  // annonymous namespace
 
-bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
+bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 {
-  const robot_model::JointModelGroup *jmg = plan->shared_data_->planning_group_;
+  const robot_model::JointModelGroup* jmg = plan->shared_data_->planning_group_;
   // compute what the maximum distance reported between any two states in the planning group could be, and keep 1% of
   // that;
   // this is the minimum distance between sampled goal states
@@ -198,9 +198,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr &plan) const
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local;
   // otherwise, the frame is global
-  bool approach_direction_is_global_frame =
-      !robot_state::Transforms::sameFrame(plan->approach_.direction.header.frame_id,
-                                          plan->shared_data_->ik_link_->getName());
+  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(
+      plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
   bool retreat_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,
                                                                                plan->shared_data_->ik_link_->getName());
 

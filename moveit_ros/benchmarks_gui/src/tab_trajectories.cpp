@@ -53,7 +53,7 @@ void MainWindow::createTrajectoryButtonClicked(void)
   std::stringstream ss;
 
   {
-    const planning_scene_monitor::LockedPlanningSceneRO &ps = scene_display_->getPlanningSceneRO();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = scene_display_->getPlanningSceneRO();
     if (!ps || robot_interaction_->getActiveEndEffectors().empty())
     {
       if (!ps)
@@ -113,7 +113,7 @@ void MainWindow::populateTrajectoriesList(void)
   ui_.trajectory_list->clear();
   for (TrajectoryMap::iterator it = trajectories_.begin(); it != trajectories_.end(); ++it)
   {
-    QListWidgetItem *item = new QListWidgetItem(QString(it->first.c_str()));
+    QListWidgetItem* item = new QListWidgetItem(QString(it->first.c_str()));
     ui_.trajectory_list->addItem(item);
   }
   ui_.trajectory_list->blockSignals(old_signal_state);
@@ -123,7 +123,7 @@ void MainWindow::trajectorySelectionChanged(void)
 {
   for (unsigned int i = 0; i < ui_.trajectory_list->count(); ++i)
   {
-    QListWidgetItem *item = ui_.trajectory_list->item(i);
+    QListWidgetItem* item = ui_.trajectory_list->item(i);
     std::string name = item->text().toStdString();
     if (trajectories_.find(name) != trajectories_.end() && item->isSelected())
     {
@@ -153,14 +153,14 @@ void MainWindow::removeTrajectoryButtonClicked(void)
       case QMessageBox::Yes:
       {
         // Go through the list of trajectories, and delete those selected
-        QList<QListWidgetItem *> found_items = ui_.trajectory_list->selectedItems();
+        QList<QListWidgetItem*> found_items = ui_.trajectory_list->selectedItems();
         for (std::size_t i = 0; i < found_items.size(); i++)
         {
           try
           {
             trajectory_constraints_storage_->removeTrajectoryConstraints(found_items[i]->text().toStdString());
           }
-          catch (std::runtime_error &ex)
+          catch (std::runtime_error& ex)
           {
             ROS_ERROR("%s", ex.what());
           }
@@ -187,10 +187,11 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
       trajectory_constraints_storage_->getKnownTrajectoryConstraints(ui_.trajectories_filter_text->text().toStdString(),
                                                                      names);
     }
-    catch (std::runtime_error &ex)
+    catch (std::runtime_error& ex)
     {
       QMessageBox::warning(this, "Cannot query the database", QString("Wrongly formatted regular expression for "
-                                                                      "trajectory contraints: ").append(ex.what()));
+                                                                      "trajectory contraints: ")
+                                                                  .append(ex.what()));
       return;
     }
 
@@ -203,7 +204,7 @@ void MainWindow::loadTrajectoriesFromDBButtonClicked(void)
       {
         got_constraint = trajectory_constraints_storage_->getTrajectoryConstraints(tc, names[i]);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -315,7 +316,7 @@ void MainWindow::saveTrajectoriesOnDBButtonClicked(void)
       {
         trajectory_constraints_storage_->addTrajectoryConstraints(tc, it->first);
       }
-      catch (std::runtime_error &ex)
+      catch (std::runtime_error& ex)
       {
         ROS_ERROR("Cannot save trajectory constraint: %s", ex.what());
       }
@@ -351,9 +352,9 @@ void MainWindow::trajectoryExecuteButtonClicked()
 
     if (waypoint_poses.size() > 0)
     {
-      robot_state::RobotState &rstate = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst();
+      robot_state::RobotState& rstate = scene_display_->getPlanningSceneRW()->getCurrentStateNonConst();
       rstate.update();
-      const robot_model::JointModelGroup *jmg =
+      const robot_model::JointModelGroup* jmg =
           rstate.getJointModelGroup(ui_.planning_group_combo->currentText().toStdString());
 
       std::vector<robot_state::RobotStatePtr> traj;
@@ -367,7 +368,7 @@ void MainWindow::trajectoryExecuteButtonClicked()
   }
 }
 
-void MainWindow::animateTrajectory(const std::vector<robot_state::RobotStatePtr> &traj)
+void MainWindow::animateTrajectory(const std::vector<robot_state::RobotStatePtr>& traj)
 {
   for (std::size_t i = 0; i < traj.size(); ++i)
   {

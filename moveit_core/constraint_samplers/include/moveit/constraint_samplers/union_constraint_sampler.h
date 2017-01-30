@@ -95,8 +95,8 @@ public:
    *
    * @return
    */
-  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr &scene, const std::string &group_name,
-                         const std::vector<ConstraintSamplerPtr> &samplers);
+  UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
+                         const std::vector<ConstraintSamplerPtr>& samplers);
 
   /**
    * \brief Gets the sorted internal list of constraint samplers
@@ -104,7 +104,7 @@ public:
    *
    * @return The sorted internal list of constraint samplers
    */
-  const std::vector<ConstraintSamplerPtr> &getSamplers() const
+  const std::vector<ConstraintSamplerPtr>& getSamplers() const
   {
     return samplers_;
   }
@@ -117,7 +117,7 @@ public:
    *
    * @return Always true
    */
-  virtual bool configure(const moveit_msgs::Constraints &constr)
+  virtual bool configure(const moveit_msgs::Constraints& constr)
   {
     return true;
   }
@@ -129,7 +129,7 @@ public:
    *
    * @return Always true
    */
-  virtual bool canService(const moveit_msgs::Constraints &constr) const
+  virtual bool canService(const moveit_msgs::Constraints& constr) const
   {
     return true;
   }
@@ -149,17 +149,17 @@ public:
    *
    * @return True if all invidual samplers return true
    */
-  virtual bool sample(robot_state::RobotState &state, const robot_state::RobotState &reference_state,
+  virtual bool sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
                       unsigned int max_attempts);
 
-  virtual bool project(robot_state::RobotState &state, unsigned int max_attempts);
+  virtual bool project(robot_state::RobotState& state, unsigned int max_attempts);
 
   /**
    * \brief Get the name of the constraint sampler, for debugging purposes
    * should be in CamelCase format.
    * \return string of name
    */
-  virtual const std::string &getName() const
+  virtual const std::string& getName() const
   {
     static const std::string SAMPLER_NAME = "UnionConstraintSampler";
     return SAMPLER_NAME;

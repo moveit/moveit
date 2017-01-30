@@ -76,15 +76,15 @@ public:
       edit_method = e;
     }
 
-    virtual void clamp(OMPLDynamicReconfigureConfig &config, const OMPLDynamicReconfigureConfig &max,
-                       const OMPLDynamicReconfigureConfig &min) const = 0;
-    virtual void calcLevel(uint32_t &level, const OMPLDynamicReconfigureConfig &config1,
-                           const OMPLDynamicReconfigureConfig &config2) const = 0;
-    virtual void fromServer(const ros::NodeHandle &nh, OMPLDynamicReconfigureConfig &config) const = 0;
-    virtual void toServer(const ros::NodeHandle &nh, const OMPLDynamicReconfigureConfig &config) const = 0;
-    virtual bool fromMessage(const dynamic_reconfigure::Config &msg, OMPLDynamicReconfigureConfig &config) const = 0;
-    virtual void toMessage(dynamic_reconfigure::Config &msg, const OMPLDynamicReconfigureConfig &config) const = 0;
-    virtual void getValue(const OMPLDynamicReconfigureConfig &config, boost::any &val) const = 0;
+    virtual void clamp(OMPLDynamicReconfigureConfig& config, const OMPLDynamicReconfigureConfig& max,
+                       const OMPLDynamicReconfigureConfig& min) const = 0;
+    virtual void calcLevel(uint32_t& level, const OMPLDynamicReconfigureConfig& config1,
+                           const OMPLDynamicReconfigureConfig& config2) const = 0;
+    virtual void fromServer(const ros::NodeHandle& nh, OMPLDynamicReconfigureConfig& config) const = 0;
+    virtual void toServer(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config) const = 0;
+    virtual bool fromMessage(const dynamic_reconfigure::Config& msg, OMPLDynamicReconfigureConfig& config) const = 0;
+    virtual void toMessage(dynamic_reconfigure::Config& msg, const OMPLDynamicReconfigureConfig& config) const = 0;
+    virtual void getValue(const OMPLDynamicReconfigureConfig& config, boost::any& val) const = 0;
   };
 
   template <class T>
@@ -99,8 +99,8 @@ public:
 
     T(OMPLDynamicReconfigureConfig::*field);
 
-    virtual void clamp(OMPLDynamicReconfigureConfig &config, const OMPLDynamicReconfigureConfig &max,
-                       const OMPLDynamicReconfigureConfig &min) const
+    virtual void clamp(OMPLDynamicReconfigureConfig& config, const OMPLDynamicReconfigureConfig& max,
+                       const OMPLDynamicReconfigureConfig& min) const
     {
       if (config.*field > max.*field)
         config.*field = max.*field;
@@ -109,34 +109,34 @@ public:
         config.*field = min.*field;
     }
 
-    virtual void calcLevel(uint32_t &comb_level, const OMPLDynamicReconfigureConfig &config1,
-                           const OMPLDynamicReconfigureConfig &config2) const
+    virtual void calcLevel(uint32_t& comb_level, const OMPLDynamicReconfigureConfig& config1,
+                           const OMPLDynamicReconfigureConfig& config2) const
     {
       if (config1.*field != config2.*field)
         comb_level |= level;
     }
 
-    virtual void fromServer(const ros::NodeHandle &nh, OMPLDynamicReconfigureConfig &config) const
+    virtual void fromServer(const ros::NodeHandle& nh, OMPLDynamicReconfigureConfig& config) const
     {
       nh.getParam(name, config.*field);
     }
 
-    virtual void toServer(const ros::NodeHandle &nh, const OMPLDynamicReconfigureConfig &config) const
+    virtual void toServer(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config) const
     {
       nh.setParam(name, config.*field);
     }
 
-    virtual bool fromMessage(const dynamic_reconfigure::Config &msg, OMPLDynamicReconfigureConfig &config) const
+    virtual bool fromMessage(const dynamic_reconfigure::Config& msg, OMPLDynamicReconfigureConfig& config) const
     {
       return dynamic_reconfigure::ConfigTools::getParameter(msg, name, config.*field);
     }
 
-    virtual void toMessage(dynamic_reconfigure::Config &msg, const OMPLDynamicReconfigureConfig &config) const
+    virtual void toMessage(dynamic_reconfigure::Config& msg, const OMPLDynamicReconfigureConfig& config) const
     {
       dynamic_reconfigure::ConfigTools::appendParameter(msg, name, config.*field);
     }
 
-    virtual void getValue(const OMPLDynamicReconfigureConfig &config, boost::any &val) const
+    virtual void getValue(const OMPLDynamicReconfigureConfig& config, boost::any& val) const
     {
       val = config.*field;
     }
@@ -158,10 +158,10 @@ public:
     std::vector<AbstractParamDescriptionConstPtr> abstract_parameters;
     bool state;
 
-    virtual void toMessage(dynamic_reconfigure::Config &msg, const boost::any &config) const = 0;
-    virtual bool fromMessage(const dynamic_reconfigure::Config &msg, boost::any &config) const = 0;
-    virtual void updateParams(boost::any &cfg, OMPLDynamicReconfigureConfig &top) const = 0;
-    virtual void setInitialState(boost::any &cfg) const = 0;
+    virtual void toMessage(dynamic_reconfigure::Config& msg, const boost::any& config) const = 0;
+    virtual bool fromMessage(const dynamic_reconfigure::Config& msg, boost::any& config) const = 0;
+    virtual void updateParams(boost::any& cfg, OMPLDynamicReconfigureConfig& top) const = 0;
+    virtual void setInitialState(boost::any& cfg) const = 0;
 
     void convertParams()
     {
@@ -182,16 +182,16 @@ public:
     {
     }
 
-    GroupDescription(const GroupDescription<T, PT> &g)
+    GroupDescription(const GroupDescription<T, PT>& g)
       : AbstractGroupDescription(g.name, g.type, g.parent, g.id, g.state), field(g.field), groups(g.groups)
     {
       parameters = g.parameters;
       abstract_parameters = g.abstract_parameters;
     }
 
-    virtual bool fromMessage(const dynamic_reconfigure::Config &msg, boost::any &cfg) const
+    virtual bool fromMessage(const dynamic_reconfigure::Config& msg, boost::any& cfg) const
     {
-      PT *config = boost::any_cast<PT *>(cfg);
+      PT* config = boost::any_cast<PT*>(cfg);
       if (!dynamic_reconfigure::ConfigTools::getGroupState(msg, name, (*config).*field))
         return false;
 
@@ -205,10 +205,10 @@ public:
       return true;
     }
 
-    virtual void setInitialState(boost::any &cfg) const
+    virtual void setInitialState(boost::any& cfg) const
     {
-      PT *config = boost::any_cast<PT *>(cfg);
-      T *group = &((*config).*field);
+      PT* config = boost::any_cast<PT*>(cfg);
+      T* group = &((*config).*field);
       group->state = state;
 
       for (std::vector<AbstractGroupDescriptionConstPtr>::const_iterator i = groups.begin(); i != groups.end(); i++)
@@ -218,11 +218,11 @@ public:
       }
     }
 
-    virtual void updateParams(boost::any &cfg, OMPLDynamicReconfigureConfig &top) const
+    virtual void updateParams(boost::any& cfg, OMPLDynamicReconfigureConfig& top) const
     {
-      PT *config = boost::any_cast<PT *>(cfg);
+      PT* config = boost::any_cast<PT*>(cfg);
 
-      T *f = &((*config).*field);
+      T* f = &((*config).*field);
       f->setParams(top, abstract_parameters);
 
       for (std::vector<AbstractGroupDescriptionConstPtr>::const_iterator i = groups.begin(); i != groups.end(); i++)
@@ -232,7 +232,7 @@ public:
       }
     }
 
-    virtual void toMessage(dynamic_reconfigure::Config &msg, const boost::any &cfg) const
+    virtual void toMessage(dynamic_reconfigure::Config& msg, const boost::any& cfg) const
     {
       const PT config = boost::any_cast<PT>(cfg);
       dynamic_reconfigure::ConfigTools::appendGroup<T>(msg, name, id, parent, config.*field);
@@ -256,7 +256,7 @@ public:
       name = "Default";
     }
 
-    void setParams(OMPLDynamicReconfigureConfig &config, const std::vector<AbstractParamDescriptionConstPtr> params)
+    void setParams(OMPLDynamicReconfigureConfig& config, const std::vector<AbstractParamDescriptionConstPtr> params)
     {
       for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = params.begin(); i != params.end(); i++)
       {
@@ -281,10 +281,10 @@ public:
   std::string link_for_exploration_tree;
   //#line 255 "/opt/ros/fuerte/stacks/dynamic_reconfigure/templates/ConfigType.h"
 
-  bool __fromMessage__(dynamic_reconfigure::Config &msg)
+  bool __fromMessage__(dynamic_reconfigure::Config& msg)
   {
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
-    const std::vector<AbstractGroupDescriptionConstPtr> &__group_descriptions__ = __getGroupDescriptions__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
+    const std::vector<AbstractGroupDescriptionConstPtr>& __group_descriptions__ = __getGroupDescriptions__();
 
     int count = 0;
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
@@ -327,9 +327,9 @@ public:
 
   // This version of __toMessage__ is used during initialization of
   // statics when __getParamDescriptions__ can't be called yet.
-  void __toMessage__(dynamic_reconfigure::Config &msg,
-                     const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__,
-                     const std::vector<AbstractGroupDescriptionConstPtr> &__group_descriptions__) const
+  void __toMessage__(dynamic_reconfigure::Config& msg,
+                     const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__,
+                     const std::vector<AbstractGroupDescriptionConstPtr>& __group_descriptions__) const
   {
     dynamic_reconfigure::ConfigTools::clear(msg);
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
@@ -346,31 +346,31 @@ public:
     }
   }
 
-  void __toMessage__(dynamic_reconfigure::Config &msg) const
+  void __toMessage__(dynamic_reconfigure::Config& msg) const
   {
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
-    const std::vector<AbstractGroupDescriptionConstPtr> &__group_descriptions__ = __getGroupDescriptions__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
+    const std::vector<AbstractGroupDescriptionConstPtr>& __group_descriptions__ = __getGroupDescriptions__();
     __toMessage__(msg, __param_descriptions__, __group_descriptions__);
   }
 
-  void __toServer__(const ros::NodeHandle &nh) const
+  void __toServer__(const ros::NodeHandle& nh) const
   {
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
          i != __param_descriptions__.end(); i++)
       (*i)->toServer(nh, *this);
   }
 
-  void __fromServer__(const ros::NodeHandle &nh)
+  void __fromServer__(const ros::NodeHandle& nh)
   {
     static bool setup = false;
 
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
          i != __param_descriptions__.end(); i++)
       (*i)->fromServer(nh, *this);
 
-    const std::vector<AbstractGroupDescriptionConstPtr> &__group_descriptions__ = __getGroupDescriptions__();
+    const std::vector<AbstractGroupDescriptionConstPtr>& __group_descriptions__ = __getGroupDescriptions__();
     for (std::vector<AbstractGroupDescriptionConstPtr>::const_iterator i = __group_descriptions__.begin();
          i != __group_descriptions__.end(); i++)
     {
@@ -385,17 +385,17 @@ public:
 
   void __clamp__()
   {
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
-    const OMPLDynamicReconfigureConfig &__max__ = __getMax__();
-    const OMPLDynamicReconfigureConfig &__min__ = __getMin__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
+    const OMPLDynamicReconfigureConfig& __max__ = __getMax__();
+    const OMPLDynamicReconfigureConfig& __min__ = __getMin__();
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
          i != __param_descriptions__.end(); i++)
       (*i)->clamp(*this, __max__, __min__);
   }
 
-  uint32_t __level__(const OMPLDynamicReconfigureConfig &config) const
+  uint32_t __level__(const OMPLDynamicReconfigureConfig& config) const
   {
-    const std::vector<AbstractParamDescriptionConstPtr> &__param_descriptions__ = __getParamDescriptions__();
+    const std::vector<AbstractParamDescriptionConstPtr>& __param_descriptions__ = __getParamDescriptions__();
     uint32_t level = 0;
     for (std::vector<AbstractParamDescriptionConstPtr>::const_iterator i = __param_descriptions__.begin();
          i != __param_descriptions__.end(); i++)
@@ -403,22 +403,22 @@ public:
     return level;
   }
 
-  static const dynamic_reconfigure::ConfigDescription &__getDescriptionMessage__();
-  static const OMPLDynamicReconfigureConfig &__getDefault__();
-  static const OMPLDynamicReconfigureConfig &__getMax__();
-  static const OMPLDynamicReconfigureConfig &__getMin__();
-  static const std::vector<AbstractParamDescriptionConstPtr> &__getParamDescriptions__();
-  static const std::vector<AbstractGroupDescriptionConstPtr> &__getGroupDescriptions__();
+  static const dynamic_reconfigure::ConfigDescription& __getDescriptionMessage__();
+  static const OMPLDynamicReconfigureConfig& __getDefault__();
+  static const OMPLDynamicReconfigureConfig& __getMax__();
+  static const OMPLDynamicReconfigureConfig& __getMin__();
+  static const std::vector<AbstractParamDescriptionConstPtr>& __getParamDescriptions__();
+  static const std::vector<AbstractGroupDescriptionConstPtr>& __getGroupDescriptions__();
 
 private:
-  static const OMPLDynamicReconfigureConfigStatics *__get_statics__();
+  static const OMPLDynamicReconfigureConfigStatics* __get_statics__();
 };
 
 template <>  // Max and min are ignored for strings.
 inline void
-OMPLDynamicReconfigureConfig::ParamDescription<std::string>::clamp(OMPLDynamicReconfigureConfig &config,
-                                                                   const OMPLDynamicReconfigureConfig &max,
-                                                                   const OMPLDynamicReconfigureConfig &min) const
+OMPLDynamicReconfigureConfig::ParamDescription<std::string>::clamp(OMPLDynamicReconfigureConfig& config,
+                                                                   const OMPLDynamicReconfigureConfig& max,
+                                                                   const OMPLDynamicReconfigureConfig& min) const
 {
   return;
 }
@@ -472,7 +472,7 @@ class OMPLDynamicReconfigureConfigStatics
   OMPLDynamicReconfigureConfig __default__;
   dynamic_reconfigure::ConfigDescription __description_message__;
 
-  static const OMPLDynamicReconfigureConfigStatics *get_instance()
+  static const OMPLDynamicReconfigureConfigStatics* get_instance()
   {
     // Split this off in a separate function because I know that
     // instance will get initialized the first time get_instance is
@@ -483,41 +483,41 @@ class OMPLDynamicReconfigureConfigStatics
   }
 };
 
-inline const dynamic_reconfigure::ConfigDescription &OMPLDynamicReconfigureConfig::__getDescriptionMessage__()
+inline const dynamic_reconfigure::ConfigDescription& OMPLDynamicReconfigureConfig::__getDescriptionMessage__()
 {
   return __get_statics__()->__description_message__;
 }
 
-inline const OMPLDynamicReconfigureConfig &OMPLDynamicReconfigureConfig::__getDefault__()
+inline const OMPLDynamicReconfigureConfig& OMPLDynamicReconfigureConfig::__getDefault__()
 {
   return __get_statics__()->__default__;
 }
 
-inline const OMPLDynamicReconfigureConfig &OMPLDynamicReconfigureConfig::__getMax__()
+inline const OMPLDynamicReconfigureConfig& OMPLDynamicReconfigureConfig::__getMax__()
 {
   return __get_statics__()->__max__;
 }
 
-inline const OMPLDynamicReconfigureConfig &OMPLDynamicReconfigureConfig::__getMin__()
+inline const OMPLDynamicReconfigureConfig& OMPLDynamicReconfigureConfig::__getMin__()
 {
   return __get_statics__()->__min__;
 }
 
-inline const std::vector<OMPLDynamicReconfigureConfig::AbstractParamDescriptionConstPtr> &
+inline const std::vector<OMPLDynamicReconfigureConfig::AbstractParamDescriptionConstPtr>&
 OMPLDynamicReconfigureConfig::__getParamDescriptions__()
 {
   return __get_statics__()->__param_descriptions__;
 }
 
-inline const std::vector<OMPLDynamicReconfigureConfig::AbstractGroupDescriptionConstPtr> &
+inline const std::vector<OMPLDynamicReconfigureConfig::AbstractGroupDescriptionConstPtr>&
 OMPLDynamicReconfigureConfig::__getGroupDescriptions__()
 {
   return __get_statics__()->__group_descriptions__;
 }
 
-inline const OMPLDynamicReconfigureConfigStatics *OMPLDynamicReconfigureConfig::__get_statics__()
+inline const OMPLDynamicReconfigureConfigStatics* OMPLDynamicReconfigureConfig::__get_statics__()
 {
-  const static OMPLDynamicReconfigureConfigStatics *statics;
+  const static OMPLDynamicReconfigureConfigStatics* statics;
 
   if (statics)  // Common case
     return statics;

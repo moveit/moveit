@@ -75,7 +75,7 @@ public:
    * \brief User interface for editing the default collision matrix list in an SRDF
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
-  DefaultCollisionsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+  DefaultCollisionsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
 
   /**
    * \brief Output Link Pairs to SRDF Format
@@ -134,20 +134,20 @@ private:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
-  QLabel *page_title_;
-  QTableWidget *collision_table_;
-  QVBoxLayout *layout_;
-  QLabel *density_value_label_;
-  QSlider *density_slider_;
-  QPushButton *btn_generate_;
-  QGroupBox *controls_box_;
-  QProgressBar *progress_bar_;
-  QLabel *progress_label_;
-  QCheckBox *collision_checkbox_;
-  QGroupBox *controls_box_bottom_;
-  QLabel *fraction_label_;
-  QSpinBox *fraction_spinbox_;
-  QTimer *update_timer_;
+  QLabel* page_title_;
+  QTableWidget* collision_table_;
+  QVBoxLayout* layout_;
+  QLabel* density_value_label_;
+  QSlider* density_slider_;
+  QPushButton* btn_generate_;
+  QGroupBox* controls_box_;
+  QProgressBar* progress_bar_;
+  QLabel* progress_label_;
+  QCheckBox* collision_checkbox_;
+  QGroupBox* controls_box_bottom_;
+  QLabel* fraction_label_;
+  QSpinBox* fraction_spinbox_;
+  QTimer* update_timer_;
 
   // ******************************************************************************************
   // Variables
@@ -168,7 +168,7 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
-  void generateCollisionTableThread(unsigned int *collision_progress);
+  void generateCollisionTableThread(unsigned int* collision_progress);
 
   /**
    * \brief Helper function to disable parts of GUI during computation

@@ -58,7 +58,7 @@ public:
 
 protected:
   /// Keep only the \e names that match \e regex
-  void filterNames(const std::string &regex, std::vector<std::string> &names) const;
+  void filterNames(const std::string& regex, std::vector<std::string>& names) const;
 
   warehouse_ros::DatabaseConnection::Ptr conn_;
 };

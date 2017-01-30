@@ -45,15 +45,15 @@ namespace ompl_interface
 class TSStateStorage
 {
 public:
-  TSStateStorage(const robot_model::RobotModelPtr &kmodel);
-  TSStateStorage(const robot_state::RobotState &start_state);
+  TSStateStorage(const robot_model::RobotModelPtr& kmodel);
+  TSStateStorage(const robot_state::RobotState& start_state);
   ~TSStateStorage();
 
-  robot_state::RobotState *getStateStorage() const;
+  robot_state::RobotState* getStateStorage() const;
 
 private:
   robot_state::RobotState start_state_;
-  mutable std::map<boost::thread::id, robot_state::RobotState *> thread_states_;
+  mutable std::map<boost::thread::id, robot_state::RobotState*> thread_states_;
   mutable boost::mutex lock_;
 };
 }

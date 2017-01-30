@@ -45,15 +45,15 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PassiveJointsWidget::PassiveJointsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PassiveJointsWidget::PassiveJointsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Top Header Area ------------------------------------------------
 
-  HeaderWidget *header = new HeaderWidget("Passive Joints", "Specify the set of passive joints (not actuated). Joint "
+  HeaderWidget* header = new HeaderWidget("Passive Joints", "Specify the set of passive joints (not actuated). Joint "
                                                             "state is not expected to be published for these joints.",
                                           this);
   layout->addWidget(header);
@@ -83,10 +83,10 @@ void PassiveJointsWidget::focusGiven()
   joints_widget_->clearContents();
 
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
+  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all joints
-  const std::vector<std::string> &joints = model->getJointModelNames();
+  const std::vector<std::string>& joints = model->getJointModelNames();
 
   if (joints.size() == 0)
   {
@@ -132,7 +132,7 @@ void PassiveJointsWidget::previewSelectedJoints(std::vector<std::string> joints)
 
   for (int i = 0; i < joints.size(); ++i)
   {
-    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
+    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
     // Check that a joint model was found
     if (!joint_model)

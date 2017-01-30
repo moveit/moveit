@@ -44,37 +44,37 @@ namespace
 struct ActiveContexts
 {
   boost::mutex mutex_;
-  std::set<planning_interface::PlanningContext *> contexts_;
+  std::set<planning_interface::PlanningContext*> contexts_;
 };
 
-static ActiveContexts &getActiveContexts()
+static ActiveContexts& getActiveContexts()
 {
   static ActiveContexts ac;
   return ac;
 }
 }
 
-planning_interface::PlanningContext::PlanningContext(const std::string &name, const std::string &group)
+planning_interface::PlanningContext::PlanningContext(const std::string& name, const std::string& group)
   : name_(name), group_(group)
 {
-  ActiveContexts &ac = getActiveContexts();
+  ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
   ac.contexts_.insert(this);
 }
 
 planning_interface::PlanningContext::~PlanningContext()
 {
-  ActiveContexts &ac = getActiveContexts();
+  ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
   ac.contexts_.erase(this);
 }
 
-void planning_interface::PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr &planning_scene)
+void planning_interface::PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
 {
   planning_scene_ = planning_scene;
 }
 
-void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanRequest &request)
+void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
 {
   request_ = request;
   if (request_.allowed_planning_time <= 0.0)
@@ -88,7 +88,7 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
-bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr &, const std::string &)
+bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
 {
   return true;
 }
@@ -99,27 +99,27 @@ std::string planning_interface::PlannerManager::getDescription() const
 }
 
 planning_interface::PlanningContextPtr planning_interface::PlannerManager::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr &planning_scene, const MotionPlanRequest &req) const
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const MotionPlanRequest& req) const
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);
 }
 
-void planning_interface::PlannerManager::getPlanningAlgorithms(std::vector<std::string> &algs) const
+void planning_interface::PlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
 {
   // nothing by default
   algs.clear();
 }
 
-void planning_interface::PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap &pcs)
+void planning_interface::PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap& pcs)
 {
   config_settings_ = pcs;
 }
 
 void planning_interface::PlannerManager::terminate() const
 {
-  ActiveContexts &ac = getActiveContexts();
+  ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
-  for (std::set<PlanningContext *>::iterator it = ac.contexts_.begin(); it != ac.contexts_.end(); ++it)
+  for (std::set<PlanningContext*>::iterator it = ac.contexts_.begin(); it != ac.contexts_.end(); ++it)
     (*it)->terminate();
 }

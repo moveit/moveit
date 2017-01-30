@@ -44,33 +44,33 @@
 
 namespace collision_detection
 {
-void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                                     const CollisionResult::ContactMap &con, const std_msgs::ColorRGBA &color,
-                                     const ros::Duration &lifetime, const double radius = 0.035);
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con, const std_msgs::ColorRGBA& color,
+                                     const ros::Duration& lifetime, const double radius = 0.035);
 
-void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                                     const CollisionResult::ContactMap &con);
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con);
 
 /// \todo add a class for managing cost sources
-void getCostMarkers(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                    std::set<CostSource> &cost_sources);
+void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                    std::set<CostSource>& cost_sources);
 
-void getCostMarkers(visualization_msgs::MarkerArray &arr, const std::string &frame_id,
-                    std::set<CostSource> &cost_sources, const std_msgs::ColorRGBA &color,
-                    const ros::Duration &lifetime);
+void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                    std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color,
+                    const ros::Duration& lifetime);
 
-double getTotalCost(const std::set<CostSource> &cost_sources);
+double getTotalCost(const std::set<CostSource>& cost_sources);
 
-void removeCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &cost_sources_to_remove,
+void removeCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& cost_sources_to_remove,
                        double overlap_fraction);
-void intersectCostSources(std::set<CostSource> &cost_sources, const std::set<CostSource> &a,
-                          const std::set<CostSource> &b);
-void removeOverlapping(std::set<CostSource> &cost_sources, double overlap_fraction);
+void intersectCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& a,
+                          const std::set<CostSource>& b);
+void removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction);
 
-bool getSensorPositioning(geometry_msgs::Point &point, const std::set<CostSource> &cost_sources);
+bool getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource>& cost_sources);
 
-void costSourceToMsg(const CostSource &cost_source, moveit_msgs::CostSource &msg);
-void contactToMsg(const Contact &contact, moveit_msgs::ContactInformation &msg);
+void costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg);
+void contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg);
 }
 
 #endif

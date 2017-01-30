@@ -48,14 +48,14 @@ namespace moveit_setup_assistant
 // ******************************************************************************************
 // ******************************************************************************************
 
-HeaderWidget::HeaderWidget(const std::string &title, const std::string &instructions, QWidget *parent) : QWidget(parent)
+HeaderWidget::HeaderWidget(const std::string& title, const std::string& instructions, QWidget* parent) : QWidget(parent)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
   layout->setAlignment(Qt::AlignTop);
 
   // Page Title
-  QLabel *page_title = new QLabel(this);
+  QLabel* page_title = new QLabel(this);
   page_title->setText(title.c_str());
   QFont page_title_font("Arial", 18, QFont::Bold);
   page_title->setFont(page_title_font);
@@ -64,7 +64,7 @@ HeaderWidget::HeaderWidget(const std::string &title, const std::string &instruct
   layout->setAlignment(page_title, Qt::AlignTop);
 
   // Page Instructions
-  QLabel *page_instructions = new QLabel(this);
+  QLabel* page_instructions = new QLabel(this);
   page_instructions->setText(instructions.c_str());
   page_instructions->setWordWrap(true);
   // page_instructions->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Expanding );
@@ -88,8 +88,8 @@ HeaderWidget::HeaderWidget(const std::string &title, const std::string &instruct
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
-LoadPathWidget::LoadPathWidget(const std::string &title, const std::string &instructions, const bool dir_only,
-                               const bool load_only, QWidget *parent)
+LoadPathWidget::LoadPathWidget(const std::string& title, const std::string& instructions, const bool dir_only,
+                               const bool load_only, QWidget* parent)
   : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
 {
   // Set frame graphics
@@ -99,13 +99,13 @@ LoadPathWidget::LoadPathWidget(const std::string &title, const std::string &inst
   setMidLineWidth(0);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Horizontal layout splitter
-  QHBoxLayout *hlayout = new QHBoxLayout();
+  QHBoxLayout* hlayout = new QHBoxLayout();
 
   // Widget Title
-  QLabel *widget_title = new QLabel(this);
+  QLabel* widget_title = new QLabel(this);
   widget_title->setText(title.c_str());
   QFont widget_title_font("Arial", 12, QFont::Bold);
   widget_title->setFont(widget_title_font);
@@ -113,7 +113,7 @@ LoadPathWidget::LoadPathWidget(const std::string &title, const std::string &inst
   layout->setAlignment(widget_title, Qt::AlignTop);
 
   // Widget Instructions
-  QLabel *widget_instructions = new QLabel(this);
+  QLabel* widget_instructions = new QLabel(this);
   widget_instructions->setText(instructions.c_str());
   widget_instructions->setWordWrap(true);
   widget_instructions->setTextFormat(Qt::RichText);
@@ -125,7 +125,7 @@ LoadPathWidget::LoadPathWidget(const std::string &title, const std::string &inst
   hlayout->addWidget(path_box_);
 
   // Button
-  QPushButton *browse_button = new QPushButton(this);
+  QPushButton* browse_button = new QPushButton(this);
   browse_button->setText("Browse");
   connect(browse_button, SIGNAL(clicked()), this, SLOT(btn_file_dialog()));
   hlayout->addWidget(browse_button);
@@ -187,7 +187,7 @@ const std::string LoadPathWidget::getPath()
 // ******************************************************************************************
 // Set the file/dir path
 // ******************************************************************************************
-void LoadPathWidget::setPath(const QString &path)
+void LoadPathWidget::setPath(const QString& path)
 {
   path_box_->setText(path);
 }
@@ -195,7 +195,7 @@ void LoadPathWidget::setPath(const QString &path)
 // ******************************************************************************************
 // Set the file/dir path with std string
 // ******************************************************************************************
-void LoadPathWidget::setPath(const std::string &path)
+void LoadPathWidget::setPath(const std::string& path)
 {
   path_box_->setText(QString(path.c_str()));
 }

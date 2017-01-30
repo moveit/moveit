@@ -73,10 +73,10 @@ public:
     return "Fix Start State Bounds";
   }
 
-  virtual bool adaptAndPlan(const PlannerFn &planner, const planning_scene::PlanningSceneConstPtr &planning_scene,
-                            const planning_interface::MotionPlanRequest &req,
-                            planning_interface::MotionPlanResponse &res,
-                            std::vector<std::size_t> &added_path_index) const
+  virtual bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
+                            const planning_interface::MotionPlanRequest& req,
+                            planning_interface::MotionPlanResponse& res,
+                            std::vector<std::size_t>& added_path_index) const
   {
     ROS_DEBUG("Running '%s'", getDescription().c_str());
 
@@ -84,7 +84,7 @@ public:
     robot_state::RobotState start_state = planning_scene->getCurrentState();
     robot_state::robotStateMsgToRobotState(planning_scene->getTransforms(), req.start_state, start_state);
 
-    const std::vector<const robot_model::JointModel *> &jmodels =
+    const std::vector<const robot_model::JointModel*>& jmodels =
         planning_scene->getRobotModel()->hasJointModelGroup(req.group_name) ?
             planning_scene->getRobotModel()->getJointModelGroup(req.group_name)->getJointModels() :
             planning_scene->getRobotModel()->getJointModels();
@@ -98,10 +98,10 @@ public:
       // how many times the joint was wrapped. Because of this, we remember the offsets for continuous
       // joints, and we un-do them when the plan comes from the planner
 
-      const robot_model::JointModel *jm = jmodels[i];
+      const robot_model::JointModel* jm = jmodels[i];
       if (jm->getType() == robot_model::JointModel::REVOLUTE)
       {
-        if (static_cast<const robot_model::RevoluteJointModel *>(jm)->isContinuous())
+        if (static_cast<const robot_model::RevoluteJointModel*>(jm)->isContinuous())
         {
           double initial = start_state.getJointPositions(jm)[0];
           start_state.enforceBounds(jm);
@@ -114,9 +114,9 @@ public:
           // Normalize yaw; no offset needs to be remembered
           if (jm->getType() == robot_model::JointModel::PLANAR)
       {
-        const double *p = start_state.getJointPositions(jm);
+        const double* p = start_state.getJointPositions(jm);
         double copy[3] = { p[0], p[1], p[2] };
-        if (static_cast<const robot_model::PlanarJointModel *>(jm)->normalizeRotation(copy))
+        if (static_cast<const robot_model::PlanarJointModel*>(jm)->normalizeRotation(copy))
         {
           start_state.setJointPositions(jm, copy);
           change_req = true;
@@ -126,9 +126,9 @@ public:
           // Normalize quaternions
           if (jm->getType() == robot_model::JointModel::FLOATING)
       {
-        const double *p = start_state.getJointPositions(jm);
+        const double* p = start_state.getJointPositions(jm);
         double copy[7] = { p[0], p[1], p[2], p[3], p[4], p[5], p[6] };
-        if (static_cast<const robot_model::FloatingJointModel *>(jm)->normalizeRotation(copy))
+        if (static_cast<const robot_model::FloatingJointModel*>(jm)->normalizeRotation(copy))
         {
           start_state.setJointPositions(jm, copy);
           change_req = true;
@@ -156,10 +156,10 @@ public:
           std::stringstream joint_values;
           std::stringstream joint_bounds_low;
           std::stringstream joint_bounds_hi;
-          const double *p = start_state.getJointPositions(jmodels[i]);
+          const double* p = start_state.getJointPositions(jmodels[i]);
           for (std::size_t k = 0; k < jmodels[i]->getVariableCount(); ++k)
             joint_values << p[k] << " ";
-          const robot_model::JointModel::Bounds &b = jmodels[i]->getVariableBounds();
+          const robot_model::JointModel::Bounds& b = jmodels[i]->getVariableBounds();
           for (std::size_t k = 0; k < b.size(); ++k)
           {
             joint_bounds_low << b[k].min_position_ << " ";

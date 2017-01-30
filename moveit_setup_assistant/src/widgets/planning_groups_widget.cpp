@@ -78,31 +78,31 @@ static const std::string VIS_TOPIC_NAME = "planning_components_visualization";
 // Used for checking for cycles in a subgroup hierarchy
 struct cycle_detector : public boost::dfs_visitor<>
 {
-  cycle_detector(bool &has_cycle) : m_has_cycle(has_cycle)
+  cycle_detector(bool& has_cycle) : m_has_cycle(has_cycle)
   {
   }
 
   template <class Edge, class Graph>
-  void back_edge(Edge, Graph &)
+  void back_edge(Edge, Graph&)
   {
     m_has_cycle = true;
   }
 
 protected:
-  bool &m_has_cycle;
+  bool& m_has_cycle;
 };
 
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-PlanningGroupsWidget::PlanningGroupsWidget(QWidget *parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
+PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data)
   : SetupScreenWidget(parent), config_data_(config_data)
 {
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
   // Top Label Area ------------------------------------------------
-  HeaderWidget *header =
+  HeaderWidget* header =
       new HeaderWidget("Planning Groups", "Create and edit planning groups for your robot based on joint collections, "
                                           "link collections, kinematic chains and subgroups.",
                        this);
@@ -132,8 +132,8 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget *parent, moveit_setup_assista
   connect(chain_widget_, SIGNAL(cancelEditing()), this, SLOT(cancelEditing()));
   connect(chain_widget_, SIGNAL(doneEditing()), this, SLOT(saveChainScreen()));
   connect(chain_widget_, SIGNAL(unhighlightAll()), this, SIGNAL(unhighlightAll()));
-  connect(chain_widget_, SIGNAL(highlightLink(const std::string &, const QColor &)), this,
-          SIGNAL(highlightLink(const std::string &, const QColor &)));
+  connect(chain_widget_, SIGNAL(highlightLink(const std::string&, const QColor&)), this,
+          SIGNAL(highlightLink(const std::string&, const QColor&)));
 
   // Subgroups Widget
   subgroups_widget_ = new DoubleListWidget(this, config_data_, "Subgroup", "Subgroup");
@@ -166,7 +166,7 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget *parent, moveit_setup_assista
   // Finish GUI -----------------------------------------------------------
 
   // Create Widget wrapper for layout
-  QWidget *stacked_layout_widget = new QWidget(this);
+  QWidget* stacked_layout_widget = new QWidget(this);
   stacked_layout_widget->setLayout(stacked_layout_);
 
   layout->addWidget(stacked_layout_widget);
@@ -180,34 +180,34 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget *parent, moveit_setup_assista
 // ******************************************************************************************
 // Create the main tree view widget
 // ******************************************************************************************
-QWidget *PlanningGroupsWidget::createContentsWidget()
+QWidget* PlanningGroupsWidget::createContentsWidget()
 {
   // Main widget
-  QWidget *content_widget = new QWidget(this);
+  QWidget* content_widget = new QWidget(this);
 
   // Basic widget container
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // Tree Box ----------------------------------------------------------------------
 
   groups_tree_ = new QTreeWidget(this);
   groups_tree_->setHeaderLabel("Current Groups");
-  connect(groups_tree_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(editSelected()));
-  connect(groups_tree_, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(previewSelected()));
+  connect(groups_tree_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(editSelected()));
+  connect(groups_tree_, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(previewSelected()));
   layout->addWidget(groups_tree_);
 
   // Bottom Controls -------------------------------------------------------------
 
-  QHBoxLayout *controls_layout = new QHBoxLayout();
+  QHBoxLayout* controls_layout = new QHBoxLayout();
 
   // Expand/Contract controls
-  QLabel *expand_controls = new QLabel(this);
+  QLabel* expand_controls = new QLabel(this);
   expand_controls->setText("<a href='expand'>Expand All</a> <a href='contract'>Collapse All</a>");
   connect(expand_controls, SIGNAL(linkActivated(const QString)), this, SLOT(alterTree(const QString)));
   controls_layout->addWidget(expand_controls);
 
   // Spacer
-  QWidget *spacer = new QWidget(this);
+  QWidget* spacer = new QWidget(this);
   spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   controls_layout->addWidget(spacer);
 
@@ -229,7 +229,7 @@ QWidget *PlanningGroupsWidget::createContentsWidget()
   controls_layout->setAlignment(btn_edit_, Qt::AlignRight);
 
   // Add Group Button
-  QPushButton *btn_add = new QPushButton("&Add Group", this);
+  QPushButton* btn_add = new QPushButton("&Add Group", this);
   btn_add->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   btn_add->setMaximumWidth(300);
   connect(btn_add, SIGNAL(clicked()), this, SLOT(addGroup()));
@@ -284,13 +284,13 @@ void PlanningGroupsWidget::loadGroupsTree()
 // ******************************************************************************************
 // Recursively Adds Groups, and subgroups to groups...
 // ******************************************************************************************
-void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it, QTreeWidgetItem *parent)
+void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it, QTreeWidgetItem* parent)
 {
   // Fonts for tree
   const QFont top_level_font("Arial", 11, QFont::Bold);
   const QFont type_font("Arial", 11, QFont::Normal, QFont::StyleItalic);
 
-  QTreeWidgetItem *group;
+  QTreeWidgetItem* group;
 
   // Allow a subgroup to open into a whole new group
   if (parent == NULL)
@@ -311,25 +311,25 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
   }
 
   // Joints --------------------------------------------------------------
-  QTreeWidgetItem *joints = new QTreeWidgetItem(group);
+  QTreeWidgetItem* joints = new QTreeWidgetItem(group);
   joints->setText(0, "Joints");
   joints->setFont(0, type_font);
   joints->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, JOINT)));
   group->addChild(joints);
 
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
+  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Loop through all aval. joints
   for (std::vector<std::string>::const_iterator joint_it = group_it.joints_.begin(); joint_it != group_it.joints_.end();
        ++joint_it)
   {
-    QTreeWidgetItem *j = new QTreeWidgetItem(joints);
+    QTreeWidgetItem* j = new QTreeWidgetItem(joints);
     j->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, JOINT)));
     std::string joint_name;
 
     // Get the type of joint this is
-    const robot_model::JointModel *jm = model->getJointModel(*joint_it);
+    const robot_model::JointModel* jm = model->getJointModel(*joint_it);
     if (jm)  // check if joint model was found
     {
       joint_name = *joint_it + " - " + jm->getTypeName();
@@ -345,7 +345,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
   }
 
   // Links -------------------------------------------------------------
-  QTreeWidgetItem *links = new QTreeWidgetItem(group);
+  QTreeWidgetItem* links = new QTreeWidgetItem(group);
   links->setText(0, "Links");
   links->setFont(0, type_font);
   links->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, LINK)));
@@ -355,14 +355,14 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
   for (std::vector<std::string>::const_iterator joint_it = group_it.links_.begin(); joint_it != group_it.links_.end();
        ++joint_it)
   {
-    QTreeWidgetItem *j = new QTreeWidgetItem(links);
+    QTreeWidgetItem* j = new QTreeWidgetItem(links);
     j->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, LINK)));
     j->setText(0, joint_it->c_str());
     links->addChild(j);
   }
 
   // Chains -------------------------------------------------------------
-  QTreeWidgetItem *chains = new QTreeWidgetItem(group);
+  QTreeWidgetItem* chains = new QTreeWidgetItem(group);
   chains->setText(0, "Chain");
   chains->setFont(0, type_font);
   chains->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, CHAIN)));
@@ -383,14 +383,14 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
   for (std::vector<std::pair<std::string, std::string> >::const_iterator chain_it = group_it.chains_.begin();
        chain_it != group_it.chains_.end(); ++chain_it)
   {
-    QTreeWidgetItem *j = new QTreeWidgetItem(chains);
+    QTreeWidgetItem* j = new QTreeWidgetItem(chains);
     j->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, CHAIN)));
     j->setText(0, QString(chain_it->first.c_str()).append("  ->  ").append(chain_it->second.c_str()));
     chains->addChild(j);
   }
 
   // Subgroups -------------------------------------------------------------
-  QTreeWidgetItem *subgroups = new QTreeWidgetItem(group);
+  QTreeWidgetItem* subgroups = new QTreeWidgetItem(group);
   subgroups->setText(0, "Subgroups");
   subgroups->setFont(0, type_font);
   subgroups->setData(0, Qt::UserRole, QVariant::fromValue(PlanGroupType(&group_it, SUBGROUP)));
@@ -402,7 +402,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
   {
     // Find group with this subgroups' name
 
-    srdf::Model::Group *searched_group = NULL;  // used for holding our search results
+    srdf::Model::Group* searched_group = NULL;  // used for holding our search results
 
     for (std::vector<srdf::Model::Group>::iterator group2_it = config_data_->srdf_->groups_.begin();
          group2_it != config_data_->srdf_->groups_.end(); ++group2_it)
@@ -437,7 +437,7 @@ void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group &group_it,
 // ******************************************************************************************
 void PlanningGroupsWidget::previewSelected()
 {
-  QTreeWidgetItem *item = groups_tree_->currentItem();
+  QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
   if (item == NULL)
@@ -458,7 +458,7 @@ void PlanningGroupsWidget::previewSelected()
 // ******************************************************************************************
 void PlanningGroupsWidget::editSelected()
 {
-  QTreeWidgetItem *item = groups_tree_->currentItem();
+  QTreeWidgetItem* item = groups_tree_->currentItem();
 
   // Check that something was actually selected
   if (item == NULL)
@@ -518,13 +518,13 @@ void PlanningGroupsWidget::editSelected()
 // ******************************************************************************************
 // Load the popup screen with correct data for joints
 // ******************************************************************************************
-void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group *this_group)
+void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group* this_group)
 {
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
+  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all joints
-  const std::vector<std::string> &joints = model->getJointModelNames();
+  const std::vector<std::string>& joints = model->getJointModelNames();
 
   if (joints.size() == 0)
   {
@@ -550,13 +550,13 @@ void PlanningGroupsWidget::loadJointsScreen(srdf::Model::Group *this_group)
 // ******************************************************************************************
 // Load the popup screen with correct data for links
 // ******************************************************************************************
-void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group *this_group)
+void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group* this_group)
 {
   // Retrieve pointer to the shared kinematic model
-  const robot_model::RobotModelConstPtr &model = config_data_->getRobotModel();
+  const robot_model::RobotModelConstPtr& model = config_data_->getRobotModel();
 
   // Get the names of the all links
-  const std::vector<std::string> &links = model->getLinkModelNames();
+  const std::vector<std::string>& links = model->getLinkModelNames();
 
   if (links.size() == 0)
   {
@@ -582,7 +582,7 @@ void PlanningGroupsWidget::loadLinksScreen(srdf::Model::Group *this_group)
 // ******************************************************************************************
 // Load the popup screen with correct data for chains
 // ******************************************************************************************
-void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group *this_group)
+void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group* this_group)
 {
   // Tell the kin chain widget to load up the chain from a kinematic model
   chain_widget_->setAvailable();
@@ -614,7 +614,7 @@ void PlanningGroupsWidget::loadChainScreen(srdf::Model::Group *this_group)
 // ******************************************************************************************
 // Load the popup screen with correct data for subgroups
 // ******************************************************************************************
-void PlanningGroupsWidget::loadSubgroupsScreen(srdf::Model::Group *this_group)
+void PlanningGroupsWidget::loadSubgroupsScreen(srdf::Model::Group* this_group)
 {
   // Load all groups into the subgroup screen except the current group
   std::vector<std::string> subgroups;
@@ -648,7 +648,7 @@ void PlanningGroupsWidget::loadSubgroupsScreen(srdf::Model::Group *this_group)
 // ******************************************************************************************
 // Load the popup screen with correct data for groups
 // ******************************************************************************************
-void PlanningGroupsWidget::loadGroupScreen(srdf::Model::Group *this_group)
+void PlanningGroupsWidget::loadGroupScreen(srdf::Model::Group* this_group)
 {
   // Load the avail kin solvers. This function only runs once
   group_edit_widget_->loadKinematicPlannersComboBox();
@@ -686,7 +686,7 @@ void PlanningGroupsWidget::deleteGroup()
   std::string group = current_edit_group_;
   if (group.empty())
   {
-    QTreeWidgetItem *item = groups_tree_->currentItem();
+    QTreeWidgetItem* item = groups_tree_->currentItem();
     // Check that something was actually selected
     if (item == NULL)
       return;
@@ -701,7 +701,7 @@ void PlanningGroupsWidget::deleteGroup()
     return;
 
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = config_data_->findGroupByName(group);
+  srdf::Model::Group* searched_group = config_data_->findGroupByName(group);
 
   // Confirm user wants to delete group
   if (QMessageBox::question(
@@ -855,7 +855,7 @@ void PlanningGroupsWidget::addGroup()
 void PlanningGroupsWidget::saveJointsScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = config_data_->findGroupByName(current_edit_group_);
+  srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // clear the old data
   searched_group->joints_.clear();
@@ -883,7 +883,7 @@ void PlanningGroupsWidget::saveJointsScreen()
 void PlanningGroupsWidget::saveLinksScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = config_data_->findGroupByName(current_edit_group_);
+  srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Find the group we are editing based on the goup name string
   // clear the old data
@@ -912,11 +912,11 @@ void PlanningGroupsWidget::saveLinksScreen()
 void PlanningGroupsWidget::saveChainScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = config_data_->findGroupByName(current_edit_group_);
+  srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Get a reference to the supplied strings
-  const std::string &tip = chain_widget_->tip_link_field_->text().toStdString();
-  const std::string &base = chain_widget_->base_link_field_->text().toStdString();
+  const std::string& tip = chain_widget_->tip_link_field_->text().toStdString();
+  const std::string& base = chain_widget_->base_link_field_->text().toStdString();
 
   // Check that box the tip and base, or neither, have text
   if ((!tip.empty() && base.empty()) || (tip.empty() && !base.empty()))
@@ -938,7 +938,7 @@ void PlanningGroupsWidget::saveChainScreen()
 
     bool found_tip = false;
     bool found_base = false;
-    const std::vector<std::string> &links = config_data_->getRobotModel()->getLinkModelNames();
+    const std::vector<std::string>& links = config_data_->getRobotModel()->getLinkModelNames();
 
     for (std::vector<std::string>::const_iterator link_it = links.begin(); link_it != links.end(); ++link_it)
     {
@@ -987,7 +987,7 @@ void PlanningGroupsWidget::saveChainScreen()
 void PlanningGroupsWidget::saveSubgroupsScreen()
 {
   // Find the group we are editing based on the goup name string
-  srdf::Model::Group *searched_group = config_data_->findGroupByName(current_edit_group_);
+  srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Check for cycles -------------------------------
 
@@ -1087,14 +1087,14 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 bool PlanningGroupsWidget::saveGroupScreen()
 {
   // Get a reference to the supplied strings
-  const std::string &group_name = group_edit_widget_->group_name_field_->text().toStdString();
-  const std::string &kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
-  const std::string &kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
-  const std::string &kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
-  const std::string &kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
+  const std::string& group_name = group_edit_widget_->group_name_field_->text().toStdString();
+  const std::string& kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
+  const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
+  const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
+  const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
 
   // Used for editing existing groups
-  srdf::Model::Group *searched_group = NULL;
+  srdf::Model::Group* searched_group = NULL;
 
   // Check that a valid group name has been given
   if (group_name.empty())
@@ -1131,7 +1131,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   {
     kinematics_resolution_double = boost::lexical_cast<double>(kinematics_resolution);
   }
-  catch (boost::bad_lexical_cast &)
+  catch (boost::bad_lexical_cast&)
   {
     QMessageBox::warning(this, "Error Saving", "Unable to convert kinematics resolution to a double number.");
     return false;
@@ -1143,7 +1143,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   {
     kinematics_timeout_double = boost::lexical_cast<double>(kinematics_timeout);
   }
-  catch (boost::bad_lexical_cast &)
+  catch (boost::bad_lexical_cast&)
   {
     QMessageBox::warning(this, "Error Saving", "Unable to convert kinematics solver timeout to a double number.");
     return false;
@@ -1155,7 +1155,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   {
     kinematics_attempts_int = boost::lexical_cast<int>(kinematics_attempts);
   }
-  catch (boost::bad_lexical_cast &)
+  catch (boost::bad_lexical_cast&)
   {
     QMessageBox::warning(this, "Error Saving", "Unable to convert kinematics solver attempts to an int number.");
     return false;
@@ -1357,7 +1357,7 @@ void PlanningGroupsWidget::cancelEditing()
 {
   if (!current_edit_group_.empty() && adding_new_group_)
   {
-    srdf::Model::Group *editing = config_data_->findGroupByName(current_edit_group_);
+    srdf::Model::Group* editing = config_data_->findGroupByName(current_edit_group_);
     if (editing && editing->joints_.empty() && editing->links_.empty() && editing->chains_.empty() &&
         editing->subgroups_.empty())
     {
@@ -1394,7 +1394,7 @@ void PlanningGroupsWidget::focusGiven()
 // ******************************************************************************************
 // Expand/Collapse Tree
 // ******************************************************************************************
-void PlanningGroupsWidget::alterTree(const QString &link)
+void PlanningGroupsWidget::alterTree(const QString& link)
 {
   if (link.contains("expand"))
     groups_tree_->expandAll();
@@ -1454,7 +1454,7 @@ void PlanningGroupsWidget::previewSelectedJoints(std::vector<std::string> joints
 
   for (int i = 0; i < joints.size(); ++i)
   {
-    const robot_model::JointModel *joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
+    const robot_model::JointModel* joint_model = config_data_->getRobotModel()->getJointModel(joints[i]);
 
     // Check that a joint model was found
     if (!joint_model)
@@ -1498,7 +1498,7 @@ void PlanningGroupsWidget::previewSelectedSubgroup(std::vector<std::string> grou
 // ******************************************************************************************
 // ******************************************************************************************
 
-PlanGroupType::PlanGroupType(srdf::Model::Group *group, const moveit_setup_assistant::GroupType type)
+PlanGroupType::PlanGroupType(srdf::Model::Group* group, const moveit_setup_assistant::GroupType type)
   : group_(group), type_(type)
 {
 }

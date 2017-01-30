@@ -50,10 +50,10 @@ public:
   static moveit::tools::BackgroundProcessing background_process_;
 
   // pass the execution of this function call to a separate thread that runs in the background
-  static void addBackgroundJob(const boost::function<void(void)> &job);
+  static void addBackgroundJob(const boost::function<void(void)>& job);
 
   // queue the execution of this function for the next time the main update() loop gets called
-  static void addMainLoopJob(const boost::function<void(void)> &job);
+  static void addMainLoopJob(const boost::function<void(void)>& job);
 
   static void executeMainLoopJobs();
 };

@@ -57,7 +57,7 @@ IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization(
 
 namespace
 {
-void printPoint(const trajectory_msgs::JointTrajectoryPoint &point, std::size_t i)
+void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, std::size_t i)
 {
   logDebug(" time   [%i]= %f", i, point.time_from_start.toSec());
   if (point.positions.size() >= 7)
@@ -78,7 +78,7 @@ void printPoint(const trajectory_msgs::JointTrajectoryPoint &point, std::size_t 
   }
 }
 
-void printStats(const trajectory_msgs::JointTrajectory &trajectory, const std::vector<moveit_msgs::JointLimits> &limits)
+void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<moveit_msgs::JointLimits>& limits)
 {
   logDebug("jointNames= %s %s %s %s %s %s %s", limits[0].joint_name.c_str(), limits[1].joint_name.c_str(),
            limits[2].joint_name.c_str(), limits[3].joint_name.c_str(), limits[4].joint_name.c_str(),
@@ -96,14 +96,14 @@ void printStats(const trajectory_msgs::JointTrajectory &trajectory, const std::v
 }
 
 // Applies velocity
-void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory &rob_trajectory,
-                                                                      std::vector<double> &time_diff,
+void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_trajectory::RobotTrajectory& rob_trajectory,
+                                                                      std::vector<double>& time_diff,
                                                                       const double max_velocity_scaling_factor) const
 {
-  const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<std::string> &vars = group->getVariableNames();
-  const std::vector<int> &idx = group->getVariableIndexList();
-  const robot_model::RobotModel &rmodel = group->getParentModel();
+  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const std::vector<std::string>& vars = group->getVariableNames();
+  const std::vector<int>& idx = group->getVariableIndexList();
+  const robot_model::RobotModel& rmodel = group->getParentModel();
   const int num_points = rob_trajectory.getWayPointCount();
 
   double velocity_scaling_factor = 1.0;
@@ -118,13 +118,13 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
 
   for (int i = 0; i < num_points - 1; ++i)
   {
-    const robot_state::RobotStatePtr &curr_waypoint = rob_trajectory.getWayPointPtr(i);
-    const robot_state::RobotStatePtr &next_waypoint = rob_trajectory.getWayPointPtr(i + 1);
+    const robot_state::RobotStatePtr& curr_waypoint = rob_trajectory.getWayPointPtr(i);
+    const robot_state::RobotStatePtr& next_waypoint = rob_trajectory.getWayPointPtr(i + 1);
 
     for (std::size_t j = 0; j < vars.size(); ++j)
     {
-      double v_max = 1.0;
-      const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
+      double v_max = DEFAULT_VEL_MAX;
+      const robot_model::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
       if (b.velocity_bounded_)
         v_max =
             std::min(fabs(b.max_velocity_ * velocity_scaling_factor), fabs(b.min_velocity_ * velocity_scaling_factor));
@@ -182,7 +182,7 @@ namespace
 {
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
-void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const std::vector<double> &time_diff)
+void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, const std::vector<double>& time_diff)
 {
   // Error check
   if (time_diff.empty())
@@ -194,9 +194,9 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
   robot_state::RobotStatePtr curr_waypoint;
   robot_state::RobotStatePtr next_waypoint;
 
-  const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<std::string> &vars = group->getVariableNames();
-  const std::vector<int> &idx = group->getVariableIndexList();
+  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const std::vector<std::string>& vars = group->getVariableNames();
+  const std::vector<int>& idx = group->getVariableIndexList();
 
   int num_points = rob_trajectory.getWayPointCount();
 
@@ -293,17 +293,17 @@ void updateTrajectory(robot_trajectory::RobotTrajectory &rob_trajectory, const s
 
 // Applies Acceleration constraints
 void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
-    robot_trajectory::RobotTrajectory &rob_trajectory, std::vector<double> &time_diff,
+    robot_trajectory::RobotTrajectory& rob_trajectory, std::vector<double>& time_diff,
     const double max_acceleration_scaling_factor) const
 {
   robot_state::RobotStatePtr prev_waypoint;
   robot_state::RobotStatePtr curr_waypoint;
   robot_state::RobotStatePtr next_waypoint;
 
-  const robot_model::JointModelGroup *group = rob_trajectory.getGroup();
-  const std::vector<std::string> &vars = group->getVariableNames();
-  const std::vector<int> &idx = group->getVariableIndexList();
-  const robot_model::RobotModel &rmodel = group->getParentModel();
+  const robot_model::JointModelGroup* group = rob_trajectory.getGroup();
+  const std::vector<std::string>& vars = group->getVariableNames();
+  const std::vector<int>& idx = group->getVariableIndexList();
+  const robot_model::RobotModel& rmodel = group->getParentModel();
 
   const int num_points = rob_trajectory.getWayPointCount();
   const unsigned int num_joints = group->getVariableCount();
@@ -355,8 +355,8 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
             next_waypoint = rob_trajectory.getWayPointPtr(index + 1);
 
           // Get acceleration limits
-          double a_max = 1.0;
-          const robot_model::VariableBounds &b = rmodel.getVariableBounds(vars[j]);
+          double a_max = DEFAULT_ACCEL_MAX;
+          const robot_model::VariableBounds& b = rmodel.getVariableBounds(vars[j]);
           if (b.acceleration_bounded_)
             a_max = std::min(fabs(b.max_acceleration_ * acceleration_scaling_factor),
                              fabs(b.min_acceleration_ * acceleration_scaling_factor));
@@ -449,14 +449,14 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
   } while (num_updates > 0 && iteration < static_cast<int>(max_iterations_));
 }
 
-bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory &trajectory,
+bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                                const double max_velocity_scaling_factor,
                                                                const double max_acceleration_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
 
-  const robot_model::JointModelGroup *group = trajectory.getGroup();
+  const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
     logError("It looks like the planner did not set the group the plan was computed for");
