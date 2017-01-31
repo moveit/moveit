@@ -594,7 +594,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_planning_time", &MoveGroupInterfaceWrapper::getPlanningTime);
   MoveGroupInterfaceClass.def("set_max_velocity_scaling_factor",
                               &MoveGroupInterfaceWrapper::setMaxVelocityScalingFactor);
-  MoveGroupInterfaceClass.def("set_max_acceleration_scaling_factor", &MoveGroupWrapper::setMaxVelocityScalingFactor);
+  MoveGroupInterfaceClass.def("set_max_acceleration_scaling_factor",
+                              &MoveGroupWrapper::setMaxAccelerationScalingFactor);
   MoveGroupInterfaceClass.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
