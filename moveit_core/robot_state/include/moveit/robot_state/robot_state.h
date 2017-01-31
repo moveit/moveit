@@ -1184,8 +1184,8 @@ as the new values that correspond to the group */
                    Eigen::MatrixXd& jacobian, bool use_quaternion_representation = false)
   {
     updateLinkTransforms();
-    return const_cast<const RobotState*>(this)->getJacobian(group, link, reference_point_position, jacobian,
-                                                            use_quaternion_representation);
+    return static_cast<const RobotState*>(this)->getJacobian(group, link, reference_point_position, jacobian,
+                                                             use_quaternion_representation);
   }
 
   /** \brief Compute the Jacobian with reference to the last link of a specified group. If the group is not a chain, an
@@ -1207,7 +1207,7 @@ as the new values that correspond to the group */
                               const Eigen::Vector3d& reference_point_position = Eigen::Vector3d(0.0, 0.0, 0.0))
   {
     updateLinkTransforms();
-    return const_cast<const RobotState*>(this)->getJacobian(group, reference_point_position);
+    return static_cast<const RobotState*>(this)->getJacobian(group, reference_point_position);
   }
 
   /** \brief Given a twist for a particular link (\e tip), compute the corresponding velocity for every variable and
@@ -1221,7 +1221,7 @@ as the new values that correspond to the group */
                                const LinkModel* tip)
   {
     updateLinkTransforms();
-    const_cast<const RobotState*>(this)->computeVariableVelocity(jmg, qdot, twist, tip);
+    static_cast<const RobotState*>(this)->computeVariableVelocity(jmg, qdot, twist, tip);
   }
 
   /** \brief Given the velocities for the variables in this group (\e qdot) and an amount of time (\e dt),
@@ -1596,7 +1596,7 @@ as the new values that correspond to the group */
   void computeAABB(std::vector<double>& aabb)
   {
     updateLinkTransforms();
-    const_cast<const RobotState*>(this)->computeAABB(aabb);
+    static_cast<const RobotState*>(this)->computeAABB(aabb);
   }
 
   /** \brief Return the instance of a random number generator */
@@ -1639,7 +1639,7 @@ as the new values that correspond to the group */
                        bool include_attached = false)
   {
     updateCollisionBodyTransforms();
-    const_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, color, ns, dur, include_attached);
+    static_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, color, ns, dur, include_attached);
   }
 
   /** @brief Get a MarkerArray that fully describes the robot markers for a given robot.
@@ -1657,7 +1657,7 @@ as the new values that correspond to the group */
                        bool include_attached = false)
   {
     updateCollisionBodyTransforms();
-    const_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, include_attached);
+    static_cast<const RobotState*>(this)->getRobotMarkers(arr, link_names, include_attached);
   }
 
   void printStatePositions(std::ostream& out = std::cout) const;
