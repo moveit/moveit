@@ -974,7 +974,7 @@ bool moveit::core::RobotState::clearAttachedBody(const std::string& id)
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string& id)
 {
   updateLinkTransforms();
-  return const_cast<const RobotState*>(this)->getFrameTransform(id);
+  return static_cast<const RobotState*>(this)->getFrameTransform(id);
 }
 
 const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::string& id) const
