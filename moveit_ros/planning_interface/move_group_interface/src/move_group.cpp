@@ -188,9 +188,9 @@ public:
         {
           queue->callAvailable();
         }
-        else
+        else // in case of nodelets and specific callback queue implementations
         {
-          ros::spinOnce();
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
         }
       }
     }
@@ -205,9 +205,9 @@ public:
         {
           queue->callAvailable();
         }
-        else
+        else // in case of nodelets and specific callback queue implementations
         {
-          ros::spinOnce();
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
         }
       }
     }
@@ -246,9 +246,9 @@ public:
         {
           queue->callAvailable();
         }
-        else
+        else // in case of nodelets and specific callback queue implementations
         {
-          ros::spinOnce();
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
         }
       }
     }
@@ -264,9 +264,9 @@ public:
         {
           queue->callAvailable();
         }
-        else
+        else // in case of nodelets and specific callback queue implementations
         {
-          ros::spinOnce();
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
         }
       }
     }
