@@ -192,7 +192,16 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else  // in case of nodelets and specific callback queue implementations
+        {
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
+                                                      "handling.");
+        }
       }
     }
     else  // wait with timeout
@@ -201,7 +210,16 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else  // in case of nodelets and specific callback queue implementations
+        {
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
+                                                      "handling.");
+        }
       }
     }
 
@@ -233,7 +251,16 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else  // in case of nodelets and specific callback queue implementations
+        {
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
+                                                      "handling.");
+        }
       }
     }
     else  // wait with timeout
@@ -243,7 +270,16 @@ public:
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
-        ((ros::CallbackQueue*)node_handle_.getCallbackQueue())->callAvailable();
+        ros::CallbackQueue* queue = dynamic_cast<ros::CallbackQueue*>(node_handle_.getCallbackQueue());
+        if (queue)
+        {
+          queue->callAvailable();
+        }
+        else  // in case of nodelets and specific callback queue implementations
+        {
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
+                                                      "handling.");
+        }
       }
     }
 
