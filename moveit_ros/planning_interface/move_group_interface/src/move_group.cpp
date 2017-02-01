@@ -188,9 +188,10 @@ public:
         {
           queue->callAvailable();
         }
-        else // in case of nodelets and specific callback queue implementations
+        else  // in case of nodelets and specific callback queue implementations
         {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
++                                                      "handling.");
         }
       }
     }
@@ -205,9 +206,10 @@ public:
         {
           queue->callAvailable();
         }
-        else // in case of nodelets and specific callback queue implementations
+        else  // in case of nodelets and specific callback queue implementations
         {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
++                                                      "handling.");
         }
       }
     }
@@ -246,9 +248,10 @@ public:
         {
           queue->callAvailable();
         }
-        else // in case of nodelets and specific callback queue implementations
+        else  // in case of nodelets and specific callback queue implementations
         {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
++                                                      "handling.");
         }
       }
     }
@@ -264,9 +267,10 @@ public:
         {
           queue->callAvailable();
         }
-        else // in case of nodelets and specific callback queue implementations
+        else  // in case of nodelets and specific callback queue implementations
         {
-          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue handling.");
+          ROS_WARN_ONCE_NAMED("move_group_interface", "Non-default CallbackQueue: Waiting for external queue "
++                                                      "handling.");
         }
       }
     }
