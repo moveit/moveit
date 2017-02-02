@@ -47,10 +47,13 @@ namespace trajectory_processing
 {
 /// \brief This class  modifies the timestamps of a trajectory to respect
 /// velocity and acceleration constraints.
+/// The second and second-last point locations need to move to allow 
+/// velocity and acceleration matching.  
+/// By default, two points are added to leave the original trajectory unaffected.
 class IterativeSplineParameterization
 {
 public:
-  IterativeSplineParameterization(double max_time_change_per_it = .01);
+  IterativeSplineParameterization(double max_time_change_per_it = .01, bool add_points = true);
   ~IterativeSplineParameterization();
 
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
@@ -58,6 +61,7 @@ public:
 
 private:
   double max_time_change_per_it_;  /// @brief maximum allowed time change per iteration in seconds
+  bool add_points_;  /// @brief if true, add two points to trajectory (first and last segments).  If false, move the 2nd and 2nd last points.
 };
 }
 

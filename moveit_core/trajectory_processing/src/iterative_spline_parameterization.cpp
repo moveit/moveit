@@ -56,7 +56,7 @@ static void fit_cubic_spline(const int n, const double dt[],
 static void adjust_two_positions(const int n, const double dt[], 
         double x[], double x1[], double x2[], 
         const double x2_i, const double x2_f);
-static void init_times(const int n, double dt[], double x[], double max_velocity);
+static void init_times(const int n, double dt[], const double x[], const double max_velocity);
 static int fit_spline_and_adjust_times(const int n, double dt[], 
         const double x[], double x1[], double x2[], 
         const double vlimit, const double alimit, const double jlimit,
@@ -76,8 +76,9 @@ struct SingleJointTrajectory {
   double max_jerk;
 };
 
-IterativeSplineParameterization::IterativeSplineParameterization( double max_time_change_per_it)
-  : max_time_change_per_it_(max_time_change_per_it)
+IterativeSplineParameterization::IterativeSplineParameterization( double max_time_change_per_it, bool add_points)
+  : max_time_change_per_it_(max_time_change_per_it),
+    add_points_(add_points)
 {
 }
 
@@ -128,8 +129,10 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
 
   // Duplicate 1st and last point 
   // (required to force acceleration to zero at endpoints)
-  //FIXME trajectory.points.insert(trajectory.points.begin(), trajectory.points[0]);
-  //FIXME trajectory.points.push_back(trajectory.points[trajectory.points.size()-1]);
+  if (add_points_) {
+    trajectory.addPrefixWayPoint(trajectory.getWayPointPtr(0),0.0);
+    trajectory.addSuffixWayPoint(trajectory.getWayPointPtr(trajectory.getWayPointCount()-1),0.0);
+  }
   
   const unsigned num_points = trajectory.getWayPointCount();
   const unsigned num_joints = group->getVariableCount();
@@ -332,13 +335,13 @@ static void adjust_two_positions(const int n, const double dt[],
   Initialize times to approximate going max velocity between positions.
 */
 
-static void init_times(const int n, double dt[], double x[], double max_velocity)
+static void init_times(const int n, double dt[], const double x[], const double max_velocity)
 {
   int i;
-  for (i=1; i<n; i++) {
-    const double min_dt = fabs((x[i]-x[i-1]) / max_velocity);
-    if (dt[i-1] < min_dt)
-      dt[i-1] = min_dt;
+  for (i=0; i<n-1; i++) {
+    dt[i] = fabs((x[i+1]-x[i]) / max_velocity);
+    if (dt[i] < 0.001)
+      dt[i] = 0.001; // prevent div-by-zero
   }
 }
 
