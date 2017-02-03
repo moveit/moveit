@@ -498,6 +498,7 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr& scene)
       {
         scene->world_->removeObject(it->first);
         scene->removeObjectColor(it->first);
+        scene->removeObjectType(it->first);
       }
       else
       {
@@ -1215,12 +1216,8 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   }
 
   // if any colors have been specified, replace the ones we have with the specified ones
-  if (!scene_msg.object_colors.empty())
-  {
-    object_colors_.reset();
-    for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
-      setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
-  }
+  for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
+    setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
 
   // process collision object updates
   for (std::size_t i = 0; i < scene_msg.world.collision_objects.size(); ++i)
@@ -1314,7 +1311,11 @@ void planning_scene::PlanningScene::removeAllCollisionObjects()
   const std::vector<std::string>& object_ids = world_->getObjectIds();
   for (std::size_t i = 0; i < object_ids.size(); ++i)
     if (object_ids[i] != OCTOMAP_NS)
+    {
       world_->removeObject(object_ids[i]);
+      removeObjectColor(object_ids[i]);
+      removeObjectType(object_ids[i]);
+    }
 }
 
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
@@ -1698,7 +1699,11 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       removeAllCollisionObjects();
     }
     else
+    {
       world_->removeObject(object.id);
+      removeObjectColor(object.id);
+      removeObjectType(object.id);
+    }
     return true;
   }
   else if (object.operation == moveit_msgs::CollisionObject::MOVE)
