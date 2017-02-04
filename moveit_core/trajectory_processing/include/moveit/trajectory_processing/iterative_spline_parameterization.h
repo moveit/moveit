@@ -50,6 +50,8 @@ namespace trajectory_processing
 /// The second and second-last point locations need to move to allow 
 /// velocity and acceleration matching.  
 /// By default, two points are added to leave the original trajectory unaffected.
+/// If points are not added, the trajectory could potentially be faster,
+/// but the 2nd and 2nd-last points should be re-checked for collisions.
 class IterativeSplineParameterization
 {
 public:

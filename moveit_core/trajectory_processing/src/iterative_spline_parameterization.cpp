@@ -104,6 +104,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   const std::vector<std::string>& vars = group->getVariableNames();
   double acceleration_scaling_factor = 1.0;
   double velocity_scaling_factor = 1.0;
+  unsigned num_points = trajectory.getWayPointCount();
+  unsigned num_joints = group->getVariableCount();
 
   // Set scaling factors
   if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)
@@ -127,19 +129,33 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   // No wrapped angles.
   trajectory.unwind();
 
-  // Duplicate 1st and last point 
-  // (required to force acceleration to zero at endpoints)
-  if (add_points_) {
-    trajectory.addPrefixWayPoint(trajectory.getWayPointPtr(0),0.0);
-    trajectory.addSuffixWayPoint(trajectory.getWayPointPtr(trajectory.getWayPointCount()-1),0.0);
+  // Insert 2nd and 2nd-last points
+  // (required to force acceleration to specified values at endpoints)
+  if (add_points_ && trajectory.getWayPointCount() >= 2) {
+    robot_state::RobotState point = trajectory.getWayPoint(0);
+    robot_state::RobotStatePtr p0, p1;
+
+    p0 = trajectory.getWayPointPtr(0);
+    p1 = trajectory.getWayPointPtr(1);
+    for (unsigned j=0; j<num_joints; j++) {
+      point.setVariablePosition(idx[j], (9*p0->getVariablePosition(idx[j]) + 1*p1->getVariablePosition(idx[j])) / 10);
+      point.setVariableVelocity(idx[j], (9*p0->getVariableVelocity(idx[j]) + 1*p1->getVariableVelocity(idx[j])) / 10);
+      point.setVariableAcceleration(idx[j], (9*p0->getVariableAcceleration(idx[j])+ 1*p1->getVariableAcceleration(idx[j])) / 10);
+    }
+    trajectory.insertWayPoint(1, point, 0.0);
+    num_points++;
+
+    p0 = trajectory.getWayPointPtr(num_points-2);
+    p1 = trajectory.getWayPointPtr(num_points-1);
+    for (unsigned j=0; j<num_joints; j++) {
+      point.setVariablePosition(idx[j], (1*p0->getVariablePosition(idx[j]) + 9*p1->getVariablePosition(idx[j])) / 10);
+      point.setVariableVelocity(idx[j], (1*p0->getVariableVelocity(idx[j]) + 9*p1->getVariableVelocity(idx[j])) / 10);
+      point.setVariableAcceleration(idx[j], (1*p0->getVariableAcceleration(idx[j]) + 9*p1->getVariableAcceleration(idx[j])) / 10);
+    }
+    trajectory.insertWayPoint(num_points-1, point, 0.0);
+    num_points++;
   }
   
-  const unsigned num_points = trajectory.getWayPointCount();
-  const unsigned num_joints = group->getVariableCount();
-
-  // the time difference between adjacent points
-  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, 0.0);
-
   // JointTrajectory indexes in [point][joint] order.
   // We need [joint][point] order to solve efficiently,
   // so convert form here.
@@ -179,6 +195,14 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Error check
+  if (max_time_change_per_it_ <= 1.0) {
+    printf("max time change is %f, needs to be higher than 1.0.\n", max_time_change_per_it_);
+    return false;
+  }
+  if (num_points < 4) {
+    printf("number of waypoints %f, needs to be greater than 3.\n", TFACTOR);
+    return false;
+  }
   for (unsigned j=0; j<num_joints; j++) {
     if (fabs(t2[j].velocities[0]) > t2[j].max_velocity) {
       printf("Initial velocity %f out of bounds\n", t2[j].velocities[0]);
@@ -195,11 +219,13 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     }
   }
   
-  // Initialize
+  // The time difference between adjacent points
+  // 0.001 to prevent divide-by-zero
+  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, 0.001);
   for (unsigned j=0; j<num_joints; j++)
     init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity);
   
-    // Fit initial spline with initial/final velocity
+    // Fit initial spline
     for (unsigned j=0; j<num_joints; j++) {
       while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration, t2[j].max_jerk, max_time_change_per_it_))
         {} // repeat until no more adjustments
@@ -239,9 +265,9 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   'Clamped' means the first derivative at the endpoints is specified.
 
   Fitting a cubic spline involves solving a series of linear equations.
-  The general form is:
+  The general form for each segment is:
     (tj-t_(j-1))*x"_(j-1) + 2*(t_(j+1)-t_(j-1))*xj" + (t_(j+1)-tj)*x"_j+1) = (x_(j+1)-xj)/(t_(j+1)-tj) - (xj-x_(j-1))/(tj-t_(j-1))
-  And the first and last segment equations are clamped to specified values.
+  And the first and last segment equations are clamped to specified values: t1_i and t1_f.
 
   Represented in matrix form:
   [ 2*(t1-t0)   (t1-t0)                              0              ][x0"]       [(x1-x0)/(t1-t0) - t1_i           ]
@@ -274,7 +300,7 @@ static void fit_cubic_spline(const int n, const double dt[],
   // (will get overwritten during backsubstitution)
   double *c = x1, *d = x2;
   c[0] = 0.5;
-  d[0] = (3.0 * (x[1]-x[0]) / dt[0] - x1_i) / dt[0];
+  d[0] = 3.0 * ((x[1]-x[0]) / dt[0] - x1_i) / dt[0];
   for (i=1; i<=n-2; i++) { 
     const double dt2 = dt[i-1] + dt[i];
     const double a = dt[i-1] / dt2;
@@ -332,16 +358,17 @@ static void adjust_two_positions(const int n, const double dt[],
 }
 
 /*
-  Initialize times to approximate going max velocity between positions.
+  Find time required to go max velocity on each segment.
+  Increase a segment's time interval if the current time isn't long enough.
 */
 
 static void init_times(const int n, double dt[], const double x[], const double max_velocity)
 {
   int i;
   for (i=0; i<n-1; i++) {
-    dt[i] = fabs((x[i+1]-x[i]) / max_velocity);
-    if (dt[i] < 0.001)
-      dt[i] = 0.001; // prevent div-by-zero
+    double time = fabs((x[i+1]-x[i]) / max_velocity);
+    if (dt[i] < time)
+      dt[i] = time;
   }
 }
 
