@@ -45,12 +45,12 @@
 
 namespace trajectory_processing
 {
-/// \brief This class modifies the timestamps of a trajectory 
+/// \brief This class modifies the timestamps of a trajectory
 /// to enforce velocity and acceleration constraints.
-/// A default jerk constraint is also enforced, which may be 
+/// A default jerk constraint is also enforced, which may be
 /// overridden when the model supports this in the future.
-/// The second and second-last point locations need to move to allow 
-/// matching velocity and acceleration at endpoints.  
+/// The second and second-last point locations need to move to allow
+/// matching velocity and acceleration at endpoints.
 /// By default, two points are added to leave the original trajectory unaffected.
 /// If points are not added, the trajectory could potentially be faster,
 /// but the 2nd and 2nd-last points should be re-checked for collisions.
@@ -65,7 +65,8 @@ public:
 
 private:
   double max_time_change_per_it_;  /// @brief maximum allowed time change per iteration in seconds
-  bool add_points_;  /// @brief if true, add two points to trajectory (first and last segments).  If false, move the 2nd and 2nd last points.
+  bool add_points_;  /// @brief if true, add two points to trajectory (first and last segments).
+                     /// If false, move the 2nd and 2nd-last points.
 };
 }
 
