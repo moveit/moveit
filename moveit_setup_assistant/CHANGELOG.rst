@@ -2,7 +2,7 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+0.8.3 (2016-08-19)
 ------------------
 * 1st release after repository consolidation
 * [fix] msa: push traj exec monitor params down int proper nsroper ns `ros-planning/moveit#68 <https://github.com/ros-planning/moveit/pull/68>`_
