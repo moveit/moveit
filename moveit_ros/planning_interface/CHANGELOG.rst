@@ -2,6 +2,17 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] move_group.cpp: seg fault bug (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
+* [fix] mgi: show correct include path in doxygen (`#419 <https://github.com/ros-planning/moveit/issues/419>`_)
+* [fix] fix race conditions when updating PlanningScene (`#350 <https://github.com/ros-planning/moveit/issues/350>`_)
+* [fix] issue `#373 <https://github.com/ros-planning/moveit/issues/373>`_ for Kinetic (`#377 <https://github.com/ros-planning/moveit/issues/377>`_) (`#385 <https://github.com/ros-planning/moveit/issues/385>`_)
+* [capability] PSI: add apply* functions that use ApplyPlanningScene.srv (`#381 <https://github.com/ros-planning/moveit/issues/381>`_)
+* [maintenance] Fix test file issues (`#415 <https://github.com/ros-planning/moveit/pull/415>`_, `#412 <https://github.com/ros-planning/moveit/issues/412>`_)
+* [maintenance] clang-format upgraded to 3.8 (`#367 <https://github.com/ros-planning/moveit/issues/367>`_)
+* Contributors: Bastian Gaspers, Dave Coleman, Isaac I.Y. Saito, Jorge Santos Simon, Michael Goerner, Robert Haschke
+
 0.9.3 (2016-11-16)
 -----------
 

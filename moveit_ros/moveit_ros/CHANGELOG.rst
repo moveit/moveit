@@ -2,6 +2,9 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.9.3 (2016-11-16)
 ------------------
 * [capability] add list of default capabilities `#359 <https://github.com/ros-planning/moveit/pull/359>`_
