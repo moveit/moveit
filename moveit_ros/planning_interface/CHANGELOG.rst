@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.4 (2017-02-06)
+------------------
 * [fix] move_group.cpp: seg fault bug (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
 * [fix] mgi: show correct include path in doxygen (`#419 <https://github.com/ros-planning/moveit/issues/419>`_)
 * [fix] fix race conditions when updating PlanningScene (`#350 <https://github.com/ros-planning/moveit/issues/350>`_)

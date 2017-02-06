@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.4 (2017-02-06)
+------------------
 * [fix] PlanningScene: Don't reset color information of existing objects when new entries are added (`#410 <https://github.com/ros-planning/moveit/issues/410>`_)
 * [fix] update link transforms in UnionConstraintSampler::project (`#384 <https://github.com/ros-planning/moveit/issues/384>`_)
 * [capability Addition of Set Joint Model Group Velocities and Accelerations Functions (`#402 <https://github.com/ros-planning/moveit/issues/402>`_)

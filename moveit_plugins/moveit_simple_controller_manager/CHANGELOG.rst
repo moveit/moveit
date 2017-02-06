@@ -2,8 +2,8 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.4 (2017-02-06)
+------------------
 * [fix] assertion error when result not returned (`#378 <https://github.com/ros-planning/moveit/issues/378>`_)
 * [maintenance] clang-format upgraded to 3.8 (`#367 <https://github.com/ros-planning/moveit/issues/367>`_)
 * Contributors: Dave Coleman, Michael Ferguson
