@@ -2,6 +2,11 @@
 Changelog for package moveit_full_pr2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [Indigo] Move metapackages from moveit_metapackage repo.
+* Contributors: Isaac I.Y. Saito
+
 0.7.6 (2017-01-05)
 ------------------
 

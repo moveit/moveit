@@ -2,6 +2,30 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* move_group.cpp: seg fault bug fix (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
+  Fixed a bug with casting CallbackQueueInterface * to ros::CallbackQueue * without a check.
+  https://github.com/ros-planning/moveit/issues/425
+* install planning_interface python test
+  This test is reference in the tutorials and should also work with installed workspaces
+  http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/tests.html#integration-test
+* [moveit_ros] Missing test_depend. (`#412 <https://github.com/ros-planning/moveit/issues/412>`_)
+* clang-format
+* PSI: make all logs _NAMED
+* PSI: point out synchronicity behavior of apply* and add/removeObjects interfaces
+* remove obsolete mutable declaration
+  This was only required for the proposal to change the behavior of the add/remove functions.
+  Now that I added the apply* interfaces, this is not relevant anymore.
+* PSI: add apply* functions that use ApplyPlanningScene.srv
+  to update move_group's PlanningScene
+* Use ApplyPlanningSceneService in planning_scene_interface
+  Added helper function to call ApplyPlanningScene service
+  with fallback to asynchronous processing via "planning_scene"
+  topic.
+* clang-format upgraded to 3.8 (`#404 <https://github.com/ros-planning/moveit/issues/404>`_)
+* Contributors: Andreas Köpf, Bastian Gaspers, Dave Coleman, Isaac I.Y. Saito, v4hn
+
 0.7.6 (2016-12-30)
 ------------------
 

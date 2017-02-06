@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] Use static_cast to cast to const. (`#434 <https://github.com/ros-planning/moveit/issues/434>`_)
+* [enhancement] Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)
+* Contributors: Dave Coleman, Maarten de Vries, Ruben Burger
+
 0.7.6 (2016-12-30)
 ------------------
 
