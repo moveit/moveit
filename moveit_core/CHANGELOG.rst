@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.7 (2017-02-06)
+------------------
 * [enhancement] Handle multiple shapes in an attached collision object `#421 <https://github.com/ros-planning/moveit/issues/421>`_
 * [enhancement] Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)
 * [maintenance] Use static_cast to cast to const. (`#434 <https://github.com/ros-planning/moveit/issues/434>`_)

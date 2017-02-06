@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.7 (2017-02-06)
+------------------
 * move_group.cpp: seg fault bug fix (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
   Fixed a bug with casting CallbackQueueInterface * to ros::CallbackQueue * without a check.
   https://github.com/ros-planning/moveit/issues/425
