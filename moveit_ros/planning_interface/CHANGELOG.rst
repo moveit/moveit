@@ -2,6 +2,16 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] move_group.cpp: seg fault bug (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
+* [capability] PSI: add apply* functions that use ApplyPlanningScene.srv (`#381 <https://github.com/ros-planning/moveit/issues/381>`_)
+* Contributors: Bastian Gaspers, Dave Coleman, Isaac I.Y. Saito, Jorge Santos Simon, Michael Goerner, Robert Haschke
+
+0.8.3 (2016-08-19)
+------------------
+* Dummy to temporarily workaround https://github.com/ros-infrastructure/catkin_pkg/issues/158#issuecomment-277852080
+
 0.6.6 (2016-06-08)
 ------------------
 * replaced cmake_modules dependency with eigen

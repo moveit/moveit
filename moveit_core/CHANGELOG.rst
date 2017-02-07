@@ -2,7 +2,18 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+Forthcoming
+-----------
+* [fix] update link transforms in UnionConstraintSampler::project (`#384 <https://github.com/ros-planning/moveit/issues/384>`_)
+* [capability Addition of Set Joint Model Group Velocities and Accelerations Functions (`#402 <https://github.com/ros-planning/moveit/issues/402>`_)
+* [capability] time parameterization: use constants (`#380 <https://github.com/ros-planning/moveit/issues/380>`_)
+* [enhancement] multiple shapes in an attached collision object `#421 <https://github.com/ros-planning/moveit/pull/421>`_
+* [maintenance] Use static_cast to cast to const. (`#433 <https://github.com/ros-planning/moveit/issues/433>`_)
+* [fix] Replace unused service dependency with msg dep (`#361 <https://github.com/ros-planning/moveit/issues/361>`_)
+* [enhancement] Improved RobotState feedback for setFromIK() (`#342 <https://github.com/ros-planning/moveit/issues/342>`_)
+* Contributors: Dave Coleman, Maarten de Vries, Michael Goerner, Mike Lautman, Ruben, Ian McMahon, Robert Haschke
+
+0.8.3 (2016-08-19)
 ------------------
 * 1st release after repository consolidation
 * [fix] Add object types when requesting attached bodies in planning scene msg. pushDiff also pushes attached bodies' types and colors

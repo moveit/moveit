@@ -2,7 +2,10 @@
 Changelog for package moveit_planners
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+Forthcoming
+-----------
+
+0.8.3 (2016-08-19)
 ------------------
 * 1st release after repository consolidation
 * [feat] Enables setting optimization objectives from ompl_planning.yaml `ros-planning/moveit_planners#75 <https://github.com/ros-planning/moveit_planners/pull/75>`_

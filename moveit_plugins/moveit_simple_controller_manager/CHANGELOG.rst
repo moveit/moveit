@@ -2,7 +2,10 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+Forthcoming
+-----------
+
+0.8.3 (2016-08-19)
 ------------------
 
 0.5.7 (2016-01-30)
@@ -10,7 +13,7 @@ Changelog for package moveit_simple_controller_manager
 * expose headers of moveit_simple_controller_manager
 * Removed redundant logging information
 * More informative warning message about multi-dof trajectories.
-* Contributors: Dave Coleman, Dave Hershberger, Mathias Lüdtke
+* Contributors: Dave Coleman, Dave Hershberger, Mathias Luedtke
 
 0.5.6 (2014-03-23)
 ------------------

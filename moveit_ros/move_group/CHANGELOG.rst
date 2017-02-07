@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [capability] validate trajectory before execution (`#63 <https://github.com/ros-planning/moveit/issues/63>`_)
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Maarten de Vries, Robert Haschke
+
 0.8.3 (2016-08-19)
 ------------------
 * Dummy to temporarily workaround https://github.com/ros-infrastructure/catkin_pkg/issues/158#issuecomment-277852080

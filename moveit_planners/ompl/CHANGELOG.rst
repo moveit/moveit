@@ -2,6 +2,15 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [maintenance] Replace last easy explicit shared_ptrs with MOVEIT_CLASS_FORWARD.
+* [test] fetch moveit_resources path at compile time
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Maarten de Vries, Robert Haschke
+
+0.8.3 (2016-08-19)
+------------------
+
 0.7.0 (2016-01-30)
 ------------------
 * Removed trailing whitespace from entire repository

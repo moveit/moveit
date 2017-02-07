@@ -2,7 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.8.3 (2016-08-19) 
+Forthcoming
+-----------
+* [fix] Moveit Commander no option to set set_max_acceleration_scaling_factor (`#377 <https://github.com/ros-planning/moveit/issues/377>`_) to fix `#373 <https://github.com/ros-planning/moveit/issues/373>`_
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Shingo Kitagawa, mmoerdijk
+
+0.8.3 (2016-08-19)
 ------------------
 * 1st release after repository consolidation
 * [feat] Add retime_trajectory() to MoveGroupCommander `#29 <https://github.com/ros-planning/moveit_commander/pull/29>`_

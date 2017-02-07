@@ -4,7 +4,7 @@ Changelog for package moveit_kinematics
 
 Forthcoming
 -----------
-* Move moveit_ikfast into moveit_kinematics. Moved kinematics plugins to new pkg moveit_kinematics
-* [maintenance] Auto code formatted Jade branch using clang-format (`#312 <https://github.com/ros-planning/moveit/issues/312>`_)
-* [maintenance] Add dependency on new moveit_kinematics package
-* Contributors: Dave Coleman
+
+0.8.3 (2016-08-19)
+------------------
+* Dummy to temporarily workaround https://github.com/ros-infrastructure/catkin_pkg/issues/158#issuecomment-277852080

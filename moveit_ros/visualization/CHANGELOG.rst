@@ -2,6 +2,15 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [enhancement] Add colours to trajectory_visualisation display (`#362 <https://github.com/ros-planning/moveit/issues/362>`_)
+* Contributors: Bence Magyar, Dave Coleman, Ian McMahon, Robert Haschke
+
+0.8.3 (2016-08-19)
+------------------
+* Dummy to temporarily workaround https://github.com/ros-infrastructure/catkin_pkg/issues/158#issuecomment-277852080
+
 0.6.6 (2016-06-08)
 ------------------
 * cleanup cmake tests, fix empty output

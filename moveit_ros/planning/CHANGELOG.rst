@@ -2,6 +2,25 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] enforce joint bounds for start state validation
+* [fix] order of unlocking `#350 <https://github.com/ros-planning/moveit/pull/350>`_
+* [enhancement] Namespaced console output for planning_scene_monitor (`#296 <https://github.com/ros-planning/moveit/issues/296>`_)
+* [enhancement] validate trajectory before execution (`#63 <https://github.com/ros-planning/moveit/issues/63>`_)
+* [enhancement] destroy kinematics plugins before their loader (`#281 <https://github.com/ros-planning/moveit/issues/281>`_)
+* [maintenance] Use static_cast to cast to const. (`#435 <https://github.com/ros-planning/moveit/issues/435>`_)
+* [maintenance] Change planning_scene service warning to an INFO message (`#405 <https://github.com/ros-planning/moveit/issues/405>`_)
+* [maintenance] Remove unused Reflexxes code (`#227 <https://github.com/ros-planning/moveit/issues/227>`_)
+* [maintenance] Use MOVEIT_CLASS_FORWARD for moveit classes in moveit_ros. (`#182 <https://github.com/ros-planning/moveit/issues/182>`_)
+* [maintenance] simplify RDFLoader & provide more/better error message (`#173 <https://github.com/ros-planning/moveit/issues/173>`_)
+* [maintenance] use correct install destination of headers (`#168 <https://github.com/ros-planning/moveit/issues/168>`_)
+* Contributors: Dave Coleman, Isaac I.Y. Saito, Jonathan Binney, Maarten de Vries, Michael Goerner, Robert Haschke
+
+0.8.3 (2016-08-19)
+------------------
+* Dummy to temporarily workaround https://github.com/ros-infrastructure/catkin_pkg/issues/158#issuecomment-277852080
+
 0.6.6 (2016-06-08)
 ------------------
 * Add library moveit_collision_plugin_loader as an exported catkin library (`#678 <https://github.com/ros-planning/moveit_ros/issues/678>`_)
