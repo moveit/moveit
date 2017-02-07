@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.4 (2017-02-06)
+------------------
 * [doc] Cleanup readme (`#267 <https://github.com/ros-planning/moveit/issues/267>`_)
 * [maintenance] Replace last easy explicit shared_ptrs with MOVEIT_CLASS_FORWARD.
 * Contributors: Dave Coleman, Isaac I.Y. Saito, Maarten de Vries

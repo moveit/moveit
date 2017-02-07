@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.4 (2017-02-06)
+------------------
 * [fix] enforce joint bounds for start state validation
 * [fix] order of unlocking `#350 <https://github.com/ros-planning/moveit/pull/350>`_
 * [enhancement] Namespaced console output for planning_scene_monitor (`#296 <https://github.com/ros-planning/moveit/issues/296>`_)

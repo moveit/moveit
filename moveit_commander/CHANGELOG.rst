@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.4 (2017-02-06)
+------------------
 * [fix] Moveit Commander no option to set set_max_acceleration_scaling_factor (`#377 <https://github.com/ros-planning/moveit/issues/377>`_) to fix `#373 <https://github.com/ros-planning/moveit/issues/373>`_
 * Contributors: Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Shingo Kitagawa, mmoerdijk
 

@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.4 (2017-02-06)
+------------------
 * [capability] validate trajectory before execution (`#63 <https://github.com/ros-planning/moveit/issues/63>`_)
 * [capability] setup-assistant: require author information in gui (`#154 <https://github.com/ros-planning/moveit/issues/154>`_)
 * [capability] `#85 <https://github.com/ros-planning/moveit/issues/85>`_: Add capability to execute trajectory with a ROS action (`#94 <https://github.com/ros-planning/moveit/issues/94>`_)
