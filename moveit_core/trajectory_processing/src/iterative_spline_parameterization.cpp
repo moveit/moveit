@@ -237,20 +237,24 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     }
   }
 
-  // The time difference between adjacent points
-  // 0.001 to prevent divide-by-zero
-  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, 0.001);
+  // Initiialize times
+  // 0.01 to prevent divide-by-zero
+  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, 0.01);
   for (unsigned j = 0; j < num_joints; j++)
     init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity);
 
-  // Fit initial spline
-  for (unsigned j = 0; j < num_joints; j++)
+  // Fit initial spline (satisfies initial/final velocity)
+  int loop = 1;
+  while (loop)
   {
-    while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                       &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration,
-                                       t2[j].max_jerk, max_time_change_per_it_))
+    loop = 0;
+    for (unsigned j = 0; j < num_joints; j++)
     {
-    }  // repeat until no more adjustments
+      while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
+                                         &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration,
+                                         t2[j].max_jerk, max_time_change_per_it_))
+        loop = 1;  // repeat until no adjustments
+    }
   }
 
   // Move points to satisfy initial/final acceleration
@@ -295,8 +299,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
 
   Fitting a cubic spline involves solving a series of linear equations.
   The general form for each segment is:
-    (tj-t_(j-1))*x"_(j-1) + 2*(t_(j+1)-t_(j-1))*x"j + (t_(j+1)-tj)*x"_j+1) = 
-          (x_(j+1)-xj)/(t_(j+1)-tj) -(xj-x_(j-1))/(tj-t_(j-1))
+    (tj-t_(j-1))*x"_(j-1) + 2*(t_(j+1)-t_(j-1))*x"j + (t_(j+1)-tj)*x"_j+1) =
+          (x_(j+1)-xj)/(t_(j+1)-tj) - (xj-x_(j-1))/(tj-t_(j-1))
   And the first and last segment equations are clamped to specified values: x1_i and x1_f.
 
   Represented in matrix form:
@@ -382,8 +386,10 @@ static void adjust_two_positions(const int n, const double dt[], double x[], dou
   double b2 = x2[n - 1];
 
   // we can solve this with linear equation (use two-point form)
-  x[1] = x[0] + ((x[2] - x[0]) / (a2 - a0)) * (x2_i - a0);
-  x[n - 2] = x[n - 3] + ((x[n - 1] - x[n - 3]) / (b2 - b0)) * (x2_f - b0);
+  if (a2 != a0)
+    x[1] = x[0] + ((x[2] - x[0]) / (a2 - a0)) * (x2_i - a0);
+  if (b2 != b0)
+    x[n - 2] = x[n - 3] + ((x[n - 1] - x[n - 3]) / (b2 - b0)) * (x2_f - b0);
 }
 
 /*
@@ -396,7 +402,7 @@ static void init_times(const int n, double dt[], const double x[], const double 
   int i;
   for (i = 0; i < n - 1; i++)
   {
-    double time = fabs((x[i + 1] - x[i]) / max_velocity);
+    double time = fabs((x[i + 1] - x[i]) / max_velocity) + 0.001;
     if (dt[i] < time)
       dt[i] = time;
   }
@@ -429,43 +435,46 @@ static int fit_spline_and_adjust_times(const int n, double dt[], const double x[
 
   fit_cubic_spline(n, dt, x, x1, x2);
 
-  for (i = 0; i < n; i++)
+  // Instantaneous velocity is calculated at each point
+  for (i = 0; i < n - 1; i++)
   {
-    double vel, acc, jrk = 0.0;
-
-    // NOTE -- dt[i-1] changes, so don't use it
-    vel = x1[i];
-    acc = x2[i];
-    // printf("vel %f acc %f ", vel, acc);
-
-    if (fabs(vel) > vlimit || fabs(acc) > alimit)
+    const double vel = x1[i];
+    const double vel2 = x1[i + 1];
+    if (fabs(vel) > vlimit || fabs(vel2) > vlimit)
     {
-      if (i > 0)
-      {
-        dt[i - 1] *= tfactor;
-      }
-      if (i < n)
+      dt[i] *= tfactor;
+      ret = 1;
+    }
+  }
+  // Instantaneous acceleration is calculated at each point
+  if (ret == 0)
+  {
+    for (i = 0; i < n - 1; i++)
+    {
+      const double acc = x2[i];
+      const double acc2 = x2[i + 1];
+      if (fabs(acc) > alimit || fabs(acc2) > alimit)
       {
         dt[i] *= tfactor;
+        ret = 1;
       }
-      ret = 1;
-      // printf("extended %d to %f\n", i, dt[i]);
-
-      // Jerk is not continuous, it is constant for each segment
     }
-    else if (i < n - 1)
-    {
-      jrk = (x2[i + 1] - x2[i]) / dt[i];
-      // printf(" jrk %f", jrk);
+  }
 
+  // Jerk is discontinuous, but constant for each segment
+  if (ret == 0)
+  {
+    for (i = 0; i < n - 1; i++)
+    {
+      const double jrk = (x2[i + 1] - x2[i]) / dt[i];
       if (fabs(jrk) > jlimit)
       {
         dt[i] *= tfactor;
         ret = 1;
       }
     }
-    // printf("\n");
   }
+
   return ret;
 }
 }
