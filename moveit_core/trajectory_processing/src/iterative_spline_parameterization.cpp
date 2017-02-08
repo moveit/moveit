@@ -210,7 +210,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
   if (num_points < 4)
   {
-    printf("number of waypoints %f, needs to be greater than 3.\n", TFACTOR);
+    printf("number of waypoints %d, needs to be greater than 3.\n", num_points);
     return false;
   }
   for (unsigned j = 0; j < num_joints; j++)
@@ -258,7 +258,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Move points to satisfy initial/final acceleration
-  int loop = 1;
+  loop = 1;
   while (loop)
   {
     loop = 0;
