@@ -46,8 +46,8 @@
 #include <vector>
 
 #define VLIMIT 1.0  // default
-#define ALIMIT 1.0  // default
-#define JLIMIT 1.0  // default
+#define ALIMIT 3.0  // default
+#define JLIMIT 9.0  // default
 
 namespace trajectory_processing
 {
@@ -75,7 +75,7 @@ struct SingleJointTrajectory
 };
 
 IterativeSplineParameterization::IterativeSplineParameterization(double max_time_change_per_it, bool add_points)
-  : max_time_change_per_it_(max_time_change_per_it), add_points_(add_points)
+  : max_time_change_per_it_(1.0 + max_time_change_per_it), add_points_(add_points)
 {
 }
 
