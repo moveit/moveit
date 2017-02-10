@@ -51,18 +51,20 @@ namespace trajectory_processing
 /// overridden when the model supports this in the future.
 /// Initial/final velocities and accelerations may also be specified.
 /// 
-/// This algorithm repeatedly fits a cubic spline.
-/// So to match the velocity and acceleration at the endpoints,
+/// This algorithm repeatedly fits a cubic spline, adjusts the timing intervals,
+/// and repeats until all constraints are satisfied.
+/// When finished, each trajectory waypoint will have the time set, 
+/// as well as the velocities and accelerations for each joint.
+/// Since we fit to a cubic spline, the position, velocity, and 
+/// acceleration will be continuous and within bounds.
+/// The jerk will be discontinuous, but within bounds.
+///
+/// To match the velocity and acceleration at the endpoints,
 /// the second and second-last point locations need to move.
 /// By default, two points are added to leave the original trajectory unaffected.
 /// If points are not added, the trajectory could potentially be faster,
 /// but the 2nd and 2nd-last points should be re-checked for collisions.
 ///
-/// When finished, each trajectory point will have the time set, 
-/// as well as the velocities and accelerations for each joint.
-/// The velocities and accelerations are fit to a cubic spline,
-/// so position, velocity, and acceleration will be continuous and within bounds.
-/// The jerk will be discontinuous, but within bounds.
 class IterativeSplineParameterization
 {
 public:
