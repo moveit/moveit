@@ -45,8 +45,7 @@
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
-
-// Load pr2.  Take a look at test/ in planning_scene, robot_mode, 
+// Load pr2.  Take a look at test/ in planning_scene, robot_mode,
 // and robot_state for inspiration.
 moveit::core::RobotModelConstPtr loadModel()
 {
@@ -74,9 +73,8 @@ moveit::core::RobotModelConstPtr loadModel()
 // Initialize one-joint, straight-line trajectory
 // Can specify init/final velocity/acceleration,
 // but not all time parameterization methods may accept it.
-int initTrajectory(robot_trajectory::RobotTrajectory &trajectory,
-  double vel_i = 0.0, double vel_f = 0.0, 
-  double acc_i = 0.0, double acc_f = 0.0)
+int initTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i = 0.0, double vel_f = 0.0,
+                   double acc_i = 0.0, double acc_f = 0.0)
 {
   const int num = 10;
   const double max = 2.0;
@@ -94,7 +92,8 @@ int initTrajectory(robot_trajectory::RobotTrajectory &trajectory,
   state.setVariableVelocity(idx[0], vel_i);
   state.setVariableAcceleration(idx[0], acc_i);
 
-  for (i=0; i<num; i++) {
+  for (i = 0; i < num; i++)
+  {
     state.setVariablePosition(idx[0], i * max / num);
     trajectory.addSuffixWayPoint(state, 0.0);
   }
@@ -107,21 +106,21 @@ int initTrajectory(robot_trajectory::RobotTrajectory &trajectory,
   return 0;
 }
 
-void printTrajectory(robot_trajectory::RobotTrajectory &trajectory)
+void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 {
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   const std::vector<int>& idx = group->getVariableIndexList();
   unsigned int count = trajectory.getWayPointCount();
 
-  std::cout << "trajectory length is " << trajectory.getWayPointDurationFromStart(count-1) << " seconds." << std::endl;
+  std::cout << "trajectory length is " << trajectory.getWayPointDurationFromStart(count - 1) << " seconds."
+            << std::endl;
   std::cout << "  Trajectory Points" << std::endl;
-  for (unsigned i=0; i<count; i++) {
+  for (unsigned i = 0; i < count; i++)
+  {
     robot_state::RobotStatePtr point = trajectory.getWayPointPtr(i);
-    printf("  waypoint %2d time %6.2f pos %6.2f vel %6.2f acc %6.2f \n", i, 
-          trajectory.getWayPointDurationFromStart(i), 
-          point->getVariablePosition(idx[0]), 
-          point->getVariableVelocity(idx[0]), 
-          point->getVariableAcceleration(idx[0]));
+    printf("  waypoint %2d time %6.2f pos %6.2f vel %6.2f acc %6.2f \n", i, trajectory.getWayPointDurationFromStart(i),
+           point->getVariablePosition(idx[0]), point->getVariableVelocity(idx[0]),
+           point->getVariableAcceleration(idx[0]));
   }
 }
 

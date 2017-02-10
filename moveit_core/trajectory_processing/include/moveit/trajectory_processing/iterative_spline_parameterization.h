@@ -50,12 +50,12 @@ namespace trajectory_processing
 /// A default jerk constraint is also enforced, which may be
 /// overridden when the model supports this in the future.
 /// Initial/final velocities and accelerations may also be specified.
-/// 
+///
 /// This algorithm repeatedly fits a cubic spline, adjusts the timing intervals,
 /// and repeats until all constraints are satisfied.
-/// When finished, each trajectory waypoint will have the time set, 
+/// When finished, each trajectory waypoint will have the time set,
 /// as well as the velocities and accelerations for each joint.
-/// Since we fit to a cubic spline, the position, velocity, and 
+/// Since we fit to a cubic spline, the position, velocity, and
 /// acceleration will be continuous and within bounds.
 /// The jerk will be discontinuous, but within bounds.
 ///
@@ -76,8 +76,8 @@ public:
 
 private:
   double max_time_change_per_it_;  /// @brief maximum allowed time change per iteration in seconds
-  bool add_points_;  /// @brief if true, add two points to trajectory (first and last segments).
-                     /// If false, move the 2nd and 2nd-last points.
+  bool add_points_;                /// @brief if true, add two points to trajectory (first and last segments).
+                                   /// If false, move the 2nd and 2nd-last points.
 };
 }
 
