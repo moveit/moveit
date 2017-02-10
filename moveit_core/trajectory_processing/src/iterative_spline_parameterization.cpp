@@ -275,7 +275,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
 
   // Convert back to JointTrajectory form
   for (unsigned i = 1; i < num_points; i++)
-    trajectory.setWayPointDurationFromPrevious(0, time_diff[i - 1]);
+    trajectory.setWayPointDurationFromPrevious(i, time_diff[i - 1]);
   for (unsigned i = 0; i < num_points; i++)
   {
     for (unsigned j = 0; j < num_joints; j++)
