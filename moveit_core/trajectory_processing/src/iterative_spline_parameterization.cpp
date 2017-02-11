@@ -49,6 +49,28 @@
 #define ALIMIT 3.0  // default
 #define JLIMIT 9.0  // default
 
+/*
+  Comment-out to disable jerk limits.
+  This would be the case if you want to allow bang-bang style control,
+  where the controller can go from min acceleration to max acceleration
+  instantaneously.  In other words, the acceleration curve is discontinuous.
+  Since the acceleration can change instantly, matching the initial and final
+  acceleration is unneccessary, as is adding and moving the two extra points.
+  This will get the shortest paths and should be comparable to 'optimal'
+  methods that have a trapazoidal velocity curve.
+
+  However, fitting a cubic spline creates a trajectory with a continuous
+  acceleration curve.
+  If you are using this technique, then you probably don't want rapid changes
+  in acceleration like a bang-bang controller.
+  This means that jerks limits need to be enforced.
+  The downside is that if the limits are low, you will notice visible oscilation
+  around what you may expect as the 'optimal' velocity curve.
+  Increasing the jerk limits will reduce oscilation and speed up execution.
+  By default, this should be ENABLED.
+*/
+#define ENABLE_JERK
+
 namespace trajectory_processing
 {
 static void fit_cubic_spline(const int n, const double dt[], const double x[], double x1[], double x2[]);
@@ -125,6 +147,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   // No wrapped angles.
   trajectory.unwind();
 
+#ifdef ENABLE_JERK
   // Insert 2nd and 2nd-last points
   // (required to force acceleration to specified values at endpoints)
   if (add_points_ && trajectory.getWayPointCount() >= 2)
@@ -160,6 +183,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     trajectory.insertWayPoint(num_points - 1, point, 0.0);
     num_points++;
   }
+#endif
 
   // JointTrajectory indexes in [point][joint] order.
   // We need [joint][point] order to solve efficiently,
@@ -189,7 +213,11 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       t2[j].max_acceleration = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_));
     t2[j].max_acceleration *= acceleration_scaling_factor;
 
+#ifdef ENABLE_JERK
     t2[j].max_jerk = JLIMIT;
+#else
+    t2[j].max_jerk = std::numeric_limits<double>::max();
+#endif
   }
 
   for (unsigned i = 0; i < num_points; i++)
@@ -257,6 +285,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     }
   }
 
+#ifdef ENABLE_JERK
   // Move points to satisfy initial/final acceleration
   loop = 1;
   while (loop)
@@ -272,6 +301,7 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
         loop = 1;  // repeat until no more adjustments
     }
   }
+#endif
 
   // Convert back to JointTrajectory form
   for (unsigned i = 1; i < num_points; i++)
