@@ -118,9 +118,17 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   for (unsigned i = 0; i < count; i++)
   {
     robot_state::RobotStatePtr point = trajectory.getWayPointPtr(i);
-    printf("  waypoint %2d time %6.2f pos %6.2f vel %6.2f acc %6.2f \n", i, trajectory.getWayPointDurationFromStart(i),
+    printf("  waypoint %2d time %6.2f pos %6.2f vel %6.2f acc %6.2f ", i, trajectory.getWayPointDurationFromStart(i),
            point->getVariablePosition(idx[0]), point->getVariableVelocity(idx[0]),
            point->getVariableAcceleration(idx[0]));
+    if (i > 0)
+    {
+      robot_state::RobotStatePtr prev = trajectory.getWayPointPtr(i - 1);
+      printf("jrk %6.2f",
+             (point->getVariableAcceleration(idx[0]) - prev->getVariableAcceleration(idx[0])) /
+                 (trajectory.getWayPointDurationFromStart(i) - trajectory.getWayPointDurationFromStart(i - 1)));
+    }
+    printf("\n");
   }
 }
 
@@ -141,12 +149,39 @@ TEST(TestTimeParameterization, TestIterativeSpline)
 {
   moveit::core::RobotModelConstPtr robot_model = loadModel();
   robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
-  trajectory_processing::IterativeSplineParameterization time_parameterization;
+  trajectory_processing::IterativeSplineParameterization time_parameterization(false);
   EXPECT_EQ(initTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeSplineParameterization took " << (ros::WallTime::now() - wt).toSec() << std::endl;
+  printTrajectory(trajectory);
+}
+
+TEST(TestTimeParameterization, TestIterativeSplineJerk)
+{
+  moveit::core::RobotModelConstPtr robot_model = loadModel();
+  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
+  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, false);
+  EXPECT_EQ(initTrajectory(trajectory), 0);
+
+  ros::WallTime wt = ros::WallTime::now();
+  EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
+  std::cout << "IterativeSplineParameterization with Jerk took " << (ros::WallTime::now() - wt).toSec() << std::endl;
+  printTrajectory(trajectory);
+}
+
+TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
+{
+  moveit::core::RobotModelConstPtr robot_model = loadModel();
+  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
+  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
+  EXPECT_EQ(initTrajectory(trajectory), 0);
+
+  ros::WallTime wt = ros::WallTime::now();
+  EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
+  std::cout << "IterativeSplineParameterization with Jerk and added points took " << (ros::WallTime::now() - wt).toSec()
+            << std::endl;
   printTrajectory(trajectory);
 }
 

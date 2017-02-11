@@ -46,10 +46,11 @@
 namespace trajectory_processing
 {
 /// \brief This class sets the timestamps of a trajectory
-/// to enforce velocity and acceleration constraints.
-/// A default jerk constraint is also enforced, which may be
+/// to enforce velocity, acceleration, and optionally jerk constraints.
+/// Initial/final velocities and accelerations may be specified in the trajectory.
+/// Velocity and acceleration limits are specified in the model.
+/// A jerk constraint may be passed into the contructor, which may be
 /// overridden when the model supports this in the future.
-/// Initial/final velocities and accelerations may also be specified.
 ///
 /// This algorithm repeatedly fits a cubic spline, adjusts the timing intervals,
 /// and repeats until all constraints are satisfied.
@@ -59,25 +60,47 @@ namespace trajectory_processing
 /// acceleration will be continuous and within bounds.
 /// The jerk will be discontinuous, but within bounds.
 ///
+/// If jerk is disabled, then initial/final acceleration matching
+/// will be disabled.
+/// You would use this if you want to allow bang-bang style control
+/// where the controller can go from min acceleration to max acceleration
+/// instantaneously.
+/// In other words, discontinuity in the acceleration curve allowed.
+/// Since the acceleration can change instantly, matching the initial and final
+/// acceleration is unneccessary.
+/// This will get the shortest paths and should be comparable to 'optimal'
+/// methods that have a trapazoidal velocity curve.
+///
+/// However, jerk is enabled by default.
 /// To match the velocity and acceleration at the endpoints,
 /// the second and second-last point locations need to move.
-/// By default, two points are added to leave the original trajectory unaffected.
+/// By default, two extra points are added to leave the original trajectory unaffected.
 /// If points are not added, the trajectory could potentially be faster,
 /// but the 2nd and 2nd-last points should be re-checked for collisions.
+/// The downside of enforcing jerk is that if the limits are low,
+/// there will be visible oscilation
+/// around what you may expect as the 'optimal' velocity curve.
+/// Increasing the jerk limits will reduce oscilation and speed up execution.
 ///
 class IterativeSplineParameterization
 {
 public:
-  IterativeSplineParameterization(double max_time_change_per_it = .01, bool add_points = true);
+  IterativeSplineParameterization(bool enable_jerk = true, double max_jerk = 9.0, bool add_points = true,
+                                  double max_time_change_per_it = .01);
   ~IterativeSplineParameterization();
 
   bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory, const double max_velocity_scaling_factor = 1.0,
-                         const double max_acceleration_scaling_factor = 1.0) const;
+                         const double max_acceleration_scaling_factor = 1.0,
+                         const double max_jerk_scaling_factor = 1.0) const;
 
 private:
-  double max_time_change_per_it_;  /// @brief maximum allowed time change per iteration in seconds
-  bool add_points_;                /// @brief if true, add two points to trajectory (first and last segments).
-                                   /// If false, move the 2nd and 2nd-last points.
+  bool jerk_enabled_;          /// @brief If true, enable jerk and initial/final acceleration matching
+  double max_jerk_;            /// @brief The maximum jerk limit.
+                               /// Only active if jerk is enabled.
+  bool add_points_;            /// @brief If true, add two points to trajectory (first and last segments).
+                               /// If false, move the 2nd and 2nd-last points.
+                               /// Only active if jerk is enabled.
+  double time_change_factor_;  /// @brief multiplicative factor to change time intervals each iteration (>1.0)
 };
 }
 

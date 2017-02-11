@@ -34,42 +34,14 @@
 
 /* Author: Ken Anderson */
 
-/*
-  Code to time parameterize a trajectory into a cubic spline
-  while respecting velocity, acceleration, and jerk constraints.
-*/
-
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit_msgs/JointLimits.h>
 #include <console_bridge/console.h>
 #include <moveit/robot_state/conversions.h>
 #include <vector>
 
-#define VLIMIT 1.0  // default
-#define ALIMIT 3.0  // default
-#define JLIMIT 9.0  // default
-
-/*
-  Comment-out to disable jerk limits.
-  This would be the case if you want to allow bang-bang style control,
-  where the controller can go from min acceleration to max acceleration
-  instantaneously.  In other words, the acceleration curve is discontinuous.
-  Since the acceleration can change instantly, matching the initial and final
-  acceleration is unneccessary, as is adding and moving the two extra points.
-  This will get the shortest paths and should be comparable to 'optimal'
-  methods that have a trapazoidal velocity curve.
-
-  However, fitting a cubic spline creates a trajectory with a continuous
-  acceleration curve.
-  If you are using this technique, then you probably don't want rapid changes
-  in acceleration like a bang-bang controller.
-  This means that jerks limits need to be enforced.
-  The downside is that if the limits are low, you will notice visible oscilation
-  around what you may expect as the 'optimal' velocity curve.
-  Increasing the jerk limits will reduce oscilation and speed up execution.
-  By default, this should be ENABLED.
-*/
-#define ENABLE_JERK
+#define VLIMIT 1.0  // default if not specified in model
+#define ALIMIT 3.0  // default if not specified in model
 
 namespace trajectory_processing
 {
@@ -96,8 +68,12 @@ struct SingleJointTrajectory
   double max_jerk;
 };
 
-IterativeSplineParameterization::IterativeSplineParameterization(double max_time_change_per_it, bool add_points)
-  : max_time_change_per_it_(1.0 + max_time_change_per_it), add_points_(add_points)
+IterativeSplineParameterization::IterativeSplineParameterization(bool enable_jerk, double max_jerk, bool add_points,
+                                                                 double max_time_change_per_it)
+  : jerk_enabled_(enable_jerk)
+  , max_jerk_(max_jerk)
+  , add_points_(add_points)
+  , time_change_factor_(1.0 + max_time_change_per_it)
 {
 }
 
@@ -107,7 +83,8 @@ IterativeSplineParameterization::~IterativeSplineParameterization()
 
 bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
-                                                        const double max_acceleration_scaling_factor) const
+                                                        const double max_acceleration_scaling_factor,
+                                                        const double max_jerk_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -121,12 +98,21 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   const robot_model::RobotModel& rmodel = group->getParentModel();
   const std::vector<int>& idx = group->getVariableIndexList();
   const std::vector<std::string>& vars = group->getVariableNames();
-  double acceleration_scaling_factor = 1.0;
   double velocity_scaling_factor = 1.0;
+  double acceleration_scaling_factor = 1.0;
+  double jerk_scaling_factor = 1.0;
   unsigned num_points = trajectory.getWayPointCount();
   unsigned num_joints = group->getVariableCount();
 
   // Set scaling factors
+  if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
+    velocity_scaling_factor = max_velocity_scaling_factor;
+  else if (max_velocity_scaling_factor == 0.0)
+    logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+  else
+    logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
+            velocity_scaling_factor);
+
   if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)
     acceleration_scaling_factor = max_acceleration_scaling_factor;
   else if (max_acceleration_scaling_factor == 0.0)
@@ -136,54 +122,55 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
             max_acceleration_scaling_factor, acceleration_scaling_factor);
 
-  if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
-    velocity_scaling_factor = max_velocity_scaling_factor;
-  else if (max_velocity_scaling_factor == 0.0)
-    logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+  if (max_jerk_scaling_factor > 0.0 && max_jerk_scaling_factor <= 1.0)
+    jerk_scaling_factor = max_jerk_scaling_factor;
+  else if (max_jerk_scaling_factor == 0.0)
+    logDebug("A max_jerk_scaling_factor of 0.0 was specified, defaulting to %f instead.", jerk_scaling_factor);
   else
-    logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
-            velocity_scaling_factor);
+    logWarn("Invalid max_jerk_scaling_factor %f specified, defaulting to %f instead.", max_jerk_scaling_factor,
+            jerk_scaling_factor);
 
   // No wrapped angles.
   trajectory.unwind();
 
-#ifdef ENABLE_JERK
-  // Insert 2nd and 2nd-last points
-  // (required to force acceleration to specified values at endpoints)
-  if (add_points_ && trajectory.getWayPointCount() >= 2)
+  if (jerk_enabled_ && add_points_)
   {
-    robot_state::RobotState point = trajectory.getWayPoint(0);
-    robot_state::RobotStatePtr p0, p1;
-
-    p0 = trajectory.getWayPointPtr(0);
-    p1 = trajectory.getWayPointPtr(1);
-    for (unsigned j = 0; j < num_joints; j++)
+    // Insert 2nd and 2nd-last points
+    // (required to force acceleration to specified values at endpoints)
+    if (add_points_ && trajectory.getWayPointCount() >= 2)
     {
-      point.setVariablePosition(idx[j],
-                                (9 * p0->getVariablePosition(idx[j]) + 1 * p1->getVariablePosition(idx[j])) / 10);
-      point.setVariableVelocity(idx[j],
-                                (9 * p0->getVariableVelocity(idx[j]) + 1 * p1->getVariableVelocity(idx[j])) / 10);
-      point.setVariableAcceleration(
-          idx[j], (9 * p0->getVariableAcceleration(idx[j]) + 1 * p1->getVariableAcceleration(idx[j])) / 10);
-    }
-    trajectory.insertWayPoint(1, point, 0.0);
-    num_points++;
+      robot_state::RobotState point = trajectory.getWayPoint(0);
+      robot_state::RobotStatePtr p0, p1;
 
-    p0 = trajectory.getWayPointPtr(num_points - 2);
-    p1 = trajectory.getWayPointPtr(num_points - 1);
-    for (unsigned j = 0; j < num_joints; j++)
-    {
-      point.setVariablePosition(idx[j],
-                                (1 * p0->getVariablePosition(idx[j]) + 9 * p1->getVariablePosition(idx[j])) / 10);
-      point.setVariableVelocity(idx[j],
-                                (1 * p0->getVariableVelocity(idx[j]) + 9 * p1->getVariableVelocity(idx[j])) / 10);
-      point.setVariableAcceleration(
-          idx[j], (1 * p0->getVariableAcceleration(idx[j]) + 9 * p1->getVariableAcceleration(idx[j])) / 10);
+      p0 = trajectory.getWayPointPtr(0);
+      p1 = trajectory.getWayPointPtr(1);
+      for (unsigned j = 0; j < num_joints; j++)
+      {
+        point.setVariablePosition(idx[j],
+                                  (9 * p0->getVariablePosition(idx[j]) + 1 * p1->getVariablePosition(idx[j])) / 10);
+        point.setVariableVelocity(idx[j],
+                                  (9 * p0->getVariableVelocity(idx[j]) + 1 * p1->getVariableVelocity(idx[j])) / 10);
+        point.setVariableAcceleration(
+            idx[j], (9 * p0->getVariableAcceleration(idx[j]) + 1 * p1->getVariableAcceleration(idx[j])) / 10);
+      }
+      trajectory.insertWayPoint(1, point, 0.0);
+      num_points++;
+
+      p0 = trajectory.getWayPointPtr(num_points - 2);
+      p1 = trajectory.getWayPointPtr(num_points - 1);
+      for (unsigned j = 0; j < num_joints; j++)
+      {
+        point.setVariablePosition(idx[j],
+                                  (1 * p0->getVariablePosition(idx[j]) + 9 * p1->getVariablePosition(idx[j])) / 10);
+        point.setVariableVelocity(idx[j],
+                                  (1 * p0->getVariableVelocity(idx[j]) + 9 * p1->getVariableVelocity(idx[j])) / 10);
+        point.setVariableAcceleration(
+            idx[j], (1 * p0->getVariableAcceleration(idx[j]) + 9 * p1->getVariableAcceleration(idx[j])) / 10);
+      }
+      trajectory.insertWayPoint(num_points - 1, point, 0.0);
+      num_points++;
     }
-    trajectory.insertWayPoint(num_points - 1, point, 0.0);
-    num_points++;
   }
-#endif
 
   // JointTrajectory indexes in [point][joint] order.
   // We need [joint][point] order to solve efficiently,
@@ -213,11 +200,12 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       t2[j].max_acceleration = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_));
     t2[j].max_acceleration *= acceleration_scaling_factor;
 
-#ifdef ENABLE_JERK
-    t2[j].max_jerk = JLIMIT;
-#else
     t2[j].max_jerk = std::numeric_limits<double>::max();
-#endif
+    if (jerk_enabled_)
+    {
+      t2[j].max_jerk = max_jerk_;
+      t2[j].max_jerk *= jerk_scaling_factor;
+    }
   }
 
   for (unsigned i = 0; i < num_points; i++)
@@ -231,36 +219,36 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Error check
-  if (max_time_change_per_it_ <= 1.0)
+  if (time_change_factor_ <= 1.0)
   {
-    printf("max time change is %f, needs to be higher than 1.0.\n", max_time_change_per_it_);
+    logError("time change factor is %f, needs to be higher than 1.0.\n", time_change_factor_);
     return false;
   }
   if (num_points < 4)
   {
-    printf("number of waypoints %d, needs to be greater than 3.\n", num_points);
+    logError("number of waypoints %d, needs to be greater than 3.\n", num_points);
     return false;
   }
   for (unsigned j = 0; j < num_joints; j++)
   {
     if (fabs(t2[j].velocities[0]) > t2[j].max_velocity)
     {
-      printf("Initial velocity %f out of bounds\n", t2[j].velocities[0]);
+      logError("Initial velocity %f out of bounds\n", t2[j].velocities[0]);
       return false;
     }
     else if (fabs(t2[j].velocities[num_points - 1]) > t2[j].max_velocity)
     {
-      printf("Final velocity %f out of bounds\n", t2[j].velocities[num_points - 1]);
+      logError("Final velocity %f out of bounds\n", t2[j].velocities[num_points - 1]);
       return false;
     }
     else if (fabs(t2[j].accelerations[0]) > t2[j].max_acceleration)
     {
-      printf("Initial acceleration %f out of bounds\n", t2[j].accelerations[0]);
+      logError("Initial acceleration %f out of bounds\n", t2[j].accelerations[0]);
       return false;
     }
     else if (fabs(t2[j].accelerations[num_points - 1]) > t2[j].max_acceleration)
     {
-      printf("Final acceleration %f out of bounds\n", t2[j].accelerations[num_points - 1]);
+      logError("Final acceleration %f out of bounds\n", t2[j].accelerations[num_points - 1]);
       return false;
     }
   }
@@ -280,28 +268,29 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     {
       while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
                                          &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration,
-                                         t2[j].max_jerk, max_time_change_per_it_))
+                                         t2[j].max_jerk, time_change_factor_))
         loop = 1;  // repeat until no adjustments
     }
   }
 
-#ifdef ENABLE_JERK
-  // Move points to satisfy initial/final acceleration
-  loop = 1;
-  while (loop)
+  if (jerk_enabled_)
   {
-    loop = 0;
-    for (unsigned j = 0; j < num_joints; j++)
+    // Move points to satisfy initial/final acceleration
+    loop = 1;
+    while (loop)
     {
-      adjust_two_positions(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                           &t2[j].accelerations[0], t2[j].initial_acceleration, t2[j].final_acceleration);
-      while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                         &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration,
-                                         t2[j].max_jerk, max_time_change_per_it_))
-        loop = 1;  // repeat until no more adjustments
+      loop = 0;
+      for (unsigned j = 0; j < num_joints; j++)
+      {
+        adjust_two_positions(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
+                             &t2[j].accelerations[0], t2[j].initial_acceleration, t2[j].final_acceleration);
+        while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
+                                           &t2[j].accelerations[0], t2[j].max_velocity, t2[j].max_acceleration,
+                                           t2[j].max_jerk, time_change_factor_))
+          loop = 1;  // repeat until no more adjustments
+      }
     }
   }
-#endif
 
   // Convert back to JointTrajectory form
   for (unsigned i = 1; i < num_points; i++)
@@ -402,7 +391,6 @@ static void fit_cubic_spline(const int n, const double dt[], const double x[], d
 static void adjust_two_positions(const int n, const double dt[], double x[], double x1[], double x2[],
                                  const double x2_i, const double x2_f)
 {
-  // printf("Find Intersection\n");
   x[1] = x[0];
   x[n - 2] = x[n - 3];
   fit_cubic_spline(n, dt, x, x1, x2);
