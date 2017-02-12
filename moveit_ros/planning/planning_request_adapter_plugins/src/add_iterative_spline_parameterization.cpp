@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ken Anderson, based off add_iterative_spline_parameterization.cpp by Ioan Sucan */
+/* Author: Ken Anderson, based off add_time_parameterization.cpp by Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
