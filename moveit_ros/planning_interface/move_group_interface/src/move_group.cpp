@@ -1570,6 +1570,11 @@ const std::vector<std::string>& moveit::planning_interface::MoveGroup::getJointN
   return impl_->getJointModelGroup()->getVariableNames();
 }
 
+const std::vector<std::string>& moveit::planning_interface::MoveGroup::getLinkNames()
+{
+  return impl_->getJointModelGroup()->getLinkModelNames();
+}
+
 std::map<std::string, double> moveit::planning_interface::MoveGroup::getNamedTargetValues(const std::string& name)
 {
   std::map<std::string, std::vector<double> >::const_iterator it = remembered_joint_values_.find(name);
