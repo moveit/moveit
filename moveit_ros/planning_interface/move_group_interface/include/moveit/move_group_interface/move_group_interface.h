@@ -174,6 +174,9 @@ public:
   /** \brief Get vector of names of joints available in move group */
   const std::vector<std::string>& getJointNames();
 
+  /** \brief Get vector of names of links available in move group */
+  const std::vector<std::string>& getLinkNames();
+
   /** \brief Get the joint angles for targets specified by name */
   std::map<std::string, double> getNamedTargetValues(const std::string& name);
 
