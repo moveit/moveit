@@ -163,7 +163,7 @@ public:
       }
       catch (...)
       {
-        ROS_ERROR_STREAM_NAMED("manager", "Unable to parse controller information");
+        ROS_ERROR_STREAM_NAMED("manager", "Caught unknown exception while parsing controller information");
       }
     }
   }

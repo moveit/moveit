@@ -90,8 +90,9 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
         inv_t = t2fixed_frame.inverse();
         use_inv_t = true;
       }
-      catch (std::runtime_error&)
+      catch (std::exception& ex)
       {
+        logError("Caught %s", ex.what());
         error = true;
       }
     else

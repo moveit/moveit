@@ -152,7 +152,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       {
         ok = psws_.getPlanningSceneWorld(pswwm, options_.scene);
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -178,7 +178,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
     {
       ok = pss_.getPlanningScene(pswm, options_.scene);
     }
-    catch (std::runtime_error& ex)
+    catch (std::exception& ex)
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -210,7 +210,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
   {
     pss_.getPlanningQueriesNames(options_.query_regex, planning_queries_names, options_.scene);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -267,7 +267,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
       {
         got_robot_state = rs_.getRobotState(robot_state, state_name);
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR("%s", ex.what());
       }
@@ -344,7 +344,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
         {
           got_constraints = cs_.getConstraints(constr, cnames[i]);
         }
-        catch (std::runtime_error& ex)
+        catch (std::exception& ex)
         {
           ROS_ERROR("%s", ex.what());
         }
@@ -423,7 +423,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
         {
           got_constraints = tcs_.getTrajectoryConstraints(constr, cnames[i]);
         }
-        catch (std::runtime_error& ex)
+        catch (std::exception& ex)
         {
           ROS_ERROR("%s", ex.what());
         }

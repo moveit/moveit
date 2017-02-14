@@ -506,6 +506,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   catch (...)
   {
     tree_->unlockRead();
+    ROS_ERROR("Internal error while parsing depth data");
     return;
   }
   tree_->unlockRead();

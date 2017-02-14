@@ -305,7 +305,7 @@ bool BenchmarkExecutor::initializeBenchmarks(const BenchmarkOptions& opts, movei
       return false;
     }
   }
-  catch (std::runtime_error& e)
+  catch (std::exception& e)
   {
     ROS_ERROR("Failed to initialize benchmark server: '%s'", e.what());
     return false;
@@ -586,7 +586,7 @@ bool BenchmarkExecutor::loadPlanningScene(const std::string& scene_name, moveit_
     else
       ROS_ERROR("Failed to find planning scene '%s'", scene_name.c_str());
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("Error loading planning scene: %s", ex.what());
   }
@@ -605,7 +605,7 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
   {
     pss_->getPlanningQueriesNames(regex, query_names, scene_name);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("Error loading motion planning queries: %s", ex.what());
     return false;
@@ -624,7 +624,7 @@ bool BenchmarkExecutor::loadQueries(const std::string& regex, const std::string&
     {
       pss_->getPlanningQuery(planning_query, scene_name, query_names[i]);
     }
-    catch (std::runtime_error& ex)
+    catch (std::exception& ex)
     {
       ROS_ERROR("Error loading motion planning query '%s': %s", query_names[i].c_str(), ex.what());
       continue;
@@ -662,7 +662,7 @@ bool BenchmarkExecutor::loadStates(const std::string& regex, std::vector<StartSt
             start_states.push_back(start_state);
           }
         }
-        catch (std::runtime_error& ex)
+        catch (std::exception& ex)
         {
           ROS_ERROR("Runtime error when loading state '%s': %s", state_names[i].c_str(), ex.what());
           continue;
@@ -697,7 +697,7 @@ bool BenchmarkExecutor::loadPathConstraints(const std::string& regex, std::vecto
           constraints.push_back(constraint);
         }
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR("Runtime error when loading path constraint '%s': %s", cnames[i].c_str(), ex.what());
         continue;
@@ -733,7 +733,7 @@ bool BenchmarkExecutor::loadTrajectoryConstraints(const std::string& regex,
           constraints.push_back(constraint);
         }
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR("Runtime error when loading trajectory constraint '%s': %s", cnames[i].c_str(), ex.what());
         continue;

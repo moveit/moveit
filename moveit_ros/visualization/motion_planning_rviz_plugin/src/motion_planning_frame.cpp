@@ -158,7 +158,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
-    catch (std::runtime_error& ex)
+    catch (std::exception& ex)
     {
       //      ROS_ERROR("Object recognition action: %s", ex.what());
       object_recognition_client_.reset();
@@ -168,7 +168,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   {
     planning_scene_interface_.reset(new moveit::planning_interface::PlanningSceneInterface());
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -187,7 +187,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
       semantic_world_->addTableCallback(boost::bind(&MotionPlanningFrame::updateTables, this));
     }
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("%s", ex.what());
   }
@@ -304,7 +304,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
       if (planning_scene_storage_)
         move_group_->setConstraintsDatabase(ui_->database_host->text().toStdString(), ui_->database_port->value());
     }
-    catch (std::runtime_error& ex)
+    catch (std::exception& ex)
     {
       ROS_ERROR("%s", ex.what());
     }

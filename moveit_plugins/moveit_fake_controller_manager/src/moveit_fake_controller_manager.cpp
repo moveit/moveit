@@ -114,7 +114,7 @@ public:
       }
       catch (...)
       {
-        ROS_ERROR("MoveItFakeControllerManager: Unable to parse controller information");
+        ROS_ERROR("MoveItFakeControllerManager: Caught unknown exception while parsing controller information");
       }
     }
   }
@@ -179,7 +179,8 @@ public:
       }
       catch (...)
       {
-        ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Unable to parse initial pose information.");
+        ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Caught unknown exception while reading initial pose "
+                                                       "information.");
       }
     }
 
