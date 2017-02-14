@@ -41,7 +41,7 @@
 #include <vector>
 
 static const double VLIMIT = 1.0;  // default if not specified in model
-static const double ALIMIT = 3.0;  // default if not specified in model
+static const double ALIMIT = 1.0;  // default if not specified in model
 
 namespace trajectory_processing
 {

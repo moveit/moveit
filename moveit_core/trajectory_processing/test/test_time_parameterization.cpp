@@ -142,8 +142,8 @@ TEST(TestTimeParameterization, TestIterativeParabolic)
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeParabolicTimeParameterization  took " << (ros::WallTime::now() - wt).toSec() << std::endl;
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 4.0);
   printTrajectory(trajectory);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 3.0);
 }
 
 TEST(TestTimeParameterization, TestIterativeSpline)
@@ -156,8 +156,8 @@ TEST(TestTimeParameterization, TestIterativeSpline)
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeSplineParameterization took " << (ros::WallTime::now() - wt).toSec() << std::endl;
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 4.0);
   printTrajectory(trajectory);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
 }
 
 TEST(TestTimeParameterization, TestIterativeSplineJerk)
@@ -170,8 +170,8 @@ TEST(TestTimeParameterization, TestIterativeSplineJerk)
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeSplineParameterization with Jerk took " << (ros::WallTime::now() - wt).toSec() << std::endl;
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 4.0);
   printTrajectory(trajectory);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
 }
 
 TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
@@ -185,8 +185,8 @@ TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeSplineParameterization with Jerk and added points took " << (ros::WallTime::now() - wt).toSec()
             << std::endl;
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 4.0);
   printTrajectory(trajectory);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
 }
 
 int main(int argc, char** argv)
