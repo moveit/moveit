@@ -140,8 +140,8 @@ class MoveGroupCommander(object):
         >>> joint_state = JointState()
         >>> joint_state.header = Header()
         >>> joint_state.header.stamp = rospy.Time.now()
-        >>> joint_state.name = joint_name
-        >>> joint_state.position = joint_position
+        >>> joint_state.name = ['joint_a', 'joint_b']
+        >>> joint_state.position = [0.17, 0.34]
         >>> moveit_robot_state = RobotState()
         >>> moveit_robot_state.joint_state = joint_state
         >>> group.set_start_state(moveit_robot_state)
