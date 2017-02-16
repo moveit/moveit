@@ -126,6 +126,26 @@ class MoveGroupCommander(object):
         self._g.set_start_state_to_current_state()
 
     def set_start_state(self, msg):
+        """
+        Specify a start state for the group.
+
+        Parameters
+        ----------
+        msg : moveit_msgs/RobotState
+
+        Examples
+        --------
+        >>> from moveit_msgs.msg import RobotState
+        >>> from sensor_msgs.msg import JointState
+        >>> joint_state = JointState()
+        >>> joint_state.header = Header()
+        >>> joint_state.header.stamp = rospy.Time.now()
+        >>> joint_state.name = ['joint_a', 'joint_b']
+        >>> joint_state.position = [0.17, 0.34]
+        >>> moveit_robot_state = RobotState()
+        >>> moveit_robot_state.joint_state = joint_state
+        >>> group.set_start_state(moveit_robot_state)
+        """
         self._g.set_start_state(conversions.msg_to_string(msg))
 
     def get_joint_value_target(self):
