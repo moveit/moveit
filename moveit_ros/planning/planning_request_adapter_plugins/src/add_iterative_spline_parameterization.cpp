@@ -42,10 +42,10 @@
 
 namespace default_planner_request_adapters
 {
-class AddSplineParameterization : public planning_request_adapter::PlanningRequestAdapter
+class AddIterativeSplineParameterization : public planning_request_adapter::PlanningRequestAdapter
 {
 public:
-  AddSplineParameterization() : planning_request_adapter::PlanningRequestAdapter()
+  AddIterativeSplineParameterization() : planning_request_adapter::PlanningRequestAdapter()
   {
   }
 
@@ -76,5 +76,5 @@ private:
 };
 }
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::AddSplineParameterization,
+CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::AddIterativeSplineParameterization,
                             planning_request_adapter::PlanningRequestAdapter);
