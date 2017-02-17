@@ -82,6 +82,14 @@ namespace trajectory_processing
 /// around what you may expect as the 'optimal' velocity curve.
 /// Increasing the jerk limits will reduce oscilation and speed up execution.
 ///
+/// Migration notes:  If migrating from Iterative Parabolic Time Parameterization,
+/// be aware that the velocity and acceleration limits are more strictly enforced
+/// using this technique.
+/// This means that time-parameterizing the same trajectory with the same 
+/// velocity and acceleration limits, will result in a longer trajectory.  
+/// Similarly, enforcing jerk will cause the trajectory to be longer.  
+/// If this is a problem, try retuning (increasing) the limits.
+///
 class IterativeSplineParameterization
 {
 public:
