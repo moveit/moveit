@@ -85,9 +85,9 @@ namespace trajectory_processing
 /// Migration notes:  If migrating from Iterative Parabolic Time Parameterization,
 /// be aware that the velocity and acceleration limits are more strictly enforced
 /// using this technique.
-/// This means that time-parameterizing the same trajectory with the same 
-/// velocity and acceleration limits, will result in a longer trajectory.  
-/// Similarly, enforcing jerk will cause the trajectory to be longer.  
+/// This means that time-parameterizing the same trajectory with the same
+/// velocity and acceleration limits, will result in a longer trajectory.
+/// Similarly, enforcing jerk will cause the trajectory to be longer.
 /// If this is a problem, try retuning (increasing) the limits.
 ///
 class IterativeSplineParameterization
