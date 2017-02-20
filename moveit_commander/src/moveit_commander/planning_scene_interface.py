@@ -102,8 +102,8 @@ class PlanningSceneInterface(object):
         mesh = Mesh()
         for face in scene.meshes[0].faces:
             triangle = MeshTriangle()
-            if len(face.indices) == 3:
-                triangle.vertex_indices = [face.indices[0], face.indices[1], face.indices[2]]
+            if len(face) == 3:
+                triangle.vertex_indices = [face[0], face[1], face[2]]
             mesh.triangles.append(triangle)
         for vertex in scene.meshes[0].vertices:
             point = Point()
