@@ -799,13 +799,9 @@ void RobotInteraction::processingThread()
           {
             ih->handleEndEffector(eef, feedback);
           }
-          catch (std::runtime_error& ex)
+          catch (std::exception& ex)
           {
             ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
-          }
-          catch (...)
-          {
-            ROS_ERROR("Exception caught while handling end-effector update");
           }
           marker_access_lock_.lock();
         }
@@ -819,13 +815,9 @@ void RobotInteraction::processingThread()
           {
             ih->handleJoint(vj, feedback);
           }
-          catch (std::runtime_error& ex)
+          catch (std::exception& ex)
           {
             ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
-          }
-          catch (...)
-          {
-            ROS_ERROR("Exception caught while handling joint update");
           }
           marker_access_lock_.lock();
         }
@@ -838,26 +830,18 @@ void RobotInteraction::processingThread()
           {
             ih->handleGeneric(g, feedback);
           }
-          catch (std::runtime_error& ex)
+          catch (std::exception& ex)
           {
             ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
-          }
-          catch (...)
-          {
-            ROS_ERROR("Exception caught while handling joint update");
           }
           marker_access_lock_.lock();
         }
         else
           ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR("Exception caught while processing event: %s", ex.what());
-      }
-      catch (...)
-      {
-        ROS_ERROR("Exception caught while processing event");
       }
     }
   }

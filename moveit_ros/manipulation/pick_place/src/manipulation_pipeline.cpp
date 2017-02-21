@@ -196,14 +196,9 @@ void ManipulationPipeline::processingThread(unsigned int index)
             solution_callback_();
         }
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         ROS_ERROR_NAMED("manipulation", "[%s:%u] %s", name_.c_str(), index, ex.what());
-      }
-      catch (...)
-      {
-        ROS_ERROR_NAMED("manipulation", "[%s:%u] Caught unknown exception while processing manipulation stage",
-                        name_.c_str(), index);
       }
       queue_access_lock_.lock();
     }

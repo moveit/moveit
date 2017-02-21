@@ -97,13 +97,9 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPick(ps, *goal);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
-  }
-  catch (...)
-  {
-    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (plan)
@@ -140,13 +136,9 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPlace(ps, *goal);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
-  }
-  catch (...)
-  {
-    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (plan)
@@ -187,13 +179,9 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   {
     pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
-  }
-  catch (...)
-  {
-    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (pick_plan)
@@ -233,13 +221,9 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   {
     place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
-  }
-  catch (...)
-  {
-    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
   }
 
   if (place_plan)

@@ -77,13 +77,9 @@ void moveit::tools::BackgroundProcessing::processingThread()
         fn();
         logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
-      catch (std::runtime_error& ex)
+      catch (std::exception& ex)
       {
         logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
-      }
-      catch (...)
-      {
-        logError("Exception caught while processing action '%s'", action_name.c_str());
       }
       processing_ = false;
       if (queue_change_event_)

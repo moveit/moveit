@@ -241,14 +241,9 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       solved = context ? context->solve(res) : false;
     }
   }
-  catch (std::runtime_error& ex)
+  catch (std::exception& ex)
   {
     ROS_ERROR("Exception caught: '%s'", ex.what());
-    return false;
-  }
-  catch (...)
-  {
-    ROS_ERROR("Unknown exception thrown by planner");
     return false;
   }
   bool valid = true;

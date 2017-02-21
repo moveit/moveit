@@ -1263,7 +1263,7 @@ private:
         constraints_storage_.reset(new moveit_warehouse::ConstraintsStorage(conn));
       }
     }
-    catch (std::runtime_error& ex)
+    catch (std::exception& ex)
     {
       ROS_ERROR_NAMED("move_group_interface", "%s", ex.what());
     }

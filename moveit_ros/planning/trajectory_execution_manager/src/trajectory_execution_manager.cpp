@@ -441,9 +441,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
           {
             h = controller_manager_->getControllerHandle(context->controllers_[i]);
           }
-          catch (...)
+          catch (std::exception& ex)
           {
-            ROS_ERROR_NAMED("traj_execution", "Exception caught when retrieving controller handle");
+            ROS_ERROR_NAMED("traj_execution", "%s caught when retrieving controller handle", ex.what());
           }
           if (!h)
           {
@@ -471,9 +471,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
             {
               ok = handles[i]->sendTrajectory(context->trajectory_parts_[i]);
             }
-            catch (...)
+            catch (std::exception& ex)
             {
-              ROS_ERROR_NAMED("traj_execution", "Exception caught when sending trajectory to controller");
+              ROS_ERROR_NAMED("traj_execution", "Caught %s when sending trajectory to controller", ex.what());
             }
             if (!ok)
             {
@@ -482,9 +482,9 @@ void TrajectoryExecutionManager::continuousExecutionThread()
                 {
                   handles[j]->cancelExecution();
                 }
-                catch (...)
+                catch (std::exception& ex)
                 {
-                  ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution");
+                  ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution", ex.what());
                 }
               ROS_ERROR_NAMED("traj_execution", "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
                               context->trajectory_parts_.size(), handles[i]->getName().c_str());
@@ -1073,9 +1073,9 @@ void TrajectoryExecutionManager::stopExecutionInternal()
     {
       active_handles_[i]->cancelExecution();
     }
-    catch (...)
+    catch (std::exception& ex)
     {
-      ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution.");
+      ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution.", ex.what());
     }
 }
 
@@ -1263,9 +1263,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           {
             h = controller_manager_->getControllerHandle(context.controllers_[i]);
           }
-          catch (...)
+          catch (std::exception& ex)
           {
-            ROS_ERROR_NAMED("traj_execution", "Exception caught when retrieving controller handle");
+            ROS_ERROR_NAMED("traj_execution", "Caught %s when retrieving controller handle", ex.what());
           }
           if (!h)
           {
@@ -1286,9 +1286,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           {
             ok = active_handles_[i]->sendTrajectory(context.trajectory_parts_[i]);
           }
-          catch (...)
+          catch (std::exception& ex)
           {
-            ROS_ERROR_NAMED("traj_execution", "Exception caught when sending trajectory to controller");
+            ROS_ERROR_NAMED("traj_execution", "Caught %s when sending trajectory to controller", ex.what());
           }
           if (!ok)
           {
@@ -1297,9 +1297,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
               {
                 active_handles_[j]->cancelExecution();
               }
-              catch (...)
+              catch (std::exception& ex)
               {
-                ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution");
+                ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution", ex.what());
               }
             ROS_ERROR_NAMED("traj_execution", "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
                             context.trajectory_parts_.size(), active_handles_[i]->getName().c_str());
