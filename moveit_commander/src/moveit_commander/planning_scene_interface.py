@@ -111,7 +111,7 @@ class PlanningSceneInterface(object):
                                                face.indices[1],
                                                face.indices[2]]
             else:
-              raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
+                raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
             mesh.triangles.append(triangle)
         for vertex in scene.meshes[0].vertices:
             point = Point()
