@@ -139,6 +139,17 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   // No wrapped angles.
   trajectory.unwind();
 
+  // Set velocities/accelerations if not initialized
+  for (unsigned int i = 0; i < num_points; i++)
+  {
+    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(i);
+    std::vector<double> zeros(trajectory.getRobotModel()->getVariableCount(), 0.0);
+    if (!waypoint->hasVelocities())
+      waypoint->setVariableVelocities(&zeros[0]);
+    if (!waypoint->hasAccelerations())
+      waypoint->setVariableAccelerations(&zeros[0]);
+  }
+
   if (jerk_enabled_ && add_points_)
   {
     // Insert 2nd and 2nd-last points
@@ -261,11 +272,12 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
 
   for (unsigned int i = 0; i < num_points; i++)
   {
+    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(i);
     for (unsigned int j = 0; j < num_joints; j++)
     {
-      t2[j].positions[i] = trajectory.getWayPointPtr(i)->getVariablePosition(idx[j]);
-      t2[j].velocities[i] = trajectory.getWayPointPtr(i)->getVariableVelocity(idx[j]);
-      t2[j].accelerations[i] = trajectory.getWayPointPtr(i)->getVariableAcceleration(idx[j]);
+      t2[j].positions[i] = waypoint->getVariablePosition(idx[j]);
+      t2[j].velocities[i] = waypoint->getVariableVelocity(idx[j]);
+      t2[j].accelerations[i] = waypoint->getVariableAcceleration(idx[j]);
     }
   }
 
@@ -312,25 +324,27 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   for (unsigned int j = 0; j < num_joints; j++)
     init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity, t2[j].min_velocity);
 
-  // Fit initial spline (satisfies initial/final velocity)
-  bool loop = true;
-  while (loop)
+  // Fit spline (satisfies initial/final velocity)
+  if (!jerk_enabled_)
   {
-    loop = false;
-    for (unsigned int j = 0; j < num_joints; j++)
+    bool loop = true;
+    while (loop)
     {
-      while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                         &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
-                                         t2[j].max_acceleration, t2[j].min_acceleration, t2[j].max_jerk, t2[j].min_jerk,
-                                         time_change_factor_, jerk_enabled_))
-        loop = true;  // repeat until no adjustments
+      loop = false;
+      for (unsigned int j = 0; j < num_joints; j++)
+      {
+        while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
+                                           &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
+                                           t2[j].max_acceleration, t2[j].min_acceleration, t2[j].max_jerk,
+                                           t2[j].min_jerk, time_change_factor_, jerk_enabled_))
+          loop = true;  // repeat until no adjustments
+      }
     }
   }
-
-  if (jerk_enabled_)
+  // Fit splint and move points (satisfies initial/final velocity and acceleration)
+  else
   {
-    // Move points to satisfy initial/final acceleration
-    loop = true;
+    int loop = true;
     while (loop)
     {
       loop = false;

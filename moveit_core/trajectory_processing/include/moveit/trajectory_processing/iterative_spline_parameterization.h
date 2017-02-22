@@ -93,7 +93,7 @@ namespace trajectory_processing
 class IterativeSplineParameterization
 {
 public:
-  IterativeSplineParameterization(bool enable_jerk = true, double max_jerk = 9.0, bool add_points = true,
+  IterativeSplineParameterization(bool enable_jerk = true, double max_jerk = 50.0, bool add_points = true,
                                   double max_time_change_per_it = .01);
   ~IterativeSplineParameterization();
 

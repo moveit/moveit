@@ -86,11 +86,9 @@ int initTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i =
     logError("Need to set the group");
     return -1;
   }
+  // leave initial velocity/acceleration unset
   const std::vector<int>& idx = group->getVariableIndexList();
   moveit::core::RobotState state(trajectory.getRobotModel());
-
-  state.setVariableVelocity(idx[0], vel_i);
-  state.setVariableAcceleration(idx[0], acc_i);
 
   for (i = 0; i < num; i++)
   {
@@ -98,9 +96,8 @@ int initTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i =
     trajectory.addSuffixWayPoint(state, 0.0);
   }
 
+  // leave final velocity/acceleration unset
   state.setVariablePosition(idx[0], max);
-  state.setVariableVelocity(idx[0], vel_f);
-  state.setVariableAcceleration(idx[0], acc_f);
   trajectory.addSuffixWayPoint(state, 0.0);
 
   return 0;
@@ -171,7 +168,7 @@ TEST(TestTimeParameterization, TestIterativeSplineJerk)
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
   std::cout << "IterativeSplineParameterization with Jerk took " << (ros::WallTime::now() - wt).toSec() << std::endl;
   printTrajectory(trajectory);
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 6.0);
 }
 
 TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
