@@ -102,8 +102,14 @@ class PlanningSceneInterface(object):
         mesh = Mesh()
         for face in scene.meshes[0].faces:
             triangle = MeshTriangle()
-            if len(face) == 3:
+            if hasattr(face, '__len__') and len(face) == 3:
                 triangle.vertex_indices = [face[0], face[1], face[2]]
+            elif hasattr(face, 'indices') and len(face.indices) == 3:
+                triangle.vertex_indices = [face.indices[0],
+                                           face.indices[1],
+                                           face.indices[2]]
+            else:
+              raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
             mesh.triangles.append(triangle)
         for vertex in scene.meshes[0].vertices:
             point = Point()
