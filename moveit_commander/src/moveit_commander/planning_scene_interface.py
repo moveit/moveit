@@ -102,10 +102,10 @@ class PlanningSceneInterface(object):
         mesh = Mesh()
         for face in scene.meshes[0].faces:
             triangle = MeshTriangle()
-            if hasattr(face, '__len__') :
+            if hasattr(face, '__len__'):
                 if len(face) == 3:
                     triangle.vertex_indices = [face[0], face[1], face[2]]
-            elif hasattr(face, 'indices') 
+            elif hasattr(face, 'indices'):
                 if len(face.indices) == 3:
                     triangle.vertex_indices = [face.indices[0],
                                                face.indices[1],
