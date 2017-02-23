@@ -45,6 +45,14 @@
 #include <moveit/trajectory_processing/iterative_spline_parameterization.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
+// Function declarations
+moveit::core::RobotModelConstPtr loadModel();
+
+// Static variables used in all tests
+moveit::core::RobotModelConstPtr rmodel = loadModel();
+robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
+
+
 // Load pr2.  Take a look at test/ in planning_scene, robot_mode,
 // and robot_state for inspiration.
 moveit::core::RobotModelConstPtr loadModel()
@@ -86,6 +94,7 @@ int initRepeatedPointTrajectory(robot_trajectory::RobotTrajectory& trajectory)
   const std::vector<int>& idx = group->getVariableIndexList();
   moveit::core::RobotState state(trajectory.getRobotModel());
 
+  trajectory.clear();
   for (i = 0; i < num; i++)
   {
     state.setVariablePosition(idx[0], 1.0);
@@ -115,6 +124,7 @@ int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory, double
   const std::vector<int>& idx = group->getVariableIndexList();
   moveit::core::RobotState state(trajectory.getRobotModel());
 
+  trajectory.clear();
   for (i = 0; i < num; i++)
   {
     state.setVariablePosition(idx[0], i * max / num);
@@ -156,8 +166,6 @@ void printTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 
 TEST(TestTimeParameterization, TestIterativeParabolic)
 {
-  moveit::core::RobotModelConstPtr robot_model = loadModel();
-  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
   EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
@@ -170,8 +178,6 @@ TEST(TestTimeParameterization, TestIterativeParabolic)
 
 TEST(TestTimeParameterization, TestIterativeSpline)
 {
-  moveit::core::RobotModelConstPtr robot_model = loadModel();
-  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(false);
   EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
@@ -184,8 +190,6 @@ TEST(TestTimeParameterization, TestIterativeSpline)
 
 TEST(TestTimeParameterization, TestIterativeSplineJerk)
 {
-  moveit::core::RobotModelConstPtr robot_model = loadModel();
-  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, false);
   EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
@@ -198,8 +202,6 @@ TEST(TestTimeParameterization, TestIterativeSplineJerk)
 
 TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
 {
-  moveit::core::RobotModelConstPtr robot_model = loadModel();
-  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
   EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
@@ -213,8 +215,6 @@ TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
 
 TEST(TestTimeParameterization, TestRepeatedPoint)
 {
-  moveit::core::RobotModelConstPtr robot_model = loadModel();
-  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
   EXPECT_EQ(initRepeatedPointTrajectory(trajectory), 0);
 
