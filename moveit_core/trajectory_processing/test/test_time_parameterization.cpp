@@ -70,10 +70,35 @@ moveit::core::RobotModelConstPtr loadModel()
   return robot_model;
 }
 
+// Initialize one-joint, 3 points exactly the same.
+int initRepeatedPointTrajectory(robot_trajectory::RobotTrajectory& trajectory)
+{
+  const int num = 3;
+  unsigned i;
+
+  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  if (!group)
+  {
+    logError("Need to set the group");
+    return -1;
+  }
+  // leave initial velocity/acceleration unset
+  const std::vector<int>& idx = group->getVariableIndexList();
+  moveit::core::RobotState state(trajectory.getRobotModel());
+
+  for (i = 0; i < num; i++)
+  {
+    state.setVariablePosition(idx[0], 1.0);
+    trajectory.addSuffixWayPoint(state, 0.0);
+  }
+
+  return 0;
+}
+
 // Initialize one-joint, straight-line trajectory
 // Can specify init/final velocity/acceleration,
 // but not all time parameterization methods may accept it.
-int initTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i = 0.0, double vel_f = 0.0,
+int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i = 0.0, double vel_f = 0.0,
                    double acc_i = 0.0, double acc_f = 0.0)
 {
   const int num = 10;
@@ -134,7 +159,7 @@ TEST(TestTimeParameterization, TestIterativeParabolic)
   moveit::core::RobotModelConstPtr robot_model = loadModel();
   robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeParabolicTimeParameterization time_parameterization;
-  EXPECT_EQ(initTrajectory(trajectory), 0);
+  EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
@@ -148,7 +173,7 @@ TEST(TestTimeParameterization, TestIterativeSpline)
   moveit::core::RobotModelConstPtr robot_model = loadModel();
   robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(false);
-  EXPECT_EQ(initTrajectory(trajectory), 0);
+  EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
@@ -162,7 +187,7 @@ TEST(TestTimeParameterization, TestIterativeSplineJerk)
   moveit::core::RobotModelConstPtr robot_model = loadModel();
   robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, false);
-  EXPECT_EQ(initTrajectory(trajectory), 0);
+  EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
@@ -176,7 +201,7 @@ TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
   moveit::core::RobotModelConstPtr robot_model = loadModel();
   robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
   trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
-  EXPECT_EQ(initTrajectory(trajectory), 0);
+  EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
@@ -185,6 +210,21 @@ TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
   printTrajectory(trajectory);
   ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
 }
+
+TEST(TestTimeParameterization, TestRepeatedPoint)
+{
+  moveit::core::RobotModelConstPtr robot_model = loadModel();
+  robot_trajectory::RobotTrajectory trajectory(robot_model, "right_arm");
+  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
+  EXPECT_EQ(initRepeatedPointTrajectory(trajectory), 0);
+
+  ros::WallTime wt = ros::WallTime::now();
+  EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
+  //std::cout << " took " << (ros::WallTime::now() - wt).toSec() << std::endl;
+  printTrajectory(trajectory);
+  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 0.001);
+}
+
 
 int main(int argc, char** argv)
 {

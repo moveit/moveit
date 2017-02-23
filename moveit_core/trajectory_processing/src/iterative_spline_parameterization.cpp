@@ -306,8 +306,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Initialize times
-  // 0.01 to prevent divide-by-zero
-  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, 0.01);
+  // epsilon to prevent divide-by-zero
+  std::vector<double> time_diff(trajectory.getWayPointCount() - 1, std::numeric_limits<double>::epsilon());
   for (unsigned int j = 0; j < num_joints; j++)
     init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity, t2[j].min_velocity);
 
@@ -482,7 +482,7 @@ static void init_times(const int n, double dt[], const double x[], const double 
       time = (dx / max_velocity);
     else
       time = (dx / min_velocity);
-    time += 0.001;  // prevent divide-by-zero
+    time += std::numeric_limits<double>::epsilon();  // prevent divide-by-zero
 
     if (dt[i] < time)
       dt[i] = time;
