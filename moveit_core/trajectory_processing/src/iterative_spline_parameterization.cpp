@@ -62,8 +62,6 @@ struct SingleJointTrajectory
   std::vector<double> positions;  // joint's position at time[x]
   std::vector<double> velocities;
   std::vector<double> accelerations;
-  double initial_velocity;
-  double final_velocity;
   double initial_acceleration;
   double final_acceleration;
   double min_velocity;
@@ -139,24 +137,13 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   // No wrapped angles.
   trajectory.unwind();
 
-  // Set velocities/accelerations if not initialized
-  for (unsigned int i = 0; i < num_points; i++)
-  {
-    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(i);
-    std::vector<double> zeros(trajectory.getRobotModel()->getVariableCount(), 0.0);
-    if (!waypoint->hasVelocities())
-      waypoint->setVariableVelocities(&zeros[0]);
-    if (!waypoint->hasAccelerations())
-      waypoint->setVariableAccelerations(&zeros[0]);
-  }
-
   if (jerk_enabled_ && add_points_)
   {
     // Insert 2nd and 2nd-last points
     // (required to force acceleration to specified values at endpoints)
     if (add_points_ && trajectory.getWayPointCount() >= 2)
     {
-      robot_state::RobotState point = trajectory.getWayPoint(0);
+      robot_state::RobotState point = trajectory.getWayPoint(1);
       robot_state::RobotStatePtr p0, p1;
 
       // 2nd point is 90% of p0, and 10% of p1
@@ -166,10 +153,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       {
         point.setVariablePosition(idx[j],
                                   (9 * p0->getVariablePosition(idx[j]) + 1 * p1->getVariablePosition(idx[j])) / 10);
-        point.setVariableVelocity(idx[j],
-                                  (9 * p0->getVariableVelocity(idx[j]) + 1 * p1->getVariableVelocity(idx[j])) / 10);
-        point.setVariableAcceleration(
-            idx[j], (9 * p0->getVariableAcceleration(idx[j]) + 1 * p1->getVariableAcceleration(idx[j])) / 10);
       }
       trajectory.insertWayPoint(1, point, 0.0);
       num_points++;
@@ -181,10 +164,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
       {
         point.setVariablePosition(idx[j],
                                   (1 * p0->getVariablePosition(idx[j]) + 9 * p1->getVariablePosition(idx[j])) / 10);
-        point.setVariableVelocity(idx[j],
-                                  (1 * p0->getVariableVelocity(idx[j]) + 9 * p1->getVariableVelocity(idx[j])) / 10);
-        point.setVariableAcceleration(
-            idx[j], (1 * p0->getVariableAcceleration(idx[j]) + 9 * p1->getVariableAcceleration(idx[j])) / 10);
       }
       trajectory.insertWayPoint(num_points - 1, point, 0.0);
       num_points++;
@@ -199,16 +178,35 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
 
   for (unsigned int j = 0; j < num_joints; j++)
   {
+    // Copy positions
+    t2[j].positions.resize(num_points, 0.0);
+    for (unsigned int i = 0; i < num_points; i++)
+    {
+      t2[j].positions[i] = trajectory.getWayPointPtr(i)->getVariablePosition(idx[j]);
+    }
+
+    // Initialize velocities
+    t2[j].velocities.resize(num_points, 0.0);
+    // Copy initial/final velocities if specified
+    if (trajectory.getWayPointPtr(0)->hasVelocities())
+      t2[j].velocities[0] = trajectory.getWayPointPtr(0)->getVariableVelocity(idx[j]);
+    if (trajectory.getWayPointPtr(num_points - 1)->hasVelocities())
+      t2[j].velocities[num_points - 1] = trajectory.getWayPointPtr(num_points - 1)->getVariableVelocity(idx[j]);
+
+    // Initialize accelerations
+    t2[j].accelerations.resize(num_points, 0.0);
+    t2[j].initial_acceleration = 0.0;
+    t2[j].final_acceleration = 0.0;
+    // Copy initial/final accelerations if specified
+    if (trajectory.getWayPointPtr(0)->hasAccelerations())
+      t2[j].initial_acceleration = trajectory.getWayPointPtr(0)->getVariableAcceleration(idx[j]);
+    t2[j].accelerations[0] = t2[j].initial_acceleration;
+    if (trajectory.getWayPointPtr(num_points - 1)->hasAccelerations())
+      t2[j].final_acceleration = trajectory.getWayPointPtr(num_points - 1)->getVariableAcceleration(idx[j]);
+    t2[j].accelerations[num_points - 1] = t2[j].final_acceleration;
+
+    // Set bounds based on model, or default limits
     const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
-
-    t2[j].positions.resize(num_points);
-    t2[j].velocities.resize(num_points);
-    t2[j].accelerations.resize(num_points);
-    t2[j].initial_velocity = trajectory.getWayPointPtr(0)->getVariableVelocity(idx[j]);
-    t2[j].final_velocity = trajectory.getWayPointPtr(num_points - 1)->getVariableVelocity(idx[j]);
-    t2[j].initial_acceleration = trajectory.getWayPointPtr(0)->getVariableAcceleration(idx[j]);
-    t2[j].final_acceleration = trajectory.getWayPointPtr(num_points - 1)->getVariableAcceleration(idx[j]);
-
     t2[j].max_velocity = VLIMIT;
     t2[j].min_velocity = -VLIMIT;
     if (bounds.velocity_bounded_)
@@ -267,17 +265,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     {
       logError("Joint %d min jerk %f must be greater than zero or a solution won't be found.\n", j, t2[j].min_jerk);
       return false;
-    }
-  }
-
-  for (unsigned int i = 0; i < num_points; i++)
-  {
-    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(i);
-    for (unsigned int j = 0; j < num_joints; j++)
-    {
-      t2[j].positions[i] = waypoint->getVariablePosition(idx[j]);
-      t2[j].velocities[i] = waypoint->getVariableVelocity(idx[j]);
-      t2[j].accelerations[i] = waypoint->getVariableAcceleration(idx[j]);
     }
   }
 
