@@ -52,7 +52,6 @@ moveit::core::RobotModelConstPtr loadModel();
 moveit::core::RobotModelConstPtr rmodel = loadModel();
 robot_trajectory::RobotTrajectory trajectory(rmodel, "right_arm");
 
-
 // Load pr2.  Take a look at test/ in planning_scene, robot_mode,
 // and robot_state for inspiration.
 moveit::core::RobotModelConstPtr loadModel()
@@ -108,7 +107,7 @@ int initRepeatedPointTrajectory(robot_trajectory::RobotTrajectory& trajectory)
 // Can specify init/final velocity/acceleration,
 // but not all time parameterization methods may accept it.
 int initStraightTrajectory(robot_trajectory::RobotTrajectory& trajectory, double vel_i = 0.0, double vel_f = 0.0,
-                   double acc_i = 0.0, double acc_f = 0.0)
+                           double acc_i = 0.0, double acc_f = 0.0)
 {
   const int num = 10;
   const double max = 2.0;
@@ -220,11 +219,10 @@ TEST(TestTimeParameterization, TestRepeatedPoint)
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
-  //std::cout << " took " << (ros::WallTime::now() - wt).toSec() << std::endl;
+  // std::cout << " took " << (ros::WallTime::now() - wt).toSec() << std::endl;
   printTrajectory(trajectory);
   ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 0.001);
 }
-
 
 int main(int argc, char** argv)
 {
