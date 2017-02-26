@@ -568,6 +568,7 @@ static void wrap_move_group_interface()
   MoveGroupClass.def("set_workspace", &MoveGroupWrapper::setWorkspace);
   MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
   MoveGroupClass.def("get_planning_time", &MoveGroupWrapper::getPlanningTime);
+  MoveGroupClass.def("set_max_acceleration_scaling_factor", &MoveGroupWrapper::setMaxAccelerationScalingFactor);
   MoveGroupClass.def("set_max_velocity_scaling_factor", &MoveGroupWrapper::setMaxVelocityScalingFactor);
   MoveGroupClass.def("set_planner_id", &MoveGroupWrapper::setPlannerId);
   MoveGroupClass.def("set_num_planning_attempts", &MoveGroupWrapper::setNumPlanningAttempts);
