@@ -39,6 +39,7 @@
 
 #include <rviz/display.h>
 #include <rviz/selection/selection_manager.h>
+#include <rviz/panel_dock_widget.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
 #include <std_msgs/String.h>
@@ -167,6 +168,7 @@ private Q_SLOTS:
   void changedMetricsTextHeight();
   void changedWorkspace();
   void resetInteractiveMarkers();
+  void motionPanelVisibilityChange(bool enable);
 
 protected:
   enum LinkDisplayStatus
@@ -235,6 +237,7 @@ protected:
 
   // the planning frame
   MotionPlanningFrame* frame_;
+  rviz::PanelDockWidget* frame_dock_;
 
   // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;

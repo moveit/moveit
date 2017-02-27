@@ -83,6 +83,7 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   , text_to_display_(NULL)
   , private_handle_("~")
   , frame_(NULL)
+  , frame_dock_(NULL)
   , menu_handler_start_(new interactive_markers::MenuHandler)
   , menu_handler_goal_(new interactive_markers::MenuHandler)
   , int_marker_display_(NULL)
@@ -224,7 +225,12 @@ void MotionPlanningDisplay::onInitialize()
   // immediately switch to next trajectory display after planning
   connect(frame_, SIGNAL(planningFinished()), trajectory_visual_.get(), SLOT(interruptCurrentDisplay()));
 
-  setAssociatedWidget(frame_);
+  if (window_context)
+  {
+    frame_dock_ = window_context->addPane("Motion Planning", frame_);
+    connect(frame_dock_, SIGNAL(visibilityChanged(bool)), this, SLOT(motionPanelVisibilityChange(bool)));
+    frame_dock_->setIcon(getIcon());
+  }
 
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
@@ -244,6 +250,12 @@ void MotionPlanningDisplay::onInitialize()
         new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
     connect(im_reset_shortcut, SIGNAL(activated()), this, SLOT(resetInteractiveMarkers()));
   }
+}
+
+void MotionPlanningDisplay::motionPanelVisibilityChange(bool enable)
+{
+  if (enable)
+    setEnabled(true);
 }
 
 void MotionPlanningDisplay::toggleSelectPlanningGroupSubscription(bool enable)
