@@ -449,12 +449,14 @@ void MotionPlanningFrame::enable()
   ui_->object_status->setText("");
 
   // activate the frame
+  parentWidget()->show();
   show();
 }
 
 void MotionPlanningFrame::disable()
 {
   move_group_.reset();
+  parentWidget()->hide();
   hide();
 }
 
