@@ -55,6 +55,7 @@
 #endif
 
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <QDockWidget>
 
 namespace Ogre
 {
@@ -233,6 +234,7 @@ protected:
 
   // the planning frame
   MotionPlanningFrame* frame_;
+  QDockWidget* frame_dock_;
 
   // robot interaction
   robot_interaction::RobotInteractionPtr robot_interaction_;
