@@ -227,7 +227,11 @@ void MotionPlanningDisplay::onInitialize()
   connect(frame_, SIGNAL(planningFinished()), trajectory_visual_.get(), SLOT(interruptCurrentDisplay()));
 
   if (window_context)
+  {
     frame_dock_ = window_context->addPane("Motion Planning", frame_);
+    connect(frame_dock_, SIGNAL(visibilityChanged(bool)), this, SLOT(motionPanelVisibilityChange(bool)));
+    frame_dock_->setIcon(getIcon());
+  }
 
   int_marker_display_ = context_->getDisplayFactory()->make("rviz/InteractiveMarkers");
   int_marker_display_->initialize(context_);
@@ -247,6 +251,12 @@ void MotionPlanningDisplay::onInitialize()
         new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), context_->getWindowManager()->getParentWindow());
     connect(im_reset_shortcut, SIGNAL(activated()), this, SLOT(resetInteractiveMarkers()));
   }
+}
+
+void MotionPlanningDisplay::motionPanelVisibilityChange(bool enable)
+{
+  if (enable)
+    setEnabled(true);
 }
 
 void MotionPlanningDisplay::toggleSelectPlanningGroupSubscription(bool enable)
