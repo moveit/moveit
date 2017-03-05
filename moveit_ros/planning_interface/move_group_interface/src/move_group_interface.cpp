@@ -1084,26 +1084,25 @@ public:
     return replan_delay_;
   }
 
-  void constructGoal(moveit_msgs::MoveGroupGoal& goal_out)
+  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request)
   {
-    moveit_msgs::MoveGroupGoal goal;
-    goal.request.group_name = opt_.group_name_;
-    goal.request.num_planning_attempts = num_planning_attempts_;
-    goal.request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
-    goal.request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
-    goal.request.allowed_planning_time = allowed_planning_time_;
-    goal.request.planner_id = planner_id_;
-    goal.request.workspace_parameters = workspace_parameters_;
+    request.group_name = opt_.group_name_;
+    request.num_planning_attempts = num_planning_attempts_;
+    request.max_velocity_scaling_factor = max_velocity_scaling_factor_;
+    request.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
+    request.allowed_planning_time = allowed_planning_time_;
+    request.planner_id = planner_id_;
+    request.workspace_parameters = workspace_parameters_;
 
     if (considered_start_state_)
-      robot_state::robotStateToRobotStateMsg(*considered_start_state_, goal.request.start_state);
+      robot_state::robotStateToRobotStateMsg(*considered_start_state_, request.start_state);
     else
-      goal.request.start_state.is_diff = true;
+      request.start_state.is_diff = true;
 
     if (active_target_ == JOINT)
     {
-      goal.request.goal_constraints.resize(1);
-      goal.request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
+      request.goal_constraints.resize(1);
+      request.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
           getJointStateTarget(), joint_model_group_, goal_joint_tolerance_);
     }
     else if (active_target_ == POSE || active_target_ == POSITION || active_target_ == ORIENTATION)
@@ -1118,7 +1117,7 @@ public:
       // each end effector has a number of possible poses (K) as valid goals
       // but there could be multiple end effectors specified, so we want each end effector
       // to reach the goal that corresponds to the goals of the other end effectors
-      goal.request.goal_constraints.resize(goal_count);
+      request.goal_constraints.resize(goal_count);
 
       for (std::map<std::string, std::vector<geometry_msgs::PoseStamped> >::const_iterator it = pose_targets_.begin();
            it != pose_targets_.end(); ++it)
@@ -1131,17 +1130,20 @@ public:
             c.position_constraints.clear();
           if (active_target_ == POSITION)
             c.orientation_constraints.clear();
-          goal.request.goal_constraints[i] =
-              kinematic_constraints::mergeConstraints(goal.request.goal_constraints[i], c);
+          request.goal_constraints[i] = kinematic_constraints::mergeConstraints(request.goal_constraints[i], c);
         }
       }
     }
     else
-      ROS_ERROR_NAMED("move_group_interface", "Unable to construct goal representation");
+      ROS_ERROR_NAMED("move_group_interface", "Unable to construct MotionPlanRequest representation");
 
     if (path_constraints_)
-      goal.request.path_constraints = *path_constraints_;
-    goal_out = goal;
+      request.path_constraints = *path_constraints_;
+  }
+
+  void constructGoal(moveit_msgs::MoveGroupGoal& goal)
+  {
+    constructMotionPlanRequest(goal.request);
   }
 
   void constructGoal(moveit_msgs::PickupGoal& goal_out, const std::string& object)
@@ -2200,4 +2202,10 @@ bool moveit::planning_interface::MoveGroupInterface::attachObject(const std::str
 bool moveit::planning_interface::MoveGroupInterface::detachObject(const std::string& name)
 {
   return impl_->detachObject(name);
+}
+
+void moveit::planning_interface::MoveGroupInterface::constructMotionPlanRequest(
+    moveit_msgs::MotionPlanRequest& goal_out)
+{
+  impl_->constructMotionPlanRequest(goal_out);
 }
