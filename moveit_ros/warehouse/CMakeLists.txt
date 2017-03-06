@@ -27,8 +27,7 @@ catkin_package(
     warehouse_ros)
 
 include_directories(warehouse/include)
-include_directories(${catkin_INCLUDE_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
