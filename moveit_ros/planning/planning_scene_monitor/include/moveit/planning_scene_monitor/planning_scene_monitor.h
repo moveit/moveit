@@ -298,7 +298,13 @@ public:
   void setStateUpdateFrequency(double hz);
 
   /** @brief Get the maximum frequency (Hz) at which the current state of the planning scene is updated.*/
-  double getStateUpdateFrequency();
+  double getStateUpdateFrequency() const
+  {
+    if (!dt_state_update_.isZero())
+      return 1.0 / dt_state_update_.toSec();
+    else
+      return 0.0;
+  }
 
   /** @brief Start the scene monitor
    *  @param scene_topic The name of the planning scene topic
