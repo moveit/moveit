@@ -2,6 +2,11 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
+* Contributors: Ravi Prakash Joshi
+
 0.8.4 (2017-02-06)
 ------------------
 * [fix] Moveit Commander no option to set set_max_acceleration_scaling_factor (`#377 <https://github.com/ros-planning/moveit/issues/377>`_) to fix `#373 <https://github.com/ros-planning/moveit/issues/373>`_

@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.8.4 (2017-02-06)
 ------------------
 * [capability] validate trajectory before execution (`#63 <https://github.com/ros-planning/moveit/issues/63>`_)

@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros_visualization] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_
+* Contributors: Yannick Jonetzko
+
 0.8.4 (2017-02-06)
 ------------------
 * [enhancement] Add colours to trajectory_visualisation display (`#362 <https://github.com/ros-planning/moveit/issues/362>`_)

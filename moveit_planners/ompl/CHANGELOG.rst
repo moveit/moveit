@@ -2,6 +2,9 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.8.4 (2017-02-06)
 ------------------
 * [maintenance] Replace last easy explicit shared_ptrs with MOVEIT_CLASS_FORWARD.

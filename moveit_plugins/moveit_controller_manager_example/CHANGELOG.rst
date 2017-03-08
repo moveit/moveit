@@ -2,6 +2,9 @@
 Changelog for package moveit_controller_manager_example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.8.4 (2017-02-06)
 ------------------
 

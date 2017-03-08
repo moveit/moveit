@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
+* Contributors: henhenhen
+
 0.8.4 (2017-02-06)
 ------------------
 * [fix] move_group.cpp: seg fault bug (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)
