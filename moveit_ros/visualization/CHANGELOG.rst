@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.6 (2017-03-08)
+------------------
 * [fix][moveit_ros_visualization] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_
 * Contributors: Yannick Jonetzko
 
