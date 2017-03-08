@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
+* Contributors: Dmitry Rozhkov, Isaac I.Y. Saito, henhenhen
+
 0.7.7 (2017-02-06)
 ------------------
 * move_group.cpp: seg fault bug fix (`#426 <https://github.com/ros-planning/moveit/issues/426>`_)

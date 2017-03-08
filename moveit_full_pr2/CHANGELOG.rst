@@ -2,6 +2,9 @@
 Changelog for package moveit_full_pr2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.7 (2017-02-06)
 ------------------
 * [Indigo] Move metapackages from moveit_metapackage repo.

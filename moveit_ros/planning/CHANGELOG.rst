@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* [fix][moveit_ros_planning] Remove unnecessary dependency on Qt4
+* Contributors: Dave Coleman, Dmitry Rozhkov
+
 0.7.7 (2017-02-06)
 ------------------
 * [maintenance] Use static_cast to cast to const. (`#434 <https://github.com/ros-planning/moveit/issues/434>`_)

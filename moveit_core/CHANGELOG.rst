@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* Contributors: Dmitry Rozhkov
+
 0.7.7 (2017-02-06)
 ------------------
 * [enhancement] Handle multiple shapes in an attached collision object `#421 <https://github.com/ros-planning/moveit/issues/421>`_

@@ -2,6 +2,9 @@
 Changelog for package moveit_runtime
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.7.7 (2017-02-06)
 ------------------
 * [indigo] missing changelog.

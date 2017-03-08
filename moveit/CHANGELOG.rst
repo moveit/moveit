@@ -2,6 +2,16 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)"
+* [fix][moveit_ros_planning] Remove unnecessary dependency on Qt4
+* [enhancement][MoveGroup] Add getLinkNames function (`#440 <https://github.com/ros-planning/moveit/issues/440>`_)
+* [enhancement] Add set_max_acceleration_scaling_factor to moveit_commander. `#377 <https://github.com/ros-planning/moveit/issues/377>`_, `#437 <https://github.com/ros-planning/moveit/issues/437>`_, `#451 <https://github.com/ros-planning/moveit/issues/451>`_
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
+* Contributors: Dmitry Rozhkov, Yannick Jonetzko, Isaac I.Y. Saito, henhenhen, Ravi Prakash Joshi
+
 0.7.7 (2017-02-06)
 ------------------
 
