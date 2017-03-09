@@ -2,6 +2,12 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [enhancement] Remove "catch (...)" instances, catch std::exception instead of std::runtime_error (`#445 <https://github.com/ros-planning/moveit/issues/445>`_)
+* Contributors: Bence Magyar, Dave Coleman
+
 0.9.4 (2017-02-06)
 ------------------
 * [fix] assertion error when result not returned (`#378 <https://github.com/ros-planning/moveit/issues/378>`_)
