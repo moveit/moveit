@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_visualization</name>
-  <version>0.9.4</version>
+  <version>0.9.5</version>
   <description>Components of MoveIt that offer visualization</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
