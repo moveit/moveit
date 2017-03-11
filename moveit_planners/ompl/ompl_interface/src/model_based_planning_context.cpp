@@ -77,6 +77,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , use_state_validity_cache_(true)
   , simplify_solutions_(true)
 {
+  complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
       boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
@@ -387,6 +388,7 @@ void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
     const robot_state::RobotState& complete_initial_robot_state)
 {
   complete_initial_robot_state_ = complete_initial_robot_state;
+  complete_initial_robot_state_.update();
 }
 
 void ompl_interface::ModelBasedPlanningContext::clear()
