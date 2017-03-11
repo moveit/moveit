@@ -377,6 +377,7 @@ void RobotStateDisplay::onEnable()
     robot_->setVisible(true);
   }
   calculateOffsetPosition();
+  changedRobotStateTopic();
 }
 
 // ******************************************************************************************
@@ -384,6 +385,7 @@ void RobotStateDisplay::onEnable()
 // ******************************************************************************************
 void RobotStateDisplay::onDisable()
 {
+  robot_state_subscriber_.shutdown();
   if (robot_)
     robot_->setVisible(false);
   Display::onDisable();
