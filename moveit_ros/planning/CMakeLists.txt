@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
 )
+
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
 
@@ -53,7 +54,7 @@ catkin_package(
     moveit_planning_scene_monitor
     moveit_collision_plugin_loader
   INCLUDE_DIRS
-    ${EIGEN3_INCLUDE_DIRS} 
+    ${EIGEN3_INCLUDE_DIRS}
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
     pluginlib

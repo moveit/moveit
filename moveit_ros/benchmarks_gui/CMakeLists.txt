@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
 )
 
-pkg_search_module(EIGEN3 REQUIRED eigen3) 
+pkg_search_module(EIGEN3 REQUIRED eigen3)
 
 if(rviz_QT_VERSION VERSION_LESS "5")
   find_package(Qt4 ${rviz_QT_VERSION} REQUIRED QtCore QtGui)
@@ -46,14 +46,15 @@ set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
 
 catkin_package(
-    INCLUDE_DIRS 
-        ${EIGEN3_INCLUDE_DIRS} 
+    INCLUDE_DIRS
+        ${EIGEN3_INCLUDE_DIRS}
 )
 
 include_directories(include)
 
-include_directories(${catkin_INCLUDE_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 

@@ -8,7 +8,7 @@ endif()
 include_directories(include)
 
 find_package(Boost REQUIRED COMPONENTS thread filesystem system program_options)
-include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin REQUIRED COMPONENTS

@@ -34,7 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
 )
 find_package(PkgConfig REQUIRED)
-pkg_search_module(EIGEN3 REQUIRED eigen3) 
+pkg_search_module(EIGEN3 REQUIRED eigen3)
 
 find_package(OpenMP)
 find_package(octomap REQUIRED)
@@ -49,7 +49,7 @@ catkin_package(
     occupancy_map_monitor/include
     pointcloud_octomap_updater/include
     semantic_world/include
-    ${EIGEN3_INCLUDE_DIRS} 
+    ${EIGEN3_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
   LIBRARIES
     moveit_lazy_free_space_updater
@@ -70,12 +70,12 @@ include_directories(mesh_filter/include
                     occupancy_map_monitor/include
                     pointcloud_octomap_updater/include
                     semantic_world/include
+                    ${OpenCV_INCLUDE_DIRS}
+                    ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
-                    ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
-                    ${Boost_INCLUDE_DIRS}
                     ${GLEW_INCLUDE_DIR}
                     ${GLUT_INCLUDE_DIR}
                     ${X11_INCLUDE_DIR}
