@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_kinematics)
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED cmake_modules)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -32,12 +32,13 @@ set(THIS_PACKAGE_INCLUDE_DIRS
 catkin_package(
   LIBRARIES
   INCLUDE_DIRS
-    ${EIGEN3_INCLUDE_DIRS}
+#    ${EIGEN3_INCLUDE_DIRS}
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
     pluginlib
     moveit_core
     moveit_ros_planning
+    DEPENDS Eigen3
 )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
