@@ -23,14 +23,12 @@
   <build_depend>pluginlib</build_depend>
   <build_depend>actionlib</build_depend>
   <build_depend>eigen</build_depend>
-  <build_depend>cmake_modules</build_depend>
   <build_depend>moveit_ros_planning</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>pluginlib</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>cmake_modules</run_depend>
 
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>

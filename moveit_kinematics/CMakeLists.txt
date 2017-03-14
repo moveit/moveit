@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(moveit_kinematics)
-find_package(catkin REQUIRED cmake_modules)
+find_package(catkin REQUIRED)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
