@@ -1475,7 +1475,7 @@
          <item>
           <widget class="QGroupBox" name="groupBox_17">
            <property name="title">
-            <string>Current  State</string>
+            <string>Current State</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_16">
             <item row="0" column="0">
