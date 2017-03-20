@@ -85,6 +85,14 @@ class MotionPlanningDisplay;
 
 const std::string OBJECT_RECOGNITION_ACTION = "/recognize_objects";
 
+static const std::string TAB_CONTEXT = "Context";
+static const std::string TAB_PLANNING = "Planning";
+static const std::string TAB_MANIPULATION = "Manipulation";
+static const std::string TAB_OBJECTS = "Scene Objects";
+static const std::string TAB_SCENES = "Stored Scenes";
+static const std::string TAB_STATES = "Stored States";
+static const std::string TAB_STATUS = "Status";
+
 class MotionPlanningFrame : public QWidget
 {
   friend class MotionPlanningDisplay;
