@@ -143,14 +143,14 @@ int main(int argc, char** argv)
     ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
     if (!conn->connect())
     {
-      ROS_ERROR("Failed to connect to DB");
+      ROS_ERROR("Failed to connect to DB on %s:%d", host.c_str(), port);
       return 1;
     }
   }
   catch (std::exception& ex)
   {
-      ROS_ERROR("%s", ex.what());
-      return 1;
+    ROS_ERROR("%s", ex.what());
+    return 1;
   }
 
   moveit_warehouse::RobotStateStorage rs(conn);
