@@ -47,6 +47,7 @@
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/Grasp.h>
 #include <moveit_msgs/PlaceLocation.h>
+#include <moveit_msgs/MotionPlanRequest.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
@@ -716,6 +717,10 @@ public:
 
   /** \brief Specify whether the robot is allowed to replan if it detects changes in the environment */
   void allowReplanning(bool flag);
+
+  /** \brief Build the MotionPlanRequest that would be sent to the move_group action with plan() or move() and store it
+      in \e request */
+  void constructMotionPlanRequest(moveit_msgs::MotionPlanRequest& request);
 
   /**@}*/
 
