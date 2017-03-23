@@ -268,7 +268,7 @@ void MotionPlanningFrame::selectedCollisionObjectChanged()
         else
           ui_->object_status->setText("ERROR: '" + sel[0]->text() + "' should be a collision object but it is not");
       }
-      if (update_scene_marker)
+      if (update_scene_marker && ui_->tabWidget->tabText(ui_->tabWidget->currentIndex()).toStdString() == TAB_OBJECTS)
       {
         createSceneInteractiveMarker();
       }
