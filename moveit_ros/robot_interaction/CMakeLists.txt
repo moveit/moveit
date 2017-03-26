@@ -42,11 +42,13 @@ add_library(${MOVEIT_LIB_NAME}
   src/robot_interaction.cpp)
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-catkin_add_gtest(locked_robot_state_test test/locked_robot_state_test.cpp)
-target_link_libraries(locked_robot_state_test
-  ${MOVEIT_LIB_NAME}
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES})
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(locked_robot_state_test test/locked_robot_state_test.cpp)
+  target_link_libraries(locked_robot_state_test
+    ${MOVEIT_LIB_NAME}
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES})
+endif()
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
