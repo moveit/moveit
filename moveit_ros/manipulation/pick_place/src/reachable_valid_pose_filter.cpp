@@ -114,7 +114,7 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
     // pose
     // can be that of objects in the collision world but most components are unaware of those transforms,
     // so we convert to a frame that is certainly known
-    if (robot_state::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
+    if (!robot_state::Transforms::sameFrame(planning_scene_->getPlanningFrame(), plan->goal_pose_.header.frame_id))
     {
       tf::poseEigenToMsg(plan->transformed_goal_pose_, plan->goal_pose_.pose);
       plan->goal_pose_.header.frame_id = planning_scene_->getPlanningFrame();
