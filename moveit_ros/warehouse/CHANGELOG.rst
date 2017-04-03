@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* address gcc6 build error (`#458 <https://github.com/ros-planning/moveit/issues/458>`_)
+* Contributors: Dmitry Rozhkov, Dave Coleman
+
 0.8.6 (2017-03-08)
 ------------------
 

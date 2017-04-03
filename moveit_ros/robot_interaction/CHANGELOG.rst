@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] `catkin_make -DCMAKE_ENABLE_TESTING=0` failure (`#478 <https://github.com/ros-planning/moveit/issues/478>`_)
+* address gcc6 build error (`#458 <https://github.com/ros-planning/moveit/issues/458>`_)
+* Contributors: Dave Coleman, Michael Goerner, Dmitry Rozhkov
+
 0.8.6 (2017-03-08)
 ------------------
 

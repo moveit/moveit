@@ -2,6 +2,11 @@
 Changelog for package moveit_controller_manager_example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] gcc6 build error (`#471 <https://github.com/ros-planning/moveit/issues/471>`_, `#458 <https://github.com/ros-planning/moveit/issues/458>`_)
+* Contributors: Dave Coleman
+
 0.8.6 (2017-03-08)
 ------------------
 

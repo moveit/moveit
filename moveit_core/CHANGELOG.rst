@@ -2,6 +2,11 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix PlanarJointModel::getVariableRandomPositionsNearBy (`#464 <https://github.com/ros-planning/moveit/issues/464>`_)
+* Contributors: Dave Coleman, Tamaki Nishino
+
 0.8.6 (2017-03-08)
 ------------------
 

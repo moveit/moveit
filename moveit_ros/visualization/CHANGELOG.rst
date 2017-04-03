@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] rviz panel: Don't add object marker if the wrong tab is selected `#454 <https://github.com/ros-planning/moveit/pull/454>`_
+* [fix] robot state display: subscribe on enable / unsubscribe on disable (`#455 <https://github.com/ros-planning/moveit/issues/455>`_)
+* Contributors: Dave Coleman, Michael Goerner
+
 0.8.6 (2017-03-08)
 ------------------
 * [fix][moveit_ros_visualization] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_
