@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.8.7 (2017-04-03)
+------------------
 * [fix] address gcc6 build error (`#458 <https://github.com/ros-planning/moveit/issues/458>`_)
 * Contributors: Dave Coleman
 

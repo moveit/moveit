@@ -1,6 +1,6 @@
 <package>
   <name>moveit_setup_assistant</name>
-  <version>0.8.6</version>
+  <version>0.8.7</version>
 
   <description>
     Generates a configuration package that makes it easy to use MoveIt!
