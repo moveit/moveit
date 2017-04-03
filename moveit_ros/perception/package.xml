@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_perception</name>
-  <version>0.7.8</version>
+  <version>0.7.9</version>
   <description>Components of MoveIt connecting to perception</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

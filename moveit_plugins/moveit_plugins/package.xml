@@ -1,6 +1,6 @@
 <package>
   <name>moveit_plugins</name>
-  <version>0.7.8</version>
+  <version>0.7.9</version>
   <description>Metapackage for moveit plugins.</description>
   <author email="fergs@unboundedrobotics.com">Michael Ferguson</author>
   <author email="isucan@gmail.com">Ioan Sucan</author>

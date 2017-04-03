@@ -1,6 +1,6 @@
 <package>
   <name>moveit_experimental</name>
-  <version>0.7.8</version>
+  <version>0.7.9</version>
   <description>Experimental packages for moveit.</description>
   <author email="isucan@gmail.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
