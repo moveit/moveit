@@ -3,6 +3,7 @@ set(MOVEIT_LIB_NAME moveit_rviz_plugin_render_tools)
 # Header files that need Qt Moc pre-processing for use with Qt signals, etc:
 set( headers
   include/moveit/rviz_plugin_render_tools/trajectory_visualization.h
+  include/moveit/rviz_plugin_render_tools/trajectory_panel.h
 )
 
 # Convert the Qt Signals and Slots for QWidget events
@@ -17,6 +18,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_link_updater.cpp
   src/octomap_render.cpp
   src/trajectory_visualization.cpp
+  src/trajectory_panel.cpp
   ${MOC_SOURCES}
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
