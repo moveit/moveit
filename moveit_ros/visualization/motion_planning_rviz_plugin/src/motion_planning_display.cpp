@@ -227,7 +227,7 @@ void MotionPlanningDisplay::onInitialize()
 
   if (window_context)
   {
-    frame_dock_ = window_context->addPane("Motion Planning", frame_);
+    frame_dock_ = window_context->addPane(getName(), frame_);
     connect(frame_dock_, SIGNAL(visibilityChanged(bool)), this, SLOT(motionPanelVisibilityChange(bool)));
     frame_dock_->setIcon(getIcon());
   }
@@ -302,6 +302,13 @@ void MotionPlanningDisplay::reset()
 
   query_robot_start_->setVisible(query_start_state_property_->getBool());
   query_robot_goal_->setVisible(query_goal_state_property_->getBool());
+}
+
+void MotionPlanningDisplay::setName(const QString& name)
+{
+  BoolProperty::setName(name);
+  frame_dock_->setWindowTitle(name);
+  frame_dock_->setObjectName(name);
 }
 
 void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent, const std::string&)

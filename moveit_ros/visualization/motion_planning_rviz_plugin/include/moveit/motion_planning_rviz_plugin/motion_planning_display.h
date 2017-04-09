@@ -95,6 +95,8 @@ public:
   virtual void update(float wall_dt, float ros_dt);
   virtual void reset();
 
+  void setName(const QString& name);
+
   robot_state::RobotStateConstPtr getQueryStartState() const
   {
     return query_start_state_->getState();
