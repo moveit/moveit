@@ -277,6 +277,15 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   // Get classes
   const std::vector<std::string>& classes = loader->getDeclaredClasses();
 
+  // Warn if no plugins are found
+  if (classes.empty())
+  {
+    QMessageBox::warning(this, "Missing Kinematic Solvers", "No MoveIt!-compatible kinematics solvers found. Try "
+                                                            "installing moveit_kinematics (sudo apt-get install "
+                                                            "ros-${ROS_DISTRO}-moveit-kinematics)");
+    return;
+  }
+
   // Loop through all planners and add to combo box
   for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
   {
