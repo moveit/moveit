@@ -2,6 +2,9 @@
 Changelog for package moveit_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.9.5 (2017-03-08)
 ------------------
 

@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] RViz plugin some cosmetics and minor refactoring `#482 <https://github.com/ros-planning/moveit/issues/482>`_
+* [fix] rviz panel: Don't add object marker if the wrong tab is selected `#454 <https://github.com/ros-planning/moveit/pull/454>`_
+* [improve] RobotState display [kinetic] (`#465 <https://github.com/ros-planning/moveit/issues/465>`_)
+* Contributors: Jorge Nicho, Michael Goerner, Yannick Jonetzko
+
 0.9.5 (2017-03-08)
 ------------------
 * [fix] correct "simplify widget handling" `#452 <https://github.com/ros-planning/moveit/pull/452>`_ This reverts "simplify widget handling (`#442 <https://github.com/ros-planning/moveit/issues/442>`_)" 
