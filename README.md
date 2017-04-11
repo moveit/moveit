@@ -14,6 +14,7 @@ This is the new unified repository for MoveIt! code. See the [Migration Notes](h
 Indigo | Jade | Kinetic
 ------ | ---- | -------
 [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=indigo-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=jade-devel)](https://travis-ci.org/ros-planning/moveit) | [![Build Status](https://travis-ci.org/ros-planning/moveit.svg?branch=kinetic-devel)](https://travis-ci.org/ros-planning/moveit) |
+|[![Coverage Status](https://coveralls.io/repos/github/ros-planning/moveit/badge.svg?branch=kinetic-devel)](https://coveralls.io/github/ros-planning/moveit?branch=indigo-devel)|[![Coverage Status](https://coveralls.io/repos/github/ros-planning/moveit/badge.svg?branch=jade-devel)](https://coveralls.io/github/ros-planning/moveit?branch=kinetic-devel)|[![Coverage Status](https://coveralls.io/repos/github/ros-planning/moveit/badge.svg?branch=kinetic-devel)](https://coveralls.io/github/ros-planning/moveit?branch=kinetic-devel)
 
 ## Docker Containers
 
