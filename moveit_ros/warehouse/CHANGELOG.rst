@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.6 (2017-04-12)
+------------------
 * [fix] warehouse services (`#474 <https://github.com/ros-planning/moveit/issues/474>`_)
 * Contributors: Beatriz Leon
 
