@@ -37,7 +37,8 @@ catkin_package(
     pluginlib
     moveit_core
     moveit_ros_planning
-    DEPENDS Eigen3
+  DEPENDS
+    EIGEN3
 )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
