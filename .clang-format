@@ -37,6 +37,7 @@ IndentWidth:     2
 TabWidth:        2
 UseTab:          Never
 IndentFunctionDeclarationAfterType: false
+SortIncludes: false
 SpacesInParentheses: false
 SpacesInAngles:  false
 SpaceInEmptyParentheses: false
