@@ -90,8 +90,6 @@ public:
     return shapes_;
   }
 
-  /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
-
   /** \brief Get the links that the attached body is allowed to touch */
   const std::set<std::string>& getTouchLinks() const
   {
@@ -106,6 +104,7 @@ public:
     return detach_posture_;
   }
 
+  /** \brief Get the fixed transform (the transforms to the shapes associated with this body) */
   const EigenSTL::vector_Affine3d& getFixedTransforms() const
   {
     return attach_trans_;
