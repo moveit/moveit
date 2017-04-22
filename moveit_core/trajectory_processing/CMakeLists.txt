@@ -2,6 +2,7 @@ set(MOVEIT_LIB_NAME moveit_trajectory_processing)
 
 add_library(${MOVEIT_LIB_NAME}
   src/iterative_time_parameterization.cpp
+  src/spline_parameterization.cpp
   src/trajectory_tools.cpp
 )
 
