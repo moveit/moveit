@@ -350,15 +350,19 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     }
     else if (displaying_trajectory_message_)
     {
-      if (trajectory_slider_panel_->isVisible() && !loop_display_property_->getBool() &&
-          trajectory_slider_panel_->getSliderPosition() == displaying_trajectory_message_->getWayPointCount() - 1)
-      {  // show the last waypoint if the slider is enabled
-        display_path_robot_->update(
-            displaying_trajectory_message_->getWayPointPtr(displaying_trajectory_message_->getWayPointCount() - 1));
-      }
-      else if (loop_display_property_->getBool() || trajectory_slider_panel_->isVisible())
+      if (loop_display_property_->getBool())
       {  // do loop? -> start over too
         animating_path_ = true;
+      }
+      else if (trajectory_slider_panel_->isVisible())
+      {
+        if (trajectory_slider_panel_->getSliderPosition() == displaying_trajectory_message_->getWayPointCount() - 1)
+        {  // show the last waypoint if the slider is enabled
+          display_path_robot_->update(
+              displaying_trajectory_message_->getWayPointPtr(displaying_trajectory_message_->getWayPointCount() - 1));
+        }
+        else
+          animating_path_ = true;
       }
     }
     trajectory_message_to_display_.reset();
