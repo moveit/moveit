@@ -522,6 +522,8 @@ public:
 
   bool setPoseTargets(const std::vector<geometry_msgs::PoseStamped>& poses, const std::string& end_effector_link)
   {
+      ROS_ERROR("end_effector_link_" << end_effector_link_);
+      ROS_ERROR("end_effector_link" << end_effector_link);
     const std::string& eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
     if (eef.empty())
     {
