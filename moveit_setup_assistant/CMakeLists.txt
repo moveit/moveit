@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 project(moveit_setup_assistant)
 
 add_compile_options(-std=c++11)
+
+# definition needed for boost/math/constants/constants.hpp included by Ogre to compile
 add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
