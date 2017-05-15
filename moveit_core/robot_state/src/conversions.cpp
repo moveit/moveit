@@ -329,10 +329,20 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
 static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_msgs::RobotState& robot_state,
                                              RobotState& state, bool copy_attached_bodies)
 {
+  bool valid;
+  const moveit_msgs::RobotState& rs = robot_state;
+
+  if (rs.joint_state.name.empty() && rs.multi_dof_joint_state.joint_names.empty())
+  {
+    logError("Found empty JointState message");
+    return false;
+  }
+
   bool result1 = _jointStateToRobotState(robot_state.joint_state, state);
   bool result2 = _multiDOFJointsToRobotState(robot_state.multi_dof_joint_state, state, tf);
+  valid = result1 || result2;
 
-  if (copy_attached_bodies)
+  if (valid && copy_attached_bodies)
   {
     if (!robot_state.is_diff)
       state.clearAttachedBodies();
@@ -340,7 +350,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
       _msgToAttachedBody(tf, robot_state.attached_collision_objects[i], state);
   }
 
-  return result1 && result2;
+  return valid;
 }
 }
 }
