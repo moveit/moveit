@@ -3,6 +3,9 @@ project(moveit_ros_visualization)
 
 add_compile_options(-std=c++11)
 
+# definition needed for boost/math/constants/constants.hpp included by Ogre to compile
+add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
+
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
