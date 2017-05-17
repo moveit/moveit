@@ -39,9 +39,11 @@
 
 #include <moveit/macros/class_forward.h>
 #include <rviz/display.h>
+#include <rviz/panel_dock_widget.h>
 
 #ifndef Q_MOC_RUN
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
+#include <moveit/rviz_plugin_render_tools/trajectory_panel.h>
 #include <ros/ros.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
@@ -89,6 +91,7 @@ public:
   void onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model);
   void onEnable();
   void onDisable();
+  void setName(const QString& name);
 
 public Q_SLOTS:
   void interruptCurrentDisplay();
@@ -107,6 +110,7 @@ private Q_SLOTS:
   void changedStateDisplayTime();
   void changedRobotColor();
   void enabledRobotColor();
+  void trajectorySliderPanelVisibilityChange(bool enable);
 
 protected:
   /**
@@ -141,6 +145,8 @@ protected:
   Ogre::SceneNode* scene_node_;
   rviz::DisplayContext* context_;
   ros::NodeHandle update_nh_;
+  TrajectoryPanel* trajectory_slider_panel_;
+  rviz::PanelDockWidget* trajectory_slider_dock_panel_;
 
   // Properties
   rviz::BoolProperty* display_path_visual_enabled_property_;
