@@ -52,11 +52,18 @@
 #include <rviz/properties/color_property.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <rviz/robot/robot_link.h>
+#include <rviz/display_context.h>
+#include <rviz/window_manager_interface.h>
 
 namespace moveit_rviz_plugin
 {
 TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::Display* display)
-  : display_(display), widget_(widget), animating_path_(false), current_state_(-1)
+  : display_(display)
+  , widget_(widget)
+  , animating_path_(false)
+  , current_state_(-1)
+  , trajectory_slider_panel_(NULL)
+  , trajectory_slider_dock_panel_(NULL)
 {
   trajectory_topic_property_ =
       new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
@@ -113,6 +120,8 @@ TrajectoryVisualization::~TrajectoryVisualization()
   displaying_trajectory_message_.reset();
 
   display_path_robot_.reset();
+  if (trajectory_slider_dock_panel_)
+    delete trajectory_slider_dock_panel_;
 }
 
 void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::DisplayContext* context,
@@ -128,6 +137,23 @@ void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::Di
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
+
+  rviz::WindowManagerInterface* window_context = context_->getWindowManager();
+  if (window_context)
+  {
+    trajectory_slider_panel_ = new TrajectoryPanel(window_context->getParentWindow());
+    trajectory_slider_dock_panel_ =
+        window_context->addPane(display_->getName() + " - Slider", trajectory_slider_panel_);
+    trajectory_slider_dock_panel_->setIcon(display_->getIcon());
+    connect(trajectory_slider_dock_panel_, SIGNAL(visibilityChanged(bool)), this,
+            SLOT(trajectorySliderPanelVisibilityChange(bool)));
+    trajectory_slider_panel_->onInitialize();
+  }
+}
+
+void TrajectoryVisualization::setName(const QString& name)
+{
+  trajectory_slider_dock_panel_->setWindowTitle(name + " - Slider");
 }
 
 void TrajectoryVisualization::onRobotModelLoaded(robot_model::RobotModelConstPtr robot_model)
@@ -172,6 +198,8 @@ void TrajectoryVisualization::clearTrajectoryTrail()
 void TrajectoryVisualization::changedLoopDisplay()
 {
   display_path_robot_->setVisible(display_->isEnabled() && displaying_trajectory_message_ && animating_path_);
+  if (loop_display_property_->getBool())
+    trajectory_slider_panel_->pauseButton(false);
 }
 
 void TrajectoryVisualization::changedShowTrail()
@@ -269,6 +297,7 @@ void TrajectoryVisualization::onDisable()
     trajectory_trail_[i]->setVisible(false);
   displaying_trajectory_message_.reset();
   animating_path_ = false;
+  trajectory_slider_panel_->onDisable();
 }
 
 void TrajectoryVisualization::interruptCurrentDisplay()
@@ -314,10 +343,24 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       animating_path_ = true;
       displaying_trajectory_message_ = trajectory_message_to_display_;
       changedShowTrail();
+      trajectory_slider_panel_->update(trajectory_message_to_display_->getWayPointCount());
     }
-    else if (loop_display_property_->getBool() && displaying_trajectory_message_)
-    {  // do loop? -> start over too
-      animating_path_ = true;
+    else if (displaying_trajectory_message_)
+    {
+      if (loop_display_property_->getBool())
+      {  // do loop? -> start over too
+        animating_path_ = true;
+      }
+      else if (trajectory_slider_panel_->isVisible())
+      {
+        if (trajectory_slider_panel_->getSliderPosition() == displaying_trajectory_message_->getWayPointCount() - 1)
+        {  // show the last waypoint if the slider is enabled
+          display_path_robot_->update(
+              displaying_trajectory_message_->getWayPointPtr(displaying_trajectory_message_->getWayPointCount() - 1));
+        }
+        else
+          animating_path_ = true;
+      }
     }
     trajectory_message_to_display_.reset();
 
@@ -327,6 +370,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       current_state_time_ = std::numeric_limits<float>::infinity();
       display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
       display_path_robot_->setVisible(display_->isEnabled());
+      trajectory_slider_panel_->setSliderPosition(0);
     }
   }
 
@@ -337,9 +381,13 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1);
     if (current_state_time_ > tm)
     {
-      ++current_state_;
+      if (trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
+        current_state_ = trajectory_slider_panel_->getSliderPosition();
+      else
+        ++current_state_;
       if ((std::size_t)current_state_ < displaying_trajectory_message_->getWayPointCount())
       {
+        trajectory_slider_panel_->setSliderPosition(current_state_);
         display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
         for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
           trajectory_trail_[i]->setVisible(i <= current_state_);
@@ -348,6 +396,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       {
         animating_path_ = false;  // animation finished
         display_path_robot_->setVisible(loop_display_property_->getBool());
+        if (!loop_display_property_->getBool())
+          trajectory_slider_panel_->pauseButton(true);
       }
       current_state_time_ = 0.0f;
     }
@@ -418,6 +468,14 @@ void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& co
 {
   for (auto& link : robot->getLinks())
     robot->getLink(link.first)->setColor(color.redF(), color.greenF(), color.blueF());
+}
+
+void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)
+{
+  if (enable)
+    trajectory_slider_panel_->onEnable();
+  else
+    trajectory_slider_panel_->onDisable();
 }
 
 }  // namespace moveit_rviz_plugin

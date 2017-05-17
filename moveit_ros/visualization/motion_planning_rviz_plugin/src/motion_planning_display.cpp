@@ -309,6 +309,7 @@ void MotionPlanningDisplay::setName(const QString& name)
   BoolProperty::setName(name);
   frame_dock_->setWindowTitle(name);
   frame_dock_->setObjectName(name);
+  trajectory_visual_->setName(name);
 }
 
 void MotionPlanningDisplay::backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent, const std::string&)
