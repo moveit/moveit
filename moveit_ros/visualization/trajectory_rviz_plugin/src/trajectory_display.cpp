@@ -114,6 +114,12 @@ void TrajectoryDisplay::update(float wall_dt, float ros_dt)
   trajectory_visual_->update(wall_dt, ros_dt);
 }
 
+void TrajectoryDisplay::setName(const QString& name)
+{
+  BoolProperty::setName(name);
+  trajectory_visual_->setName(name);
+}
+
 void TrajectoryDisplay::changedRobotDescription()
 {
   if (isEnabled())
