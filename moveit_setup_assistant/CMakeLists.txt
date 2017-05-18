@@ -85,7 +85,7 @@ add_library(${PROJECT_NAME}_tools
   src/tools/file_loader.cpp
   src/tools/moveit_config_data.cpp
 )
-set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION 0.7.3)
+set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAML}
   ${catkin_LIBRARIES}
@@ -113,7 +113,7 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
-set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION 0.7.3)
+set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${PROJECT_NAME}_widgets
   ${PROJECT_NAME}_tools
   ${QT_LIBRARIES}

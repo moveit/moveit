@@ -4,7 +4,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/occupancy_map_monitor.cpp
   src/occupancy_map_updater.cpp
   )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION lib)

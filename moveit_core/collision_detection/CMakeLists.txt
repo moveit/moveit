@@ -11,7 +11,7 @@ add_library(${MOVEIT_LIB_NAME}
   src/world.cpp
   src/world_diff.cpp
 )
-set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_robot_state ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
