@@ -484,7 +484,8 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
   }
 
   // if any side-effects are associated to the trajectory part that just completed, execute them
-  ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());
+  ROS_WARN("Index: '%d', list length: %d", index, plan->plan_components_.size());
+  ROS_WARN("Completed '%s'", plan->plan_components_[index].description_.c_str());
   if (plan->plan_components_[index].effect_on_success_)
     if (!plan->plan_components_[index].effect_on_success_(plan))
     {
