@@ -47,6 +47,7 @@
 #include <QPushButton>
 #include <QCloseEvent>
 #include <QMessageBox>
+#include <QString>
 #include <pluginlib/class_loader.h>  // for loading all avail kinematic planners
 // Rviz
 #include <rviz/render_panel.h>
@@ -105,6 +106,16 @@ SetupAssistantWidget::SetupAssistantWidget(QWidget* parent, boost::program_optio
   {
     ssw_->stack_path_->setPath(args["config_pkg"].as<std::string>());
     ssw_->select_mode_->btn_exist_->click();
+  }
+  else
+  {
+    // Open the directory where the MSA was started from.
+    // cf. http://stackoverflow.com/a/7413516/577001
+    QString pwdir("");
+    char* pwd;
+    pwd = getenv("PWD");
+    pwdir.append(pwd);
+    ssw_->stack_path_->setPath(pwdir);
   }
 
   // Add Navigation Buttons (but do not load widgets yet except start screen)
