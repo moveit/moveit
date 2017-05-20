@@ -107,6 +107,7 @@ bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const Manipulati
 bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr& plan) const
 {
   // initialize with scene state
+  ROS_INFO_NAMED("manipulation", "Evaluate plan");
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
