@@ -146,6 +146,7 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
     else
       ROS_ERROR_THROTTLE_NAMED(1, "manipulation", "No sampler was constructed");
   }
+  ROS_INFO_NAMED("manipulation", "End effector not free");
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
 }
