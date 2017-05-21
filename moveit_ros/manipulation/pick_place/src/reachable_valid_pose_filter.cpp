@@ -142,7 +142,7 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
         return true;
       }
       else if (verbose_)
-        ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state");
+        ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state. Hello");
     }
     else
       ROS_ERROR_THROTTLE_NAMED(1, "manipulation", "No sampler was constructed");
