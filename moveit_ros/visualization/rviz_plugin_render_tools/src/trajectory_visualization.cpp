@@ -109,7 +109,9 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
 
   enable_robot_color_property_ = new rviz::BoolProperty(
       "Color Enabled", false, "Specifies whether robot coloring is enabled", widget, SLOT(enabledRobotColor()), this);
-  trail_step_size_property_ = new rviz::IntProperty("Trail Step Size", 1, "Specifies the step size of the samples shown in the trajectory trail.", widget, SLOT(changedTrailStepSize()), this);
+  trail_step_size_property_ = new rviz::IntProperty("Trail Step Size", 1, "Specifies the step size of the samples "
+                                                                          "shown in the trajectory trail.",
+                                                    widget, SLOT(changedTrailStepSize()), this);
   trail_step_size_property_->setMin(1);
 }
 
@@ -221,11 +223,11 @@ void TrajectoryVisualization::changedShowTrail()
     return;
 
   int stepsize = trail_step_size_property_->getInt();
-  //always include last trajectory point
-  trajectory_trail_.resize((int) std::ceil((t->getWayPointCount() + stepsize - 1) / (float) stepsize));
+  // always include last trajectory point
+  trajectory_trail_.resize((int)std::ceil((t->getWayPointCount() + stepsize - 1) / (float)stepsize));
   for (std::size_t i = 0; i < trajectory_trail_.size(); i++)
   {
-    int waypoint_i = std::min(i * stepsize, t->getWayPointCount() - 1); //limit to last trajectory point
+    int waypoint_i = std::min(i * stepsize, t->getWayPointCount() - 1);  // limit to last trajectory point
     rviz::Robot* r = new rviz::Robot(scene_node_, context_, "Trail Robot " + boost::lexical_cast<std::string>(i), NULL);
     r->load(*robot_model_->getURDF());
     r->setVisualVisible(display_path_visual_enabled_property_->getBool());
@@ -241,7 +243,7 @@ void TrajectoryVisualization::changedShowTrail()
 
 void TrajectoryVisualization::changedTrailStepSize()
 {
-  if(trail_display_property_->getBool())
+  if (trail_display_property_->getBool())
     changedShowTrail();
 }
 
@@ -406,7 +408,9 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
         trajectory_slider_panel_->setSliderPosition(current_state_);
         display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
         for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-          trajectory_trail_[i]->setVisible(std::min(waypoint_count - 1, static_cast<int>(i) * trail_step_size_property_->getInt()) <= current_state_);
+          trajectory_trail_[i]->setVisible(
+              std::min(waypoint_count - 1, static_cast<int>(i) * trail_step_size_property_->getInt()) <=
+              current_state_);
       }
       else
       {
