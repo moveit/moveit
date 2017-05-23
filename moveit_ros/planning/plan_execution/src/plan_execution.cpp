@@ -477,7 +477,7 @@ void plan_execution::PlanExecution::doneWithTrajectoryExecution(
 void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan,
                                                                          std::size_t index)
 {
-  if (plan->plan_components_.size() <= 0)
+  if (plan->plan_components_.size() <= 0 || plan->plan_components_.size() >= 1024)
   {
     ROS_WARN("Length of provided motion plan is smaller or equal to zero.");
     return;
