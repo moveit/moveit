@@ -244,7 +244,7 @@ if __name__ == '__main__':
    def_file_base = ik_library_name + "_description.xml"
    def_file_name = plugin_pkg_dir + "/" + def_file_base
    with open(def_file_name,'w') as f:
-      etree.ElementTree(plugin_def).write(f, xml_declaration=True, pretty_print=True)
+      etree.ElementTree(plugin_def).write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
    print '\nCreated plugin definition at: \''+def_file_name+'\''
 
 
@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
    if modified_pkg:
       with open(package_file_name,"w") as f:
-         package_xml.write(f, xml_declaration=True, pretty_print=True)
+         package_xml.write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
 
       print '\nModified package.xml at \''+package_file_name+'\''
 
@@ -311,7 +311,7 @@ if __name__ == '__main__':
    if not found:
       export_element.append(new_export)
       with open(package_file_name,"w") as f:
-         package_xml.write(f, xml_declaration=True, pretty_print=True)
+         package_xml.write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
       print '\nModified package.xml at \''+package_file_name+'\''
 
    # Modify kinematics.yaml file
