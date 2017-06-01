@@ -291,12 +291,6 @@ if __name__ == '__main__':
    modified_pkg  = update_deps(build_deps, "build_depend", package_xml.getroot())
    modified_pkg |= update_deps(run_deps, "run_depend", package_xml.getroot())
 
-   if modified_pkg:
-      with open(package_file_name,"w") as f:
-         package_xml.write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
-
-      print '\nModified package.xml at \''+package_file_name+'\''
-
    # Check that plugin definition file is in the export list
    new_export = etree.Element("moveit_core", \
                                  plugin="${prefix}/"+def_file_base)
@@ -310,6 +304,9 @@ if __name__ == '__main__':
 
    if not found:
       export_element.append(new_export)
+      modified_pkg = True
+
+   if modified_pkg:
       with open(package_file_name,"w") as f:
          package_xml.write(f, xml_declaration=True, pretty_print=True, encoding="UTF-8")
       print '\nModified package.xml at \''+package_file_name+'\''
