@@ -155,10 +155,10 @@ protected:
   rviz::FloatProperty* robot_path_alpha_property_;
   rviz::BoolProperty* loop_display_property_;
   rviz::BoolProperty* trail_display_property_;
+  rviz::IntProperty* trail_step_size_property_;
   rviz::BoolProperty* interrupt_display_property_;
   rviz::ColorProperty* robot_color_property_;
   rviz::BoolProperty* enable_robot_color_property_;
-  rviz::IntProperty* trail_step_size_property_;
 };
 
 }  // namespace moveit_rviz_plugin
