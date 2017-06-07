@@ -41,7 +41,7 @@ Changelog for package moveit_ros_visualization
 * [feat] display planned path in correct rviz context
 * [feat] leave frame transforms to rviz
 * [enhance] use getModelFrame() as reference frame for markers
-* Contributors: Ammar Najjar, Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Michael Gè´”rner
+* Contributors: Ammar Najjar, Dave Coleman, Isaac I.Y. Saito, Robert Haschke, Michael Goerner
 
 0.7.1 (2016-04-11)
 ------------------
