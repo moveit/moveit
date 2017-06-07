@@ -1,0 +1,7 @@
+<library path="libstomp_moveit_planner_manager">
+  <class name="stomp_moveit/StompPlannerManager" type="stomp_moveit::StompPlannerManager" base_class_type="planning_interface::PlannerManager">
+    <description>
+      Stomp Planner Manager
+    </description>
+  </class>
+</library>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+  <name>industrial_collision_detection</name>
+  <version>0.1.0</version>
+  <description>The industrial_collision_detection package</description>
+
+  <maintainer email="levi.armstrong@swri.org">Levi Armstrong</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <author email="levi.armstrong@swri.org"> Levi Armstrong</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>pluginlib</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>cmake_modules</run_depend>
+  <run_depend>pluginlib</run_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <moveit_core plugin="${prefix}/industrial_collision_detection_plugin_description.xml"/>
+  </export>
+</package>
