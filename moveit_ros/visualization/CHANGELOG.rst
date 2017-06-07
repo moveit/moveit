@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] moveit rviz panel name `#482 <https://github.com/ros-planning/moveit/pull/482>`_
+* [fix] Build for Ubuntu YZ by adding BOOST_MATH_DISABLE_FLOAT128 (`#505 <https://github.com/ros-planning/moveit/issues/505>`_)
+* [fix][moveit_ros/visualization] Tentative encoding workaround (https://github.com/ros-infrastructure/catkin_pkg/issues/181).
+* [capability] New panel with a slider to control the visualized trajectory (`#491 <https://github.com/ros-planning/moveit/issues/491>`_) (`#508 <https://github.com/ros-planning/moveit/issues/508>`_)
+* Contributors: Dave Coleman, Mikael Arguedas, Isaac I.Y. Saito, Yannick Jonetzko
+
 0.7.9 (2017-04-03)
 ------------------
 * [fix][moveit_ros_visualization] rviz panel: Don't add object marker if the wrong tab is selected `#454 <https://github.com/ros-planning/moveit/pull/454>`_

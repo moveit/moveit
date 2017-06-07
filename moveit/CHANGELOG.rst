@@ -2,6 +2,16 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_core] checks for empty name arrays messages before parsing the robot state message data (`#499 <https://github.com/ros-planning/moveit/issues/499>`_) (`#518 <https://github.com/ros-planning/moveit/issues/518>`_)
+* [fix] moveit rviz panel name `#482 <https://github.com/ros-planning/moveit/pull/482>`_
+* [fix] Build for Ubuntu YZ by adding BOOST_MATH_DISABLE_FLOAT128 (`#505 <https://github.com/ros-planning/moveit/issues/505>`_)
+* [fix][moveit_ros/visualization] Tentative encoding workaround (https://github.com/ros-infrastructure/catkin_pkg/issues/181).
+* [capability][vizualization] New panel with a slider to control the visualized trajectory (`#491 <https://github.com/ros-planning/moveit/issues/491>`_) (`#508 <https://github.com/ros-planning/moveit/issues/508>`_)
+* Contributors: Dave Coleman, Mikael Arguedas, Isaac I.Y. Saito, Yannick Jonetzko
+* Contributors: Jorge Nicho, Isaac I.Y. Saito
+
 0.7.9 (2017-04-03)
 ------------------
 * [fix] gcc6 build error (`#471 <https://github.com/ros-planning/moveit/issues/471>`_, `#458 <https://github.com/ros-planning/moveit/issues/458>`_)
