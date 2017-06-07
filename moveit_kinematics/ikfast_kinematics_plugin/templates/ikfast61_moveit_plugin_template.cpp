@@ -363,7 +363,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
 
   ROS_DEBUG_STREAM_NAMED("ikfast", "Reading joints and links from URDF");
 
-  urdf::LinkSharedPtr link = boost::const_pointer_cast<urdf::Link>(robot_model.getLink(getTipFrame()));
+  urdf::LinkConstSharedPtr link = robot_model.getLink(getTipFrame());
   while (link->name != base_frame_ && joint_names_.size() <= num_joints_)
   {
     ROS_DEBUG_NAMED("ikfast", "Link %s", link->name.c_str());
