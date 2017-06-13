@@ -53,6 +53,7 @@ namespace rviz
 class Robot;
 class Shape;
 class Property;
+class IntProperty;
 class StringProperty;
 class BoolProperty;
 class FloatProperty;
@@ -103,6 +104,7 @@ private Q_SLOTS:
   void changedRobotPathAlpha();
   void changedLoopDisplay();
   void changedShowTrail();
+  void changedTrailStepSize();
   void changedTrajectoryTopic();
   void changedStateDisplayTime();
   void changedRobotColor();
@@ -156,6 +158,7 @@ protected:
   rviz::BoolProperty* interrupt_display_property_;
   rviz::ColorProperty* robot_color_property_;
   rviz::BoolProperty* enable_robot_color_property_;
+  rviz::IntProperty* trail_step_size_property_;
 };
 
 }  // namespace moveit_rviz_plugin
