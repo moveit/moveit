@@ -100,10 +100,6 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   trail_display_property_ =
       new rviz::BoolProperty("Show Trail", false, "Show a path trail", widget, SLOT(changedShowTrail()), this);
 
-  trail_step_size_property_ = new rviz::IntProperty("Trail Step Size", 1, "Specifies the step size of the samples "
-                                                                          "shown in the trajectory trail.",
-  trail_step_size_property_->setMin(1);
-
   interrupt_display_property_ = new rviz::BoolProperty(
       "Interrupt Display", false,
       "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
@@ -113,6 +109,10 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
 
   enable_robot_color_property_ = new rviz::BoolProperty(
       "Color Enabled", false, "Specifies whether robot coloring is enabled", widget, SLOT(enabledRobotColor()), this);
+  trail_step_size_property_ = new rviz::IntProperty("Trail Step Size", 1, "Specifies the step size of the samples "
+                                                                          "shown in the trajectory trail.",
+                                                    widget, SLOT(changedTrailStepSize()), this);
+  trail_step_size_property_->setMin(1);
 }
 
 TrajectoryVisualization::~TrajectoryVisualization()
