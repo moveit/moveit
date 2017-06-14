@@ -50,6 +50,8 @@
 #include <streambuf>
 #include <algorithm>
 
+using namespace tinyxml2;
+
 rdf_loader::RDFLoader::RDFLoader(const std::string& robot_description)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
@@ -116,7 +118,7 @@ rdf_loader::RDFLoader::RDFLoader(const std::string& urdf_string, const std::stri
   }
 }
 
-rdf_loader::RDFLoader::RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
+rdf_loader::RDFLoader::RDFLoader(XMLDocument* urdf_doc, XMLDocument* srdf_doc)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RDFLoader(XML)");

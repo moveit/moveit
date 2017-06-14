@@ -67,7 +67,7 @@ public:
     {
     }
 
-    Options(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc)
+    Options(tinyxml2::XMLDocument* urdf_doc, tinyxml2::XMLDocument* srdf_doc)
       : urdf_doc_(urdf_doc), srdf_doc_(srdf_doc), load_kinematics_solvers_(true)
     {
     }
@@ -82,7 +82,7 @@ public:
     std::string urdf_string_, srdf_string_;
 
     /** @brief The parsed XML content of the URDF and SRDF documents. */
-    TiXmlDocument *urdf_doc_, *srdf_doc_;
+    tinyxml2::XMLDocument *urdf_doc_, *srdf_doc_;
 
     /** @brief Flag indicating whether the kinematics solvers should be loaded as well, using specified ROS parameters
      */

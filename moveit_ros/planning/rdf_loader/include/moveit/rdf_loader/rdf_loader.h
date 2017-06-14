@@ -40,7 +40,7 @@
 #include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
-#include <tinyxml.h>
+#include <tinyxml2.h>
 
 namespace rdf_loader
 {
@@ -61,7 +61,7 @@ public:
   RDFLoader(const std::string& urdf_string, const std::string& srdf_string);
 
   /** \brief Initialize the robot model from a parsed XML representation of the URDF and SRDF */
-  RDFLoader(TiXmlDocument* urdf_doc, TiXmlDocument* srdf_doc);
+  RDFLoader(tinyxml2::XMLDocument* urdf_doc, tinyxml2::XMLDocument* srdf_doc);
 
   /** @brief Get the resolved parameter name for the robot description */
   const std::string& getRobotDescription() const
