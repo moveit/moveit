@@ -55,6 +55,7 @@ void TrajectoryPanel::onInitialize()
   slider_->setMaximum(0);
   slider_->setTickPosition(QSlider::TicksBelow);
   slider_->setPageStep(1);
+  slider_->setEnabled(false);
   connect(slider_, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 
   maximum_label_ = new QLabel(QString::number(slider_->maximum()));
@@ -93,15 +94,16 @@ void TrajectoryPanel::onDisable()
 
 void TrajectoryPanel::update(int way_point_count)
 {
-  if (way_point_count != 0)
-  {
-    last_way_point_ = way_point_count - 1;
-    paused_ = false;
-    button_->setEnabled(true);
-    slider_->setSliderPosition(0);
-    slider_->setMaximum(way_point_count - 1);
-    maximum_label_->setText(QString::number(way_point_count - 1));
-  }
+  int max_way_point = std::max(0, way_point_count - 1);
+
+  slider_->setEnabled(way_point_count != 0);
+  button_->setEnabled(way_point_count != 0);
+
+  last_way_point_ = max_way_point;
+  paused_ = false;
+  slider_->setSliderPosition(0);
+  slider_->setMaximum(max_way_point);
+  maximum_label_->setText(QString::number(max_way_point));
 }
 
 void TrajectoryPanel::pauseButton(bool pause)

@@ -120,6 +120,11 @@ public:
     return query_goal_state_;
   }
 
+  void dropVisualizedTrajectory()
+  {
+    trajectory_visual_->dropTrajectory();
+  }
+
   void setQueryStartState(const robot_state::RobotState& start);
   void setQueryGoalState(const robot_state::RobotState& goal);
 
