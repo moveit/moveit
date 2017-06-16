@@ -8,6 +8,16 @@
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
+  <!--
+  By default, hide joint_state_publisher's GUI
+
+  MoveIt!'s "demo" mode replaces the real robot driver with the joint_state_publisher.
+  The latter one maintains and publishes the current joint configuration of the simulated robot.
+  It also provides a GUI to move the simulated robot around "manually".
+  This corresponds to moving around the real robot without the use of MoveIt.
+  -->
+  <arg name="use_gui" default="false" />
+
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find [GENERATED_PACKAGE_NAME])/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
@@ -18,7 +28,7 @@
 
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="/use_gui" value="false"/>
+    <param name="/use_gui" value="$(arg use_gui)"/>
     <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
   </node>
 
