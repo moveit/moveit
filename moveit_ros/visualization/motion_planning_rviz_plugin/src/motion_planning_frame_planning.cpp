@@ -401,6 +401,8 @@ void MotionPlanningFrame::configureForPlanning()
   move_group_->setMaxVelocityScalingFactor(ui_->velocity_scaling_factor->value());
   move_group_->setMaxAccelerationScalingFactor(ui_->acceleration_scaling_factor->value());
   configureWorkspace();
+  if (static_cast<bool>(planning_display_))
+    planning_display_->dropVisualizedTrajectory();
 }
 
 void MotionPlanningFrame::remotePlanCallback(const std_msgs::EmptyConstPtr& msg)
