@@ -91,6 +91,8 @@ public:
   void onDisable();
   void setName(const QString& name);
 
+  void dropTrajectory();
+
 public Q_SLOTS:
   void interruptCurrentDisplay();
 
@@ -131,6 +133,7 @@ protected:
   std::vector<rviz::Robot*> trajectory_trail_;
   ros::Subscriber trajectory_topic_sub_;
   bool animating_path_;
+  bool drop_displaying_trajectory_;
   int current_state_;
   float current_state_time_;
   boost::mutex update_trajectory_message_;

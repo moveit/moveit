@@ -59,6 +59,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   : display_(display)
   , widget_(widget)
   , animating_path_(false)
+  , drop_displaying_trajectory_(false)
   , current_state_(-1)
   , trajectory_slider_panel_(NULL)
   , trajectory_slider_dock_panel_(NULL)
@@ -349,8 +350,21 @@ float TrajectoryVisualization::getStateDisplayTime()
   }
 }
 
+void TrajectoryVisualization::dropTrajectory()
+{
+  drop_displaying_trajectory_ = true;
+}
+
 void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 {
+  if (drop_displaying_trajectory_)
+  {
+    animating_path_ = false;
+    displaying_trajectory_message_.reset();
+    display_path_robot_->setVisible(false);
+    trajectory_slider_panel_->update(0);
+    drop_displaying_trajectory_ = false;
+  }
   if (!animating_path_)
   {  // finished last animation?
     boost::mutex::scoped_lock lock(update_trajectory_message_);
