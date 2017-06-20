@@ -186,6 +186,8 @@ MotionPlanningDisplay::~MotionPlanningDisplay()
 
   delete text_to_display_;
   delete int_marker_display_;
+  if (frame_dock_)
+    delete frame_dock_;
 }
 
 void MotionPlanningDisplay::onInitialize()
@@ -307,8 +309,11 @@ void MotionPlanningDisplay::reset()
 void MotionPlanningDisplay::setName(const QString& name)
 {
   BoolProperty::setName(name);
-  frame_dock_->setWindowTitle(name);
-  frame_dock_->setObjectName(name);
+  if (frame_dock_)
+  {
+    frame_dock_->setWindowTitle(name);
+    frame_dock_->setObjectName(name);
+  }
   trajectory_visual_->setName(name);
 }
 
