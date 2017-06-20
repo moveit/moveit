@@ -172,7 +172,7 @@ public:
   bool urdf_from_xacro_;
 
   /// URDF robot model
-  boost::shared_ptr<urdf::Model> urdf_model_;
+  urdf::ModelSharedPtr urdf_model_;
 
   // ******************************************************************************************
   // SRDF Data
