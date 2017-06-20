@@ -8,8 +8,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED thread)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 find_package(catkin COMPONENTS
   moveit_core
@@ -19,6 +17,11 @@ find_package(catkin COMPONENTS
   control_msgs
   REQUIRED)
 
+include_directories(include)
+
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
@@ -27,8 +30,6 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS moveit_core actionlib control_msgs
     )
-
-include_directories(include)
 
 add_library(${PROJECT_NAME} src/moveit_simple_controller_manager.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
