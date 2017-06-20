@@ -94,7 +94,7 @@ void TrajectoryPanel::onDisable()
 
 void TrajectoryPanel::update(int way_point_count)
 {
-  int max_way_point = std::max(0, way_point_count-1);
+  int max_way_point = std::max(0, way_point_count - 1);
 
   slider_->setEnabled(way_point_count != 0);
   button_->setEnabled(way_point_count != 0);
