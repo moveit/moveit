@@ -522,7 +522,10 @@ public:
 
   bool setPoseTargets(const std::vector<geometry_msgs::PoseStamped>& poses, const std::string& end_effector_link)
   {
+      ROS_ERROR_STREAM_NAMED("move_group_interface","end_effector_link_" << end_effector_link_ << "\n");
+      ROS_ERROR_STREAM_NAMED("move_group_interface","end_effector_link" << end_effector_link << "\n");
     const std::string& eef = end_effector_link.empty() ? end_effector_link_ : end_effector_link;
+    ROS_ERROR_STREAM_NAMED("move_group_interface","eef" << eef << "\n");
     if (eef.empty())
     {
       ROS_ERROR_NAMED("move_group_interface", "No end-effector to set the pose for");

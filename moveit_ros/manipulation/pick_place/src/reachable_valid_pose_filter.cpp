@@ -107,6 +107,7 @@ bool pick_place::ReachableAndValidPoseFilter::isEndEffectorFree(const Manipulati
 bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr& plan) const
 {
   // initialize with scene state
+  ROS_INFO_NAMED("manipulation", "Evaluate plan");
   robot_state::RobotStatePtr token_state(new robot_state::RobotState(planning_scene_->getCurrentState()));
   if (isEndEffectorFree(plan, *token_state))
   {
@@ -141,11 +142,12 @@ bool pick_place::ReachableAndValidPoseFilter::evaluate(const ManipulationPlanPtr
         return true;
       }
       else if (verbose_)
-        ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state");
+        ROS_INFO_NAMED("manipulation", "Sampler failed to produce a state. Hello");
     }
     else
       ROS_ERROR_THROTTLE_NAMED(1, "manipulation", "No sampler was constructed");
   }
+  ROS_INFO_NAMED("manipulation", "End effector not free");
   plan->error_code_.val = moveit_msgs::MoveItErrorCodes::GOAL_IN_COLLISION;
   return false;
 }

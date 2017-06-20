@@ -477,9 +477,15 @@ void plan_execution::PlanExecution::doneWithTrajectoryExecution(
 void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const ExecutableMotionPlan* plan,
                                                                          std::size_t index)
 {
-  ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());
+  if (plan->plan_components_.size() <= 0 || plan->plan_components_.size() >= 1024)
+  {
+    ROS_WARN("Length of provided motion plan is smaller or equal to zero.");
+    return;
+  }
 
   // if any side-effects are associated to the trajectory part that just completed, execute them
+  ROS_WARN("Index: '%zu', list length: %zu", index, plan->plan_components_.size());
+  ROS_WARN("Completed '%s'", plan->plan_components_[index].description_.c_str());
   if (plan->plan_components_[index].effect_on_success_)
     if (!plan->plan_components_[index].effect_on_success_(plan))
     {
