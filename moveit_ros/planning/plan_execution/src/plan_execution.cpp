@@ -173,7 +173,7 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
   do
   {
     replan_attempts++;
-    ROS_INFO("Planning attempt %u of at most %u", replan_attempts, max_replan_attempts);
+    ROS_INFO_NAMED("plan_execution", "Planning attempt %u of at most %u", replan_attempts, max_replan_attempts);
 
     if (opt.before_plan_callback_)
       opt.before_plan_callback_();
@@ -236,17 +236,18 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
       // othewrise, we wait (if needed)
       if (opt.replan_delay_ > 0.0)
       {
-        ROS_INFO("Waiting for a %lf seconds before attempting a new plan ...", opt.replan_delay_);
+        ROS_INFO_NAMED("plan_execution", "Waiting for a %lf seconds before attempting a new plan ...",
+                       opt.replan_delay_);
         ros::WallDuration d(opt.replan_delay_);
         d.sleep();
-        ROS_INFO("Done waiting");
+        ROS_INFO_NAMED("plan_execution", "Done waiting");
       }
     }
   } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
 
   if (preempt_requested_)
   {
-    ROS_DEBUG("PlanExecution was preempted");
+    ROS_DEBUG_NAMED("plan_execution", "PlanExecution was preempted");
     plan.error_code_.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
   }
 
@@ -254,10 +255,10 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
     opt.done_callback_();
 
   if (plan.error_code_.val == moveit_msgs::MoveItErrorCodes::SUCCESS)
-    ROS_DEBUG("PlanExecution finished successfully.");
+    ROS_DEBUG_NAMED("plan_execution", "PlanExecution finished successfully.");
   else
-    ROS_DEBUG("PlanExecution terminating with error code %d - '%s'", plan.error_code_.val,
-              getErrorCodeString(plan.error_code_).c_str());
+    ROS_DEBUG_NAMED("plan_execution", "PlanExecution terminating with error code %d - '%s'", plan.error_code_.val,
+                    getErrorCodeString(plan.error_code_).c_str());
 }
 
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan)
@@ -294,8 +295,8 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
       if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
       {
         // Dave's debacle
-        ROS_INFO("Trajectory component '%s' is invalid",
-                 plan.plan_components_[path_segment.first].description_.c_str());
+        ROS_INFO_NAMED("plan_execution", "Trajectory component '%s' is invalid",
+                       plan.plan_components_[path_segment.first].description_.c_str());
 
         // call the same functions again, in verbose mode, to show what issues have been detected
         plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
@@ -321,7 +322,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
 
   if (!trajectory_execution_manager_)
   {
-    ROS_ERROR("No trajectory execution manager");
+    ROS_ERROR_NAMED("plan_execution", "No trajectory execution manager");
     result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
     return result;
   }
@@ -378,7 +379,7 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
     if (!trajectory_execution_manager_->push(msg))
     {
       trajectory_execution_manager_->clear();
-      ROS_ERROR_STREAM("Apparently trajectory initialization failed");
+      ROS_ERROR_STREAM_NAMED("plan_execution", "Apparently trajectory initialization failed");
       execution_complete_ = true;
       result.val = moveit_msgs::MoveItErrorCodes::CONTROL_FAILED;
       return result;
@@ -418,17 +419,19 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
   // stop execution if needed
   if (preempt_requested_)
   {
-    ROS_INFO("Stopping execution due to preempt request");
+    ROS_INFO_NAMED("plan_execution", "Stopping execution due to preempt request");
     trajectory_execution_manager_->stopExecution();
   }
   else if (path_became_invalid_)
   {
-    ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
+    ROS_INFO_NAMED("plan_execution", "Stopping execution because the path to execute became invalid"
+                                     "(probably the environment changed)");
     trajectory_execution_manager_->stopExecution();
   }
   else if (!execution_complete_)
   {
-    ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
+    ROS_WARN_NAMED("plan_execution", "Stopping execution due to unknown reason."
+                                     "Possibly the node is about to shut down.");
     trajectory_execution_manager_->stopExecution();
   }
 
@@ -479,17 +482,17 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
 {
   if (plan->plan_components_.size() == 0)
   {
-    ROS_WARN("Length of provided motion plan is zero.");
+    ROS_WARN_NAMED("plan_execution", "Length of provided motion plan is zero.");
     return;
   }
 
   // if any side-effects are associated to the trajectory part that just completed, execute them
-  ROS_DEBUG("Completed '%s'", plan->plan_components_[index].description_.c_str());
+  ROS_DEBUG_NAMED("plan_execution", "Completed '%s'", plan->plan_components_[index].description_.c_str());
   if (plan->plan_components_[index].effect_on_success_)
     if (!plan->plan_components_[index].effect_on_success_(plan))
     {
       // execution of side-effect failed
-      ROS_ERROR("Execution of path-completion side-effect failed. Preempting.");
+      ROS_ERROR("plan_execution", "Execution of path-completion side-effect failed. Preempting.");
       preempt_requested_ = true;
       return;
     }
