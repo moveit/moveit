@@ -54,10 +54,11 @@
 #include <moveit_msgs/MotionPlanRequest.h>
 #include <actionlib/client/simple_action_client.h>
 #include <object_recognition_msgs/ObjectRecognitionAction.h>
-#endif
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
+#endif
+
 #include <map>
 #include <string>
 #include <memory>

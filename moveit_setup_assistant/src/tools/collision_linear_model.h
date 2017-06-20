@@ -40,9 +40,13 @@
 #include <QAbstractProxyModel>
 #include <QSortFilterProxyModel>
 #include <QVector>
+
+#ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
+#endif
 
 #include "collision_matrix_model.h"
+
 class CollisionLinearModel : public QAbstractProxyModel
 {
   Q_OBJECT
