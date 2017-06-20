@@ -42,7 +42,6 @@
 #include <rviz/panel_dock_widget.h>
 #include <moveit/planning_scene_rviz_plugin/planning_scene_display.h>
 #include <moveit/rviz_plugin_render_tools/trajectory_visualization.h>
-#include <std_msgs/String.h>
 
 #ifndef Q_MOC_RUN
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
@@ -52,10 +51,12 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/kinematics_metrics/kinematics_metrics.h>
 #include <moveit/dynamics_solver/dynamics_solver.h>
-#include <ros/ros.h>
-#endif
 
+#include <ros/ros.h>
+
+#include <std_msgs/String.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#endif
 
 #include <memory>
 

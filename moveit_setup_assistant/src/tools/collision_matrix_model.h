@@ -38,7 +38,10 @@
 #define MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_COLLISION_MATRIX_MODEL_
 
 #include <QAbstractTableModel>
+
+#ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
+#endif
 
 class QItemSelection;
 

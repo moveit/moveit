@@ -37,7 +37,9 @@
 #ifndef MOVEIT_TRAJECTORY_RVIZ_PLUGIN_TRAJECTORY_PANEL_
 #define MOVEIT_TRAJECTORY_RVIZ_PLUGIN_TRAJECTORY_PANEL_
 
+#ifndef Q_MOC_RUN
 #include <ros/ros.h>
+#endif
 
 #include <rviz/panel.h>
 
