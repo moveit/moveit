@@ -2,6 +2,11 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] include order (`#529 <https://github.com/ros-planning/moveit/issues/529>`_)
+* Contributors: Michael Goerner
+
 0.7.10 (2017-06-07)
 -------------------
 

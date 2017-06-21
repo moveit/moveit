@@ -2,6 +2,12 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [build] adjust cmake_minimum_required for add_compile_options (`#521 <https://github.com/ros-planning/moveit/issues/521>`_)
+* [build] ikfast_kinematics_plugin: Add c++11 compile option. This is required for Kinetic.
+* Contributors: Martin Guenther, Michael Goerner
+
 0.7.10 (2017-06-07)
 -------------------
 * [fix][Indigo] moveit_kinematics Eigen3 dependency (`#470 <https://github.com/ros-planning/moveit/issues/470>`_)
