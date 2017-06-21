@@ -1135,6 +1135,8 @@ void TrajectoryExecutionManager::execute(const ExecutionCompleteCallback& callba
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     if (auto_clear)
       clear();
+    if (callback)
+      callback(last_execution_status_);
     return;
   }
 
