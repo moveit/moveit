@@ -180,7 +180,7 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
 
-  // Returns the first IK solution that is within joint limits, this is called by get_ik() service
+  // Returns the IK solution that is within joint limits closest to ik_seed_state, this is called by get_ik() service
   bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                      std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
@@ -1019,11 +1019,14 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   IkSolutionList<IkReal> solutions;
   int numsol = solve(frame, vfree, solutions);
+  std::vector<std::vector<double>> solutions_obey_limits;
 
   ROS_DEBUG_STREAM_NAMED("ikfast", "Found " << numsol << " solutions from IKFast");
 
   if (numsol)
   {
+    int numsol_obey_limits = 0;
+    std::vector<double> solution_obey_limits;
     for (int s = 0; s < numsol; ++s)
     {
       std::vector<double> sol;
@@ -1048,10 +1051,9 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
       }
       if (obeys_limits)
       {
-        // All elements of solution obey limits
-        getSolution(solutions, s, solution);
-        error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        return true;
+        // All elements of thi solution obey limits
+        getSolution(solutions,s,solution_obey_limits);
+        solutions_obey_limits.push_back(solution_obey_limits);  
       }
     }
   }
@@ -1060,6 +1062,33 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     ROS_DEBUG_STREAM_NAMED("ikfast", "No IK solution");
   }
 
+// Among the solutions under limits, find the one that is closest to ik_seed_state
+  if (solutions_obey_limits.size() != 0)
+  {
+
+  double mindist = DBL_MAX;
+  int minindex = -1;
+  std::vector<double> sol;
+
+  for(size_t i=0; i < solutions_obey_limits.size(); ++i)
+  {
+    sol = solutions_obey_limits[i];
+    double dist = harmonize(ik_seed_state, sol);
+    ROS_INFO_STREAM_NAMED("ikfast","Dist " << i << " dist " << dist);
+
+    if(minindex == -1 || dist<mindist){
+      minindex = i;
+      mindist = dist;
+    }
+  }
+  if(minindex >= 0){
+    solution = solutions_obey_limits[minindex];
+    harmonize(ik_seed_state, solution);
+  }
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
+  
   error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return false;
 }
