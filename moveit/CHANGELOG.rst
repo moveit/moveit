@@ -20,8 +20,7 @@ Changelog for package moveit
 * [fix] Build for Ubuntu YZ by adding BOOST_MATH_DISABLE_FLOAT128 (`#505 <https://github.com/ros-planning/moveit/issues/505>`_)
 * [fix][moveit_ros/visualization] Tentative encoding workaround (https://github.com/ros-infrastructure/catkin_pkg/issues/181).
 * [capability][vizualization] New panel with a slider to control the visualized trajectory (`#491 <https://github.com/ros-planning/moveit/issues/491>`_) (`#508 <https://github.com/ros-planning/moveit/issues/508>`_)
-* Contributors: Dave Coleman, Mikael Arguedas, Isaac I.Y. Saito, Yannick Jonetzko
-* Contributors: Jorge Nicho, Isaac I.Y. Saito
+* Contributors: Dave Coleman, Mikael Arguedas, Jorge Nicho, Isaac I.Y. Saito, Yannick Jonetzko
 
 0.7.9 (2017-04-03)
 ------------------
