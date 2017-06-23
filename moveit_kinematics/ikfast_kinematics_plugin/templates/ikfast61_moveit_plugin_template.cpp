@@ -201,7 +201,7 @@ public:
    * @return True if a valid set of solutions was found, false otherwise.
    */
   bool getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses, const std::vector<double>& ik_seed_state,
-                     std::vector<std::vector<double> >& solutions, kinematics::KinematicsResult& result,
+                     std::vector<std::vector<double>>& solutions, kinematics::KinematicsResult& result,
                      const kinematics::KinematicsQueryOptions& options) const;
 
   /**
@@ -576,26 +576,29 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   // ROS_ERROR("%f %d",solution[2],vsolfree.size());
 }
 
-
-double IKFastKinematicsPlugin::harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution) const
+double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
 {
   double dist_abs = 0;
   std::vector<double> ss = ik_seed_state;
-  for(size_t i=0; i< ik_seed_state.size(); ++i)
+  for (size_t i = 0; i < ik_seed_state.size(); ++i)
   {
-    while(ss[i] > M_PI) {
-     ss[i] -= 2*M_PI;
-   }
-   while(ss[i] < -1*M_PI) {
-     ss[i] += 2*M_PI;
-   }
-   while(solution[i] > M_PI) {
-     solution[i] -= 2*M_PI;
-   }
-   while(solution[i] < -1*M_PI) {
-     solution[i] += 2*M_PI;
-   }
-       dist_abs += fabs(ss[i] - solution[i]);
+    while (ss[i] > M_PI)
+    {
+      ss[i] -= 2 * M_PI;
+    }
+    while (ss[i] < -1 * M_PI)
+    {
+      ss[i] += 2 * M_PI;
+    }
+    while (solution[i] > M_PI)
+    {
+      solution[i] -= 2 * M_PI;
+    }
+    while (solution[i] < -1 * M_PI)
+    {
+      solution[i] += 2 * M_PI;
+    }
+    dist_abs += fabs(ss[i] - solution[i]);
   }
   return dist_abs;
 }
@@ -1049,8 +1052,9 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
       if (obeys_limits)
       {
         // All elements of thi solution obey limits
-        getSolution(solutions,s,solution_obey_limits);
-        solutions_obey_limits.push_back(solution_obey_limits);  
+        solution_found = true;
+        getSolution(solutions, s, solution_obey_limits);
+        solutions_obey_limits.push_back(solution_obey_limits);
       }
     }
   }
@@ -1059,40 +1063,41 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     ROS_DEBUG_STREAM_NAMED("ikfast", "No IK solution");
   }
 
-// Among the solutions under limits, find the one that is closest to ik_seed_state
+  // Among the solutions under limits, find the one that is closest to ik_seed_state
   if (solutions_obey_limits.size() != 0)
   {
+    double mindist = DBL_MAX;
+    int minindex = -1;
+    std::vector<double> sol;
 
-  double mindist = DBL_MAX;
-  int minindex = -1;
-  std::vector<double> sol;
+    for (size_t i = 0; i < solutions_obey_limits.size(); ++i)
+    {
+      sol = solutions_obey_limits[i];
+      double dist = harmonize(ik_seed_state, sol);
+      ROS_INFO_STREAM_NAMED("ikfast", "Dist " << i << " dist " << dist);
 
-  for(size_t i=0; i < solutions_obey_limits.size(); ++i)
-  {
-    sol = solutions_obey_limits[i];
-    double dist = harmonize(ik_seed_state, sol);
-    ROS_INFO_STREAM_NAMED("ikfast","Dist " << i << " dist " << dist);
-
-    if(minindex == -1 || dist<mindist){
-      minindex = i;
-      mindist = dist;
+      if (minindex == -1 || dist < mindist)
+      {
+        minindex = i;
+        mindist = dist;
+      }
     }
-  }
-  if(minindex >= 0){
-    solution = solutions_obey_limits[minindex];
-    harmonize(ik_seed_state, solution);
-  }
+    if (minindex >= 0)
+    {
+      solution = solutions_obey_limits[minindex];
+      harmonize(ik_seed_state, solution);
+    }
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
-  
+
   error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return false;
 }
 
 bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                            const std::vector<double>& ik_seed_state,
-                                           std::vector<std::vector<double> >& solutions,
+                                           std::vector<std::vector<double>>& solutions,
                                            kinematics::KinematicsResult& result,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
@@ -1130,7 +1135,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   tf::poseMsgToKDL(ik_poses[0], frame);
 
   // solving ik
-  std::vector<IkSolutionList<IkReal> > solution_set;
+  std::vector<IkSolutionList<IkReal>> solution_set;
   IkSolutionList<IkReal> ik_solutions;
   std::vector<double> vfree;
   int numsol = 0;
