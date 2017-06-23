@@ -576,31 +576,28 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   // ROS_ERROR("%f %d",solution[2],vsolfree.size());
 }
 
-double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
+
+double IKFastKinematicsPlugin::harmonize(const std::vector<double> &ik_seed_state, std::vector<double> &solution) const
 {
-  double dist_sqr = 0;
+  double dist_abs = 0;
   std::vector<double> ss = ik_seed_state;
-  for (size_t i = 0; i < ik_seed_state.size(); ++i)
+  for(size_t i=0; i< ik_seed_state.size(); ++i)
   {
-    while (ss[i] > 2 * M_PI)
-    {
-      ss[i] -= 2 * M_PI;
-    }
-    while (ss[i] < 2 * M_PI)
-    {
-      ss[i] += 2 * M_PI;
-    }
-    while (solution[i] > 2 * M_PI)
-    {
-      solution[i] -= 2 * M_PI;
-    }
-    while (solution[i] < 2 * M_PI)
-    {
-      solution[i] += 2 * M_PI;
-    }
-    dist_sqr += fabs(ik_seed_state[i] - solution[i]);
+    while(ss[i] > M_PI) {
+     ss[i] -= 2*M_PI;
+   }
+   while(ss[i] < -1*M_PI) {
+     ss[i] += 2*M_PI;
+   }
+   while(solution[i] > M_PI) {
+     solution[i] -= 2*M_PI;
+   }
+   while(solution[i] < -1*M_PI) {
+     solution[i] += 2*M_PI;
+   }
+       dist_abs += fabs(ss[i] - solution[i]);
   }
-  return dist_sqr;
+  return dist_abs;
 }
 
 // void IKFastKinematicsPlugin::getOrderedSolutions(const std::vector<double> &ik_seed_state,
