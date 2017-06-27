@@ -168,6 +168,9 @@ public:
   /// Path relative to urdf package (note: this may be same as urdf_path_)
   std::string urdf_pkg_relative_path_;
 
+  /// Flag indicating whether Jade+ extensions should be enabled when loading xacro
+  bool urdf_requires_jade_xacro_;
+
   /// Flag indicating whether the URDF was loaded from .xacro format
   bool urdf_from_xacro_;
 

@@ -151,7 +151,7 @@ void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
+MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0), urdf_requires_jade_xacro_(false)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
   srdf_.reset(new srdf::SRDFWriter());
