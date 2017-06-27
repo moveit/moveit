@@ -258,7 +258,8 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "package" << YAML::Value << urdf_pkg_name_;
   emitter << YAML::Key << "relative_path" << YAML::Value << urdf_pkg_relative_path_;
-  emitter << YAML::Key << "use_jade_xacro" << YAML::Value << urdf_requires_jade_xacro_;
+  if (urdf_requires_jade_xacro_)
+    emitter << YAML::Key << "use_jade_xacro" << YAML::Value << urdf_requires_jade_xacro_;
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
