@@ -1596,11 +1596,11 @@ as the new values that correspond to the group */
   /** @} */
 
   /** \brief Compute an axis-aligned bounding box that contains the current state.
-      The format for \e aabb is (minx, miny, minz, maxx, maxy, maxz) */
+      The format for \e aabb is (minx, maxx, miny, maxy, minz, maxz) */
   void computeAABB(std::vector<double>& aabb) const;
 
   /** \brief Compute an axis-aligned bounding box that contains the current state.
-      The format for \e aabb is (minx, miny, minz, maxx, maxy, maxz) */
+      The format for \e aabb is (minx, maxx, miny, maxy, minz, maxz) */
   void computeAABB(std::vector<double>& aabb)
   {
     updateLinkTransforms();
