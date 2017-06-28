@@ -40,6 +40,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QLabel>
 #include <QProgressBar>
 
@@ -84,6 +85,7 @@ public:
   LoadPathWidget* stack_path_;
   LoadPathWidget* urdf_file_;
   // LoadPathWidget *srdf_file_;
+  QCheckBox* chk_use_jade_xacro_;
   QPushButton* btn_load_;
   QLabel* next_label_;
   QProgressBar* progress_bar_;
@@ -141,7 +143,7 @@ private:
   bool loadExistingFiles();
 
   /// Load URDF File to Parameter Server
-  bool loadURDFFile(const std::string& urdf_file_path);
+  bool loadURDFFile(const std::string& urdf_file_path, bool use_jade_xacro = false);
 
   /// Load SRDF File
   bool loadSRDFFile(const std::string& srdf_file_path);

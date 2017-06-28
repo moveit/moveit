@@ -152,6 +152,15 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   urdf_file_->hide();                         // user needs to select option before this is shown
   left_layout->addWidget(urdf_file_);
 
+  // Checkbox to enable Jade+ xacro extensions when loading xacros.
+  // Add it to the urdf LoadPathWidget's layout instead of to the left_layout,
+  // as we want this widget to appear on the urdf LoadPathWidget only.
+  chk_use_jade_xacro_ = new QCheckBox("Enable Jade+ xacro extensions", urdf_file_);
+  chk_use_jade_xacro_->setToolTip("Enables the use of the xacro extensions that are available on ROS Jade and\n"
+                                  "newer in ROS Indigo. Enable this if the xacro that will be loaded makes use\n"
+                                  "of any of those features.");
+  urdf_file_->layout()->addWidget(chk_use_jade_xacro_);
+
   // Load settings box ---------------------------------------------
   QHBoxLayout* load_files_layout = new QHBoxLayout();
 
@@ -351,7 +360,7 @@ bool StartScreenWidget::loadExistingFiles()
     return false;  // error occured
 
   // Load the URDF
-  if (!loadURDFFile(config_data_->urdf_path_))
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->urdf_requires_jade_xacro_))
     return false;  // error occured
 
   // Get the SRDF path using the loaded .setup_assistant data and check it
@@ -416,6 +425,8 @@ bool StartScreenWidget::loadNewFiles()
 {
   // Get URDF file path
   config_data_->urdf_path_ = urdf_file_->getPath();
+  // Check whether user wants to enable Jade+ Xacro extensions (only used when actually loading a XACRO)
+  config_data_->urdf_requires_jade_xacro_ = chk_use_jade_xacro_->isChecked();
 
   // Check that box is filled out
   if (config_data_->urdf_path_.empty())
@@ -443,7 +454,7 @@ bool StartScreenWidget::loadNewFiles()
   QApplication::processEvents();
 
   // Load the URDF to the parameter server and check that it is correct format
-  if (!loadURDFFile(config_data_->urdf_path_))
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->urdf_requires_jade_xacro_))
     return false;  // error occurred
 
   // Progress Indicator
@@ -490,7 +501,7 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 // Load URDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path)
+bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, bool use_jade_xacro)
 {
   // check that URDF can be loaded
   std::ifstream urdf_stream(urdf_file_path.c_str());
@@ -506,6 +517,11 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path)
   if (urdf_file_path.find(".xacro") != std::string::npos)
   {
     std::string cmd("rosrun xacro xacro.py ");
+
+    // enable Jade+ xacro extensions
+    if (use_jade_xacro)
+      cmd += "--inorder ";
+
     cmd += urdf_file_path;
     ROS_INFO("Running '%s'...", cmd.c_str());
 

@@ -151,7 +151,7 @@ void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
-MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
+MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0), urdf_requires_jade_xacro_(false)
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
   srdf_.reset(new srdf::SRDFWriter());
@@ -258,6 +258,8 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "package" << YAML::Value << urdf_pkg_name_;
   emitter << YAML::Key << "relative_path" << YAML::Value << urdf_pkg_relative_path_;
+  if (urdf_requires_jade_xacro_)
+    emitter << YAML::Key << "use_jade_xacro" << YAML::Value << urdf_requires_jade_xacro_;
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
@@ -925,8 +927,8 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
     YAML::Node doc;
     loadYaml(input_stream, doc);
 
-    yaml_node_t title_node, urdf_node, package_node, srdf_node, relative_node, config_node, timestamp_node,
-        author_name_node, author_email_node;
+    yaml_node_t title_node, urdf_node, package_node, jade_xacro_node, srdf_node, relative_node, config_node,
+        timestamp_node, author_name_node, author_email_node;
 
     // Get title node
     if (title_node = findValue(doc, "moveit_setup_assistant_config"))
@@ -952,6 +954,15 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
         else
         {
           return false;  // if we do not find this value we cannot continue
+        }
+        // should Jade+ xacro extensions be enabled for this package?
+        if (jade_xacro_node = findValue(*urdf_node, "use_jade_xacro"))
+        {
+          *jade_xacro_node >> urdf_requires_jade_xacro_;
+        }
+        else
+        {
+          // value for this node is not required
         }
       }
       // SRDF Properties
