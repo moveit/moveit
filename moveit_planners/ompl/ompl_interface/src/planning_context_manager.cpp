@@ -56,6 +56,7 @@
 #include <ompl/geometric/planners/prm/PRMstar.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
 namespace ompl_interface
@@ -366,8 +367,18 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
 
-  ModelBasedPlanningContextPtr context =
-      getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req), req);
+  // Check for forced use of JointModelStateSpace
+  StateSpaceFactoryTypeSelector factory_selector;
+  std::map<std::string, std::string>::const_iterator it = pc->second.config.find("force_joint_model_state_space");
+
+  if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
+    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1,
+                                   JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else
+    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req);
+
+  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
+
   if (context)
   {
     context->clear();
