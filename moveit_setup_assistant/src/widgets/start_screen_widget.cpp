@@ -156,6 +156,9 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   // Add it to the urdf LoadPathWidget's layout instead of to the left_layout,
   // as we want this widget to appear on the urdf LoadPathWidget only.
   chk_use_jade_xacro_ = new QCheckBox("Enable Jade+ xacro extensions", urdf_file_);
+  chk_use_jade_xacro_->setToolTip("Enables the use of the xacro extensions that are available on ROS Jade and\n"
+                                  "newer in ROS Indigo. Enable this if the xacro that will be loaded makes use\n"
+                                  "of any of those features.");
   urdf_file_->layout()->addWidget(chk_use_jade_xacro_);
 
   // Load settings box ---------------------------------------------
