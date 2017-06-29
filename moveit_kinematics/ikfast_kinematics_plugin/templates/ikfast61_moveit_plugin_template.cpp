@@ -180,7 +180,7 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
 
-  // Returns the IK solution that is within joint limits closest to ik_seed_state, this is called by get_ik() service
+  // Returns the IK solution that is within joint limits closest to ik_seed_state
   bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                      std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
@@ -580,7 +580,7 @@ double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_stat
 {
   double dist_abs = 0;
   std::vector<double> ss = ik_seed_state;
-  for (size_t i = 0; i < ik_seed_state.size(); ++i)
+  for (std::size_t i = 0; i < ik_seed_state.size(); ++i)
   {
     while (ss[i] > M_PI)
     {
@@ -1020,6 +1020,8 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
   IkSolutionList<IkReal> solutions;
   int numsol = solve(frame, vfree, solutions);
   std::vector<std::vector<double>> solutions_obey_limits;
+  std::vector<double> dists;
+  bool solution_found = false;
 
   ROS_DEBUG_STREAM_NAMED("ikfast", "Found " << numsol << " solutions from IKFast");
 
@@ -1051,10 +1053,13 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
       }
       if (obeys_limits)
       {
-        // All elements of thi solution obey limits
+        // All elements of this solution obey limits
         solution_found = true;
         getSolution(solutions, s, solution_obey_limits);
+        double dist = harmonize(ik_seed_state, solution_obey_limits);
+        ROS_DEBUG_STREAM_NAMED("ikfast", "Dist " << s << " dist " << dist);
         solutions_obey_limits.push_back(solution_obey_limits);
+        dists.push_back(dist);
       }
     }
   }
@@ -1063,30 +1068,30 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     ROS_DEBUG_STREAM_NAMED("ikfast", "No IK solution");
   }
 
-  // Among the solutions under limits, find the one that is closest to ik_seed_state
-  if (solutions_obey_limits.size() != 0)
+  // Sort the solutions under limits and find the one that is closest to ik_seed_state
+  if (solution_found)
   {
-    double mindist = DBL_MAX;
-    int minindex = -1;
-    std::vector<double> sol;
-
-    for (size_t i = 0; i < solutions_obey_limits.size(); ++i)
+    bool swap_flag = true;
+    std::vector<double> temp_sol;
+    double temp_dist;
+    for (std::size_t i = 0; i < solutions_obey_limits.size(); ++i)
     {
-      sol = solutions_obey_limits[i];
-      double dist = harmonize(ik_seed_state, sol);
-      ROS_INFO_STREAM_NAMED("ikfast", "Dist " << i << " dist " << dist);
-
-      if (minindex == -1 || dist < mindist)
+      swap_flag = false;
+      for (std::size_t j = 0; j < solutions_obey_limits.size() - 1; ++j)
       {
-        minindex = i;
-        mindist = dist;
+        if (dists[j + 1] < dists[j])
+        {
+          temp_sol = solutions_obey_limits[j];
+          temp_dist = dists[j];
+          solutions_obey_limits[j] = solutions_obey_limits[j + 1];
+          solutions_obey_limits[j + 1] = temp_sol;
+          dists[j] = dists[j + 1];
+          dists[j + 1] = temp_dist;
+          swap_flag = true;
+        }
       }
     }
-    if (minindex >= 0)
-    {
-      solution = solutions_obey_limits[minindex];
-      harmonize(ik_seed_state, solution);
-    }
+    solution = solutions_obey_limits[0];
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return true;
   }
