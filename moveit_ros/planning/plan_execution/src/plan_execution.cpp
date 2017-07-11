@@ -492,7 +492,7 @@ void plan_execution::PlanExecution::successfulTrajectorySegmentExecution(const E
     if (!plan->plan_components_[index].effect_on_success_(plan))
     {
       // execution of side-effect failed
-      ROS_ERROR("plan_execution", "Execution of path-completion side-effect failed. Preempting.");
+      ROS_ERROR_NAMED("plan_execution", "Execution of path-completion side-effect failed. Preempting.");
       preempt_requested_ = true;
       return;
     }
