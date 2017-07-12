@@ -86,6 +86,7 @@ public:
     }
 
     planning_contexts_.at(req.group_name)->setMotionPlanRequest(req);
+    planning_contexts_.at(req.group_name)->setPlanningScene(planning_scene);
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     return planning_contexts_.at(req.group_name);
   }
