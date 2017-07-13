@@ -1783,7 +1783,7 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const ro
     collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
     if (obj->shape_poses_.size() > 1)
     {
-      logWarn("More than one shapes in object '%s'. Using first one to decide transform");
+      logWarn("More than one shapes in object '%s'. Using first one to decide transform", id.c_str());
       return obj->shape_poses_[0];
     }
     else if (obj->shape_poses_.size() == 1)
