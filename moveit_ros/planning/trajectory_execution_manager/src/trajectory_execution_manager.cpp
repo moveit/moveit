@@ -1500,7 +1500,7 @@ std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryInde
   if (current_context_ < 0)
     return std::make_pair(-1, -1);
   if (time_index_.empty())
-    return std::make_pair((int)current_context_, 0);  //Should still verify even if we don't know where we are in the trajectory
+    return std::make_pair((int)current_context_, -1);
   std::vector<ros::Time>::const_iterator it =
       std::lower_bound(time_index_.begin(), time_index_.end(), ros::Time::now());
   int pos = it - time_index_.begin();
