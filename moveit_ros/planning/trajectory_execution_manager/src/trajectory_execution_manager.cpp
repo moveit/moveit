@@ -864,22 +864,22 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
               parts[i].multi_dof_joint_trajectory.points[j].velocities.resize(bijection.size());
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].linear.x =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.x * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.x * execution_velocity_scaling_;
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].linear.y =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.y * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.y * execution_velocity_scaling_;
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].linear.z =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.z * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].linear.z * execution_velocity_scaling_;
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].angular.x =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.x * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.x * execution_velocity_scaling_;
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].angular.y =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.y * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.y * execution_velocity_scaling_;
 
               parts[i].multi_dof_joint_trajectory.points[j].velocities[0].angular.z =
-                trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.z * execution_velocity_scaling_;
+                  trajectory.multi_dof_joint_trajectory.points[j].velocities[0].angular.z * execution_velocity_scaling_;
             }
           }
         }

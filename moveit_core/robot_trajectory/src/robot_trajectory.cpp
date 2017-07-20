@@ -276,33 +276,34 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
       for (std::size_t j = 0; j < mdof.size(); ++j)
       {
         tf::transformEigenToMsg(waypoints_[i]->getJointTransform(mdof[j]),
-              trajectory.multi_dof_joint_trajectory.points[i].transforms[j]);
+                                trajectory.multi_dof_joint_trajectory.points[i].transforms[j]);
         if (waypoints_[i]->hasVelocities())
         {
-            const std::vector<std::string> names =  mdof[j]->getVariableNames();
-            const double* velocities =  waypoints_[i]->getJointVelocities(mdof[j]);
+          const std::vector<std::string> names = mdof[j]->getVariableNames();
+          const double* velocities = waypoints_[i]->getJointVelocities(mdof[j]);
 
-            geometry_msgs::Twist point_velocity;
+          geometry_msgs::Twist point_velocity;
 
-            for(std::size_t ii = 0; ii < names.size(); ++ii){
-              if(names[ii].find("/x") != std::string::npos)
-              {
-                point_velocity.linear.x = velocities[ii];
-              }
-              else if(names[ii].find("/y") != std::string::npos)
-              {
-                point_velocity.linear.y = velocities[ii];
-              }
-              else if(names[ii].find("/z") != std::string::npos)
-              {
-                point_velocity.linear.z = velocities[ii];
-              }
-              else if(names[ii].find("/theta") != std::string::npos)
-              {
-                point_velocity.angular.z = velocities[ii];
-              }
+          for (std::size_t ii = 0; ii < names.size(); ++ii)
+          {
+            if (names[ii].find("/x") != std::string::npos)
+            {
+              point_velocity.linear.x = velocities[ii];
             }
-            trajectory.multi_dof_joint_trajectory.points[i].velocities.push_back(point_velocity);
+            else if (names[ii].find("/y") != std::string::npos)
+            {
+              point_velocity.linear.y = velocities[ii];
+            }
+            else if (names[ii].find("/z") != std::string::npos)
+            {
+              point_velocity.linear.z = velocities[ii];
+            }
+            else if (names[ii].find("/theta") != std::string::npos)
+            {
+              point_velocity.angular.z = velocities[ii];
+            }
+          }
+          trajectory.multi_dof_joint_trajectory.points[i].velocities.push_back(point_velocity);
         }
       }
       if (duration_from_previous_.size() > i)
