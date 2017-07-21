@@ -14,13 +14,17 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system thread)
 
-
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
-  CATKIN_DEPENDS moveit_core 
+  CATKIN_DEPENDS moveit_core
   DEPENDS Boost
 )
+
+# support indigo's ros_control - This can be removed upon EOL indigo
+if("${controller_manager_msgs_VERSION}" VERSION_LESS "0.10.0")
+  add_definitions(-DMOVEIT_ROS_CONTROL_INTERFACE_OLD_ROS_CONTROL)
+endif()
 
 include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
