@@ -68,6 +68,7 @@
 #include <ompl/geometric/planners/prm/SPARStwo.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
 #include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
 
 namespace ompl_interface
@@ -391,8 +392,24 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
 
-  ModelBasedPlanningContextPtr context =
-      getPlanningContext(pc->second, boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req), req);
+  // Check if sampling in JointModelStateSpace is enforced for this group by user.
+  // This is done by setting 'enforce_joint_model_state_space' to 'true' for the desired group in ompl_planning.yaml.
+  //
+  // Some planning problems like orientation path constraints are represented in PoseModelStateSpace and sampled via IK.
+  // However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be flipped,
+  // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
+  // in JointModelStateSpace.
+  StateSpaceFactoryTypeSelector factory_selector;
+  std::map<std::string, std::string>::const_iterator it = pc->second.config.find("enforce_joint_model_state_space");
+
+  if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
+    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1,
+                                   JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else
+    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req);
+
+  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
+
   if (context)
   {
     context->clear();
