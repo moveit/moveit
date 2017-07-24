@@ -112,7 +112,6 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     return false;
   }
   ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
-  ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   optimizer.optimize();
   ROS_INFO("Optimization actually took %f sec to run", (ros::WallTime::now() - create_time).toSec());
   create_time = ros::WallTime::now();
