@@ -271,8 +271,9 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
                                                          const std::pair<int, int>& path_segment)
 {
-  if (path_segment.first >= 0 && path_segment.second >= 0 &&
-      plan.plan_components_[path_segment.first].trajectory_monitoring_)
+  if (path_segment.first >= 0 &&
+      plan.plan_components_[path_segment.first].trajectory_monitoring_)  // If path_segment.second <= 0, the function
+                                                                         // will fallback to check the entire trajectory
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // lock the scene so that it
                                                                                          // does not modify the world
