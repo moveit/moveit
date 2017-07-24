@@ -38,7 +38,7 @@
 
 namespace chomp_interface
 {
-CHOMPInterface::CHOMPInterface() : ChompPlanner()
+CHOMPInterface::CHOMPInterface(const ros::NodeHandle& nh) : ChompPlanner(), nh_(nh)
 {
   loadParams();
 }
