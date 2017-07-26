@@ -1043,17 +1043,17 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
   ROS_DEBUG_STREAM_NAMED("ikfast", "Found " << numsol << " solutions from IKFast");
 
   // struct for storing and sorting solutions
-  struct limit_obeying_sol
+  struct LimitObeyingSol
   {
     std::vector<double> value;
     double dist_from_seed;
 
-    bool operator<(const limit_obeying_sol& a) const
+    bool operator<(const LimitObeyingSol& a) const
     {
       return dist_from_seed < a.dist_from_seed;
     }
   };
-  std::vector<limit_obeying_sol> solutions_obey_limits;
+  std::vector<LimitObeyingSol> solutions_obey_limits;
 
   if (numsol)
   {
