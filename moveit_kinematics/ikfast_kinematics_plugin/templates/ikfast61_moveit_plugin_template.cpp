@@ -180,7 +180,7 @@ public:
    * @return True if a valid solution was found, false otherwise
    */
 
-  // Returns the first IK solution that is within joint limits, this is called by get_ik() service
+  // Returns the IK solution that is within joint limits closest to ik_seed_state
   bool getPositionIK(const geometry_msgs::Pose& ik_pose, const std::vector<double>& ik_seed_state,
                      std::vector<double>& solution, moveit_msgs::MoveItErrorCodes& error_code,
                      const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions()) const;
@@ -201,7 +201,7 @@ public:
    * @return True if a valid set of solutions was found, false otherwise.
    */
   bool getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses, const std::vector<double>& ik_seed_state,
-                     std::vector<std::vector<double> >& solutions, kinematics::KinematicsResult& result,
+                     std::vector<std::vector<double>>& solutions, kinematics::KinematicsResult& result,
                      const kinematics::KinematicsQueryOptions& options) const;
 
   /**
@@ -1006,6 +1006,27 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     return false;
   }
 
+  if (ik_seed_state.size() < num_joints_)
+  {
+    ROS_ERROR_STREAM("ik_seed_state only has " << ik_seed_state.size() << " entries, this ikfast solver requires "
+                                               << num_joints_);
+    return false;
+  }
+
+  // Check if seed is in bound
+  for (std::size_t i = 0; i < ik_seed_state.size(); i++)
+  {
+    // Add tolerance to limit check
+    if (joint_has_limits_vector_[i] && ((ik_seed_state[i] < (joint_min_vector_[i] - LIMIT_TOLERANCE)) ||
+                                        (ik_seed_state[i] > (joint_max_vector_[i] + LIMIT_TOLERANCE))))
+    {
+      ROS_DEBUG_STREAM_NAMED("ikseed", "Not in limits! " << (int)i << " value " << ik_seed_state[i]
+                                                         << " has limit: " << joint_has_limits_vector_[i] << "  being  "
+                                                         << joint_min_vector_[i] << " to " << joint_max_vector_[i]);
+      return false;
+    }
+  }
+
   std::vector<double> vfree(free_params_.size());
   for (std::size_t i = 0; i < free_params_.size(); ++i)
   {
@@ -1019,20 +1040,33 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   IkSolutionList<IkReal> solutions;
   int numsol = solve(frame, vfree, solutions);
-
   ROS_DEBUG_STREAM_NAMED("ikfast", "Found " << numsol << " solutions from IKFast");
+
+  // struct for storing and sorting solutions
+  struct LimitObeyingSol
+  {
+    std::vector<double> value;
+    double dist_from_seed;
+
+    bool operator<(const LimitObeyingSol& a) const
+    {
+      return dist_from_seed < a.dist_from_seed;
+    }
+  };
+  std::vector<LimitObeyingSol> solutions_obey_limits;
 
   if (numsol)
   {
-    for (int s = 0; s < numsol; ++s)
+    std::vector<double> solution_obey_limits;
+    for (std::size_t s = 0; s < numsol; ++s)
     {
       std::vector<double> sol;
       getSolution(solutions, s, sol);
-      ROS_DEBUG_NAMED("ikfast", "Sol %d: %e   %e   %e   %e   %e   %e", s, sol[0], sol[1], sol[2], sol[3], sol[4],
+      ROS_DEBUG_NAMED("ikfast", "Sol %d: %e   %e   %e   %e   %e   %e", (int)s, sol[0], sol[1], sol[2], sol[3], sol[4],
                       sol[5]);
 
       bool obeys_limits = true;
-      for (unsigned int i = 0; i < sol.size(); i++)
+      for (std::size_t i = 0; i < sol.size(); i++)
       {
         // Add tolerance to limit check
         if (joint_has_limits_vector_[i] && ((sol[i] < (joint_min_vector_[i] - LIMIT_TOLERANCE)) ||
@@ -1040,7 +1074,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
         {
           // One element of solution is not within limits
           obeys_limits = false;
-          ROS_DEBUG_STREAM_NAMED("ikfast", "Not in limits! " << i << " value " << sol[i] << " has limit: "
+          ROS_DEBUG_STREAM_NAMED("ikfast", "Not in limits! " << (int)i << " value " << sol[i] << " has limit: "
                                                              << joint_has_limits_vector_[i] << "  being  "
                                                              << joint_min_vector_[i] << " to " << joint_max_vector_[i]);
           break;
@@ -1048,10 +1082,15 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
       }
       if (obeys_limits)
       {
-        // All elements of solution obey limits
-        getSolution(solutions, s, solution);
-        error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-        return true;
+        // All elements of this solution obey limits
+        getSolution(solutions, s, solution_obey_limits);
+        double dist_from_seed = 0.0;
+        for (std::size_t i = 0; i < ik_seed_state.size(); ++i)
+        {
+          dist_from_seed += fabs(ik_seed_state[i] - solution_obey_limits[i]);
+        }
+
+        solutions_obey_limits.push_back({ solution_obey_limits, dist_from_seed });
       }
     }
   }
@@ -1060,13 +1099,22 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     ROS_DEBUG_STREAM_NAMED("ikfast", "No IK solution");
   }
 
+  // Sort the solutions under limits and find the one that is closest to ik_seed_state
+  if (!solutions_obey_limits.empty())
+  {
+    std::sort(solutions_obey_limits.begin(), solutions_obey_limits.end());
+    solution = solutions_obey_limits[0].value;
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+    return true;
+  }
+
   error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
   return false;
 }
 
 bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                            const std::vector<double>& ik_seed_state,
-                                           std::vector<std::vector<double> >& solutions,
+                                           std::vector<std::vector<double>>& solutions,
                                            kinematics::KinematicsResult& result,
                                            const kinematics::KinematicsQueryOptions& options) const
 {
@@ -1104,7 +1152,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
   tf::poseMsgToKDL(ik_poses[0], frame);
 
   // solving ik
-  std::vector<IkSolutionList<IkReal> > solution_set;
+  std::vector<IkSolutionList<IkReal>> solution_set;
   IkSolutionList<IkReal> ik_solutions;
   std::vector<double> vfree;
   int numsol = 0;
