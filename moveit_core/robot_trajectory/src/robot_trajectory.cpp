@@ -277,30 +277,31 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
       {
         tf::transformEigenToMsg(waypoints_[i]->getJointTransform(mdof[j]),
                                 trajectory.multi_dof_joint_trajectory.points[i].transforms[j]);
-        if (waypoints_[i]->hasVelocities())
+        // [TODO] currently only checking for plainer multi DOF joints need to add check for floating
+        if (waypoints_[i]->hasVelocities() && (mdof[j]->getType() == robot_model::JointModel::JointType::PLANAR))
         {
           const std::vector<std::string> names = mdof[j]->getVariableNames();
           const double* velocities = waypoints_[i]->getJointVelocities(mdof[j]);
 
           geometry_msgs::Twist point_velocity;
 
-          for (std::size_t ii = 0; ii < names.size(); ++ii)
+          for (std::size_t k = 0; k < names.size(); ++k)
           {
-            if (names[ii].find("/x") != std::string::npos)
+            if (names[k].find("/x") != std::string::npos)
             {
-              point_velocity.linear.x = velocities[ii];
+              point_velocity.linear.x = velocities[k];
             }
-            else if (names[ii].find("/y") != std::string::npos)
+            else if (names[k].find("/y") != std::string::npos)
             {
-              point_velocity.linear.y = velocities[ii];
+              point_velocity.linear.y = velocities[k];
             }
-            else if (names[ii].find("/z") != std::string::npos)
+            else if (names[k].find("/z") != std::string::npos)
             {
-              point_velocity.linear.z = velocities[ii];
+              point_velocity.linear.z = velocities[k];
             }
-            else if (names[ii].find("/theta") != std::string::npos)
+            else if (names[k].find("/theta") != std::string::npos)
             {
-              point_velocity.angular.z = velocities[ii];
+              point_velocity.angular.z = velocities[k];
             }
           }
           trajectory.multi_dof_joint_trajectory.points[i].velocities.push_back(point_velocity);
