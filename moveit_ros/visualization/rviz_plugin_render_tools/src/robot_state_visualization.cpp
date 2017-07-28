@@ -139,6 +139,8 @@ void RobotStateVisualization::setVisible(bool visible)
 {
   visible_ = visible;
   robot_.setVisible(visible);
+  if (!visible)
+    render_shapes_->clear();
 }
 
 void RobotStateVisualization::setVisualVisible(bool visible)
