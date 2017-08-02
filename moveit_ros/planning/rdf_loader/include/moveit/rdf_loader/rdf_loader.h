@@ -40,7 +40,8 @@
 #include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
-#include <tinyxml.h>
+
+class TiXmlDocument;
 
 namespace rdf_loader
 {
