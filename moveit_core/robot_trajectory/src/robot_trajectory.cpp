@@ -277,7 +277,7 @@ void robot_trajectory::RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::Robot
       {
         tf::transformEigenToMsg(waypoints_[i]->getJointTransform(mdof[j]),
                                 trajectory.multi_dof_joint_trajectory.points[i].transforms[j]);
-        // [TODO] currently only checking for plainer multi DOF joints need to add check for floating
+        // TODO: currently only checking for planar multi DOF joints / need to add check for floating
         if (waypoints_[i]->hasVelocities() && (mdof[j]->getType() == robot_model::JointModel::JointType::PLANAR))
         {
           const std::vector<std::string> names = mdof[j]->getVariableNames();
