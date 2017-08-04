@@ -131,6 +131,8 @@ public:
       end_effector_link_ = joint_model_group_->getLinkModelNames().back();
     pose_reference_frame_ = getRobotModel()->getModelFrame();
 
+    setPlannerId(getDefaultPlannerId(opt.group_name_));
+
     trajectory_event_publisher_ = node_handle_.advertise<std_msgs::String>(
         trajectory_execution_manager::TrajectoryExecutionManager::EXECUTION_EVENT_TOPIC, 1, false);
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(
