@@ -2,6 +2,17 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix][moveit_ros/planning] Support for MultiDoF only trajectories `#553 <https://github.com/ros-planning/moveit/pull/553>`_
+* [fix][moveit_core] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
+* [fix][moveit_core] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
+* [fix][moveit_commander] numpy.ndarray indices bug (`#563 <https://github.com/ros-planning/moveit/issues/563>`_, from `#86 <https://github.com/ros-planning/moveit/issues/86>`_, `#450 <https://github.com/ros-planning/moveit/issues/450>`_)
+* [fix][moveit_ros_visualization] RobotStateVisualization: clear before load to avoid segfault `#572 <https://github.com/ros-planning/moveit/pull/572>`_
+* [enhancement][moveit_commander][moveit_ros][moveit_planners] Optional forced use of JointModelStateSpaceFactory (`#541 <https://github.com/ros-planning/moveit/issues/541>`_)
+* [enhancement][moveit_setup_assistant] support loading xacros that use Jade+ extensions on Indigo `#540 <https://github.com/ros-planning/moveit/issues/540>`_
+* Contributors: Christopher Schindlbeck, G.A. vd. Hoorn, Cyrille Morin, Martin Pecka, gavanderhoorn, henhenhen, v4hn
+
 0.7.11 (2017-06-21)
 -------------------
 * [fix][moveit_ros_visualization] TrajectoryVisualization crash if no window_context exists (`#523 <https://github.com/ros-planning/moveit/issues/523>`_, `#525 <https://github.com/ros-planning/moveit/issues/525>`_)

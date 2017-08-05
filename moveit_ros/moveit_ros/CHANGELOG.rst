@@ -2,6 +2,38 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support for MultiDoF only trajectories
+* RobotStateVisualization: clear before load to avoid segfault
+  rviz::Robot deletes its complete SceneNode structure in the `load()` method.
+  However, `RobotStateVisualization::render_shapes\_` keeps raw pointers
+  to some of these nodes (the attached objects), so these should be cleared
+  to avoid broken pointers.
+  Additionally the order of clearing was bad: the attached objects should
+  be removed first, and `rviz::Robot` only afterwards to avoid similar problems.
+* fixed numpy.ndarray indices bug (from `#86 <https://github.com/ros-planning/moveit/issues/86>`_) (`#450 <https://github.com/ros-planning/moveit/issues/450>`_) (`#563 <https://github.com/ros-planning/moveit/issues/563>`_)
+* [moveit_planners] Optional forced use of JointModelStateSpaceFactory (`#541 <https://github.com/ros-planning/moveit/issues/541>`_)
+  * Implements optional ompl_planning config parameter 'force_joint_model_state_space'.
+  * Renames parameter to 'enforce_joint_model_state_space'.
+  Expands workaround comment.
+* [moveit_core][moveit_planners] Fixing segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
+* [moveit_core][moveit_planners] Merge pull request `#540 <https://github.com/ros-planning/moveit/issues/540>`_ from gavanderhoorn/msa_add_jade_xacro_enable_chkbox
+  MSA: support loading xacros that use Jade+ extensions on Indigo
+* [moveit_core][moveit_planners] setup_assistant: explain purpose of the 'Jade+ xacro' checkbox with tooltip.
+* [moveit_core][moveit_planners] setup_assistant: only persist 'jade xacro' key if it's been set.
+* [moveit_core][moveit_planners] setup_assistant: persist whether Jade+ xacro is needed when loading existing config.
+* [moveit_core][moveit_planners] setup_assistant: support enabling Jade+ xacro in wizard.
+  This allows loading xacros that make use of the extensions to xacro that were
+  added in Jade and newer ROS releases on Indigo.
+* [moveit_core][moveit_planners] Fixed doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
+  The docstring says the format of the vector is `(minx, miny, minz, maxx, maxy, maxz)`, but according to both the method's implementation and use in moveit, the format is rather `(minx, maxx, miny, maxy, minz, maxz)`.
+* [moveit_core][moveit_planners] setup assistant: add use_gui param to demo.launch
+  It bugged me for quite some time now that one has to edit the launch file
+  just to be able to move the "real" robot around in demo mode.
+  Thus I want to expose the option as a parameter in the launch file.
+* Contributors: Christopher Schindlbeck, G.A. vd. Hoorn, Martin Pecka, Notou, gavanderhoorn, henhenhen, v4hn
+
 0.7.11 (2017-06-21)
 -------------------
 

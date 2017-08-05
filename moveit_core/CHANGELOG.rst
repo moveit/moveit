@@ -2,6 +2,13 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
+* [fix] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
+  The docstring says the format of the vector is `(minx, miny, minz, maxx, maxy, maxz)`, but according to both the method's implementation and use in moveit, the format is rather `(minx, maxx, miny, maxy, minz, maxz)`.
+* Contributors: Martin Pecka, henhenhen
+
 0.7.11 (2017-06-21)
 -------------------
 
