@@ -59,6 +59,9 @@ RobotStateVisualization::RobotStateVisualization(Ogre::SceneNode* root_node, rvi
 
 void RobotStateVisualization::load(const urdf::ModelInterface& descr, bool visual, bool collision)
 {
+  // clear previously loaded model
+  clear();
+
   robot_.load(descr, visual, collision);
   robot_.setVisualVisible(visual_visible_);
   robot_.setCollisionVisible(collision_visible_);
@@ -68,8 +71,8 @@ void RobotStateVisualization::load(const urdf::ModelInterface& descr, bool visua
 
 void RobotStateVisualization::clear()
 {
-  robot_.clear();
   render_shapes_->clear();
+  robot_.clear();
 }
 
 void RobotStateVisualization::setDefaultAttachedObjectColor(const std_msgs::ColorRGBA& default_attached_object_color)
