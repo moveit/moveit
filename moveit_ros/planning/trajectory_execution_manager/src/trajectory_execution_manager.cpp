@@ -1323,7 +1323,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     for (std::size_t i = 0; i < context.trajectory_parts_.size(); ++i)
     {
       ros::Duration d(0.0);
-      if (!context.trajectory_parts_[i].joint_trajectory.points.empty())
+      if (!(context.trajectory_parts_[i].joint_trajectory.points.empty() &&
+            context.trajectory_parts_[i].multi_dof_joint_trajectory.points.empty()))
       {
         if (context.trajectory_parts_[i].joint_trajectory.header.stamp > current_time)
           d = context.trajectory_parts_[i].joint_trajectory.header.stamp - current_time;
