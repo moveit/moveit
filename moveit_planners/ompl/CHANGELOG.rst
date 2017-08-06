@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.12 (2017-08-06)
+-------------------
 * [moveit_ros] [moveit_planners] Optional forced use of JointModelStateSpaceFactory (`#541 <https://github.com/ros-planning/moveit/issues/541>`_)
   * Implements optional ompl_planning config parameter 'force_joint_model_state_space'.
   * Renames parameter to 'enforce_joint_model_state_space'.

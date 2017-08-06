@@ -2,8 +2,8 @@
 Changelog for package moveit_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.12 (2017-08-06)
+-------------------
 * Support for MultiDoF only trajectories
 * RobotStateVisualization: clear before load to avoid segfault
   rviz::Robot deletes its complete SceneNode structure in the `load()` method.

@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.12 (2017-08-06)
+-------------------
 * [enhancement] support loading xacros that use Jade+ extensions on Indigo `#540 <https://github.com/ros-planning/moveit/issues/540>`_
 * Contributors: G.A. vd. Hoorn, v4hn
 
