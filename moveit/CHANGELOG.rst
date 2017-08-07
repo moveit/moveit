@@ -2,8 +2,8 @@
 Changelog for package moveit
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.9 (2017-08-06)
+------------------
 * Fixation in the contained packages:
   * [fix][moveit_ros_planning] Change getCurrentExpectedTrajectory index so collision detection is still performed even if the path timing is not known (`#550 <https://github.com/ros-planning/moveit/issues/550>`_)
   * [fix][moveit_ros_planning] check plan size for plan length=0 `#535 <https://github.com/ros-planning/moveit/issues/535>`_
