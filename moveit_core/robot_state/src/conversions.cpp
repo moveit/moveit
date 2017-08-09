@@ -331,7 +331,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
   bool valid;
   const moveit_msgs::RobotState& rs = robot_state;
 
-  if (rs.joint_state.name.empty() && rs.multi_dof_joint_state.joint_names.empty())
+  if (!rs.is_diff && rs.joint_state.name.empty() && rs.multi_dof_joint_state.joint_names.empty())
   {
     logError("Found empty JointState message");
     return false;
