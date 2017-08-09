@@ -44,8 +44,8 @@ from exception import MoveItCommanderException
 try:
     from pyassimp import pyassimp
 except:
-    # support pyassimp > 3.0
-    import pyassimp
+    pyassimp = False
+    print("Failed to import pyassimp")
 
 # This is going to have more functionality; (feel free to add some!)
 # This class will include simple Python code for publishing messages for a planning scene
@@ -92,6 +92,8 @@ class PlanningSceneInterface(object):
     
     def __make_mesh(self, name, pose, filename, scale = (1, 1, 1)):
         co = CollisionObject()
+        if pyassimp is False:
+            raise MoveItCommanderException("Pyassimp needs patch https://launchpadlibrarian.net/319496602/patchPyassim.txt")
         scene = pyassimp.load(filename)
         if not scene.meshes or len(scene.meshes) == 0:
             raise MoveItCommanderException("There are no meshes in the file")
