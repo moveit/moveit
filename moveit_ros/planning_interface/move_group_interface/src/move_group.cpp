@@ -898,6 +898,7 @@ public:
     req.jump_threshold = jump_threshold;
     req.path_constraints = path_constraints;
     req.avoid_collisions = avoid_collisions;
+    req.link_name = getEndEffectorLink();
 
     if (cartesian_path_service_.call(req, res))
     {
