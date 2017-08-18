@@ -53,8 +53,10 @@ static void init_times(const int n, double dt[], const double x[], const double 
 static int fit_spline_and_adjust_times(const int n, double dt[], const double x[], double x1[], double x2[],
                                        const double max_velocity, const double min_velocity,
                                        const double max_acceleration, const double min_acceleration,
-                                       const double max_jerk, const double min_jerk, const double tfactor,
-                                       const bool jerk_enabled);
+                                       const double tfactor);
+static double global_adjustment_factor(const int n, double dt[], const double x[], double x1[], double x2[],
+                                       const double max_velocity, const double min_velocity,
+                                       const double max_acceleration, const double min_acceleration);
 
 // The path of a single joint: positions, velocities, and accelerations
 struct SingleJointTrajectory
@@ -68,16 +70,12 @@ struct SingleJointTrajectory
   double max_velocity;
   double min_acceleration;
   double max_acceleration;
-  double min_jerk;
-  double max_jerk;
 };
 
-IterativeSplineParameterization::IterativeSplineParameterization(bool enable_jerk, double max_jerk, bool add_points,
-                                                                 double max_time_change_per_it)
-  : jerk_enabled_(enable_jerk)
-  , max_jerk_(max_jerk)
-  , add_points_(add_points)
-  , time_change_factor_(1.0 + max_time_change_per_it)
+void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, const int num_points,
+                      std::vector<double>& time_diff);
+
+IterativeSplineParameterization::IterativeSplineParameterization(bool add_points) : add_points_(add_points)
 {
 }
 
@@ -87,8 +85,7 @@ IterativeSplineParameterization::~IterativeSplineParameterization()
 
 bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
-                                                        const double max_acceleration_scaling_factor,
-                                                        const double max_jerk_scaling_factor) const
+                                                        const double max_acceleration_scaling_factor) const
 {
   if (trajectory.empty())
     return true;
@@ -104,7 +101,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   const std::vector<std::string>& vars = group->getVariableNames();
   double velocity_scaling_factor = 1.0;
   double acceleration_scaling_factor = 1.0;
-  double jerk_scaling_factor = 1.0;
   unsigned int num_points = trajectory.getWayPointCount();
   unsigned int num_joints = group->getVariableCount();
 
@@ -126,22 +122,14 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
             max_acceleration_scaling_factor, acceleration_scaling_factor);
 
-  if (max_jerk_scaling_factor > 0.0 && max_jerk_scaling_factor <= 1.0)
-    jerk_scaling_factor = max_jerk_scaling_factor;
-  else if (max_jerk_scaling_factor == 0.0)
-    logDebug("A max_jerk_scaling_factor of 0.0 was specified, defaulting to %f instead.", jerk_scaling_factor);
-  else
-    logWarn("Invalid max_jerk_scaling_factor %f specified, defaulting to %f instead.", max_jerk_scaling_factor,
-            jerk_scaling_factor);
-
   // No wrapped angles.
   trajectory.unwind();
 
-  if (jerk_enabled_ && add_points_)
+  if (add_points_)
   {
     // Insert 2nd and 2nd-last points
     // (required to force acceleration to specified values at endpoints)
-    if (add_points_ && trajectory.getWayPointCount() >= 2)
+    if (trajectory.getWayPointCount() >= 2)
     {
       robot_state::RobotState point = trajectory.getWayPoint(1);
       robot_state::RobotStatePtr p0, p1;
@@ -231,16 +219,6 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     t2[j].max_acceleration *= acceleration_scaling_factor;
     t2[j].min_acceleration *= acceleration_scaling_factor;
 
-    t2[j].max_jerk = std::numeric_limits<double>::max();
-    t2[j].min_jerk = std::numeric_limits<double>::min();
-    if (jerk_enabled_)
-    {
-      t2[j].max_jerk = max_jerk_;
-      t2[j].max_jerk *= jerk_scaling_factor;
-      t2[j].min_jerk = -max_jerk_;
-      t2[j].min_jerk *= jerk_scaling_factor;
-    }
-
     // Error out if bounds don't make sense
     if (t2[j].max_velocity <= 0.0 || t2[j].max_acceleration <= 0.0)
     {
@@ -256,24 +234,9 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
                j, t2[j].min_velocity, t2[j].min_acceleration);
       return false;
     }
-    if (jerk_enabled_ && t2[j].max_jerk <= 0.0)
-    {
-      logError("Joint %d max jerk %f must be greater than zero or a solution won't be found.\n", j, t2[j].max_jerk);
-      return false;
-    }
-    if (jerk_enabled_ && t2[j].min_jerk >= 0.0)
-    {
-      logError("Joint %d min jerk %f must be greater than zero or a solution won't be found.\n", j, t2[j].min_jerk);
-      return false;
-    }
   }
 
   // Error check
-  if (time_change_factor_ <= 1.0)
-  {
-    logError("time change factor is %f, needs to be higher than 1.0.\n", time_change_factor_);
-    return false;
-  }
   if (num_points < 4)
   {
     logError("number of waypoints %d, needs to be greater than 3.\n", num_points);
@@ -306,47 +269,57 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Initialize times
+  // start with valid velocities, then expand intervals
   // epsilon to prevent divide-by-zero
   std::vector<double> time_diff(trajectory.getWayPointCount() - 1, std::numeric_limits<double>::epsilon());
   for (unsigned int j = 0; j < num_joints; j++)
     init_times(num_points, &time_diff[0], &t2[j].positions[0], t2[j].max_velocity, t2[j].min_velocity);
 
-  // Fit spline (satisfies initial/final velocity)
-  if (!jerk_enabled_)
+  // Stretch intervals until close to the bounds
+  while (1)
   {
-    bool loop = true;
-    while (loop)
+    int loop = 0;
+
+    // Calculate the interval stretches due to acceleration
+    std::vector<double> time_factor(num_points - 1, 1.00);
+    for (unsigned j = 0; j < num_joints; j++)
     {
-      loop = false;
-      for (unsigned int j = 0; j < num_joints; j++)
-      {
-        while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                           &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
-                                           t2[j].max_acceleration, t2[j].min_acceleration, t2[j].max_jerk,
-                                           t2[j].min_jerk, time_change_factor_, jerk_enabled_))
-          loop = true;  // repeat until no adjustments
-      }
-    }
-  }
-  // Fit splint and move points (satisfies initial/final velocity and acceleration)
-  else
-  {
-    int loop = true;
-    while (loop)
-    {
-      loop = false;
-      for (unsigned int j = 0; j < num_joints; j++)
+      // Move points to satisfy initial/final acceleration
+      if (add_points_)
       {
         adjust_two_positions(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
                              &t2[j].accelerations[0], t2[j].initial_acceleration, t2[j].final_acceleration);
-        while (fit_spline_and_adjust_times(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
-                                           &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
-                                           t2[j].max_acceleration, t2[j].min_acceleration, t2[j].max_jerk,
-                                           t2[j].min_jerk, time_change_factor_, jerk_enabled_))
-          loop = true;  // repeat until no more adjustments
+      }
+
+      fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0]);
+      for (unsigned i = 0; i < num_points; i++)
+      {
+        const double acc = t2[j].accelerations[i];
+        double atfactor = 1.0;
+        if (acc > t2[j].max_acceleration)
+          atfactor = sqrt(acc / t2[j].max_acceleration);
+        if (acc < t2[j].min_acceleration)
+          atfactor = sqrt(acc / t2[j].min_acceleration);
+        if (atfactor > 1.01)  // within 1%
+          loop = 1;
+        atfactor = (atfactor - 1.0) / 16.0 + 1.0;  // 1/16th
+        if (i > 0)
+          time_factor[i - 1] = std::max(time_factor[i - 1], atfactor);
+        if (i < num_points - 1)
+          time_factor[i] = std::max(time_factor[i], atfactor);
       }
     }
+
+    if (loop == 0)
+      break;  // finished
+
+    // Stretch
+    for (unsigned i = 0; i < num_points - 1; i++)
+      time_diff[i] *= time_factor[i];
   }
+
+  // Final adjustment forces the trajectory within bounds
+  globalAdjustment(t2, num_joints, num_points, time_diff);
 
   // Convert back to JointTrajectory form
   for (unsigned int i = 1; i < num_points; i++)
@@ -501,9 +474,10 @@ static void init_times(const int n, double dt[], const double x[], const double 
   x1 contains the 1st derivative (velocities)        (size=n)
      x1[0] and x1[n-1] MUST be specified.
   x2 contains the 2nd derivative (accelerations)     (size=n)
-  vlimit is the max velocity for this joint.
-  alimit is the max acceleration for this joint.
-  jlimit is the max jerk for this joint.
+  max_velocity is the max velocity for this joint.
+  min_velocity is the min velocity for this joint.
+  max_acceleration is the max acceleration for this joint.
+  min_acceleration is the min acceleration for this joint.
   tfactor is the time adjustment (multiplication) factor.
   x1 and x2 are filled in by the algorithm.
 */
@@ -511,8 +485,7 @@ static void init_times(const int n, double dt[], const double x[], const double 
 static int fit_spline_and_adjust_times(const int n, double dt[], const double x[], double x1[], double x2[],
                                        const double max_velocity, const double min_velocity,
                                        const double max_acceleration, const double min_acceleration,
-                                       const double max_jerk, const double min_jerk, const double tfactor,
-                                       const bool jerk_enabled)
+                                       const double tfactor)
 {
   int i, ret = 0;
 
@@ -544,20 +517,71 @@ static int fit_spline_and_adjust_times(const int n, double dt[], const double x[
     }
   }
 
-  // Jerk is discontinuous, but constant for each segment
-  if (jerk_enabled && ret == 0)
+  return ret;
+}
+
+// return global expansion multiplicative factor required
+// to force within bounds.
+// Assumes that the spline is already fit
+// (fit_cubic_spline must have been called before this).
+static double global_adjustment_factor(const int n, double dt[], const double x[], double x1[], double x2[],
+                                       const double max_velocity, const double min_velocity,
+                                       const double max_acceleration, const double min_acceleration)
+{
+  int i;
+  double tfactor2 = 1.00;
+
+  // fit_cubic_spline(n, dt, x, x1, x2);
+
+  for (i = 0; i < n; i++)
   {
-    for (i = 0; i < n - 1; i++)
+    double tfactor;
+    tfactor = x1[i] / max_velocity;
+    if (tfactor2 < tfactor)
+      tfactor2 = tfactor;
+    tfactor = x1[i] / min_velocity;
+    if (tfactor2 < tfactor)
+      tfactor2 = tfactor;
+
+    if (x2[i] >= 0)
     {
-      const double jrk = (x2[i + 1] - x2[i]) / dt[i];
-      if (jrk > max_jerk || jrk < min_jerk)
-      {
-        dt[i] *= tfactor;
-        ret = 1;
-      }
+      tfactor = sqrt(fabs(x2[i] / max_acceleration));
+      if (tfactor2 < tfactor)
+        tfactor2 = tfactor;
+    }
+    else
+    {
+      tfactor = sqrt(fabs(x2[i] / min_acceleration));
+      if (tfactor2 < tfactor)
+        tfactor2 = tfactor;
     }
   }
 
-  return ret;
+  return tfactor2;
+}
+
+// Expands the entire trajectory to fit exactly within bounds
+void globalAdjustment(std::vector<SingleJointTrajectory>& t2, int num_joints, const int num_points,
+                      std::vector<double>& time_diff)
+{
+  double gtfactor = 1.0;
+  for (int j = 0; j < num_joints; j++)
+  {
+    double tfactor;
+    tfactor = global_adjustment_factor(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0],
+                                       &t2[j].accelerations[0], t2[j].max_velocity, t2[j].min_velocity,
+                                       t2[j].max_acceleration, t2[j].min_acceleration);
+    if (tfactor > gtfactor)
+      gtfactor = tfactor;
+  }
+
+  // printf("# Global adjustment: %0.4f%%\n", 100.0 * (gtfactor - 1.0));
+  for (int i = 0; i < num_points - 1; i++)
+    time_diff[i] *= gtfactor;
+
+  for (int j = 0; j < num_joints; j++)
+  {
+    fit_cubic_spline(num_points, &time_diff[0], &t2[j].positions[0], &t2[j].velocities[0], &t2[j].accelerations[0]);
+  }
 }
 }

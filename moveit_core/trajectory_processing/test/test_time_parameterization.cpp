@@ -187,26 +187,14 @@ TEST(TestTimeParameterization, TestIterativeSpline)
   ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
 }
 
-TEST(TestTimeParameterization, TestIterativeSplineJerk)
+TEST(TestTimeParameterization, TestIterativeSplineAddPoints)
 {
-  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, false);
+  trajectory_processing::IterativeSplineParameterization time_parameterization(true);
   EXPECT_EQ(initStraightTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
   EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
-  std::cout << "IterativeSplineParameterization with Jerk took " << (ros::WallTime::now() - wt).toSec() << std::endl;
-  printTrajectory(trajectory);
-  ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 6.0);
-}
-
-TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
-{
-  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
-  EXPECT_EQ(initStraightTrajectory(trajectory), 0);
-
-  ros::WallTime wt = ros::WallTime::now();
-  EXPECT_TRUE(time_parameterization.computeTimeStamps(trajectory));
-  std::cout << "IterativeSplineParameterization with Jerk and added points took " << (ros::WallTime::now() - wt).toSec()
+  std::cout << "IterativeSplineParameterization with added points took " << (ros::WallTime::now() - wt).toSec()
             << std::endl;
   printTrajectory(trajectory);
   ASSERT_LT(trajectory.getWayPointDurationFromStart(trajectory.getWayPointCount() - 1), 5.0);
@@ -214,7 +202,7 @@ TEST(TestTimeParameterization, TestIterativeSplineJerkAddPoints)
 
 TEST(TestTimeParameterization, TestRepeatedPoint)
 {
-  trajectory_processing::IterativeSplineParameterization time_parameterization(true, 9.0, true);
+  trajectory_processing::IterativeSplineParameterization time_parameterization(true);
   EXPECT_EQ(initRepeatedPointTrajectory(trajectory), 0);
 
   ros::WallTime wt = ros::WallTime::now();
