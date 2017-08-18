@@ -393,7 +393,8 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
 
-  if (load_robot_model_) {
+  if (load_robot_model_)
+  {
     loadRobotModel();
     changedRobotStateTopic();
   }
