@@ -49,7 +49,7 @@ except:
         import pyassimp
     except:
         pyassimp = False
-        print("Failed to import pyassimp")
+        print("Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info")
 
 # This is going to have more functionality; (feel free to add some!)
 # This class will include simple Python code for publishing messages for a planning scene
