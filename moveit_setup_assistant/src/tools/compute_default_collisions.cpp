@@ -37,7 +37,6 @@
 #include <moveit/setup_assistant/tools/compute_default_collisions.h>
 #include <boost/math/special_functions/binomial.hpp>  // for statistics at end
 #include <boost/thread.hpp>
-#include <tinyxml.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
