@@ -44,8 +44,12 @@ from exception import MoveItCommanderException
 try:
     from pyassimp import pyassimp
 except:
-    pyassimp = False
-    print("Failed to import pyassimp")
+    # support pyassimp > 3.0
+    try:
+        import pyassimp
+    except:
+        pyassimp = False
+        print("Failed to import pyassimp")
 
 # This is going to have more functionality; (feel free to add some!)
 # This class will include simple Python code for publishing messages for a planning scene
