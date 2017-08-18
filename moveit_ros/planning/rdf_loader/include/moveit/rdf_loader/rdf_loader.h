@@ -41,7 +41,8 @@
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 #include <boost/shared_ptr.hpp>
-#include <tinyxml.h>
+
+class TiXmlDocument;
 
 namespace rdf_loader
 {
