@@ -376,7 +376,6 @@ void RobotStateDisplay::onEnable()
   Display::onEnable();
   load_robot_model_ = true;  // allow loading of robot model in update()
   calculateOffsetPosition();
-  changedRobotStateTopic();
 }
 
 // ******************************************************************************************
@@ -394,9 +393,11 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
 
-  if (load_robot_model_)
+  if (load_robot_model_) {
     loadRobotModel();
-
+    changedRobotStateTopic();
+  }
+    
   calculateOffsetPosition();
   if (robot_ && update_state_)
   {
