@@ -369,16 +369,6 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   return !constraint_region_.empty();
 }
 
-void kinematic_constraints::PositionConstraint::swapLinkModel(const robot_model::LinkModel* new_link,
-                                                              const Eigen::Affine3d& update)
-{
-  if (!enabled())
-    return;
-  link_model_ = new_link;
-  for (std::size_t i = 0; i < constraint_region_pose_.size(); ++i)
-    constraint_region_pose_[i] = constraint_region_pose_[i] * update;
-}
-
 bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint& other, double margin) const
 {
   if (other.getType() != type_)
@@ -560,16 +550,6 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
     logWarn("Near-zero value for absolute_z_axis_tolerance");
 
   return link_model_ != NULL;
-}
-
-void kinematic_constraints::OrientationConstraint::swapLinkModel(const robot_model::LinkModel* new_link,
-                                                                 const Eigen::Matrix3d& update)
-{
-  if (!enabled())
-    return;
-  link_model_ = new_link;
-  desired_rotation_matrix_ = desired_rotation_matrix_ * update;
-  desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
 }
 
 bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstraint& other, double margin) const
