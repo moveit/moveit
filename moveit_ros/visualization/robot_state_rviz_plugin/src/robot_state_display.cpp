@@ -398,7 +398,7 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
     loadRobotModel();
     changedRobotStateTopic();
   }
-    
+
   calculateOffsetPosition();
   if (robot_ && update_state_)
   {
