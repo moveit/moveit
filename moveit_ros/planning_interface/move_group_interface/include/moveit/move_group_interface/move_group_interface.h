@@ -745,7 +745,7 @@ public:
   /** \brief Pick up an object
 
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
-  MoveItErrorCode planGraspsAndPick(const std::string& object);
+  MoveItErrorCode planGraspsAndPick(const std::string& object = "");
 
   /** \brief Pick up an object
 
