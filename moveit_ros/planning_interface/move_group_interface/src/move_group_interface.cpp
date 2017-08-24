@@ -746,6 +746,10 @@ public:
 
   MoveItErrorCode planGraspsAndPick(const std::string& object)
   {
+    if (object.empty())
+    {
+      return planGraspsAndPick(moveit_msgs::CollisionObject());
+    }
     moveit::planning_interface::PlanningSceneInterface psi;
 
     std::map<std::string, moveit_msgs::CollisionObject> objects = psi.getObjects(std::vector<std::string>(1, object));
