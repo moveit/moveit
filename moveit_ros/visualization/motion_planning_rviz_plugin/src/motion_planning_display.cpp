@@ -133,9 +133,10 @@ MotionPlanningDisplay::MotionPlanningDisplay()
   query_goal_state_property_ =
       new rviz::BoolProperty("Query Goal State", true, "Shows the goal state for the motion planning query",
                              plan_category_, SLOT(changedQueryGoalState()), this);
-  query_marker_scale_property_ = new rviz::FloatProperty(
-      "Interactive Marker Size", 0.0f, "Specifies scale of the interactive marker overlayed on the robot",
-      plan_category_, SLOT(changedQueryMarkerScale()), this);
+  query_marker_scale_property_ =
+      new rviz::FloatProperty("Interactive Marker Size", 0.0f,
+                              "Specifies scale of the interactive marker overlayed on the robot. 0 is auto scale.",
+                              plan_category_, SLOT(changedQueryMarkerScale()), this);
   query_marker_scale_property_->setMin(0.0f);
 
   query_start_color_property_ =
