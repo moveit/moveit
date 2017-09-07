@@ -18,7 +18,6 @@ add_library(${MOVEIT_LIB_NAME}
   src/detail/constrained_sampler.cpp
   src/detail/constrained_valid_state_sampler.cpp
   src/detail/constrained_goal_sampler.cpp
-  src/detail/ompl_console.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 
