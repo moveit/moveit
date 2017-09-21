@@ -312,6 +312,12 @@ private:
    */
   void getSolution(const IkSolutionList<IkReal>& solutions, int i, std::vector<double>& solution) const;
 
+  /**
+   * @brief Gets a specific solution from the set with joints rotated 360° to be near seed state where possible
+   */
+  void getSolution(const IkSolutionList<IkReal>& solutions, const std::vector<double>& ik_seed_state, int i,
+                   std::vector<double>& solution) const;
+
   double harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const;
   // void getOrderedSolutions(const std::vector<double> &ik_seed_state, std::vector<std::vector<double> >& solslist);
   void getClosestSolution(const IkSolutionList<IkReal>& solutions, const std::vector<double>& ik_seed_state,
@@ -586,6 +592,38 @@ void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions
   // std::cout << std::endl;
 
   // ROS_ERROR("%f %d",solution[2],vsolfree.size());
+}
+
+void IKFastKinematicsPlugin::getSolution(const IkSolutionList<IkReal>& solutions,
+                                         const std::vector<double>& ik_seed_state, int i,
+                                         std::vector<double>& solution) const
+{
+  solution.clear();
+  solution.resize(num_joints_);
+
+  // IKFast56/61
+  const IkSolutionBase<IkReal>& sol = solutions.GetSolution(i);
+  std::vector<IkReal> vsolfree(sol.GetFree().size());
+  sol.GetSolution(&solution[0], vsolfree.size() > 0 ? &vsolfree[0] : NULL);
+
+  // rotate joints by +/-360° where it is possible and useful
+  for (std::size_t i = 0; i < num_joints_; ++i)
+  {
+    if (joint_has_limits_vector_[i])
+    {
+      double signed_distance = solution[i] - ik_seed_state[i];
+      while (signed_distance > M_PI && solution[i] - 2 * M_PI > (joint_min_vector_[i] - LIMIT_TOLERANCE))
+      {
+        signed_distance -= 2 * M_PI;
+        solution[i] -= 2 * M_PI;
+      }
+      while (signed_distance < -M_PI && solution[i] + 2 * M_PI < (joint_max_vector_[i] + LIMIT_TOLERANCE))
+      {
+        signed_distance += 2 * M_PI;
+        solution[i] += 2 * M_PI;
+      }
+    }
+  }
 }
 
 double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_state, std::vector<double>& solution) const
@@ -947,7 +985,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
       {
         nattempts++;
         std::vector<double> sol;
-        getSolution(solutions, s, sol);
+        getSolution(solutions, ik_seed_state, s, sol);
 
         bool obeys_limits = true;
         for (unsigned int i = 0; i < sol.size(); i++)
@@ -962,7 +1000,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
         }
         if (obeys_limits)
         {
-          getSolution(solutions, s, solution);
+          getSolution(solutions, ik_seed_state, s, solution);
 
           // This solution is within joint limits, now check if in collision (if callback provided)
           if (!solution_callback.empty())
@@ -1083,7 +1121,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
     for (std::size_t s = 0; s < numsol; ++s)
     {
       std::vector<double> sol;
-      getSolution(solutions, s, sol);
+      getSolution(solutions, ik_seed_state, s, sol);
       ROS_DEBUG_NAMED("ikfast", "Sol %d: %e   %e   %e   %e   %e   %e", (int)s, sol[0], sol[1], sol[2], sol[3], sol[4],
                       sol[5]);
 
@@ -1105,7 +1143,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const geometry_msgs::Pose& ik_pose, c
       if (obeys_limits)
       {
         // All elements of this solution obey limits
-        getSolution(solutions, s, solution_obey_limits);
+        getSolution(solutions, ik_seed_state, s, solution_obey_limits);
         double dist_from_seed = 0.0;
         for (std::size_t i = 0; i < ik_seed_state.size(); ++i)
         {
@@ -1236,7 +1274,7 @@ bool IKFastKinematicsPlugin::getPositionIK(const std::vector<geometry_msgs::Pose
       for (int s = 0; s < numsol; ++s)
       {
         std::vector<double> sol;
-        getSolution(ik_solutions, s, sol);
+        getSolution(ik_solutions, ik_seed_state, s, sol);
 
         bool obeys_limits = true;
         for (unsigned int i = 0; i < sol.size(); i++)
