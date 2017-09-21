@@ -124,6 +124,12 @@ bool executeAttachObject(const ManipulationPlanSharedDataConstPtr& shared_plan_d
                          const trajectory_msgs::JointTrajectory& detach_posture,
                          const plan_execution::ExecutableMotionPlan* motion_plan)
 {
+  if (shared_plan_data->diff_attached_object_.object.id.empty())
+  {
+    // the user did not provide an object to attach, so just return successfully
+    return true;
+  }
+
   ROS_DEBUG_NAMED("manipulation", "Applying attached object diff to maintained planning scene (attaching/detaching "
                                   "object to end effector)");
   bool ok = false;
