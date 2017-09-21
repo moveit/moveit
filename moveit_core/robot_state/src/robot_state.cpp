@@ -1539,7 +1539,12 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      logError("moveit.robot_state: Cannot compute IK for query pose reference frame '%s'", pose_frame.c_str());
+      logError("moveit.robot_state: Cannot compute IK for query %u pose reference frame '%s'", i, pose_frame.c_str());
+      // Debug available tip frames
+      std::stringstream ss;
+      for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
+        ss << solver_tip_frames[solver_tip_id] << ", ";
+      logError("Available tip frames: [%s]", ss.str().c_str());
       return false;
     }
 
