@@ -16,5 +16,5 @@ install(
   DIRECTORY
     templates
   DESTINATION
-    ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    ${CATKIN_PACKAGE_SHARE_DESTINATION}/ikfast_kinematics_plugin
 )
