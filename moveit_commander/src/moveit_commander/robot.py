@@ -113,12 +113,14 @@ class RobotCommander(object):
             @param position [float]: List of joint angles to achieve.
             @param wait bool: If false, the commands gets operated asynchronously.
             """
-            group = self._robot.get_default_owner_group()
+            group = self._robot.get_default_owner_group(self.name())
             if group is None:
                 raise MoveItCommanderException("There is no known group containing joint %s. Cannot move." % self._name)
             gc = self._robot.get_group(group)
             if gc is not None:
-                gc.set_joint_value_target(gc.get_current_joint_values())
+                if not self._robot._is_group_initialized[gc.get_name()]:
+                    gc.set_joint_value_target(gc.get_current_joint_values())
+                    self._robot._is_group_initialized[gc.get_name()] = True
                 gc.set_joint_value_target(self._name, position)
                 return gc.go(wait)
             return False
@@ -147,7 +149,8 @@ class RobotCommander(object):
     def __init__(self, robot_description="robot_description"):
         self._r = _moveit_robot_interface.RobotInterface(robot_description)
         self._groups = {}
-        self._joint_owner_group = {}
+        self._joint_owner_groups = {}
+        self._is_group_initialized = dict(zip(self._r.get_group_names(), [False]*len(self._r.get_group_names())))
 
     def get_planning_frame(self):
         """
