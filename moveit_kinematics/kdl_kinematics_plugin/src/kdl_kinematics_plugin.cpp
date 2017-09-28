@@ -498,44 +498,35 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       return false;
     }
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
-    ROS_DEBUG_NAMED("kdl", "IK valid: %d", ik_valid);
-    if (!consistency_limits.empty())
+    if (ik_valid >= 0 || options.return_approximate_solution)
     {
-      getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
-      if ((ik_valid < 0 && !options.return_approximate_solution) ||
-          !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
+      ROS_DEBUG_NAMED("kdl", "Found IK solution");
+      if (!consistency_limits.empty() && !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
       {
         ROS_DEBUG_NAMED("kdl", "Could not find IK solution: does not match consistency limits");
-        continue;
+      }
+      else {
+        for (unsigned int j = 0; j < dimension_; j++)
+          solution[j] = jnt_pos_out(j);
+        if (!solution_callback.empty())
+          solution_callback(ik_pose, solution, error_code);
+        else
+          error_code.val = error_code.SUCCESS;
+
+        if (error_code.val == error_code.SUCCESS)
+        {
+          ROS_DEBUG_STREAM_NAMED("kdl", "Solved after " << counter << " iterations");
+          ik_solver_vel.unlockRedundantJoints();
+          return true;
+        }
       }
     }
+
+    // either we didn't find a solution or the solution callback rejected it: try another seed
+    if (!consistency_limits.empty())
+      getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
     else
-    {
       getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
-      ROS_DEBUG_NAMED("kdl", "New random configuration");
-      for (unsigned int j = 0; j < dimension_; j++)
-        ROS_DEBUG_NAMED("kdl", "%d %f", j, jnt_pos_in(j));
-
-      if (ik_valid < 0 && !options.return_approximate_solution)
-      {
-        ROS_DEBUG_NAMED("kdl", "Could not find IK solution");
-        continue;
-      }
-    }
-    ROS_DEBUG_NAMED("kdl", "Found IK solution");
-    for (unsigned int j = 0; j < dimension_; j++)
-      solution[j] = jnt_pos_out(j);
-    if (!solution_callback.empty())
-      solution_callback(ik_pose, solution, error_code);
-    else
-      error_code.val = error_code.SUCCESS;
-
-    if (error_code.val == error_code.SUCCESS)
-    {
-      ROS_DEBUG_STREAM_NAMED("kdl", "Solved after " << counter << " iterations");
-      ik_solver_vel.unlockRedundantJoints();
-      return true;
-    }
   }
   ROS_DEBUG_NAMED("kdl", "An IK that satisifes the constraints and is collision free could not be found");
   error_code.val = error_code.NO_IK_SOLUTION;
