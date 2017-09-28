@@ -32,6 +32,7 @@
 #include "kdl/chainfksolver.hpp"
 
 #include <moveit/kdl_kinematics_plugin/joint_mimic.hpp>
+#include <moveit/macros/deprecation.h>
 
 namespace KDL
 {
@@ -71,6 +72,7 @@ public:
 
   virtual int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out);
 
+  MOVEIT_DEPRECATED
   virtual int CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out, bool lock_redundant_joints);
 
   bool setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& mimic_joints);
