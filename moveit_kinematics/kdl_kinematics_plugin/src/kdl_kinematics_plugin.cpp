@@ -521,6 +521,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
         }
       }
     }
+    if (ik_valid == -2) // don't change seed when target is not reachable
+      break;
 
     // either we didn't find a solution or the solution callback rejected it: try another seed
     if (!consistency_limits.empty())
