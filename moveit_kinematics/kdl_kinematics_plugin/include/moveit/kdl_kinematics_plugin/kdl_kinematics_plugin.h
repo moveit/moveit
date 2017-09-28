@@ -161,18 +161,6 @@ private:
 
   int getKDLSegmentIndex(const std::string& name) const;
 
-  void getRandomConfiguration(KDL::JntArray& jnt_array, bool lock_redundancy) const;
-
-  /** @brief Get a random configuration within joint limits close to the seed state
-   *  @param seed_state Seed state
-   *  @param redundancy Index of the redundant joint within the chain
-   *  @param consistency_limit The returned state will contain a value for the redundant joint in the range
-   * [seed_state(redundancy_limit)-consistency_limit,seed_state(redundancy_limit)+consistency_limit]
-   *  @param jnt_array Returned random configuration
-   */
-  void getRandomConfiguration(const KDL::JntArray& seed_state, const std::vector<double>& consistency_limits,
-                              KDL::JntArray& jnt_array, bool lock_redundancy) const;
-
   bool isRedundantJoint(unsigned int index) const;
 
   bool active_; /** Internal variable that indicates whether solvers are configured and ready */
