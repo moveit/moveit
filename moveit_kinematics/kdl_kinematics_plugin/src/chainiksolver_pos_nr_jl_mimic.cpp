@@ -109,12 +109,6 @@ void ChainIkSolverPos_NR_JL_Mimic::qMimicToq(const JntArray& q, JntArray& q_resu
 
 int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out)
 {
-  return CartToJntAdvanced(q_init, p_in, q_out, false);
-}
-
-int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
-                                                    bool lock_redundant_joints)
-{
   //  Note that q_init and q_out will be of size chain.getNrOfJoints()
   //  qToqMimic(q_init,q_temp);
 
@@ -189,6 +183,11 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
     return 0;
   else
     return -3;
+}
+
+int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray &q_init, const Frame &p_in, JntArray &q_out, bool lock_redundant_joints)
+{
+  return CartToJnt(q_init, p_in, q_out);
 }
 
 ChainIkSolverPos_NR_JL_Mimic::~ChainIkSolverPos_NR_JL_Mimic()
