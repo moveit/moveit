@@ -64,6 +64,12 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::string& r
 
   cache_.initializeCache(robot_description, group_name, base_frame + tip_frame,
                          KinematicsPlugin::getJointNames().size());
+
+  // for debugging purposes:
+  // kdl_kinematics_plugin::KDLKinematicsPlugin fk;
+  // fk.initialize(robot_description, group_name, base_frame, tip_frame, search_discretization);
+  // cache_.verifyCache(fk);
+
   return true;
 }
 
@@ -97,11 +103,11 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::getPositionIK(const geometry_ms
 {
   Pose pose(ik_pose);
   const IKEntry& nearest = cache_.getBestApproximateIKSolution(pose);
-  bool solutionFound = KinematicsPlugin::getPositionIK(ik_pose, nearest.second, solution, error_code, options) ||
-                       KinematicsPlugin::getPositionIK(ik_pose, ik_seed_state, solution, error_code, options);
-  if (solutionFound)
+  bool solution_found = KinematicsPlugin::getPositionIK(ik_pose, nearest.second, solution, error_code, options) ||
+                        KinematicsPlugin::getPositionIK(ik_pose, ik_seed_state, solution, error_code, options);
+  if (solution_found)
     cache_.updateCache(nearest, pose, solution);
-  return solutionFound;
+  return solution_found;
 }
 
 template <class KinematicsPlugin>
@@ -114,17 +120,17 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(const geometry
   std::chrono::time_point<std::chrono::system_clock> start(std::chrono::system_clock::now());
   Pose pose(ik_pose);
   const IKEntry& nearest = cache_.getBestApproximateIKSolution(pose);
-  bool solutionFound =
+  bool solution_found =
       KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, solution, error_code, options);
-  if (!solutionFound)
+  if (!solution_found)
   {
     std::chrono::duration<double> diff = std::chrono::system_clock::now() - start;
-    solutionFound =
+    solution_found =
         KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), solution, error_code, options);
   }
-  if (solutionFound)
+  if (solution_found)
     cache_.updateCache(nearest, pose, solution);
-  return solutionFound;
+  return solution_found;
 }
 
 template <class KinematicsPlugin>
@@ -136,17 +142,17 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(
   std::chrono::time_point<std::chrono::system_clock> start(std::chrono::system_clock::now());
   Pose pose(ik_pose);
   const IKEntry& nearest = cache_.getBestApproximateIKSolution(pose);
-  bool solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, consistency_limits,
-                                                          solution, error_code, options);
-  if (!solutionFound)
+  bool solution_found = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, consistency_limits,
+                                                           solution, error_code, options);
+  if (!solution_found)
   {
     std::chrono::duration<double> diff = std::chrono::system_clock::now() - start;
-    solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), consistency_limits,
-                                                       solution, error_code, options);
+    solution_found = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), consistency_limits,
+                                                        solution, error_code, options);
   }
-  if (solutionFound)
+  if (solution_found)
     cache_.updateCache(nearest, pose, solution);
-  return solutionFound;
+  return solution_found;
 }
 
 template <class KinematicsPlugin>
@@ -160,17 +166,17 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(const geometry
   std::chrono::time_point<std::chrono::system_clock> start(std::chrono::system_clock::now());
   Pose pose(ik_pose);
   const IKEntry& nearest = cache_.getBestApproximateIKSolution(pose);
-  bool solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, solution, solution_callback,
-                                                          error_code, options);
-  if (!solutionFound)
+  bool solution_found = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, solution,
+                                                           solution_callback, error_code, options);
+  if (!solution_found)
   {
     std::chrono::duration<double> diff = std::chrono::system_clock::now() - start;
-    solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), solution,
-                                                       solution_callback, error_code, options);
+    solution_found = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), solution,
+                                                        solution_callback, error_code, options);
   }
-  if (solutionFound)
+  if (solution_found)
     cache_.updateCache(nearest, pose, solution);
-  return solutionFound;
+  return solution_found;
 }
 
 template <class KinematicsPlugin>
@@ -182,17 +188,17 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(
   std::chrono::time_point<std::chrono::system_clock> start(std::chrono::system_clock::now());
   Pose pose(ik_pose);
   const IKEntry& nearest = cache_.getBestApproximateIKSolution(pose);
-  bool solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, consistency_limits,
-                                                          solution, solution_callback, error_code, options);
-  if (!solutionFound)
+  bool solution_found = KinematicsPlugin::searchPositionIK(ik_pose, nearest.second, timeout, consistency_limits,
+                                                           solution, solution_callback, error_code, options);
+  if (!solution_found)
   {
     std::chrono::duration<double> diff = std::chrono::system_clock::now() - start;
-    solutionFound = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), consistency_limits,
-                                                       solution, solution_callback, error_code, options);
+    solution_found = KinematicsPlugin::searchPositionIK(ik_pose, ik_seed_state, diff.count(), consistency_limits,
+                                                        solution, solution_callback, error_code, options);
   }
-  if (solutionFound)
+  if (solution_found)
     cache_.updateCache(nearest, pose, solution);
-  return solutionFound;
+  return solution_found;
 }
 
 template <class KinematicsPlugin>
@@ -207,18 +213,19 @@ bool CachedMultiTipIKKinematicsPlugin<KinematicsPlugin>::searchPositionIK(
   for (unsigned int i = 0; i < poses.size(); ++i)
     poses[i] = Pose(ik_poses[i]);
   const IKEntry& nearest = CachedIKKinematicsPlugin<KinematicsPlugin>::cache_.getBestApproximateIKSolution(poses);
-  bool solutionFound =
+  bool solution_found =
       KinematicsPlugin::searchPositionIK(ik_poses, nearest.second, timeout, consistency_limits, solution,
                                          solution_callback, error_code, options, context_state);
-  if (!solutionFound)
+  if (!solution_found)
   {
     std::chrono::duration<double> diff = std::chrono::system_clock::now() - start;
-    solutionFound = KinematicsPlugin::searchPositionIK(ik_poses, ik_seed_state, diff.count(), consistency_limits,
-                                                       solution, solution_callback, error_code, options, context_state);
+    solution_found =
+        KinematicsPlugin::searchPositionIK(ik_poses, ik_seed_state, diff.count(), consistency_limits, solution,
+                                           solution_callback, error_code, options, context_state);
   }
 
-  if (solutionFound)
+  if (solution_found)
     CachedIKKinematicsPlugin<KinematicsPlugin>::cache_.updateCache(nearest, poses, solution);
-  return solutionFound;
+  return solution_found;
 }
 }

@@ -16,7 +16,6 @@ target_link_libraries(${MOVEIT_LIB_NAME}
     moveit_cached_ik_kinematics_base
     moveit_kdl_kinematics_plugin
     moveit_srv_kinematics_plugin
-    ${OMPL_LIBRARIES}
     ${catkin_LIBRARIES})
 if(trac_ik_kinematics_plugin_FOUND)
     target_link_libraries(${MOVEIT_LIB_NAME} trac_ik_kinematics_plugin)
@@ -37,14 +36,11 @@ if(ur_kinematics_FOUND)
         target_link_libraries(${MOVEIT_LIB_NAME}
             moveit_cached_ik_kinematics_base
             ${ur${UR}_pluginlib}
-            ${OMPL_LIBRARIES}
             ${catkin_LIBRARIES})
         install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
     endforeach()
 endif()
 
-# not sure why this is necessary: it should already be part of ${catkin_LIBRARIES}
-find_library(MOVEIT_ROBOT_MODEL_LOADER_LIBRARY moveit_robot_model_loader)
 add_executable(measure_ik_call_cost src/measure_ik_call_cost.cpp)
 target_link_libraries(measure_ik_call_cost
     ${catkin_LIBRARIES}

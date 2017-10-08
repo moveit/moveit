@@ -41,7 +41,7 @@
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
 #include <tf2/LinearMath/Vector3.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include <ompl/datastructures/NearestNeighborsGNAT.h>
+#include <moveit/cached_ik_kinematics_plugin/detail/NearestNeighborsGNAT.h>
 #include <boost/filesystem.hpp>
 #include <unordered_map>
 #include <mutex>
@@ -49,82 +49,92 @@
 
 namespace cached_ik_kinematics_plugin
 {
-/// \brief A cache of inverse kinematic solutions
+/** \brief A cache of inverse kinematic solutions */
 class IKCache
 {
 public:
-  /// \brief class to represent end effector pose
-  ///
-  /// tf2::Transform stores orientation as a matrix, so we define our
-  /// own pose class that maps more directly to geometry_msgs::Pose and
-  // for which we can more easily define a distance metric.
+  /**
+    \brief class to represent end effector pose
+
+     tf2::Transform stores orientation as a matrix, so we define our
+     own pose class that maps more directly to geometry_msgs::Pose and
+     for which we can more easily define a distance metric.
+  */
   struct Pose
   {
     Pose() = default;
     Pose(const geometry_msgs::Pose& pose);
     tf2::Vector3 position;
     tf2::Quaternion orientation;
-    /// compute the distance between this pose and another pose
+    /** compute the distance between this pose and another pose */
     double distance(const Pose& pose) const;
   };
 
-  /// the IK cache entries are simply a pair formed by a vector of poses
-  /// (one for each end effector) and a configuration that achieves those
-  /// poses
+  /**
+    the IK cache entries are simply a pair formed by a vector of poses
+    (one for each end effector) and a configuration that achieves those
+    poses
+  */
   using IKEntry = std::pair<std::vector<Pose>, std::vector<double>>;
 
   IKCache();
   ~IKCache();
   IKCache(const IKCache&) = default;
 
-  /// get the entry from the IK cache that best matches a given pose
+  /** get the entry from the IK cache that best matches a given pose */
   const IKEntry& getBestApproximateIKSolution(const Pose& pose) const;
-  /// get the entry from the IK cache that best matches a given vector of poses
+  /** get the entry from the IK cache that best matches a given vector of poses */
   const IKEntry& getBestApproximateIKSolution(const std::vector<Pose>& poses) const;
-  /// initialize cache, read from disk if found
+  /** initialize cache, read from disk if found */
   void initializeCache(const std::string& robot_description, const std::string& group_name,
                        const std::string& cache_name, const unsigned int num_joints);
-  /// insert (pose,config) as an entry if it's different enough from the
-  /// most similar cache entry
+  /**
+    insert (pose,config) as an entry if it's different enough from the
+    most similar cache entry
+  */
   void updateCache(const IKEntry& nearest, const Pose& pose, const std::vector<double>& config) const;
-  /// insert (pose,config) as an entry if it's different enough from the
-  /// most similar cache entry
+  /**
+    insert (pose,config) as an entry if it's different enough from the
+    most similar cache entry
+  */
   void updateCache(const IKEntry& nearest, const std::vector<Pose>& poses, const std::vector<double>& config) const;
-
-protected:
-  /// compute the distance between two joint configurations
-  double configDistance2(const std::vector<double>& config1, const std::vector<double>& config2) const;
-  /// save current state of cache to disk
-  void saveCache() const;
-  /// verify with forward kinematics that that the cache entries are correct
+  /** verify with forward kinematics that that the cache entries are correct */
   void verifyCache(kdl_kinematics_plugin::KDLKinematicsPlugin& fk) const;
 
-  /// number of joints in the system
-  unsigned int numJoints_;
+protected:
+  /** compute the distance between two joint configurations */
+  double configDistance2(const std::vector<double>& config1, const std::vector<double>& config2) const;
+  /** save current state of cache to disk */
+  void saveCache() const;
 
-  /// for all cache entries, the poses are at least minPoseDistance_ apart ...
-  double minPoseDistance_;
-  /// ... or the configurations are at least minConfigDistance2_^.5 apart.
-  double minConfigDistance2_;
-  /// maximum size of the cache
-  unsigned int maxCacheSize_;
-  /// file name for loading / saving cache
-  boost::filesystem::path cacheFileName_;
+  /** number of joints in the system */
+  unsigned int num_joints_;
 
-  // the IK methods are declared const in the base class, but the
-  // wrapped methods need to modify the cache, so the next four members
-  // are mutable
-  /// cache of IK solutions
-  mutable std::vector<IKEntry> ikCache_;
-  /// nearest neighbor data structure over IK cache entries
-  mutable ompl::NearestNeighborsGNAT<IKEntry*> ikNN_;
-  /// size of the cache when it was last saved
-  mutable unsigned int lastSavedCacheSize_{ 0 };
-  /// mutex for changing IK cache
+  /** for all cache entries, the poses are at least minPoseDistance_ apart ... */
+  double min_pose_distance_;
+  /** ... or the configurations are at least minConfigDistance2_^.5 apart. */
+  double min_config_distance2_;
+  /** maximum size of the cache */
+  unsigned int max_cache_size_;
+  /** file name for loading / saving cache */
+  boost::filesystem::path cache_file_name_;
+
+  /**
+    the IK methods are declared const in the base class, but the
+    wrapped methods need to modify the cache, so the next four members
+    are mutable
+    cache of IK solutions
+  */
+  mutable std::vector<IKEntry> ik_cache_;
+  /** nearest neighbor data structure over IK cache entries */
+  mutable NearestNeighborsGNAT<IKEntry*> ik_nn_;
+  /** size of the cache when it was last saved */
+  mutable unsigned int last_saved_cache_size_{ 0 };
+  /** mutex for changing IK cache */
   mutable std::mutex lock_;
 };
 
-/// a container of IK caches for cases where there is no fixed base frame
+/** a container of IK caches for cases where there is no fixed base frame */
 class IKCacheMap : public std::unordered_map<std::string, IKCache*>
 {
 public:
@@ -133,25 +143,29 @@ public:
 
   IKCacheMap(const std::string& robot_description, const std::string& group_name, unsigned int num_joints);
   ~IKCacheMap();
-  /// get the entry from the IK cache that best matches a given vector of
-  /// poses, with a specified set of fixed and active tip links
+  /**
+    get the entry from the IK cache that best matches a given vector of
+    poses, with a specified set of fixed and active tip links
+  */
   const IKEntry& getBestApproximateIKSolution(const std::vector<std::string>& fixed,
                                               const std::vector<std::string>& active,
                                               const std::vector<Pose>& poses) const;
-  /// insert (pose,config) as an entry if it's different enough from the
-  /// most similar cache entry
+  /**
+    insert (pose,config) as an entry if it's different enough from the
+    most similar cache entry
+  */
   void updateCache(const IKEntry& nearest, const std::vector<std::string>& fixed,
                    const std::vector<std::string>& active, const std::vector<Pose>& poses,
                    const std::vector<double>& config);
 
 protected:
   std::string getKey(const std::vector<std::string>& fixed, const std::vector<std::string>& active) const;
-  std::string robotDescription_;
-  std::string groupName_;
-  unsigned int numJoints_;
+  std::string robot_description_;
+  std::string group_name_;
+  unsigned int num_joints_;
 };
 
-/// Caching wrapper for kinematics::KinematicsBase-derived IK solvers.
+/** Caching wrapper for kinematics::KinematicsBase-derived IK solvers. */
 template <class KinematicsPlugin>
 class CachedIKKinematicsPlugin : public KinematicsPlugin
 {
@@ -197,15 +211,17 @@ protected:
   IKCache cache_;
 };
 
-/// Caching wrapper for IK solvers that implement the multi-tip API.
-///
-/// Most solvers don't implement this, so the CachedIKKinematicsPlugin
-/// base class simply doesn't wrap the relevant methods and the
-/// implementation in the abstract base class will be called. Ideally,
-/// the two cache wrapper classes would be combined, but it's tricky to
-/// call a method in kinematics::KinematicsBase or KinematicsPlugin
-/// depending on whether KinematicsPlugin has overridden that method or
-/// not (although it can be done with some template meta-programming).
+/**
+  Caching wrapper for IK solvers that implement the multi-tip API.
+
+  Most solvers don't implement this, so the CachedIKKinematicsPlugin
+  base class simply doesn't wrap the relevant methods and the
+  implementation in the abstract base class will be called. Ideally,
+  the two cache wrapper classes would be combined, but it's tricky to
+  call a method in kinematics::KinematicsBase or KinematicsPlugin
+  depending on whether KinematicsPlugin has overridden that method or
+  not (although it can be done with some template meta-programming).
+*/
 template <class KinematicsPlugin>
 class CachedMultiTipIKKinematicsPlugin : public CachedIKKinematicsPlugin<KinematicsPlugin>
 {

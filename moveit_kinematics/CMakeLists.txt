@@ -9,7 +9,6 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost)
-find_package(ompl REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   moveit_core
   moveit_ros_planning

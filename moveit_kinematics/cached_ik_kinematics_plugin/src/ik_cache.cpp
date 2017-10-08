@@ -46,7 +46,7 @@ namespace cached_ik_kinematics_plugin
 IKCache::IKCache()
 {
   // set distance function for nearest-neighbor queries
-  ikNN_.setDistanceFunction([this](const IKEntry* entry1, const IKEntry* entry2) {
+  ik_nn_.setDistanceFunction([this](const IKEntry* entry1, const IKEntry* entry2) {
     double dist = 0.;
     for (unsigned int i = 0; i < entry1->first.size(); ++i)
       dist += entry1->first[i].distance(entry2->first[i]);
@@ -56,7 +56,7 @@ IKCache::IKCache()
 
 IKCache::~IKCache()
 {
-  if (!ikCache_.empty())
+  if (!ik_cache_.empty())
     saveCache();
 }
 
@@ -65,13 +65,13 @@ void IKCache::initializeCache(const std::string& robot_description, const std::s
 {
   // read ROS parameters
   ros::NodeHandle node_handle("~");
-  int maxCacheSize;  // node_handle.param(...) doesn't handle unsigned ints
-  node_handle.param(group_name + "/max_cache_size", maxCacheSize, 5000);
-  maxCacheSize_ = maxCacheSize;
-  ikCache_.reserve(maxCacheSize_);
-  node_handle.param(group_name + "/min_pose_distance", minPoseDistance_, 1.);
-  node_handle.param(group_name + "/min_joint_config_distance", minConfigDistance2_, 1.);
-  minConfigDistance2_ *= minConfigDistance2_;
+  int max_cache_size;  // node_handle.param(...) doesn't handle unsigned ints
+  node_handle.param(group_name + "/max_cache_size", max_cache_size, 5000);
+  max_cache_size_ = max_cache_size;
+  ik_cache_.reserve(max_cache_size_);
+  node_handle.param(group_name + "/min_pose_distance", min_pose_distance_, 1.);
+  node_handle.param(group_name + "/min_joint_config_distance", min_config_distance2_, 1.);
+  min_config_distance2_ *= min_config_distance2_;
   std::string cached_ik_path;
   node_handle.param("cached_ik_path", cached_ik_path, std::string());
 
@@ -82,63 +82,64 @@ void IKCache::initializeCache(const std::string& robot_description, const std::s
   // create cache directory if necessary
   boost::filesystem::create_directories(prefix);
 
-  cacheFileName_ =
-      prefix / (robot_description + group_name + "_" + cache_name + "_" + std::to_string(maxCacheSize_) + "_" +
-                std::to_string(minPoseDistance_) + "_" + std::to_string(std::sqrt(minConfigDistance2_)) + ".ikcache");
+  cache_file_name_ = prefix / (robot_description + group_name + "_" + cache_name + "_" +
+                               std::to_string(max_cache_size_) + "_" + std::to_string(min_pose_distance_) + "_" +
+                               std::to_string(std::sqrt(min_config_distance2_)) + ".ikcache");
 
-  ikCache_.clear();
-  ikNN_.clear();
-  lastSavedCacheSize_ = 0;
-  if (boost::filesystem::exists(cacheFileName_))
+  ik_cache_.clear();
+  ik_nn_.clear();
+  last_saved_cache_size_ = 0;
+  if (boost::filesystem::exists(cache_file_name_))
   {
     // read cache
-    boost::filesystem::ifstream cacheFile(cacheFileName_, std::ios_base::binary | std::ios_base::in);
-    cacheFile.read((char*)&lastSavedCacheSize_, sizeof(unsigned int));
-    unsigned int numDofs;
-    cacheFile.read((char*)&numDofs, sizeof(unsigned int));
-    unsigned int numTips;
-    cacheFile.read((char*)&numTips, sizeof(unsigned int));
+    boost::filesystem::ifstream cache_file(cache_file_name_, std::ios_base::binary | std::ios_base::in);
+    cache_file.read((char*)&last_saved_cache_size_, sizeof(unsigned int));
+    unsigned int num_dofs;
+    cache_file.read((char*)&num_dofs, sizeof(unsigned int));
+    unsigned int num_tips;
+    cache_file.read((char*)&num_tips, sizeof(unsigned int));
 
     ROS_INFO_NAMED("cached_ik_kinematics_plugin",
-                   "Found %d IK solutions for a %d-dof system with %d end effectors in %s", lastSavedCacheSize_,
-                   numDofs, numTips, cacheFileName_.string().c_str());
+                   "Found %d IK solutions for a %d-dof system with %d end effectors in %s", last_saved_cache_size_,
+                   num_dofs, num_tips, cache_file_name_.string().c_str());
 
-    unsigned int positionSize = 3 * sizeof(tf2Scalar);
-    unsigned int orientationSize = 4 * sizeof(tf2Scalar);
-    unsigned int poseSize = positionSize + orientationSize;
-    unsigned int configSize = numDofs * sizeof(double);
-    unsigned int offsetConf = poseSize * numTips;
-    unsigned int bufsize = offsetConf + configSize;
-    char* buffer = new char[bufsize * lastSavedCacheSize_];
+    unsigned int position_size = 3 * sizeof(tf2Scalar);
+    unsigned int orientation_size = 4 * sizeof(tf2Scalar);
+    unsigned int pose_size = position_size + orientation_size;
+    unsigned int config_size = num_dofs * sizeof(double);
+    unsigned int offset_conf = pose_size * num_tips;
+    unsigned int bufsize = offset_conf + config_size;
+    char* buffer = new char[bufsize];
     IKEntry entry;
-    entry.first.resize(numTips);
-    entry.second.resize(numDofs);
-    cacheFile.read(buffer, bufsize * lastSavedCacheSize_);
-    ikCache_.reserve(lastSavedCacheSize_);
+    entry.first.resize(num_tips);
+    entry.second.resize(num_dofs);
+    ik_cache_.reserve(last_saved_cache_size_);
 
-    for (unsigned i = 0; i < lastSavedCacheSize_; ++i)
+    for (unsigned i = 0; i < last_saved_cache_size_; ++i)
     {
+      unsigned int j = 0;
+      cache_file.read(buffer, bufsize);
       for (auto& pose : entry.first)
       {
-        memcpy(&pose.position[0], buffer, positionSize);
-        memcpy(&pose.orientation[0], buffer + positionSize, orientationSize);
-        buffer += poseSize;
+        memcpy(&pose.position[0], buffer + j * pose_size, position_size);
+        memcpy(&pose.orientation[0], buffer + j * pose_size + position_size, orientation_size);
+        ++j;
       }
-      memcpy(&entry.second[0], buffer, configSize);
-      buffer += configSize;
-      ikCache_.push_back(entry);
+      memcpy(&entry.second[0], buffer + offset_conf, config_size);
+      ik_cache_.push_back(entry);
     }
-    std::vector<IKEntry*> ikEntryPtrs(lastSavedCacheSize_);
-    for (unsigned int i = 0; i < lastSavedCacheSize_; ++i)
-      ikEntryPtrs[i] = &ikCache_[i];
-    ikNN_.add(ikEntryPtrs);
-    // for debugging purposes:
-    // verifyCache();
+    ROS_INFO_NAMED("cached_ik_kinematics_plugin", "freeing buffer");
+    delete buffer;
+    ROS_INFO_NAMED("cached_ik_kinematics_plugin", "freed buffer");
+    std::vector<IKEntry*> ik_entry_ptrs(last_saved_cache_size_);
+    for (unsigned int i = 0; i < last_saved_cache_size_; ++i)
+      ik_entry_ptrs[i] = &ik_cache_[i];
+    ik_nn_.add(ik_entry_ptrs);
   }
 
-  numJoints_ = num_joints;
+  num_joints_ = num_joints;
 
-  ROS_INFO_NAMED("cached_ik_kinematics_plugin", "cache file %s initialized!", cacheFileName_.string().c_str());
+  ROS_INFO_NAMED("cached_ik_kinematics_plugin", "cache file %s initialized!", cache_file_name_.string().c_str());
 }
 
 double IKCache::configDistance2(const std::vector<double>& config1, const std::vector<double>& config2) const
@@ -154,35 +155,35 @@ double IKCache::configDistance2(const std::vector<double>& config1, const std::v
 
 const IKCache::IKEntry& IKCache::getBestApproximateIKSolution(const Pose& pose) const
 {
-  if (ikCache_.empty())
+  if (ik_cache_.empty())
   {
-    static IKEntry dummy = std::make_pair(std::vector<Pose>(1, pose), std::vector<double>(numJoints_, 0.));
+    static IKEntry dummy = std::make_pair(std::vector<Pose>(1, pose), std::vector<double>(num_joints_, 0.));
     return dummy;
   }
   IKEntry query = std::make_pair(std::vector<Pose>(1, pose), std::vector<double>());
-  return *ikNN_.nearest(&query);
+  return *ik_nn_.nearest(&query);
 }
 
 const IKCache::IKEntry& IKCache::getBestApproximateIKSolution(const std::vector<Pose>& poses) const
 {
-  if (ikCache_.empty())
+  if (ik_cache_.empty())
   {
-    static IKEntry dummy = std::make_pair(poses, std::vector<double>(numJoints_, 0.));
+    static IKEntry dummy = std::make_pair(poses, std::vector<double>(num_joints_, 0.));
     return dummy;
   }
   IKEntry query = std::make_pair(poses, std::vector<double>());
-  return *ikNN_.nearest(&query);
+  return *ik_nn_.nearest(&query);
 }
 
 void IKCache::updateCache(const IKEntry& nearest, const Pose& pose, const std::vector<double>& config) const
 {
-  if (ikCache_.size() < ikCache_.capacity() && (nearest.first[0].distance(pose) > minPoseDistance_ ||
-                                                configDistance2(nearest.second, config) > minConfigDistance2_))
+  if (ik_cache_.size() < ik_cache_.capacity() && (nearest.first[0].distance(pose) > min_pose_distance_ ||
+                                                  configDistance2(nearest.second, config) > min_config_distance2_))
   {
     std::lock_guard<std::mutex> slock(lock_);
-    ikCache_.emplace_back(std::vector<Pose>(1u, pose), config);
-    ikNN_.add(&ikCache_.back());
-    if (ikCache_.size() >= lastSavedCacheSize_ + 500u || ikCache_.size() == maxCacheSize_)
+    ik_cache_.emplace_back(std::vector<Pose>(1u, pose), config);
+    ik_nn_.add(&ik_cache_.back());
+    if (ik_cache_.size() >= last_saved_cache_size_ + 500u || ik_cache_.size() == max_cache_size_)
       saveCache();
   }
 }
@@ -190,28 +191,28 @@ void IKCache::updateCache(const IKEntry& nearest, const Pose& pose, const std::v
 void IKCache::updateCache(const IKEntry& nearest, const std::vector<Pose>& poses,
                           const std::vector<double>& config) const
 {
-  if (ikCache_.size() < ikCache_.capacity())
+  if (ik_cache_.size() < ik_cache_.capacity())
   {
-    bool addToCache = configDistance2(nearest.second, config) > minConfigDistance2_;
-    if (!addToCache)
+    bool add_to_cache = configDistance2(nearest.second, config) > min_config_distance2_;
+    if (!add_to_cache)
     {
       double dist = 0.;
       for (unsigned int i = 0; i < poses.size(); ++i)
       {
         dist += nearest.first[i].distance(poses[i]);
-        if (dist > minPoseDistance_)
+        if (dist > min_pose_distance_)
         {
-          addToCache = true;
+          add_to_cache = true;
           break;
         }
       }
     }
-    if (addToCache)
+    if (add_to_cache)
     {
       std::lock_guard<std::mutex> slock(lock_);
-      ikCache_.emplace_back(poses, config);
-      ikNN_.add(&ikCache_.back());
-      if (ikCache_.size() >= lastSavedCacheSize_ + 500u || ikCache_.size() == maxCacheSize_)
+      ik_cache_.emplace_back(poses, config);
+      ik_nn_.add(&ik_cache_.back());
+      if (ik_cache_.size() >= last_saved_cache_size_ + 500u || ik_cache_.size() == max_cache_size_)
         saveCache();
     }
   }
@@ -219,53 +220,55 @@ void IKCache::updateCache(const IKEntry& nearest, const std::vector<Pose>& poses
 
 void IKCache::saveCache() const
 {
-  if (cacheFileName_.empty())
+  if (cache_file_name_.empty())
     ROS_ERROR_NAMED("cached_ik_kinematics_plugin", "can't save cache before initialization");
 
-  ROS_INFO_NAMED("cached_ik_kinematics_plugin", "writing %ld IK solutions to %s", ikCache_.size(),
-                 cacheFileName_.string().c_str());
+  ROS_INFO_NAMED("cached_ik_kinematics_plugin", "writing %ld IK solutions to %s", ik_cache_.size(),
+                 cache_file_name_.string().c_str());
 
-  boost::filesystem::ofstream cacheFile(cacheFileName_, std::ios_base::binary | std::ios_base::out);
-  unsigned int positionSize = 3 * sizeof(tf2Scalar);
-  unsigned int orientationSize = 4 * sizeof(tf2Scalar);
-  unsigned int poseSize = positionSize + orientationSize;
-  unsigned int numTips = ikCache_[0].first.size();
-  unsigned int configSize = ikCache_[0].second.size() * sizeof(double);
-  unsigned int offsetConf = numTips * poseSize;
-  unsigned int bufsize = offsetConf + configSize;
+  boost::filesystem::ofstream cache_file(cache_file_name_, std::ios_base::binary | std::ios_base::out);
+  unsigned int position_size = 3 * sizeof(tf2Scalar);
+  unsigned int orientation_size = 4 * sizeof(tf2Scalar);
+  unsigned int pose_size = position_size + orientation_size;
+  unsigned int num_tips = ik_cache_[0].first.size();
+  unsigned int config_size = ik_cache_[0].second.size() * sizeof(double);
+  unsigned int offset_conf = num_tips * pose_size;
+  unsigned int bufsize = offset_conf + config_size;
   char* buffer = new char[bufsize];
 
   // write number of IK entries and size of each configuration first
-  lastSavedCacheSize_ = ikCache_.size();
-  cacheFile.write((char*)&lastSavedCacheSize_, sizeof(unsigned int));
-  unsigned int sz = ikCache_[0].second.size();
-  cacheFile.write((char*)&sz, sizeof(unsigned int));
-  cacheFile.write((char*)&numTips, sizeof(unsigned int));
-  for (const auto& entry : ikCache_)
+  last_saved_cache_size_ = ik_cache_.size();
+  cache_file.write((char*)&last_saved_cache_size_, sizeof(unsigned int));
+  unsigned int sz = ik_cache_[0].second.size();
+  cache_file.write((char*)&sz, sizeof(unsigned int));
+  cache_file.write((char*)&num_tips, sizeof(unsigned int));
+  for (const auto& entry : ik_cache_)
   {
-    for (unsigned int i = 0; i < numTips; ++i)
+    for (unsigned int i = 0; i < num_tips; ++i)
     {
-      memcpy(buffer + i * poseSize, &entry.first[i].position[0], positionSize);
-      memcpy(buffer + i * poseSize + positionSize, &entry.first[i].orientation[0], orientationSize);
+      memcpy(buffer + i * pose_size, &entry.first[i].position[0], position_size);
+      memcpy(buffer + i * pose_size + position_size, &entry.first[i].orientation[0], orientation_size);
     }
-    memcpy(buffer + offsetConf, &entry.second[0], configSize);
-    cacheFile.write(buffer, bufsize);
+    memcpy(buffer + offset_conf, &entry.second[0], config_size);
+    cache_file.write(buffer, bufsize);
   }
+  delete buffer;
 }
 
 void IKCache::verifyCache(kdl_kinematics_plugin::KDLKinematicsPlugin& fk) const
 {
-  std::vector<std::string> tipNames(fk.getTipFrames());
-  std::vector<geometry_msgs::Pose> poses(tipNames.size());
+  std::vector<std::string> tip_names(fk.getTipFrames());
+  std::vector<geometry_msgs::Pose> poses(tip_names.size());
   double error, max_error = 0.;
 
-  for (const auto& entry : ikCache_)
+  for (const auto& entry : ik_cache_)
   {
-    fk.getPositionFK(tipNames, entry.second, poses);
+    fk.getPositionFK(tip_names, entry.second, poses);
     error = 0.;
     for (unsigned int i = 0; i < poses.size(); ++i)
       error += entry.first[i].distance(poses[i]);
-    error /= (double)poses.size();
+    if (!poses.empty())
+      error /= (double)poses.size();
     if (error > max_error)
       max_error = error;
     if (error > 1e-4)
@@ -288,7 +291,7 @@ double IKCache::Pose::distance(const Pose& pose) const
 }
 
 IKCacheMap::IKCacheMap(const std::string& robot_description, const std::string& group_name, unsigned int num_joints)
-  : robotDescription_(robot_description), groupName_(group_name), numJoints_(num_joints)
+  : robot_description_(robot_description), group_name_(group_name), num_joints_(num_joints)
 {
 }
 
@@ -308,7 +311,7 @@ const IKCache::IKEntry& IKCacheMap::getBestApproximateIKSolution(const std::vect
     return it->second->getBestApproximateIKSolution(poses);
   else
   {
-    static IKEntry dummy = std::make_pair(poses, std::vector<double>(numJoints_, 0.));
+    static IKEntry dummy = std::make_pair(poses, std::vector<double>(num_joints_, 0.));
     return dummy;
   }
 }
@@ -326,7 +329,7 @@ void IKCacheMap::updateCache(const IKEntry& nearest, const std::vector<std::stri
     value_type val = std::make_pair(key, nullptr);
     auto it = insert(val).first;
     it->second = new IKCache;
-    it->second->initializeCache(robotDescription_, groupName_, key, numJoints_);
+    it->second->initializeCache(robot_description_, group_name_, key, num_joints_);
   }
 }
 
