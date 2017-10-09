@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_kinematics)
-find_package(catkin REQUIRED)
 
 add_compile_options(-std=c++11)
 
@@ -20,9 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   tf
   tf_conversions
+  OPTIONAL_COMPONENTS
+  trac_ik_kinematics_plugin
 )
-# optional dependency:
-find_package(catkin COMPONENTS trac_ik_kinematics_plugin)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
