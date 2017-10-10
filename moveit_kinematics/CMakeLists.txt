@@ -19,9 +19,13 @@ find_package(catkin REQUIRED COMPONENTS
   urdf
   tf
   tf_conversions
-  OPTIONAL_COMPONENTS
-  trac_ik_kinematics_plugin
 )
+
+find_package(trac_ik_kinematics_plugin)
+if(trac_ik_kinematics_plugin_FOUND)
+    include_directories(${trac_ik_kinematics_plugin_INCLUDE_DIRS})
+    link_directories(${trac_ik_kinematics_plugin_PREFIX}/lib)
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
