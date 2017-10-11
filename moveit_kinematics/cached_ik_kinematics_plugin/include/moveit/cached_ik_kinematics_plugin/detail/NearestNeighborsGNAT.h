@@ -565,9 +565,8 @@ protected:
             {
               dist = nbh.top().second;  // note difference with nearestR
               for (unsigned int j = 0; j < children_.size(); ++j)
-                if (permutation[j] >= 0 && i != j &&
-                    (distToPivot[permutation[i]] - dist > child->maxRange_[permutation[j]] ||
-                     distToPivot[permutation[i]] + dist < child->minRange_[permutation[j]]))
+                if (permutation[j] >= 0 && i != j && (distToPivot[permutation[i]] - dist > child->maxRange_[permutation[j]] ||
+                                                      distToPivot[permutation[i]] + dist < child->minRange_[permutation[j]]))
                   permutation[j] = -1;
             }
           }
