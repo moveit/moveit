@@ -1223,6 +1223,10 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   for (std::size_t i = 0; i < scene_msg.world.collision_objects.size(); ++i)
     result &= processCollisionObjectMsg(scene_msg.world.collision_objects[i]);
 
+  // process attached collision object updates
+  for (std::size_t i = 0; i < scene_msg.world.attached_collision_objects.size(); ++i)
+    result &= processAttachedCollisionObjectMsg(scene_msg.world.attached_collision_objects[i]);
+
   // if an octomap was specified, replace the one we have with that one
   if (!scene_msg.world.octomap.octomap.data.empty())
     processOctomapMsg(scene_msg.world.octomap);
@@ -1268,6 +1272,8 @@ bool planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_ms
   bool result = true;
   for (std::size_t i = 0; i < world.collision_objects.size(); ++i)
     result &= processCollisionObjectMsg(world.collision_objects[i]);
+  for (std::size_t i = 0; i < scene_msg.world.attached_collision_objects.size(); ++i)
+    result &= processAttachedCollisionObjectMsg(scene_msg.world.attached_collision_objects[i]);
   processOctomapMsg(world.octomap);
   return result;
 }
