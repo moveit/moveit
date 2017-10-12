@@ -126,6 +126,7 @@ catkin_package(
   DEPENDS
     Boost
     EIGEN3
+    LIBFCL
     OCTOMAP
     console_bridge
     urdfdom
