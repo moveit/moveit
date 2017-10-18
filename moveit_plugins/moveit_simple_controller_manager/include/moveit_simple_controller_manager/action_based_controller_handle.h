@@ -77,7 +77,7 @@ public:
     nh_.param("trajectory_execution/controller_connection_timeout",timeout,5.0);
 
     if(timeout==0.0){
-      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Time delay is set to 0. Waiting forever for the controller...");
+      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Time delay is set to 0. Waiting indefinitely...");
       while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(1.0))){
         ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
