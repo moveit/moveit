@@ -52,6 +52,7 @@ from lxml import etree
 import shutil
 
 plugin_gen_pkg = 'moveit_kinematics'  # package containing this file
+plugin_sub_dir = 'ikfast_kinematics_plugin' # sub directory which contains the template directory
 # Allowed search modes, see SEARCH_MODE enum in template file
 search_modes = ['OPTIMIZE_MAX_JOINT', 'OPTIMIZE_FREE_JOINT' ]
 
@@ -181,7 +182,7 @@ if __name__ == '__main__':
 
    # Get template folder location
    try:
-      plugin_gen_dir = roslib.packages.get_pkg_dir(plugin_gen_pkg)
+      plugin_gen_dir = os.path.join(roslib.packages.get_pkg_dir(plugin_gen_pkg), plugin_sub_dir)
    except:
       print '\nERROR: can\'t find package '+plugin_gen_pkg+' \n'
       sys.exit(-1)
