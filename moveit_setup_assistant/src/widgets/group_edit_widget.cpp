@@ -322,7 +322,8 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
   for (int i = 0; i < planners.size(); ++i)
   {
-    kinematics_default_planner_field_->addItem(planners[i].name_.c_str());
+    std::string planner_name = planners[i].name_ + "kConfigDefault";
+    kinematics_default_planner_field_->addItem(planner_name.c_str());
   }
 }
 
