@@ -45,6 +45,7 @@
 #include <fcl/distance.h>
 #include <memory>
 #include <set>
+#include <moveit/macros/deprecation.h>
 
 namespace collision_detection
 {
@@ -149,6 +150,25 @@ struct CollisionData
   bool done_;
 };
 
+struct DistanceData
+{
+  DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
+  {
+  }
+  virtual ~DistanceData()
+  {
+  }
+
+  /// Distance query request information
+  const DistanceRequest* req;
+
+  /// Destance query results information
+  DistanceResult* res;
+
+  /// Indicates if distance query is finished.
+  bool done;
+};
+
 MOVEIT_CLASS_FORWARD(FCLGeometry);
 
 struct FCLGeometry
@@ -210,7 +230,10 @@ struct FCLManager
 
 bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data);
 
+MOVEIT_DEPRECATED
 bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data, double& min_dist);
+
+bool distanceDetailedCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data, double& min_dist);
 
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const robot_model::LinkModel* link,
                                             int shape_index);
