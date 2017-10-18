@@ -50,3 +50,5 @@ CATKIN_IGNORE
 
 # Continous Integration
 .moveit_ci
+
+*.pyc
