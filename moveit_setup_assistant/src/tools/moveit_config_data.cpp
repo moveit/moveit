@@ -237,8 +237,8 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << group_it->name_;
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
-    //TODO: emitter << YAML::Key << "default_planner_config" << YAML::Value << ;
-    emitter << YAML::Key << "default_planner_config" << YAML::Value << group_meta_data_[group_it->name_].kinematics_default_planner_;
+    emitter << YAML::Key << "default_planner_config" << YAML::Value
+            << group_meta_data_[group_it->name_].kinematics_default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (std::size_t i = 0; i < pconfigs.size(); ++i)
@@ -766,17 +766,19 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
     
     //yaml_node_t prop_name;
 
+
     // Loop through all groups
     
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       // get group name
+
       const std::string group_name = group_it->first.as<std::string>();
 
       // compare group name found to list of groups in group_meta_data_
       std::map<std::string, GroupMetaData>::iterator group_meta_it;
       group_meta_it = group_meta_data_.find(group_name);
-      if(group_meta_it != group_meta_data_.end())
+      if (group_meta_it != group_meta_data_.end())
       {
   
         //if (prop_name = findValue(group_it->second, "default_planner_config"))
@@ -784,6 +786,7 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
         //{
         //  *prop_name >> group_meta_data_[group_name].kinematics_default_planner_;
         //}
+
       }
     }
   }

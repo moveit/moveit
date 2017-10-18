@@ -1093,7 +1093,8 @@ bool PlanningGroupsWidget::saveGroupScreen()
   // Get a reference to the supplied strings
   const std::string& group_name = group_edit_widget_->group_name_field_->text().toStdString();
   const std::string& kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
-  const std::string& kinematics_default_planner = group_edit_widget_->kinematics_default_planner_field_->currentText().toStdString();
+  const std::string& kinematics_default_planner =
+      group_edit_widget_->kinematics_default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
   const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();

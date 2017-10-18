@@ -260,9 +260,7 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   if (index == -1)
   {
     QMessageBox::warning(this, "Missing Default Planner",
-                         QString("Unable to find the default planner '")
-                             .append(default_planner.c_str())
-                             .append("'. "));
+                         QString("Unable to find the default planner '").append(default_planner.c_str()).append("'. "));
   }
   else
   {
@@ -322,7 +320,7 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   }
 
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
-  for(int i = 0; i < planners.size(); ++i)
+  for (int i = 0; i < planners.size(); ++i)
   {
     kinematics_default_planner_field_->addItem(planners[i].name_.c_str());
   }
