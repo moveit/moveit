@@ -69,12 +69,20 @@ class ActionBasedControllerHandle : public ActionBasedControllerHandleBase
 {
 public:
   ActionBasedControllerHandle(const std::string& name, const std::string& ns)
-    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true)
+    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true), nh_("~")
   {
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
-    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)) && ++attempts < 3)
-      ROS_INFO_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+    double timeout;
+    nh_.param("trajectory_execution/controller_connection_timeout",timeout,5.0);
+
+    if(timeout==0)
+      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Time delay is set to 0. Waiting for the controller connection timeout in the parameter server to be set...");
+
+    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout)) && ++attempts < 3){
+      ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+      ros::Duration(1).sleep();
+    }
 
     if (!controller_action_client_->isServerConnected())
     {
@@ -127,6 +135,7 @@ public:
   }
 
 protected:
+  ros::NodeHandle nh_;
   std::string getActionName(void) const
   {
     if (namespace_.empty())
