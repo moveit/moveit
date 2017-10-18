@@ -749,6 +749,53 @@ bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& 
   return valid;
 }
 
+bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
+{
+  // Load file
+  std::ifstream input_stream(file_path.c_str());
+  if (!input_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for reading " << file_path);
+    return false;
+  }
+
+  // Begin parsing
+  try
+  {
+    YAML::Node doc = YAML::Load(input_stream);
+    
+    //yaml_node_t prop_name;
+
+    // Loop through all groups
+    
+    for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
+    {
+      // get group name
+      const std::string group_name = group_it->first.as<std::string>();
+
+      // compare group name found to list of groups in group_meta_data_
+      std::map<std::string, GroupMetaData>::iterator group_meta_it;
+      group_meta_it = group_meta_data_.find(group_name);
+      if(group_meta_it != group_meta_data_.end())
+      {
+  
+        //if (prop_name = findValue(group_it->second, "default_planner_config"))
+        parse(group_it->second, "default_planner_config", group_meta_data_[group_name].kinematics_default_planner_);
+        //{
+        //  *prop_name >> group_meta_data_[group_name].kinematics_default_planner_;
+        //}
+      }
+    }
+  }
+  catch (YAML::ParserException& e)  // Catch errors
+  {
+    ROS_ERROR_STREAM(e.what());
+    return false;
+  }
+  return true;
+
+}
+
 // ******************************************************************************************
 // Input kinematics.yaml file
 // ******************************************************************************************

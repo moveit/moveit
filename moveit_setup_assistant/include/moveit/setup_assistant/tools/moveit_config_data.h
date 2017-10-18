@@ -270,6 +270,13 @@ public:
   std::string decideProjectionJoints(std::string planning_group);
 
   /**
+   * Input ompl_planning.yaml file for editing its values
+   * @param file_path path to ompl_planning.yaml in the input package
+   * @return bool if the file was read correctly
+   */
+  bool inputOMPLYAML(const std::string& file_path);
+
+  /**
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package
    * @return bool if the file was read correctly
