@@ -59,7 +59,7 @@ namespace moveit_rviz_plugin
 // ******************************************************************************************
 // Base class contructor
 // ******************************************************************************************
-RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false)
+RobotStateDisplay::RobotStateDisplay() : Display(), update_state_(false), load_robot_model_(false)
 {
   robot_description_property_ = new rviz::StringProperty(
       "Robot Description", "robot_description", "The name of the ROS parameter where the URDF for the robot is loaded",
@@ -347,6 +347,7 @@ void RobotStateDisplay::unsetLinkColor(rviz::Robot* robot, const std::string& li
 // ******************************************************************************************
 void RobotStateDisplay::loadRobotModel()
 {
+  load_robot_model_ = false;
   if (!rdf_loader_)
     rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
@@ -373,15 +374,7 @@ void RobotStateDisplay::loadRobotModel()
 void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
-  loadRobotModel();
-  if (robot_)
-  {
-    changedEnableVisualVisible();
-    changedEnableCollisionVisible();
-    robot_->setVisible(true);
-  }
-  calculateOffsetPosition();
-  changedRobotStateTopic();
+  load_robot_model_ = true;  // allow loading of robot model in update()
 }
 
 // ******************************************************************************************
@@ -398,6 +391,13 @@ void RobotStateDisplay::onDisable()
 void RobotStateDisplay::update(float wall_dt, float ros_dt)
 {
   Display::update(wall_dt, ros_dt);
+
+  if (load_robot_model_)
+  {
+    loadRobotModel();
+    changedRobotStateTopic();
+  }
+
   calculateOffsetPosition();
   if (robot_ && update_state_)
   {
