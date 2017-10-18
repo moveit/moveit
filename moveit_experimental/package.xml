@@ -9,6 +9,7 @@
 
   <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>  
   <url type="website">http://moveit.ros.org</url>
