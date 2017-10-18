@@ -133,12 +133,14 @@ int main(int argc, char** argv)
   int port;
   node.param<std::string>("warehouse_host", host, "localhost");
   node.param<int>("warehouse_port", port, 33829);
+
+  ros::Duration(10.0).sleep();
   warehouse_ros::DatabaseConnection::Ptr conn;
 
   try
   {
     conn = moveit_warehouse::loadDatabase();
-    conn->setParams(host, port, 5.0);
+    conn->setParams(host, port, 150.0);
 
     ROS_INFO("Connecting to warehouse on %s:%d", host.c_str(), port);
     if (!conn->connect())
@@ -153,6 +155,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  ROS_INFO("Successfully connected to warehouse on %s:%d", host.c_str(), port);
   moveit_warehouse::RobotStateStorage rs(conn);
 
   std::vector<std::string> names;
