@@ -157,6 +157,8 @@ public:
   // Copy constructors
   MoveGroupInterface(const MoveGroupInterface& other);
 
+  MoveGroupInterface& operator=(const MoveGroupInterface& other);
+
   ~MoveGroupInterface();
 
   /** \brief Get the name of the group this instance operates on */

@@ -1420,6 +1420,21 @@ moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const MoveGro
 {
 }
 
+moveit::planning_interface::MoveGroupInterface& moveit::planning_interface::MoveGroupInterface::
+operator=(const MoveGroupInterface& other)
+{
+  if (&other == this)
+    return *this;
+
+  this->remembered_joint_values_ = other.remembered_joint_values_;
+  if (this->impl_)
+  {
+    delete this->impl_;
+    impl_ = new MoveGroupInterfaceImpl(*other.impl_);
+  }
+  return *this;
+}
+
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const Options& opt,
                                                                    const boost::shared_ptr<tf::Transformer>& tf,
                                                                    const ros::WallDuration& wait_for_servers)
