@@ -420,7 +420,15 @@ public:
 
   void setStartStateToCurrentState()
   {
-    considered_start_state_.reset();
+    robot_state::RobotStatePtr current_state;
+    if (getCurrentState(current_state))
+    {
+      considered_start_state_.reset(new moveit::core::RobotState(*current_state));
+    }
+    else
+    {
+      ROS_WARN("Unable to get current state, skip setting start state");
+    }
   }
 
   robot_state::RobotStatePtr getStartState()
@@ -2112,6 +2120,11 @@ robot_state::RobotStatePtr moveit::planning_interface::MoveGroupInterface::getCu
   robot_state::RobotStatePtr current_state;
   impl_->getCurrentState(current_state);
   return current_state;
+}
+
+robot_state::RobotStatePtr moveit::planning_interface::MoveGroupInterface::getStartState()
+{
+  return impl_->getStartState();
 }
 
 void moveit::planning_interface::MoveGroupInterface::rememberJointValues(const std::string& name,

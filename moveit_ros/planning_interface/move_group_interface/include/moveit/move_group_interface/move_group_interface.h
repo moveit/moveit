@@ -809,6 +809,9 @@ public:
   /** \brief Get the current state of the robot */
   robot_state::RobotStatePtr getCurrentState();
 
+  /** \brief Get the start state for the motion plan */
+  robot_state::RobotStatePtr getStartState();
+
   /** \brief Get the pose for the end-effector \e end_effector_link.
       If \e end_effector_link is empty (the default value) then the end-effector reported by getEndEffectorLink() is
      assumed */
