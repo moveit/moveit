@@ -68,7 +68,11 @@ TEST(PlanningScene, LoadRestore)
   planning_scene::PlanningScene ps(urdf_model, srdf_model);
   moveit_msgs::PlanningScene ps_msg;
   ps.getPlanningSceneMsg(ps_msg);
+  EXPECT_EQ(ps.getName(), ps_msg.name);
+  EXPECT_EQ(ps.getRobotModel()->getName(), ps_msg.robot_model_name);
   ps.setPlanningSceneMsg(ps_msg);
+  EXPECT_EQ(ps.getName(), ps_msg.name);
+  EXPECT_EQ(ps.getRobotModel()->getName(), ps_msg.robot_model_name);
 }
 
 TEST(PlanningScene, LoadRestoreDiff)
