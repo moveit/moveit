@@ -74,6 +74,12 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_solver_field_->setMaximumWidth(400);
   form_layout->addRow("Kinematic Solver:", kinematics_solver_field_);
 
+  // Kinematic default planner
+  kinematics_default_planner_field_ = new QComboBox(this);
+  kinematics_default_planner_field_->setEditable(false);
+  kinematics_default_planner_field_->setMaximumWidth(400);
+  form_layout->addRow("Kinematic Default Planner:", kinematics_default_planner_field_);
+
   // resolution to use with solver
   kinematics_resolution_field_ = new QLineEdit(this);
   kinematics_resolution_field_->setMaximumWidth(400);
@@ -240,7 +246,28 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     kinematics_solver_field_->setCurrentIndex(index);
   }
 
-  // Set default
+  // Set default planner
+  std::string default_planner = config_data_->group_meta_data_[group_name].kinematics_default_planner_;
+
+  // If this group doesn't have a solver, reset it to 'None'
+  if (default_planner.empty())
+  {
+    default_planner = "None";
+  }
+
+  // Set the kin solver combo box
+  index = kinematics_default_planner_field_->findText(default_planner.c_str());
+  if (index == -1)
+  {
+    QMessageBox::warning(this, "Missing Default Planner",
+                         QString("Unable to find the default planner '")
+                             .append(default_planner.c_str())
+                             .append("'. "));
+  }
+  else
+  {
+    kinematics_default_planner_field_->setCurrentIndex(index);
+  }
 }
 
 // ******************************************************************************************
@@ -256,9 +283,11 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
 
   // Remove all old items
   kinematics_solver_field_->clear();
+  kinematics_default_planner_field_->clear();
 
   // Add none option, the default
   kinematics_solver_field_->addItem("None");
+  kinematics_default_planner_field_->addItem("None");
 
   // load all avail kin planners
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader;
@@ -290,6 +319,12 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
   {
     kinematics_solver_field_->addItem(plugin_it->c_str());
+  }
+
+  std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
+  for(int i = 0; i < planners.size(); ++i)
+  {
+    kinematics_default_planner_field_->addItem(planners[i].name_.c_str());
   }
 }
 

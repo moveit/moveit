@@ -74,6 +74,7 @@ public:
   QLabel* title_;  // specify the title from the parent widget
   QLineEdit* group_name_field_;
   QComboBox* kinematics_solver_field_;
+  QComboBox* kinematics_default_planner_field_;
   QLineEdit* kinematics_resolution_field_;
   QLineEdit* kinematics_timeout_field_;
   QLineEdit* kinematics_attempts_field_;
