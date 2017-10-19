@@ -64,6 +64,7 @@
 #include <QLineEdit>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
+#include <QGuiApplication>
 // Cycle checking
 #include <boost/utility.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -287,8 +288,8 @@ void PlanningGroupsWidget::loadGroupsTree()
 void PlanningGroupsWidget::loadGroupsTreeRecursive(srdf::Model::Group& group_it, QTreeWidgetItem* parent)
 {
   // Fonts for tree
-  const QFont top_level_font("Arial", 11, QFont::Bold);
-  const QFont type_font("Arial", 11, QFont::Normal, QFont::StyleItalic);
+  const QFont top_level_font(QGuiApplication::font().family(), 11, QFont::Bold);
+  const QFont type_font(QGuiApplication::font().family(), 11, QFont::Normal, QFont::StyleItalic);
 
   QTreeWidgetItem* group;
 
