@@ -36,6 +36,7 @@
 
 #include "navigation_widget.h"
 #include <QDebug>
+#include <QGuiApplication>
 #include <iostream>
 
 namespace moveit_setup_assistant
@@ -163,8 +164,7 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
   QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
 
   QFont textFont(painter->font());
-  textFont.setPixelSize(14);    // Set font size
-  textFont.setFamily("Arial");  // Helvetica Neue");
+  textFont.setPixelSize(14);  // Set font size
   painter->setFont(textFont);
 
   // Font color
