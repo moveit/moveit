@@ -1368,6 +1368,26 @@ moveit::planning_interface::MoveGroupInterface::~MoveGroupInterface()
   delete impl_;
 }
 
+moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(MoveGroupInterface&& other)
+  : remembered_joint_values_(std::move(other.remembered_joint_values_)), impl_(other.impl_)
+{
+  other.impl_ = nullptr;
+}
+
+moveit::planning_interface::MoveGroupInterface& moveit::planning_interface::MoveGroupInterface::
+operator=(MoveGroupInterface&& other)
+{
+  if (this != &other)
+  {
+    delete impl_;
+    impl_ = std::move(other.impl_);
+    remembered_joint_values_ = std::move(other.remembered_joint_values_);
+    other.impl_ = nullptr;
+  }
+
+  return *this;
+}
+
 const std::string& moveit::planning_interface::MoveGroupInterface::getName() const
 {
   return impl_->getOptions().group_name_;

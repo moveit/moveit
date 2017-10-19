@@ -482,8 +482,8 @@ public:
 
 static void wrap_move_group_interface()
 {
-  bp::class_<MoveGroupInterfaceWrapper> MoveGroupInterfaceClass("MoveGroupInterface",
-                                                                bp::init<std::string, std::string>());
+  bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
+      "MoveGroupInterface", bp::init<std::string, std::string>());
 
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);
@@ -608,7 +608,7 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_named_target_values", &MoveGroupInterfaceWrapper::getNamedTargetValuesPython);
   MoveGroupInterfaceClass.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
 
-  bp::class_<MoveGroupWrapper, bp::bases<MoveGroupInterfaceWrapper> > MoveGroupClass(
+  bp::class_<MoveGroupWrapper, bp::bases<MoveGroupInterfaceWrapper>, boost::noncopyable> MoveGroupClass(
       "MoveGroup", bp::init<std::string, std::string>());
 }
 }
