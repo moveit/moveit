@@ -289,7 +289,7 @@ if __name__ == '__main__':
       return missing_deps
 
    update_deps(build_deps, "build_depend", package_xml.getroot())
-   update_deps(run_deps, "run_depend", package_xml.getroot())
+   update_deps(run_deps, "exec_depend", package_xml.getroot())
 
    # Check that plugin definition file is in the export list
    new_export = etree.Element("moveit_core", \
