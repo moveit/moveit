@@ -700,7 +700,7 @@ public:
 
   /** \brief Construct a message (\e attached_collision_object) with the attached collision object data from the
    * planning_scene for the requested object*/
-  void getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj, 
+  void getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
                                      const std::string& ns) const;
 
   /** \brief Construct a vector of messages (\e attached_collision_objects) with the attached collision object data for

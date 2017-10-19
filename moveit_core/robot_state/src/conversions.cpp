@@ -390,8 +390,8 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
-  
-    if (copy_attached_bodies)
+
+  if (copy_attached_bodies)
   {
     std::vector<const AttachedBody*> attached_bodies;
     state.getAttachedBodies(attached_bodies);
@@ -399,12 +399,13 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
   }
 }
 
-void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(const std::vector<const AttachedBody*>& attached_bodies,
-                                          std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs)
+void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
+    const std::vector<const AttachedBody*>& attached_bodies,
+    std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs)
 {
   attached_collision_objs.resize(attached_bodies.size());
   for (std::size_t i = 0; i < attached_bodies.size(); ++i)
-      _attachedBodyToMsg(*attached_bodies[i], attached_collision_objs[i]);
+    _attachedBodyToMsg(*attached_bodies[i], attached_collision_objs[i]);
 }
 
 void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState& joint_state)

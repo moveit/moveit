@@ -89,8 +89,9 @@ void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState&
  * @param attached_bodies The input MoveIt! attached body objects
  * @param attached_collision_objs The resultant AttachedCollisionObject messages
  */
-void attachedBodiesToAttachedCollisionObjectMsgs(const std::vector<const AttachedBody*>& attached_bodies,
-                                          std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs);
+void attachedBodiesToAttachedCollisionObjectMsgs(
+    const std::vector<const AttachedBody*>& attached_bodies,
+    std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs);
 /**
  * @brief Convert a MoveIt! robot state to a joint state message
  * @param state The input MoveIt! robot state object

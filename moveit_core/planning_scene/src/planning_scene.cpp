@@ -847,7 +847,8 @@ void planning_scene::PlanningScene::getCollisionObjectMsg(moveit_msgs::Collision
   }
 }
 
-void planning_scene::PlanningScene::getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const
+void planning_scene::PlanningScene::getCollisionObjectMsgs(
+    std::vector<moveit_msgs::CollisionObject>& collision_objs) const
 {
   collision_objs.clear();
   const std::vector<std::string>& ns = world_->getObjectIds();
@@ -860,8 +861,8 @@ void planning_scene::PlanningScene::getCollisionObjectMsgs(std::vector<moveit_ms
     }
 }
 
-void planning_scene::PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
-                                                          const std::string& ns) const
+void planning_scene::PlanningScene::getAttachedCollisionObjectMsg(
+    moveit_msgs::AttachedCollisionObject& attached_collision_obj, const std::string& ns) const
 {
   std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs;
   getAttachedCollisionObjectMsgs(attached_collision_objs);
@@ -875,7 +876,8 @@ void planning_scene::PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::A
   }
 }
 
-void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const
+void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(
+    std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const
 {
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
   getCurrentState().getAttachedBodies(attached_bodies);
