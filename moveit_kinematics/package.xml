@@ -31,7 +31,6 @@
   <run_depend>pluginlib</run_depend>
   <run_depend>actionlib</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
-  <run_depend>collada_urdf</run_depend>
 
 
   <export>
