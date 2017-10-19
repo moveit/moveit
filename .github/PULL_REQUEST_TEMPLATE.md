@@ -9,4 +9,4 @@ Please explain the changes you made, including a reference to the related issue 
 - [ ] Optional: Created tests, which fail without this PR [reference](http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/tests.html)
 - [ ] Optional: Decide if this should be cherry-picked to other current ROS branches (Indigo, Jade, Kinetic)
 
-You can expect a response from a maintainer within 7 days. If you haven't heard anything by then, feel free to ping the thread. Thank you!
+[//]: # "You can expect a response from a maintainer within 7 days. If you haven't heard anything by then, feel free to ping the thread. Thank you!"
