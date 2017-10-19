@@ -700,12 +700,12 @@ public:
 
   /** \brief Construct a message (\e attached_collision_object) with the attached collision object data from the
    * planning_scene for the requested object*/
-  //void getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj, 
-  //                                   const std::string& ns) const;
+  void getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj, 
+                                     const std::string& ns) const;
 
   /** \brief Construct a vector of messages (\e attached_collision_objects) with the attached collision object data for
    * all objects in planning_scene */
-  //void getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const;
+  void getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const;
 
   /** \brief Construct a message (\e octomap) with the octomap data from the planning_scene */
   void getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const;

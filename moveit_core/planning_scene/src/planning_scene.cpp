@@ -42,6 +42,7 @@
 #include <moveit/trajectory_processing/trajectory_tools.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/exceptions/exceptions.h>
+#include <moveit/robot_state/attached_body.h>
 #include <octomap_msgs/conversions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <memory>
@@ -857,6 +858,28 @@ void planning_scene::PlanningScene::getCollisionObjectMsgs(std::vector<moveit_ms
       getCollisionObjectMsg(co, ns[i]);
       collision_objs.push_back(co);
     }
+}
+
+void planning_scene::PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
+                                                          const std::string& ns) const
+{
+  std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs;
+  getAttachedCollisionObjectMsgs(attached_collision_objs);
+  for (std::size_t i = 0; i < attached_collision_objs.size(); ++i)
+  {
+    if (attached_collision_objs[i].object.id == ns)
+    {
+      attached_collision_obj = attached_collision_objs[i];
+      return;
+    }
+  }
+}
+
+void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const
+{
+  std::vector<const moveit::core::AttachedBody*> attached_bodies;
+  getCurrentState().getAttachedBodies(attached_bodies);
+  attachedBodiesToAttachedCollisionObjectMsgs(attached_bodies, attached_collision_objs);
 }
 
 void planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
