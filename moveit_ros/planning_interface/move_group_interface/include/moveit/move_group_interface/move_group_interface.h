@@ -63,18 +63,26 @@ public:
   MoveItErrorCode()
   {
     val = 0;
-  };
+  }
   MoveItErrorCode(int code)
   {
     val = code;
-  };
+  }
   MoveItErrorCode(const moveit_msgs::MoveItErrorCodes& code)
   {
     val = code.val;
-  };
-  operator bool() const
+  }
+  explicit operator bool() const
   {
     return val == moveit_msgs::MoveItErrorCodes::SUCCESS;
+  }
+  bool operator==(const int c) const
+  {
+    return val == c;
+  }
+  bool operator!=(const int c) const
+  {
+    return val != c;
   }
 };
 
