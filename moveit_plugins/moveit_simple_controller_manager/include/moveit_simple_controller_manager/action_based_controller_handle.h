@@ -38,8 +38,8 @@
 #ifndef MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
 #define MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
 
-#include <moveit/controller_manager/controller_manager.h>
 #include <actionlib/client/simple_action_client.h>
+#include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
 #include <memory>
 
@@ -74,20 +74,24 @@ public:
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
     double timeout;
-    nh_.param("trajectory_execution/controller_connection_timeout",timeout,5.0);
+    nh_.param("trajectory_execution/controller_connection_timeout", timeout, 5.0);
 
-    if(timeout==0.0){
-      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Time delay is set to 0. Waiting indefinitely...");
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(1.0))){
+    if (timeout == 0.0)
+    {
+      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "No controller specified. Waiting indefinitely...");
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(1.0)))
+      {
         ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
       }
     }
-    else{
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout)) && ++attempts < 3){
+    else
+    {
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout)) && ++attempts < 3)
+      {
         ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
-    }
+      }
     }
     if (!controller_action_client_->isServerConnected())
     {
@@ -169,7 +173,8 @@ protected:
   moveit_controller_manager::ExecutionStatus last_exec_;
   bool done_;
 
-  /* the controller namespace, for instance, topics will map to name/ns/goal, name/ns/result, etc */
+  /* the controller namespace, for instance, topics will map to name/ns/goal,
+   * name/ns/result, etc */
   std::string namespace_;
 
   /* the joints controlled by this controller */
