@@ -74,7 +74,7 @@ public:
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
     double timeout;
-    nh_.param("trajectory_execution/controller_connection_timeout", timeout, 5.0);
+    nh_.param("trajectory_execution/controller_connection_timeout", timeout, 15.0);
 
     if (timeout == 0.0)
     {
@@ -87,7 +87,7 @@ public:
     }
     else
     {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout)) && ++attempts < 3)
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout / 3)) && ++attempts < 3)
       {
         ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
