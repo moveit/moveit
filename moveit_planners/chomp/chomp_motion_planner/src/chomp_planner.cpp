@@ -52,11 +52,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                          moveit_msgs::MotionPlanDetailedResponse& res) const
 {
   if (!planning_scene)
-    ROS_ERROR_STREAM("No planning scene initialized.");
-  else
   {
-    ROS_INFO_STREAM("Planning scene is configured. Beginning to plan.");
+    ROS_ERROR_STREAM("No planning scene initialized.");
+    return false;
   }
+
   ros::WallTime start_time = ros::WallTime::now();
   ChompTrajectory trajectory(planning_scene->getRobotModel(), 3.0, .03, req.group_name);
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
