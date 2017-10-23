@@ -47,7 +47,6 @@
 void loadModelFile(std::string filename, std::string& file_content)
 {
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
-  
   std::string xml_string;
   std::fstream xml_file((res_path / filename).string().c_str(), std::fstream::in);
   EXPECT_TRUE(xml_file.is_open());
