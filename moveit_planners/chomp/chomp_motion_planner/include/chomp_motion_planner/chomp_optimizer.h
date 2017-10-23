@@ -73,6 +73,11 @@ public:
     return initialized_;
   }
 
+  bool isCollisionFree() const
+  {
+    return is_collision_free_;
+  }
+
 private:
   inline double getPotential(double field_distance, double radius, double clearence)
   {
