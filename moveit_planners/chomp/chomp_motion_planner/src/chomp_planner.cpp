@@ -54,6 +54,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   if (!planning_scene)
   {
     ROS_ERROR_STREAM("No planning scene initialized.");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return false;
   }
 
@@ -62,6 +63,12 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
                     trajectory.getTrajectoryPoint(0));
 
+  if(req.goal_constraints[0].joint_constraints.empty())
+  {
+    ROS_ERROR_STREAM("CHOMP only supports joint-space goals");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+    return false;
+  }
   int goal_index = trajectory.getNumPoints() - 1;
   trajectory.getTrajectoryPoint(goal_index) = trajectory.getTrajectoryPoint(0);
   sensor_msgs::JointState js;
