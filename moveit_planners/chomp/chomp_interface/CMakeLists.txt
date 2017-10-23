@@ -53,3 +53,12 @@ install(TARGETS ${PROJECT_NAME} chomp_planner_plugin
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(catkin REQUIRED COMPONENTS rostest roscpp moveit_ros_planning_interface)
+
+  add_rostest_gtest(chomp_moveit_test
+    test/chomp_moveit.test
+    test/chomp_moveit_test.cpp)
+  target_link_libraries(chomp_moveit_test ${catkin_LIBRARIES})
+endif()
