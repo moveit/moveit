@@ -96,7 +96,7 @@
     <origin xyz="0 ${width} ${height2 - axel_offset*2}" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <dynamics damping="0.7"/>
-    <limit upper="${-PI/2.0}" lower="${PI/2.0}" effort="20" velocity="${2*PI}" />
+    <limit upper="${PI/2.0}" lower="${-PI/2.0}" effort="20" velocity="${2*PI}" />
   </joint>
 
   <!-- Top Link -->
