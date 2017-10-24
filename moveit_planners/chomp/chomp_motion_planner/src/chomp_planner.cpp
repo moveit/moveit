@@ -102,6 +102,15 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     }
   }
 
+  const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
+
+  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(goal_state.data()))
+  {
+    ROS_ERROR_STREAM("Goal state violates joint limits");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+    return false;
+  }
+
   // fill in an initial quintic spline trajectory
   trajectory.fillInMinJerk();
 
