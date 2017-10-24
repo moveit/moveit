@@ -168,6 +168,14 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
            res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
+
+  // report planning failure if path has collisions
+  if(not optimizer.isCollisionFree())
+  {
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
+    return false;
+  }
+
   return true;
 }
 }
