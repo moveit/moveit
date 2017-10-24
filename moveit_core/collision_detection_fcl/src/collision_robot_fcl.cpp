@@ -277,7 +277,7 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
 
 double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state) const
 {
-  DistanceRequest dreq(false, true, "", NULL);
+  DistanceRequest dreq;
   DistanceResult dres;
 
   dreq.enableGroup(getRobotModel());
@@ -288,9 +288,10 @@ double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::R
 double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state,
                                                             const AllowedCollisionMatrix& acm) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = &acm;
   dreq.enableGroup(getRobotModel());
   distanceSelfHelper(dreq, dres, state);
   return dres.minimum_distance.min_distance;
@@ -299,9 +300,10 @@ double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::R
 double collision_detection::CollisionRobotFCL::distanceSelfHelper(const robot_state::RobotState& state,
                                                                   const AllowedCollisionMatrix* acm) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = acm;
   dreq.enableGroup(getRobotModel());
   distanceSelfHelper(dreq, dres, state);
   return dres.minimum_distance.min_distance;
@@ -327,7 +329,7 @@ double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::
                                                              const CollisionRobot& other_robot,
                                                              const robot_state::RobotState& other_state) const
 {
-  DistanceRequest dreq(false, true, "", NULL);
+  DistanceRequest dreq;
   DistanceResult dres;
 
   dreq.enableGroup(getRobotModel());
@@ -340,9 +342,10 @@ double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::
                                                              const robot_state::RobotState& other_state,
                                                              const AllowedCollisionMatrix& acm) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = &acm;
   dreq.enableGroup(getRobotModel());
   distanceOtherHelper(dreq, dres, state, other_robot, other_state);
   return dres.minimum_distance.min_distance;
@@ -353,9 +356,10 @@ double collision_detection::CollisionRobotFCL::distanceOtherHelper(const robot_s
                                                                    const robot_state::RobotState& other_state,
                                                                    const AllowedCollisionMatrix* acm) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = acm;
   dreq.enableGroup(getRobotModel());
   distanceOtherHelper(dreq, dres, state, other_robot, other_state);
   return dres.minimum_distance.min_distance;

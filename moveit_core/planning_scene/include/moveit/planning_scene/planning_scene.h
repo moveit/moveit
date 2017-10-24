@@ -42,6 +42,7 @@
 #include <moveit/transforms/transforms.h>
 #include <moveit/collision_detection/collision_detector_allocator.h>
 #include <moveit/collision_detection/world_diff.h>
+#include <moveit/collision_detection/collision_common.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
@@ -55,6 +56,7 @@
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
 #include <memory>
+#include <moveit/macros/deprecation.h>
 
 /** \brief This namespace includes the central class for representing planning contexts */
 namespace planning_scene
@@ -601,68 +603,149 @@ public:
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions)
    */
+  MOVEIT_DEPRECATED
   double distanceToCollision(robot_state::RobotState& kstate) const
   {
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollision(static_cast<const robot_state::RobotState&>(kstate));
+    dreq.acm = &getAllowedCollisionMatrix();
+    dreq.enableGroup(getCollisionRobot()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobot(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring self-collisions)
    */
+  MOVEIT_DEPRECATED
   double distanceToCollision(const robot_state::RobotState& kstate) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, getAllowedCollisionMatrix());
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
+    dreq.acm = &getAllowedCollisionMatrix();
+    dreq.enableGroup(getCollisionRobot()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobot(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring
    * self-collisions), if the robot has no padding */
+  MOVEIT_DEPRECATED
   double distanceToCollisionUnpadded(robot_state::RobotState& kstate) const
   {
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollisionUnpadded(static_cast<const robot_state::RobotState&>(kstate));
+    dreq.acm = &getAllowedCollisionMatrix();
+    dreq.enableGroup(getCollisionRobotUnpadded()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobotUnpadded(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision (ignoring
    * self-collisions), if the robot has no padding */
+  MOVEIT_DEPRECATED
   double distanceToCollisionUnpadded(const robot_state::RobotState& kstate) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, getAllowedCollisionMatrix());
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
+    dreq.acm = &getAllowedCollisionMatrix();
+    dreq.enableGroup(getCollisionRobotUnpadded()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobotUnpadded(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
    * and elements that are allowed to collide. */
+  MOVEIT_DEPRECATED
   double distanceToCollision(robot_state::RobotState& kstate,
                              const collision_detection::AllowedCollisionMatrix& acm) const
   {
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollision(static_cast<const robot_state::RobotState&>(kstate), acm);
+    dreq.acm = &acm;
+    dreq.enableGroup(getCollisionRobot()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobot(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
    * and elements that are allowed to collide. */
+  MOVEIT_DEPRECATED
   double distanceToCollision(const robot_state::RobotState& kstate,
                              const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobot(), kstate, acm);
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
+    dreq.acm = &acm;
+    dreq.enableGroup(getCollisionRobot()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobot(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
    * and elements that are allowed to collide, if the robot has no padding. */
+  MOVEIT_DEPRECATED
   double distanceToCollisionUnpadded(robot_state::RobotState& kstate,
                                      const collision_detection::AllowedCollisionMatrix& acm) const
   {
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
     kstate.updateCollisionBodyTransforms();
-    return distanceToCollisionUnpadded(static_cast<const robot_state::RobotState&>(kstate), acm);
+    dreq.acm = &acm;
+    dreq.enableGroup(getCollisionRobotUnpadded()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobotUnpadded(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
   /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
    * and elements that always allowed to collide, if the robot has no padding. */
+  MOVEIT_DEPRECATED
   double distanceToCollisionUnpadded(const robot_state::RobotState& kstate,
                                      const collision_detection::AllowedCollisionMatrix& acm) const
   {
-    return getCollisionWorld()->distanceRobot(*getCollisionRobotUnpadded(), kstate, acm);
+    collision_detection::DistanceRequest dreq;
+    collision_detection::DistanceResult dres;
+
+    dreq.acm = &acm;
+    dreq.enableGroup(getCollisionRobotUnpadded()->getRobotModel());
+    getCollisionWorld()->distanceRobot(dreq, dres, *getCollisionRobotUnpadded(), kstate);
+    return dres.minimum_distance.min_distance;
   }
 
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions, if the robot has no padding. */
+  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const robot_state::RobotState& kstate) const
+  {
+    getCollisionWorld()->distanceRobot(req, res, *getCollisionRobotUnpadded(), kstate);
+  }
+
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions */
+  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const robot_state::RobotState& kstate) const
+  {
+    getCollisionWorld()->distanceRobot(req, res, *getCollisionRobot(), kstate);
+  }
+
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions, if the robot has no padding. */
+  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, robot_state::RobotState& kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    getCollisionWorld()->distanceRobot(req, res, *getCollisionRobotUnpadded(), kstate);
+  }
+
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions */
+  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, robot_state::RobotState& kstate) const
+  {
+    kstate.updateCollisionBodyTransforms();
+    getCollisionWorld()->distanceRobot(req, res, *getCollisionRobot(), kstate);
+  }
   /**@}*/
 
   /** \brief Save the geometry of the planning scene to a stream, as plain text */

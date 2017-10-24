@@ -270,9 +270,10 @@ double collision_detection::CollisionWorldFCL::distanceRobotHelper(const Collisi
                                                                    const AllowedCollisionMatrix* acm,
                                                                    bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = acm;
   dreq.verbose = verbose;
   dreq.enableGroup(robot.getRobotModel());
 
@@ -297,7 +298,7 @@ void collision_detection::CollisionWorldFCL::distanceRobotHelper(const DistanceR
 double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
                                                              const robot_state::RobotState& state, bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", NULL);
+  DistanceRequest dreq;
   DistanceResult dres;
 
   dreq.verbose = verbose;
@@ -311,9 +312,10 @@ double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobo
                                                              const robot_state::RobotState& state,
                                                              const AllowedCollisionMatrix& acm, bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = &acm;
   dreq.verbose = verbose;
   dreq.enableGroup(robot.getRobotModel());
   distanceRobotHelper(dreq, dres, robot, state);
@@ -330,7 +332,7 @@ void collision_detection::CollisionWorldFCL::distanceRobot(const DistanceRequest
 
 double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world, bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", NULL);
+  DistanceRequest dreq;
   DistanceResult dres;
 
   dreq.verbose = verbose;
@@ -342,9 +344,10 @@ double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorl
 double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world,
                                                              const AllowedCollisionMatrix& acm, bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = &acm;
   dreq.verbose = verbose;
   distanceWorldHelper(dreq, dres, world);
 
@@ -361,9 +364,10 @@ double collision_detection::CollisionWorldFCL::distanceWorldHelper(const Collisi
                                                                    const AllowedCollisionMatrix* acm,
                                                                    bool verbose) const
 {
-  DistanceRequest dreq(false, true, "", acm);
+  DistanceRequest dreq;
   DistanceResult dres;
 
+  dreq.acm = acm;
   dreq.verbose = verbose;
   distanceWorldHelper(dreq, dres, world);
 
