@@ -127,13 +127,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
-  ROS_INFO("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+  ROS_DEBUG("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   optimizer.optimize();
   ROS_INFO("Optimization actually took %f sec to run", (ros::WallTime::now() - create_time).toSec());
   create_time = ros::WallTime::now();
   // assume that the trajectory is now optimized, fill in the output structure:
 
-  ROS_INFO("Output trajectory has %d joints", trajectory.getNumJoints());
+  ROS_DEBUG("Output trajectory has %d joints", trajectory.getNumJoints());
 
   res.trajectory.resize(1);
 
@@ -162,8 +162,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     res.trajectory[0].joint_trajectory.points[i].time_from_start = ros::Duration(0.0);
   }
 
-  ROS_INFO("Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
-  ROS_INFO("Serviced planning request in %f wall-seconds, trajectory duration is %f",
+  ROS_DEBUG("Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+  ROS_DEBUG("Serviced planning request in %f wall-seconds, trajectory duration is %f",
            (ros::WallTime::now() - start_time).toSec(),
            res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
