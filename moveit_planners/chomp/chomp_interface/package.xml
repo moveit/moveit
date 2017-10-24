@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_planners_chomp</name>
   <description>The interface for using CHOMP within MoveIt!</description>
 
@@ -13,16 +13,15 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>roscpp</depend>
+  <depend>moveit_core</depend>
+  <depend>pluginlib</depend>
+
   <build_depend>cmake_modules</build_depend>
-  <build_depend>roscpp</build_depend>
   <build_depend>chomp_motion_planner</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>pluginlib</build_depend>
   <build_depend>moveit_experimental</build_depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>pluginlib</run_depend>
+  <test_depend>moveit_ros_planning_interface</test_depend>
 
   <export>
     <moveit_core plugin="${prefix}/chomp_interface_plugin_description.xml"/>
