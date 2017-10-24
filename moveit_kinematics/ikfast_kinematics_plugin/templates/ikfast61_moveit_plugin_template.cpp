@@ -586,7 +586,7 @@ double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_stat
     {
       ss[i] -= 2 * M_PI;
     }
-    while (ss[i] < 2 * M_PI)
+    while (ss[i] < -2 * M_PI)
     {
       ss[i] += 2 * M_PI;
     }
@@ -594,7 +594,7 @@ double IKFastKinematicsPlugin::harmonize(const std::vector<double>& ik_seed_stat
     {
       solution[i] -= 2 * M_PI;
     }
-    while (solution[i] < 2 * M_PI)
+    while (solution[i] < -2 * M_PI)
     {
       solution[i] += 2 * M_PI;
     }
