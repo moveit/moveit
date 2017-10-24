@@ -190,7 +190,7 @@ private:
 
   robot_model::RobotModelPtr robot_model_;
 
-  robot_state::RobotStatePtr state_, state_2_;
+  robot_state::RobotStatePtr state_;
 
   int num_possible_redundant_joints_;
   std::vector<unsigned int> redundant_joints_map_index_;
@@ -198,7 +198,7 @@ private:
   // Storage required for when the set of redundant joints is reset
   bool position_ik_;  // whether this solver is only being used for position ik
   robot_model::JointModelGroup* joint_model_group_;
-  double max_solver_iterations_;
+  int max_solver_iterations_;
   double epsilon_;
   std::vector<JointMimic> mimic_joints_;
 };

@@ -205,24 +205,17 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
   }
 
   // Get Solver Parameters
-  int max_solver_iterations;
-  double epsilon;
-  bool position_ik;
+  lookupParam("max_solver_iterations", max_solver_iterations_, 500);
+  lookupParam("epsilon", epsilon_, 1e-5);
+  lookupParam("position_only_ik", position_ik_, false);
 
-  lookupParam("max_solver_iterations", max_solver_iterations, 500);
-  lookupParam("epsilon", epsilon, 1e-5);
-  lookupParam("position_only_ik", position_ik, false);
-  ROS_DEBUG_NAMED("kdl", "Looking for param name: position_only_ik");
-
-  if (position_ik)
+  if (position_ik_)
     ROS_INFO_NAMED("kdl", "Using position only ik");
 
   num_possible_redundant_joints_ =
-      kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik ? 3 : 6);
+      kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik_ ? 3 : 6);
 
   // Check for mimic joints
-  std::vector<unsigned int> redundant_joints_map_index;
-
   std::vector<JointMimic> mimic_joints;
   unsigned int joint_counter = 0;
   for (std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); ++i)
@@ -245,7 +238,6 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
       if (jm->getMimic() && joint_model_group->hasJointModel(jm->getMimic()->getName()))
       {
         JointMimic mimic_joint;
-        mimic_joint.reset(joint_counter);
         mimic_joint.joint_name = kdl_chain_.segments[i].getJoint().getName();
         mimic_joint.offset = jm->getMimicOffset();
         mimic_joint.multiplier = jm->getMimicFactor();
@@ -273,13 +265,9 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
 
   // Setup the joint state groups that we need
   state_.reset(new robot_state::RobotState(robot_model_));
-  state_2_.reset(new robot_state::RobotState(robot_model_));
 
   // Store things for when the set of redundant joints may change
-  position_ik_ = position_ik;
   joint_model_group_ = joint_model_group;
-  max_solver_iterations_ = max_solver_iterations;
-  epsilon_ = epsilon;
 
   active_ = true;
   ROS_DEBUG_NAMED("kdl", "KDL solver initialized");
@@ -486,7 +474,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::Frame pose_desired;
   tf::poseMsgToKDL(ik_pose, pose_desired);
 
-  ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK2: Position request pose is "
+  ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK: Position request pose is "
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
                                     << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
                                     << ik_pose.orientation.z << " " << ik_pose.orientation.w);
