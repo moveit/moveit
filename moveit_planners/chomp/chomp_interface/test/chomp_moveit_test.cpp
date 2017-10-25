@@ -20,19 +20,35 @@ public:
 };
 
 // TEST CASES
-TEST_F(CHOMPMoveitTest, jointSpaceGoodPlan)
+TEST_F(CHOMPMoveitTest, jointSpaceGoodGoal)
 {
+  move_group.setStartState(*(move_group.getCurrentState()));
   move_group.setJointValueTarget(std::vector<double>({1.0,1.0}));
 
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
-  bool success = move_group.plan(my_plan);
-  EXPECT_TRUE(success);
+  moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
+  EXPECT_TRUE(error_code);
   EXPECT_GT(my_plan.trajectory_.joint_trajectory.points.size(), 0);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::SUCCESS);
 }
 
-TEST_F(CHOMPMoveitTest, cartesianPlan)
+TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
 {
+  move_group.setStartState(*(move_group.getCurrentState()));
+  // joint2 is limited to [-PI/2, PI/2]
+  move_group.setJointValueTarget(std::vector<double>({100.0,2*M_PI/3.0}));
+
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+  moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
+  EXPECT_FALSE(error_code);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
+}
+
+TEST_F(CHOMPMoveitTest, cartesianGoal)
+{
+  move_group.setStartState(*(move_group.getCurrentState()));
   geometry_msgs::Pose target_pose1;
   target_pose1.orientation.w = 1.0;
   target_pose1.position.x = 10000.;
@@ -42,9 +58,21 @@ TEST_F(CHOMPMoveitTest, cartesianPlan)
 
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
-  bool success = move_group.plan(my_plan);
+  moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
   // CHOMP doesn't support Cartesian-space goals at the moment
-  EXPECT_FALSE(success);
+  EXPECT_FALSE(error_code);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS);
+}
+
+TEST_F(CHOMPMoveitTest, noStartState)
+{
+  move_group.setJointValueTarget(std::vector<double>({0.2,0.2}));
+
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+  moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
+  EXPECT_FALSE(error_code);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
 }
 
 int main(int argc, char** argv)
