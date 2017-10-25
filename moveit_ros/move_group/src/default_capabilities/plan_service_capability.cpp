@@ -61,7 +61,7 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
   try
   {
     planning_interface::MotionPlanResponse mp_res;
-    solved = context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
+    context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
     mp_res.getMessage(res.motion_plan_response);
   }
   catch (std::exception& ex)
@@ -70,7 +70,7 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
 
-  return solved;
+  return true;
 }
 
 #include <class_loader/class_loader.h>
