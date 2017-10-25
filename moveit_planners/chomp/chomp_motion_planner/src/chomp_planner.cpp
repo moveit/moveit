@@ -58,6 +58,20 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     return false;
   }
 
+  if (req.start_state.joint_state.position.empty())
+  {
+    ROS_ERROR_STREAM("Starting state is empty");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+    return false;
+  }
+
+  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(req.start_state.joint_state.position.data()))
+  {
+    ROS_ERROR_STREAM("Start state violates joint limits");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
+    return false;
+  }
+
   ros::WallTime start_time = ros::WallTime::now();
   ChompTrajectory trajectory(planning_scene->getRobotModel(), 3.0, .03, req.group_name);
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
