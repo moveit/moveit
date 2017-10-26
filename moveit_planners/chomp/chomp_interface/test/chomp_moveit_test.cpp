@@ -27,7 +27,6 @@ TEST_F(CHOMPMoveitTest, jointSpaceGoodGoal)
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
-  EXPECT_TRUE(error_code);
   EXPECT_GT(my_plan.trajectory_.joint_trajectory.points.size(), 0);
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::SUCCESS);
 }
@@ -41,7 +40,6 @@ TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
-  EXPECT_FALSE(error_code);
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
 }
 
@@ -59,7 +57,6 @@ TEST_F(CHOMPMoveitTest, cartesianGoal)
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
   // CHOMP doesn't support Cartesian-space goals at the moment
-  EXPECT_FALSE(error_code);
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_GOAL_CONSTRAINTS);
 }
 
@@ -70,7 +67,6 @@ TEST_F(CHOMPMoveitTest, noStartState)
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
-  EXPECT_FALSE(error_code);
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
 }
 
