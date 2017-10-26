@@ -77,12 +77,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
                     trajectory.getTrajectoryPoint(0));
 
-  if(req.goal_constraints[0].joint_constraints.empty())
+  if (req.goal_constraints[0].joint_constraints.empty())
   {
     ROS_ERROR_STREAM("CHOMP only supports joint-space goals");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
+
   int goal_index = trajectory.getNumPoints() - 1;
   trajectory.getTrajectoryPoint(goal_index) = trajectory.getTrajectoryPoint(0);
   sensor_msgs::JointState js;
@@ -178,13 +179,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ROS_DEBUG("Bottom took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   ROS_DEBUG("Serviced planning request in %f wall-seconds, trajectory duration is %f",
-           (ros::WallTime::now() - start_time).toSec(),
-           res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
+            (ros::WallTime::now() - start_time).toSec(),
+            res.trajectory[0].joint_trajectory.points[goal_index].time_from_start.toSec());
   res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
   res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
 
   // report planning failure if path has collisions
-  if(not optimizer.isCollisionFree())
+  if (not optimizer.isCollisionFree())
   {
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
