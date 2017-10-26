@@ -11,11 +11,10 @@ class CHOMPMoveitTest : public ::testing::Test
 {
 public:
   moveit::planning_interface::MoveGroupInterface move_group;
-public:
-  CHOMPMoveitTest()
-    : move_group(moveit::planning_interface::MoveGroupInterface("arm"))
-  {
 
+public:
+  CHOMPMoveitTest() : move_group(moveit::planning_interface::MoveGroupInterface("arm"))
+  {
   }
 };
 
@@ -23,7 +22,7 @@ public:
 TEST_F(CHOMPMoveitTest, jointSpaceGoodGoal)
 {
   move_group.setStartState(*(move_group.getCurrentState()));
-  move_group.setJointValueTarget(std::vector<double>({1.0,1.0}));
+  move_group.setJointValueTarget(std::vector<double>({ 1.0, 1.0 }));
 
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
@@ -37,7 +36,7 @@ TEST_F(CHOMPMoveitTest, jointSpaceBadGoal)
 {
   move_group.setStartState(*(move_group.getCurrentState()));
   // joint2 is limited to [-PI/2, PI/2]
-  move_group.setJointValueTarget(std::vector<double>({100.0,2*M_PI/3.0}));
+  move_group.setJointValueTarget(std::vector<double>({ 100.0, 2 * M_PI / 3.0 }));
 
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
@@ -66,7 +65,7 @@ TEST_F(CHOMPMoveitTest, cartesianGoal)
 
 TEST_F(CHOMPMoveitTest, noStartState)
 {
-  move_group.setJointValueTarget(std::vector<double>({0.2,0.2}));
+  move_group.setJointValueTarget(std::vector<double>({ 0.2, 0.2 }));
 
   moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 
@@ -82,7 +81,6 @@ int main(int argc, char** argv)
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  //ros::Duration(0.5).sleep();
   int ret = RUN_ALL_TESTS();
   spinner.stop();
   ros::shutdown();
