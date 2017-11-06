@@ -692,26 +692,26 @@ public:
 
   /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
    * requested object*/
-  void getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const;
+  bool getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const;
 
   /** \brief Construct a vector of messages (\e collision_objects) with the collision object data for all objects in
    * planning_scene */
-  void getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const;
+  bool getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const;
 
   /** \brief Construct a message (\e attached_collision_object) with the attached collision object data from the
    * planning_scene for the requested object*/
-  void getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
+  bool getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
                                      const std::string& ns) const;
 
   /** \brief Construct a vector of messages (\e attached_collision_objects) with the attached collision object data for
    * all objects in planning_scene */
-  void getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const;
+  bool getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const;
 
   /** \brief Construct a message (\e octomap) with the octomap data from the planning_scene */
-  void getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const;
+  bool getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const;
 
   /** \brief Construct a vector of messages (\e object_colors) with the colors of the objects from the planning_scene */
-  void getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
+  bool getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
 
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff
      (is_diff
