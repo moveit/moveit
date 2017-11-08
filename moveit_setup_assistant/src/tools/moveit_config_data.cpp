@@ -212,7 +212,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   std::vector<std::string> pconfigs;
   for (std::size_t i = 0; i < planner_des.size(); ++i)
   {
-    std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
+    std::string defaultconfig = planner_des[i].name_;
     emitter << YAML::Key << defaultconfig;
     emitter << YAML::Value << YAML::BeginMap;
     emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
@@ -238,7 +238,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
     emitter << YAML::Key << "default_planner_config" << YAML::Value
-            << group_meta_data_[group_it->name_].kinematics_default_planner_;
+            << group_meta_data_[group_it->name_].default_planner_;
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (std::size_t i = 0; i < pconfigs.size(); ++i)
@@ -455,6 +455,11 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   SPARStwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
   SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(SPARStwo);
+
+  for(int i = 0; i < planner_des.size(); ++i)
+  {
+    planner_des[i].name_ += "kConfigDefault";
+  }
 
   return planner_des;
 }
@@ -786,6 +791,7 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
         //{
         //  *prop_name >> group_meta_data_[group_name].kinematics_default_planner_;
         //}
+
 
       }
     }

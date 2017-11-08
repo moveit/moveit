@@ -74,12 +74,6 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_solver_field_->setMaximumWidth(400);
   form_layout->addRow("Kinematic Solver:", kinematics_solver_field_);
 
-  // Kinematic default planner
-  kinematics_default_planner_field_ = new QComboBox(this);
-  kinematics_default_planner_field_->setEditable(false);
-  kinematics_default_planner_field_->setMaximumWidth(400);
-  form_layout->addRow("Kinematic Default Planner:", kinematics_default_planner_field_);
-
   // resolution to use with solver
   kinematics_resolution_field_ = new QLineEdit(this);
   kinematics_resolution_field_->setMaximumWidth(400);
@@ -94,6 +88,12 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_attempts_field_ = new QLineEdit(this);
   kinematics_attempts_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Solver Attempts:", kinematics_attempts_field_);
+
+  // Kinematic default planner
+  default_planner_field_ = new QComboBox(this);
+  default_planner_field_->setEditable(false);
+  default_planner_field_->setMaximumWidth(400);
+  form_layout->addRow("Group Default Planner:", default_planner_field_);
 
   layout->addLayout(form_layout);
   layout->setAlignment(Qt::AlignTop);
@@ -247,7 +247,7 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   }
 
   // Set default planner
-  std::string default_planner = config_data_->group_meta_data_[group_name].kinematics_default_planner_;
+  std::string default_planner = config_data_->group_meta_data_[group_name].default_planner_;
 
   // If this group doesn't have a solver, reset it to 'None'
   if (default_planner.empty())
@@ -256,15 +256,15 @@ void GroupEditWidget::setSelected(const std::string& group_name)
   }
 
   // Set the kin solver combo box
-  index = kinematics_default_planner_field_->findText(default_planner.c_str());
+  index = default_planner_field_->findText(default_planner.c_str());
   if (index == -1)
   {
     QMessageBox::warning(this, "Missing Default Planner",
-                         QString("Unable to find the default planner '").append(default_planner.c_str()).append("'. "));
+                         QString("Unable to find the default planner '%1'").arg(default_planner.c_str()));
   }
   else
   {
-    kinematics_default_planner_field_->setCurrentIndex(index);
+    default_planner_field_->setCurrentIndex(index);
   }
 }
 
@@ -281,11 +281,11 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
 
   // Remove all old items
   kinematics_solver_field_->clear();
-  kinematics_default_planner_field_->clear();
+  default_planner_field_->clear();
 
   // Add none option, the default
   kinematics_solver_field_->addItem("None");
-  kinematics_default_planner_field_->addItem("None");
+  default_planner_field_->addItem("None");
 
   // load all avail kin planners
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader;
@@ -322,8 +322,8 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
   for (int i = 0; i < planners.size(); ++i)
   {
-    std::string planner_name = planners[i].name_ + "kConfigDefault";
-    kinematics_default_planner_field_->addItem(planner_name.c_str());
+    std::string planner_name = planners[i].name_;
+    default_planner_field_->addItem(planner_name.c_str());
   }
 }
 

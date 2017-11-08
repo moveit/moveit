@@ -433,16 +433,7 @@ bool StartScreenWidget::loadExistingFiles()
 
   fs::path ompl_yaml_path = config_data_->config_pkg_path_;
   ompl_yaml_path /= "config/ompl_planning.yaml";
-
-  if (!config_data_->inputOMPLYAML(ompl_yaml_path.make_preferred().native().c_str()))
-  {
-    QMessageBox::warning(this, "No OMPL YAML File",
-                         QString("Failed to parse OMPL yaml file. This file is not critical but any previous "
-                                 "kinematic default planner settings have been lost. To re-populate this file edit "
-                                 "each existing planning group and choose a solver, then save each change. "
-                                 "\n\nFile error at location ")
-                             .append(ompl_yaml_path.make_preferred().native().c_str()));
-  }
+  config_data_->inputOMPLYAML(ompl_yaml_path.make_preferred().native().c_str());
 
   // DONE LOADING --------------------------------------------------------------------------
 

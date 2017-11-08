@@ -71,10 +71,10 @@ static const int DEFAULT_KIN_SOLVER_ATTEMPTS_ = 3;
 struct GroupMetaData
 {
   std::string kinematics_solver_;               // Name of kinematics plugin to use
-  std::string kinematics_default_planner_;      // Name of the default planner to use
   double kinematics_solver_search_resolution_;  // resolution to use with solver
   double kinematics_solver_timeout_;            // solver timeout
   int kinematics_solver_attempts_;              // solver attempts
+  std::string default_planner_;                 // Name of the default planner to use
 };
 
 /**
