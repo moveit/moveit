@@ -43,7 +43,6 @@
 #include <QMessageBox>
 #include <QString>
 #include <QHeaderView>
-#include <QGuiApplication>
 #include "double_list_widget.h"
 
 namespace moveit_setup_assistant
@@ -60,7 +59,7 @@ DoubleListWidget::DoubleListWidget(QWidget* parent, moveit_setup_assistant::Move
 
   // Label ------------------------------------------------
   title_ = new QLabel("", this);  // specify the title from the parent widget
-  QFont group_title_font(QGuiApplication::font().family(), 12, QFont::Bold);
+  QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 

@@ -39,7 +39,6 @@
 #include <QMessageBox>
 #include <QFormLayout>
 #include <QString>
-#include <QGuiApplication>
 #include "group_edit_widget.h"
 #include <pluginlib/class_loader.h>  // for loading all avail kinematic planners
 
@@ -56,7 +55,7 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
 
   // Label ------------------------------------------------
   title_ = new QLabel(this);  // specify the title from the parent widget
-  QFont group_title_font(QGuiApplication::font().family(), 12, QFont::Bold);
+  QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 
@@ -98,12 +97,12 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   QVBoxLayout* new_buttons_layout = new QVBoxLayout();
 
   QLabel* save_and_add = new QLabel("Next, Add Components To Group:", this);
-  QFont save_and_add_font(QGuiApplication::font().family(), 12, QFont::Bold);
+  QFont save_and_add_font(QFont().defaultFamily(), 12, QFont::Bold);
   save_and_add->setFont(save_and_add_font);
   new_buttons_layout->addWidget(save_and_add);
 
   QLabel* add_subtitle = new QLabel("Recommended: ", this);
-  QFont add_subtitle_font(QGuiApplication::font().family(), 10, QFont::Bold);
+  QFont add_subtitle_font(QFont().defaultFamily(), 10, QFont::Bold);
   add_subtitle->setFont(add_subtitle_font);
   new_buttons_layout->addWidget(add_subtitle);
 

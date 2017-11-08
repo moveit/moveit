@@ -41,7 +41,6 @@
 #include <QApplication>
 #include <QSplitter>
 #include <QRegExp>
-#include <QGuiApplication>
 // ROS
 #include "configuration_files_widget.h"
 #include <srdfdom/model.h>  // use their struct datastructures
@@ -150,7 +149,7 @@ ConfigurationFilesWidget::ConfigurationFilesWidget(QWidget* parent,
 
   // Success label
   success_label_ = new QLabel(this);
-  QFont success_label_font(QGuiApplication::font().family(), 12, QFont::Bold);
+  QFont success_label_font(QFont().defaultFamily(), 12, QFont::Bold);
   success_label_->setFont(success_label_font);
   success_label_->hide();  // only show once the files have been generated
   success_label_->setText("Configuration package generated successfully!");

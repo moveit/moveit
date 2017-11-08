@@ -45,7 +45,6 @@
 #include <QFont>
 #include <QFileDialog>
 #include <QTextEdit>
-#include <QGuiApplication>
 // ROS
 #include <ros/ros.h>
 #include <ros/package.h>  // for getting file path for loadng images
@@ -175,7 +174,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
 
   // Next step instructions
   next_label_ = new QLabel(this);
-  QFont next_label_font(QGuiApplication::font().family(), 11, QFont::Bold);
+  QFont next_label_font(QFont().defaultFamily(), 11, QFont::Bold);
   next_label_->setFont(next_label_font);
   // next_label_->setWordWrap(true);
   next_label_->setText("Success! Use the left navigation pane to continue.");
@@ -777,7 +776,7 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   // Widget Title
   QLabel* widget_title = new QLabel(this);
   widget_title->setText("Choose mode:");
-  QFont widget_title_font(QGuiApplication::font().family(), 12, QFont::Bold);
+  QFont widget_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   widget_title->setFont(widget_title_font);
   layout->addWidget(widget_title);
   layout->setAlignment(widget_title, Qt::AlignTop);
