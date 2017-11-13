@@ -25,7 +25,6 @@ install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DEST
 
 # This is just for testing purposes; the arms from Universal Robots have
 # analytic solvers, so caching just adds extra overhead.
-find_package(ur_kinematics QUIET)
 if(ur_kinematics_FOUND)
     include_directories(${ur_kinematics_INCLUDE_DIRS})
     foreach(UR 3 5 10)
