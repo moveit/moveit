@@ -36,7 +36,7 @@ if(NOT ur_kinematics_FOUND)
 endif()
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cached_ik_kinematics_plugin_description.xml.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/cached_ik_kinematics_plugin_description.xml" @ONLY)
+    "${CMAKE_CURRENT_BINARY_DIR}/cached_ik_kinematics_plugin_description.xml" @ONLY)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
@@ -82,6 +82,6 @@ install(
     kdl_kinematics_plugin_description.xml
     lma_kinematics_plugin_description.xml
     srv_kinematics_plugin_description.xml
-    cached_ik_kinematics_plugin_description.xml
+    "${CMAKE_CURRENT_BINARY_DIR}/cached_ik_kinematics_plugin_description.xml"
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})
