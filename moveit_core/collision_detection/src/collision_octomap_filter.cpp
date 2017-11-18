@@ -64,12 +64,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
 {
   if (!object)
   {
-    logError("No valid Object passed in, cannot refine Normals!");
+    CONSOLE_BRIDGE_logError("No valid Object passed in, cannot refine Normals!");
     return 0;
   }
   if (res.contact_count < 1)
   {
-    logWarn("There do not appear to be any contacts, so there is nothing to refine!");
+    CONSOLE_BRIDGE_logWarn("There do not appear to be any contacts, so there is nothing to refine!");
     return 0;
   }
 
@@ -133,7 +133,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
           //          contact_point.x(), contact_point.y(), contact_point.z(), cell_size, count);
 
           // octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
-          // logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
+          // CONSOLE_BRIDGE_logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
 
           octomath::Vector3 n;
           double depth;
@@ -267,7 +267,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     }
     else
     {
-      logError("This should not be called!");
+      CONSOLE_BRIDGE_logError("This should not be called!");
     }
 
     double f_val = 0;
@@ -293,7 +293,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     }
     else
     {
-      logError("This should not be called!");
+      CONSOLE_BRIDGE_logError("This should not be called!");
       double r_scaled = r / R;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);

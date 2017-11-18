@@ -499,7 +499,7 @@ TEST_F(FclCollisionDetectionTester, TestCollisionMapAdditionSpeed)
   EXPECT_GE(1.0, t);
   // this is not really a failure; it is just that slow;
   // looking into doing collision checking with a voxel grid.
-  logInform("Adding boxes took %g", t);
+  CONSOLE_BRIDGE_logInform("Adding boxes took %g", t);
 }
 
 TEST_F(FclCollisionDetectionTester, MoveMesh)
