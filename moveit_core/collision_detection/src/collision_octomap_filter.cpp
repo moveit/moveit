@@ -76,13 +76,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
   int modified = 0;
 
   // iterate through contacts
-  for (collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin(); it != res.contacts.end();
-       ++it)
+  for (auto & contact : res.contacts)
   {
-    std::string contact1 = it->first.first;
-    std::string contact2 = it->first.second;
+    std::string contact1 = contact.first.first;
+    std::string contact2 = contact.first.second;
     std::string octomap_name = "";
-    std::vector<collision_detection::Contact>& contact_vector = it->second;
+    std::vector<collision_detection::Contact>& contact_vector = contact.second;
 
     if (contact1.find("octomap") != std::string::npos)
       octomap_name = contact1;
@@ -102,10 +101,10 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
       {
         std::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
         cell_size = octree->getResolution();
-        for (size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
+        for (auto & contact_point : contact_vector)
         {
-          const Eigen::Vector3d& point = contact_vector[contact_index].pos;
-          const Eigen::Vector3d& normal = contact_vector[contact_index].normal;
+          const Eigen::Vector3d& point = contact_point.pos;
+          const Eigen::Vector3d& normal = contact_point.normal;
 
           octomath::Vector3 contact_point(point[0], point[1], point[2]);
           octomath::Vector3 contact_normal(normal[0], normal[1], normal[2]);
@@ -149,11 +148,11 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
               //                        divergence,
               //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
               //                        n.x(), n.y(), n.z());
-              contact_vector[contact_index].normal = Eigen::Vector3d(n.x(), n.y(), n.z());
+              contact_point.normal = Eigen::Vector3d(n.x(), n.y(), n.z());
             }
 
             if (estimate_depth)
-              contact_vector[contact_index].depth = depth;
+              contact_point.depth = depth;
           }
         }
       }

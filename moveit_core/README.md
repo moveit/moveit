@@ -11,10 +11,15 @@ These libraries do not depend on ROS (except ROS messages) and can be used indep
 
 ## Using clang-tidy.
 
-Install clang-tidy with 
-`sudo apt-get install clang-tidy`
+Install clang-tidy and other clang related tools with
+`sudo apt-get install clang libclang-dev clang-tidy clang-format`
 
-To add it to a new package, add `set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` to `CMakeLists.txt`.
+To add it to a new package, add `set(CMAKE_EXPORT_COMPILE_COMMANDS ON)` to `CMakeLists.txt` and rebuild.
+You can also make a specific clang-tidy build with
+```
+catkin config --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+catkin build
+```
 
 Run it on a specific folder, such as `collision_detection`, with
 ```

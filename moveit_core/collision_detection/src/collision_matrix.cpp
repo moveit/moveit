@@ -80,10 +80,10 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const Allowe
 bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
                                                            DecideContactFn& fn) const
 {
-  std::map<std::string, std::map<std::string, DecideContactFn> >::const_iterator it1 = allowed_contacts_.find(name1);
+  auto it1 = allowed_contacts_.find(name1);
   if (it1 == allowed_contacts_.end())
     return false;
-  std::map<std::string, DecideContactFn>::const_iterator it2 = it1->second.find(name2);
+  auto it2 = it1->second.find(name2);
   if (it2 == it1->second.end())
     return false;
   fn = it2->second;
@@ -93,10 +93,10 @@ bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& na
 bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
                                                            AllowedCollision::Type& allowed_collision) const
 {
-  std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it1 = entries_.find(name1);
+  auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
     return false;
-  std::map<std::string, AllowedCollision::Type>::const_iterator it2 = it1->second.find(name2);
+  auto it2 = it1->second.find(name2);
   if (it2 == it1->second.end())
     return false;
   allowed_collision = it2->second;
@@ -110,10 +110,10 @@ bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& na
 
 bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::string& name2) const
 {
-  std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it1 = entries_.find(name1);
+  auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
     return false;
-  std::map<std::string, AllowedCollision::Type>::const_iterator it2 = it1->second.find(name2);
+  auto it2 = it1->second.find(name2);
   if (it2 == it1->second.end())
     return false;
   return true;
@@ -126,17 +126,17 @@ void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& na
   entries_[name1][name2] = entries_[name2][name1] = v;
 
   // remove boost::function pointers, if any
-  std::map<std::string, std::map<std::string, DecideContactFn> >::iterator it = allowed_contacts_.find(name1);
+  auto it = allowed_contacts_.find(name1);
   if (it != allowed_contacts_.end())
   {
-    std::map<std::string, DecideContactFn>::iterator jt = it->second.find(name2);
+    auto jt = it->second.find(name2);
     if (jt != it->second.end())
       it->second.erase(jt);
   }
   it = allowed_contacts_.find(name2);
   if (it != allowed_contacts_.end())
   {
-    std::map<std::string, DecideContactFn>::iterator jt = it->second.find(name1);
+    auto jt = it->second.find(name1);
     if (jt != it->second.end())
       it->second.erase(jt);
   }
@@ -153,42 +153,40 @@ void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string&
 {
   entries_.erase(name);
   allowed_contacts_.erase(name);
-  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it = entries_.begin();
-       it != entries_.end(); ++it)
-    it->second.erase(name);
-  for (std::map<std::string, std::map<std::string, DecideContactFn> >::iterator it = allowed_contacts_.begin();
-       it != allowed_contacts_.end(); ++it)
-    it->second.erase(name);
+  for (auto & entry : entries_)
+    entry.second.erase(name);
+  for (auto & allowed_contact : allowed_contacts_)
+    allowed_contact.second.erase(name);
 }
 
 void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string& name1, const std::string& name2)
 {
-  std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator jt = entries_.find(name1);
+  auto jt = entries_.find(name1);
   if (jt != entries_.end())
   {
-    std::map<std::string, AllowedCollision::Type>::iterator it = jt->second.find(name2);
+    auto it = jt->second.find(name2);
     if (it != jt->second.end())
       jt->second.erase(it);
   }
   jt = entries_.find(name2);
   if (jt != entries_.end())
   {
-    std::map<std::string, AllowedCollision::Type>::iterator it = jt->second.find(name1);
+    auto it = jt->second.find(name1);
     if (it != jt->second.end())
       jt->second.erase(it);
   }
 
-  std::map<std::string, std::map<std::string, DecideContactFn> >::iterator it = allowed_contacts_.find(name1);
+  auto it = allowed_contacts_.find(name1);
   if (it != allowed_contacts_.end())
   {
-    std::map<std::string, DecideContactFn>::iterator jt = it->second.find(name2);
+    auto jt = it->second.find(name2);
     if (jt != it->second.end())
       it->second.erase(jt);
   }
   it = allowed_contacts_.find(name2);
   if (it != allowed_contacts_.end())
   {
-    std::map<std::string, DecideContactFn>::iterator jt = it->second.find(name1);
+    auto jt = it->second.find(name1);
     if (jt != it->second.end())
       it->second.erase(jt);
   }
@@ -197,36 +195,34 @@ void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string&
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name,
                                                            const std::vector<std::string>& other_names, bool allowed)
 {
-  for (std::size_t i = 0; i < other_names.size(); ++i)
-    if (other_names[i] != name)
-      setEntry(other_names[i], name, allowed);
+  for (const auto & other_name : other_names)
+    if (other_name != name)
+      setEntry(other_name, name, allowed);
 }
 
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
                                                            const std::vector<std::string>& names2, bool allowed)
 {
-  for (std::size_t i = 0; i < names1.size(); ++i)
-    setEntry(names1[i], names2, allowed);
+  for (const auto & i : names1)
+    setEntry(i, names2, allowed);
 }
 
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name, bool allowed)
 {
   std::string last = name;
-  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it = entries_.begin();
-       it != entries_.end(); ++it)
-    if (name != it->first && last != it->first)
+  for (auto & entry : entries_)
+    if (name != entry.first && last != entry.first)
     {
-      last = it->first;
-      setEntry(name, it->first, allowed);
+      last = entry.first;
+      setEntry(name, entry.first, allowed);
     }
 }
 
 void collision_detection::AllowedCollisionMatrix::setEntry(bool allowed)
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
-  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it1 = entries_.begin();
-       it1 != entries_.end(); ++it1)
-    for (std::map<std::string, AllowedCollision::Type>::iterator it2 = it1->second.begin(); it2 != it1->second.end();
+  for (auto & entry : entries_)
+    for (auto it2 = entry.second.begin(); it2 != entry.second.end();
          ++it2)
       it2->second = v;
 }
@@ -247,7 +243,7 @@ void collision_detection::AllowedCollisionMatrix::setDefaultEntry(const std::str
 bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::string& name,
                                                                   AllowedCollision::Type& allowed_collision) const
 {
-  std::map<std::string, AllowedCollision::Type>::const_iterator it = default_entries_.find(name);
+  auto it = default_entries_.find(name);
   if (it == default_entries_.end())
     return false;
   allowed_collision = it->second;
@@ -256,7 +252,7 @@ bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::str
 
 bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::string& name, DecideContactFn& fn) const
 {
-  std::map<std::string, DecideContactFn>::const_iterator it = default_allowed_contacts_.find(name);
+  auto it = default_allowed_contacts_.find(name);
   if (it == default_allowed_contacts_.end())
     return false;
   fn = it->second;
@@ -338,12 +334,11 @@ void collision_detection::AllowedCollisionMatrix::clear()
 void collision_detection::AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
 {
   names.clear();
-  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it = entries_.begin();
-       it != entries_.end(); ++it)
-    if (!names.empty() && names.back() == it->first)
+  for (const auto & entry : entries_)
+    if (!names.empty() && names.back() == entry.first)
       continue;
     else
-      names.push_back(it->first);
+      names.push_back(entry.first);
 }
 
 void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg) const
@@ -389,9 +384,9 @@ void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
   std::sort(names.begin(), names.end());
 
   std::size_t L = 4;
-  for (std::size_t i = 0; i < names.size(); ++i)
+  for (auto & name : names)
   {
-    std::size_t l = names[i].length();
+    std::size_t l = name.length();
     if (l > L)
       L = l;
   }
