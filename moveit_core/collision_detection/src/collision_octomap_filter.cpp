@@ -76,7 +76,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
   int modified = 0;
 
   // iterate through contacts
-  for (auto & contact : res.contacts)
+  for (auto& contact : res.contacts)
   {
     std::string contact1 = contact.first.first;
     std::string contact2 = contact.first.second;
@@ -101,10 +101,10 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
       {
         std::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
         cell_size = octree->getResolution();
-        for (auto & contact_point : contact_vector)
+        for (auto& contact_info : contact_vector)
         {
-          const Eigen::Vector3d& point = contact_point.pos;
-          const Eigen::Vector3d& normal = contact_point.normal;
+          const Eigen::Vector3d& point = contact_info.pos;
+          const Eigen::Vector3d& normal = contact_info.normal;
 
           octomath::Vector3 contact_point(point[0], point[1], point[2]);
           octomath::Vector3 contact_normal(normal[0], normal[1], normal[2]);
@@ -148,11 +148,11 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
               //                        divergence,
               //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
               //                        n.x(), n.y(), n.z());
-              contact_point.normal = Eigen::Vector3d(n.x(), n.y(), n.z());
+              contact_info.normal = Eigen::Vector3d(n.x(), n.y(), n.z());
             }
 
             if (estimate_depth)
-              contact_point.depth = depth;
+              contact_info.depth = depth;
           }
         }
       }

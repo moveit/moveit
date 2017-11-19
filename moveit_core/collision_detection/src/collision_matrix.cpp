@@ -53,13 +53,14 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||
       msg.default_entry_names.size() != msg.default_entry_values.size())
-    CONSOLE_BRIDGE_logError("The number of links does not match the number of entries in AllowedCollisionMatrix message");
+    CONSOLE_BRIDGE_logError("The number of links does not match the number of entries in AllowedCollisionMatrix "
+                            "message");
   else
   {
     for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
       if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
         CONSOLE_BRIDGE_logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
-                 msg.entry_names[i].c_str());
+                                msg.entry_names[i].c_str());
       else
         for (std::size_t j = i + 1; j < msg.entry_values[i].enabled.size(); ++j)
           setEntry(msg.entry_names[i], msg.entry_names[j], msg.entry_values[i].enabled[j]);
@@ -153,9 +154,9 @@ void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string&
 {
   entries_.erase(name);
   allowed_contacts_.erase(name);
-  for (auto & entry : entries_)
+  for (auto& entry : entries_)
     entry.second.erase(name);
-  for (auto & allowed_contact : allowed_contacts_)
+  for (auto& allowed_contact : allowed_contacts_)
     allowed_contact.second.erase(name);
 }
 
@@ -195,7 +196,7 @@ void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string&
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name,
                                                            const std::vector<std::string>& other_names, bool allowed)
 {
-  for (const auto & other_name : other_names)
+  for (const auto& other_name : other_names)
     if (other_name != name)
       setEntry(other_name, name, allowed);
 }
@@ -203,14 +204,14 @@ void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& na
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
                                                            const std::vector<std::string>& names2, bool allowed)
 {
-  for (const auto & i : names1)
+  for (const auto& i : names1)
     setEntry(i, names2, allowed);
 }
 
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name, bool allowed)
 {
   std::string last = name;
-  for (auto & entry : entries_)
+  for (auto& entry : entries_)
     if (name != entry.first && last != entry.first)
     {
       last = entry.first;
@@ -221,9 +222,8 @@ void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& na
 void collision_detection::AllowedCollisionMatrix::setEntry(bool allowed)
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
-  for (auto & entry : entries_)
-    for (auto it2 = entry.second.begin(); it2 != entry.second.end();
-         ++it2)
+  for (auto& entry : entries_)
+    for (auto it2 = entry.second.begin(); it2 != entry.second.end(); ++it2)
       it2->second = v;
 }
 
@@ -334,7 +334,7 @@ void collision_detection::AllowedCollisionMatrix::clear()
 void collision_detection::AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
 {
   names.clear();
-  for (const auto & entry : entries_)
+  for (const auto& entry : entries_)
     if (!names.empty() && names.back() == entry.first)
       continue;
     else
@@ -384,7 +384,7 @@ void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
   std::sort(names.begin(), names.end());
 
   std::size_t L = 4;
-  for (auto & name : names)
+  for (auto& name : names)
   {
     std::size_t l = name.length();
     if (l > L)

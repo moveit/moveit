@@ -65,7 +65,7 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, c
                                          const ros::Duration& lifetime)
 {
   int id = 0;
-  for (const auto & cost_source : cost_sources)
+  for (const auto& cost_source : cost_sources)
   {
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
@@ -100,7 +100,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
 
 {
   std::map<std::string, unsigned> ns_counts;
-  for (const auto & it : con)
+  for (const auto& it : con)
   {
     for (unsigned int i = 0; i < it.second.size(); ++i)
     {
@@ -149,7 +149,7 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, cons
 double collision_detection::getTotalCost(const std::set<CostSource>& cost_sources)
 {
   double cost = 0.0;
-  for (const auto & cost_source : cost_sources)
+  for (const auto& cost_source : cost_sources)
     cost += cost_source.getVolume() * cost_source.cost;
   return cost;
 }
@@ -159,8 +159,8 @@ void collision_detection::intersectCostSources(std::set<CostSource>& cost_source
 {
   cost_sources.clear();
   CostSource tmp;
-  for (const auto & it : a)
-    for (const auto & jt : b)
+  for (const auto& it : a)
+    for (const auto& jt : b)
     {
       tmp.aabb_min[0] = std::max(it.aabb_min[0], jt.aabb_min[0]);
       tmp.aabb_min[1] = std::max(it.aabb_min[1], jt.aabb_min[1]);
@@ -203,7 +203,7 @@ void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, 
       if (intersect_volume >= vol)
         remove.push_back(jt);
     }
-    for (auto & i : remove)
+    for (auto& i : remove)
       cost_sources.erase(i);
   }
 }
@@ -213,7 +213,7 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
 {
   // remove all the boxes that overlap with the intersection previously computed in \e rem
   double p[3], q[3];
-  for (const auto & jt : cost_sources_to_remove)
+  for (const auto& jt : cost_sources_to_remove)
   {
     std::vector<std::set<CostSource>::iterator> remove;
     std::set<CostSource> add;
@@ -255,7 +255,7 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
         }
       }
     }
-    for (auto & i : remove)
+    for (auto& i : remove)
       cost_sources.erase(i);
     cost_sources.insert(add.begin(), add.end());
   }

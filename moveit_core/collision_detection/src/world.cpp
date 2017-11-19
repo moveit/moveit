@@ -64,7 +64,8 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
 {
   if (shapes.size() != poses.size())
   {
-    CONSOLE_BRIDGE_logError("Number of shapes and number of poses do not match. Not adding this object to collision world.");
+    CONSOLE_BRIDGE_logError("Number of shapes and number of poses do not match. Not adding this object to collision "
+                            "world.");
     return;
   }
 
@@ -109,7 +110,7 @@ void collision_detection::World::addToObject(const std::string& id, const shapes
 std::vector<std::string> collision_detection::World::getObjectIds() const
 {
   std::vector<std::string> id;
-  for (const auto & object : objects_)
+  for (const auto& object : objects_)
     id.push_back(object.first);
   return id;
 }
@@ -202,7 +203,7 @@ void collision_detection::World::clearObjects()
 
 collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
 {
-  auto  o = new Observer(callback);
+  auto o = new Observer(callback);
   observers_.push_back(o);
   return ObserverHandle(o);
 }
@@ -239,7 +240,7 @@ void collision_detection::World::notifyObserverAllObjects(const ObserverHandle o
     if (observer == observer_handle.observer_)
     {
       // call the callback for each object
-      for (const auto & object : objects_)
+      for (const auto& object : objects_)
         observer->callback_(object.second, action);
       break;
     }
