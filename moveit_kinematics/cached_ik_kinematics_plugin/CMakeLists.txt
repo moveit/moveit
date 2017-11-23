@@ -8,6 +8,10 @@ target_link_libraries(${MOVEIT_LIB_NAME}
     ${catkin_LIBRARIES})
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
+if(trac_ik_kinematics_plugin_FOUND)
+    include_directories(${trac_ik_kinematics_INCLUDE_DIRS})
+    link_directories(${trac_ik_kinematics_plugin_PREFIX}/lib)
+endif(trac_ik_kinematics_plugin_FOUND)
 
 set(MOVEIT_LIB_NAME moveit_cached_ik_kinematics_plugin)
 add_library(${MOVEIT_LIB_NAME} src/cached_ik_kinematics_plugin.cpp)

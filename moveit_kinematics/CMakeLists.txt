@@ -22,13 +22,11 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(trac_ik_kinematics_plugin)
-if(trac_ik_kinematics_plugin_FOUND)
-    include_directories(${trac_ik_kinematics_plugin_INCLUDE_DIRS})
-    link_directories(${trac_ik_kinematics_plugin_PREFIX}/lib)
-else()
+if(NOT trac_ik_kinematics_plugin_FOUND)
     set(TRAC_BEGIN "<!--")
     set(TRAC_END "-->")
 endif()
+
 find_package(ur_kinematics QUIET)
 if(NOT ur_kinematics_FOUND)
     set(UR_BEGIN "<!--")
