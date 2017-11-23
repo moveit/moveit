@@ -154,6 +154,11 @@ public:
   MOVEIT_DEPRECATED MoveGroupInterface(const std::string& group, const boost::shared_ptr<tf::Transformer>& tf,
                                        const ros::Duration& wait_for_servers);
 
+  // Copy constructors
+  MoveGroupInterface(const MoveGroupInterface& other);
+
+  MoveGroupInterface& operator=(const MoveGroupInterface& other);
+
   ~MoveGroupInterface();
 
   /** \brief Get the name of the group this instance operates on */
