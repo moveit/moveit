@@ -78,7 +78,6 @@ public:
 
     if (timeout == 0.0)
     {
-      ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "No controller specified. Waiting indefinitely...");
       while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(1.0)))
       {
         ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
