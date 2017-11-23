@@ -78,9 +78,9 @@ public:
 
     if (timeout == 0.0)
     {
-      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(1.0)))
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
       {
-        ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+        ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
       }
     }
@@ -88,7 +88,7 @@ public:
     {
       while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout / 3)) && ++attempts < 3)
       {
-        ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+        ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
         ros::Duration(1).sleep();
       }
     }
