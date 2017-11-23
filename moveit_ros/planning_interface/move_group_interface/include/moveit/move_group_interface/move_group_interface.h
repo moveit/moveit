@@ -52,6 +52,9 @@
 #include <boost/shared_ptr.hpp>
 #include <tf/tf.h>
 
+#include <moveit_msgs/MoveGroupGoal.h>
+#include <moveit_msgs/MoveGroupAction.h>
+
 namespace moveit
 {
 /** \brief Simple interface to MoveIt! components */
@@ -671,6 +674,9 @@ public:
      specified
       target. No execution is performed. The resulting plan is stored in \e plan*/
   MoveItErrorCode plan(Plan& plan);
+
+  MoveItErrorCode plan(Plan& plan, moveit_msgs::MoveGroupGoal& goal);
+
 
   /** \brief Given a \e plan, execute it without waiting for completion. Return true on success. */
   MoveItErrorCode asyncExecute(const Plan& plan);
