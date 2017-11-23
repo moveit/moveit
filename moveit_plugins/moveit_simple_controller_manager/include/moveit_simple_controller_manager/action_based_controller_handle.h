@@ -38,8 +38,8 @@
 #ifndef MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
 #define MOVEIT_PLUGINS_ACTION_BASED_CONTROLLER_HANDLE
 
-#include <moveit/controller_manager/controller_manager.h>
 #include <actionlib/client/simple_action_client.h>
+#include <moveit/controller_manager/controller_manager.h>
 #include <moveit/macros/class_forward.h>
 #include <memory>
 
@@ -69,13 +69,29 @@ class ActionBasedControllerHandle : public ActionBasedControllerHandleBase
 {
 public:
   ActionBasedControllerHandle(const std::string& name, const std::string& ns)
-    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true)
+    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true), nh_("~")
   {
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
-    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)) && ++attempts < 3)
-      ROS_INFO_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+    double timeout;
+    nh_.param("trajectory_execution/controller_connection_timeout", timeout, 15.0);
 
+    if (timeout == 0.0)
+    {
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)))
+      {
+        ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+        ros::Duration(1).sleep();
+      }
+    }
+    else
+    {
+      while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(timeout / 3)) && ++attempts < 3)
+      {
+        ROS_WARN_STREAM_NAMED("moveit_simple_controller_manager", "Waiting for " << getActionName() << " to come up");
+        ros::Duration(1).sleep();
+      }
+    }
     if (!controller_action_client_->isServerConnected())
     {
       ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Action client not connected: " << getActionName());
@@ -127,6 +143,7 @@ public:
   }
 
 protected:
+  ros::NodeHandle nh_;
   std::string getActionName(void) const
   {
     if (namespace_.empty())
@@ -155,7 +172,8 @@ protected:
   moveit_controller_manager::ExecutionStatus last_exec_;
   bool done_;
 
-  /* the controller namespace, for instance, topics will map to name/ns/goal, name/ns/result, etc */
+  /* the controller namespace, for instance, topics will map to name/ns/goal,
+   * name/ns/result, etc */
   std::string namespace_;
 
   /* the joints controlled by this controller */
