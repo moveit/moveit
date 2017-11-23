@@ -40,6 +40,7 @@
 #define MOVEIT_ROS_PLANNING_CACHED_IK_KINEMATICS_GREEDY_K_CENTERS_
 
 #include <functional>
+#include <random>
 #include <boost/numeric/ublas/matrix.hpp>
 
 namespace cached_ik_kinematics_plugin
