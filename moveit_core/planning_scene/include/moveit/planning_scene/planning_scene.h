@@ -51,6 +51,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/Constraints.h>
 #include <moveit_msgs/PlanningSceneComponents.h>
+#include <octomap_msgs/OctomapWithPose.h>
 #include <boost/noncopyable.hpp>
 #include <boost/function.hpp>
 #include <boost/concept_check.hpp>
@@ -689,6 +690,29 @@ public:
       this will be a complete planning scene message */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene, const moveit_msgs::PlanningSceneComponents& comp) const;
 
+  /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
+   * requested object*/
+  bool getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const;
+
+  /** \brief Construct a vector of messages (\e collision_objects) with the collision object data for all objects in
+   * planning_scene */
+  bool getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const;
+
+  /** \brief Construct a message (\e attached_collision_object) with the attached collision object data from the
+   * planning_scene for the requested object*/
+  bool getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
+                                     const std::string& ns) const;
+
+  /** \brief Construct a vector of messages (\e attached_collision_objects) with the attached collision object data for
+   * all objects in planning_scene */
+  bool getAttachedCollisionObjectMsgs(std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const;
+
+  /** \brief Construct a message (\e octomap) with the octomap data from the planning_scene */
+  bool getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const;
+
+  /** \brief Construct a vector of messages (\e object_colors) with the colors of the objects from the planning_scene */
+  bool getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
+
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff
      (is_diff
       member). A parent is not required to exist. However, the existing data in the planning instance is not cleared.
@@ -936,11 +960,6 @@ private:
   /* helper function to create a RobotModel from a urdf/srdf. */
   static robot_model::RobotModelPtr createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
                                                      const srdf::ModelConstSharedPtr& srdf_model);
-
-  void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene& scene, const std::string& ns) const;
-  void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene& scene) const;
-  void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene& scene) const;
-  void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene& scene_msg) const;
 
   MOVEIT_CLASS_FORWARD(CollisionDetector);
 
