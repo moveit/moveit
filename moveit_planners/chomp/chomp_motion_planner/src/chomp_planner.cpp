@@ -191,6 +191,27 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     return false;
   }
 
+  // check that final state is within goal tolerances
+  kinematic_constraints::JointConstraint jc(planning_scene->getRobotModel());
+  robot_state::RobotState last_state(planning_scene->getRobotModel());
+  last_state.setVariablePositions(res.trajectory[0].joint_trajectory.points.back().positions.data());
+
+  last_state.printStatePositions(std::cout);
+  ROS_ERROR_STREAM("Goal is " << goal_state);
+
+  bool constraints_are_ok = true;
+  for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
+  {
+    ROS_ERROR_STREAM("Validating constraint for " << constraint.joint_name << "...");
+    constraints_are_ok = constraints_are_ok and jc.configure(constraint);
+    constraints_are_ok = constraints_are_ok and jc.decide(last_state).satisfied;
+    if (not constraints_are_ok)
+    {
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::GOAL_CONSTRAINTS_VIOLATED;
+      return false;
+    }
+  }
+
   return true;
 }
 }
