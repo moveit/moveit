@@ -99,7 +99,7 @@ TEST_F(CHOMPMoveitTest, noStartState)
 TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
 {
   move_group_.setStartState(*(move_group_.getCurrentState()));
-  move_group_.setJointValueTarget(std::vector<double>({ M_PI/2.0, 0 }));
+  move_group_.setJointValueTarget(std::vector<double>({ M_PI / 2.0, 0 }));
 
   moveit::planning_interface::MoveItErrorCode error_code = move_group_.plan(my_plan_);
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_MOTION_PLAN);
