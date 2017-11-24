@@ -70,6 +70,16 @@ TEST_F(CHOMPMoveitTest, noStartState)
   EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_ROBOT_STATE);
 }
 
+TEST_F(CHOMPMoveitTest, collisionAtEndOfPath)
+{
+  move_group.setStartState(*(move_group.getCurrentState()));
+  move_group.setJointValueTarget(std::vector<double>({ M_PI/2.0, 0 }));
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+
+  moveit::planning_interface::MoveItErrorCode error_code = move_group.plan(my_plan);
+  EXPECT_EQ(error_code.val, moveit::planning_interface::MoveItErrorCode::INVALID_MOTION_PLAN);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
