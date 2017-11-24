@@ -77,6 +77,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
                     trajectory.getTrajectoryPoint(0));
 
+  if (req.goal_constraints.empty())
+  {
+    ROS_ERROR_STREAM("No goal constraints specified!");
+    res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
+    return false;
+  }
+
   if (req.goal_constraints[0].joint_constraints.empty())
   {
     ROS_ERROR_STREAM("CHOMP only supports joint-space goals");
