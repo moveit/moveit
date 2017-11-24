@@ -68,7 +68,7 @@ struct ExecutionStatus
     return status_;
   }
 
-  operator bool() const
+  explicit operator bool() const
   {
     return status_ == SUCCEEDED;
   }
