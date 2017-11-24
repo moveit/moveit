@@ -53,21 +53,21 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 {
   if (!planning_scene)
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","No planning scene initialized.");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "No planning scene initialized.");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return false;
   }
 
   if (req.start_state.joint_state.position.empty())
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","Start state is empty");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Start state is empty");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
 
   if (not planning_scene->getRobotModel()->satisfiesPositionBounds(req.start_state.joint_state.position.data()))
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","Start state violates joint limits");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Start state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
@@ -79,14 +79,14 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   if (req.goal_constraints.empty())
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","No goal constraints specified!");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "No goal constraints specified!");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
 
   if (req.goal_constraints[0].joint_constraints.empty())
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","Only joint-space goals are supported");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Only joint-space goals are supported");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
@@ -128,7 +128,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   if (not planning_scene->getRobotModel()->satisfiesPositionBounds(goal_state.data()))
   {
-    ROS_ERROR_STREAM_NAMED("chomp_planner","Goal state violates joint limits");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Goal state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
