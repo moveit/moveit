@@ -53,21 +53,21 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 {
   if (!planning_scene)
   {
-    ROS_ERROR_STREAM("No planning scene initialized.");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","No planning scene initialized.");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return false;
   }
 
   if (req.start_state.joint_state.position.empty())
   {
-    ROS_ERROR_STREAM("Starting state is empty");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","Start state is empty");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
 
   if (not planning_scene->getRobotModel()->satisfiesPositionBounds(req.start_state.joint_state.position.data()))
   {
-    ROS_ERROR_STREAM("Start state violates joint limits");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","Start state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
@@ -79,14 +79,14 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   if (req.goal_constraints.empty())
   {
-    ROS_ERROR_STREAM("No goal constraints specified!");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","No goal constraints specified!");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
 
   if (req.goal_constraints[0].joint_constraints.empty())
   {
-    ROS_ERROR_STREAM("CHOMP only supports joint-space goals");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","Only joint-space goals are supported");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
   }
@@ -128,7 +128,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   if (not planning_scene->getRobotModel()->satisfiesPositionBounds(goal_state.data()))
   {
-    ROS_ERROR_STREAM("Goal state violates joint limits");
+    ROS_ERROR_STREAM_NAMED("chomp_planner","Goal state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
     return false;
   }
@@ -145,13 +145,13 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
   if (!optimizer.isInitialized())
   {
-    ROS_WARN_STREAM("Could not initialize optimizer");
+    ROS_ERROR_STREAM_NAMED("chomp_planner", "Could not initialize optimizer");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
   ROS_DEBUG("Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
   optimizer.optimize();
-  ROS_INFO("Optimization actually took %f sec to run", (ros::WallTime::now() - create_time).toSec());
+  ROS_DEBUG("Optimization actually took %f sec to run", (ros::WallTime::now() - create_time).toSec());
   create_time = ros::WallTime::now();
   // assume that the trajectory is now optimized, fill in the output structure:
 
@@ -174,10 +174,6 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     for (size_t j = 0; j < res.trajectory[0].joint_trajectory.points[i].positions.size(); j++)
     {
       res.trajectory[0].joint_trajectory.points[i].positions[j] = trajectory.getTrajectoryPoint(i)(j);
-      if (i == trajectory.getNumPoints() - 1)
-      {
-        ROS_INFO_STREAM("Joint " << j << " " << res.trajectory[0].joint_trajectory.points[i].positions[j]);
-      }
     }
     // Setting invalid timestamps.
     // Further filtering is required to set valid timestamps accounting for velocity and acceleration constraints.
@@ -203,13 +199,9 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   robot_state::RobotState last_state(planning_scene->getRobotModel());
   last_state.setVariablePositions(res.trajectory[0].joint_trajectory.points.back().positions.data());
 
-  last_state.printStatePositions(std::cout);
-  ROS_ERROR_STREAM("Goal is " << goal_state);
-
   bool constraints_are_ok = true;
   for (const moveit_msgs::JointConstraint& constraint : req.goal_constraints[0].joint_constraints)
   {
-    ROS_ERROR_STREAM("Validating constraint for " << constraint.joint_name << "...");
     constraints_are_ok = constraints_are_ok and jc.configure(constraint);
     constraints_are_ok = constraints_are_ok and jc.decide(last_state).satisfied;
     if (not constraints_are_ok)
