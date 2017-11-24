@@ -17,7 +17,6 @@
   <depend>moveit_core</depend>
   <depend>pluginlib</depend>
 
-  <build_depend>cmake_modules</build_depend>
   <build_depend>chomp_motion_planner</build_depend>
   <build_depend>moveit_experimental</build_depend>
 
