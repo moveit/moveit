@@ -16,12 +16,6 @@
     <rosparam command="load" file="$(find moveit_planners_chomp)/test/joint_limits.yaml"/>
   </group>
 
-  <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
-  <group ns="$(arg robot_description)_kinematics">
-    <rosparam command="load" file="$(find moveit_planners_chomp)/test/kinematics.yaml"/>
-  </group>
-  
-
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="/use_gui" value="$(arg use_gui)"/>
