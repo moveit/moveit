@@ -22,19 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(trac_ik_kinematics_plugin)
-if(NOT trac_ik_kinematics_plugin_FOUND)
-    set(TRAC_BEGIN "<!--")
-    set(TRAC_END "-->")
-endif()
-
 find_package(ur_kinematics QUIET)
-if(NOT ur_kinematics_FOUND)
-    set(UR_BEGIN "<!--")
-    set(UR_END "-->")
-endif()
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cached_ik_kinematics_plugin_description.xml.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cached_ik_kinematics_plugin_description.xml" @ONLY)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
