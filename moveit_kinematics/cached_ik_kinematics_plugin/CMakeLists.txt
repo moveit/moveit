@@ -9,7 +9,7 @@ target_link_libraries(${MOVEIT_LIB_NAME}
 install(TARGETS ${MOVEIT_LIB_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 if(trac_ik_kinematics_plugin_FOUND)
-    include_directories(${trac_ik_kinematics_INCLUDE_DIRS})
+    include_directories(${trac_ik_kinematics_plugin_INCLUDE_DIRS})
     link_directories(${trac_ik_kinematics_plugin_PREFIX}/lib)
 endif(trac_ik_kinematics_plugin_FOUND)
 
