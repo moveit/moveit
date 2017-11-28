@@ -400,7 +400,7 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
   }
 
   calculateOffsetPosition();
-  if (robot_ && update_state_)
+  if (robot_ && update_state_ && kstate_)
   {
     update_state_ = false;
     kstate_->update();
