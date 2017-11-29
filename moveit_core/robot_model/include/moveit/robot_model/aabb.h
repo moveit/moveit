@@ -40,18 +40,18 @@
 
 #include <Eigen/Geometry>
 
-namespace moveit {
-namespace core {
-
+namespace moveit
+{
+namespace core
+{
 /** \brief Represents an axis-aligned bounding box. */
 class AABB : public Eigen::AlignedBox3d
 {
 public:
   /** \brief Extend with a box transformed by the given transform. */
-  void extendWithTransformedBox(const Eigen::Affine3d &transform, const Eigen::Vector3d &box);
+  void extendWithTransformedBox(const Eigen::Affine3d& transform, const Eigen::Vector3d& box);
 };
-
 }
 }
 
-#endif //MOVEIT_CORE_AABB_H
+#endif  // MOVEIT_CORE_AABB_H

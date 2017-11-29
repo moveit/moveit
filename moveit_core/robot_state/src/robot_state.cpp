@@ -1999,7 +1999,7 @@ void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
-    Eigen::Affine3d t = getGlobalLinkTransform(links[i]); // intentional copy, we will translate
+    Eigen::Affine3d t = getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
     const Eigen::Vector3d& e = links[i]->getShapeExtentsAtOrigin();
     t.translate(links[i]->getCenteredBoundingBoxOffset());
     _aabb.extendWithTransformedBox(t, e);
