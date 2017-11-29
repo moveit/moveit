@@ -37,7 +37,8 @@
 
 #include <moveit/robot_model/aabb.h>
 
-void moveit::core::AABB::extendWithTransformedBox(const Eigen::Affine3d &transform, const Eigen::Vector3d &box) {
+void moveit::core::AABB::extendWithTransformedBox(const Eigen::Affine3d& transform, const Eigen::Vector3d& box)
+{
   Eigen::Vector3d center = box / 2.0;
   Eigen::Vector3d maxCorner = transform * center;
   center = -center;

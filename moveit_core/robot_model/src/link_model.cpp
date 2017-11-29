@@ -88,12 +88,14 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
     Eigen::Vector3d ei = shapes::computeShapeExtents(shapes_[i].get());
     Eigen::Affine3d t = collision_origin_transform_[i];
 
-    if (shapes_[i]->type != shapes::MESH) {
+    if (shapes_[i]->type != shapes::MESH)
+    {
       aabb.extendWithTransformedBox(t, ei);
     }
-    else {
-      const shapes::Mesh *mesh = dynamic_cast<const shapes::Mesh*>(shapes_[i].get());
-      for(unsigned int j = 0; j < mesh->vertex_count ; ++j)
+    else
+    {
+      const shapes::Mesh* mesh = dynamic_cast<const shapes::Mesh*>(shapes_[i].get());
+      for (unsigned int j = 0; j < mesh->vertex_count; ++j)
       {
         aabb.extend(t * Eigen::Map<Eigen::Vector3d>(&mesh->vertices[3 * j]));
       }

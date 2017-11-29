@@ -45,7 +45,6 @@
 class TestAABB : public testing::Test
 {
 protected:
-
   std::string readFileToString(boost::filesystem::path path) const
   {
     std::string file_string;
@@ -63,9 +62,7 @@ protected:
     return file_string;
   }
 
-  virtual void SetUp()
-  {
-  };
+  virtual void SetUp(){};
 
   robot_state::RobotState loadModel(const std::string urdf, const std::string srdf)
   {
@@ -89,10 +86,10 @@ protected:
   virtual void TearDown()
   {
   }
-
 };
 
-TEST_F(TestAABB, TestPR2) {
+TEST_F(TestAABB, TestPR2)
+{
   // Contains a link with mesh geometry that is not centered
 
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
@@ -102,27 +99,27 @@ TEST_F(TestAABB, TestPR2) {
 
   robot_state::RobotState pr2_state = this->loadModel(PR2_URDF, PR2_SRDF);
 
-  const Eigen::Vector3d &extentsBaseFootprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
+  const Eigen::Vector3d& extentsBaseFootprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
   // values taken from moveit_resources/pr2_description/urdf/robot.xml
   EXPECT_NEAR(extentsBaseFootprint[0], 0.001, 1e-4);
   EXPECT_NEAR(extentsBaseFootprint[1], 0.001, 1e-4);
   EXPECT_NEAR(extentsBaseFootprint[2], 0.001, 1e-4);
 
-  const Eigen::Vector3d &offsetBaseFootprint = pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
+  const Eigen::Vector3d& offsetBaseFootprint = pr2_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset();
   EXPECT_NEAR(offsetBaseFootprint[0], 0.0, 1e-4);
   EXPECT_NEAR(offsetBaseFootprint[1], 0.0, 1e-4);
   EXPECT_NEAR(offsetBaseFootprint[2], 0.071, 1e-4);
 
-  const Eigen::Vector3d &extentsBaseLink = pr2_state.getLinkModel("base_link")->getShapeExtentsAtOrigin();
+  const Eigen::Vector3d& extentsBaseLink = pr2_state.getLinkModel("base_link")->getShapeExtentsAtOrigin();
   // values computed from moveit_resources/pr2_description/urdf/meshes/base_v0/base_L.stl in e.g. Meshlab
   EXPECT_NEAR(extentsBaseLink[0], 0.668242, 1e-4);
   EXPECT_NEAR(extentsBaseLink[1], 0.668242, 1e-4);
   EXPECT_NEAR(extentsBaseLink[2], 0.656175, 1e-4);
 
-  const Eigen::Vector3d &offsetBaseLink = pr2_state.getLinkModel("base_link")->getCenteredBoundingBoxOffset();
+  const Eigen::Vector3d& offsetBaseLink = pr2_state.getLinkModel("base_link")->getCenteredBoundingBoxOffset();
   EXPECT_NEAR(offsetBaseLink[0], 0.0, 1e-4);
   EXPECT_NEAR(offsetBaseLink[1], 0.0, 1e-4);
-  EXPECT_NEAR(offsetBaseLink[2], 0.656175 / 2, 1e-4); // The 3D mesh isn't centered, but is whole above z axis
+  EXPECT_NEAR(offsetBaseLink[2], 0.656175 / 2, 1e-4);  // The 3D mesh isn't centered, but is whole above z axis
 
   std::vector<double> pr2_aabb;
   pr2_state.computeAABB(pr2_aabb);
@@ -143,13 +140,14 @@ TEST_F(TestAABB, TestPR2) {
     std::cout << dim << ", " << (pr2_aabb[2*i+1] - center) << std::endl;
   }
   // */
-
 }
 
-TEST_F(TestAABB, TestSimple) {
+TEST_F(TestAABB, TestSimple)
+{
   // Contains a link with simple geometry and an offset in the collision link
 
-  const std::string SIMPLE_URDF = "<?xml version='1.0' ?>"
+  const std::string SIMPLE_URDF =
+      "<?xml version='1.0' ?>"
       "<robot name='simple'>"
       "  <link name='base_link'>"
       "    <collision>"
@@ -174,7 +172,8 @@ TEST_F(TestAABB, TestSimple) {
       "  </joint>"
       "</robot>";
 
-  const std::string SIMPLE_SRDF = "<?xml version='1.0'?>"
+  const std::string SIMPLE_SRDF =
+      "<?xml version='1.0'?>"
       "<robot name='simple'>  "
       "  <virtual_joint name='world_joint' type='planar' parent_frame='odom_combined' child_link='base_footprint'/>   "
       "  <group name='base'>"
@@ -194,7 +193,6 @@ TEST_F(TestAABB, TestSimple) {
   EXPECT_NEAR(simple_aabb[3], 0.6682 / 2, 1e-4);
   EXPECT_NEAR(simple_aabb[4], 0.0510, 1e-4);
   EXPECT_NEAR(simple_aabb[5], 0.7071, 1e-4);
-
 }
 
 TEST_F(TestAABB, TestComplex)
@@ -202,37 +200,38 @@ TEST_F(TestAABB, TestComplex)
   // Contains a link with simple geometry and an offset and rotation in the collision link
 
   const std::string COMPLEX_URDF = "<?xml version='1.0' ?>"
-      "<robot name='complex'>"
-      "  <link name='base_link'>"
-      "    <collision>"
-      "      <origin rpy='0 0 1.5708' xyz='5.0 0 1.0'/>"
-      "      <geometry>"
-      "        <box size='1.0 0.1 0.1' />"
-      "      </geometry>"
-      "    </collision>"
-      "    <collision>"
-      "      <origin rpy='0 0 1.5708' xyz='4.0 0 1.0'/>"
-      "      <geometry>"
-      "        <box size='1.0 0.1 0.1' />"
-      "      </geometry>"
-      "    </collision>"
-      "  </link>"
-      "  <link name='base_footprint'>"
-      "    <collision>"
-      "      <origin rpy='0 1.5708 0' xyz='-5.0 0 -1.0'/>"
-      "      <geometry>"
-      "        <box size='0.1 1.0 0.1' />"
-      "      </geometry>"
-      "    </collision>"
-      "  </link>"
-      "  <joint name='base_footprint_joint' type='fixed'>"
-      "    <origin rpy='0 0 1.5708' xyz='0 0 1'/>"
-      "    <child link='base_link'/>"
-      "    <parent link='base_footprint'/>"
-      "  </joint>"
-      "</robot>";
+                                   "<robot name='complex'>"
+                                   "  <link name='base_link'>"
+                                   "    <collision>"
+                                   "      <origin rpy='0 0 1.5708' xyz='5.0 0 1.0'/>"
+                                   "      <geometry>"
+                                   "        <box size='1.0 0.1 0.1' />"
+                                   "      </geometry>"
+                                   "    </collision>"
+                                   "    <collision>"
+                                   "      <origin rpy='0 0 1.5708' xyz='4.0 0 1.0'/>"
+                                   "      <geometry>"
+                                   "        <box size='1.0 0.1 0.1' />"
+                                   "      </geometry>"
+                                   "    </collision>"
+                                   "  </link>"
+                                   "  <link name='base_footprint'>"
+                                   "    <collision>"
+                                   "      <origin rpy='0 1.5708 0' xyz='-5.0 0 -1.0'/>"
+                                   "      <geometry>"
+                                   "        <box size='0.1 1.0 0.1' />"
+                                   "      </geometry>"
+                                   "    </collision>"
+                                   "  </link>"
+                                   "  <joint name='base_footprint_joint' type='fixed'>"
+                                   "    <origin rpy='0 0 1.5708' xyz='0 0 1'/>"
+                                   "    <child link='base_link'/>"
+                                   "    <parent link='base_footprint'/>"
+                                   "  </joint>"
+                                   "</robot>";
 
-  const std::string COMPLEX_SRDF = "<?xml version='1.0'?>"
+  const std::string COMPLEX_SRDF =
+      "<?xml version='1.0'?>"
       "<robot name='complex'>  "
       "  <virtual_joint name='world_joint' type='planar' parent_frame='odom_combined' child_link='base_footprint'/>   "
       "  <group name='base'>"
@@ -246,7 +245,7 @@ TEST_F(TestAABB, TestComplex)
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[1], 1.0, 1e-4);
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[2], 0.1, 1e-4);
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset()[0], -5.0, 1e-4);
-  EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset()[1],  0.0, 1e-4);
+  EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset()[1], 0.0, 1e-4);
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getCenteredBoundingBoxOffset()[2], -1.0, 1e-4);
 
   EXPECT_NEAR(complex_state.getLinkModel("base_link")->getShapeExtentsAtOrigin()[0], 1.1, 1e-4);
@@ -261,11 +260,11 @@ TEST_F(TestAABB, TestComplex)
 
   ASSERT_EQ(complex_aabb.size(), 6);
   EXPECT_NEAR(complex_aabb[0], -5.05, 1e-4);
-  EXPECT_NEAR(complex_aabb[1],  0.5, 1e-4);
+  EXPECT_NEAR(complex_aabb[1], 0.5, 1e-4);
   EXPECT_NEAR(complex_aabb[2], -0.5, 1e-4);
-  EXPECT_NEAR(complex_aabb[3],  5.05, 1e-4);
-  EXPECT_NEAR(complex_aabb[4],  -1.05, 1e-4);
-  EXPECT_NEAR(complex_aabb[5],  2.05, 1e-4);
+  EXPECT_NEAR(complex_aabb[3], 5.05, 1e-4);
+  EXPECT_NEAR(complex_aabb[4], -1.05, 1e-4);
+  EXPECT_NEAR(complex_aabb[5], 2.05, 1e-4);
 }
 
 int main(int argc, char** argv)
