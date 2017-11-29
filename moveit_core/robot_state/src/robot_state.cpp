@@ -42,6 +42,7 @@
 #include <moveit/backtrace/backtrace.h>
 #include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
+#include <moveit/robot_model/aabb.h>
 
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
@@ -2027,53 +2028,19 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   return percentage_solved;
 }
 
-namespace
-{
-static inline void updateAABB(const Eigen::Affine3d& t, const Eigen::Vector3d& e, std::vector<double>& aabb)
-{
-  Eigen::Vector3d v = e / 2.0;
-  Eigen::Vector3d c2 = t * v;
-  v = -v;
-  Eigen::Vector3d c1 = t * v;
-  if (aabb.empty())
-  {
-    aabb.resize(6);
-    aabb[0] = c1.x();
-    aabb[2] = c1.y();
-    aabb[4] = c1.z();
-    aabb[1] = c2.x();
-    aabb[3] = c2.y();
-    aabb[5] = c2.z();
-  }
-  else
-  {
-    if (aabb[0] > c1.x())
-      aabb[0] = c1.x();
-    if (aabb[2] > c1.y())
-      aabb[2] = c1.y();
-    if (aabb[4] > c1.z())
-      aabb[4] = c1.z();
-    if (aabb[1] < c2.x())
-      aabb[1] = c2.x();
-    if (aabb[3] < c2.y())
-      aabb[3] = c2.y();
-    if (aabb[5] < c2.z())
-      aabb[5] = c2.z();
-  }
-}
-}
-
 void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
 {
   BOOST_VERIFY(checkLinkTransforms());
 
   aabb.clear();
+  core::AABB _aabb;
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
-    const Eigen::Affine3d& t = getGlobalLinkTransform(links[i]);
+    Eigen::Affine3d t = getGlobalLinkTransform(links[i]); // intentional copy, we will translate
     const Eigen::Vector3d& e = links[i]->getShapeExtentsAtOrigin();
-    updateAABB(t, e, aabb);
+    t.translate(links[i]->getCenteredBoundingBoxOffset());
+    _aabb.extendWithTransformedBox(t, e);
   }
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
        it != attached_body_map_.end(); ++it)
@@ -2083,11 +2050,20 @@ void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
     for (std::size_t i = 0; i < ts.size(); ++i)
     {
       Eigen::Vector3d e = shapes::computeShapeExtents(ss[i].get());
-      updateAABB(ts[i], e, aabb);
+      _aabb.extendWithTransformedBox(ts[i], e);
     }
   }
-  if (aabb.empty())
-    aabb.resize(6, 0.0);
+
+  aabb.resize(6, 0.0);
+  if (!_aabb.isEmpty())
+  {
+    aabb[0] = _aabb.min()[0];
+    aabb[1] = _aabb.max()[0];
+    aabb[2] = _aabb.min()[1];
+    aabb[3] = _aabb.max()[1];
+    aabb[4] = _aabb.min()[2];
+    aabb[5] = _aabb.max()[2];
+  }
 }
 
 void moveit::core::RobotState::printStatePositions(std::ostream& out) const
