@@ -46,7 +46,6 @@
 #include <boost/function.hpp>
 #include <string>
 
-
 namespace moveit
 {
 namespace core
@@ -609,20 +608,20 @@ protected:
   inline bool lookupParam(const std::string& param, T& val, const T& default_val) const
   {
     ros::NodeHandle pnh("~");
-    if(pnh.hasParam(param))
+    if (pnh.hasParam(param))
     {
       val = pnh.param(param, default_val);
       return true;
     }
 
     ros::NodeHandle nh;
-    if(nh.hasParam("robot_description_kinematics/" + param))
+    if (nh.hasParam("robot_description_kinematics/" + param))
     {
       val = nh.param("robot_description_kinematics/" + param, default_val);
       return true;
     }
 
-    if(nh.hasParam("robot_description_kinematics/" + group_name_ + "/" + param))
+    if (nh.hasParam("robot_description_kinematics/" + group_name_ + "/" + param))
     {
       val = nh.param("robot_description_kinematics/" + group_name_ + "/" + param, default_val);
       return true;
