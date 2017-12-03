@@ -102,9 +102,9 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   std::map<std::string, unsigned> ns_counts;
   for (const auto& it : con)
   {
-    for (unsigned int i = 0; i < it.second.size(); ++i)
+    for (const auto & i : it.second)
     {
-      std::string ns_name = it.second[i].body_name_1 + "=" + it.second[i].body_name_2;
+      std::string ns_name = i.body_name_1 + "=" + i.body_name_2;
       if (ns_counts.find(ns_name) == ns_counts.end())
         ns_counts[ns_name] = 0;
       else
@@ -116,9 +116,9 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.id = ns_counts[ns_name];
       mk.type = visualization_msgs::Marker::SPHERE;
       mk.action = visualization_msgs::Marker::ADD;
-      mk.pose.position.x = it.second[i].pos.x();
-      mk.pose.position.y = it.second[i].pos.y();
-      mk.pose.position.z = it.second[i].pos.z();
+      mk.pose.position.x = i.pos.x();
+      mk.pose.position.y = i.pos.y();
+      mk.pose.position.z = i.pos.z();
       mk.pose.orientation.x = 0.0;
       mk.pose.orientation.y = 0.0;
       mk.pose.orientation.z = 0.0;
