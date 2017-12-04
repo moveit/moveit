@@ -68,6 +68,6 @@ install(
     kdl_kinematics_plugin_description.xml
     lma_kinematics_plugin_description.xml
     srv_kinematics_plugin_description.xml
-    "${CMAKE_CURRENT_BINARY_DIR}/cached_ik_kinematics_plugin_description.xml"
+    cached_ik_kinematics_plugin_description.xml
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})
