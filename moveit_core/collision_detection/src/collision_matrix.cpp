@@ -223,7 +223,7 @@ void collision_detection::AllowedCollisionMatrix::setEntry(bool allowed)
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
   for (auto& entry : entries_)
-    for (auto & it2 : entry.second)
+    for (auto& it2 : entry.second)
       it2.second = v;
 }
 

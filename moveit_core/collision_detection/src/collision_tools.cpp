@@ -102,7 +102,7 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   std::map<std::string, unsigned> ns_counts;
   for (const auto& it : con)
   {
-    for (const auto & i : it.second)
+    for (const auto& i : it.second)
     {
       std::string ns_name = i.body_name_1 + "=" + i.body_name_2;
       if (ns_counts.find(ns_name) == ns_counts.end())
