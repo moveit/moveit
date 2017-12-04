@@ -1,7 +1,6 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2013, Ioan A. Sucan
 *  Copyright (c) 2013, Willow Garage, Inc.
 *  All rights reserved.
 *
@@ -35,8 +34,8 @@
 
 /* Author: Martin Pecka */
 
-#ifndef MOVEIT_CORE_AABB_H
-#define MOVEIT_CORE_AABB_H
+#ifndef MOVEIT_ROBOT_MODEL_AABB_H
+#define MOVEIT_ROBOT_MODEL_AABB_H
 
 #include <Eigen/Geometry>
 
@@ -54,4 +53,4 @@ public:
 }
 }
 
-#endif  // MOVEIT_CORE_AABB_H
+#endif  // MOVEIT_ROBOT_MODEL_AABB_H

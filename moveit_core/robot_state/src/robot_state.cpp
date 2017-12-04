@@ -1994,37 +1994,37 @@ void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
 {
   BOOST_VERIFY(checkLinkTransforms());
 
-  aabb.clear();
-  core::AABB _aabb;
+  core::AABB bounding_box;
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
-    Eigen::Affine3d t = getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
-    const Eigen::Vector3d& e = links[i]->getShapeExtentsAtOrigin();
-    t.translate(links[i]->getCenteredBoundingBoxOffset());
-    _aabb.extendWithTransformedBox(t, e);
+    Eigen::Affine3d transform = getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
+    const Eigen::Vector3d& extents = links[i]->getShapeExtentsAtOrigin();
+    transform.translate(links[i]->getCenteredBoundingBoxOffset());
+    bounding_box.extendWithTransformedBox(transform, extents);
   }
   for (std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.begin();
        it != attached_body_map_.end(); ++it)
   {
-    const EigenSTL::vector_Affine3d& ts = it->second->getGlobalCollisionBodyTransforms();
-    const std::vector<shapes::ShapeConstPtr>& ss = it->second->getShapes();
-    for (std::size_t i = 0; i < ts.size(); ++i)
+    const EigenSTL::vector_Affine3d& transforms = it->second->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr>& shapes = it->second->getShapes();
+    for (std::size_t i = 0; i < transforms.size(); ++i)
     {
-      Eigen::Vector3d e = shapes::computeShapeExtents(ss[i].get());
-      _aabb.extendWithTransformedBox(ts[i], e);
+      Eigen::Vector3d extents = shapes::computeShapeExtents(shapes[i].get());
+      bounding_box.extendWithTransformedBox(transforms[i], extents);
     }
   }
 
+  aabb.clear();
   aabb.resize(6, 0.0);
-  if (!_aabb.isEmpty())
+  if (!bounding_box.isEmpty())
   {
-    aabb[0] = _aabb.min()[0];
-    aabb[1] = _aabb.max()[0];
-    aabb[2] = _aabb.min()[1];
-    aabb[3] = _aabb.max()[1];
-    aabb[4] = _aabb.min()[2];
-    aabb[5] = _aabb.max()[2];
+    aabb[0] = bounding_box.min()[0];
+    aabb[1] = bounding_box.max()[0];
+    aabb[2] = bounding_box.min()[1];
+    aabb[3] = bounding_box.max()[1];
+    aabb[4] = bounding_box.min()[2];
+    aabb[5] = bounding_box.max()[2];
   }
 }
 

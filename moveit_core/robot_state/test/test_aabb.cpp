@@ -66,11 +66,11 @@ protected:
 
   robot_state::RobotState loadModel(const std::string urdf, const std::string srdf)
   {
-    boost::shared_ptr<urdf::ModelInterface> parsed_urdf(urdf::parseURDF(urdf));
+    urdf::ModelInterfaceSharedPtr parsed_urdf(urdf::parseURDF(urdf));
     if (!parsed_urdf)
       throw std::runtime_error("Cannot parse URDF.");
 
-    boost::shared_ptr<srdf::Model> parsed_srdf(new srdf::Model());
+    srdf::ModelSharedPtr parsed_srdf(new srdf::Model());
     bool srdf_ok = parsed_srdf->initString(*parsed_urdf, srdf);
     if (!srdf_ok)
       throw std::runtime_error("Cannot parse URDF.");
