@@ -46,9 +46,7 @@ namespace move_group
 static const char* DEFAULT_CAPABILITIES[] = {
    "move_group/MoveGroupCartesianPathService",
    "move_group/MoveGroupKinematicsService",
-   "move_group/MoveGroupCartesianPathService",
    "move_group/MoveGroupExecuteTrajectoryAction",
-   "move_group/MoveGroupKinematicsService",
    "move_group/MoveGroupMoveAction",
    "move_group/MoveGroupPickPlaceAction",
    "move_group/MoveGroupPlanService",
