@@ -603,6 +603,11 @@ protected:
   /**
    * @brief Enables kinematics plugins access to parameters that are defined
    * for the 'robot_description_kinematics' namespace.
+   * Parameters are queried in order of the specified group hierarchy.
+   * That is parameters are first searched in the private namespace
+   * then in the subroup namespace and finally in the group namespace.
+   * This order maintains default behavior by keeping the private namespace
+   * as the predominant configuration but also allows groupwise specifications.
    */
   template <typename T>
   inline bool lookupParam(const std::string& param, T& val, const T& default_val) const
