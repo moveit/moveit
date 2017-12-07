@@ -942,6 +942,16 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
   for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator traj_it = context.trajectory_parts_.begin();
        traj_it != context.trajectory_parts_.end(); ++traj_it)
   {
+    if (!traj_it->multi_dof_joint_trajectory.points.empty())
+    {
+      ROS_WARN_NAMED("traj_execution", "Validation of MultiDOFJointTrajectory is not implemented.");
+      // go on to check joint_trajectory component though
+    }
+    if (traj_it->joint_trajectory.points.empty())
+    {
+      // There is nothing to check
+      continue;
+    }
     const std::vector<double>& positions = traj_it->joint_trajectory.points.front().positions;
     const std::vector<std::string>& joint_names = traj_it->joint_trajectory.joint_names;
     const std::size_t n = joint_names.size();
@@ -960,7 +970,6 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         return false;
       }
 
-      // TODO: check multi-DoF joints ?
       double cur_position = current_state->getJointPositions(jm)[0];
       double traj_position = positions[i];
       // normalize positions and compare
