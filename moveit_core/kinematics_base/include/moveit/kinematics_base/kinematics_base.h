@@ -40,8 +40,10 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/MoveItErrorCodes.h>
 #include <moveit/macros/class_forward.h>
-#include <boost/function.hpp>
+#include <ros/node_handle.h>
 #include <console_bridge/console.h>
+
+#include <boost/function.hpp>
 #include <string>
 
 namespace moveit
@@ -597,6 +599,41 @@ protected:
   std::vector<unsigned int> redundant_joint_indices_;
   std::map<int, double> redundant_joint_discretization_;
   std::vector<DiscretizationMethod> supported_methods_;
+
+  /**
+   * @brief Enables kinematics plugins access to parameters that are defined
+   * for the 'robot_description_kinematics' namespace.
+   * Parameters are queried in order of the specified group hierarchy.
+   * That is parameters are first searched in the private namespace
+   * then in the subroup namespace and finally in the group namespace.
+   * This order maintains default behavior by keeping the private namespace
+   * as the predominant configuration but also allows groupwise specifications.
+   */
+  template <typename T>
+  inline bool lookupParam(const std::string& param, T& val, const T& default_val) const
+  {
+    ros::NodeHandle pnh("~");
+    if (pnh.hasParam(param))
+    {
+      val = pnh.param(param, default_val);
+      return true;
+    }
+
+    ros::NodeHandle nh;
+    if (nh.hasParam("robot_description_kinematics/" + group_name_ + "/" + param))
+    {
+      val = nh.param("robot_description_kinematics/" + group_name_ + "/" + param, default_val);
+      return true;
+    }
+
+    if (nh.hasParam("robot_description_kinematics/" + param))
+    {
+      val = nh.param("robot_description_kinematics/" + param, default_val);
+      return true;
+    }
+
+    return false;
+  }
 
 private:
   std::string removeSlash(const std::string& str) const;
