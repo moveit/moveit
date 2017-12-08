@@ -326,7 +326,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   ros::NodeHandle node_handle("~/" + group_name);
 
   std::string robot;
-  node_handle.param("robot", robot, std::string());
+  lookupParam("robot", robot, std::string());
 
   // IKFast56/61
   fillFreeParams(GetNumFreeParameters(), GetFreeParameters());
@@ -348,7 +348,7 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
   std::string xml_string;
 
   std::string urdf_xml, full_urdf_xml;
-  node_handle.param("urdf_xml", urdf_xml, robot_description);
+  lookupParam("urdf_xml", urdf_xml, robot_description);
   node_handle.searchParam(urdf_xml, full_urdf_xml);
 
   ROS_DEBUG_NAMED("ikfast", "Reading xml file from parameter server");
