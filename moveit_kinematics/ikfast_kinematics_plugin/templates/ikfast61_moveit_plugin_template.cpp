@@ -358,7 +358,6 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
     return false;
   }
 
-  node_handle.param(full_urdf_xml, xml_string, std::string());
   robot_model.initString(xml_string);
 
   ROS_DEBUG_STREAM_NAMED("ikfast", "Reading joints and links from URDF");
