@@ -632,6 +632,8 @@ protected:
       return true;
     }
 
+    val = default_val;
+
     return false;
   }
 
