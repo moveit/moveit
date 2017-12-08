@@ -38,6 +38,7 @@
 #define MOVEIT_COLLISION_DETECTION_FCL_COLLISION_ROBOT_
 
 #include <moveit/collision_detection_fcl/collision_common.h>
+#include <moveit/macros/deprecation.h>
 
 namespace collision_detection
 {
@@ -75,13 +76,26 @@ public:
                                    const CollisionRobot& other_robot, const robot_state::RobotState& other_state1,
                                    const robot_state::RobotState& other_state2,
                                    const AllowedCollisionMatrix& acm) const;
-
+  MOVEIT_DEPRECATED
   virtual double distanceSelf(const robot_state::RobotState& state) const;
+
+  MOVEIT_DEPRECATED
   virtual double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
+
+  MOVEIT_DEPRECATED
   virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                const robot_state::RobotState& other_state) const;
+
+  MOVEIT_DEPRECATED
   virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const;
+
+  virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                            const robot_state::RobotState& state) const override;
+
+  virtual void distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                             const CollisionRobot& other_robot,
+                             const robot_state::RobotState& other_state) const override;
 
 protected:
   virtual void updatedPaddingOrScaling(const std::vector<std::string>& links);
@@ -94,9 +108,16 @@ protected:
   void checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                  const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                  const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
+  MOVEIT_DEPRECATED
   double distanceSelfHelper(const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
+
+  MOVEIT_DEPRECATED
   double distanceOtherHelper(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                              const robot_state::RobotState& other_state, const AllowedCollisionMatrix* acm) const;
+
+  void distanceSelfHelper(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state) const;
+  void distanceOtherHelper(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                           const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const;
 
   std::vector<FCLGeometryConstPtr> geoms_;
   std::vector<FCLCollisionObjectConstPtr> fcl_objs_;

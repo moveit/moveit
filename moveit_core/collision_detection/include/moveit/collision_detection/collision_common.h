@@ -45,9 +45,12 @@
 #include <set>
 #include <Eigen/Core>
 #include <console_bridge/console.h>
+#include <moveit/robot_model/robot_model.h>
 
 namespace collision_detection
 {
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
 {
@@ -216,6 +219,185 @@ struct CollisionRequest
 
   /** \brief Flag indicating whether information about detected collisions should be reported */
   bool verbose;
+};
+
+struct DistanceRequest
+{
+  DistanceRequest()
+    : detailed(false)
+    , global(true)
+    , active_components_only(NULL)
+    , acm(NULL)
+    , distance_threshold(std::numeric_limits<double>::max())
+    , verbose(false)
+    , gradient(false)
+  {
+  }
+
+  DistanceRequest(bool detailed, bool global, const std::set<const robot_model::LinkModel*>* active_components_only,
+                  const AllowedCollisionMatrix* acm, double distance_threshold = std::numeric_limits<double>::max())
+    : detailed(detailed)
+    , global(global)
+    , active_components_only(active_components_only)
+    , acm(acm)
+    , distance_threshold(distance_threshold)
+    , verbose(false)
+    , gradient(false)
+  {
+  }
+  DistanceRequest(bool detailed, bool global, const std::set<const robot_model::LinkModel*>& active_components_only,
+                  const AllowedCollisionMatrix& acm, double distance_threshold = std::numeric_limits<double>::max())
+    : detailed(detailed)
+    , global(global)
+    , active_components_only(&active_components_only)
+    , acm(&acm)
+    , distance_threshold(distance_threshold)
+    , verbose(false)
+    , gradient(false)
+  {
+  }
+  DistanceRequest(bool detailed, bool global, const std::string group_name, const AllowedCollisionMatrix* acm,
+                  double distance_threshold = std::numeric_limits<double>::max())
+    : detailed(detailed)
+    , global(global)
+    , group_name(group_name)
+    , active_components_only(NULL)
+    , acm(acm)
+    , distance_threshold(distance_threshold)
+    , verbose(false)
+    , gradient(false)
+  {
+  }
+  DistanceRequest(bool detailed, bool global, const std::string group_name, const AllowedCollisionMatrix& acm,
+                  double distance_threshold = std::numeric_limits<double>::max())
+    : detailed(detailed)
+    , global(global)
+    , group_name(group_name)
+    , active_components_only(NULL)
+    , acm(&acm)
+    , distance_threshold(distance_threshold)
+    , verbose(false)
+    , gradient(false)
+  {
+  }
+
+  virtual ~DistanceRequest()
+  {
+  }
+
+  /// Compute \e active_components_only_ based on \e req_
+  void enableGroup(const robot_model::RobotModelConstPtr& kmodel)
+  {
+    if (kmodel->hasJointModelGroup(group_name))
+      active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsWithGeometrySet();
+    else
+      active_components_only = NULL;
+  }
+
+  /// Indicate if detailed information should be calculated
+  bool detailed;
+
+  /// Indicate if the global minimum should be found
+  bool global;
+
+  std::string group_name;
+
+  /// The set of active components to check
+  const std::set<const robot_model::LinkModel*>* active_components_only;
+
+  /// The allowed collision matrix used to filter checks
+  const AllowedCollisionMatrix* acm;
+
+  /// A distance threshold to reduce number of queries
+  double distance_threshold;
+
+  /// Log debug information
+  bool verbose;
+
+  /// Indicate if gradient should be calculated between each object. This the vector defined by the line connecting the
+  /// closest points on the two objects.
+  bool gradient;
+};
+
+struct DistanceResultsData
+{
+  DistanceResultsData()
+  {
+    clear();
+  }
+
+  /// The minimum distance between two objects. If two objects are in collision, min_distance <= 0.
+  double min_distance;
+
+  /// The nearest points
+  Eigen::Vector3d nearest_points[2];
+
+  /// The object link names
+  std::string link_name[2];
+
+  /// The gradient
+  Eigen::Vector3d gradient;
+
+  /// Indicates if gradient was calculated.
+  bool hasGradient;
+
+  /// Indicates if nearest points were found.
+  bool hasNearestPoints;
+
+  /// Clear structure data
+  void clear()
+  {
+    min_distance = std::numeric_limits<double>::max();
+    nearest_points[0].setZero();
+    nearest_points[1].setZero();
+    link_name[0] = "";
+    link_name[1] = "";
+    gradient.setZero();
+    hasGradient = false;
+    hasNearestPoints = false;
+  }
+
+  /// Update structure data given DistanceResultsData object
+  void update(const DistanceResultsData& results)
+  {
+    min_distance = results.min_distance;
+    nearest_points[0] = results.nearest_points[0];
+    nearest_points[1] = results.nearest_points[1];
+    link_name[0] = results.link_name[0];
+    link_name[1] = results.link_name[1];
+    gradient = results.gradient;
+    hasGradient = results.hasGradient;
+    hasNearestPoints = results.hasNearestPoints;
+  }
+};
+
+typedef std::map<std::string, DistanceResultsData> DistanceMap;
+
+struct DistanceResult
+{
+  DistanceResult() : collision(false)
+  {
+  }
+  virtual ~DistanceResult()
+  {
+  }
+
+  /// Indicates if two objects were in collision
+  bool collision;
+
+  /// The results for the two objects with the minimum distance
+  DistanceResultsData minimum_distance;
+
+  /// A map of distance data for each link in the req.active_components_only
+  DistanceMap distance;
+
+  /// Clear structure data
+  void clear()
+  {
+    collision = false;
+    minimum_distance.clear();
+    distance.clear();
+  }
 };
 }
 
