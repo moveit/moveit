@@ -67,7 +67,6 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
 
   setValues(robot_description, group_name, base_frame, tip_frames, search_discretization);
 
-  ros::NodeHandle private_handle("~");
   rdf_loader::RDFLoader rdf_loader(robot_description_);
   const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
@@ -124,11 +123,10 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
   }
 
   // Choose what ROS service to send IK requests to
-  ROS_DEBUG_STREAM_NAMED("srv", "Looking for ROS service name on rosparm server at location: "
-                                    << private_handle.getNamespace() << "/" << group_name_
+  ROS_DEBUG_STREAM_NAMED("srv", "Looking for ROS service name on rosparam server with param: "
                                     << "/kinematics_solver_service_name");
   std::string ik_service_name;
-  private_handle.param(group_name_ + "/kinematics_solver_service_name", ik_service_name, std::string("solve_ik"));
+  lookupParam("kinematics_solver_service_name", ik_service_name, std::string("solve_ik"));
 
   // Setup the joint state groups that we need
   robot_state_.reset(new robot_state::RobotState(robot_model_));
