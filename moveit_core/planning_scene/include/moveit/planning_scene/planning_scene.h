@@ -721,36 +721,27 @@ public:
     return dres.minimum_distance.min_distance;
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions,
-   * if the robot has no padding. */
-  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req,
-                                   collision_detection::DistanceResult& res,
-                                   const robot_state::RobotState& kstate) const
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions, if the robot has no padding. */
+  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const robot_state::RobotState& kstate) const
   {
     getCollisionWorld()->distanceRobot(req, res, *getCollisionRobotUnpadded(), kstate);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
-   */
-  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res,
-                           const robot_state::RobotState& kstate) const
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions */
+  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const robot_state::RobotState& kstate) const
   {
     getCollisionWorld()->distanceRobot(req, res, *getCollisionRobot(), kstate);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions,
-   * if the robot has no padding. */
-  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req,
-                                   collision_detection::DistanceResult& res, robot_state::RobotState& kstate) const
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions, if the robot has no padding. */
+  void distanceToCollisionUnpadded(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
     getCollisionWorld()->distanceRobot(req, res, *getCollisionRobotUnpadded(), kstate);
   }
 
-  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions
-   */
-  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res,
-                           robot_state::RobotState& kstate) const
+  /** \brief The distance between the robot model at state \e kstate to the nearest collision, ignoring self-collisions */
+  void distanceToCollision(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, robot_state::RobotState& kstate) const
   {
     kstate.updateCollisionBodyTransforms();
     getCollisionWorld()->distanceRobot(req, res, *getCollisionRobot(), kstate);
