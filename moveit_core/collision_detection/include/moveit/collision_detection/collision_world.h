@@ -43,7 +43,6 @@
 #include <moveit/collision_detection/collision_robot.h>
 #include <moveit/collision_detection/world.h>
 #include <moveit/macros/class_forward.h>
-#include <moveit/macros/deprecation.h>
 
 /** \brief Generic interface to collision detection */
 namespace collision_detection
@@ -178,7 +177,6 @@ public:
    *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param verbose Output debug information about distance checks */
-  MOVEIT_DEPRECATED
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
                                bool verbose = false) const = 0;
 
@@ -188,36 +186,18 @@ public:
    *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always
    * allowed to be in collision.
    *  @param verbose Output debug information about distance checks */
-  MOVEIT_DEPRECATED
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
                                const AllowedCollisionMatrix& acm, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world)
    *  @param verbose Output debug information about distance checks */
-  MOVEIT_DEPRECATED
   virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
    * that are allowed to collide (as specified by \e acm)
    *  @param verbose Output debug information about distance checks */
-  MOVEIT_DEPRECATED
   virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
                                bool verbose = false) const = 0;
-
-  /** \brief Compute the distance between a robot and the world
-   *  @param req A DistanceRequest object that encapsulates the distance request
-   *  @param res A DistanceResult object that encapsulates the distance result
-   *  @param robot The robot to check distance for
-   *  @param state The state for the robot to check distances from */
-  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
-                             const robot_state::RobotState& state) const = 0;
-
-  /** \brief Compute the distance between another world
-   *  @param req A DistanceRequest object that encapsulates the distance request
-   *  @param res A DistanceResult object that encapsulates the distance result
-   *  @param world The world to check distance for */
-  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const = 0;
-
   /** set the world to use.
    * This can be expensive unless the new and old world are empty.
    * Passing NULL will result in a new empty world being created. */

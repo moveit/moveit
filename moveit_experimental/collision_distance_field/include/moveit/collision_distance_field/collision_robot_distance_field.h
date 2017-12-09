@@ -173,19 +173,6 @@ public:
     return 0.0;
   };
 
-  virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                            const robot_state::RobotState& state) const
-  {
-    logWarn("Not implemented");
-  }
-
-  virtual void distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
-                             const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const
-  {
-    logWarn("Not implemented");
-  }
-
-
   DistanceFieldCacheEntryConstPtr getLastDistanceFieldEntry() const
   {
     return distance_field_cache_entry_;
