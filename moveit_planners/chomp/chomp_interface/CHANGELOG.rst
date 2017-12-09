@@ -2,6 +2,12 @@
 Changelog for package chomp_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [package.xml] Update maintainers (Add a release-maintainer etc.)
+  For the reasoning, see https://github.com/ros-planning/moveit/issues/259
+* Contributors: Isaac I.Y. Saito
+
 0.9.9 (2017-08-06)
 ------------------
 * [improve] Chomp use PlanningScene (`#546 <https://github.com/ros-planning/moveit/issues/546>`_) to partially address `#305 <https://github.com/ros-planning/moveit/issues/305>`_
