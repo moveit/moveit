@@ -261,6 +261,23 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
   return result;
 }
 
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
+{
+  ros::WallTime start = ros::WallTime::now();
+  ros::WallDuration elapsed(0, 0);
+  ros::WallDuration timeout(wait_time);
+
+  boost::mutex::scoped_lock lock(state_update_lock_);
+  while (current_state_time_ < t)
+  {
+    state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
+    elapsed = ros::WallTime::now() - start;
+    if (elapsed > timeout)
+      return false;
+  }
+  return true;
+}
+
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
 {
   double slept_time = 0.0;
@@ -394,4 +411,8 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
   if (update)
     for (std::size_t i = 0; i < update_callbacks_.size(); ++i)
       update_callbacks_[i](joint_state);
+
+
+  // notify waitForCurrentState() *after* potential update callbacks
+  state_update_condition_.notify_all();
 }
