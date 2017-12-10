@@ -26,7 +26,8 @@ catkin_package(
     moveit_ros_warehouse
 )
 
-include_directories(benchmarks/include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} )
+link_directories(${catkin_LIBRARY_DIRS})
 
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
