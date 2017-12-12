@@ -1491,9 +1491,10 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
 
     // check for motion in effected joints of execution context
     bool moved = false;
-    for (const auto &trajectory : context.trajectory_parts_)
+    for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator trajectory = context.trajectory_parts_.begin();
+	 trajectory != context.trajectory_parts_.end(); ++trajectory)
     {
-      const std::vector<std::string> &joint_names = trajectory.joint_trajectory.joint_names;
+      const std::vector<std::string> &joint_names = trajectory->joint_trajectory.joint_names;
       const std::size_t n = joint_names.size();
 
       for (std::size_t i = 0; i < n && !moved; ++i)
