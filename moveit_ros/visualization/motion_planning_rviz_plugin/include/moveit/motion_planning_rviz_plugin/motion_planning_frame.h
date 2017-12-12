@@ -226,6 +226,8 @@ private:
   void configureWorkspace();
   void updateQueryStateHelper(robot_state::RobotState& state, const std::string& v);
   void fillStateSelectionOptions();
+  void useStartStateButtonExec();
+  void useGoalStateButtonExec();
 
   // Scene objects tab
   void addObject(const collision_detection::WorldPtr& world, const std::string& id, const shapes::ShapeConstPtr& shape,
