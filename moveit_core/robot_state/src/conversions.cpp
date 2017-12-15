@@ -401,7 +401,7 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
 
 void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
     const std::vector<const AttachedBody*>& attached_bodies,
-    std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs)
+    std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs)
 {
   attached_collision_objs.resize(attached_bodies.size());
   for (std::size_t i = 0; i < attached_bodies.size(); ++i)
