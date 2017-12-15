@@ -766,9 +766,8 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
       }
       else
       {
-        moveit_msgs::CollisionObject co;
-        getCollisionObjectMsg(co, it->first);
-        scene_msg.world.collision_objects.push_back(co);
+        scene_msg.world.collision_objects.emplace_back();
+        getCollisionObjectMsg(scene_msg.world.collision_objects.back(), it->first);
       }
     }
     if (do_omap)
@@ -856,9 +855,8 @@ void planning_scene::PlanningScene::getCollisionObjectMsgs(
   for (std::size_t i = 0; i < ns.size(); ++i)
     if (ns[i] != OCTOMAP_NS)
     {
-      moveit_msgs::CollisionObject co;
-      getCollisionObjectMsg(co, ns[i]);
-      collision_objs.push_back(co);
+      collision_objs.emplace_back();
+      getCollisionObjectMsg(collision_objs.back(), ns[i]);
     }
 }
 
