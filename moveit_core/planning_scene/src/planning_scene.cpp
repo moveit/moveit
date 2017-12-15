@@ -848,7 +848,7 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(moveit_msgs::Collision
   return true;
 }
 
-bool planning_scene::PlanningScene::getCollisionObjectMsgs(
+void planning_scene::PlanningScene::getCollisionObjectMsgs(
     std::vector<moveit_msgs::CollisionObject>& collision_objs) const
 {
   collision_objs.clear();
@@ -860,11 +860,6 @@ bool planning_scene::PlanningScene::getCollisionObjectMsgs(
       getCollisionObjectMsg(co, ns[i]);
       collision_objs.push_back(co);
     }
-
-  if (collision_objs.size() < 1)
-    return false;
-  else
-    return true;
 }
 
 bool planning_scene::PlanningScene::getAttachedCollisionObjectMsg(
@@ -883,16 +878,12 @@ bool planning_scene::PlanningScene::getAttachedCollisionObjectMsg(
   return false;
 }
 
-bool planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(
+void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(
     std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const
 {
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
   getCurrentState().getAttachedBodies(attached_bodies);
   attachedBodiesToAttachedCollisionObjectMsgs(attached_bodies, attached_collision_objs);
-  if (attached_collision_objs.size() < 1)
-    return false;
-  else
-    return true;
 }
 
 bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
@@ -910,14 +901,12 @@ bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose&
       tf::poseEigenToMsg(map->shape_poses_[0], octomap.origin);
       return true;
     }
-    else
-      logError("Unexpected number of shapes in octomap collision object. Not including '%s' object",
-               OCTOMAP_NS.c_str());
-    return false;
+    logError("Unexpected number of shapes in octomap collision object. Not including '%s' object", OCTOMAP_NS.c_str());
   }
+  return false;
 }
 
-bool planning_scene::PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const
+void planning_scene::PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const
 {
   object_colors.clear();
 
@@ -930,10 +919,6 @@ bool planning_scene::PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::
     object_colors[i].id = it->first;
     object_colors[i].color = it->second;
   }
-  if (object_colors.size() < 1)
-    return false;
-  else
-    return true;
 }
 
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const
