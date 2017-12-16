@@ -128,22 +128,26 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     double position_error = delta_twist.vel.Norm();
     double orientation_error = position_ik ? 0 : delta_twist.rot.Norm();
     double delta_twist_err = std::max(position_error, orientation_error);
-    if (delta_twist_err <= eps) {
+    if (delta_twist_err <= eps)
+    {
       success = true;
       break;
     }
 
-    if (delta_twist_err >= last_delta_twist_err) {
+    if (delta_twist_err >= last_delta_twist_err)
+    {
       // if the error increased, we are close to a singularity -> reduce step size
       double old_step_size = step_size;
-      step_size *= 0.5; // reduce scale;
+      step_size *= 0.5;  // reduce scale;
       Multiply(delta_q, step_size / old_step_size, delta_q);
       ROS_INFO_NAMED("kdl", "error increased: %f -> %f, scale: %f", last_delta_twist_err, delta_twist_err, step_size);
-      q_out = q_temp; // restore previous unclipped joint values
+      q_out = q_temp;  // restore previous unclipped joint values
       if (step_size < eps)
-        break; // cannot reach target
-    } else {
-      q_temp = q_out; // remember joint values of last successful step
+        break;  // cannot reach target
+    }
+    else
+    {
+      q_temp = q_out;  // remember joint values of last successful step
       last_delta_twist_err = delta_twist_err;
 
       delta_twist = delta_twist * step_size;
@@ -155,7 +159,7 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
         ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_twist(i));
 
       if (delta_q_norm < eps)
-        break; // cannot reach target
+        break;  // cannot reach target
     }
     Add(q_out, delta_q, q_out);
 
@@ -187,7 +191,8 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
   return result;
 }
 
-int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray &q_init, const Frame &p_in, JntArray &q_out, bool lock_redundant_joints)
+int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, const Frame& p_in, JntArray& q_out,
+                                                    bool lock_redundant_joints)
 {
   return CartToJnt(q_init, p_in, q_out);
 }
