@@ -505,7 +505,8 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       {
         ROS_DEBUG_NAMED("kdl", "Could not find IK solution: does not match consistency limits");
       }
-      else {
+      else
+      {
         for (unsigned int j = 0; j < dimension_; j++)
           solution[j] = jnt_pos_out(j);
         if (!solution_callback.empty())
@@ -521,7 +522,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
         }
       }
     }
-    if (ik_valid == -2) // don't change seed when target is not reachable
+    if (ik_valid == -2)  // don't change seed when target is not reachable
       break;
 
     // either we didn't find a solution or the solution callback rejected it: try another seed
