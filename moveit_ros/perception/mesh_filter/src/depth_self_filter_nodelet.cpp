@@ -214,5 +214,4 @@ void mesh_filter::DepthSelfFiltering::depthCb(const sensor_msgs::ImageConstPtr& 
 }
 
 #include <pluginlib/class_list_macros.h>
-// PLUGINLIB_DECLARE_CLASS (mesh_filter, DepthSelfFiltering, mesh_filter::DepthSelfFiltering, nodelet::Nodelet)
-PLUGINLIB_EXPORT_CLASS(mesh_filter::DepthSelfFiltering, nodelet::Nodelet);
+PLUGINLIB_EXPORT_CLASS(mesh_filter::DepthSelfFiltering, nodelet::Nodelet)
