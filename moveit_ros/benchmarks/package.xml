@@ -8,7 +8,7 @@
 
   <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
-
+  <license>BSD</license>
   <url type="website">http://moveit.ros.org</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit</url>
