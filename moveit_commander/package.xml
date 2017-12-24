@@ -3,8 +3,11 @@
   <version>0.7.12</version>
   <description>Python interfaces to MoveIt</description>
 
-  <author email="isucan@willowgarage.com">Ioan Sucan</author>
-  <maintainer email="isucan@willowgarage.com">Ioan Sucan</maintainer>
+  <author email="isucan@google.com">Ioan Sucan</author>
+
+  <maintainer email="me@v4hn.de">Michael Görner</maintainer>
+  <maintainer email="rhaschke@techfak.uni-bielefeld.de">Robert Haschke</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>
 

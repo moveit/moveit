@@ -2,8 +2,11 @@
   <name>moveit_fake_controller_manager</name>
   <version>0.7.12</version>
   <description>A fake controller manager plugin for MoveIt.</description>
-  <author email="isucan@gmail.com">Ioan Sucan</author>
-  <maintainer email="isucan@gmail.com">Ioan Sucan</maintainer>
+
+  <author email="isucan@google.com">Ioan Sucan</author>
+
+  <maintainer email="me@v4hn.de">Michael Görner</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
 
   <license>BSD</license>
 

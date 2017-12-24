@@ -1,14 +1,14 @@
 <package>
   <name>moveit_ros_benchmarks</name>
   <version>0.7.12</version>
-  <description>MoveIt tools for benchmarking</description>
 
-  <author email="isucan@google.com">Ioan Sucan</author>
-  <maintainer email="isucan@google.com">Ioan Sucan</maintainer>
-  <maintainer email="mferguson@fetchrobotics.com">Michael Ferguson</maintainer>
+  <description>Enhanced tools for benchmarks in MoveIt!</description>
 
+  <author email="rluna@rice.edu">Ryan Luna</author>
+
+  <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
   <license>BSD</license>
-
   <url type="website">http://moveit.ros.org</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit</url>
