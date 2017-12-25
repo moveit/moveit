@@ -2,8 +2,8 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.13 (2017-12-25)
+-------------------
 * [fix] remove explicit fcl depends `#632 <https://github.com/ros-planning/moveit/pull/632>`_
 * Contributors: v4hn
 

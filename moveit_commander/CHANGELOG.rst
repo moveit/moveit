@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.13 (2017-12-25)
+-------------------
 * [fix] Bugs in moveit_commander/robot.py (`#621 <https://github.com/ros-planning/moveit/issues/621>`_)
 * [fix] pyassimp regression workaround  (`#581 <https://github.com/ros-planning/moveit/issues/581>`_)
 * Contributors: Kei Okada, Konstantin Selyunin
