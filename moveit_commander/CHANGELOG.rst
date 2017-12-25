@@ -2,6 +2,12 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] Bugs in moveit_commander/robot.py (`#621 <https://github.com/ros-planning/moveit/issues/621>`_)
+* [fix] pyassimp regression workaround  (`#581 <https://github.com/ros-planning/moveit/issues/581>`_)
+* Contributors: Kei Okada, Konstantin Selyunin
+
 0.7.12 (2017-08-06)
 -------------------
 * [fix] numpy.ndarray indices bug (`#563 <https://github.com/ros-planning/moveit/issues/563>`_, from `#86 <https://github.com/ros-planning/moveit/issues/86>`_, `#450 <https://github.com/ros-planning/moveit/issues/450>`_)

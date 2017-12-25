@@ -2,6 +2,12 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [fix] add moveit_fake_controller_manager to run_depend of moveit_config_pkg_template/package.xml.template (`#613 <https://github.com/ros-planning/moveit/issues/613>`_)
+* [fix] find and link against tinyxml where needed (`#569 <https://github.com/ros-planning/moveit/issues/569>`_)
+* Contributors: Kei Okada, Michael Görner, Mikael Arguedas, William Woodall
+
 0.7.12 (2017-08-06)
 -------------------
 * [enhancement] support loading xacros that use Jade+ extensions on Indigo `#540 <https://github.com/ros-planning/moveit/issues/540>`_
