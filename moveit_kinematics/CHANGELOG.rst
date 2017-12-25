@@ -2,6 +2,17 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#714 <https://github.com/ros-planning/moveit/issues/714>`_ from henhenhen/kinetic-devel_lookup-param
+  Use lookupParam() in kinematics plugins
+* Replace param() with lookupParam() in srv_kinematics_plugin
+* Replace param() with lookupParam() in lma_kinematics_plugin
+* Replace param() with lookupParam() in kdl_kinematics_plugin
+* Replace param() with lookupParam() in ikfast_kinematics_plugin
+* Remove redundant parameter query
+* Contributors: Henning Kayser, Isaac I.Y. Saito
+
 0.9.10 (2017-12-09)
 -------------------
 * [fix][kinetic onward] Fix create_ikfast_moveit_plugin to comply with format 2 of the package.xml. Remove collada_urdf dependency `#666 <https://github.com/ros-planning/moveit/pull/666>`_
