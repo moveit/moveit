@@ -182,10 +182,7 @@ public:
   }
 
   /** \brief Get the offset of the center of the bounding box of this link when the link is positioned at origin. */
-  const Eigen::Vector3d& getCenteredBoundingBoxOffset() const
-  {
-    return centered_bounding_box_offset_;
-  }
+  const Eigen::Vector3d getCenteredBoundingBoxOffset() const;
 
   /** \brief Get the set of links that are attached to this one via fixed transforms */
   const LinkTransformMap& getAssociatedFixedTransforms() const
@@ -256,9 +253,6 @@ private:
 
   /** \brief The extents of shape (dimensions of axis aligned bounding box when shape is at origin). */
   Eigen::Vector3d shape_extents_;
-
-  /** \brief Center of the axis aligned bounding box with size shape_extents_ (zero if symmetric along all axes). */
-  Eigen::Vector3d centered_bounding_box_offset_;
 
   /** \brief Filename associated with the visual geometry mesh of this link. If empty, no mesh was used. */
   std::string visual_mesh_filename_;
