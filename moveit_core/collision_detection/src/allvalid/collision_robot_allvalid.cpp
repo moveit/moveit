@@ -51,7 +51,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -60,7 +60,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -69,7 +69,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -79,7 +79,7 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -89,7 +89,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -100,7 +100,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -112,7 +112,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -125,7 +125,7 @@ void collision_detection::CollisionRobotAllValid::checkOtherCollision(const Coll
 {
   res.collision = false;
   if (req.verbose)
-    logInform("Using AllValid collision detection. No collision checking is performed.");
+    CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
 }
 
 double collision_detection::CollisionRobotAllValid::distanceSelf(const robot_state::RobotState& state) const

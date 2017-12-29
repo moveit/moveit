@@ -1,0 +1,12 @@
+---
+Checks:          'clang-diagnostic-*,-readability-*,performance-*, modernize-*,'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+CheckOptions:
+  - key:             llvm-namespace-comment.ShortNamespaceLines
+    value:           '10'
+  - key:             llvm-namespace-comment.SpacesBeforeComments
+    value:           '2'
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           '2'
+...

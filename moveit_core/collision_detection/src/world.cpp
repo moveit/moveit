@@ -64,7 +64,8 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
 {
   if (shapes.size() != poses.size())
   {
-    logError("Number of shapes and number of poses do not match. Not adding this object to collision world.");
+    CONSOLE_BRIDGE_logError("Number of shapes and number of poses do not match. Not adding this object to collision "
+                            "world.");
     return;
   }
 
@@ -109,14 +110,14 @@ void collision_detection::World::addToObject(const std::string& id, const shapes
 std::vector<std::string> collision_detection::World::getObjectIds() const
 {
   std::vector<std::string> id;
-  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
-    id.push_back(it->first);
+  for (const auto& object : objects_)
+    id.push_back(object.first);
   return id;
 }
 
 collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string& id) const
 {
-  std::map<std::string, ObjectPtr>::const_iterator it = objects_.find(id);
+  auto it = objects_.find(id);
   if (it == objects_.end())
     return ObjectConstPtr();
   else
@@ -137,7 +138,7 @@ bool collision_detection::World::hasObject(const std::string& id) const
 bool collision_detection::World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape,
                                                    const Eigen::Affine3d& pose)
 {
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
+  auto it = objects_.find(id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -156,7 +157,7 @@ bool collision_detection::World::moveShapeInObject(const std::string& id, const 
 
 bool collision_detection::World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
 {
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
+  auto it = objects_.find(id);
   if (it != objects_.end())
   {
     unsigned int n = it->second->shapes_.size();
@@ -184,7 +185,7 @@ bool collision_detection::World::removeShapeFromObject(const std::string& id, co
 
 bool collision_detection::World::removeObject(const std::string& id)
 {
-  std::map<std::string, ObjectPtr>::iterator it = objects_.find(id);
+  auto it = objects_.find(id);
   if (it != objects_.end())
   {
     notify(it->second, DESTROY);
@@ -202,14 +203,14 @@ void collision_detection::World::clearObjects()
 
 collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
 {
-  Observer* o = new Observer(callback);
+  auto o = new Observer(callback);
   observers_.push_back(o);
   return ObserverHandle(o);
 }
 
 void collision_detection::World::removeObserver(ObserverHandle observer_handle)
 {
-  for (std::vector<Observer*>::iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+  for (auto obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
     if (*obs == observer_handle.observer_)
     {
@@ -234,13 +235,13 @@ void collision_detection::World::notify(const ObjectConstPtr& obj, Action action
 
 void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
-  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+  for (auto observer : observers_)
   {
-    if (*obs == observer_handle.observer_)
+    if (observer == observer_handle.observer_)
     {
       // call the callback for each object
-      for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin(); obj != objects_.end(); ++obj)
-        (*obs)->callback_(obj->second, action);
+      for (const auto& object : objects_)
+        observer->callback_(object.second, action);
       break;
     }
   }
