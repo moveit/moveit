@@ -67,8 +67,9 @@ static inline bool validatePadding(double padding)
   return true;
 }
 
-collision_detection::CollisionRobot::CollisionRobot(robot_model::RobotModelConstPtr model, double padding, double scale)
-  : robot_model_(std::move(model))
+collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model,  // NOLINT
+                                                    double padding, double scale)
+  : robot_model_(model)
 {
   if (!validateScale(scale))
     scale = 1.0;
