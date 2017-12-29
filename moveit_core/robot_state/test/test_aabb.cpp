@@ -34,6 +34,7 @@
 
 /* Author: Martin Pecka */
 
+#include <moveit/robot_model/aabb.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_resources/config.h>
@@ -51,7 +52,6 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <geometric_shapes/shape_operations.h>
-#include <moveit/robot_model/aabb.h>
 #endif
 
 class TestAABB : public testing::Test
@@ -143,6 +143,22 @@ TEST_F(TestAABB, TestPR2)
   EXPECT_NEAR(pr2_aabb[3], 0.6682 / 2, 1e-4);
   EXPECT_NEAR(pr2_aabb[4], 0.0044, 1e-4);
   EXPECT_NEAR(pr2_aabb[5], 1.6328, 1e-4);
+
+  // Test a specific link known to have some global rotation in the default pose
+
+  const moveit::core::LinkModel* link = pr2_state.getLinkModel("l_forearm_link");
+  Eigen::Affine3d transform = pr2_state.getGlobalLinkTransform(link);  // intentional copy, we will translate
+  const Eigen::Vector3d& extents = link->getShapeExtentsAtOrigin();
+  transform.translate(link->getCenteredBoundingBoxOffset());
+  moveit::core::AABB aabb;
+  aabb.extendWithTransformedBox(transform, extents);
+
+  EXPECT_NEAR(aabb.center()[0], 0.5394, 1e-4);
+  EXPECT_NEAR(aabb.center()[1], 0.1880, 1e-4);
+  EXPECT_NEAR(aabb.center()[2], 1.1665, 1e-4);
+  EXPECT_NEAR(aabb.sizes()[0], 0.2209, 1e-4);
+  EXPECT_NEAR(aabb.sizes()[1], 0.1201, 1e-4);
+  EXPECT_NEAR(aabb.sizes()[2], 0.2901, 1e-4);
 
 #if VISUALIZE_PR2_RVIZ
   std::cout << "Overall bounding box of PR2:" << std::endl;
