@@ -38,30 +38,20 @@
 
 void moveit::core::AABB::extendWithTransformedBox(const Eigen::Affine3d& transform, const Eigen::Vector3d& box)
 {
-  Eigen::Vector3d center = box / 2.0;
-  Eigen::Vector3d maxCorner = transform * center;
-  center = -center;
-  Eigen::Vector3d minCorner = transform * center;
+  // Method adapted from FCL src/shape/geometric_shapes_utility.cpp#computeBV<AABB, Box>(...) (BSD-licensed code):
+  // https://github.com/flexible-collision-library/fcl/blob/fcl-0.4/src/shape/geometric_shapes_utility.cpp#L292
+  // We don't call their code because it would need creating temporary objects, and their method is in floats.
+  //
+  // Here's a nice explanation why it works: https://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
 
-  // minCorner is the minimum corner and maxCorner is the maximum corner before applying transform;
-  // but the transform can make another corner maximum/minimum in the AABB frame, so we need to check for all 8 corners
+  const Eigen::Matrix3d& R = transform.rotation();
+  const Eigen::Vector3d& T = transform.translation();
 
-  // now we walk around all the box's 8 vertices by changing 1 coordinate a time
-  Eigen::Vector3d corner = maxCorner;
-  extend(corner);
-  corner[0] = minCorner[0];
-  extend(corner);
-  corner[1] = minCorner[1];
-  extend(corner);
-  corner[2] = minCorner[2];  // corner == minCorner
-  extend(corner);
+  double x_range = 0.5 * (fabs(R(0, 0) * box[0]) + fabs(R(0, 1) * box[1]) + fabs(R(0, 2) * box[2]));
+  double y_range = 0.5 * (fabs(R(1, 0) * box[0]) + fabs(R(1, 1) * box[1]) + fabs(R(1, 2) * box[2]));
+  double z_range = 0.5 * (fabs(R(2, 0) * box[0]) + fabs(R(2, 1) * box[1]) + fabs(R(2, 2) * box[2]));
 
-  corner[1] = maxCorner[1];
-  extend(corner);
-  corner[0] = maxCorner[0];
-  extend(corner);
-  corner[1] = minCorner[1];
-  extend(corner);
-  corner[2] = maxCorner[2];
-  extend(corner);
+  const Eigen::Vector3d v_delta(x_range, y_range, z_range);
+  extend(T + v_delta);
+  extend(T - v_delta);
 }
