@@ -32,7 +32,7 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/** \author Martin Pecka*/
+/* Author: Martin Pecka */
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
@@ -41,6 +41,18 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
+
+// To visualize bbox of the PR2, set this to 1.
+#ifndef VISUALIZE_PR2_RVIZ
+#define VISUALIZE_PR2_RVIZ 0
+#endif
+
+#if VISUALIZE_PR2_RVIZ
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
+#include <geometric_shapes/shape_operations.h>
+#include <moveit/robot_model/aabb.h>
+#endif
 
 class TestAABB : public testing::Test
 {
@@ -126,20 +138,141 @@ TEST_F(TestAABB, TestPR2)
   ASSERT_EQ(pr2_aabb.size(), 6);
 
   EXPECT_NEAR(pr2_aabb[0], -0.3376, 1e-4);
-  EXPECT_NEAR(pr2_aabb[1], 0.6397, 1e-4);
+  EXPECT_NEAR(pr2_aabb[1], 0.6499, 1e-4);
   EXPECT_NEAR(pr2_aabb[2], -0.6682 / 2, 1e-4);
   EXPECT_NEAR(pr2_aabb[3], 0.6682 / 2, 1e-4);
   EXPECT_NEAR(pr2_aabb[4], 0.0044, 1e-4);
   EXPECT_NEAR(pr2_aabb[5], 1.6328, 1e-4);
 
-  // To visualize bbox of the PR2, you can uncomment this code.
-  /*
-  for (std::size_t i = 0; i < 3; ++i) {
-    double dim = pr2_aabb[2*i+1] - pr2_aabb[2*i];
-    double center = dim/2;
-    std::cout << dim << ", " << (pr2_aabb[2*i+1] - center) << std::endl;
+#if VISUALIZE_PR2_RVIZ
+  std::cout << "Overall bounding box of PR2:" << std::endl;
+  std::string dims[] = { "x", "y", "z" };
+  for (std::size_t i = 0; i < 3; ++i)
+  {
+    double dim = pr2_aabb[2 * i + 1] - pr2_aabb[2 * i];
+    double center = dim / 2;
+    std::cout << dims[i] << ": size=" << dim << ", offset=" << (pr2_aabb[2 * i + 1] - center) << std::endl;
   }
-  // */
+
+  // Initialize a ROS publisher
+  char* argv[0];
+  int argc = 0;
+  ros::init(argc, argv, "visualize_pr2");
+  ros::NodeHandle nh;
+  ros::Publisher pub_aabb = nh.advertise<visualization_msgs::Marker>("/visualization_aabb", 10);
+  ros::Publisher pub_obb = nh.advertise<visualization_msgs::Marker>("/visualization_obb", 10);
+
+  // Wait for the publishers to establish connections
+  sleep(5);
+
+  // Prepare the ROS message we will reuse throughout the rest of the function.
+  visualization_msgs::Marker msg;
+  msg.header.frame_id = pr2_state.getRobotModel()->getRootLinkName();
+  msg.type = visualization_msgs::Marker::CUBE;
+  msg.color.a = 0.5;
+  msg.lifetime.sec = 3000;
+
+  // Publish the AABB of the whole model
+  msg.ns = "pr2";
+  msg.pose.position.x = (pr2_aabb[0] + pr2_aabb[1]) / 2;
+  msg.pose.position.y = (pr2_aabb[2] + pr2_aabb[3]) / 2;
+  msg.pose.position.z = (pr2_aabb[4] + pr2_aabb[5]) / 2;
+  msg.pose.orientation.x = msg.pose.orientation.y = msg.pose.orientation.z = 0;
+  msg.pose.orientation.w = 1;
+  msg.scale.x = pr2_aabb[1] - pr2_aabb[0];
+  msg.scale.y = pr2_aabb[3] - pr2_aabb[2];
+  msg.scale.z = pr2_aabb[5] - pr2_aabb[4];
+  pub_aabb.publish(msg);
+
+  // Publish BBs for all links
+  std::vector<const moveit::core::LinkModel*> links = pr2_state.getRobotModel()->getLinkModelsWithCollisionGeometry();
+  for (std::size_t i = 0; i < links.size(); ++i)
+  {
+    Eigen::Affine3d transform = pr2_state.getGlobalLinkTransform(links[i]);  // intentional copy, we will translate
+    const Eigen::Vector3d& extents = links[i]->getShapeExtentsAtOrigin();
+    transform.translate(links[i]->getCenteredBoundingBoxOffset());
+    moveit::core::AABB aabb;
+    aabb.extendWithTransformedBox(transform, extents);
+
+    // Publish AABB
+    msg.ns = links[i]->getName();
+    msg.pose.position.x = transform.translation()[0];
+    msg.pose.position.y = transform.translation()[1];
+    msg.pose.position.z = transform.translation()[2];
+    msg.pose.orientation.x = msg.pose.orientation.y = msg.pose.orientation.z = 0;
+    msg.pose.orientation.w = 1;
+    msg.color.r = 1;
+    msg.color.b = 0;
+    msg.scale.x = aabb.sizes()[0];
+    msg.scale.y = aabb.sizes()[1];
+    msg.scale.z = aabb.sizes()[2];
+    pub_aabb.publish(msg);
+
+    // Publish OBB (oriented BB)
+    msg.ns += "-obb";
+    msg.pose.position.x = transform.translation()[0];
+    msg.pose.position.y = transform.translation()[1];
+    msg.pose.position.z = transform.translation()[2];
+    msg.scale.x = extents[0];
+    msg.scale.y = extents[1];
+    msg.scale.z = extents[2];
+    msg.color.r = 0;
+    msg.color.b = 1;
+    Eigen::Quaterniond q(transform.rotation());
+    msg.pose.orientation.x = q.x();
+    msg.pose.orientation.y = q.y();
+    msg.pose.orientation.z = q.z();
+    msg.pose.orientation.w = q.w();
+    pub_obb.publish(msg);
+  }
+
+  // Publish BBs for all attached bodies
+  std::vector<const moveit::core::AttachedBody*> attached_bodies;
+  pr2_state.getAttachedBodies(attached_bodies);
+  for (std::vector<const moveit::core::AttachedBody*>::const_iterator it = attached_bodies.begin();
+       it != attached_bodies.end(); ++it)
+  {
+    const EigenSTL::vector_Affine3d& transforms = (*it)->getGlobalCollisionBodyTransforms();
+    const std::vector<shapes::ShapeConstPtr>& shapes = (*it)->getShapes();
+    for (std::size_t i = 0; i < transforms.size(); ++i)
+    {
+      Eigen::Vector3d extents = shapes::computeShapeExtents(shapes[i].get());
+      moveit::core::AABB aabb;
+      aabb.extendWithTransformedBox(transforms[i], extents);
+
+      // Publish AABB
+      msg.ns = (*it)->getName() + boost::lexical_cast<std::string>(i);
+      msg.pose.position.x = transforms[i].translation()[0];
+      msg.pose.position.y = transforms[i].translation()[1];
+      msg.pose.position.z = transforms[i].translation()[2];
+      msg.pose.orientation.x = msg.pose.orientation.y = msg.pose.orientation.z = 0;
+      msg.pose.orientation.w = 1;
+      msg.color.r = 1;
+      msg.color.b = 0;
+      msg.scale.x = aabb.sizes()[0];
+      msg.scale.y = aabb.sizes()[1];
+      msg.scale.z = aabb.sizes()[2];
+      pub_aabb.publish(msg);
+
+      // Publish OBB (oriented BB)
+      msg.ns += "-obb";
+      msg.pose.position.x = transforms[i].translation()[0];
+      msg.pose.position.y = transforms[i].translation()[1];
+      msg.pose.position.z = transforms[i].translation()[2];
+      msg.scale.x = extents[0];
+      msg.scale.y = extents[1];
+      msg.scale.z = extents[2];
+      msg.color.r = 0;
+      msg.color.b = 1;
+      Eigen::Quaterniond q(transforms[i].rotation());
+      msg.pose.orientation.x = q.x();
+      msg.pose.orientation.y = q.y();
+      msg.pose.orientation.z = q.z();
+      msg.pose.orientation.w = q.w();
+      pub_obb.publish(msg);
+    }
+  }
+#endif
 }
 
 TEST_F(TestAABB, TestSimple)
