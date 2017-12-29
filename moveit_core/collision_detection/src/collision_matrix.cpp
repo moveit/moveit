@@ -204,8 +204,8 @@ void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& na
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
                                                            const std::vector<std::string>& names2, bool allowed)
 {
-  for (const auto& i : names1)
-    setEntry(i, names2, allowed);
+  for (const auto& name1 : names1)
+    setEntry(name1, names2, allowed);
 }
 
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name, bool allowed)
