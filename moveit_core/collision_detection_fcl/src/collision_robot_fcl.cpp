@@ -105,11 +105,11 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
   // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
-  for (auto& j : ab)
+  for (auto& body : ab)
   {
     std::vector<FCLGeometryConstPtr> objs;
-    getAttachedBodyObjects(j, objs);
-    const EigenSTL::vector_Affine3d& ab_t = j->getGlobalCollisionBodyTransforms();
+    getAttachedBodyObjects(body, objs);
+    const EigenSTL::vector_Affine3d& ab_t = body->getGlobalCollisionBodyTransforms();
     for (std::size_t k = 0; k < objs.size(); ++k)
       if (objs[k]->collision_geometry_)
       {
