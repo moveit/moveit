@@ -65,7 +65,7 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, c
                                          const ros::Duration& lifetime)
 {
   int id = 0;
-  for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+  for (const auto& cost_source : cost_sources)
   {
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
@@ -74,16 +74,16 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, c
     mk.id = id++;
     mk.type = visualization_msgs::Marker::CUBE;
     mk.action = visualization_msgs::Marker::ADD;
-    mk.pose.position.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
-    mk.pose.position.y = (it->aabb_max[1] + it->aabb_min[1]) / 2.0;
-    mk.pose.position.z = (it->aabb_max[2] + it->aabb_min[2]) / 2.0;
+    mk.pose.position.x = (cost_source.aabb_max[0] + cost_source.aabb_min[0]) / 2.0;
+    mk.pose.position.y = (cost_source.aabb_max[1] + cost_source.aabb_min[1]) / 2.0;
+    mk.pose.position.z = (cost_source.aabb_max[2] + cost_source.aabb_min[2]) / 2.0;
     mk.pose.orientation.x = 0.0;
     mk.pose.orientation.y = 0.0;
     mk.pose.orientation.z = 0.0;
     mk.pose.orientation.w = 1.0;
-    mk.scale.x = it->aabb_max[0] - it->aabb_min[0];
-    mk.scale.y = it->aabb_max[1] - it->aabb_min[1];
-    mk.scale.z = it->aabb_max[2] - it->aabb_min[2];
+    mk.scale.x = cost_source.aabb_max[0] - cost_source.aabb_min[0];
+    mk.scale.y = cost_source.aabb_max[1] - cost_source.aabb_min[1];
+    mk.scale.z = cost_source.aabb_max[2] - cost_source.aabb_min[2];
     mk.color = color;
     if (mk.color.a == 0.0)
       mk.color.a = 1.0;
@@ -100,11 +100,11 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
 
 {
   std::map<std::string, unsigned> ns_counts;
-  for (CollisionResult::ContactMap::const_iterator it = con.begin(); it != con.end(); ++it)
+  for (const auto& collision : con)
   {
-    for (unsigned int i = 0; i < it->second.size(); ++i)
+    for (const auto& contact : collision.second)
     {
-      std::string ns_name = it->second[i].body_name_1 + "=" + it->second[i].body_name_2;
+      std::string ns_name = contact.body_name_1 + "=" + contact.body_name_2;
       if (ns_counts.find(ns_name) == ns_counts.end())
         ns_counts[ns_name] = 0;
       else
@@ -116,9 +116,9 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
       mk.id = ns_counts[ns_name];
       mk.type = visualization_msgs::Marker::SPHERE;
       mk.action = visualization_msgs::Marker::ADD;
-      mk.pose.position.x = it->second[i].pos.x();
-      mk.pose.position.y = it->second[i].pos.y();
-      mk.pose.position.z = it->second[i].pos.z();
+      mk.pose.position.x = contact.pos.x();
+      mk.pose.position.y = contact.pos.y();
+      mk.pose.position.z = contact.pos.z();
       mk.pose.orientation.x = 0.0;
       mk.pose.orientation.y = 0.0;
       mk.pose.orientation.z = 0.0;
@@ -137,7 +137,7 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, cons
 {
   if (cost_sources.empty())
     return false;
-  std::set<CostSource>::const_iterator it = cost_sources.begin();
+  auto it = cost_sources.begin();
   for (std::size_t i = 0; i < 4 * cost_sources.size() / 5; ++i)
     ++it;
   point.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
@@ -149,9 +149,8 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, cons
 double collision_detection::getTotalCost(const std::set<CostSource>& cost_sources)
 {
   double cost = 0.0;
-  for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin(); it != cost_sources.end();
-       ++it)
-    cost += it->getVolume() * it->cost;
+  for (const auto& cost_source : cost_sources)
+    cost += cost_source.getVolume() * cost_source.cost;
   return cost;
 }
 
@@ -160,21 +159,21 @@ void collision_detection::intersectCostSources(std::set<CostSource>& cost_source
 {
   cost_sources.clear();
   CostSource tmp;
-  for (std::set<CostSource>::const_iterator it = a.begin(); it != a.end(); ++it)
-    for (std::set<CostSource>::const_iterator jt = b.begin(); jt != b.end(); ++jt)
+  for (const auto& source_a : a)
+    for (const auto& source_b : b)
     {
-      tmp.aabb_min[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
-      tmp.aabb_min[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
-      tmp.aabb_min[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
+      tmp.aabb_min[0] = std::max(source_a.aabb_min[0], source_b.aabb_min[0]);
+      tmp.aabb_min[1] = std::max(source_a.aabb_min[1], source_b.aabb_min[1]);
+      tmp.aabb_min[2] = std::max(source_a.aabb_min[2], source_b.aabb_min[2]);
 
-      tmp.aabb_max[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
-      tmp.aabb_max[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
-      tmp.aabb_max[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
+      tmp.aabb_max[0] = std::min(source_a.aabb_max[0], source_b.aabb_max[0]);
+      tmp.aabb_max[1] = std::min(source_a.aabb_max[1], source_b.aabb_max[1]);
+      tmp.aabb_max[2] = std::min(source_a.aabb_max[2], source_b.aabb_max[2]);
 
       if (tmp.aabb_min[0] >= tmp.aabb_max[0] || tmp.aabb_min[1] >= tmp.aabb_max[1] ||
           tmp.aabb_min[2] >= tmp.aabb_max[2])
         continue;
-      tmp.cost = std::max(it->cost, jt->cost);
+      tmp.cost = std::max(source_a.cost, source_b.cost);
       cost_sources.insert(tmp);
     }
 }
@@ -182,12 +181,12 @@ void collision_detection::intersectCostSources(std::set<CostSource>& cost_source
 void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction)
 {
   double p[3], q[3];
-  for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+  for (auto it = cost_sources.begin(); it != cost_sources.end(); ++it)
   {
     double vol = it->getVolume() * overlap_fraction;
     std::vector<std::set<CostSource>::iterator> remove;
-    std::set<CostSource>::iterator it1 = it;
-    for (std::set<CostSource>::iterator jt = ++it1; jt != cost_sources.end(); ++jt)
+    auto it1 = it;
+    for (auto jt = ++it1; jt != cost_sources.end(); ++jt)
     {
       p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
       p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
@@ -204,8 +203,8 @@ void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, 
       if (intersect_volume >= vol)
         remove.push_back(jt);
     }
-    for (std::size_t i = 0; i < remove.size(); ++i)
-      cost_sources.erase(remove[i]);
+    for (auto& r : remove)
+      cost_sources.erase(r);
   }
 }
 
@@ -214,20 +213,19 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
 {
   // remove all the boxes that overlap with the intersection previously computed in \e rem
   double p[3], q[3];
-  for (std::set<CostSource>::const_iterator jt = cost_sources_to_remove.begin(); jt != cost_sources_to_remove.end();
-       ++jt)
+  for (const auto& source_remove : cost_sources_to_remove)
   {
     std::vector<std::set<CostSource>::iterator> remove;
     std::set<CostSource> add;
-    for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+    for (auto it = cost_sources.begin(); it != cost_sources.end(); ++it)
     {
-      p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
-      p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
-      p[2] = std::max(it->aabb_min[2], jt->aabb_min[2]);
+      p[0] = std::max(it->aabb_min[0], source_remove.aabb_min[0]);
+      p[1] = std::max(it->aabb_min[1], source_remove.aabb_min[1]);
+      p[2] = std::max(it->aabb_min[2], source_remove.aabb_min[2]);
 
-      q[0] = std::min(it->aabb_max[0], jt->aabb_max[0]);
-      q[1] = std::min(it->aabb_max[1], jt->aabb_max[1]);
-      q[2] = std::min(it->aabb_max[2], jt->aabb_max[2]);
+      q[0] = std::min(it->aabb_max[0], source_remove.aabb_max[0]);
+      q[1] = std::min(it->aabb_max[1], source_remove.aabb_max[1]);
+      q[2] = std::min(it->aabb_max[2], source_remove.aabb_max[2]);
 
       if (p[0] >= q[0] || p[1] >= q[1] || p[2] >= q[2])
         continue;
@@ -257,8 +255,8 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
         }
       }
     }
-    for (std::size_t i = 0; i < remove.size(); ++i)
-      cost_sources.erase(remove[i]);
+    for (auto& r : remove)
+      cost_sources.erase(r);
     cost_sources.insert(add.begin(), add.end());
   }
 }

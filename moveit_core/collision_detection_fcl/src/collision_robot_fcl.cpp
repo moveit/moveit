@@ -45,14 +45,14 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::Rob
   geoms_.resize(robot_model_->getLinkGeometryCount());
   fcl_objs_.resize(robot_model_->getLinkGeometryCount());
   // we keep the same order of objects as what RobotState *::getLinkState() returns
-  for (std::size_t i = 0; i < links.size(); ++i)
-    for (std::size_t j = 0; j < links[i]->getShapes().size(); ++j)
+  for (auto link : links)
+    for (std::size_t j = 0; j < link->getShapes().size(); ++j)
     {
-      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()),
-                                                      getLinkPadding(links[i]->getName()), links[i], j);
+      FCLGeometryConstPtr g = createCollisionGeometry(link->getShapes()[j], getLinkScale(link->getName()),
+                                                      getLinkPadding(link->getName()), link, j);
       if (g)
       {
-        index = links[i]->getFirstCollisionBodyTransformIndex() + j;
+        index = link->getFirstCollisionBodyTransformIndex() + j;
         geoms_[index] = g;
 
         // Need to store the FCL object so the AABB does not get recreated every time.
@@ -62,7 +62,7 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::Rob
         fcl_objs_[index] = FCLCollisionObjectConstPtr(new fcl::CollisionObject(g->collision_geometry_));
       }
       else
-        logError("Unable to construct collision geometry for link '%s'", links[i]->getName().c_str());
+        CONSOLE_BRIDGE_logError("Unable to construct collision geometry for link '%s'", link->getName().c_str());
     }
 }
 
@@ -96,7 +96,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
       transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
                                                     geoms_[i]->collision_geometry_data_->shape_index),
                     fcl_tf);
-      fcl::CollisionObject* collObj = new fcl::CollisionObject(*fcl_objs_[i]);
+      auto collObj = new fcl::CollisionObject(*fcl_objs_[i]);
       collObj->setTransform(fcl_tf);
       collObj->computeAABB();
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
@@ -105,11 +105,11 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
   // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
-  for (std::size_t j = 0; j < ab.size(); ++j)
+  for (auto& body : ab)
   {
     std::vector<FCLGeometryConstPtr> objs;
-    getAttachedBodyObjects(ab[j], objs);
-    const EigenSTL::vector_Affine3d& ab_t = ab[j]->getGlobalCollisionBodyTransforms();
+    getAttachedBodyObjects(body, objs);
+    const EigenSTL::vector_Affine3d& ab_t = body->getGlobalCollisionBodyTransforms();
     for (std::size_t k = 0; k < objs.size(); ++k)
       if (objs[k]->collision_geometry_)
       {
@@ -126,7 +126,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
 void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state,
                                                                           FCLManager& manager) const
 {
-  fcl::DynamicAABBTreeCollisionManager* m = new fcl::DynamicAABBTreeCollisionManager();
+  auto m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
   manager.manager_.reset(m);
   constructFCLObject(state, manager.object_);
@@ -137,7 +137,7 @@ void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                                                 const robot_state::RobotState& state) const
 {
-  checkSelfCollisionHelper(req, res, state, NULL);
+  checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -151,7 +151,7 @@ void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionR
                                                                 const robot_state::RobotState& state1,
                                                                 const robot_state::RobotState& state2) const
 {
-  logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
@@ -159,7 +159,7 @@ void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionR
                                                                 const robot_state::RobotState& state2,
                                                                 const AllowedCollisionMatrix& acm) const
 {
-  logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
@@ -180,7 +180,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollision(const Collision
                                                                  const CollisionRobot& other_robot,
                                                                  const robot_state::RobotState& other_state) const
 {
-  checkOtherCollisionHelper(req, res, state, other_robot, other_state, NULL);
+  checkOtherCollisionHelper(req, res, state, other_robot, other_state, nullptr);
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -199,7 +199,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollision(const Collision
                                                                  const robot_state::RobotState& other_state1,
                                                                  const robot_state::RobotState& other_state2) const
 {
-  logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
@@ -210,7 +210,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollision(const Collision
                                                                  const robot_state::RobotState& other_state2,
                                                                  const AllowedCollisionMatrix& acm) const
 {
-  logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req,
@@ -238,9 +238,9 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
 void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& links)
 {
   std::size_t index;
-  for (std::size_t i = 0; i < links.size(); ++i)
+  for (const auto& link : links)
   {
-    const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(links[i]);
+    const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(link);
     if (lmodel)
     {
       for (std::size_t j = 0; j < lmodel->getShapes().size(); ++j)
@@ -256,13 +256,13 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
       }
     }
     else
-      logError("Updating padding or scaling for unknown link: '%s'", links[i].c_str());
+      CONSOLE_BRIDGE_logError("Updating padding or scaling for unknown link: '%s'", link.c_str());
   }
 }
 
 double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state) const
 {
-  return distanceSelfHelper(state, NULL);
+  return distanceSelfHelper(state, nullptr);
 }
 
 double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state,
@@ -291,7 +291,7 @@ double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::
                                                              const CollisionRobot& other_robot,
                                                              const robot_state::RobotState& other_state) const
 {
-  return distanceOtherHelper(state, other_robot, other_state, NULL);
+  return distanceOtherHelper(state, other_robot, other_state, nullptr);
 }
 
 double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
