@@ -39,6 +39,19 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
+#include <map>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/lock_guard.hpp>
+
+
+/** \brief Center of the axis aligned bounding box per link (zero if symmetric along all axes). Always lock the
+ * mutex_centered_bounding_box_offsets when working with this map!
+ *
+ * This global variable is used to retain ABI compatibility for indigo. The kinetic version uses a member variable.
+ */
+std::map<const moveit::core::LinkModel* const, const Eigen::Vector3d> centered_bounding_box_offsets;
+boost::mutex mutex_centered_bounding_box_offsets;
+
 moveit::core::LinkModel::LinkModel(const std::string& name)
   : name_(name)
   , parent_joint_model_(NULL)
@@ -102,7 +115,10 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
     }
   }
 
-  centered_bounding_box_offset_ = aabb.center();
+  {
+    boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
+    centered_bounding_box_offsets[this] = aabb.center();
+  }
   shape_extents_ = aabb.sizes();
 }
 
@@ -112,4 +128,13 @@ void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, cons
   visual_mesh_filename_ = visual_mesh;
   visual_mesh_origin_ = origin;
   visual_mesh_scale_ = scale;
+}
+
+const Eigen::Vector3d moveit::core::LinkModel::getCenteredBoundingBoxOffset() const {
+  Eigen::Vector3d offset;
+  boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
+
+  offset = centered_bounding_box_offsets.at(this);
+
+  return offset;
 }
