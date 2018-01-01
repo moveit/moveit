@@ -1942,18 +1942,35 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 
     if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
     {
+      logWarn("Loop number i: %u", (unsigned int) i);
       traj.push_back(RobotStatePtr(new RobotState(*this)));
+      logWarn("Now checking points in trajectory");
+      if (traj.at(0) == traj.back())
+      {
+          logWarn("There are two identical waypoints in this path.");
+      }
     }
+
     else
       break;
     last_valid_percentage = percentage;
   }
 
+    logWarn("Traj size: %u", (unsigned int) traj.size());
+//    logWarn("Looping to check trajectory");
+//    for (int j=1; j < traj.size(); j++)
+//    {
+//        logWarn("Checking traj point %u", j);
+//        if (traj[0] == traj[j])
+//        {
+//            logWarn("There are two identical waypoints in this path.");
+//        }
+//    }
+
   if (test_joint_space_jump)
   {
     last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
   }
-
   return last_valid_percentage;
 }
 
