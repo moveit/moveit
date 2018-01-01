@@ -1962,8 +1962,19 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
                                         const GroupStateValidityCallbackFn& validCallback,
                                         const kinematics::KinematicsQueryOptions& options)
 {
+  // Check whether first waypoint is identical to current pose
+  // As the current pose is set as the first trajectory waypoint anyway, this might cause issues with controllers
+  // driving towards the same target in zero time (https://github.com/ros-planning/moveit_tutorials/pull/148)
+  const Eigen::Affine3d& current_pose = getGlobalLinkTransform(link);
+  std::size_t start_index = 0;
+  if (waypoints.size() && waypoints[0].isApprox(current_pose))
+  {
+    start_index = 1;
+    ROS_WARN_NAMED("robot_state", "computeCartesianPath(): The starting point shouldn't be part of waypoints");
+  }
+
   double percentage_solved = 0.0;
-  for (std::size_t i = 0; i < waypoints.size(); ++i)
+  for (std::size_t i = start_index; i < waypoints.size(); ++i)
   {
     // Don't test joint space jumps for every waypoint, test them later on the whole trajectory.
     static const JumpThreshold no_joint_space_jump_test;
