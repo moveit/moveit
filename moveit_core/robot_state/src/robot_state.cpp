@@ -1950,22 +1950,17 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
           logWarn("There are two identical waypoints in this path.");
       }
     }
-
     else
       break;
     last_valid_percentage = percentage;
   }
 
     logWarn("Traj size: %u", (unsigned int) traj.size());
-//    logWarn("Looping to check trajectory");
-//    for (int j=1; j < traj.size(); j++)
-//    {
-//        logWarn("Checking traj point %u", j);
-//        if (traj[0] == traj[j])
-//        {
-//            logWarn("There are two identical waypoints in this path.");
-//        }
-//    }
+    logWarn("Checking traj 0 and 1. in plan");
+    if (traj.size() >=2 && traj.at(0) == traj.at(1))
+    {
+        logWarn("There are two identical waypoints in this path.");
+    }
 
   if (test_joint_space_jump)
   {
