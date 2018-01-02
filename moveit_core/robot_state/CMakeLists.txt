@@ -26,4 +26,7 @@ if(CATKIN_ENABLE_TESTING)
 
   catkin_add_gtest(test_robot_state_complex test/test_kinematic_complex.cpp)
   target_link_libraries(test_robot_state_complex ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
+
+  catkin_add_gtest(test_aabb test/test_aabb.cpp)
+  target_link_libraries(test_aabb ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${MOVEIT_LIB_NAME})
 endif()
