@@ -117,7 +117,9 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
 
   {
     boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
-    centered_bounding_box_offsets[this] = aabb.center();
+    // cannot use [] assignment, because the value type is const
+    centered_bounding_box_offsets.insert(
+        std::pair<const moveit::core::LinkModel* const, const Eigen::Vector3d>(this, aabb.center()));
   }
   shape_extents_ = aabb.sizes();
 }
