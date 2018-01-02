@@ -2057,12 +2057,10 @@ void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
   aabb.resize(6, 0.0);
   if (!bounding_box.isEmpty())
   {
-    aabb[0] = bounding_box.min()[0];
-    aabb[1] = bounding_box.max()[0];
-    aabb[2] = bounding_box.min()[1];
-    aabb[3] = bounding_box.max()[1];
-    aabb[4] = bounding_box.min()[2];
-    aabb[5] = bounding_box.max()[2];
+    // The following is a shorthand for something like:
+    // aabb[0, 2, 4] = bounding_box.min(); aabb[1, 3, 5] = bounding_box.max();
+    Eigen::Map<Eigen::VectorXd, Eigen::Unaligned, Eigen::InnerStride<2> >(aabb.data(), 3) = bounding_box.min();
+    Eigen::Map<Eigen::VectorXd, Eigen::Unaligned, Eigen::InnerStride<2> >(aabb.data() + 1, 3) = bounding_box.max();
   }
 }
 

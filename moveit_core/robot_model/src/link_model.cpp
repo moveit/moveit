@@ -85,15 +85,17 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
          collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ?
             1 :
             0;
-    Eigen::Vector3d extents = shapes::computeShapeExtents(shapes_[i].get());
     Eigen::Affine3d transform = collision_origin_transform_[i];
 
     if (shapes_[i]->type != shapes::MESH)
     {
+      Eigen::Vector3d extents = shapes::computeShapeExtents(shapes_[i].get());
       aabb.extendWithTransformedBox(transform, extents);
     }
     else
     {
+      // we cannot use shapes::computeShapeExtents() for meshes, since that method does not provide information about
+      // the offset of the mesh origin
       const shapes::Mesh* mesh = dynamic_cast<const shapes::Mesh*>(shapes_[i].get());
       for (unsigned int j = 0; j < mesh->vertex_count; ++j)
       {
