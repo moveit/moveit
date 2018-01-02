@@ -48,7 +48,7 @@
  *
  * This global variable is used to retain ABI compatibility for indigo. The kinetic version uses a member variable.
  */
-std::map<const moveit::core::LinkModel* const, const Eigen::Vector3d> centered_bounding_box_offsets;
+std::map<const moveit::core::LinkModel* const, Eigen::Vector3d> centered_bounding_box_offsets;
 boost::mutex mutex_centered_bounding_box_offsets;
 
 moveit::core::LinkModel::LinkModel(const std::string& name)
@@ -118,9 +118,7 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
 
   {
     boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
-    // cannot use [] assignment, because the value type is const
-    centered_bounding_box_offsets.insert(
-        std::pair<const moveit::core::LinkModel* const, const Eigen::Vector3d>(this, aabb.center()));
+    centered_bounding_box_offsets[this] = aabb.center();
   }
   shape_extents_ = aabb.sizes();
 }
