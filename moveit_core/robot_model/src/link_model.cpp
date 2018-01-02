@@ -43,7 +43,6 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
 
-
 /** \brief Center of the axis aligned bounding box per link (zero if symmetric along all axes). Always lock the
  * mutex_centered_bounding_box_offsets when working with this map!
  *
@@ -132,7 +131,8 @@ void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, cons
   visual_mesh_scale_ = scale;
 }
 
-const Eigen::Vector3d moveit::core::LinkModel::getCenteredBoundingBoxOffset() const {
+const Eigen::Vector3d moveit::core::LinkModel::getCenteredBoundingBoxOffset() const
+{
   Eigen::Vector3d offset;
   boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
 
