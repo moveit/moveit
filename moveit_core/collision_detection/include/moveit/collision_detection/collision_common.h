@@ -224,60 +224,13 @@ struct CollisionRequest
 struct DistanceRequest
 {
   DistanceRequest()
-    : detailed(false)
+    : enable_nearest_points(false)
+    , enable_signed_distance(false)
     , global(true)
     , active_components_only(NULL)
     , acm(NULL)
     , distance_threshold(std::numeric_limits<double>::max())
     , verbose(false)
-    , gradient(false)
-  {
-  }
-
-  DistanceRequest(bool detailed, bool global, const std::set<const robot_model::LinkModel*>* active_components_only,
-                  const AllowedCollisionMatrix* acm, double distance_threshold = std::numeric_limits<double>::max())
-    : detailed(detailed)
-    , global(global)
-    , active_components_only(active_components_only)
-    , acm(acm)
-    , distance_threshold(distance_threshold)
-    , verbose(false)
-    , gradient(false)
-  {
-  }
-  DistanceRequest(bool detailed, bool global, const std::set<const robot_model::LinkModel*>& active_components_only,
-                  const AllowedCollisionMatrix& acm, double distance_threshold = std::numeric_limits<double>::max())
-    : detailed(detailed)
-    , global(global)
-    , active_components_only(&active_components_only)
-    , acm(&acm)
-    , distance_threshold(distance_threshold)
-    , verbose(false)
-    , gradient(false)
-  {
-  }
-  DistanceRequest(bool detailed, bool global, const std::string group_name, const AllowedCollisionMatrix* acm,
-                  double distance_threshold = std::numeric_limits<double>::max())
-    : detailed(detailed)
-    , global(global)
-    , group_name(group_name)
-    , active_components_only(NULL)
-    , acm(acm)
-    , distance_threshold(distance_threshold)
-    , verbose(false)
-    , gradient(false)
-  {
-  }
-  DistanceRequest(bool detailed, bool global, const std::string group_name, const AllowedCollisionMatrix& acm,
-                  double distance_threshold = std::numeric_limits<double>::max())
-    : detailed(detailed)
-    , global(global)
-    , group_name(group_name)
-    , active_components_only(NULL)
-    , acm(&acm)
-    , distance_threshold(distance_threshold)
-    , verbose(false)
-    , gradient(false)
   {
   }
 
@@ -294,10 +247,16 @@ struct DistanceRequest
       active_components_only = NULL;
   }
 
-  /// Indicate if detailed information should be calculated
-  bool detailed;
+  /// Indicate if nearest point information should be calculated
+  bool enable_nearest_points;
 
-  /// Indicate if the global minimum should be found
+  /// Indicate if a signed distance should be calculated in a collision.
+  bool enable_signed_distance;
+
+  /// Indicate if the global minimum should only be found be found. If this is true
+  /// it will only try to find the global minimum distance and not store information 
+  /// on a link by link bases. If this is set to false it will store distance information 
+  /// for every link in the active_components_only list.
   bool global;
 
   std::string group_name;
@@ -326,20 +285,17 @@ struct DistanceResultsData
     clear();
   }
 
-  /// The minimum distance between two objects. If two objects are in collision, min_distance <= 0.
-  double min_distance;
+  /// The distance between two objects. If two objects are in collision, distance <= 0.
+  double distance;
 
   /// The nearest points
   Eigen::Vector3d nearest_points[2];
 
   /// The object link names
-  std::string link_name[2];
+  std::string link_names[2];
 
-  /// The gradient
-  Eigen::Vector3d gradient;
-
-  /// Indicates if gradient was calculated.
-  bool hasGradient;
+  /// A normalized vector pointing from link_names[0] to link_names[1].
+  Eigen::Vector3d normal;
 
   /// Indicates if nearest points were found.
   bool hasNearestPoints;
@@ -347,27 +303,25 @@ struct DistanceResultsData
   /// Clear structure data
   void clear()
   {
-    min_distance = std::numeric_limits<double>::max();
+    distance = std::numeric_limits<double>::max();
     nearest_points[0].setZero();
     nearest_points[1].setZero();
-    link_name[0] = "";
-    link_name[1] = "";
-    gradient.setZero();
-    hasGradient = false;
+    link_names[0] = "";
+    link_names[1] = "";
+    normal.setZero();
     hasNearestPoints = false;
   }
 
   /// Update structure data given DistanceResultsData object
-  void update(const DistanceResultsData& results)
+  void operator=(const DistanceResultsData& other)
   {
-    min_distance = results.min_distance;
-    nearest_points[0] = results.nearest_points[0];
-    nearest_points[1] = results.nearest_points[1];
-    link_name[0] = results.link_name[0];
-    link_name[1] = results.link_name[1];
-    gradient = results.gradient;
-    hasGradient = results.hasGradient;
-    hasNearestPoints = results.hasNearestPoints;
+    distance = other.distance;
+    nearest_points[0] = other.nearest_points[0];
+    nearest_points[1] = other.nearest_points[1];
+    link_names[0] = other.link_names[0];
+    link_names[1] = other.link_names[1];
+    normal = other.normal;
+    hasNearestPoints = other.hasNearestPoints;
   }
 };
 
@@ -389,14 +343,14 @@ struct DistanceResult
   DistanceResultsData minimum_distance;
 
   /// A map of distance data for each link in the req.active_components_only
-  DistanceMap distance;
+  DistanceMap distances;
 
   /// Clear structure data
   void clear()
   {
     collision = false;
     minimum_distance.clear();
-    distance.clear();
+    distances.clear();
   }
 };
 }

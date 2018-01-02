@@ -858,8 +858,8 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
         dreq.enableGroup(planning_scene_->getCollisionRobotUnpadded()->getRobotModel());
 
         planning_scene_->distanceToCollisionUnpadded(dreq, dres, p.getWayPoint(k));
-        if (dres.minimum_distance.min_distance > 0.0)  // in case of collision, distance is negative
-          clearance += dres.minimum_distance.min_distance;
+        if (dres.minimum_distance.distance > 0.0)  // in case of collision, distance is negative
+          clearance += dres.minimum_distance.distance;
       }
       clearance /= (double)p.getWayPointCount();
 

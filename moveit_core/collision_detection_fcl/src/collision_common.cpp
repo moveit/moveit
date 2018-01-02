@@ -598,53 +598,90 @@ bool distanceDetailedCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2
 
   if (!cdata->req->global)
   {
-    it1 = cdata->res->distance.find(cd1->ptr.obj->id_);
-    it2 = cdata->res->distance.find(cd2->ptr.obj->id_);
+    it1 = cdata->res->distances.find(cd1->ptr.obj->id_);
+    it2 = cdata->res->distances.find(cd2->ptr.obj->id_);
 
     if (cdata->req->active_components_only)
     {
       if (active1 && active2)
       {
-        if (it1 != cdata->res->distance.end() && it2 != cdata->res->distance.end())
-          dist_threshold = std::max(it1->second.min_distance, it2->second.min_distance);
+        if (it1 != cdata->res->distances.end() && it2 != cdata->res->distances.end())
+          dist_threshold = std::max(it1->second.distance, it2->second.distance);
       }
       else if (active1 && !active2)
       {
-        if (it1 != cdata->res->distance.end())
-          dist_threshold = it1->second.min_distance;
+        if (it1 != cdata->res->distances.end())
+          dist_threshold = it1->second.distance;
       }
       else if (!active1 && active2)
       {
-        if (it2 != cdata->res->distance.end())
-          dist_threshold = it2->second.min_distance;
+        if (it2 != cdata->res->distances.end())
+          dist_threshold = it2->second.distance;
       }
     }
     else
     {
-      if (it1 != cdata->res->distance.end() && it2 != cdata->res->distance.end())
-        dist_threshold = std::max(it1->second.min_distance, it2->second.min_distance);
+      if (it1 != cdata->res->distances.end() && it2 != cdata->res->distances.end())
+        dist_threshold = std::max(it1->second.distance, it2->second.distance);
     }
   }
   else
   {
-    dist_threshold = cdata->res->minimum_distance.min_distance;
+    dist_threshold = cdata->res->minimum_distance.distance;
   }
 
   fcl_result.min_distance = dist_threshold;
-  double d = fcl::distance(o1, o2, fcl::DistanceRequest(cdata->req->detailed), fcl_result);
+  double d = fcl::distance(o1, o2, fcl::DistanceRequest(cdata->req->enable_nearest_points), fcl_result);
 
   // Check if either object is already in the map. If not add it or if present
   // check to see if the new distance is closer. If closer remove the existing
   // one and add the new distance information.
   if (d < dist_threshold)
   {
-    dist_result.min_distance = fcl_result.min_distance;
+    dist_result.distance = fcl_result.min_distance;
     dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
     dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
-    dist_result.link_name[0] = cd1->ptr.obj->id_;
-    dist_result.link_name[1] = cd2->ptr.obj->id_;
+    dist_result.link_names[0] = cd1->ptr.obj->id_;
+    dist_result.link_names[1] = cd2->ptr.obj->id_;
+    dist_result.hasNearestPoints = cdata->req->enable_nearest_points;
+    if (dist_result.hasNearestPoints)
+    {
+      dist_result.normal = (dist_result.nearest_points[1] - dist_result.nearest_points[0]).normalized();
+    }
 
-    cdata->res->minimum_distance.update(dist_result);
+    if (d <= 0 && cdata->req->enable_signed_distance)
+    {
+      dist_result.nearest_points[0].setZero();
+      dist_result.nearest_points[1].setZero();
+      dist_result.normal.setZero();
+
+      fcl::CollisionRequest coll_req;
+      fcl::CollisionResult coll_res;
+      coll_req.enable_contact = true;
+      coll_req.num_max_contacts = 50;
+      std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
+      if (contacts > 0)
+      {
+        double max_dist = 0;
+        for (int i = 0; i < contacts; ++i)
+        {
+          const fcl::Contact &contact = coll_res.getContact(i);
+          if (contact.penetration_depth > max_dist)
+          {
+            max_dist = contact.penetration_depth;
+            dist_result.distance = -max_dist;
+          }
+          dist_result.nearest_points[0] += Eigen::Vector3d(contact.pos.data.vs);
+          dist_result.normal += Eigen::Vector3d(contact.normal.data.vs);
+        }
+        dist_result.nearest_points[0] *= 1.0/contacts;
+        dist_result.nearest_points[1] = dist_result.nearest_points[0];
+        dist_result.normal *= 1.0/contacts;
+        dist_result.normal.normalize();
+      }
+    }
+
+    cdata->res->minimum_distance = dist_result;
 
     if (!cdata->req->global)
     {
@@ -655,25 +692,25 @@ bool distanceDetailedCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2
 
       if (active1)
       {
-        if (it1 == cdata->res->distance.end())
+        if (it1 == cdata->res->distances.end())
         {
-          cdata->res->distance.insert(std::make_pair(cd1->ptr.obj->id_, dist_result));
+          cdata->res->distances.insert(std::make_pair(cd1->ptr.obj->id_, dist_result));
         }
         else
         {
-          it1->second.update(dist_result);
+          it1->second = dist_result;
         }
       }
 
       if (active2)
       {
-        if (it2 == cdata->res->distance.end())
+        if (it2 == cdata->res->distances.end())
         {
-          cdata->res->distance.insert(std::make_pair(cd2->ptr.obj->id_, dist_result));
+          cdata->res->distances.insert(std::make_pair(cd2->ptr.obj->id_, dist_result));
         }
         else
         {
-          it2->second.update(dist_result);
+          it2->second = dist_result;
         }
       }
     }
