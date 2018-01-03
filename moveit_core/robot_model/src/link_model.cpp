@@ -37,6 +37,7 @@
 #include <moveit/robot_model/link_model.h>
 #include <moveit/robot_model/joint_model.h>
 #include <geometric_shapes/shape_operations.h>
+#include <moveit/robot_model/aabb.h>
 
 moveit::core::LinkModel::LinkModel(const std::string& name)
   : name_(name)
@@ -75,8 +76,7 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
   collision_origin_transform_ = origins;
   collision_origin_transform_is_identity_.resize(collision_origin_transform_.size());
 
-  Eigen::Vector3d a = Eigen::Vector3d(0.0, 0.0, 0.0);
-  Eigen::Vector3d b = Eigen::Vector3d(0.0, 0.0, 0.0);
+  core::AABB aabb;
 
   for (std::size_t i = 0; i < shapes_.size(); ++i)
   {
@@ -85,25 +85,27 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
          collision_origin_transform_[i].translation().norm() < std::numeric_limits<double>::epsilon()) ?
             1 :
             0;
-    Eigen::Vector3d ei = shapes::computeShapeExtents(shapes_[i].get());
-    Eigen::Vector3d p1 = collision_origin_transform_[i] * (-ei / 2.0);
-    Eigen::Vector3d p2 = collision_origin_transform_[i] * (-p1);
+    Eigen::Affine3d transform = collision_origin_transform_[i];
 
-    if (i == 0)
+    if (shapes_[i]->type != shapes::MESH)
     {
-      a = p1;
-      b = p2;
+      Eigen::Vector3d extents = shapes::computeShapeExtents(shapes_[i].get());
+      aabb.extendWithTransformedBox(transform, extents);
     }
     else
     {
-      for (int i = 0; i < 3; ++i)
-        a[i] = std::min(a[i], p1[i]);
-      for (int i = 0; i < 3; ++i)
-        b[i] = std::max(b[i], p2[i]);
+      // we cannot use shapes::computeShapeExtents() for meshes, since that method does not provide information about
+      // the offset of the mesh origin
+      const shapes::Mesh* mesh = dynamic_cast<const shapes::Mesh*>(shapes_[i].get());
+      for (unsigned int j = 0; j < mesh->vertex_count; ++j)
+      {
+        aabb.extend(transform * Eigen::Map<Eigen::Vector3d>(&mesh->vertices[3 * j]));
+      }
     }
   }
 
-  shape_extents_ = b - a;
+  centered_bounding_box_offset_ = aabb.center();
+  shape_extents_ = aabb.sizes();
 }
 
 void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
