@@ -658,26 +658,27 @@ bool distanceDetailedCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2
       fcl::CollisionRequest coll_req;
       fcl::CollisionResult coll_res;
       coll_req.enable_contact = true;
-      coll_req.num_max_contacts = 50;
+      coll_req.num_max_contacts = 200;
       std::size_t contacts = fcl::collide(o1, o2, coll_req, coll_res);
       if (contacts > 0)
       {
         double max_dist = 0;
+        int max_index = 0;
         for (int i = 0; i < contacts; ++i)
         {
           const fcl::Contact &contact = coll_res.getContact(i);
           if (contact.penetration_depth > max_dist)
           {
             max_dist = contact.penetration_depth;
-            dist_result.distance = -max_dist;
+            max_index = i;
           }
-          dist_result.nearest_points[0] += Eigen::Vector3d(contact.pos.data.vs);
-          dist_result.normal += Eigen::Vector3d(contact.normal.data.vs);
         }
-        dist_result.nearest_points[0] *= 1.0/contacts;
-        dist_result.nearest_points[1] = dist_result.nearest_points[0];
-        dist_result.normal *= 1.0/contacts;
-        dist_result.normal.normalize();
+
+        const fcl::Contact &contact = coll_res.getContact(max_index);
+        dist_result.distance = -contact.penetration_depth;
+        dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
+        dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
+        dist_result.normal = Eigen::Vector3d(contact.normal.data.vs);
       }
     }
 
