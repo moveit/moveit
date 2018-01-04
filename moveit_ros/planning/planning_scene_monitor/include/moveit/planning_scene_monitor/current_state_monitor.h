@@ -44,7 +44,6 @@
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
 
 namespace planning_scene_monitor
 {
@@ -195,7 +194,6 @@ private:
   ros::Time last_tf_update_;
 
   mutable boost::mutex state_update_lock_;
-  mutable boost::condition_variable state_update_condition_;
   std::vector<JointStateUpdateCallback> update_callbacks_;
 };
 
