@@ -271,7 +271,7 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
   {
     lock.unlock();
     busywait.sleep();
-    if (ros::WallTime::now() < timeout)
+    if (ros::WallTime::now() >= timeout)
       return false;
     lock.lock();
   }
