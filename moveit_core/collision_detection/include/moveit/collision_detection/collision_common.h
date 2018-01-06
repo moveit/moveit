@@ -227,8 +227,8 @@ struct DistanceRequest
     : enable_nearest_points(false)
     , enable_signed_distance(false)
     , global(true)
-    , active_components_only(NULL)
-    , acm(NULL)
+    , active_components_only(nullptr)
+    , acm(nullptr)
     , distance_threshold(std::numeric_limits<double>::max())
     , verbose(false)
   {
@@ -244,7 +244,7 @@ struct DistanceRequest
     if (kmodel->hasJointModelGroup(group_name))
       active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsWithGeometrySet();
     else
-      active_components_only = NULL;
+      active_components_only = nullptr;
   }
 
   /// Indicate if nearest point information should be calculated
