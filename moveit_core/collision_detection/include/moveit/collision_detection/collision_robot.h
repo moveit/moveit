@@ -163,16 +163,26 @@ public:
                                    const robot_state::RobotState& other_state2,
                                    const AllowedCollisionMatrix& acm) const = 0;
 
-  /** \brief The distance to self-collision given the robot is at state \e state. */
+  /** \brief The distance to self-collision given the robot is at state \e state.
+
+      Replace by distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                              const robot_state::RobotState& state) */
   MOVEIT_DEPRECATED
   virtual double distanceSelf(const robot_state::RobotState& state) const = 0;
 
   /** \brief The distance to self-collision given the robot is at state \e state, ignoring
-      the distances between links that are allowed to always collide (as specified by \e acm) */
+      the distances between links that are allowed to always collide (as specified by \e acm)
+
+      Replace by distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                              const robot_state::RobotState& state) */
   MOVEIT_DEPRECATED
   virtual double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief The distance to another robot instance.
+
+      Replaced by distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                                const CollisionRobot& other_robot, const robot_state::RobotState& other_state)
+
       @param state The state of this robot to consider
       @param other_robot The other robot instance to measure distance to
       @param other_state The state of the other robot */
@@ -182,6 +192,10 @@ public:
 
   /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always
      collide.
+
+      Replaced by distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                                const CollisionRobot& other_robot, const robot_state::RobotState& other_state)
+
       @param state The state of this robot to consider
       @param other_robot The other robot instance to measure distance to
       @param other_state The state of the other robot

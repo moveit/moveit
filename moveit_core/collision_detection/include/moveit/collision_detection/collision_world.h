@@ -175,6 +175,10 @@ public:
                                    const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief Compute the shortest distance between a robot and the world
+   *
+   *  Replaced by distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+   *                            const robot_state::RobotState& state)
+   *
    *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param verbose Output debug information about distance checks */
@@ -183,6 +187,10 @@ public:
                                bool verbose = false) const = 0;
 
   /** \brief Compute the shortest distance between a robot and the world
+   *
+   * Replaced by distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+   *                            const robot_state::RobotState& state)
+   *
    *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always
@@ -193,12 +201,18 @@ public:
                                const AllowedCollisionMatrix& acm, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world)
+   *
+   *  Replaced by distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world)
+   *
    *  @param verbose Output debug information about distance checks */
   MOVEIT_DEPRECATED
   virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
    * that are allowed to collide (as specified by \e acm)
+   *
+   *  Replaced by distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world)
+   *
    *  @param verbose Output debug information about distance checks */
   MOVEIT_DEPRECATED
   virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
