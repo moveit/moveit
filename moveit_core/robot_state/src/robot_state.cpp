@@ -43,6 +43,8 @@
 #include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
 
+#include <stdio.h>
+
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
   , has_velocity_(false)
@@ -1942,22 +1944,22 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 
     if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
     {
-      logWarn("Loop number i: %u", (unsigned int) i);
       traj.push_back(RobotStatePtr(new RobotState(*this)));
-      logWarn("Now checking points in trajectory");
-      if (traj.at(0) == traj.back())
-      {
-          logWarn("There are two identical waypoints in this path.");
-      }
     }
     else
       break;
     last_valid_percentage = percentage;
   }
 
-    logWarn("Traj size: %u", (unsigned int) traj.size());
-    logWarn("Checking traj 0 and 1. in plan");
-    if (traj.size() >=2 && traj.at(0) == traj.at(1))
+//    logWarn("Traj size: %u", (unsigned int) traj.size());
+    logWarn("Checking traj 0 and 1. in plan!?!?!?!");
+//    std::cout << traj.at(0) << '\n';
+//    std::cout << traj.at(1) << '\n';
+//    std::cout << ((*(traj[0])).hasVelocities() == 0) << '\n';
+    std::cout <<"Traj1: " << (*(traj[1])).acceleration_ << '\n';
+//    std::cout << "equal nums? " << (1 == 1) << '\n';
+    std::cout << "equal values? " << ((*(traj[0])).acceleration_ == (*(traj[1])).acceleration_ ) << '\n';
+    if (traj.size() > 1 && (*(traj.at(0))).has_acceleration_ == (*(traj.at(1))).has_acceleration_ == 0)
     {
         logWarn("There are two identical waypoints in this path.");
     }
