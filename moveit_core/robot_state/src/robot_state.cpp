@@ -43,8 +43,6 @@
 #include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
 
-#include <stdio.h>
-
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
   , has_velocity_(false)
@@ -1951,23 +1949,17 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     last_valid_percentage = percentage;
   }
 
-//    logWarn("Traj size: %u", (unsigned int) traj.size());
-    logWarn("Checking traj 0 and 1. in plan!?!?!?!");
-//    std::cout << traj.at(0) << '\n';
-//    std::cout << traj.at(1) << '\n';
-//    std::cout << ((*(traj[0])).hasVelocities() == 0) << '\n';
-    std::cout <<"Traj1: " << (*(traj[1])).acceleration_ << '\n';
-//    std::cout << "equal nums? " << (1 == 1) << '\n';
-    std::cout << "equal values? " << ((*(traj[0])).acceleration_ == (*(traj[1])).acceleration_ ) << '\n';
-    if (traj.size() > 1 && (*(traj.at(0))).has_acceleration_ == (*(traj.at(1))).has_acceleration_ == 0)
-    {
-        logWarn("There are two identical waypoints in this path.");
-    }
+  // Check to see if the two first points in the trajectory are identical.
+  if (traj.size() > 1 && (*(*(traj[0])).position_) == (*(*(traj[1])).position_))
+  {
+    logWarn("There is a duplicate waypoint in the path. Check that the starting point is not a waypoint.");
+  }
 
   if (test_joint_space_jump)
   {
     last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
   }
+
   return last_valid_percentage;
 }
 
