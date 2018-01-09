@@ -179,7 +179,7 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
     dreq.group_name = req.group_name;
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
-    distanceSelfHelper(dreq, dres, state);
+    distanceSelf(dreq, dres, state);
     res.distance = dres.minimum_distance.distance;
   }
 }
@@ -249,7 +249,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
     dreq.group_name = req.group_name;
     dreq.acm = acm;
     dreq.enableGroup(getRobotModel());
-    distanceOtherHelper(dreq, dres, state, other_robot, other_state);
+    distanceOther(dreq, dres, state, other_robot, other_state);
     res.distance = dres.minimum_distance.distance;
   }
 }
@@ -279,48 +279,8 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
   }
 }
 
-double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.enableGroup(getRobotModel());
-  distanceSelfHelper(dreq, dres, state);
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state,
-                                                            const AllowedCollisionMatrix& acm) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = &acm;
-  dreq.enableGroup(getRobotModel());
-  distanceSelfHelper(dreq, dres, state);
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionRobotFCL::distanceSelfHelper(const robot_state::RobotState& state,
-                                                                  const AllowedCollisionMatrix* acm) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = acm;
-  dreq.enableGroup(getRobotModel());
-  distanceSelfHelper(dreq, dres, state);
-  return dres.minimum_distance.distance;
-}
-
 void collision_detection::CollisionRobotFCL::distanceSelf(const DistanceRequest& req, DistanceResult& res,
                                                           const robot_state::RobotState& state) const
-{
-  distanceSelfHelper(req, res, state);
-}
-
-void collision_detection::CollisionRobotFCL::distanceSelfHelper(const DistanceRequest& req, DistanceResult& res,
-                                                                const robot_state::RobotState& state) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -329,58 +289,10 @@ void collision_detection::CollisionRobotFCL::distanceSelfHelper(const DistanceRe
   manager.manager_->distance(&drd, &distanceCallback);
 }
 
-double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
-                                                             const CollisionRobot& other_robot,
-                                                             const robot_state::RobotState& other_state) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.enableGroup(getRobotModel());
-  distanceOtherHelper(dreq, dres, state, other_robot, other_state);
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
-                                                             const CollisionRobot& other_robot,
-                                                             const robot_state::RobotState& other_state,
-                                                             const AllowedCollisionMatrix& acm) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = &acm;
-  dreq.enableGroup(getRobotModel());
-  distanceOtherHelper(dreq, dres, state, other_robot, other_state);
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionRobotFCL::distanceOtherHelper(const robot_state::RobotState& state,
-                                                                   const CollisionRobot& other_robot,
-                                                                   const robot_state::RobotState& other_state,
-                                                                   const AllowedCollisionMatrix* acm) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = acm;
-  dreq.enableGroup(getRobotModel());
-  distanceOtherHelper(dreq, dres, state, other_robot, other_state);
-  return dres.minimum_distance.distance;
-}
-
 void collision_detection::CollisionRobotFCL::distanceOther(const DistanceRequest& req, DistanceResult& res,
                                                            const robot_state::RobotState& state,
                                                            const CollisionRobot& other_robot,
                                                            const robot_state::RobotState& other_state) const
-{
-  distanceOtherHelper(req, res, state, other_robot, other_state);
-}
-
-void collision_detection::CollisionRobotFCL::distanceOtherHelper(const DistanceRequest& req, DistanceResult& res,
-                                                                 const robot_state::RobotState& state,
-                                                                 const CollisionRobot& other_robot,
-                                                                 const robot_state::RobotState& other_state) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);

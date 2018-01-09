@@ -45,7 +45,6 @@
 #include <fcl/distance.h>
 #include <memory>
 #include <set>
-#include <moveit/macros/deprecation.h>
 
 namespace collision_detection
 {
@@ -162,7 +161,7 @@ struct DistanceData
   /// Distance query request information
   const DistanceRequest* req;
 
-  /// Destance query results information
+  /// Distance query results information
   DistanceResult* res;
 
   /// Indicates if distance query is finished.
