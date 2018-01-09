@@ -296,7 +296,7 @@ void collision_detection::CollisionWorldFCL::distanceRobotHelper(const DistanceR
 
   DistanceData drd(&req, &res);
   for (std::size_t i = 0; !drd.done && i < fcl_obj.collision_objects_.size(); ++i)
-    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceDetailedCallback);
+    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
 
 double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
@@ -383,7 +383,7 @@ void collision_detection::CollisionWorldFCL::distanceWorldHelper(const DistanceR
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
   DistanceData drd(&req, &res);
-  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceDetailedCallback);
+  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceCallback);
 }
 
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>

@@ -326,7 +326,7 @@ void collision_detection::CollisionRobotFCL::distanceSelfHelper(const DistanceRe
   allocSelfCollisionBroadPhase(state, manager);
   DistanceData drd(&req, &res);
 
-  manager.manager_->distance(&drd, &distanceDetailedCallback);
+  manager.manager_->distance(&drd, &distanceCallback);
 }
 
 double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
@@ -391,5 +391,5 @@ void collision_detection::CollisionRobotFCL::distanceOtherHelper(const DistanceR
 
   DistanceData drd(&req, &res);
   for (std::size_t i = 0; !drd.done && i < other_fcl_obj.collision_objects_.size(); ++i)
-    manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &drd, &distanceDetailedCallback);
+    manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
