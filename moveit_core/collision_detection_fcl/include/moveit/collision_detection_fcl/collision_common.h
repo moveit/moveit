@@ -155,7 +155,7 @@ struct DistanceData
   DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
   {
   }
-  virtual ~DistanceData()
+  ~DistanceData()
   {
   }
 
