@@ -459,7 +459,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (!cdata->req->verbose)
-          CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
+          CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are "
+                                  "computed.",
                                   cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
@@ -471,7 +472,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   }
 
   if (!cdata->req->verbose)
-    CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(), cd2->getID().c_str());
+    CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(),
+                            cd2->getID().c_str());
 
   fcl::DistanceResult fcl_result;
   DistanceResultsData dist_result;
@@ -548,7 +550,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
         int max_index = 0;
         for (int i = 0; i < contacts; ++i)
         {
-          const fcl::Contact &contact = coll_res.getContact(i);
+          const fcl::Contact& contact = coll_res.getContact(i);
           if (contact.penetration_depth > max_dist)
           {
             max_dist = contact.penetration_depth;
@@ -556,7 +558,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
           }
         }
 
-        const fcl::Contact &contact = coll_res.getContact(max_index);
+        const fcl::Contact& contact = coll_res.getContact(max_index);
         dist_result.distance = -contact.penetration_depth;
         dist_result.nearest_points[0] = Eigen::Vector3d(contact.pos.data.vs);
         dist_result.nearest_points[1] = Eigen::Vector3d(contact.pos.data.vs);
