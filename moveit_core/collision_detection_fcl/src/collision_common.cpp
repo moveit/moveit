@@ -389,7 +389,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
   bool active1 = true, active2 = true;
 
-  // do not distance check geoms part of the same object / link / attached body
+  // do not distance check for geoms part of the same object / link / attached body
   if (cd1->sameObject(*cd2))
     return false;
 
@@ -399,11 +399,11 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     const robot_model::LinkModel* l1 =
         cd1->type == BodyTypes::ROBOT_LINK ?
             cd1->ptr.link :
-            (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+            (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : nullptr);
     const robot_model::LinkModel* l2 =
         cd2->type == BodyTypes::ROBOT_LINK ?
             cd2->ptr.link :
-            (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+            (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : nullptr);
 
     if (!l1 || cdata->req->active_components_only->find(l1) == cdata->req->active_components_only->end())
       active1 = false;
@@ -432,8 +432,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (!cdata->req->verbose)
-          CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is always allowed. No contacts are computed.", cd1->getID().c_str(),
-                                  cd2->getID().c_str());
+          CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is always allowed. No distances are computed.",
+                                  cd1->getID().c_str(), cd2->getID().c_str());
       }
     }
   }
@@ -446,7 +446,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     {
       always_allow_collision = true;
       if (!cdata->req->verbose)
-        CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+        CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
                                 cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
@@ -459,7 +459,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (!cdata->req->verbose)
-          CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+          CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
                                   cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
