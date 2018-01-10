@@ -61,10 +61,12 @@ moveit::core::LinkModel::LinkModel(const std::string& name)
   , link_index_(-1)
 {
   joint_origin_transform_.setIdentity();
+  centered_bounding_box_offsets[this] = Eigen::Vector3d::Zero();
 }
 
 moveit::core::LinkModel::~LinkModel()
 {
+  centered_bounding_box_offsets.erase(this);
 }
 
 void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
