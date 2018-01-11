@@ -575,7 +575,7 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   }
   moveit_msgs::RobotState start_state_msg;
   moveit::core::robotStateToRobotStateMsg(start_state_, start_state_msg);
-  return planning_scene_->isPathValid(start_state_msg, traj);
+  return planning_scene_->isPathValid(start_state_msg, traj, planning_group_);
 }
 
 // CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()
