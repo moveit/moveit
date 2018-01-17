@@ -957,14 +957,14 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       // Check single-dof trajectory
       const std::vector<double>& positions = trajectory.joint_trajectory.points.front().positions;
       const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
-      const std::size_t n = joint_names.size();
-      if (positions.size() != n)
+      if (positions.size() != joint_names.size())
       {
-        ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
+        ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", joint_names.size(),
+                        positions.size());
         return false;
       }
 
-      for (std::size_t i = 0; i < n; ++i)
+      for (std::size_t i = 0, end = joint_names.size(); i < end; ++i)
       {
         const robot_model::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
@@ -994,14 +994,14 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       const std::vector<geometry_msgs::Transform>& transforms =
           trajectory.multi_dof_joint_trajectory.points.front().transforms;
       const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
-      const std::size_t n = joint_names.size();
-      if (transforms.size() != n)
+      if (transforms.size() != joint_names.size())
       {
-        ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #transforms: %zu", n, transforms.size());
+        ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #transforms: %zu", joint_names.size(),
+                        transforms.size());
         return false;
       }
 
-      for (std::size_t i = 0; i < n; ++i)
+      for (std::size_t i = 0, end = joint_names.size(); i < end; ++i)
       {
         const robot_model::JointModel* jm = current_state->getJointModel(joint_names[i]);
         if (!jm)
@@ -1010,6 +1010,8 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
           return false;
         }
 
+        // compute difference (offset vector and rotation angle) between current transform
+        // and start transform in trajectory
         Eigen::Affine3d cur_transform, start_transform;
         jm->computeTransform(current_state->getJointPositions(jm), cur_transform);
         tf::transformMsgToEigen(transforms[i], start_transform);
@@ -1020,7 +1022,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         {
           ROS_ERROR_STREAM_NAMED("traj_execution",
                                  "\nInvalid Trajectory: start point deviates from current robot state more than "
-                                     << allowed_start_tolerance_ << "\njoint '" << joint_names[i]
+                                     << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
                                      << "': pos delta: " << offset.transpose() << " rot delta: " << rotation.angle());
           return false;
         }
