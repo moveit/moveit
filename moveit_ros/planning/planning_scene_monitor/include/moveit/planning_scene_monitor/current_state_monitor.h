@@ -55,6 +55,10 @@ typedef boost::function<void(const sensor_msgs::JointStateConstPtr& joint_state)
     @brief Monitors the joint_states topic and tf to maintain the current state of the robot. */
 class CurrentStateMonitor
 {
+  /* tf changed their interface between indigo and kinetic
+     from boost::signals::connection to boost::signals2::connection */
+  typedef decltype(tf::Transformer().addTransformsChangedListener(boost::function<void(void)>())) TFConnection;
+
 public:
   /**
    * @brief Constructor.
@@ -193,6 +197,7 @@ public:
 
 private:
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+  void tfCallback();
   bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   ros::NodeHandle nh_;
@@ -206,11 +211,12 @@ private:
   double error_;
   ros::Subscriber joint_state_subscriber_;
   ros::Time current_state_time_;
-  ros::Time last_tf_update_;
 
   mutable boost::mutex state_update_lock_;
   mutable boost::condition_variable state_update_condition_;
   std::vector<JointStateUpdateCallback> update_callbacks_;
+
+  std::shared_ptr<TFConnection> tf_connection_;
 };
 
 MOVEIT_CLASS_FORWARD(CurrentStateMonitor);
