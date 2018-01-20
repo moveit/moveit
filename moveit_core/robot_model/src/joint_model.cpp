@@ -130,26 +130,26 @@ void moveit::core::JointModel::setVariableBounds(const std::string& variable, co
 void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim)
 {
   for (std::size_t j = 0; j < variable_names_.size(); ++j)
-    for (std::size_t i = 0; i < jlim.size(); ++i)
-      if (jlim[i].joint_name == variable_names_[j])
+    for (const auto & limit : jlim)
+      if (limit.joint_name == variable_names_[j])
       {
-        variable_bounds_[j].position_bounded_ = jlim[i].has_position_limits;
-        if (jlim[i].has_position_limits)
+        variable_bounds_[j].position_bounded_ = limit.has_position_limits;
+        if (limit.has_position_limits)
         {
-          variable_bounds_[j].min_position_ = jlim[i].min_position;
-          variable_bounds_[j].max_position_ = jlim[i].max_position;
+          variable_bounds_[j].min_position_ = limit.min_position;
+          variable_bounds_[j].max_position_ = limit.max_position;
         }
-        variable_bounds_[j].velocity_bounded_ = jlim[i].has_velocity_limits;
-        if (jlim[i].has_velocity_limits)
+        variable_bounds_[j].velocity_bounded_ = limit.has_velocity_limits;
+        if (limit.has_velocity_limits)
         {
-          variable_bounds_[j].min_velocity_ = -jlim[i].max_velocity;
-          variable_bounds_[j].max_velocity_ = jlim[i].max_velocity;
+          variable_bounds_[j].min_velocity_ = -limit.max_velocity;
+          variable_bounds_[j].max_velocity_ = limit.max_velocity;
         }
-        variable_bounds_[j].acceleration_bounded_ = jlim[i].has_acceleration_limits;
-        if (jlim[i].has_acceleration_limits)
+        variable_bounds_[j].acceleration_bounded_ = limit.has_acceleration_limits;
+        if (limit.has_acceleration_limits)
         {
-          variable_bounds_[j].min_acceleration_ = -jlim[i].max_acceleration;
-          variable_bounds_[j].max_acceleration_ = jlim[i].max_acceleration;
+          variable_bounds_[j].min_acceleration_ = -limit.max_acceleration;
+          variable_bounds_[j].max_acceleration_ = limit.max_acceleration;
         }
         break;
       }

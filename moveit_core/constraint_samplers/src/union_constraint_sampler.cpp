@@ -65,15 +65,15 @@ struct OrderSamplers
     const std::vector<std::string>& fda = a->getFrameDependency();
     const std::vector<std::string>& fdb = b->getFrameDependency();
     for (std::size_t i = 0; i < fda.size() && !a_depends_on_b; ++i)
-      for (std::size_t j = 0; j < blinks.size(); ++j)
-        if (blinks[j] == fda[i])
+      for (const auto & blink : blinks)
+        if (blink == fda[i])
         {
           a_depends_on_b = true;
           break;
         }
     for (std::size_t i = 0; i < fdb.size() && !b_depends_on_a; ++i)
-      for (std::size_t j = 0; j < alinks.size(); ++j)
-        if (alinks[j] == fdb[i])
+      for (const auto & alink : alinks)
+        if (alink == fdb[i])
         {
           b_depends_on_a = true;
           break;
@@ -112,14 +112,14 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
   // using stable sort to preserve order of equivalents
   std::stable_sort(samplers_.begin(), samplers_.end(), OrderSamplers());
 
-  for (std::size_t i = 0; i < samplers_.size(); ++i)
+  for (auto & sampler : samplers_)
   {
-    const std::vector<std::string>& fd = samplers_[i]->getFrameDependency();
-    for (std::size_t j = 0; j < fd.size(); ++j)
-      frame_depends_.push_back(fd[j]);
+    const std::vector<std::string>& fd = sampler->getFrameDependency();
+    for (const auto & dependency : fd)
+      frame_depends_.push_back(dependency);
 
     logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
-             samplers_[i]->getJointModelGroup()->getName().c_str());
+             sampler->getJointModelGroup()->getName().c_str());
   }
 }
 
@@ -150,13 +150,13 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
 
 bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
 {
-  for (std::size_t i = 0; i < samplers_.size(); ++i)
+  for (auto & sampler : samplers_)
   {
     // ConstraintSampler::project returns states with dirty link transforms (because it only writes values)
     // but requires a state with clean link transforms as input. This means that we need to clean the link
     // transforms between calls to ConstraintSampler::sample.
     state.updateLinkTransforms();
-    if (!samplers_[i]->project(state, max_attempts))
+    if (!sampler->project(state, max_attempts))
       return false;
   }
   return true;

@@ -112,8 +112,8 @@ void moveit::tools::BackgroundProcessing::clear()
     action_names_.swap(removed);
   }
   if (update && queue_change_event_)
-    for (std::deque<std::string>::iterator it = removed.begin(); it != removed.end(); ++it)
-      queue_change_event_(REMOVE, *it);
+    for (auto & event : removed)
+      queue_change_event_(REMOVE, event);
 }
 
 std::size_t moveit::tools::BackgroundProcessing::getJobCount() const
