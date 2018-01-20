@@ -86,7 +86,7 @@ RobotState::~RobotState()
     delete rng_;
 }
 
-void RobotState::allocMemory(void)
+void RobotState::allocMemory()
 {
   // memory for the dirty joint transforms
   const int nr_doubles_for_dirty_joint_transforms =
