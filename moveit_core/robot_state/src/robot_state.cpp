@@ -76,7 +76,7 @@ moveit::core::RobotState::~RobotState()
     delete rng_;
 }
 
-void moveit::core::RobotState::allocMemory(void)
+void moveit::core::RobotState::allocMemory()
 {
   // memory for the dirty joint transforms
   const int nr_doubles_for_dirty_joint_transforms =

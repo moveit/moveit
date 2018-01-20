@@ -36,7 +36,7 @@
 
 #include "moveit/profiler/profiler.h"
 
-moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
+moveit::tools::Profiler& moveit::tools::Profiler::Instance()
 {
   static Profiler p(false, false);
   return p;
@@ -49,7 +49,7 @@ moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
 #include <algorithm>
 #include <sstream>
 
-void moveit::tools::Profiler::start(void)
+void moveit::tools::Profiler::start()
 {
   lock_.lock();
   if (!running_)
@@ -60,7 +60,7 @@ void moveit::tools::Profiler::start(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::stop(void)
+void moveit::tools::Profiler::stop()
 {
   lock_.lock();
   if (running_)
@@ -71,7 +71,7 @@ void moveit::tools::Profiler::stop(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::clear(void)
+void moveit::tools::Profiler::clear()
 {
   lock_.lock();
   data_.clear();
@@ -164,7 +164,7 @@ void moveit::tools::Profiler::status(std::ostream& out, bool merge)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::console(void)
+void moveit::tools::Profiler::console()
 {
   std::stringstream ss;
   ss << std::endl;
