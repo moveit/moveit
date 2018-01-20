@@ -82,7 +82,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
 
     const robot_model::VariableBounds& joint_bounds = jm->getVariableBounds(constraint.getJointVariableName());
     JointInfo ji;
-    std::map<std::string, JointInfo>::iterator it = bound_data.find(constraint.getJointVariableName());
+    auto it = bound_data.find(constraint.getJointVariableName());
     if (it != bound_data.end())
       ji = it->second;
     else

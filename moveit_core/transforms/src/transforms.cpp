@@ -98,7 +98,7 @@ const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string&
 {
   if (!from_frame.empty())
   {
-    FixedTransformsMap::const_iterator it =
+    auto it =
         (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
     if (it != transforms_.end())
       return it->second;
@@ -162,7 +162,7 @@ void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::Transfo
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
-  for (FixedTransformsMap::const_iterator it = transforms_.begin(); it != transforms_.end(); ++it, ++i)
+  for (auto it = transforms_.begin(); it != transforms_.end(); ++it, ++i)
   {
     transforms[i].child_frame_id = target_frame_;
     transforms[i].header.frame_id = it->first;

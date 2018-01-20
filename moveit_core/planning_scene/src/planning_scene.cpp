@@ -275,7 +275,7 @@ void planning_scene::PlanningScene::CollisionDetector::findParent(const Planning
   if (parent_ || !scene.parent_)
     return;
 
-  CollisionDetectorConstIterator it = scene.parent_->collision_.find(alloc_->getName());
+  auto it = scene.parent_->collision_.find(alloc_->getName());
   if (it != scene.parent_->collision_.end())
     parent_ = it->second->parent_;
 }
@@ -326,7 +326,7 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(
   if (exclusive)
   {
     CollisionDetectorPtr p;
-    CollisionDetectorIterator it = collision_.find(allocator->getName());
+    auto it = collision_.find(allocator->getName());
     if (it != collision_.end())
       p = it->second;
 
@@ -347,7 +347,7 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(
 
 bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
 {
-  CollisionDetectorIterator it = collision_.find(collision_detector_name);
+  auto it = collision_.find(collision_detector_name);
   if (it != collision_.end())
   {
     active_collision_ = it->second;
@@ -373,7 +373,7 @@ void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::s
 const collision_detection::CollisionWorldConstPtr&
 planning_scene::PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
 {
-  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  auto it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
     logError("Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
@@ -387,7 +387,7 @@ planning_scene::PlanningScene::getCollisionWorld(const std::string& collision_de
 const collision_detection::CollisionRobotConstPtr&
 planning_scene::PlanningScene::getCollisionRobot(const std::string& collision_detector_name) const
 {
-  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  auto it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
     logError("Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
@@ -401,7 +401,7 @@ planning_scene::PlanningScene::getCollisionRobot(const std::string& collision_de
 const collision_detection::CollisionRobotConstPtr&
 planning_scene::PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_name) const
 {
-  CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
+  auto it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
     logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded '%s' instead",
@@ -2228,7 +2228,7 @@ void planning_scene::PlanningScene::getCostSources(const robot_trajectory::Robot
   {
     costs.clear();
     std::size_t i = 0;
-    for (std::set<collision_detection::CostSource>::iterator it = cs.begin(); i < max_costs; ++it, ++i)
+    for (auto it = cs.begin(); i < max_costs; ++it, ++i)
       costs.insert(*it);
   }
 

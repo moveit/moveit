@@ -399,8 +399,8 @@ void PropagationDistanceField::propagatePositive()
   // now process the queue:
   for (unsigned int i = 0; i < bucket_queue_.size(); ++i)
   {
-    std::vector<Eigen::Vector3i>::iterator list_it = bucket_queue_[i].begin();
-    std::vector<Eigen::Vector3i>::iterator list_end = bucket_queue_[i].end();
+    auto list_it = bucket_queue_[i].begin();
+    auto list_end = bucket_queue_[i].end();
     for (; list_it != list_end; ++list_it)
     {
       const Eigen::Vector3i& loc = *list_it;
@@ -455,8 +455,8 @@ void PropagationDistanceField::propagateNegative()
   // now process the queue:
   for (unsigned int i = 0; i < negative_bucket_queue_.size(); ++i)
   {
-    std::vector<Eigen::Vector3i>::iterator list_it = negative_bucket_queue_[i].begin();
-    std::vector<Eigen::Vector3i>::iterator list_end = negative_bucket_queue_[i].end();
+    auto list_it = negative_bucket_queue_[i].begin();
+    auto list_end = negative_bucket_queue_[i].end();
     for (; list_it != list_end; ++list_it)
     {
       const Eigen::Vector3i& loc = *list_it;
