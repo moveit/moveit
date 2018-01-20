@@ -59,9 +59,7 @@ JointModel::JointModel(const std::string& name)
 {
 }
 
-JointModel::~JointModel()
-{
-}
+JointModel::~JointModel() = default;
 
 std::string JointModel::getTypeName() const
 {

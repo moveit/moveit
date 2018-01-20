@@ -72,9 +72,7 @@ bool Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
   return frame1 == frame2;
 }
 
-Transforms::~Transforms()
-{
-}
+Transforms::~Transforms() = default;
 
 const std::string& Transforms::getTargetFrame() const
 {

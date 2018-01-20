@@ -55,9 +55,7 @@ LinkModel::LinkModel(const std::string& name)
   joint_origin_transform_.setIdentity();
 }
 
-LinkModel::~LinkModel()
-{
-}
+LinkModel::~LinkModel() = default;
 
 void LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
 {

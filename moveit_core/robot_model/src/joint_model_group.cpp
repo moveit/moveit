@@ -260,9 +260,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
   }
 }
 
-JointModelGroup::~JointModelGroup()
-{
-}
+JointModelGroup::~JointModelGroup() = default;
 
 void JointModelGroup::setSubgroupNames(const std::vector<std::string>& subgroups)
 {
