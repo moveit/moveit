@@ -76,7 +76,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   {
     logError("moveit.dynamics_solver: Group '%s' is not a chain. Will not initialize dynamics solver",
              group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
@@ -84,7 +84,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   {
     logError("moveit.dynamics_solver: Group '%s' has a mimic joint. Will not initialize dynamics solver",
              group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
@@ -92,7 +92,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (!joint->getParentLinkModel())
   {
     logError("moveit.dynamics_solver: Group '%s' does not have a parent link", group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
@@ -108,13 +108,13 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree))
   {
     logError("moveit.dynamics_solver: Could not initialize tree object");
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_))
   {
     logError("moveit.dynamics_solver: Could not initialize chain object");
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
   num_joints_ = kdl_chain_.getNrOfJoints();

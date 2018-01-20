@@ -50,8 +50,8 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   , has_acceleration_(false)
   , has_effort_(false)
   , dirty_link_transforms_(robot_model_->getRootJoint())
-  , dirty_collision_body_transforms_(NULL)
-  , rng_(NULL)
+  , dirty_collision_body_transforms_(nullptr)
+  , rng_(nullptr)
 {
   allocMemory();
 
@@ -61,7 +61,7 @@ moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   memset(dirty_joint_transforms_, 1, sizeof(double) * nr_doubles_for_dirty_joint_transforms);
 }
 
-moveit::core::RobotState::RobotState(const RobotState& other) : rng_(NULL)
+moveit::core::RobotState::RobotState(const RobotState& other) : rng_(nullptr)
 {
   robot_model_ = other.robot_model_;
   allocMemory();
@@ -317,7 +317,7 @@ void moveit::core::RobotState::getMissingKeys(const std::map<std::string, double
   const std::vector<std::string>& nm = robot_model_->getVariableNames();
   for (const auto & name : nm)
     if (variable_map.find(name) == variable_map.end())
-      if (robot_model_->getJointOfVariable(name)->getMimic() == NULL)
+      if (robot_model_->getJointOfVariable(name)->getMimic() == nullptr)
         missing_variables.push_back(name);
 }
 
@@ -544,13 +544,13 @@ void moveit::core::RobotState::update(bool force)
 
 void moveit::core::RobotState::updateCollisionBodyTransforms()
 {
-  if (dirty_link_transforms_ != NULL)
+  if (dirty_link_transforms_ != nullptr)
     updateLinkTransforms();
 
-  if (dirty_collision_body_transforms_ != NULL)
+  if (dirty_collision_body_transforms_ != nullptr)
   {
     const std::vector<const LinkModel*>& links = dirty_collision_body_transforms_->getDescendantLinkModels();
-    dirty_collision_body_transforms_ = NULL;
+    dirty_collision_body_transforms_ = nullptr;
 
     for (auto link : links)
     {
@@ -568,7 +568,7 @@ void moveit::core::RobotState::updateCollisionBodyTransforms()
 
 void moveit::core::RobotState::updateLinkTransforms()
 {
-  if (dirty_link_transforms_ != NULL)
+  if (dirty_link_transforms_ != nullptr)
   {
     updateLinkTransformsInternal(dirty_link_transforms_);
     if (dirty_collision_body_transforms_)
@@ -576,7 +576,7 @@ void moveit::core::RobotState::updateLinkTransforms()
           robot_model_->getCommonRoot(dirty_collision_body_transforms_, dirty_link_transforms_);
     else
       dirty_collision_body_transforms_ = dirty_link_transforms_;
-    dirty_link_transforms_ = NULL;
+    dirty_link_transforms_ = nullptr;
   }
 }
 
@@ -744,7 +744,7 @@ std::pair<double, const moveit::core::JointModel*>
 moveit::core::RobotState::getMinDistanceToPositionBounds(const std::vector<const JointModel*>& joints) const
 {
   double distance = std::numeric_limits<double>::max();
-  const JointModel* index = NULL;
+  const JointModel* index = nullptr;
   for (auto joint : joints)
   {
     if (joint->getType() == JointModel::PLANAR || joint->getType() == JointModel::FLOATING)
@@ -848,7 +848,7 @@ const moveit::core::AttachedBody* moveit::core::RobotState::getAttachedBody(cons
   if (it == attached_body_map_.end())
   {
     logError("Attached body '%s' not found", id.c_str());
-    return NULL;
+    return nullptr;
   }
   else
     return it->second;

@@ -102,7 +102,7 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
   srdfModel->initString(*urdf_model, SMODEL1);
 
   moveit::core::RobotModel robot_model1(urdf_model, srdfModel);
-  ASSERT_TRUE(robot_model1.getRootJoint() != NULL);
+  ASSERT_TRUE(robot_model1.getRootJoint() != nullptr);
   EXPECT_EQ(robot_model1.getModelFrame(), "/base_footprint");
 
   static const std::string SMODEL2 = "<?xml version=\"1.0\" ?>"
@@ -113,7 +113,7 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
   srdfModel->initString(*urdf_model, SMODEL2);
 
   moveit::core::RobotModel robot_model2(urdf_model, srdfModel);
-  ASSERT_TRUE(robot_model2.getRootJoint() != NULL);
+  ASSERT_TRUE(robot_model2.getRootJoint() != nullptr);
   EXPECT_EQ(robot_model2.getModelFrame(), "/odom_combined");
 }
 
@@ -137,10 +137,10 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
   moveit::core::RobotModel robot_model1(urdf_model, srdfModel);
 
   const moveit::core::JointModelGroup* left_arm_base_tip_group = robot_model1.getJointModelGroup("left_arm_base_tip");
-  ASSERT_TRUE(left_arm_base_tip_group == NULL);
+  ASSERT_TRUE(left_arm_base_tip_group == nullptr);
 
   const moveit::core::JointModelGroup* left_arm_joints_group = robot_model1.getJointModelGroup("left_arm_joints");
-  ASSERT_TRUE(left_arm_joints_group == NULL);
+  ASSERT_TRUE(left_arm_joints_group == nullptr);
 
   static const std::string SMODEL2 = "<?xml version=\"1.0\" ?>"
                                      "<robot name=\"pr2\">"
@@ -164,10 +164,10 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
   moveit::core::RobotModelPtr robot_model2(new moveit::core::RobotModel(urdf_model, srdfModel));
 
   left_arm_base_tip_group = robot_model2->getJointModelGroup("left_arm_base_tip");
-  ASSERT_TRUE(left_arm_base_tip_group != NULL);
+  ASSERT_TRUE(left_arm_base_tip_group != nullptr);
 
   left_arm_joints_group = robot_model2->getJointModelGroup("left_arm_joints");
-  ASSERT_TRUE(left_arm_joints_group != NULL);
+  ASSERT_TRUE(left_arm_joints_group != nullptr);
 
   EXPECT_EQ(left_arm_base_tip_group->getJointModels().size(), 9);
   EXPECT_EQ(left_arm_joints_group->getJointModels().size(), 7);

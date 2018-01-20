@@ -77,7 +77,7 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
   if (jc.tolerance_above < 0.0 || jc.tolerance_below < 0.0)
   {
     logWarn("JointConstraint tolerance values must be positive.");
-    joint_model_ = NULL;
+    joint_model_ = nullptr;
     return false;
   }
 
@@ -106,13 +106,13 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       if (joint_model_->getVariableCount() == 0)
       {
         logError("Joint '%s' has no parameters to constrain", jc.joint_name.c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
       else if (joint_model_->getVariableCount() > 1)
       {
         logError("Joint '%s' has more than one parameter to constrain. This type of constraint is not supported.",
                  jc.joint_name.c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
     }
     else
@@ -129,7 +129,7 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       {
         logError("Local variable name '%s' is not known to joint '%s'", local_variable_name_.c_str(),
                  joint_model_->getName().c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
     }
   }
@@ -188,7 +188,7 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
     else
       constraint_weight_ = jc.weight;
   }
-  return joint_model_ != NULL;
+  return joint_model_ != nullptr;
 }
 
 bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint& other, double margin) const
@@ -243,7 +243,7 @@ bool kinematic_constraints::JointConstraint::enabled() const
 
 void kinematic_constraints::JointConstraint::clear()
 {
-  joint_model_ = NULL;
+  joint_model_ = nullptr;
   joint_variable_index_ = -1;
   joint_is_continuous_ = false;
   local_variable_name_ = "";
@@ -275,7 +275,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   clear();
 
   link_model_ = robot_model_->getLinkModel(pc.link_name);
-  if (link_model_ == NULL)
+  if (link_model_ == nullptr)
   {
     logWarn("Position constraint link model %s not found in kinematic model.  Constraint invalid.",
             pc.link_name.c_str());
@@ -481,7 +481,7 @@ void kinematic_constraints::PositionConstraint::clear()
   constraint_region_pose_.clear();
   mobile_frame_ = false;
   constraint_frame_id_ = "";
-  link_model_ = NULL;
+  link_model_ = nullptr;
 }
 
 bool kinematic_constraints::PositionConstraint::enabled() const
@@ -549,7 +549,7 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   if (absolute_z_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     logWarn("Near-zero value for absolute_z_axis_tolerance");
 
-  return link_model_ != NULL;
+  return link_model_ != nullptr;
 }
 
 bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstraint& other, double margin) const
@@ -573,7 +573,7 @@ bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstrai
 
 void kinematic_constraints::OrientationConstraint::clear()
 {
-  link_model_ = NULL;
+  link_model_ = nullptr;
   desired_rotation_matrix_ = Eigen::Matrix3d::Identity();
   desired_rotation_matrix_inv_ = Eigen::Matrix3d::Identity();
   desired_rotation_frame_id_ = "";

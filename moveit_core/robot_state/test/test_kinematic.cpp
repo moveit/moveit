@@ -390,10 +390,10 @@ TEST(FK, OneRobot)
   const moveit::core::JointModelGroup* g_four = model->getJointModelGroup("base_with_bad_subgroups");
   const moveit::core::JointModelGroup* g_mim = model->getJointModelGroup("mim_joints");
 
-  ASSERT_TRUE(g_one != NULL);
-  ASSERT_TRUE(g_two != NULL);
-  ASSERT_TRUE(g_three != NULL);
-  ASSERT_TRUE(g_four == NULL);
+  ASSERT_TRUE(g_one != nullptr);
+  ASSERT_TRUE(g_two != nullptr);
+  ASSERT_TRUE(g_three != nullptr);
+  ASSERT_TRUE(g_four == nullptr);
 
   // joint_b is a fixed joint, so no one should have it
   ASSERT_EQ(g_one->getJointModelNames().size(), 3);

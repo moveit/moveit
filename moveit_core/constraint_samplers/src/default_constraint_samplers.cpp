@@ -120,7 +120,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
   const std::vector<const robot_model::JointModel*>& joints = jmg_->getJointModels();
   for (auto joint : joints)
     if (bound_data.find(joint->getName()) == bound_data.end() && joint->getVariableCount() > 0 &&
-        joint->getMimic() == NULL)
+        joint->getMimic() == nullptr)
     {
       // check if all the vars of the joint are found in bound_data instead
       const std::vector<std::string>& vars = joint->getVariableNames();
