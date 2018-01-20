@@ -154,8 +154,8 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
 
 void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
 {
-  for (std::size_t i = 0; i < transforms.size(); ++i)
-    setTransform(transforms[i]);
+  for (const auto & transform : transforms)
+    setTransform(transform);
 }
 
 void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const

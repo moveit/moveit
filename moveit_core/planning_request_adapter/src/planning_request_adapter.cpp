@@ -151,13 +151,13 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
     added_path_index.clear();
 
     // merge the index values from each adapter
-    for (std::size_t i = 0; i < added_path_index_each.size(); ++i)
-      for (std::size_t j = 0; j < added_path_index_each[i].size(); ++j)
+    for (auto & adapter_added : added_path_index_each)
+      for (unsigned long & adapter_idx : adapter_added)
       {
-        for (std::size_t k = 0; k < added_path_index.size(); ++k)
-          if (added_path_index_each[i][j] <= added_path_index[k])
-            added_path_index[k]++;
-        added_path_index.push_back(added_path_index_each[i][j]);
+        for (unsigned long & idx : added_path_index)
+          if (adapter_idx <= idx)
+            idx++;
+        added_path_index.push_back(adapter_idx);
       }
     std::sort(added_path_index.begin(), added_path_index.end());
     return result;

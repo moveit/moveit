@@ -120,6 +120,6 @@ void planning_interface::PlannerManager::terminate() const
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
-  for (std::set<PlanningContext*>::iterator it = ac.contexts_.begin(); it != ac.contexts_.end(); ++it)
-    (*it)->terminate();
+  for (auto context : ac.contexts_)
+    context->terminate();
 }
