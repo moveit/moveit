@@ -59,8 +59,8 @@ static double normalizeAngle(double angle)
 }
 }
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(const robot_model::RobotModelConstPtr& model)
-  : type_(UNKNOWN_CONSTRAINT), robot_model_(model), constraint_weight_(std::numeric_limits<double>::epsilon())
+kinematic_constraints::KinematicConstraint::KinematicConstraint(robot_model::RobotModelConstPtr  model)
+  : type_(UNKNOWN_CONSTRAINT), robot_model_(std::move(model)), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 

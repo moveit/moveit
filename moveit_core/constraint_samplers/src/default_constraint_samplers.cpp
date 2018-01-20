@@ -210,19 +210,19 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints:
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc)
-  : position_constraint_(pc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc)
+  : position_constraint_(std::move(pc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc)
-  : orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::OrientationConstraintPtr  oc)
+  : orientation_constraint_(std::move(oc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
-                                                    const kinematic_constraints::OrientationConstraintPtr& oc)
-  : position_constraint_(pc), orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc,
+                                                    kinematic_constraints::OrientationConstraintPtr  oc)
+  : position_constraint_(std::move(pc)), orientation_constraint_(std::move(oc))
 {
 }
 

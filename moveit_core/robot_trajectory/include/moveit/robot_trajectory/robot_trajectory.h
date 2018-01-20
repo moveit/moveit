@@ -55,7 +55,7 @@ class RobotTrajectory
 public:
   RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const std::string& group);
 
-  RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const robot_model::JointModelGroup* group);
+  RobotTrajectory(robot_model::RobotModelConstPtr  robot_model, const robot_model::JointModelGroup* group);
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {

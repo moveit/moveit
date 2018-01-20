@@ -99,17 +99,17 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
 }
 }
 
-moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Model::Group& config,
+moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Model::Group  config,
                                                const std::vector<const JointModel*>& unsorted_group_joints,
                                                const RobotModel* parent_model)
   : parent_model_(parent_model)
-  , name_(group_name)
+  , name_(std::move(group_name))
   , common_root_(nullptr)
   , variable_count_(0)
   , is_contiguous_index_list_(true)
   , is_chain_(false)
   , is_single_dof_(true)
-  , config_(config)
+  , config_(std::move(config))
 {
   // sort joints in Depth-First order
   joint_model_vector_ = unsorted_group_joints;

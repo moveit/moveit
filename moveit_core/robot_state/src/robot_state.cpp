@@ -44,8 +44,8 @@
 #include <boost/bind.hpp>
 #include <moveit/robot_model/aabb.h>
 
-moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
-  : robot_model_(robot_model)
+moveit::core::RobotState::RobotState(RobotModelConstPtr  robot_model)
+  : robot_model_(std::move(robot_model))
   , has_velocity_(false)
   , has_acceleration_(false)
   , has_effort_(false)

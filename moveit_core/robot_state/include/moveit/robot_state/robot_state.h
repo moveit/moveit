@@ -84,7 +84,7 @@ class RobotState
 public:
   /** \brief A state can be constructed from a specified robot model. No values are initialized.
       Call setToDefaultValues() if a state needs to provide valid information. */
-  RobotState(const RobotModelConstPtr& robot_model);
+  RobotState(RobotModelConstPtr  robot_model);
   ~RobotState();
 
   /** \brief Copy constructor. */

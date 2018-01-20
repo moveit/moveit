@@ -46,9 +46,9 @@ robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModel
 {
 }
 
-robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model,
+robot_trajectory::RobotTrajectory::RobotTrajectory(robot_model::RobotModelConstPtr  robot_model,
                                                    const robot_model::JointModelGroup* group)
-  : robot_model_(robot_model), group_(group)
+  : robot_model_(std::move(robot_model)), group_(group)
 {
 }
 

@@ -54,8 +54,8 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
-planning_interface::PlanningContext::PlanningContext(const std::string& name, const std::string& group)
-  : name_(name), group_(group)
+planning_interface::PlanningContext::PlanningContext(std::string  name, std::string  group)
+  : name_(std::move(name)), group_(std::move(group))
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);

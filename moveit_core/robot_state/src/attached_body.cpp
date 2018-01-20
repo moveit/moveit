@@ -37,17 +37,17 @@
 #include <moveit/robot_state/attached_body.h>
 #include <geometric_shapes/shapes.h>
 
-moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id,
-                                         const std::vector<shapes::ShapeConstPtr>& shapes,
+moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, std::string  id,
+                                         std::vector<shapes::ShapeConstPtr>  shapes,
                                          const EigenSTL::vector_Affine3d& attach_trans,
-                                         const std::set<std::string>& touch_links,
-                                         const trajectory_msgs::JointTrajectory& detach_posture)
+                                         std::set<std::string>  touch_links,
+                                         trajectory_msgs::JointTrajectory  detach_posture)
   : parent_link_model_(parent_link_model)
-  , id_(id)
-  , shapes_(shapes)
+  , id_(std::move(id))
+  , shapes_(std::move(shapes))
   , attach_trans_(attach_trans)
-  , touch_links_(touch_links)
-  , detach_posture_(detach_posture)
+  , touch_links_(std::move(touch_links))
+  , detach_posture_(std::move(detach_posture))
 {
   global_collision_body_transforms_.resize(attach_trans.size());
   for (auto & global_collision_body_transform : global_collision_body_transforms_)
