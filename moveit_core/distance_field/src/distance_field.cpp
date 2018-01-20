@@ -467,9 +467,9 @@ void distance_field::DistanceField::getProjectionPlanes(const std::string& frame
   int maxYCell = getYNumCells();
   int maxZCell = getZNumCells();
 
-  double* x_projection = new double[maxYCell * maxZCell];
-  double* y_projection = new double[maxZCell * maxXCell];
-  double* z_projection = new double[maxXCell * maxYCell];
+  auto  x_projection = new double[maxYCell * maxZCell];
+  auto  y_projection = new double[maxZCell * maxXCell];
+  auto  z_projection = new double[maxXCell * maxYCell];
   double initial_val = sqrt(INT_MAX);
 
   // Initialize

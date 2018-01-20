@@ -286,7 +286,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     bool some_sampler_valid = false;
 
     std::set<std::size_t> usedP, usedO;
-    for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = ik_subgroup_alloc.begin();
+    for (auto it = ik_subgroup_alloc.begin();
          it != ik_subgroup_alloc.end(); ++it)
     {
       // construct a sub-set of constraints that operate on the sub-group for which we have an IK allocator

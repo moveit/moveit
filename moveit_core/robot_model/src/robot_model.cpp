@@ -328,7 +328,7 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
     {
       JointModelGroup* jmg = getJointModelGroup(d.group_);
       std::map<std::string, double> state;
-      for (std::map<std::string, std::vector<double> >::const_iterator jt = d.joint_values_.begin();
+      for (auto jt = d.joint_values_.begin();
            jt != d.joint_values_.end(); ++jt)
       {
         if (jmg->hasJointModel(jt->first))
@@ -424,7 +424,7 @@ bool moveit::core::RobotModel::hasEndEffector(const std::string& eef) const
 
 const moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const std::string& name) const
 {
-  JointModelGroupMap::const_iterator it = end_effectors_map_.find(name);
+  auto it = end_effectors_map_.find(name);
   if (it == end_effectors_map_.end())
   {
     it = joint_model_group_map_.find(name);
@@ -457,7 +457,7 @@ bool moveit::core::RobotModel::hasJointModelGroup(const std::string& name) const
 
 const moveit::core::JointModelGroup* moveit::core::RobotModel::getJointModelGroup(const std::string& name) const
 {
-  JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
+  auto it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
     logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
@@ -749,7 +749,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   for (auto model : jset)
     joints.push_back(model);
 
-  JointModelGroup* jmg = new JointModelGroup(gc.name_, gc, joints, this);
+  auto  jmg = new JointModelGroup(gc.name_, gc, joints, this);
   joint_model_group_map_[gc.name_] = jmg;
 
   return true;
@@ -854,7 +854,7 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     {
       case urdf::Joint::REVOLUTE:
       {
-        RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
+        auto  j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(false);
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
@@ -863,7 +863,7 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
       break;
       case urdf::Joint::CONTINUOUS:
       {
-        RevoluteJointModel* j = new RevoluteJointModel(urdf_joint->name);
+        auto  j = new RevoluteJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setContinuous(true);
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
@@ -872,7 +872,7 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
       break;
       case urdf::Joint::PRISMATIC:
       {
-        PrismaticJointModel* j = new PrismaticJointModel(urdf_joint->name);
+        auto  j = new PrismaticJointModel(urdf_joint->name);
         j->setVariableBounds(j->getName(), jointBoundsFromURDF(urdf_joint));
         j->setAxis(Eigen::Vector3d(urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
         result = j;
@@ -963,7 +963,7 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
 
 moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {
-  LinkModel* result = new LinkModel(urdf_link->name);
+  auto  result = new LinkModel(urdf_link->name);
 
   const std::vector<urdf::CollisionSharedPtr>& col_array =
       urdf_link->collision_array.empty() ? std::vector<urdf::CollisionSharedPtr>(1, urdf_link->collision) :
@@ -1083,7 +1083,7 @@ bool moveit::core::RobotModel::hasLinkModel(const std::string& name) const
 
 const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name) const
 {
-  JointModelMap::const_iterator it = joint_model_map_.find(name);
+  auto it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
     return it->second;
   logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
@@ -1112,7 +1112,7 @@ moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::str
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
 {
-  LinkModelMap::const_iterator it = link_model_map_.find(name);
+  auto it = link_model_map_.find(name);
   if (it != link_model_map_.end())
     return it->second;
   logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
@@ -1196,7 +1196,7 @@ void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::st
 
 int moveit::core::RobotModel::getVariableIndex(const std::string& variable) const
 {
-  VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
+  auto it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
     throw Exception("Variable '" + variable + "' is not known to model '" + model_name_ + "'");
   return it->second;
@@ -1262,7 +1262,7 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
   // we first set all the "simple" allocators -- where a group has one IK solver
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
   {
-    std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(it->second->getName());
+    auto jt = allocators.find(it->second->getName());
     if (jt != allocators.end())
     {
       std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
@@ -1277,7 +1277,7 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
   {
     JointModelGroup* jmg = it->second;
     std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
-    std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
+    auto jt = allocators.find(jmg->getName());
     if (jt == allocators.end())
     {
       // if an kinematics allocator is NOT available for this group, we try to see if we can use subgroups for IK

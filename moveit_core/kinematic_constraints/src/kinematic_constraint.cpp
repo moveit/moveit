@@ -791,7 +791,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   }
 
   // allocate memory for a mesh to represent the visibility cone
-  shapes::Mesh* m = new shapes::Mesh();
+  auto  m = new shapes::Mesh();
   m->vertex_count = cone_sides_ + 2;
   m->vertices = new double[m->vertex_count * 3];
   m->triangle_count = cone_sides_ * 2;
@@ -1055,7 +1055,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (const auto & constraint : jc)
   {
-    JointConstraint* ev = new JointConstraint(robot_model_);
+    auto  ev = new JointConstraint(robot_model_);
     bool u = ev->configure(constraint);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1071,7 +1071,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (const auto & constraint : pc)
   {
-    PositionConstraint* ev = new PositionConstraint(robot_model_);
+    auto  ev = new PositionConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1087,7 +1087,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (const auto & constraint : oc)
   {
-    OrientationConstraint* ev = new OrientationConstraint(robot_model_);
+    auto  ev = new OrientationConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1103,7 +1103,7 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
   bool result = true;
   for (const auto & constraint : vc)
   {
-    VisibilityConstraint* ev = new VisibilityConstraint(robot_model_);
+    auto  ev = new VisibilityConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));

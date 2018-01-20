@@ -293,7 +293,7 @@ bool moveit::core::JointModelGroup::hasLinkModel(const std::string& link) const
 
 const moveit::core::LinkModel* moveit::core::JointModelGroup::getLinkModel(const std::string& name) const
 {
-  LinkModelMapConst::const_iterator it = link_model_map_.find(name);
+  auto it = link_model_map_.find(name);
   if (it == link_model_map_.end())
   {
     logError("Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
@@ -304,7 +304,7 @@ const moveit::core::LinkModel* moveit::core::JointModelGroup::getLinkModel(const
 
 const moveit::core::JointModel* moveit::core::JointModelGroup::getJointModel(const std::string& name) const
 {
-  JointModelMapConst::const_iterator it = joint_model_map_.find(name);
+  auto it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
   {
     logError("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
@@ -346,7 +346,7 @@ void moveit::core::JointModelGroup::getVariableRandomPositionsNearBy(
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
   {
     double distance = 0.0;
-    std::map<moveit::core::JointModel::JointType, double>::const_iterator iter =
+    auto iter =
         distance_map.find(active_joint_model_vector_[i]->getType());
     if (iter != distance_map.end())
       distance = iter->second;
@@ -453,7 +453,7 @@ void moveit::core::JointModelGroup::addDefaultState(const std::string& name,
 bool moveit::core::JointModelGroup::getVariableDefaultPositions(const std::string& name,
                                                                 std::map<std::string, double>& values) const
 {
-  std::map<std::string, std::map<std::string, double> >::const_iterator it = default_states_.find(name);
+  auto it = default_states_.find(name);
   if (it == default_states_.end())
     return false;
   values = it->second;
@@ -546,7 +546,7 @@ const moveit::core::LinkModel* moveit::core::JointModelGroup::getOnlyOneEndEffec
 
 int moveit::core::JointModelGroup::getVariableGroupIndex(const std::string& variable) const
 {
-  VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
+  auto it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
   {
     logError("Variable '%s' is not part of group '%s'", variable.c_str(), name_.c_str());
@@ -577,7 +577,7 @@ bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<st
   joint_bijection.clear();
   for (const auto & ik_jname : ik_jnames)
   {
-    VariableIndexMap::const_iterator it = joint_variables_index_map_.find(ik_jname);
+    auto it = joint_variables_index_map_.find(ik_jname);
     if (it == joint_variables_index_map_.end())
     {
       // skip reported fixed joints

@@ -844,7 +844,7 @@ bool moveit::core::RobotState::hasAttachedBody(const std::string& id) const
 
 const moveit::core::AttachedBody* moveit::core::RobotState::getAttachedBody(const std::string& id) const
 {
-  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  auto it = attached_body_map_.find(id);
   if (it == attached_body_map_.end())
   {
     logError("Attached body '%s' not found", id.c_str());
@@ -868,7 +868,7 @@ void moveit::core::RobotState::attachBody(const std::string& id, const std::vect
                                           const trajectory_msgs::JointTrajectory& detach_posture)
 {
   const LinkModel* l = robot_model_->getLinkModel(link);
-  AttachedBody* ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
+  auto  ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
   attached_body_map_[id] = ab;
   ab->computeTransform(getGlobalLinkTransform(l));
   if (attached_body_update_callback_)
@@ -915,7 +915,7 @@ void moveit::core::RobotState::clearAttachedBodies()
 
 void moveit::core::RobotState::clearAttachedBodies(const LinkModel* link)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin();
+  auto it = attached_body_map_.begin();
   while (it != attached_body_map_.end())
   {
     if (it->second->getAttachedLink() != link)
@@ -926,14 +926,14 @@ void moveit::core::RobotState::clearAttachedBodies(const LinkModel* link)
     if (attached_body_update_callback_)
       attached_body_update_callback_(it->second, false);
     delete it->second;
-    std::map<std::string, AttachedBody*>::iterator del = it++;
+    auto del = it++;
     attached_body_map_.erase(del);
   }
 }
 
 void moveit::core::RobotState::clearAttachedBodies(const JointModelGroup* group)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.begin();
+  auto it = attached_body_map_.begin();
   while (it != attached_body_map_.end())
   {
     if (!group->hasLinkModel(it->second->getAttachedLinkName()))
@@ -944,14 +944,14 @@ void moveit::core::RobotState::clearAttachedBodies(const JointModelGroup* group)
     if (attached_body_update_callback_)
       attached_body_update_callback_(it->second, false);
     delete it->second;
-    std::map<std::string, AttachedBody*>::iterator del = it++;
+    auto del = it++;
     attached_body_map_.erase(del);
   }
 }
 
 bool moveit::core::RobotState::clearAttachedBody(const std::string& id)
 {
-  std::map<std::string, AttachedBody*>::iterator it = attached_body_map_.find(id);
+  auto it = attached_body_map_.find(id);
   if (it != attached_body_map_.end())
   {
     if (attached_body_update_callback_)
@@ -984,7 +984,7 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
     const LinkModel* lm = robot_model_->getLinkModel(id);
     return global_link_transforms_[lm->getLinkIndex()];
   }
-  std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
+  auto jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
     logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body "
@@ -1011,7 +1011,7 @@ bool moveit::core::RobotState::knowsFrameTransform(const std::string& id) const
     return knowsFrameTransform(id.substr(1));
   if (robot_model_->hasLinkModel(id))
     return true;
-  std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
+  auto it = attached_body_map_.find(id);
   return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() >= 1;
 }
 
@@ -1995,7 +1995,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
-      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      auto start = waypoint_traj.begin();
       if (i > 0 && !waypoint_traj.empty())
         std::advance(start, 1);
       traj.insert(traj.end(), start, waypoint_traj.end());
@@ -2003,7 +2003,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     else
     {
       percentage_solved += wp_percentage_solved / (double)waypoints.size();
-      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      auto start = waypoint_traj.begin();
       if (i > 0 && !waypoint_traj.empty())
         std::advance(start, 1);
       traj.insert(traj.end(), start, waypoint_traj.end());
@@ -2204,7 +2204,7 @@ void moveit::core::RobotState::getStateTreeJointString(std::ostream& ss, const J
     getPoseString(ss, global_link_transforms_[lm->getLinkIndex()], pfx + "link_global:");
   }
 
-  for (std::vector<const JointModel*>::const_iterator it = lm->getChildJointModels().begin();
+  for (auto it = lm->getChildJointModels().begin();
        it != lm->getChildJointModels().end(); ++it)
     getStateTreeJointString(ss, *it, pfx, it + 1 == lm->getChildJointModels().end());
 }
