@@ -68,8 +68,7 @@ bool moveit::core::Transforms::sameFrame(const std::string& frame1, const std::s
 }
 
 moveit::core::Transforms::~Transforms()
-{
-}
+= default;
 
 const std::string& moveit::core::Transforms::getTargetFrame() const
 {

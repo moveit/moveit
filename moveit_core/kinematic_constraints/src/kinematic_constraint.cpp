@@ -65,8 +65,7 @@ kinematic_constraints::KinematicConstraint::KinematicConstraint(const robot_mode
 }
 
 kinematic_constraints::KinematicConstraint::~KinematicConstraint()
-{
-}
+= default;
 
 bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
 {

@@ -56,8 +56,7 @@ moveit::core::JointModel::JointModel(const std::string& name)
 }
 
 moveit::core::JointModel::~JointModel()
-{
-}
+= default;
 
 std::string moveit::core::JointModel::getTypeName() const
 {

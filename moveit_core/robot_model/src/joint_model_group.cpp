@@ -263,8 +263,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name, co
 }
 
 moveit::core::JointModelGroup::~JointModelGroup()
-{
-}
+= default;
 
 void moveit::core::JointModelGroup::setSubgroupNames(const std::vector<std::string>& subgroups)
 {

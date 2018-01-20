@@ -55,8 +55,7 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, con
 }
 
 moveit::core::AttachedBody::~AttachedBody()
-{
-}
+= default;
 
 void moveit::core::AttachedBody::setScale(double scale)
 {

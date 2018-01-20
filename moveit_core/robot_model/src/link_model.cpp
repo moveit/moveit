@@ -52,8 +52,7 @@ moveit::core::LinkModel::LinkModel(const std::string& name)
 }
 
 moveit::core::LinkModel::~LinkModel()
-{
-}
+= default;
 
 void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
 {

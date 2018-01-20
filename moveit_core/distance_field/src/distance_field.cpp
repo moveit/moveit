@@ -56,8 +56,7 @@ distance_field::DistanceField::DistanceField(double size_x, double size_y, doubl
 }
 
 distance_field::DistanceField::~DistanceField()
-{
-}
+= default;
 
 double distance_field::DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x,
                                                           double& gradient_y, double& gradient_z, bool& in_bounds) const
