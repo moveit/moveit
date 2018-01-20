@@ -94,9 +94,9 @@ struct OrderSamplers
     // prefer sampling JointConstraints first
     JointConstraintSampler* ja = dynamic_cast<JointConstraintSampler*>(a.get());
     JointConstraintSampler* jb = dynamic_cast<JointConstraintSampler*>(b.get());
-    if (ja && jb == NULL)
+    if (ja && jb == nullptr)
       return true;
-    if (jb && ja == NULL)
+    if (jb && ja == nullptr)
       return false;
 
     // neither depends on either, so break ties based on group name
