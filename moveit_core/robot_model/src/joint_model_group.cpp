@@ -55,18 +55,18 @@ bool includesParent(const JointModel* joint, const JointModelGroup* group)
 {
   bool found = false;
   // if we find that an ancestor is also in the group, then the joint is not a root
-  while (joint->getParentLinkModel() != NULL)
+  while (joint->getParentLinkModel() != nullptr)
   {
     joint = joint->getParentLinkModel()->getParentJointModel();
-    if (group->hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
+    if (group->hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == nullptr)
     {
       found = true;
       break;
     }
-    else if (joint->getMimic() != NULL)
+    else if (joint->getMimic() != nullptr)
     {
       const JointModel* mjoint = joint->getMimic();
-      if (group->hasJointModel(mjoint->getName()) && mjoint->getVariableCount() > 0 && mjoint->getMimic() == NULL)
+      if (group->hasJointModel(mjoint->getName()) && mjoint->getVariableCount() > 0 && mjoint->getMimic() == nullptr)
         found = true;
       else if (includesParent(mjoint, group))
         found = true;
@@ -88,7 +88,7 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
     if (p == b)
       return true;
     if (p->getType() == JointModel::FIXED)
-      p = p->getParentLinkModel() ? p->getParentLinkModel()->getParentJointModel() : NULL;
+      p = p->getParentLinkModel() ? p->getParentLinkModel()->getParentJointModel() : nullptr;
     else
       break;
   }
@@ -104,7 +104,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name, co
                                                const RobotModel* parent_model)
   : parent_model_(parent_model)
   , name_(group_name)
-  , common_root_(NULL)
+  , common_root_(nullptr)
   , variable_count_(0)
   , is_contiguous_index_list_(true)
   , is_chain_(false)
@@ -128,7 +128,7 @@ moveit::core::JointModelGroup::JointModelGroup(const std::string& group_name, co
       if (vc > 1)
         is_single_dof_ = false;
       const std::vector<std::string>& name_order = joint_model->getVariableNames();
-      if (joint_model->getMimic() == NULL)
+      if (joint_model->getMimic() == nullptr)
       {
         active_joint_model_vector_.push_back(joint_model);
         active_joint_model_name_vector_.push_back(joint_model->getName());
@@ -297,7 +297,7 @@ const moveit::core::LinkModel* moveit::core::JointModelGroup::getLinkModel(const
   if (it == link_model_map_.end())
   {
     logError("Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -308,7 +308,7 @@ const moveit::core::JointModel* moveit::core::JointModelGroup::getJointModel(con
   if (it == joint_model_map_.end())
   {
     logError("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -541,7 +541,7 @@ const moveit::core::LinkModel* moveit::core::JointModelGroup::getOnlyOneEndEffec
     logError("More than one end effector tip found for joint model group, so cannot return only one");
   else
     logError("No end effector tips found in joint model group");
-  return NULL;
+  return nullptr;
 }
 
 int moveit::core::JointModelGroup::getVariableGroupIndex(const std::string& variable) const

@@ -680,7 +680,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s.get() != nullptr);
   constraint_samplers::IKConstraintSampler* iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
   ASSERT_TRUE(static_cast<bool>(iks->getPositionConstraint()));
@@ -705,7 +705,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   c.orientation_constraints.push_back(ocm);
 
   s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s.get() != nullptr);
 
   iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
@@ -1027,7 +1027,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   // no constraints should give no sampler
   constraint_samplers::ConstraintSamplerPtr s0 =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s0.get() == NULL);
+  EXPECT_TRUE(s0.get() == nullptr);
 
   // add the constraints
   c.joint_constraints.push_back(jcm1);
@@ -1037,7 +1037,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s.get() != nullptr);
 
   // test the generated sampler
   for (int t = 0; t < 1000; ++t)

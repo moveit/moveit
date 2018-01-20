@@ -372,7 +372,7 @@ bool moveit::core::jointStateToRobotState(const sensor_msgs::JointState& joint_s
 bool moveit::core::robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state,
                                              bool copy_attached_bodies)
 {
-  bool result = _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
+  bool result = _robotStateMsgToRobotStateHelper(nullptr, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
