@@ -40,8 +40,8 @@
 #include <moveit/robot_model/link_model.h>
 #include <algorithm>
 
-moveit::core::JointModel::JointModel(const std::string& name)
-  : name_(name)
+moveit::core::JointModel::JointModel(std::string  name)
+  : name_(std::move(name))
   , type_(UNKNOWN)
   , parent_link_model_(nullptr)
   , child_link_model_(nullptr)

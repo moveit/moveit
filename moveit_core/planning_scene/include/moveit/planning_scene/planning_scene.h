@@ -88,7 +88,7 @@ class PlanningScene : private boost::noncopyable, public std::enable_shared_from
 {
 public:
   /** \brief construct using an existing RobotModel */
-  PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
+  PlanningScene(robot_model::RobotModelConstPtr  robot_model,
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   /** \brief construct using a urdf and srdf.
@@ -951,7 +951,7 @@ public:
 
 private:
   /* Private constructor used by the diff() methods. */
-  PlanningScene(const PlanningSceneConstPtr& parent);
+  PlanningScene(PlanningSceneConstPtr  parent);
 
   /* Initialize the scene.  This should only be called by the constructors.
    * Requires a valid robot_model_ */

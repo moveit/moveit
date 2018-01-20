@@ -106,8 +106,8 @@ struct OrderSamplers
 
 constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                                     const std::string& group_name,
-                                                                    const std::vector<ConstraintSamplerPtr>& samplers)
-  : ConstraintSampler(scene, group_name), samplers_(samplers)
+                                                                    std::vector<ConstraintSamplerPtr>  samplers)
+  : ConstraintSampler(scene, group_name), samplers_(std::move(samplers))
 {
   // using stable sort to preserve order of equivalents
   std::stable_sort(samplers_.begin(), samplers_.end(), OrderSamplers());

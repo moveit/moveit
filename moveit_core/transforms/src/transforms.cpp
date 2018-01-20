@@ -39,7 +39,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <console_bridge/console.h>
 
-moveit::core::Transforms::Transforms(const std::string& target_frame) : target_frame_(target_frame)
+moveit::core::Transforms::Transforms(std::string  target_frame) : target_frame_(std::move(target_frame))
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())

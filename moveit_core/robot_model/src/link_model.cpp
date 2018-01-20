@@ -39,8 +39,8 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
-moveit::core::LinkModel::LinkModel(const std::string& name)
-  : name_(name)
+moveit::core::LinkModel::LinkModel(std::string  name)
+  : name_(std::move(name))
   , parent_joint_model_(nullptr)
   , parent_link_model_(nullptr)
   , is_parent_joint_fixed_(false)

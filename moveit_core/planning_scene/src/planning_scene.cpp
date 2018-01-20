@@ -120,9 +120,9 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorl
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
 
-planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
+planning_scene::PlanningScene::PlanningScene(robot_model::RobotModelConstPtr  robot_model,
                                              collision_detection::WorldPtr world)
-  : kmodel_(robot_model), world_(world), world_const_(world)
+  : kmodel_(std::move(robot_model)), world_(world), world_const_(world)
 {
   initialize();
 }
@@ -184,7 +184,7 @@ robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
   return robot_model;
 }
 
-planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(parent)
+planning_scene::PlanningScene::PlanningScene(PlanningSceneConstPtr  parent) : parent_(std::move(parent))
 {
   if (!parent_)
     throw moveit::ConstructException("NULL parent pointer for planning scene");
