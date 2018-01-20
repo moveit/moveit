@@ -72,7 +72,7 @@ protected:
     }
   }
 
-  virtual void SetUp()
+  void SetUp() override
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
@@ -117,7 +117,7 @@ protected:
     ps.reset(new planning_scene::PlanningScene(kmodel));
   };
 
-  virtual void TearDown()
+  void TearDown() override
   {
   }
 

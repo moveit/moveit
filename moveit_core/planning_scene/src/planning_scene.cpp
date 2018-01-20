@@ -60,12 +60,12 @@ public:
   {
   }
 
-  virtual bool canTransform(const std::string& from_frame) const
+  bool canTransform(const std::string& from_frame) const override
   {
     return scene_->knowsFrameTransform(from_frame);
   }
 
-  virtual bool isFixedFrame(const std::string& frame) const
+  bool isFixedFrame(const std::string& frame) const override
   {
     if (frame.empty())
       return false;
@@ -77,7 +77,7 @@ public:
       return knowsObject(frame);
   }
 
-  virtual const Eigen::Affine3d& getTransform(const std::string& from_frame) const
+  const Eigen::Affine3d& getTransform(const std::string& from_frame) const override
   {  // the call below also calls Transforms::getTransform() too
     return scene_->getFrameTransform(from_frame);
   }
