@@ -82,7 +82,7 @@ protected:
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
   double distanceRobotHelper(const CollisionRobot& robot, const robot_state::RobotState& state,
                              const AllowedCollisionMatrix* acm, bool verbose = false) const;
-  double distanceWorldHelper(const CollisionWorld& world, const AllowedCollisionMatrix* acm,
+  double distanceWorldHelper(const CollisionWorld& other_world, const AllowedCollisionMatrix* acm,
                              bool verbose = false) const;
 
   void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;

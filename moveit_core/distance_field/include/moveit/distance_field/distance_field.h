@@ -439,7 +439,7 @@ public:
    * @param [out] marker The marker that will contain the indicated cells.
    */
   void getIsoSurfaceMarkers(double min_distance, double max_distance, const std::string& frame_id,
-                            const ros::Time stamp, visualization_msgs::Marker& marker) const;
+                            const ros::Time stamp, visualization_msgs::Marker& inf_marker) const;
 
   /**
    * \brief Populates the supplied marker array with a series of
@@ -454,7 +454,7 @@ public:
    * @param [in] stamp The stamp to use in the header of the marker
    * @param [out] marker_array The marker array to populate
    */
-  void getGradientMarkers(double min_radius, double max_radius, const std::string& frame_id, const ros::Time& stamp,
+  void getGradientMarkers(double min_distance, double max_distance, const std::string& frame_id, const ros::Time& stamp,
                           visualization_msgs::MarkerArray& marker_array) const;
 
   /**
@@ -484,7 +484,7 @@ public:
    */
   void getPlaneMarkers(PlaneVisualizationType type, double length, double width, double height,
                        const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time stamp,
-                       visualization_msgs::Marker& marker) const;
+                       visualization_msgs::Marker& plane_marker) const;
   /**
    * \brief A function that populates the marker with three planes -
    * one each along the XY, XZ, and YZ axes.  For each of the planes,
@@ -501,7 +501,7 @@ public:
    * @param [out] marker The marker, which will be populated with a
    * visualization_msgs::Marker::CUBE_LIST .
    */
-  void getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp, double max_distance,
+  void getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp, double max_dist,
                            visualization_msgs::Marker& marker) const;
 
   /**

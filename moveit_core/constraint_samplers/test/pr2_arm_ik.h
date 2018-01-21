@@ -140,7 +140,7 @@ public:
      @param Input pose for end-effector
      @param Initial guess for shoulder pan angle
   */
-  void computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& shoulder_pan_initial_guess,
+  void computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
                             std::vector<std::vector<double> >& solution) const;
 
   /**
@@ -148,7 +148,7 @@ public:
      h       @param Input pose for end-effector
      @param Initial guess for shoulder roll angle
   */
-  void computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& shoulder_roll_initial_guess,
+  void computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
                              std::vector<std::vector<double> >& solution) const;
 
   //  std::vector<std::vector<double> > solution_ik_;/// a vector of ik solutions

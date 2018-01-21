@@ -60,9 +60,9 @@ public:
      shapes that
       attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this
      object is specified by \e touch_links. */
-  AttachedBody(const LinkModel* link, std::string  id, std::vector<shapes::ShapeConstPtr>  shapes,
+  AttachedBody(const LinkModel* parent_link_model, std::string  id, std::vector<shapes::ShapeConstPtr>  shapes,
                const EigenSTL::vector_Affine3d& attach_trans, std::set<std::string>  touch_links,
-               trajectory_msgs::JointTrajectory  attach_posture);
+               trajectory_msgs::JointTrajectory  detach_posture);
 
   ~AttachedBody();
 

@@ -110,8 +110,8 @@ public:
   /// Map from group instances to allocator functions & bijections
   typedef std::map<const JointModelGroup*, KinematicsSolver> KinematicsSolverMap;
 
-  JointModelGroup(std::string  name, srdf::Model::Group  config,
-                  const std::vector<const JointModel*>& joint_vector, const RobotModel* parent_model);
+  JointModelGroup(std::string  group_name, srdf::Model::Group  config,
+                  const std::vector<const JointModel*>& unsorted_group_joints, const RobotModel* parent_model);
 
   ~JointModelGroup();
 
@@ -140,10 +140,10 @@ public:
   bool hasLinkModel(const std::string& link) const;
 
   /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
-  const JointModel* getJointModel(const std::string& joint) const;
+  const JointModel* getJointModel(const std::string& name) const;
 
   /** \brief Get a joint by its name. Throw an exception if the joint is not part of this group. */
-  const LinkModel* getLinkModel(const std::string& link) const;
+  const LinkModel* getLinkModel(const std::string& name) const;
 
   /** \brief Get all the joints in this group (including fixed and mimic joints). */
   const std::vector<const JointModel*>& getJointModels() const
