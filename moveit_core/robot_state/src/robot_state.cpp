@@ -1012,7 +1012,7 @@ bool moveit::core::RobotState::knowsFrameTransform(const std::string& id) const
   if (robot_model_->hasLinkModel(id))
     return true;
   auto it = attached_body_map_.find(id);
-  return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() >= 1;
+  return it != attached_body_map_.end() && !it->second->getGlobalCollisionBodyTransforms().empty();
 }
 
 void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr,

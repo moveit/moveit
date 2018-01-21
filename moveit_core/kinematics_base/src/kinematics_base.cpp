@@ -148,7 +148,7 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
     return false;
   }
 
-  if (ik_poses.size() == 0)
+  if (ik_poses.empty())
   {
     logError("moveit.kinematics_base: Input ik_poses array is empty");
     result.kinematic_error = kinematics::KinematicErrors::EMPTY_TIP_POSES;
