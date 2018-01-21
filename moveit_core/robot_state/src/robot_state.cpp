@@ -1344,7 +1344,7 @@ namespace core
 namespace
 {
 bool ikCallbackFnAdapter(RobotState* state, const JointModelGroup* group,
-                         const GroupStateValidityCallbackFn& constraint, const geometry_msgs::Pose&,
+                         const GroupStateValidityCallbackFn& constraint, const geometry_msgs::Pose& /*unused*/,
                          const std::vector<double>& ik_sol, moveit_msgs::MoveItErrorCodes& error_code)
 {
   const std::vector<unsigned int>& bij = group->getKinematicsSolverJointBijection();

@@ -88,7 +88,7 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
-bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
+bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr& /*unused*/, const std::string& /*unused*/)
 {
   return true;
 }

@@ -506,7 +506,7 @@ namespace
 {
 void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_model::JointModelGroup* jmg,
                                  const robot_state::GroupStateValidityCallbackFn& constraint,
-                                 const geometry_msgs::Pose&, const std::vector<double>& ik_sol,
+                                 const geometry_msgs::Pose& /*unused*/, const std::vector<double>& ik_sol,
                                  moveit_msgs::MoveItErrorCodes& error_code)
 {
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();
