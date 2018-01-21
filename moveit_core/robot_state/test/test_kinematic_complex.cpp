@@ -183,12 +183,12 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
   {
     if (left_arm_base_tip_group->getLinkModels()[i]->getName() == "l_shoulder_pan_link")
     {
-      EXPECT_TRUE(found_shoulder_pan_link == false);
+      EXPECT_TRUE(!found_shoulder_pan_link);
       found_shoulder_pan_link = true;
     }
     if (left_arm_base_tip_group->getLinkModels()[i]->getName() == "l_wrist_roll_link")
     {
-      EXPECT_TRUE(found_wrist_roll_link == false);
+      EXPECT_TRUE(!found_wrist_roll_link);
       found_wrist_roll_link = true;
     }
     EXPECT_TRUE(left_arm_base_tip_group->getLinkModels()[i]->getName() != "torso_lift_link");

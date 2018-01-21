@@ -117,8 +117,7 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
     buildGroupStates(srdf_model);
 
     // For debugging entire model
-    if (false)
-      printModelInfo(std::cout);
+    // printModelInfo(std::cout);
   }
   else
     ROS_WARN_NAMED("robot_model", "No root link found");

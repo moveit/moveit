@@ -256,9 +256,7 @@ PR2ArmKinematicsPlugin::PR2ArmKinematicsPlugin() : active_(false)
 
 bool PR2ArmKinematicsPlugin::isActive()
 {
-  if (active_)
-    return true;
-  return false;
+  return active_;
 }
 
 void PR2ArmKinematicsPlugin::setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model)

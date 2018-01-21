@@ -309,9 +309,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
   ROS_DEBUG_NAMED("dynamics_solver", "New wrench (local frame): %f %f %f", wrenches.back().force.x,
                   wrenches.back().force.y, wrenches.back().force.z);
 
-  if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
-    return false;
-  return true;
+  return getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques);
 }
 
 const std::vector<double>& DynamicsSolver::getMaxTorques() const

@@ -117,9 +117,7 @@ bool AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::strin
   if (it1 == entries_.end())
     return false;
   auto it2 = it1->second.find(name2);
-  if (it2 == it1->second.end())
-    return false;
-  return true;
+  return it2 != it1->second.end();
 }
 
 void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2, bool allowed)
