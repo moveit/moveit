@@ -1500,7 +1500,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
     for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
     {
       // Check if this tip frame is already accounted for
-      if (tip_frames_used[solver_tip_id] == true)
+      if (tip_frames_used[solver_tip_id])
         continue;  // already has a pose
 
       // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
@@ -1578,7 +1578,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
   for (std::size_t solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
   {
     // Check if this tip frame is already accounted for
-    if (tip_frames_used[solver_tip_id] == true)
+    if (tip_frames_used[solver_tip_id])
       continue;  // already has a pose
 
     // Process this tip

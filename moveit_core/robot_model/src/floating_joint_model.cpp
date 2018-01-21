@@ -158,9 +158,7 @@ bool moveit::core::FloatingJointModel::satisfiesPositionBounds(const double* val
   if (values[2] < bounds[2].min_position_ - margin || values[2] > bounds[2].max_position_ + margin)
     return false;
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
-  if (fabs(normSqr - 1.0) > std::numeric_limits<float>::epsilon() * 10.0)
-    return false;
-  return true;
+  return fabs(normSqr - 1.0) <= std::numeric_limits<float>::epsilon() * 10.0;
 }
 
 bool moveit::core::FloatingJointModel::normalizeRotation(double* values) const

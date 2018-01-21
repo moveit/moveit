@@ -71,9 +71,7 @@ void moveit::core::PrismaticJointModel::getVariableDefaultPositions(double* valu
 bool moveit::core::PrismaticJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
                                                                 double margin) const
 {
-  if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
-    return false;
-  return true;
+  return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
 }
 
 void moveit::core::PrismaticJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
