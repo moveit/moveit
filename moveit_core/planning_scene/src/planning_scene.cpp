@@ -108,7 +108,7 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
   /* a state is empty if it includes no information and it is a diff; if the state is not a diff, then the implicit
      information is
      that the set of attached bodies is empty, so they must be cleared from the state to be updated */
-  return msg.is_diff == true && msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() &&
+  return static_cast<bool>(msg.is_diff) && msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() &&
          msg.attached_collision_objects.empty() && msg.joint_state.position.empty() &&
          msg.joint_state.velocity.empty() && msg.joint_state.effort.empty() &&
          msg.multi_dof_joint_state.transforms.empty() && msg.multi_dof_joint_state.twist.empty() &&

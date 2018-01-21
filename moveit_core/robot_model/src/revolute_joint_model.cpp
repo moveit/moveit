@@ -166,9 +166,7 @@ double moveit::core::RevoluteJointModel::distance(const double* values1, const d
 bool moveit::core::RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
                                                                double margin) const
 {
-  if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
-    return false;
-  return true;
+  return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
 }
 
 bool moveit::core::RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
