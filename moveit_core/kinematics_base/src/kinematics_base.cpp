@@ -65,7 +65,7 @@ void kinematics::KinematicsBase::setValues(const std::string& robot_description,
 
   // Copy tip frames to local vector after stripping slashes
   tip_frames_.clear();
-  for (const auto & tip_frame : tip_frames)
+  for (const auto& tip_frame : tip_frames)
     tip_frames_.push_back(removeSlash(tip_frame));
 
   // Copy tip frames to our legacy variable if only one tip frame is passed in the input vector. Remove eventually.
@@ -92,7 +92,7 @@ bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::strin
 {
   const std::vector<std::string>& jnames = getJointNames();
   std::vector<unsigned int> redundant_joint_indices;
-  for (const auto & redundant_joint_name : redundant_joint_names)
+  for (const auto& redundant_joint_name : redundant_joint_names)
     for (std::size_t j = 0; j < jnames.size(); ++j)
       if (jnames[j] == redundant_joint_name)
       {

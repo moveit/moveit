@@ -151,10 +151,10 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
     added_path_index.clear();
 
     // merge the index values from each adapter
-    for (auto & adapter_added : added_path_index_each)
-      for (unsigned long & adapter_idx : adapter_added)
+    for (auto& adapter_added : added_path_index_each)
+      for (unsigned long& adapter_idx : adapter_added)
       {
-        for (unsigned long & idx : added_path_index)
+        for (unsigned long& idx : added_path_index)
           if (adapter_idx <= idx)
             idx++;
         added_path_index.push_back(adapter_idx);

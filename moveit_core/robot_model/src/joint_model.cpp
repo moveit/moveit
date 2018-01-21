@@ -40,7 +40,7 @@
 #include <moveit/robot_model/link_model.h>
 #include <algorithm>
 
-moveit::core::JointModel::JointModel(std::string  name)
+moveit::core::JointModel::JointModel(std::string name)
   : name_(std::move(name))
   , type_(UNKNOWN)
   , parent_link_model_(nullptr)
@@ -55,8 +55,7 @@ moveit::core::JointModel::JointModel(std::string  name)
 {
 }
 
-moveit::core::JointModel::~JointModel()
-= default;
+moveit::core::JointModel::~JointModel() = default;
 
 std::string moveit::core::JointModel::getTypeName() const
 {
@@ -129,7 +128,7 @@ void moveit::core::JointModel::setVariableBounds(const std::string& variable, co
 void moveit::core::JointModel::setVariableBounds(const std::vector<moveit_msgs::JointLimits>& jlim)
 {
   for (std::size_t j = 0; j < variable_names_.size(); ++j)
-    for (const auto & limit : jlim)
+    for (const auto& limit : jlim)
       if (limit.joint_name == variable_names_[j])
       {
         variable_bounds_[j].position_bounded_ = limit.has_position_limits;

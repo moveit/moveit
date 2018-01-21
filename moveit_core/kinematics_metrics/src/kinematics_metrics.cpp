@@ -75,7 +75,7 @@ double KinematicsMetrics::getJointLimitsPenalty(const robot_state::RobotState& s
     const double* joint_values = state.getJointPositions(joint_model);
     const robot_model::JointModel::Bounds& bounds = joint_model->getVariableBounds();
     std::vector<double> lower_bounds, upper_bounds;
-    for (const auto & bound : bounds)
+    for (const auto& bound : bounds)
     {
       lower_bounds.push_back(bound.min_position_);
       upper_bounds.push_back(bound.max_position_);

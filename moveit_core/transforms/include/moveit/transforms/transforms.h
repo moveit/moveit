@@ -64,7 +64,7 @@ public:
   /**
    * @brief Construct a transform list
    */
-  Transforms(std::string  target_frame);
+  Transforms(std::string target_frame);
 
   /**
    * @brief Destructor

@@ -39,7 +39,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <console_bridge/console.h>
 
-moveit::core::Transforms::Transforms(std::string  target_frame) : target_frame_(std::move(target_frame))
+moveit::core::Transforms::Transforms(std::string target_frame) : target_frame_(std::move(target_frame))
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
@@ -67,8 +67,7 @@ bool moveit::core::Transforms::sameFrame(const std::string& frame1, const std::s
   return frame1 == frame2;
 }
 
-moveit::core::Transforms::~Transforms()
-= default;
+moveit::core::Transforms::~Transforms() = default;
 
 const std::string& moveit::core::Transforms::getTargetFrame() const
 {
@@ -97,8 +96,7 @@ const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string&
 {
   if (!from_frame.empty())
   {
-    auto it =
-        (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
+    auto it = (from_frame[0] == '/' ? transforms_.find(from_frame) : transforms_.find('/' + from_frame));
     if (it != transforms_.end())
       return it->second;
   }
@@ -153,7 +151,7 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
 
 void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
 {
-  for (const auto & transform : transforms)
+  for (const auto& transform : transforms)
     setTransform(transform);
 }
 

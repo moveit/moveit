@@ -65,14 +65,14 @@ struct OrderSamplers
     const std::vector<std::string>& fda = a->getFrameDependency();
     const std::vector<std::string>& fdb = b->getFrameDependency();
     for (std::size_t i = 0; i < fda.size() && !a_depends_on_b; ++i)
-      for (const auto & blink : blinks)
+      for (const auto& blink : blinks)
         if (blink == fda[i])
         {
           a_depends_on_b = true;
           break;
         }
     for (std::size_t i = 0; i < fdb.size() && !b_depends_on_a; ++i)
-      for (const auto & alink : alinks)
+      for (const auto& alink : alinks)
         if (alink == fdb[i])
         {
           b_depends_on_a = true;
@@ -106,16 +106,16 @@ struct OrderSamplers
 
 constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                                     const std::string& group_name,
-                                                                    std::vector<ConstraintSamplerPtr>  samplers)
+                                                                    std::vector<ConstraintSamplerPtr> samplers)
   : ConstraintSampler(scene, group_name), samplers_(std::move(samplers))
 {
   // using stable sort to preserve order of equivalents
   std::stable_sort(samplers_.begin(), samplers_.end(), OrderSamplers());
 
-  for (auto & sampler : samplers_)
+  for (auto& sampler : samplers_)
   {
     const std::vector<std::string>& fd = sampler->getFrameDependency();
-    for (const auto & dependency : fd)
+    for (const auto& dependency : fd)
       frame_depends_.push_back(dependency);
 
     logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
@@ -150,7 +150,7 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
 
 bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
 {
-  for (auto & sampler : samplers_)
+  for (auto& sampler : samplers_)
   {
     // ConstraintSampler::project returns states with dirty link transforms (because it only writes values)
     // but requires a state with clean link transforms as input. This means that we need to clean the link

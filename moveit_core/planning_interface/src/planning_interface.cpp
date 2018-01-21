@@ -54,7 +54,7 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
-planning_interface::PlanningContext::PlanningContext(std::string  name, std::string  group)
+planning_interface::PlanningContext::PlanningContext(std::string name, std::string group)
   : name_(std::move(name)), group_(std::move(group))
 {
   ActiveContexts& ac = getActiveContexts();
@@ -88,7 +88,8 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
-bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr& /*unused*/, const std::string& /*unused*/)
+bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr& /*unused*/,
+                                                    const std::string& /*unused*/)
 {
   return true;
 }

@@ -110,7 +110,7 @@ public:
   /// Map from group instances to allocator functions & bijections
   typedef std::map<const JointModelGroup*, KinematicsSolver> KinematicsSolverMap;
 
-  JointModelGroup(std::string  group_name, srdf::Model::Group  config,
+  JointModelGroup(std::string group_name, srdf::Model::Group config,
                   const std::vector<const JointModel*>& unsorted_group_joints, const RobotModel* parent_model);
 
   ~JointModelGroup();

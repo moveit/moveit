@@ -190,7 +190,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
   aco.detach_posture = attached_body.getDetachPosture();
   const std::set<std::string>& touch_links = attached_body.getTouchLinks();
   aco.touch_links.clear();
-  for (const auto & touch_link : touch_links)
+  for (const auto& touch_link : touch_links)
     aco.touch_links.push_back(touch_link);
   aco.object.header.frame_id = aco.link_name;
   aco.object.id = attached_body.getName();
@@ -297,7 +297,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
                      aco.object.header.frame_id.c_str());
           }
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
-          for (auto & pose : poses)
+          for (auto& pose : poses)
             pose = t * pose;
         }
 
@@ -346,7 +346,7 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
   {
     if (!robot_state.is_diff)
       state.clearAttachedBodies();
-    for (const auto & attached_collision_object : robot_state.attached_collision_objects)
+    for (const auto& attached_collision_object : robot_state.attached_collision_objects)
       _msgToAttachedBody(tf, attached_collision_object, state);
   }
 
@@ -489,7 +489,7 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out
   std::stringstream headers;
   std::stringstream joints;
 
-  for (const auto & group_name : joint_groups_ordering)
+  for (const auto& group_name : joint_groups_ordering)
   {
     const JointModelGroup* jmg = state.getRobotModel()->getJointModelGroup(group_name);
 

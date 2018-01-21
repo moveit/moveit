@@ -37,11 +37,11 @@
 #include <moveit/robot_state/attached_body.h>
 #include <geometric_shapes/shapes.h>
 
-moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, std::string  id,
-                                         std::vector<shapes::ShapeConstPtr>  shapes,
+moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, std::string id,
+                                         std::vector<shapes::ShapeConstPtr> shapes,
                                          const EigenSTL::vector_Affine3d& attach_trans,
-                                         std::set<std::string>  touch_links,
-                                         trajectory_msgs::JointTrajectory  detach_posture)
+                                         std::set<std::string> touch_links,
+                                         trajectory_msgs::JointTrajectory detach_posture)
   : parent_link_model_(parent_link_model)
   , id_(std::move(id))
   , shapes_(std::move(shapes))
@@ -50,16 +50,15 @@ moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, std
   , detach_posture_(std::move(detach_posture))
 {
   global_collision_body_transforms_.resize(attach_trans.size());
-  for (auto & global_collision_body_transform : global_collision_body_transforms_)
+  for (auto& global_collision_body_transform : global_collision_body_transforms_)
     global_collision_body_transform.setIdentity();
 }
 
-moveit::core::AttachedBody::~AttachedBody()
-= default;
+moveit::core::AttachedBody::~AttachedBody() = default;
 
 void moveit::core::AttachedBody::setScale(double scale)
 {
-  for (auto & shape : shapes_)
+  for (auto& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
     if (shape.unique())
@@ -76,7 +75,7 @@ void moveit::core::AttachedBody::setScale(double scale)
 
 void moveit::core::AttachedBody::setPadding(double padding)
 {
-  for (auto & shape : shapes_)
+  for (auto& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
     if (shape.unique())

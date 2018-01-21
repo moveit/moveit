@@ -74,7 +74,7 @@ class LinkModel
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  LinkModel(std::string  name);
+  LinkModel(std::string name);
   ~LinkModel();
 
   /** \brief The name of this link */

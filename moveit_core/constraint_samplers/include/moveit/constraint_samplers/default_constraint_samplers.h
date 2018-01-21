@@ -252,7 +252,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc);
+  IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc);
 
   /**
    * \brief Constructor that takes a pointer to a orientation constraint.
@@ -261,7 +261,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(kinematic_constraints::OrientationConstraintPtr  oc);
+  IKSamplingPose(kinematic_constraints::OrientationConstraintPtr oc);
 
   /**
    * \brief Constructor that takes a pointer to both position and orientation constraints.
@@ -271,8 +271,7 @@ struct IKSamplingPose
    *
    * @return
    */
-  IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc,
-                 kinematic_constraints::OrientationConstraintPtr  oc);
+  IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc, kinematic_constraints::OrientationConstraintPtr oc);
 
   kinematic_constraints::PositionConstraintPtr position_constraint_; /**< \brief Holds the position constraint for
                                                                         sampling */
