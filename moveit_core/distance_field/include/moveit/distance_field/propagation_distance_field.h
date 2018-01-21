@@ -160,7 +160,7 @@ public:
    */
   PropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
                            double origin_y, double origin_z, double max_distance,
-                           bool propagate_negative_distances = false);
+                           bool propagate_negative = false);
 
   /**
    * \brief Constructor based on an OcTree and bounding box
@@ -209,7 +209,7 @@ public:
    *
    * @return
    */
-  PropagationDistanceField(std::istream& stream, double max_distance, bool propagate_negative_distances = false);
+  PropagationDistanceField(std::istream& is, double max_distance, bool propagate_negative_distances = false);
   /**
    * \brief Empty destructor
    *
@@ -344,7 +344,7 @@ public:
    *
    * @return True
    */
-  virtual bool writeToStream(std::ostream& stream) const;
+  virtual bool writeToStream(std::ostream& os) const;
 
   /**
    * \brief Reads, parameterizes, and populates the distance field
@@ -362,7 +362,7 @@ public:
    * @return True if reading, parameterizing, and populating the
    * distance field is successful; otherwise False.
    */
-  virtual bool readFromStream(std::istream& stream);
+  virtual bool readFromStream(std::istream& is);
 
   // passthrough docs to DistanceField
   virtual double getUninitializedDistance() const

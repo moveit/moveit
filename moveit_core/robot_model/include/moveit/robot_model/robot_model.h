@@ -130,13 +130,13 @@ public:
   bool hasJointModel(const std::string& name) const;
 
   /** \brief Get a joint by its name. Output error and return NULL when the joint is missing. */
-  const JointModel* getJointModel(const std::string& joint) const;
+  const JointModel* getJointModel(const std::string& name) const;
 
   /** \brief Get a joint by its index. Output error and return NULL when the link is missing. */
   const JointModel* getJointModel(int index) const;
 
   /** \brief Get a joint by its name. Output error and return NULL when the joint is missing. */
-  JointModel* getJointModel(const std::string& joint);
+  JointModel* getJointModel(const std::string& name);
 
   /** \brief Get the array of joints, in the order they appear
       in the robot state. */
@@ -231,13 +231,13 @@ public:
   bool hasLinkModel(const std::string& name) const;
 
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
-  const LinkModel* getLinkModel(const std::string& link) const;
+  const LinkModel* getLinkModel(const std::string& name) const;
 
   /** \brief Get a link by its index. Output error and return NULL when the link is missing. */
   const LinkModel* getLinkModel(int index) const;
 
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
-  LinkModel* getLinkModel(const std::string& link);
+  LinkModel* getLinkModel(const std::string& name);
 
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
@@ -333,7 +333,7 @@ public:
    */
 
   /** \brief Check if the JointModelGroup \e group exists */
-  bool hasJointModelGroup(const std::string& group) const;
+  bool hasJointModelGroup(const std::string& name) const;
 
   /** \brief Get a joint group from this model (by name) */
   const JointModelGroup* getJointModelGroup(const std::string& name) const;
@@ -584,14 +584,14 @@ protected:
 
   /** \brief (This function is mostly intended for internal use). Given a parent link, build up (recursively),
       the kinematic model by walking  down the tree*/
-  JointModel* buildRecursive(LinkModel* parent, const urdf::Link* link, const srdf::Model& srdf_model);
+  JointModel* buildRecursive(LinkModel* parent, const urdf::Link* urdf_link, const srdf::Model& srdf_model);
 
   /** \brief Construct a JointModelGroup given a SRDF description \e group */
-  bool addJointModelGroup(const srdf::Model::Group& group);
+  bool addJointModelGroup(const srdf::Model::Group& gc);
 
   /** \brief Given a urdf joint model, a child link and a set of virtual joints,
       build up the corresponding JointModel object*/
-  JointModel* constructJointModel(const urdf::Joint* urdf_joint_model, const urdf::Link* child_link,
+  JointModel* constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                   const srdf::Model& srdf_model);
 
   /** \brief Given a urdf link, build the corresponding LinkModel object*/

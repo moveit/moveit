@@ -111,7 +111,7 @@ public:
    * @param condition_number Condition number for JJ^T
    * @return False if the group was not found
    */
-  bool getManipulability(const robot_state::RobotState& state, const std::string& group_name, double& condition_number,
+  bool getManipulability(const robot_state::RobotState& state, const std::string& group_name, double& manipulability,
                          bool translation = false) const;
 
   /**
@@ -124,7 +124,7 @@ public:
    * @return False if the group was not found
    */
   bool getManipulability(const robot_state::RobotState& state, const robot_model::JointModelGroup* joint_model_group,
-                         double& condition_number, bool translation = false) const;
+                         double& manipulability, bool translation = false) const;
 
   void setPenaltyMultiplier(double multiplier)
   {
