@@ -1014,7 +1014,7 @@ bool RobotState::knowsFrameTransform(const std::string& id) const
   if (robot_model_->hasLinkModel(id))
     return true;
   std::map<std::string, AttachedBody*>::const_iterator it = attached_body_map_.find(id);
-  return it != attached_body_map_.end() && it->second->getGlobalCollisionBodyTransforms().size() >= 1;
+  return it != attached_body_map_.end() && !it->second->getGlobalCollisionBodyTransforms().empty();
 }
 
 void RobotState::getRobotMarkers(visualization_msgs::MarkerArray& arr, const std::vector<std::string>& link_names,

@@ -80,7 +80,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
     return;
   }
 
-  if (joint_model_group_->getMimicJointModels().size() > 0)
+  if (!joint_model_group_->getMimicJointModels().empty())
   {
     ROS_ERROR_NAMED("dynamics_solver", "Group '%s' has a mimic joint. Will not initialize dynamics solver",
                     group_name.c_str());

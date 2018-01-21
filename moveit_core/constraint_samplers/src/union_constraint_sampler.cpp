@@ -129,7 +129,7 @@ bool UnionConstraintSampler::sample(robot_state::RobotState& state, const robot_
   state = reference_state;
   state.setToRandomPositions(jmg_);
 
-  if (samplers_.size() >= 1)
+  if (!samplers_.empty())
   {
     if (!samplers_[0]->sample(state, reference_state, max_attempts))
       return false;
