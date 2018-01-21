@@ -51,8 +51,7 @@ IterativeParabolicTimeParameterization::IterativeParabolicTimeParameterization(u
 {
 }
 
-IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization()
-= default;
+IterativeParabolicTimeParameterization::~IterativeParabolicTimeParameterization() = default;
 
 namespace
 {

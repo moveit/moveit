@@ -44,7 +44,7 @@
 #include <boost/bind.hpp>
 #include <moveit/robot_model/aabb.h>
 
-moveit::core::RobotState::RobotState(RobotModelConstPtr  robot_model)
+moveit::core::RobotState::RobotState(RobotModelConstPtr robot_model)
   : robot_model_(std::move(robot_model))
   , has_velocity_(false)
   , has_acceleration_(false)
@@ -144,9 +144,10 @@ void moveit::core::RobotState::copyFrom(const RobotState& other)
 
   // copy attached bodies
   clearAttachedBodies();
-  for (const auto & attached : other.attached_body_map_)
+  for (const auto& attached : other.attached_body_map_)
     attachBody(attached.second->getName(), attached.second->getShapes(), attached.second->getFixedTransforms(),
-               attached.second->getTouchLinks(), attached.second->getAttachedLinkName(), attached.second->getDetachPosture());
+               attached.second->getTouchLinks(), attached.second->getAttachedLinkName(),
+               attached.second->getDetachPosture());
 }
 
 bool moveit::core::RobotState::checkJointTransforms(const JointModel* joint) const
@@ -262,8 +263,8 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup*
   for (auto joint : joints)
   {
     const int idx = joint->getFirstVariableIndex();
-    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(),
-                                                near.position_ + idx, distance);
+    joint->getVariableRandomPositionsNearBy(rng, position_ + joint->getFirstVariableIndex(), near.position_ + idx,
+                                            distance);
   }
   updateMimicJoint(group->getMimicJointModels());
   markDirtyJointTransforms(group);
@@ -300,7 +301,7 @@ void moveit::core::RobotState::setVariablePositions(const double* position)
 
 void moveit::core::RobotState::setVariablePositions(const std::map<std::string, double>& variable_map)
 {
-  for (const auto & var : variable_map)
+  for (const auto& var : variable_map)
   {
     const int index = robot_model_->getVariableIndex(var.first);
     position_[index] = var.second;
@@ -315,7 +316,7 @@ void moveit::core::RobotState::getMissingKeys(const std::map<std::string, double
 {
   missing_variables.clear();
   const std::vector<std::string>& nm = robot_model_->getVariableNames();
-  for (const auto & name : nm)
+  for (const auto& name : nm)
     if (variable_map.find(name) == variable_map.end())
       if (robot_model_->getJointOfVariable(name)->getMimic() == nullptr)
         missing_variables.push_back(name);
@@ -344,7 +345,7 @@ void moveit::core::RobotState::setVariablePositions(const std::vector<std::strin
 void moveit::core::RobotState::setVariableVelocities(const std::map<std::string, double>& variable_map)
 {
   markVelocity();
-  for (const auto & var : variable_map)
+  for (const auto& var : variable_map)
     velocity_[robot_model_->getVariableIndex(var.first)] = var.second;
 }
 
@@ -367,7 +368,7 @@ void moveit::core::RobotState::setVariableVelocities(const std::vector<std::stri
 void moveit::core::RobotState::setVariableAccelerations(const std::map<std::string, double>& variable_map)
 {
   markAcceleration();
-  for (const auto & var : variable_map)
+  for (const auto& var : variable_map)
     acceleration_[robot_model_->getVariableIndex(var.first)] = var.second;
 }
 
@@ -390,7 +391,7 @@ void moveit::core::RobotState::setVariableAccelerations(const std::vector<std::s
 void moveit::core::RobotState::setVariableEffort(const std::map<std::string, double>& variable_map)
 {
   markEffort();
-  for (const auto & var : variable_map)
+  for (const auto& var : variable_map)
     acceleration_[robot_model_->getVariableIndex(var.first)] = var.second;
 }
 
@@ -868,7 +869,7 @@ void moveit::core::RobotState::attachBody(const std::string& id, const std::vect
                                           const trajectory_msgs::JointTrajectory& detach_posture)
 {
   const LinkModel* l = robot_model_->getLinkModel(link);
-  auto  ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
+  auto ab = new AttachedBody(l, id, shapes, attach_trans, touch_links, detach_posture);
   attached_body_map_[id] = ab;
   ab->computeTransform(getGlobalLinkTransform(l));
   if (attached_body_update_callback_)
@@ -879,7 +880,7 @@ void moveit::core::RobotState::getAttachedBodies(std::vector<const AttachedBody*
 {
   attached_bodies.clear();
   attached_bodies.reserve(attached_body_map_.size());
-  for (const auto & attached : attached_body_map_)
+  for (const auto& attached : attached_body_map_)
     attached_bodies.push_back(attached.second);
 }
 
@@ -887,7 +888,7 @@ void moveit::core::RobotState::getAttachedBodies(std::vector<const AttachedBody*
                                                  const JointModelGroup* group) const
 {
   attached_bodies.clear();
-  for (const auto & it : attached_body_map_)
+  for (const auto& it : attached_body_map_)
     if (group->hasLinkModel(it.second->getAttachedLinkName()))
       attached_bodies.push_back(it.second);
 }
@@ -896,7 +897,7 @@ void moveit::core::RobotState::getAttachedBodies(std::vector<const AttachedBody*
                                                  const LinkModel* lm) const
 {
   attached_bodies.clear();
-  for (const auto & attached : attached_body_map_)
+  for (const auto& attached : attached_body_map_)
     if (attached.second->getAttachedLink() == lm)
       attached_bodies.push_back(attached.second);
 }
@@ -1036,14 +1037,14 @@ void moveit::core::RobotState::getRobotMarkers(visualization_msgs::MarkerArray& 
                                                const std::vector<std::string>& link_names, bool include_attached) const
 {
   ros::Time tm = ros::Time::now();
-  for (const auto & link_name : link_names)
+  for (const auto& link_name : link_names)
   {
     logDebug("Trying to get marker for link '%s'", link_name.c_str());
     const LinkModel* lm = robot_model_->getLinkModel(link_name);
     if (!lm)
       continue;
     if (include_attached)
-      for (const auto & attached : attached_body_map_)
+      for (const auto& attached : attached_body_map_)
         if (attached.second->getAttachedLink() == lm)
         {
           for (std::size_t j = 0; j < attached.second->getShapes().size(); ++j)
@@ -1531,7 +1532,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
           if (!lm)
             return false;
           const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-          for (const auto & fixed_link : fixed_links)
+          for (const auto& fixed_link : fixed_links)
             if (Transforms::sameFrame(fixed_link.first->getName(), solver_tip_frame))
             {
               pose_frame = solver_tip_frame;
@@ -1771,7 +1772,7 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
         if (!lm)
           return false;
         const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-        for (const auto & fixed_link : fixed_links)
+        for (const auto& fixed_link : fixed_links)
           if (fixed_link.first->getName() == solver_tip_frame)
           {
             pose_frame = solver_tip_frame;
@@ -2025,14 +2026,14 @@ void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
 
   core::AABB bounding_box;
   std::vector<const LinkModel*> links = robot_model_->getLinkModelsWithCollisionGeometry();
-  for (auto & link : links)
+  for (auto& link : links)
   {
     Eigen::Affine3d transform = getGlobalLinkTransform(link);  // intentional copy, we will translate
     const Eigen::Vector3d& extents = link->getShapeExtentsAtOrigin();
     transform.translate(link->getCenteredBoundingBoxOffset());
     bounding_box.extendWithTransformedBox(transform, extents);
   }
-  for (const auto & attached : attached_body_map_)
+  for (const auto& attached : attached_body_map_)
   {
     const EigenSTL::vector_Affine3d& transforms = attached.second->getGlobalCollisionBodyTransforms();
     const std::vector<shapes::ShapeConstPtr>& shapes = attached.second->getShapes();
@@ -2204,8 +2205,7 @@ void moveit::core::RobotState::getStateTreeJointString(std::ostream& ss, const J
     getPoseString(ss, global_link_transforms_[lm->getLinkIndex()], pfx + "link_global:");
   }
 
-  for (auto it = lm->getChildJointModels().begin();
-       it != lm->getChildJointModels().end(); ++it)
+  for (auto it = lm->getChildJointModels().begin(); it != lm->getChildJointModels().end(); ++it)
     getStateTreeJointString(ss, *it, pfx, it + 1 == lm->getChildJointModels().end());
 }
 

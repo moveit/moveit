@@ -39,7 +39,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
-moveit::core::LinkModel::LinkModel(std::string  name)
+moveit::core::LinkModel::LinkModel(std::string name)
   : name_(std::move(name))
   , parent_joint_model_(nullptr)
   , parent_link_model_(nullptr)
@@ -51,8 +51,7 @@ moveit::core::LinkModel::LinkModel(std::string  name)
   joint_origin_transform_.setIdentity();
 }
 
-moveit::core::LinkModel::~LinkModel()
-= default;
+moveit::core::LinkModel::~LinkModel() = default;
 
 void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
 {

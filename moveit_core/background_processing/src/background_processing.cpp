@@ -112,7 +112,7 @@ void moveit::tools::BackgroundProcessing::clear()
     action_names_.swap(removed);
   }
   if (update && queue_change_event_)
-    for (auto & event : removed)
+    for (auto& event : removed)
       queue_change_event_(REMOVE, event);
 }
 

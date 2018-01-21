@@ -45,10 +45,10 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
 
   // add all joint constraints that are in first but not in second
   // and merge joint constraints that are for the same joint
-  for (const auto & joint_constraint1 : first.joint_constraints)
+  for (const auto& joint_constraint1 : first.joint_constraints)
   {
     bool add = true;
-    for (const auto & joint_constraint2 : second.joint_constraints)
+    for (const auto& joint_constraint2 : second.joint_constraints)
       if (joint_constraint2.joint_name == joint_constraint1.joint_name)
       {
         add = false;
@@ -78,10 +78,10 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
   }
 
   // add all joint constraints that are in second but not in first
-  for (const auto & joint_constraint2 : second.joint_constraints)
+  for (const auto& joint_constraint2 : second.joint_constraints)
   {
     bool add = true;
-    for (const auto & joint_constraint1 : first.joint_constraints)
+    for (const auto& joint_constraint1 : first.joint_constraints)
       if (joint_constraint2.joint_name == joint_constraint1.joint_name)
       {
         add = false;
@@ -93,15 +93,15 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
 
   // merge rest of constraints
   r.position_constraints = first.position_constraints;
-  for (const auto & position_constraint : second.position_constraints)
+  for (const auto& position_constraint : second.position_constraints)
     r.position_constraints.push_back(position_constraint);
 
   r.orientation_constraints = first.orientation_constraints;
-  for (const auto & orientation_constraint : second.orientation_constraints)
+  for (const auto& orientation_constraint : second.orientation_constraints)
     r.orientation_constraints.push_back(orientation_constraint);
 
   r.visibility_constraints = first.visibility_constraints;
-  for (const auto & visibility_constraint : second.visibility_constraints)
+  for (const auto& visibility_constraint : second.visibility_constraints)
     r.visibility_constraints.push_back(visibility_constraint);
 
   return r;

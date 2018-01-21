@@ -101,8 +101,7 @@ public:
    *  @param name1 name of first element
    *  @param name2 name of second element
    *  @param allowed_collision_type The allowed collision type will be filled here */
-  bool getEntry(const std::string& name1, const std::string& name2,
-                AllowedCollision::Type& allowed_collision) const;
+  bool getEntry(const std::string& name1, const std::string& name2, AllowedCollision::Type& allowed_collision) const;
 
   /** @brief Get the allowed collision predicate between two elements. Return true if a predicate for entry is included
    * in the collision matrix

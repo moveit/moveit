@@ -82,7 +82,7 @@ class PlanningContext
 {
 public:
   /** \brief Construct a planning context named \e name for the group \e group */
-  PlanningContext(std::string  name, std::string  group);
+  PlanningContext(std::string name, std::string group);
 
   virtual ~PlanningContext();
 

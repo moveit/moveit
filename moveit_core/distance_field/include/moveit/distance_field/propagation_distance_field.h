@@ -159,8 +159,7 @@ public:
    *
    */
   PropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
-                           double origin_y, double origin_z, double max_distance,
-                           bool propagate_negative = false);
+                           double origin_y, double origin_z, double max_distance, bool propagate_negative = false);
 
   /**
    * \brief Constructor based on an OcTree and bounding box

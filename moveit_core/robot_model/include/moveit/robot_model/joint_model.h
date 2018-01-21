@@ -123,7 +123,7 @@ public:
   typedef std::vector<VariableBounds> Bounds;
 
   /** \brief Construct a joint named \e name */
-  JointModel(std::string  name);
+  JointModel(std::string name);
 
   virtual ~JointModel();
 

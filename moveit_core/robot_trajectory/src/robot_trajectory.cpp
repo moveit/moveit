@@ -46,7 +46,7 @@ robot_trajectory::RobotTrajectory::RobotTrajectory(const robot_model::RobotModel
 {
 }
 
-robot_trajectory::RobotTrajectory::RobotTrajectory(robot_model::RobotModelConstPtr  robot_model,
+robot_trajectory::RobotTrajectory::RobotTrajectory(robot_model::RobotModelConstPtr robot_model,
                                                    const robot_model::JointModelGroup* group)
   : robot_model_(std::move(robot_model)), group_(group)
 {
@@ -134,7 +134,7 @@ void robot_trajectory::RobotTrajectory::unwind()
       }
     }
   }
-  for (auto & waypoint : waypoints_)
+  for (auto& waypoint : waypoints_)
     waypoint->update();
 }
 
@@ -180,7 +180,7 @@ void robot_trajectory::RobotTrajectory::unwind(const robot_state::RobotState& st
       }
     }
   }
-  for (auto & waypoint : waypoints_)
+  for (auto& waypoint : waypoints_)
     waypoint->update();
 }
 

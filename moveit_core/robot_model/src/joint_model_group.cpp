@@ -99,7 +99,7 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
 }
 }
 
-moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Model::Group  config,
+moveit::core::JointModelGroup::JointModelGroup(std::string group_name, srdf::Model::Group config,
                                                const std::vector<const JointModel*>& unsorted_group_joints,
                                                const RobotModel* parent_model)
   : parent_model_(parent_model)
@@ -118,7 +118,7 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
 
   // figure out active joints, mimic joints, fixed joints
   // construct index maps, list of variables
-  for (auto & joint_model : joint_model_vector_)
+  for (auto& joint_model : joint_model_vector_)
   {
     joint_model_name_vector_.push_back(joint_model->getName());
     joint_model_map_[joint_model->getName()] = joint_model;
@@ -137,7 +137,7 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
       }
       else
         mimic_joints_.push_back(joint_model);
-      for (const auto & name : name_order)
+      for (const auto& name : name_order)
       {
         variable_names_.push_back(name);
         variable_names_set_.insert(name);
@@ -163,7 +163,7 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
 
   // now we need to find all the set of joints within this group
   // that root distinct subtrees
-  for (auto & joint_model : active_joint_model_vector_)
+  for (auto& joint_model : active_joint_model_vector_)
   {
     // if we find that an ancestor is also in the group, then the joint is not a root
     if (!includesParent(joint_model, this))
@@ -183,7 +183,7 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
       }
 
   // when updating/sampling a group state only, only mimic joints that have their parent within the group get updated.
-  for (auto & mimic_joint : mimic_joints_)
+  for (auto& mimic_joint : mimic_joints_)
     // if the joint we mimic is also in this group, we will need to do updates when sampling
     if (hasJointModel(mimic_joint->getMimic()->getName()))
     {
@@ -195,13 +195,13 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
 
   // now we need to make another pass for group links (we include the fixed joints here)
   std::set<const LinkModel*> group_links_set;
-  for (auto & joint_model : joint_model_vector_)
+  for (auto& joint_model : joint_model_vector_)
     group_links_set.insert(joint_model->getChildLinkModel());
   for (auto group_link : group_links_set)
     link_model_vector_.push_back(group_link);
   std::sort(link_model_vector_.begin(), link_model_vector_.end(), OrderLinksByIndex());
 
-  for (auto & link_model : link_model_vector_)
+  for (auto& link_model : link_model_vector_)
   {
     link_model_map_[link_model->getName()] = link_model;
     link_model_name_vector_.push_back(link_model->getName());
@@ -221,7 +221,7 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
   }
 
   // compute updated links
-  for (auto & joint_root : joint_roots_)
+  for (auto& joint_root : joint_roots_)
   {
     const std::vector<const LinkModel*>& links = joint_root->getDescendantLinkModels();
     updated_link_model_set_.insert(links.begin(), links.end());
@@ -240,9 +240,9 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
   std::sort(updated_link_model_vector_.begin(), updated_link_model_vector_.end(), OrderLinksByIndex());
   std::sort(updated_link_model_with_geometry_vector_.begin(), updated_link_model_with_geometry_vector_.end(),
             OrderLinksByIndex());
-  for (auto & updated_link : updated_link_model_vector_)
+  for (auto& updated_link : updated_link_model_vector_)
     updated_link_model_name_vector_.push_back(updated_link->getName());
-  for (auto & link_with_geometry : updated_link_model_with_geometry_vector_)
+  for (auto& link_with_geometry : updated_link_model_with_geometry_vector_)
     updated_link_model_with_geometry_name_vector_.push_back(link_with_geometry->getName());
 
   // check if this group should actually be a chain
@@ -262,14 +262,13 @@ moveit::core::JointModelGroup::JointModelGroup(std::string  group_name, srdf::Mo
   }
 }
 
-moveit::core::JointModelGroup::~JointModelGroup()
-= default;
+moveit::core::JointModelGroup::~JointModelGroup() = default;
 
 void moveit::core::JointModelGroup::setSubgroupNames(const std::vector<std::string>& subgroups)
 {
   subgroup_names_ = subgroups;
   subgroup_names_set_.clear();
-  for (auto & subgroup_name : subgroup_names_)
+  for (auto& subgroup_name : subgroup_names_)
     subgroup_names_set_.insert(subgroup_name);
 }
 
@@ -345,8 +344,7 @@ void moveit::core::JointModelGroup::getVariableRandomPositionsNearBy(
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
   {
     double distance = 0.0;
-    auto iter =
-        distance_map.find(active_joint_model_vector_[i]->getType());
+    auto iter = distance_map.find(active_joint_model_vector_[i]->getType());
     if (iter != distance_map.end())
       distance = iter->second;
     else
@@ -437,9 +435,8 @@ void moveit::core::JointModelGroup::interpolate(const double* from, const double
 void moveit::core::JointModelGroup::updateMimicJoints(double* values) const
 {
   // update mimic (only local joints as we are dealing with a local group state)
-  for (const auto & mimic : group_mimic_update_)
-    values[mimic.dest] =
-        values[mimic.src] * mimic.factor + mimic.offset;
+  for (const auto& mimic : group_mimic_update_)
+    values[mimic.dest] = values[mimic.src] * mimic.factor + mimic.offset;
 }
 
 void moveit::core::JointModelGroup::addDefaultState(const std::string& name,
@@ -499,7 +496,7 @@ bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string>&
 
   // Convert to string names
   tips.clear();
-  for (auto & tip_link : tip_links)
+  for (auto& tip_link : tip_links)
   {
     tips.push_back(tip_link->getName());
   }
@@ -508,7 +505,7 @@ bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<std::string>&
 
 bool moveit::core::JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) const
 {
-  for (const auto & ee_name : getAttachedEndEffectorNames())
+  for (const auto& ee_name : getAttachedEndEffectorNames())
   {
     const JointModelGroup* eef = parent_model_->getEndEffector(ee_name);
     if (!eef)
@@ -559,14 +556,14 @@ void moveit::core::JointModelGroup::setDefaultIKTimeout(double ik_timeout)
   group_kinematics_.first.default_ik_timeout_ = ik_timeout;
   if (group_kinematics_.first.solver_instance_)
     group_kinematics_.first.solver_instance_->setDefaultTimeout(ik_timeout);
-  for (auto & kin_map : group_kinematics_.second)
+  for (auto& kin_map : group_kinematics_.second)
     kin_map.second.default_ik_timeout_ = ik_timeout;
 }
 
 void moveit::core::JointModelGroup::setDefaultIKAttempts(unsigned int ik_attempts)
 {
   group_kinematics_.first.default_ik_attempts_ = ik_attempts;
-  for (auto & kin_map : group_kinematics_.second)
+  for (auto& kin_map : group_kinematics_.second)
     kin_map.second.default_ik_attempts_ = ik_attempts;
 }
 
@@ -574,7 +571,7 @@ bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<st
                                                             std::vector<unsigned int>& joint_bijection) const
 {
   joint_bijection.clear();
-  for (const auto & ik_jname : ik_jnames)
+  for (const auto& ik_jname : ik_jnames)
   {
     auto it = joint_variables_index_map_.find(ik_jname);
     if (it == joint_variables_index_map_.end())
@@ -611,7 +608,7 @@ void moveit::core::JointModelGroup::setSolverAllocators(
   }
   else
     // we now compute a joint bijection only if we have a solver map
-    for (const auto & alloc_map : solvers.second)
+    for (const auto& alloc_map : solvers.second)
       if (alloc_map.first->getSolverInstance())
       {
         KinematicsSolver& ks = group_kinematics_.second[alloc_map.first];
@@ -643,7 +640,7 @@ bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string& tip) co
   }
 
   // loop through all tip frames supported by the JMG
-  for (const auto & tip_frame : tip_frames)
+  for (const auto& tip_frame : tip_frames)
   {
     // remove frame reference, if specified
     const std::string& tip_local = tip[0] == '/' ? tip.substr(1) : tip;
@@ -660,7 +657,7 @@ bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string& tip) co
         const LinkModel* lm = getLinkModel(tip_frame_local);
         const LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
         // Check if our frame of inquiry is located anywhere further down the chain (towards the tip of the arm)
-        for (const auto & fixed_link : fixed_links)
+        for (const auto& fixed_link : fixed_links)
         {
           if (fixed_link.first->getName() == tip_local)
             return true;
@@ -680,10 +677,9 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream& out) const
   out << "Group '" << name_ << "' using " << variable_count_ << " variables" << std::endl;
   out << "  * Joints:" << std::endl;
   for (auto joint_model : joint_model_vector_)
-    out << "    '" << joint_model->getName() << "' (" << joint_model->getTypeName() << ")"
-        << std::endl;
+    out << "    '" << joint_model->getName() << "' (" << joint_model->getTypeName() << ")" << std::endl;
   out << "  * Variables:" << std::endl;
-  for (const auto & variable_name : variable_names_)
+  for (const auto& variable_name : variable_names_)
   {
     int local_idx = joint_variables_index_map_.find(variable_name)->second;
     const JointModel* jm = parent_model_->getJointOfVariable(variable_name);
@@ -715,7 +711,7 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream& out) const
   if (!group_kinematics_.second.empty())
   {
     out << "  * Compound kinematics solver:" << std::endl;
-    for (const auto & kin_map : group_kinematics_.second)
+    for (const auto& kin_map : group_kinematics_.second)
     {
       out << "    " << kin_map.first->getName() << ":";
       for (unsigned int i : kin_map.second.bijection_)
@@ -727,9 +723,9 @@ void moveit::core::JointModelGroup::printGroupInfo(std::ostream& out) const
   if (!group_mimic_update_.empty())
   {
     out << "  * Local Mimic Updates:" << std::endl;
-    for (const auto & mimic : group_mimic_update_)
-      out << "    [" << mimic.dest << "] = " << mimic.factor << " * ["
-          << mimic.src << "] + " << mimic.offset << std::endl;
+    for (const auto& mimic : group_mimic_update_)
+      out << "    [" << mimic.dest << "] = " << mimic.factor << " * [" << mimic.src << "] + " << mimic.offset
+          << std::endl;
   }
   out << std::endl;
 }

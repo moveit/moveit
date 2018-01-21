@@ -124,7 +124,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   state_->setToDefaultValues();
 
   const std::vector<std::string>& joint_model_names = joint_model_group_->getJointModelNames();
-  for (const auto & joint_model_name : joint_model_names)
+  for (const auto& joint_model_name : joint_model_names)
   {
     const urdf::Joint* ujoint = urdf_model->getJoint(joint_model_name).get();
     if (ujoint && ujoint->limits)

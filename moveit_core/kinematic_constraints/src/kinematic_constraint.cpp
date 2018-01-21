@@ -59,13 +59,14 @@ static double normalizeAngle(double angle)
 }
 }
 
-kinematic_constraints::KinematicConstraint::KinematicConstraint(robot_model::RobotModelConstPtr  model)
-  : type_(UNKNOWN_CONSTRAINT), robot_model_(std::move(model)), constraint_weight_(std::numeric_limits<double>::epsilon())
+kinematic_constraints::KinematicConstraint::KinematicConstraint(robot_model::RobotModelConstPtr model)
+  : type_(UNKNOWN_CONSTRAINT)
+  , robot_model_(std::move(model))
+  , constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
 
-kinematic_constraints::KinematicConstraint::~KinematicConstraint()
-= default;
+kinematic_constraints::KinematicConstraint::~KinematicConstraint() = default;
 
 bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
 {
@@ -699,7 +700,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
     target_frame_id_ = tf.getTargetFrame();
     mobile_target_frame_ = false;
     // transform won't change, so apply it now
-    for (auto & point : points_)
+    for (auto& point : points_)
       point = target_pose_ * point;
   }
   else
@@ -790,7 +791,7 @@ shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(con
   }
 
   // allocate memory for a mesh to represent the visibility cone
-  auto  m = new shapes::Mesh();
+  auto m = new shapes::Mesh();
   m->vertex_count = cone_sides_ + 2;
   m->vertices = new double[m->vertex_count * 3];
   m->triangle_count = cone_sides_ * 2;
@@ -1052,9 +1053,9 @@ void kinematic_constraints::KinematicConstraintSet::clear()
 bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint>& jc)
 {
   bool result = true;
-  for (const auto & constraint : jc)
+  for (const auto& constraint : jc)
   {
-    auto  ev = new JointConstraint(robot_model_);
+    auto ev = new JointConstraint(robot_model_);
     bool u = ev->configure(constraint);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1068,9 +1069,9 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
                                                         const robot_state::Transforms& tf)
 {
   bool result = true;
-  for (const auto & constraint : pc)
+  for (const auto& constraint : pc)
   {
-    auto  ev = new PositionConstraint(robot_model_);
+    auto ev = new PositionConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1084,9 +1085,9 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
                                                         const robot_state::Transforms& tf)
 {
   bool result = true;
-  for (const auto & constraint : oc)
+  for (const auto& constraint : oc)
   {
-    auto  ev = new OrientationConstraint(robot_model_);
+    auto ev = new OrientationConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1100,9 +1101,9 @@ bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit
                                                         const robot_state::Transforms& tf)
 {
   bool result = true;
-  for (const auto & constraint : vc)
+  for (const auto& constraint : vc)
   {
-    auto  ev = new VisibilityConstraint(robot_model_);
+    auto ev = new VisibilityConstraint(robot_model_);
     bool u = ev->configure(constraint, tf);
     result = result && u;
     kinematic_constraints_.push_back(KinematicConstraintPtr(ev));
@@ -1126,7 +1127,7 @@ kinematic_constraints::ConstraintEvaluationResult
 kinematic_constraints::KinematicConstraintSet::decide(const robot_state::RobotState& state, bool verbose) const
 {
   ConstraintEvaluationResult res(true, 0.0);
-  for (const auto & kinematic_constraint : kinematic_constraints_)
+  for (const auto& kinematic_constraint : kinematic_constraints_)
   {
     ConstraintEvaluationResult r = kinematic_constraint->decide(state, verbose);
     if (!r.satisfied)
@@ -1154,14 +1155,14 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Kinemat
 void kinematic_constraints::KinematicConstraintSet::print(std::ostream& out) const
 {
   out << kinematic_constraints_.size() << " kinematic constraints" << std::endl;
-  for (const auto & kinematic_constraint : kinematic_constraints_)
+  for (const auto& kinematic_constraint : kinematic_constraints_)
     kinematic_constraint->print(out);
 }
 
 bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstraintSet& other, double margin) const
 {
   // each constraint in this matches some in the other
-  for (const auto & kinematic_constraint : kinematic_constraints_)
+  for (const auto& kinematic_constraint : kinematic_constraints_)
   {
     bool found = false;
     for (unsigned int j = 0; !found && j < other.kinematic_constraints_.size(); ++j)
@@ -1170,7 +1171,7 @@ bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstra
       return false;
   }
   // each constraint in the other matches some constraint in this
-  for (const auto & kinematic_constraint : other.kinematic_constraints_)
+  for (const auto& kinematic_constraint : other.kinematic_constraints_)
   {
     bool found = false;
     for (unsigned int j = 0; !found && j < kinematic_constraints_.size(); ++j)

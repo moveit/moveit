@@ -187,7 +187,7 @@ TEST(LoadingAndFK, SimpleRobot)
   state.setVariableAcceleration("base_joint/x", 0.0);
 
   // making sure that values get copied
-  auto  new_state = new moveit::core::RobotState(state);
+  auto new_state = new moveit::core::RobotState(state);
   EXPECT_NEAR(10.0, new_state->getGlobalLinkTransform("base_link").translation().x(), 1e-5);
   EXPECT_NEAR(8.0, new_state->getGlobalLinkTransform("base_link").translation().y(), 1e-5);
   EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);

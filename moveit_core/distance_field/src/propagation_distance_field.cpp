@@ -127,11 +127,10 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                                                    const EigenSTL::vector_Vector3d& new_points)
 {
   VoxelSet old_point_set;
-  for (const auto & old_point : old_points)
+  for (const auto& old_point : old_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(old_point.x(), old_point.y(), old_point.z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(old_point.x(), old_point.y(), old_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       old_point_set.insert(voxel_loc);
@@ -139,11 +138,10 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
   }
 
   VoxelSet new_point_set;
-  for (const auto & new_point : new_points)
+  for (const auto& new_point : new_points)
   {
     Eigen::Vector3i voxel_loc;
-    bool valid = worldToGrid(new_point.x(), new_point.y(), new_point.z(), voxel_loc.x(), voxel_loc.y(),
-                             voxel_loc.z());
+    bool valid = worldToGrid(new_point.x(), new_point.y(), new_point.z(), voxel_loc.x(), voxel_loc.y(), voxel_loc.z());
     if (valid)
     {
       new_point_set.insert(voxel_loc);
@@ -160,7 +158,7 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
                       std::inserter(new_not_old, new_not_old.end()), comp);
 
   std::vector<Eigen::Vector3i> new_not_in_current;
-  for (auto & point : new_not_old)
+  for (auto& point : new_not_old)
   {
     if (voxel_grid_->getCell(point.x(), point.y(), point.z()).distance_square_ != 0)
     {
@@ -185,7 +183,7 @@ void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d&
 {
   std::vector<Eigen::Vector3i> voxel_points;
 
-  for (const auto & point : points)
+  for (const auto& point : points)
   {
     // Convert to voxel coordinates
     Eigen::Vector3i voxel_loc;
@@ -207,7 +205,7 @@ void PropagationDistanceField::removePointsFromField(const EigenSTL::vector_Vect
   std::vector<Eigen::Vector3i> voxel_points;
   // VoxelSet voxel_locs;
 
-  for (const auto & point : points)
+  for (const auto& point : points)
   {
     // Convert to voxel coordinates
     Eigen::Vector3i voxel_loc;
@@ -236,7 +234,7 @@ void PropagationDistanceField::addNewObstacleVoxels(const std::vector<Eigen::Vec
     negative_bucket_queue_[0].reserve(voxel_points.size());
   }
 
-  for (const auto & voxel_point : voxel_points)
+  for (const auto& voxel_point : voxel_points)
   {
     PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_point.x(), voxel_point.y(), voxel_point.z());
     const Eigen::Vector3i& loc = voxel_point;
@@ -330,7 +328,7 @@ void PropagationDistanceField::removeObstacleVoxels(const std::vector<Eigen::Vec
   //   bool valid = isCellValid( loc.x(), loc.y(), loc.z());
   //   if (!valid)
   //     continue;
-  for (const auto & voxel_point : voxel_points)
+  for (const auto& voxel_point : voxel_points)
   {
     PropDistanceFieldVoxel& voxel = voxel_grid_->getCell(voxel_point.x(), voxel_point.y(), voxel_point.z());
     voxel.distance_square_ = max_distance_sq_;

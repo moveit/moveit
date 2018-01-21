@@ -44,7 +44,7 @@ bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::C
 {
   // construct the constraints
   std::vector<kinematic_constraints::JointConstraint> jc;
-  for (const auto & joint_constraint : constr.joint_constraints)
+  for (const auto& joint_constraint : constr.joint_constraints)
   {
     kinematic_constraints::JointConstraint j(scene_->getRobotModel());
     if (j.configure(joint_constraint))
@@ -69,7 +69,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
   // also keep bounds for joints as convenient
   std::map<std::string, JointInfo> bound_data;
   bool some_valid_constraint = false;
-  for (const auto & constraint : jc)
+  for (const auto& constraint : jc)
   {
     if (!constraint.enabled())
       continue;
@@ -87,9 +87,10 @@ bool constraint_samplers::JointConstraintSampler::configure(
       ji = it->second;
     else
       ji.index_ = jmg_->getVariableGroupIndex(constraint.getJointVariableName());
-    ji.potentiallyAdjustMinMaxBounds(
-        std::max(joint_bounds.min_position_, constraint.getDesiredJointPosition() - constraint.getJointToleranceBelow()),
-        std::min(joint_bounds.max_position_, constraint.getDesiredJointPosition() + constraint.getJointToleranceAbove()));
+    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.min_position_, constraint.getDesiredJointPosition() -
+                                                                              constraint.getJointToleranceBelow()),
+                                     std::min(joint_bounds.max_position_, constraint.getDesiredJointPosition() +
+                                                                              constraint.getJointToleranceAbove()));
 
     logDebug("Bounds for %s JointConstraint are %g %g", constraint.getJointVariableName().c_str(), ji.min_bound_,
              ji.max_bound_);
@@ -113,7 +114,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
     return false;
   }
 
-  for (auto & constraint_joint_pair : bound_data)
+  for (auto& constraint_joint_pair : bound_data)
     bounds_.push_back(constraint_joint_pair.second);
 
   // get a separate list of joints that are not bounded; we will sample these randomly
@@ -127,7 +128,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
       if (vars.size() > 1)
       {
         bool all_found = true;
-        for (const auto & var : vars)
+        for (const auto& var : vars)
           if (bound_data.find(var) == bound_data.end())
           {
             all_found = false;
@@ -166,7 +167,7 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState
   }
 
   // enforce the constraints for the constrained components (could be all of them)
-  for (auto & bound : bounds_)
+  for (auto& bound : bounds_)
     values_[bound.index_] = random_number_generator_.uniformReal(bound.min_bound_, bound.max_bound_);
 
   state.setJointGroupPositions(jmg_, values_);
@@ -210,18 +211,18 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints:
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc)
   : position_constraint_(std::move(pc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::OrientationConstraintPtr  oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::OrientationConstraintPtr oc)
   : orientation_constraint_(std::move(oc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr  pc,
-                                                    kinematic_constraints::OrientationConstraintPtr  oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc,
+                                                    kinematic_constraints::OrientationConstraintPtr oc)
   : position_constraint_(std::move(pc)), orientation_constraint_(std::move(oc))
 {
 }
@@ -291,7 +292,7 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
           return configure(IKSamplingPose(pc, oc));
       }
 
-  for (const auto & position_constraint : constr.position_constraints)
+  for (const auto& position_constraint : constr.position_constraints)
   {
     kinematic_constraints::PositionConstraintPtr pc(
         new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
@@ -299,7 +300,7 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
       return configure(IKSamplingPose(pc));
   }
 
-  for (const auto & orientation_constraint : constr.orientation_constraints)
+  for (const auto& orientation_constraint : constr.orientation_constraints)
   {
     kinematic_constraints::OrientationConstraintPtr oc(
         new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
@@ -316,7 +317,7 @@ double constraint_samplers::IKConstraintSampler::getSamplingVolume() const
   {
     const std::vector<bodies::BodyPtr>& bodies = sampling_pose_.position_constraint_->getConstraintRegions();
     double vol = 0;
-    for (const auto & body : bodies)
+    for (const auto& body : bodies)
       vol += body->computeVolume();
     if (!bodies.empty())
       v *= vol;
@@ -367,7 +368,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-      for (const auto & fixed_link : fixed_links)
+      for (const auto& fixed_link : fixed_links)
         if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
           eef_to_ik_tip_transform_ = fixed_link.second;
@@ -385,7 +386,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-      for (const auto & fixed_link : fixed_links)
+      for (const auto& fixed_link : fixed_links)
         if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
           eef_to_ik_tip_transform_ = fixed_link.second;
