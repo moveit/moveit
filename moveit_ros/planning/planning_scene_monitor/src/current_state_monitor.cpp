@@ -163,39 +163,17 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic() con
     return "";
 }
 
-bool planning_scene_monitor::CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& dof) const
-{
-  if (robot_model_->hasJointModel(dof))
-  {
-    if (robot_model_->getJointModel(dof)->isPassive() || robot_model_->getJointModel(dof)->getMimic())
-      return true;
-  }
-  else
-  {
-    // check if this DOF is part of a multi-dof passive joint
-    std::size_t slash = dof.find_last_of("/");
-    if (slash != std::string::npos)
-    {
-      std::string joint_name = dof.substr(0, slash);
-      if (robot_model_->hasJointModel(joint_name))
-        if (robot_model_->getJointModel(joint_name)->isPassive() || robot_model_->getJointModel(joint_name)->getMimic())
-          return true;
-    }
-  }
-  return false;
-}
-
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
-  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (std::size_t i = 0; i < dof.size(); ++i)
-    if (joint_time_.find(dof[i]) == joint_time_.end())
+  for (const moveit::core::JointModel* joint : joints)
+    if (joint_time_.find(joint) == joint_time_.end())
     {
-      if (!isPassiveOrMimicDOF(dof[i]))
+      if (!joint->isPassive() && !joint->getMimic())
       {
-        ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+        ROS_DEBUG("Joint '%s' has never been updated", joint->getName());
         result = false;
       }
     }
@@ -205,13 +183,13 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_states) const
 {
   bool result = true;
-  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (std::size_t i = 0; i < dof.size(); ++i)
-    if (joint_time_.find(dof[i]) == joint_time_.end())
-      if (!isPassiveOrMimicDOF(dof[i]))
+  for (const moveit::core::JointModel* joint : joints)
+    if (joint_time_.find(joint) == joint_time_.end())
+      if (!joint->isPassive() && !joint->getMimic())
       {
-        missing_states.push_back(dof[i]);
+        missing_states.push_back(joint->getName());
         result = false;
       }
   return result;
@@ -220,24 +198,24 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
 {
   bool result = true;
-  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (std::size_t i = 0; i < dof.size(); ++i)
+  for (const moveit::core::JointModel* joint : joints)
   {
-    if (isPassiveOrMimicDOF(dof[i]))
+    if (joint->isPassive() || joint->getMimic())
       continue;
-    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
+    std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
+      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       result = false;
     }
   }
@@ -248,26 +226,26 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
                                                                     std::vector<std::string>& missing_states) const
 {
   bool result = true;
-  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
-  for (std::size_t i = 0; i < dof.size(); ++i)
+  for (const moveit::core::JointModel* joint : joints)
   {
-    if (isPassiveOrMimicDOF(dof[i]))
+    if (joint->isPassive() || joint->getMimic())
       continue;
-    std::map<std::string, ros::Time>::const_iterator it = joint_time_.find(dof[i]);
+    std::map<const moveit::core::JointModel*, ros::Time>::const_iterator it = joint_time_.find(joint);
     if (it == joint_time_.end())
     {
-      ROS_DEBUG("Joint variable '%s' has never been updated", dof[i].c_str());
-      missing_states.push_back(dof[i]);
+      ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
+      missing_states.push_back(joint->getName());
       result = false;
     }
     else if (it->second < old)
     {
-      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
-                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
-      missing_states.push_back(dof[i]);
+      ROS_DEBUG("Joint '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
+      missing_states.push_back(joint->getName());
       result = false;
     }
   }
@@ -364,7 +342,7 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
       if (jm->getVariableCount() != 1)
         continue;
 
-      joint_time_[joint_state->name[i]] = joint_state->header.stamp;
+      joint_time_[jm] = joint_state->header.stamp;
 
       if (robot_state_.getJointPositions(jm)[0] != joint_state->position[i])
       {
@@ -416,62 +394,72 @@ void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const senso
 
 void planning_scene_monitor::CurrentStateMonitor::tfCallback()
 {
-  bool update = false;
-  bool changes = false;
-
   // read multi-dof joint states from TF, if needed
   const std::vector<const moveit::core::JointModel*>& multi_dof_joints = robot_model_->getMultiDOFJointModels();
 
+  ros::Time latest_updates[multi_dof_joints.size()];
+
+  for (size_t i = 0; i < multi_dof_joints.size(); i++)
   {
-    for (const moveit::core::JointModel* joint : multi_dof_joints)
+    const moveit::core::JointModel* joint = multi_dof_joints[i];
+    const std::string& child_frame = joint->getChildLinkModel()->getName();
+    const std::string& parent_frame =
+        joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
+
+    std::string err;
+    if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_updates[i], &err) != tf::NO_ERROR)
     {
+      ROS_DEBUG_STREAM_THROTTLE(1, "Unable to update multi-dof joint '"
+                                       << joint->getName() << "': tf has no common time between '"
+                                       << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+      latest_updates[i] = ros::Time(0);
+      continue;
+    }
+  }
+
+  bool update = false;
+  bool changes = false;
+
+  {
+    boost::mutex::scoped_lock _(state_update_lock_);
+
+    for (size_t i = 0; i < multi_dof_joints.size(); i++)
+    {
+      const moveit::core::JointModel* joint = multi_dof_joints[i];
+
+      if (latest_updates[i] <= joint_time_[joint])
+        continue;
+
       const std::string& child_frame = joint->getChildLinkModel()->getName();
       const std::string& parent_frame =
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
 
-      std::string err;
-      ros::Time tm;
-      if (!tf_->getLatestCommonTime(parent_frame, child_frame, tm, &err) == tf::NO_ERROR)
+      tf::StampedTransform transf;
+      try
       {
-        ROS_DEBUG_STREAM_THROTTLE(1, "Unable to update multi-dof joint '"
-                                         << joint->getName() << "': tf has no common time between '"
-                                         << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+        tf_->lookupTransform(parent_frame, child_frame, latest_updates[i], transf);
+      }
+      catch (tf::TransformException& ex)
+      {
+        ROS_ERROR_STREAM_THROTTLE(1, "Unable to update multi-dof joint '" << joint->getName()
+                                                                          << "'. TF exception: " << ex.what());
         continue;
       }
+      joint_time_[joint] = latest_updates[i];
 
-      const std::vector<std::string>& joint_vars = joint->getVariableNames();
-      assert(joint_vars.size() > 0);
-      if (joint_time_[joint_vars[0]] != tm)
+      Eigen::Affine3d eigen_transf;
+      tf::transformTFToEigen(transf, eigen_transf);
+
+      double new_values[joint->getStateSpaceDimension()];
+      joint->computeVariablePositions(eigen_transf, new_values);
+
+      if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {
-        // only lock if we actually update something
-        boost::mutex::scoped_lock _(state_update_lock_);
-        tf::StampedTransform transf;
-        try
-        {
-          tf_->lookupTransform(parent_frame, child_frame, tm, transf);
-        }
-        catch (tf::TransformException& ex)
-        {
-          ROS_ERROR_STREAM_THROTTLE(1, "Unable to update multi-dof joint '" << joint->getName()
-                                                                            << "'. TF exception: " << ex.what());
-          continue;
-        }
-        for (const std::string& var : joint_vars)
-          joint_time_[var] = tm;
-        Eigen::Affine3d eigen_transf;
-        tf::transformTFToEigen(transf, eigen_transf);
-
-        double new_values[joint->getStateSpaceDimension()];
-        joint->computeVariablePositions(eigen_transf, new_values);
-
-        if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
-        {
-          changes = true;
-        }
-
-        robot_state_.setJointPositions(joint, new_values);
-        update = true;
+        changes = true;
       }
+
+      robot_state_.setJointPositions(joint, new_values);
+      update = true;
     }
   }
 

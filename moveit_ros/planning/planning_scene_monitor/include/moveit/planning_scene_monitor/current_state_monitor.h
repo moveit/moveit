@@ -198,13 +198,12 @@ public:
 private:
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
   void tfCallback();
-  bool isPassiveOrMimicDOF(const std::string& dof) const;
 
   ros::NodeHandle nh_;
   boost::shared_ptr<tf::Transformer> tf_;
   robot_model::RobotModelConstPtr robot_model_;
   robot_state::RobotState robot_state_;
-  std::map<std::string, ros::Time> joint_time_;
+  std::map<const moveit::core::JointModel*, ros::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
   ros::Time monitor_start_time_;
