@@ -148,7 +148,7 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
     if (tf_ && tf_connection_)
     {
       tf_->removeTransformsChangedListener(*tf_connection_);
-      tf_connection_ = nullptr;
+      tf_connection_.reset();
     }
     ROS_DEBUG("No longer listening for joint states");
     state_monitor_started_ = false;
