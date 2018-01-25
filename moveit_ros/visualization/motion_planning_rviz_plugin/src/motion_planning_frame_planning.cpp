@@ -175,13 +175,17 @@ void MotionPlanningFrame::onFinishedExecution(bool success)
 
   // update query start state to current if neccessary
   if (ui_->start_state_selection->currentText() == "<current>")
-  {
-    ros::Duration(1).sleep();
     useStartStateButtonClicked();
-  }
 }
 
 void MotionPlanningFrame::useStartStateButtonClicked()
+{
+  // use background job: fetching the current state might take up to a second
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useStartStateButtonExec, this),  //
+                                      "update start state");
+}
+
+void MotionPlanningFrame::useStartStateButtonExec()
 {
   robot_state::RobotState start = *planning_display_->getQueryStartState();
   updateQueryStateHelper(start, ui_->start_state_selection->currentText().toStdString());
@@ -189,6 +193,13 @@ void MotionPlanningFrame::useStartStateButtonClicked()
 }
 
 void MotionPlanningFrame::useGoalStateButtonClicked()
+{
+  // use background job: fetching the current state might take up to a second
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::useGoalStateButtonExec, this),  //
+                                      "update goal state");
+}
+
+void MotionPlanningFrame::useGoalStateButtonExec()
 {
   robot_state::RobotState goal = *planning_display_->getQueryGoalState();
   updateQueryStateHelper(goal, ui_->goal_state_selection->currentText().toStdString());
