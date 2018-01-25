@@ -383,6 +383,9 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
               lock = octomap_monitor_->getOcTreePtr()->reading();
             scene_->getPlanningSceneMsg(msg);
           }
+          // also publish timestamp of this robot_state
+          if (current_state_monitor_)
+            msg.robot_state.joint_state.header.stamp = current_state_monitor_->getCurrentStateTime();
           publish_msg = true;
         }
         new_scene_update_ = UPDATE_NONE;
@@ -850,6 +853,43 @@ void planning_scene_monitor::PlanningSceneMonitor::currentWorldObjectUpdateCallb
   }
 }
 
+bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(const ros::Time& t, double wait_time)
+{
+  if (t.isZero())
+    return false;
+
+  if (current_state_monitor_)
+  {
+    bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
+    if (success)
+      return true;
+
+    ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
+    return false;
+  }
+
+  // Sometimes there is no state monitor. In this case state updates are received as part of scene updates only.
+  // However, scene updates are only published if the robot actually moves. Hence we need a timeout!
+  // As publishing planning scene updates is throttled (2Hz by default), a 1s timeout is a suitable default.
+  ros::WallTime timeout = ros::WallTime::now() + ros::WallDuration(wait_time);
+  ros::WallDuration busywait(0.1);
+  boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
+  ros::Time prev_update_time = last_update_time_;
+  while (last_update_time_ < t &&  // Wait until the state update actually reaches the scene.
+         ros::WallTime::now() < timeout)
+  {
+    lock.unlock();
+    busywait.sleep();
+    lock.lock();
+  }
+  bool success = last_update_time_ >= t;
+  // suppress warning if we received an update at all
+  if (!success && prev_update_time != last_update_time_)
+    ROS_WARN_NAMED(LOGNAME, "Maybe failed to update robot state, time diff: %.3fs", (t - last_update_time_).toSec());
+
+  return success;
+}
+
 void planning_scene_monitor::PlanningSceneMonitor::lockSceneRead()
 {
   scene_update_mutex_.lock_shared();
@@ -1192,7 +1232,7 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
     {
       boost::unique_lock<boost::shared_mutex> ulock(scene_update_mutex_);
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
-      last_update_time_ = ros::Time::now();
+      last_update_time_ = current_state_monitor_->getCurrentStateTime();
       scene_->getCurrentStateNonConst().update();  // compute all transforms
     }
     triggerSceneUpdateEvent(UPDATE_STATE);
