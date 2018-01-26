@@ -282,6 +282,13 @@ const robot_model::RobotModelConstPtr& PlanningSceneDisplay::getRobotModel() con
   }
 }
 
+bool PlanningSceneDisplay::waitForCurrentRobotState(const ros::Time& t)
+{
+  if (planning_scene_monitor_)
+    return planning_scene_monitor_->waitForCurrentRobotState(t);
+  return false;
+}
+
 planning_scene_monitor::LockedPlanningSceneRO PlanningSceneDisplay::getPlanningSceneRO() const
 {
   return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);

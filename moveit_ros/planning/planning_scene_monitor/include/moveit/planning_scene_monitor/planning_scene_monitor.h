@@ -355,6 +355,13 @@ public:
   /** @brief This function is called every time there is a change to the planning scene */
   void triggerSceneUpdateEvent(SceneUpdateType update_type);
 
+  /** \brief Wait for robot state to become more recent than time t.
+   *
+   * If there is no state monitor active, there will be no scene updates.
+   * Hence, you can specify a timeout to wait for those updates. Default is 1s.
+   */
+  bool waitForCurrentRobotState(const ros::Time& t, double wait_time = 1.);
+
   /** \brief Lock the scene for reading (multiple threads can lock for reading at the same time) */
   void lockSceneRead();
 

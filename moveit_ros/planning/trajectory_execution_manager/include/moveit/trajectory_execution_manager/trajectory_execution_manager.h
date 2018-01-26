@@ -293,6 +293,7 @@ private:
   void executeThread(const ExecutionCompleteCallback& callback, const PathSegmentCompleteCallback& part_callback,
                      bool auto_clear);
   bool executePart(std::size_t part_index);
+  bool waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time = 1.0);
   void continuousExecutionThread();
 
   void stopExecutionInternal();

@@ -1253,14 +1253,21 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
 
   // execute each trajectory, one after the other (executePart() is blocking) or until one fails.
   // on failure, the status is set by executePart(). Otherwise, it will remain as set above (success)
-  for (std::size_t i = 0; i < trajectories_.size(); ++i)
+  std::size_t i = 0;
+  for (; i < trajectories_.size(); ++i)
   {
     bool epart = executePart(i);
     if (epart && part_callback)
       part_callback(i);
     if (!epart || execution_complete_)
+    {
+      ++i;
       break;
+    }
   }
+
+  // only report that execution finished when the robot stopped moving
+  waitForRobotToStop(*trajectories_[i - 1]);
 
   ROS_DEBUG_NAMED("traj_execution", "Completed trajectory execution with status %s ...",
                   last_execution_status_.asString().c_str());
@@ -1481,6 +1488,61 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
     last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
     return false;
   }
+}
+
+bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
+{
+  if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
+    return true;
+
+  ros::WallTime start = ros::WallTime::now();
+  double time_remaining = wait_time;
+
+  robot_state::RobotStatePtr prev_state, cur_state;
+  prev_state = csm_->getCurrentState();
+  prev_state->enforceBounds();
+
+  // assume robot stopped when 3 consecutive checks yield the same robot state
+  unsigned int no_motion_count = 0;  // count iterations with no motion
+  while (time_remaining > 0. && no_motion_count < 3)
+  {
+    if (!csm_->waitForCurrentState(ros::Time::now(), time_remaining) || !(cur_state = csm_->getCurrentState()))
+    {
+      ROS_WARN_NAMED("traj_execution", "Failed to receive current joint state");
+      return false;
+    }
+    cur_state->enforceBounds();
+    time_remaining = wait_time - (ros::WallTime::now() - start).toSec();  // remaining wait_time
+
+    // check for motion in effected joints of execution context
+    bool moved = false;
+    for (size_t t = 0; t < context.trajectory_parts_.size(); ++t)
+    {
+      const std::vector<std::string>& joint_names = context.trajectory_parts_[t].joint_trajectory.joint_names;
+      const std::size_t n = joint_names.size();
+
+      for (std::size_t i = 0; i < n && !moved; ++i)
+      {
+        const robot_model::JointModel* jm = cur_state->getJointModel(joint_names[i]);
+        if (!jm)
+          continue;  // joint vanished from robot state (shouldn't happen), but we don't care
+
+        if (fabs(cur_state->getJointPositions(jm)[0] - prev_state->getJointPositions(jm)[0]) > allowed_start_tolerance_)
+        {
+          moved = true;
+          no_motion_count = 0;
+          break;
+        }
+      }
+    }
+
+    if (!moved)
+      ++no_motion_count;
+
+    std::swap(prev_state, cur_state);
+  }
+
+  return time_remaining > 0;
 }
 
 std::pair<int, int> TrajectoryExecutionManager::getCurrentExpectedTrajectoryIndex() const
