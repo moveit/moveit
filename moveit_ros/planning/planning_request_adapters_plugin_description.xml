@@ -30,4 +30,9 @@
     </description>
   </class>
 
+  <class name="default_planner_request_adapters/AddIterativeSplineParameterization" type="default_planner_request_adapters::AddIterativeSplineParameterization" base_class_type="planning_request_adapter::PlanningRequestAdapter">
+    <description>
+    </description>
+  </class>
+
 </library>
