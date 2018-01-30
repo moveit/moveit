@@ -1025,7 +1025,8 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   std::set<std::string> actuated_joints;
 
   std::vector<std::string>::const_iterator it;
-  for (it = trajectory.multi_dof_joint_trajectory.joint_names.begin(); it !=  trajectory.multi_dof_joint_trajectory.joint_names.end(); ++it)
+  for (it = trajectory.multi_dof_joint_trajectory.joint_names.begin();
+       it != trajectory.multi_dof_joint_trajectory.joint_names.end(); ++it)
   {
     const std::string& joint_name = *it;
     const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
@@ -1039,7 +1040,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
     }
   }
 
-  for (it = trajectory.joint_trajectory.joint_names.begin(); it !=  trajectory.joint_trajectory.joint_names.end(); ++it)
+  for (it = trajectory.joint_trajectory.joint_names.begin(); it != trajectory.joint_trajectory.joint_names.end(); ++it)
   {
     const std::string& joint_name = *it;
     const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
@@ -1052,7 +1053,6 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
       actuated_joints.insert(joint_name);
     }
   }
-
 
   if (actuated_joints.empty())
   {
