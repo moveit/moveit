@@ -1042,10 +1042,18 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
     return false;
   }
   std::set<std::string> actuated_joints;
-  actuated_joints.insert(trajectory.multi_dof_joint_trajectory.joint_names.begin(),
-                         trajectory.multi_dof_joint_trajectory.joint_names.end());
-  actuated_joints.insert(trajectory.joint_trajectory.joint_names.begin(),
-                         trajectory.joint_trajectory.joint_names.end());
+
+  auto isActuated = [this](const std::string& joint_name) -> bool {
+    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != robot_model::JointModel::FIXED);
+  };
+  for (const std::string& joint_name : trajectory.multi_dof_joint_trajectory.joint_names)
+    if (isActuated(joint_name))
+      actuated_joints.insert(joint_name);
+  for (const std::string& joint_name : trajectory.joint_trajectory.joint_names)
+    if (isActuated(joint_name))
+      actuated_joints.insert(joint_name);
+
   if (actuated_joints.empty())
   {
     ROS_WARN_NAMED("traj_execution", "The trajectory to execute specifies no joints");
