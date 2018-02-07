@@ -173,7 +173,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
     {
       if (!joint->isPassive() && !joint->getMimic())
       {
-        ROS_DEBUG("Joint '%s' has never been updated", joint->getName());
+        ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
         result = false;
       }
     }
