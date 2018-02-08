@@ -51,8 +51,6 @@ except:
         pyassimp = False
         print("Failed to import pyassimp, see https://github.com/ros-planning/moveit/issues/86 for more info")
 
-# This is going to have more functionality; (feel free to add some!)
-# This class will include simple Python code for publishing messages for a planning scene
 
 class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
@@ -64,101 +62,17 @@ class PlanningSceneInterface(object):
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
 
-    def __make_sphere(self, name, pose, radius):
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        sphere = SolidPrimitive()
-        sphere.type = SolidPrimitive.SPHERE
-        sphere.dimensions = [radius]
-        co.primitives = [sphere]
-        co.primitive_poses = [pose.pose]
-        return co
-
     def add_sphere(self, name, pose, radius = 1):
         """
         Add a sphere to the planning scene
         """
         self._pub_co.publish(self.__make_sphere(name, pose, radius))
 
-    def __make_cylinder(self, name, pose, height, radius):
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        cylinder = SolidPrimitive()
-        cylinder.type = SolidPrimitive.CYLINDER
-        cylinder.dimensions = [height, radius]
-        co.primitives = [cylinder]
-        co.primitive_poses = [pose.pose]
-        return co
-
     def add_cylinder(self, name, pose, height, radius):
-        """Add a cylinder to the planning scene"""
+        """
+	Add a cylinder to the planning scene
+        """
         self._pub_co.publish(self.__make_cylinder(name, pose, height, radius))
-
-    def __make_box(self, name, pose, size):
-        co = CollisionObject()
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-        box = SolidPrimitive()
-        box.type = SolidPrimitive.BOX
-        box.dimensions = list(size)
-        co.primitives = [box]
-        co.primitive_poses = [pose.pose]
-        return co
-
-    def __make_mesh(self, name, pose, filename, scale = (1, 1, 1)):
-        co = CollisionObject()
-        if pyassimp is False:
-            raise MoveItCommanderException("Pyassimp needs patch https://launchpadlibrarian.net/319496602/patchPyassim.txt")
-        scene = pyassimp.load(filename)
-        if not scene.meshes or len(scene.meshes) == 0:
-            raise MoveItCommanderException("There are no meshes in the file")
-        if len(scene.meshes[0].faces) == 0:
-            raise MoveItCommanderException("There are no faces in the mesh")
-        co.operation = CollisionObject.ADD
-        co.id = name
-        co.header = pose.header
-
-        mesh = Mesh()
-        first_face = scene.meshes[0].faces[0]
-        if hasattr(first_face, '__len__'):
-            for face in scene.meshes[0].faces:
-                if len(face) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face[0], face[1], face[2]]
-                    mesh.triangles.append(triangle)
-        elif hasattr(first_face, 'indices'):
-            for face in scene.meshes[0].faces:
-                if len(face.indices) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face.indices[0],
-                                               face.indices[1],
-                                               face.indices[2]]
-                    mesh.triangles.append(triangle)
-        else:
-            raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
-        for vertex in scene.meshes[0].vertices:
-            point = Point()
-            point.x = vertex[0]*scale[0]
-            point.y = vertex[1]*scale[1]
-            point.z = vertex[2]*scale[2]
-            mesh.vertices.append(point)
-        co.meshes = [mesh]
-        co.mesh_poses = [pose.pose]
-        pyassimp.release(scene)
-        return co
-
-    def __make_existing(self, name):
-        """
-        Create an empty Collision Object, used when the object already exists
-        """
-        co = CollisionObject()
-        co.id = name
-        return co
 
     def add_mesh(self, name, pose, filename, size = (1, 1, 1)):
         """
@@ -279,3 +193,94 @@ class PlanningSceneInterface(object):
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
         return aobjs
+
+    @staticmethod
+    def __make_existing(self, name):
+        """
+        Create an empty Collision Object, used when the object already exists
+        """
+        co = CollisionObject()
+        co.id = name
+        return co
+
+    @staticmethod
+    def __make_box(self, name, pose, size):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        box = SolidPrimitive()
+        box.type = SolidPrimitive.BOX
+        box.dimensions = list(size)
+        co.primitives = [box]
+        co.primitive_poses = [pose.pose]
+        return co
+
+    @staticmethod
+    def __make_mesh(self, name, pose, filename, scale = (1, 1, 1)):
+        co = CollisionObject()
+        if pyassimp is False:
+            raise MoveItCommanderException("Pyassimp needs patch https://launchpadlibrarian.net/319496602/patchPyassim.txt")
+        scene = pyassimp.load(filename)
+        if not scene.meshes or len(scene.meshes) == 0:
+            raise MoveItCommanderException("There are no meshes in the file")
+        if len(scene.meshes[0].faces) == 0:
+            raise MoveItCommanderException("There are no faces in the mesh")
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+
+        mesh = Mesh()
+        first_face = scene.meshes[0].faces[0]
+        if hasattr(first_face, '__len__'):
+            for face in scene.meshes[0].faces:
+                if len(face) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face[0], face[1], face[2]]
+                    mesh.triangles.append(triangle)
+        elif hasattr(first_face, 'indices'):
+            for face in scene.meshes[0].faces:
+                if len(face.indices) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face.indices[0],
+                                               face.indices[1],
+                                               face.indices[2]]
+                    mesh.triangles.append(triangle)
+        else:
+            raise MoveItCommanderException("Unable to build triangles from mesh due to mesh object structure")
+        for vertex in scene.meshes[0].vertices:
+            point = Point()
+            point.x = vertex[0]*scale[0]
+            point.y = vertex[1]*scale[1]
+            point.z = vertex[2]*scale[2]
+            mesh.vertices.append(point)
+        co.meshes = [mesh]
+        co.mesh_poses = [pose.pose]
+        pyassimp.release(scene)
+        return co
+
+    @staticmethod
+    def __make_sphere(self, name, pose, radius):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        sphere = SolidPrimitive()
+        sphere.type = SolidPrimitive.SPHERE
+        sphere.dimensions = [radius]
+        co.primitives = [sphere]
+        co.primitive_poses = [pose.pose]
+        return co
+
+    @staticmethod
+    def __make_cylinder(self, name, pose, height, radius):
+        co = CollisionObject()
+        co.operation = CollisionObject.ADD
+        co.id = name
+        co.header = pose.header
+        cylinder = SolidPrimitive()
+        cylinder.type = SolidPrimitive.CYLINDER
+        cylinder.dimensions = [height, radius]
+        co.primitives = [cylinder]
+        co.primitive_poses = [pose.pose]
+        return co
