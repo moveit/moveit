@@ -35,11 +35,12 @@
 import rospy
 import conversions
 
-from moveit_msgs.msg import CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg import PlanningScene, CollisionObject, AttachedCollisionObject
 from moveit_ros_planning_interface import _moveit_planning_scene_interface
 from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from exception import MoveItCommanderException
+from moveit_msgs.srv import ApplyPlanningScene, ApplyPlanningSceneRequest
 
 try:
     from pyassimp import pyassimp
@@ -61,6 +62,8 @@ class PlanningSceneInterface(object):
 
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
+        self._apply_planning_scene_diff = rospy.ServiceProxy('apply_planning_scene', ApplyPlanningScene)
+        self._apply_planning_scene_diff.wait_for_service(10.0)
 
     def add_sphere(self, name, pose, radius = 1):
         """
@@ -78,13 +81,19 @@ class PlanningSceneInterface(object):
         """
         Add a mesh to the planning scene
         """
-        self._pub_co.publish(self.__make_mesh(name, pose, filename, size))
+        collision_object = self.__make_mesh(name, pose, filename, size)
+        diff_req = self.__make_planning_scene_diff_req(collision_object)
+        self._apply_planning_scene_diff.call(diff_req)
+        self._pub_co.publish(collision_object)
 
     def add_box(self, name, pose, size = (1, 1, 1)):
         """
         Add a box to the planning scene
         """
-        self._pub_co.publish(self.__make_box(name, pose, size))
+        collision_object = self.__make_box(name, pose, size)
+        diff_req = self.__make_planning_scene_diff_req(collision_object)
+        self._apply_planning_scene_diff.call(diff_req)
+        self._pub_co.publish()
 
     def add_plane(self, name, pose, normal = (0, 0, 1), offset = 0):
         """ Add a plane to the planning scene """
@@ -98,6 +107,8 @@ class PlanningSceneInterface(object):
         co.planes = [p]
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
+        diff_req = self.__make_planning_scene_diff_req(co)
+        self._apply_planning_scene_diff.call(diff_req)
 
     def attach_mesh(self, link, name, pose = None, filename = '', size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
@@ -284,3 +295,13 @@ class PlanningSceneInterface(object):
         co.primitives = [cylinder]
         co.primitive_poses = [pose.pose]
         return co
+
+    @staticmethod
+    def __make_planning_scene_diff_req(collision_object):
+        scene = PlanningScene()
+        scene.is_diff = True
+        scene.world.collision_objects = [collision_object]
+        planning_scene_diff_req = ApplyPlanningSceneRequest()
+        planning_scene_diff_req.scene = scene
+        return planning_scene_diff_req
+
