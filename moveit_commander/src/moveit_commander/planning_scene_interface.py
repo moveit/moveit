@@ -37,7 +37,7 @@ import conversions
 
 from moveit_msgs.msg import CollisionObject, AttachedCollisionObject
 from moveit_ros_planning_interface import _moveit_planning_scene_interface
-from geometry_msgs.msg import PoseStamped, Pose, Point
+from geometry_msgs.msg import Pose, Point
 from shape_msgs.msg import SolidPrimitive, Plane, Mesh, MeshTriangle
 from exception import MoveItCommanderException
 
