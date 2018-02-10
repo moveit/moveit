@@ -399,12 +399,16 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     if (animating_path_)
     {
       current_state_ = -1;
-      current_state_time_ = std::numeric_limits<float>::infinity();
+      current_state_time_ = 0;
       display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
       display_path_robot_->setVisible(display_->isEnabled());
       if (trajectory_slider_panel_)
         trajectory_slider_panel_->setSliderPosition(0);
     }
+  }
+  else
+  {
+    current_state_time_ += wall_dt;
   }
 
   if (animating_path_)
@@ -436,9 +440,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
         if (!loop_display_property_->getBool() && trajectory_slider_panel_)
           trajectory_slider_panel_->pauseButton(true);
       }
-      current_state_time_ = 0.0f;
+      current_state_time_ = current_state_time_ - tm;
     }
-    current_state_time_ += wall_dt;
   }
 }
 
