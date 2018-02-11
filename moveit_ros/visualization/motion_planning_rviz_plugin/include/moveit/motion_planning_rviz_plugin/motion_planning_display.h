@@ -176,7 +176,6 @@ private Q_SLOTS:
   void changedMetricsTextHeight();
   void changedWorkspace();
   void resetInteractiveMarkers();
-  void motionPanelVisibilityChange(bool enable);
 
 protected:
   enum LinkDisplayStatus
