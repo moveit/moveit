@@ -83,9 +83,6 @@ install(FILES
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
-
   find_package(rostest REQUIRED)
-
   add_rostest(test/test_cancel_before_plan_execution.test)
-
 endif()
