@@ -514,37 +514,37 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 
   // Iterate through the joints
   int num_joints = 0;
-  for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
-       joint_it < joint_models_.end(); ++joint_it)
+  for (const robot_model::JointModel* joint_model : joint_models_)
   {
-    // Check that this joint only represents 1 variable.
-    if ((*joint_it)->getVariableCount() == 1)
+    if (joint_model->getVariableCount() != 1 ||  // only consider 1-variable joints
+        joint_model->isPassive() ||              // ignore passive
+        joint_model->getMimic())                 // and mimic joints
+      continue;
+
+    double init_value;
+
+    // Decide what this joint's initial value is
+    if (joint_state_map_.find(joint_model->getName()) == joint_state_map_.end())
     {
-      double init_value;
+      // the joint state map does not yet have an entry for this joint
 
-      // Decide what this joint's initial value is
-      if (joint_state_map_.find((*joint_it)->getName()) == joint_state_map_.end())
-      {
-        // the joint state map does not yet have an entry for this joint
-
-        // get the first joint value in its vector
-        (*joint_it)->getVariableDefaultPositions(&init_value);
-      }
-      else  // there is already a value in the map
-      {
-        init_value = joint_state_map_[(*joint_it)->getName()];
-      }
-
-      // For each joint in group add slider
-      SliderWidget* sw = new SliderWidget(this, *joint_it, init_value);
-      joint_list_layout_->addWidget(sw);
-
-      // Connect value change event
-      connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
-              SLOT(updateRobotModel(const std::string&, double)));
-
-      ++num_joints;
+      // get the first joint value in its vector
+      joint_model->getVariableDefaultPositions(&init_value);
     }
+    else  // there is already a value in the map
+    {
+      init_value = joint_state_map_[joint_model->getName()];
+    }
+
+    // For each joint in group add slider
+    SliderWidget* sw = new SliderWidget(this, joint_model, init_value);
+    joint_list_layout_->addWidget(sw);
+
+    // Connect value change event
+    connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
+            SLOT(updateRobotModel(const std::string&, double)));
+
+    ++num_joints;
   }
 
   // Copy the width of column 2 and manually calculate height from number of joints
