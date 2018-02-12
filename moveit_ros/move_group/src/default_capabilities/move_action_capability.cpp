@@ -142,20 +142,19 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   }
 
   plan_execution::ExecutableMotionPlan plan;
-  if (!preempt_requested_)
-  {
-    context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
-
-    convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
-    if (plan.executed_trajectory_)
-      plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
-    action_res.error_code = plan.error_code_;
-  }
-  else
+  if (preempt_requested_)
   {
     ROS_INFO("Preempt requested before the goal is planned and executed.");
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
+    return;
   }
+
+  context_->plan_execution_->planAndExecute(plan, planning_scene_diff, opt);
+
+  convertToMsg(plan.plan_components_, action_res.trajectory_start, action_res.planned_trajectory);
+  if (plan.executed_trajectory_)
+    plan.executed_trajectory_->getRobotTrajectoryMsg(action_res.executed_trajectory);
+  action_res.error_code = plan.error_code_;
 }
 
 void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_msgs::MoveGroupGoalConstPtr& goal,
@@ -173,27 +172,26 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
           lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;
 
-  if (!preempt_requested_)
-  {
-    try
-    {
-      context_->planning_pipeline_->generatePlan(the_scene, goal->request, res);
-    }
-    catch (std::exception& ex)
-    {
-      ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
-      res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
-    }
-
-    convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
-    action_res.error_code = res.error_code_;
-    action_res.planning_time = res.planning_time_;
-  }
-  else
+  if (preempt_requested_)
   {
     ROS_INFO("Preempt requested before the goal is planned.");
     action_res.error_code.val = moveit_msgs::MoveItErrorCodes::PREEMPTED;
+    return;
   }
+
+  try
+  {
+    context_->planning_pipeline_->generatePlan(the_scene, goal->request, res);
+  }
+  catch (std::exception& ex)
+  {
+    ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+
+  convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
+  action_res.error_code = res.error_code_;
+  action_res.planning_time = res.planning_time_;
 }
 
 bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_interface::MotionPlanRequest& req,
