@@ -150,8 +150,8 @@ private:
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
 
-  /// Orignal name of pose currently being edited. This is used to find the element in the vector
-  std::string current_edit_pose_;
+  /// Pointer to currently edited group state
+  srdf::Model::GroupState* current_edit_pose_;
 
   /// All the joint slider values that have thus far been seen. May contain more than just the current joints' values
   std::map<std::string, double> joint_state_map_;
@@ -177,7 +177,7 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
-  srdf::Model::GroupState* findPoseByName(const std::string& name);
+  srdf::Model::GroupState* findPoseByName(const std::string& name, const std::string& group);
 
   /**
    * Create the main list view of poses for robot
@@ -210,7 +210,7 @@ private:
    *
    * @param name name of pose
    */
-  void edit(const std::string& name);
+  void edit(int row);
 
   /**
    * Show the robot in the current pose
