@@ -275,10 +275,8 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
     {
-      ROS_INFO_STREAM("More than " << elapsed.toSec() << " seconds has passed to update robot state (joint angles)."
-                                   << "(longer than the allowed " << wait_time << " seconds)."
-                                   << " Synchronize the clocks between systems and check the connection if your are "
-                                      "running ros across multiple machines.");
+      ROS_INFO_STREAM("Didn't received robot state (joint angles) with recent timestamp within " << wait_time << " seconds.\n"
+                      << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
     }
   }
