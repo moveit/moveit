@@ -432,6 +432,15 @@ public:
     return py_bindings_tools::serializeMsg(plan.trajectory_);
   }
 
+  bp::tuple planPython()
+  {
+    MoveGroupInterface::Plan plan;
+    moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
+    return bp::make_tuple(py_bindings_tools::serializeMsg(res),
+                          py_bindings_tools::serializeMsg(plan.trajectory_),
+                          plan.planning_time_);
+  }
+
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
                                        bool avoid_collisions)
   {
@@ -643,6 +652,7 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
+  MoveGroupInterfaceClass.def("plan", &MoveGroupInterfaceWrapper::planPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path",
                               &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
