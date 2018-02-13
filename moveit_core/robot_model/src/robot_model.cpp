@@ -1110,11 +1110,7 @@ moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::str
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
 {
-  LinkModelMap::const_iterator it = link_model_map_.find(name);
-  if (it != link_model_map_.end())
-    return it->second;
-  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return const_cast<RobotModel*>(this)->getLinkModel(name);
 }
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
