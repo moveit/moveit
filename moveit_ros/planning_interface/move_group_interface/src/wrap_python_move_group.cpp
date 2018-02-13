@@ -425,11 +425,12 @@ public:
     return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
   }
 
-  std::string getPlanPython()
+  bp::tuple planPython()
   {
     MoveGroupInterface::Plan plan;
-    MoveGroupInterface::plan(plan);
-    return py_bindings_tools::serializeMsg(plan.trajectory_);
+    moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
+    return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
+                          plan.planning_time_);
   }
 
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
@@ -646,7 +647,7 @@ static void wrap_move_group_interface()
                                  &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
   move_group_interface_class.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   move_group_interface_class.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
-  move_group_interface_class.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
+  move_group_interface_class.def("plan", &MoveGroupInterfaceWrapper::planPython);
   move_group_interface_class.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   move_group_interface_class.def("compute_cartesian_path",
                                  &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
