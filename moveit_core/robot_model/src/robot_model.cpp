@@ -1137,6 +1137,22 @@ moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::strin
   return NULL;
 }
 
+const moveit::core::LinkModel* moveit::core::RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
+{
+  if (!link)
+    return link;
+  const robot_model::LinkModel* parent_link = link->getParentLinkModel();
+  const robot_model::JointModel* joint = link->getParentJointModel();
+
+  while (parent_link && joint->getType() == robot_model::JointModel::FIXED)
+  {
+    link = parent_link;
+    joint = link->getParentJointModel();
+    parent_link = joint->getParentLinkModel();
+  }
+  return link;
+}
+
 void moveit::core::RobotModel::updateMimicJoints(double* values) const
 {
   for (std::size_t i = 0; i < mimic_joints_.size(); ++i)

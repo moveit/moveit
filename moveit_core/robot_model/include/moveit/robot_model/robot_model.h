@@ -239,6 +239,9 @@ public:
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
   LinkModel* getLinkModel(const std::string& link);
 
+  /** \brief Get earliest link model that is rigidly connected to the given link */
+  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link);
+
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
   {
