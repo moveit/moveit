@@ -53,6 +53,17 @@ namespace cached_ik_kinematics_plugin
 class IKCache
 {
 public:
+  struct Options
+  {
+    Options() : max_cache_size(5000), min_pose_distance(1.0), min_joint_config_distance(1.0), cached_ik_path("")
+    {
+    }
+    unsigned int max_cache_size;
+    double min_pose_distance;
+    double min_joint_config_distance;
+    std::string cached_ik_path;
+  };
+
   /**
     \brief class to represent end effector pose
 
@@ -87,7 +98,7 @@ public:
   const IKEntry& getBestApproximateIKSolution(const std::vector<Pose>& poses) const;
   /** initialize cache, read from disk if found */
   void initializeCache(const std::string& robot_description, const std::string& group_name,
-                       const std::string& cache_name, const unsigned int num_joints);
+                       const std::string& cache_name, const unsigned int num_joints, Options opts = Options());
   /**
     insert (pose,config) as an entry if it's different enough from the
     most similar cache entry

@@ -61,19 +61,15 @@ IKCache::~IKCache()
 }
 
 void IKCache::initializeCache(const std::string& robot_description, const std::string& group_name,
-                              const std::string& cache_name, const unsigned int num_joints)
+                              const std::string& cache_name, const unsigned int num_joints, Options opts)
 {
   // read ROS parameters
-  ros::NodeHandle node_handle("~");
-  int max_cache_size;  // node_handle.param(...) doesn't handle unsigned ints
-  node_handle.param(group_name + "/max_cache_size", max_cache_size, 5000);
-  max_cache_size_ = max_cache_size;
+  max_cache_size_ = opts.max_cache_size;
   ik_cache_.reserve(max_cache_size_);
-  node_handle.param(group_name + "/min_pose_distance", min_pose_distance_, 1.);
-  node_handle.param(group_name + "/min_joint_config_distance", min_config_distance2_, 1.);
+  min_pose_distance_ = opts.min_pose_distance;
+  min_config_distance2_ = opts.min_joint_config_distance;
   min_config_distance2_ *= min_config_distance2_;
-  std::string cached_ik_path;
-  node_handle.param("cached_ik_path", cached_ik_path, std::string());
+  std::string cached_ik_path = opts.cached_ik_path;
 
   // use mutex lock for rest of initialization
   std::lock_guard<std::mutex> slock(lock_);

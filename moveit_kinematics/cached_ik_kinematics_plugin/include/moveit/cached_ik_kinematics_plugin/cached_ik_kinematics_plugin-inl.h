@@ -62,8 +62,16 @@ bool CachedIKKinematicsPlugin<KinematicsPlugin>::initialize(const std::string& r
     return false;
   }
 
+  IKCache::Options opts;
+  int max_cache_size;  // rosparam can't handle unsigned int
+  kinematics::KinematicsBase::lookupParam("max_cache_size", max_cache_size, static_cast<int>(opts.max_cache_size));
+  opts.max_cache_size = max_cache_size;
+  kinematics::KinematicsBase::lookupParam("min_pose_distance", opts.min_pose_distance, 1.0);
+  kinematics::KinematicsBase::lookupParam("min_joint_config_distance", opts.min_joint_config_distance, 1.0);
+  kinematics::KinematicsBase::lookupParam<std::string>("cached_ik_path", opts.cached_ik_path, "");
+
   cache_.initializeCache(robot_description, group_name, base_frame + tip_frame,
-                         KinematicsPlugin::getJointNames().size());
+                         KinematicsPlugin::getJointNames().size(), opts);
 
   // for debugging purposes:
   // kdl_kinematics_plugin::KDLKinematicsPlugin fk;
