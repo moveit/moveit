@@ -524,6 +524,11 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models.begin();
          joint_it != joint_models.end(); ++joint_it)
     {
+      if ((*joint_it)->isPassive() || (*joint_it)->getMimic() != NULL ||
+          (*joint_it)->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
       emitter << (*joint_it)->getName();
     }
     emitter << YAML::EndSeq;

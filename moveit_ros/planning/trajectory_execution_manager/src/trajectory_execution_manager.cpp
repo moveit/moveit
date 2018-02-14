@@ -1023,10 +1023,37 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
     return false;
   }
   std::set<std::string> actuated_joints;
-  actuated_joints.insert(trajectory.multi_dof_joint_trajectory.joint_names.begin(),
-                         trajectory.multi_dof_joint_trajectory.joint_names.end());
-  actuated_joints.insert(trajectory.joint_trajectory.joint_names.begin(),
-                         trajectory.joint_trajectory.joint_names.end());
+
+  std::vector<std::string>::const_iterator it;
+  for (it = trajectory.multi_dof_joint_trajectory.joint_names.begin();
+       it != trajectory.multi_dof_joint_trajectory.joint_names.end(); ++it)
+  {
+    const std::string& joint_name = *it;
+    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
+      actuated_joints.insert(joint_name);
+    }
+  }
+
+  for (it = trajectory.joint_trajectory.joint_names.begin(); it != trajectory.joint_trajectory.joint_names.end(); ++it)
+  {
+    const std::string& joint_name = *it;
+    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
+      actuated_joints.insert(joint_name);
+    }
+  }
+
   if (actuated_joints.empty())
   {
     ROS_WARN_NAMED("traj_execution", "The trajectory to execute specifies no joints");
