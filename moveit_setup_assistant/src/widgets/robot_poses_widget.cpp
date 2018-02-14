@@ -291,7 +291,7 @@ void RobotPosesWidget::showNewScreen()
   // Switch to screen - do this before clearEditText()
   stacked_layout_->setCurrentIndex(1);
 
-  // No pose edited
+  // Remember that this is a new pose
   current_edit_pose_ = nullptr;
 
   // Manually send the load joint sliders signal
