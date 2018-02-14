@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
+/* Author: Sachin Chitta, David Lu!!, Ugo Cupcic, Robert Haschke */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
 #include <class_loader/class_loader.hpp>
@@ -54,6 +54,7 @@ namespace kdl_kinematics_plugin
 {
 KDLKinematicsPlugin::KDLKinematicsPlugin() : active_(false)
 {
+  bounds_.resize(6);
 }
 
 bool KDLKinematicsPlugin::isRedundantJoint(unsigned int index) const
@@ -159,16 +160,21 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
   lookupParam("epsilon", epsilon, 1e-5);
   lookupParam("position_only_ik", position_ik_, false);
 
-  lookupParam("tolerance/x", bounds_.vel.data[0], epsilon);
-  lookupParam("tolerance/y", bounds_.vel.data[1], epsilon);
-  lookupParam("tolerance/z", bounds_.vel.data[2], epsilon);
+  lookupParam("tolerance/x", bounds_[0], epsilon);
+  lookupParam("tolerance/y", bounds_[1], epsilon);
+  lookupParam("tolerance/z", bounds_[2], epsilon);
   double default_rot_bound = position_ik_ ? std::numeric_limits<float>::max() : epsilon;
-  lookupParam("tolerance/rotx", bounds_.rot.data[0], default_rot_bound);
-  lookupParam("tolerance/roty", bounds_.rot.data[1], default_rot_bound);
-  lookupParam("tolerance/rotz", bounds_.rot.data[2], default_rot_bound);
+  lookupParam("tolerance/rotx", bounds_[3], default_rot_bound);
+  lookupParam("tolerance/roty", bounds_[4], default_rot_bound);
+  lookupParam("tolerance/rotz", bounds_[5], default_rot_bound);
+
+  // assign error weights according to bounds
+  double min_bound = bounds_.minCoeff();
+  cartesian_weights_ = min_bound * bounds_.cwiseInverse();
 
   if (position_ik_)
     ROS_INFO_NAMED("kdl", "Using position only ik");
+  ROS_INFO_STREAM_NAMED("kdl", "bounds: " << bounds_.transpose());
 
   num_possible_redundant_joints_ =
       kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik_ ? 3 : 6);
@@ -411,9 +417,9 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   KDL::ChainFkSolverPos_recursive fk_solver(kdl_chain_);
   KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, joint_model_group_->getMimicJointModels().size(),
-                                                 redundant_joint_indices_.size(), position_ik_);
+                                                 redundant_joint_indices_.size(), cartesian_weights_, position_ik_);
   KDL::ChainIkSolverPos_NR_JL_Mimic ik_solver_pos(kdl_chain_, joint_min_, joint_max_, fk_solver, ik_solver_vel,
-                                                  bounds_, max_solver_iterations_, position_ik_);
+                                                  bounds_, cartesian_weights_, max_solver_iterations_, position_ik_);
   ik_solver_vel.setMimicJoints(mimic_joints_);
   ik_solver_pos.setMimicJoints(mimic_joints_);
 

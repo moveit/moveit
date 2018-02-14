@@ -32,7 +32,8 @@ namespace KDL
 {
 ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min,
                                                            const JntArray& _q_max, ChainFkSolverPos& _fksolver,
-                                                           ChainIkSolverVel& _iksolver, const KDL::Twist& _bounds,
+                                                           ChainIkSolverVel& _iksolver,
+                                                           const Eigen::VectorXd& _bounds, const Eigen::VectorXd& _cartesian_weights,
                                                            unsigned int _maxiter, bool _position_ik)
   : chain(_chain)
   , q_min(_q_min)
@@ -45,6 +46,7 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   , delta_q(_chain.getNrOfJoints())
   , maxiter(_maxiter)
   , bounds(_bounds)
+  , cartesian_weights(_cartesian_weights)
   , position_ik(_position_ik)
 {
   mimic_joints.resize(chain.getNrOfJoints());
@@ -117,16 +119,7 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
   for (std::size_t i = 0; i < q_out.rows(); ++i)
     ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_init(i));
 
-  KDL::Twist weight;
-  double min_bound = DBL_MAX;
-  for (int j = 0; j < 6; ++j) {
-    if (bounds(j) < min_bound)
-        min_bound = bounds(j);
-  }
-  // assign error weights according to bounds
-  for (int j = 0; j < 6; ++j)
-    weight(j) = min_bound / bounds(j);
-
+  double min_bound = bounds.minCoeff();
   unsigned int i;
   bool success = false;
   for (i = 0; i < maxiter; ++i)
@@ -137,13 +130,16 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     // compute largest component error
     double delta_twist_err = 0;
     success = true;
+    bool success_weak = true;
     for (int j = position_ik ? 2 : 5; j >= 0; --j) {
       double err = std::abs(delta_twist(j));
-      success &= err < bounds(j);
-      delta_twist_err = std::max(delta_twist_err, err * weight(j));
+      success &= err < min_bound;
+      success_weak &= err < bounds[j];
+      delta_twist_err = std::max(delta_twist_err, err * cartesian_weights[j]);
     }
-    if (success)
+    if (success)  // return with success, if we reached min_bound
         break;
+    success = success_weak;
 
     if (delta_twist_err >= last_delta_twist_err)
     {
@@ -153,8 +149,9 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
       Multiply(delta_q, step_size / old_step_size, delta_q);
       ROS_DEBUG_NAMED("kdl", "error increased: %f -> %f, scale: %f", last_delta_twist_err, delta_twist_err, step_size);
       q_out = q_temp;  // restore previous unclipped joint values
-      if (step_size < min_bound)
-        break;  // cannot reach target
+      if (step_size < min_bound ||  // cannot reach target
+          success)  // stalling, but weakly succeeded
+        break;
     }
     else
     {

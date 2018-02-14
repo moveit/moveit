@@ -63,7 +63,8 @@ public:
    * @param maxiter maximum iterations for the svd calculation,
    * default: 150
    */
-  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
+  explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints, int num_redundant_joints,
+                                       const Eigen::VectorXd& cartesian_weights,
                                        bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
   ~ChainIkSolverVel_pinv_mimic();
@@ -112,9 +113,12 @@ public:
 private:
   bool jacToJacReduced(const Jacobian& jac, Jacobian& jac_mimic);
   bool jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked);
+  bool weightJac(Eigen::MatrixXd& jac);
 
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
+
+  Eigen::VectorXd cartesian_weights;
 
   // This set of variables are all used in the default case, i.e. where we are solving for the
   // full end-effector pose

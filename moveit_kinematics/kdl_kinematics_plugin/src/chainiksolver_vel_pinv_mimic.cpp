@@ -28,11 +28,12 @@
 
 namespace KDL
 {
-ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints,
-                                                         int _num_redundant_joints, bool _position_ik, double _eps,
-                                                         int _maxiter)
+ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, int _num_mimic_joints, int _num_redundant_joints,
+                                                         const Eigen::VectorXd& _cartesian_weights,
+                                                         bool _position_ik, double _eps, int _maxiter)
   : chain(_chain)
   , jnt2jac(chain)
+  , cartesian_weights(_cartesian_weights)
   , jac(chain.getNrOfJoints())
   , jac_reduced(chain.getNrOfJoints() - _num_mimic_joints)
   , jac_locked(chain.getNrOfJoints() - _num_redundant_joints - _num_mimic_joints)
@@ -100,6 +101,13 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacReduced(const Jacobian& jac, Jacobian&
   return true;
 }
 
+bool ChainIkSolverVel_pinv_mimic::weightJac(Eigen::MatrixXd& jac)
+{
+  for (int j=0; j < 6; ++j)
+      jac.row(j) *= cartesian_weights[j];
+  return true;
+}
+
 bool ChainIkSolverVel_pinv_mimic::jacToJacLocked(const Jacobian& jac, Jacobian& jac_locked)
 {
   jac_locked.data.setZero();
@@ -110,6 +118,8 @@ bool ChainIkSolverVel_pinv_mimic::jacToJacLocked(const Jacobian& jac, Jacobian& 
   return true;
 }
 
+// compute q_out = W_j * (W_x * J * W_j)^# * W_x * v_in
+// where W_j and W_x are joint and task-level weights
 int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out)
 {
   // Let the ChainJntToJacSolver calculate the jacobian "jac" for
@@ -127,6 +137,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
   Matrix<double, 6, 1> vin;
   vin.topRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.vel.data, 3);
   vin.bottomRows<3>() = Eigen::Map<const Eigen::Vector3d>(v_in.rot.data, 3);
+  vin.array() *= cartesian_weights.array();
 
   // Remove columns of locked redundant joints from Jacobian
   bool locked = (redundant_joints_locked && num_redundant_joints > 0);
@@ -135,6 +146,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
 
   // use jac_reduced or jac_locked in the following
   const Eigen::MatrixXd& J = locked ? jac_locked.data : jac_reduced.data;
+  weightJac(const_cast<Eigen::MatrixXd&>(J));
 
   unsigned int columns = J.cols();
   unsigned int rows = position_ik ? 3 : J.rows();
