@@ -526,12 +526,11 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
     // Decide what this joint's initial value is
     if (joint_state_map_.find(joint_model->getName()) == joint_state_map_.end())
     {
-      // the joint state map does not yet have an entry for this joint
-
-      // get the first joint value in its vector
+      // The joint state map does not yet have an entry for this joint
+      // Get the first joint value in its vector
       joint_model->getVariableDefaultPositions(&init_value);
     }
-    else  // there is already a value in the map
+    else  // There is already a value in the map
     {
       init_value = joint_state_map_[joint_model->getName()];
     }
