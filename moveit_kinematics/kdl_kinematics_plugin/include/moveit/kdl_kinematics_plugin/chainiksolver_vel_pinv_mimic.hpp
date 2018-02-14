@@ -80,8 +80,6 @@ public:
 
   int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out) override;
 
-  virtual int CartToJntRedundant(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);
-
   /**
    * not (yet) implemented.
    *
@@ -128,30 +126,16 @@ private:
   const Chain chain;
   ChainJntToJacSolver jnt2jac;
 
-  // This set of variables are all used in the default case, i.e. where we are solving for the
-  // full end-effector pose
-  Jacobian jac;
-  std::vector<JntArray> U;
-  JntArray S;
-  std::vector<JntArray> V;
-  JntArray tmp;
+  Eigen::MatrixXd U;
+  Eigen::VectorXd S;
+  Eigen::MatrixXd V;
+  Eigen::VectorXd tmp;
+  Eigen::VectorXd qdot_out_reduced;
 
-  // This is the "reduced" jacobian, i.e. the contributions of the mimic joints have been mapped onto
-  // the active DOFs here
-  Jacobian jac_reduced;
-  JntArray qdot_out_reduced;
+  Jacobian jac;          // full Jacobian
+  Jacobian jac_reduced;  // reduced Jacobian with contributions of mimic joints mapped onto active DoFs
+  Jacobian jac_locked;  // (further) reduced Jacobian with "locked" redundant joints removed
 
-  // This is the set of variable used when solving for position only inverse kinematics
-  Eigen::MatrixXd U_translate;
-  Eigen::VectorXd S_translate;
-  Eigen::MatrixXd V_translate;
-  Eigen::VectorXd tmp_translate;
-
-  // This is the jacobian when the redundant joint is "locked" and plays no part
-  Jacobian jac_locked;
-  JntArray qdot_out_reduced_locked, qdot_out_locked;
-
-  SVD_HH svd;
   double eps;
   int maxiter;
 
@@ -160,20 +144,6 @@ private:
   int num_mimic_joints;
 
   bool position_ik;
-
-  // This is the set of variable used when solving for inverse kinematics
-  // for the case where the redundant joint is "locked" and plays no part
-  Eigen::MatrixXd U_locked;
-  Eigen::VectorXd S_locked;
-  Eigen::MatrixXd V_locked;
-  Eigen::VectorXd tmp_locked;
-
-  // This is the set of variable used when solving for position only inverse kinematics
-  // for the case where the redundant joint is "locked" and plays no part
-  Eigen::MatrixXd U_translate_locked;
-  Eigen::VectorXd S_translate_locked;
-  Eigen::MatrixXd V_translate_locked;
-  Eigen::VectorXd tmp_translate_locked;
 
   // Internal storage for a map from the "locked" state to the full active state
   std::vector<unsigned int> locked_joints_map_index;
