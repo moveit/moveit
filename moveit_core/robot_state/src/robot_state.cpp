@@ -553,21 +553,23 @@ void moveit::core::RobotState::updateCollisionBodyTransforms()
     updateLinkTransforms();
 
   if (dirty_collision_body_transforms_ != NULL)
-  {
-    const std::vector<const LinkModel*>& links = dirty_collision_body_transforms_->getDescendantLinkModels();
-    dirty_collision_body_transforms_ = NULL;
+    updateCollisionBodyTransformsInternal(dirty_collision_body_transforms_);
+  dirty_collision_body_transforms_ = NULL;
+}
 
-    for (std::size_t i = 0; i < links.size(); ++i)
-    {
-      const EigenSTL::vector_Affine3d& ot = links[i]->getCollisionOriginTransforms();
-      const std::vector<int>& ot_id = links[i]->areCollisionOriginTransformsIdentity();
-      const int index_co = links[i]->getFirstCollisionBodyTransformIndex();
-      const int index_l = links[i]->getLinkIndex();
-      for (std::size_t j = 0; j < ot.size(); ++j)
-        global_collision_body_transforms_[index_co + j].matrix().noalias() =
-            ot_id[j] ? global_link_transforms_[index_l].matrix() :
-                       global_link_transforms_[index_l].matrix() * ot[j].matrix();
-    }
+void moveit::core::RobotState::updateCollisionBodyTransformsInternal(const JointModel* start)
+{
+  const std::vector<const LinkModel*>& links = start->getDescendantLinkModels();
+  for (std::size_t i = 0; i < links.size(); ++i)
+  {
+    const EigenSTL::vector_Affine3d& ot = links[i]->getCollisionOriginTransforms();
+    const std::vector<int>& ot_id = links[i]->areCollisionOriginTransformsIdentity();
+    const int index_co = links[i]->getFirstCollisionBodyTransformIndex();
+    const int index_l = links[i]->getLinkIndex();
+    for (std::size_t j = 0; j < ot.size(); ++j)
+      global_collision_body_transforms_[index_co + j].matrix().noalias() =
+          ot_id[j] ? global_link_transforms_[index_l].matrix() :
+                     global_link_transforms_[index_l].matrix() * ot[j].matrix();
   }
 }
 
@@ -648,21 +650,21 @@ void moveit::core::RobotState::updateLinkTransformsInternal(const JointModel* st
 void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel* link, const Eigen::Affine3d& transform,
                                                      bool backward)
 {
-  updateLinkTransforms();  // no link transforms must be dirty, otherwise the transform we set will be overwritten
-
-  // update the fact that collision body transforms are out of date
-  if (dirty_collision_body_transforms_)
-    dirty_collision_body_transforms_ =
-        robot_model_->getCommonRoot(dirty_collision_body_transforms_, link->getParentJointModel());
-  else
-    dirty_collision_body_transforms_ = link->getParentJointModel();
-
+  // link and collision transforms should be clean
+  checkCollisionTransforms();
   global_link_transforms_[link->getLinkIndex()] = transform;
+
+  // both link and collision transforms do not match joint variables anymore
+  // but we don't set dirty_link_transforms_ or dirty_collision_body_transforms_ to indicate this
+  // This allows to use the previously and newly set transforms as is. Handle with care!
 
   // update link transforms for descendant links only (leaving the transform for the current link untouched)
   const std::vector<const JointModel*>& cj = link->getChildJointModels();
   for (std::size_t i = 0; i < cj.size(); ++i)
+  {
     updateLinkTransformsInternal(cj[i]);
+    updateCollisionBodyTransformsInternal(cj[i]);
+  }
 
   // if we also need to go backward
   if (backward)
@@ -686,14 +688,11 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel* link, cons
       const std::vector<const JointModel*>& cj = parent_link->getChildJointModels();
       for (std::size_t i = 0; i < cj.size(); ++i)
         if (cj[i] != child_link->getParentJointModel())
+        {
           updateLinkTransformsInternal(cj[i]);
+          updateCollisionBodyTransformsInternal(cj[i]);
+        }
     }
-    // update the root joint of the model to match (as best as possible given #DOF) the transform we wish to obtain for
-    // the root link.
-    // but I am disabling this code, since I do not think this function should modify variable values.
-    //    parent_link->getParentJointModel()->computeVariableValues(global_link_transforms_[parent_link->getLinkIndex()],
-    //                                                              position_ +
-    //                                                              parent_link->getParentJointModel()->getFirstVariableIndex());
   }
 
   // update attached bodies tf; these are usually very few, so we update them all

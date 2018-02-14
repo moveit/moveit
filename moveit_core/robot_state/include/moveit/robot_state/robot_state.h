@@ -1730,6 +1730,7 @@ private:
   }
 
   void updateLinkTransformsInternal(const JointModel* start);
+  void updateCollisionBodyTransformsInternal(const JointModel* start);
 
   void getMissingKeys(const std::map<std::string, double>& variable_map,
                       std::vector<std::string>& missing_variables) const;
