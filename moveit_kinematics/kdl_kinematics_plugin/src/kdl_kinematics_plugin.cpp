@@ -154,9 +154,18 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
   }
 
   // Get Solver Parameters
+  double epsilon;
   lookupParam("max_solver_iterations", max_solver_iterations_, 500);
-  lookupParam("epsilon", epsilon_, 1e-5);
+  lookupParam("epsilon", epsilon, 1e-5);
   lookupParam("position_only_ik", position_ik_, false);
+
+  lookupParam("tolerance/x", bounds_.vel.data[0], epsilon);
+  lookupParam("tolerance/y", bounds_.vel.data[1], epsilon);
+  lookupParam("tolerance/z", bounds_.vel.data[2], epsilon);
+  double default_rot_bound = position_ik_ ? std::numeric_limits<float>::max() : epsilon;
+  lookupParam("tolerance/rotx", bounds_.rot.data[0], default_rot_bound);
+  lookupParam("tolerance/roty", bounds_.rot.data[1], default_rot_bound);
+  lookupParam("tolerance/rotz", bounds_.rot.data[2], default_rot_bound);
 
   if (position_ik_)
     ROS_INFO_NAMED("kdl", "Using position only ik");
@@ -404,7 +413,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::ChainIkSolverVel_pinv_mimic ik_solver_vel(kdl_chain_, joint_model_group_->getMimicJointModels().size(),
                                                  redundant_joint_indices_.size(), position_ik_);
   KDL::ChainIkSolverPos_NR_JL_Mimic ik_solver_pos(kdl_chain_, joint_min_, joint_max_, fk_solver, ik_solver_vel,
-                                                  max_solver_iterations_, epsilon_, position_ik_);
+                                                  bounds_, max_solver_iterations_, position_ik_);
   ik_solver_vel.setMimicJoints(mimic_joints_);
   ik_solver_pos.setMimicJoints(mimic_joints_);
 

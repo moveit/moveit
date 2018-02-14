@@ -186,9 +186,11 @@ private:
 
   // Storage required for when the set of redundant joints is reset
   bool position_ik_;  // whether this solver is only being used for position ik
+  // axes bounds w.r.t. tool frame
+  KDL::Twist bounds_;
+
   robot_model::JointModelGroup* joint_model_group_;
   int max_solver_iterations_;
-  double epsilon_;
   std::vector<JointMimic> mimic_joints_;
 };
 }

@@ -65,8 +65,8 @@ public:
    * @return
    */
   ChainIkSolverPos_NR_JL_Mimic(const Chain& chain, const JntArray& q_min, const JntArray& q_max,
-                               ChainFkSolverPos& fksolver, ChainIkSolverVel& iksolver, unsigned int maxiter = 100,
-                               double eps = 1e-6, bool position_ik = false);
+                               ChainFkSolverPos& fksolver, ChainIkSolverVel& iksolver,
+                               const KDL::Twist& bounds, unsigned int maxiter = 100, bool position_ik = false);
 
   ~ChainIkSolverPos_NR_JL_Mimic();
 
@@ -90,7 +90,7 @@ private:
   Frame f;
   Twist delta_twist;
   unsigned int maxiter;
-  double eps;
+  Twist bounds;
   std::vector<kdl_kinematics_plugin::JointMimic> mimic_joints;
   void qToqMimic(const JntArray& q,
                  JntArray& q_result);  // Convert from the "reduced" state (only active DOFs) to the "full" state

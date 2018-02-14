@@ -32,8 +32,8 @@ namespace KDL
 {
 ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, const JntArray& _q_min,
                                                            const JntArray& _q_max, ChainFkSolverPos& _fksolver,
-                                                           ChainIkSolverVel& _iksolver, unsigned int _maxiter,
-                                                           double _eps, bool _position_ik)
+                                                           ChainIkSolverVel& _iksolver, const KDL::Twist& _bounds,
+                                                           unsigned int _maxiter, bool _position_ik)
   : chain(_chain)
   , q_min(_q_min)
   , q_min_mimic(chain.getNrOfJoints())
@@ -44,7 +44,7 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   , iksolver(_iksolver)
   , delta_q(_chain.getNrOfJoints())
   , maxiter(_maxiter)
-  , eps(_eps)
+  , bounds(_bounds)
   , position_ik(_position_ik)
 {
   mimic_joints.resize(chain.getNrOfJoints());
@@ -117,6 +117,16 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
   for (std::size_t i = 0; i < q_out.rows(); ++i)
     ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_init(i));
 
+  KDL::Twist weight;
+  double min_bound = DBL_MAX;
+  for (int j = 0; j < 6; ++j) {
+    if (bounds(j) < min_bound)
+        min_bound = bounds(j);
+  }
+  // assign error weights according to bounds
+  for (int j = 0; j < 6; ++j)
+    weight(j) = min_bound / bounds(j);
+
   unsigned int i;
   bool success = false;
   for (i = 0; i < maxiter; ++i)
@@ -124,15 +134,16 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
     fksolver.JntToCart(q_out, f);
     delta_twist = diff(f, p_in);
 
-    // check norms of position and orientation errors
-    double position_error = delta_twist.vel.Norm();
-    double orientation_error = position_ik ? 0 : delta_twist.rot.Norm();
-    double delta_twist_err = std::max(position_error, orientation_error);
-    if (delta_twist_err <= eps)
-    {
-      success = true;
-      break;
+    // compute largest component error
+    double delta_twist_err = 0;
+    success = true;
+    for (int j = position_ik ? 2 : 5; j >= 0; --j) {
+      double err = std::abs(delta_twist(j));
+      success &= err < bounds(j);
+      delta_twist_err = std::max(delta_twist_err, err * weight(j));
     }
+    if (success)
+        break;
 
     if (delta_twist_err >= last_delta_twist_err)
     {
@@ -140,9 +151,9 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
       double old_step_size = step_size;
       step_size *= 0.5;  // reduce scale;
       Multiply(delta_q, step_size / old_step_size, delta_q);
-      ROS_INFO_NAMED("kdl", "error increased: %f -> %f, scale: %f", last_delta_twist_err, delta_twist_err, step_size);
+      ROS_DEBUG_NAMED("kdl", "error increased: %f -> %f, scale: %f", last_delta_twist_err, delta_twist_err, step_size);
       q_out = q_temp;  // restore previous unclipped joint values
-      if (step_size < eps)
+      if (step_size < min_bound)
         break;  // cannot reach target
     }
     else
@@ -154,11 +165,11 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJnt(const JntArray& q_init, const Frame&
       iksolver.CartToJnt(q_out, delta_twist, delta_q);
       double delta_q_norm = delta_q.data.array().abs().sum();
 
-      ROS_INFO_NAMED("kdl", "pos err: %f  rot err: %f  delta_q: %f", position_error, orientation_error, delta_q_norm);
+      ROS_INFO_NAMED("kdl", "error: %f  delta_q: %f", delta_twist_err, delta_q_norm);
       for (std::size_t i = 0; i < 6; ++i)
         ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_twist(i));
 
-      if (delta_q_norm < eps)
+      if (delta_q_norm < min_bound)
         break;  // cannot reach target
     }
     Add(q_out, delta_q, q_out);
