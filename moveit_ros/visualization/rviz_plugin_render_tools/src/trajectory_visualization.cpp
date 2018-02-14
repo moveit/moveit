@@ -360,7 +360,6 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
   {
     animating_path_ = false;
     displaying_trajectory_message_.reset();
-    display_path_robot_->setVisible(false);
     trajectory_slider_panel_->update(0);
     drop_displaying_trajectory_ = false;
   }
@@ -385,11 +384,8 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       }
       else if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible())
       {
-        if (trajectory_slider_panel_->getSliderPosition() == displaying_trajectory_message_->getWayPointCount() - 1)
-        {  // show the last waypoint if the slider is enabled
-          display_path_robot_->update(
-              displaying_trajectory_message_->getWayPointPtr(displaying_trajectory_message_->getWayPointCount() - 1));
-        }
+        if (trajectory_slider_panel_->getSliderPosition() >= displaying_trajectory_message_->getWayPointCount() - 1)
+          return;  // nothing more to do
         else
           animating_path_ = true;
       }
@@ -398,48 +394,65 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 
     if (animating_path_)
     {
+      // restart animation
       current_state_ = -1;
-      current_state_time_ = std::numeric_limits<float>::infinity();
-      display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
-      display_path_robot_->setVisible(display_->isEnabled());
-      if (trajectory_slider_panel_)
-        trajectory_slider_panel_->setSliderPosition(0);
     }
   }
 
   if (animating_path_)
   {
-    float tm = getStateDisplayTime();
-    if (tm < 0.0)  // if we should use realtime
-      tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1);
-    if (current_state_time_ > tm)
-    {
-      if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
-        current_state_ = trajectory_slider_panel_->getSliderPosition();
-      else
-        ++current_state_;
-      int waypoint_count = displaying_trajectory_message_->getWayPointCount();
-      if ((std::size_t)current_state_ < waypoint_count)
-      {
-        if (trajectory_slider_panel_)
-          trajectory_slider_panel_->setSliderPosition(current_state_);
-        display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
-        for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
-          trajectory_trail_[i]->setVisible(
-              std::min(waypoint_count - 1, static_cast<int>(i) * trail_step_size_property_->getInt()) <=
-              current_state_);
-      }
-      else
-      {
-        animating_path_ = false;  // animation finished
-        display_path_robot_->setVisible(loop_display_property_->getBool());
-        if (!loop_display_property_->getBool() && trajectory_slider_panel_)
-          trajectory_slider_panel_->pauseButton(true);
-      }
-      current_state_time_ = 0.0f;
-    }
+    int previous_state = current_state_;
+    int waypoint_count = displaying_trajectory_message_->getWayPointCount();
     current_state_time_ += wall_dt;
+    float tm = getStateDisplayTime();
+
+    if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
+      current_state_ = trajectory_slider_panel_->getSliderPosition();
+    else if (current_state_ < 0)
+    {  // special case indicating restart of animation
+      current_state_ = 0;
+      current_state_time_ = 0.0;
+    }
+    else if (tm < 0.0)
+    {  // using realtime: skip to next waypoint based on elapsed display time
+      while (current_state_ < waypoint_count &&
+             (tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1)) <
+                 current_state_time_)
+      {
+        current_state_time_ -= tm;
+        ++current_state_;
+      }
+    }
+    else if (current_state_time_ > tm)
+    {  // fixed display time per state
+      current_state_time_ = 0.0;
+      ++current_state_;
+    }
+
+    if (current_state_ == previous_state)
+      return;
+
+    if (current_state_ < waypoint_count)
+    {
+      if (trajectory_slider_panel_)
+        trajectory_slider_panel_->setSliderPosition(current_state_);
+      display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
+      for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
+        trajectory_trail_[i]->setVisible(
+            std::min(waypoint_count - 1, static_cast<int>(i) * trail_step_size_property_->getInt()) <= current_state_);
+    }
+    else
+    {
+      animating_path_ = false;  // animation finished
+      display_path_robot_->setVisible(loop_display_property_->getBool());
+      if (!loop_display_property_->getBool() && trajectory_slider_panel_)
+        trajectory_slider_panel_->pauseButton(true);
+    }
   }
+  // set visibility
+  display_path_robot_->setVisible(display_->isEnabled() && displaying_trajectory_message_ &&
+                                  (animating_path_ || trail_display_property_->getBool() ||
+                                   (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible())));
 }
 
 void TrajectoryVisualization::incomingDisplayTrajectory(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
