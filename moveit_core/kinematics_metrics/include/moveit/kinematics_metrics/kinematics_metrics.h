@@ -108,7 +108,7 @@ public:
    * of the Jacobian matrix J
    * @param state Complete kinematic state for the robot
    * @param group_name The group name (e.g. "arm")
-   * @param condition_number Condition number for JJ^T
+   * @param manipulability Condition number for JJ^T
    * @return False if the group was not found
    */
   bool getManipulability(const robot_state::RobotState& state, const std::string& group_name, double& manipulability,
@@ -120,7 +120,7 @@ public:
    * of the Jacobian matrix J
    * @param state Complete kinematic state for the robot
    * @param joint_model_group A pointer to the desired joint model group
-   * @param condition_number Condition number for JJ^T
+   * @param manipulability Condition number for JJ^T
    * @return False if the group was not found
    */
   bool getManipulability(const robot_state::RobotState& state, const robot_model::JointModelGroup* joint_model_group,

@@ -193,7 +193,7 @@ void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo& info)
   info = solver_info_;
 }
 
-void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
+void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& shoulder_pan_initial_guess,
                                     std::vector<std::vector<double> >& solution) const
 {
   // t1 = shoulder/turret pan is specified
@@ -207,7 +207,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;
   g(2, 3) = g_in(2, 3) - torso_shoulder_offset_z_;
 
-  double t1 = angles::normalize_angle(t1_in);
+  double t1 = angles::normalize_angle(shoulder_pan_initial_guess);
   if (!checkJointLimits(t1, 0))
     return;
 
@@ -460,7 +460,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   }
 }
 
-void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
+void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& shoulder_roll_initial_guess,
                                      std::vector<std::vector<double> >& solution) const
 {
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
@@ -474,6 +474,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
   //  if(!solution_ik_.empty())
   //    solution_ik_.resize(0);
   // t3 = shoulder/turret roll is specified
+  const double t3 = shoulder_roll_initial_guess;
   Eigen::Matrix4f g = g_in;
   Eigen::Matrix4f gf_local = home_inv_;
   Eigen::Matrix4f grhs_local = home_inv_;
