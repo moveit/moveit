@@ -676,7 +676,7 @@ public:
   void loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset);
 
   /** \brief Fill the message (\e scene_msg) with the differences between this instance of PlanningScene with respect
-   * to the parent. If there is no parent, everything is considered to be a diff and the function behaves like 
+   * to the parent. If there is no parent, everything is considered to be a diff and the function behaves like
    * getPlanningSceneMsg() */
   void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
@@ -684,7 +684,7 @@ public:
    * reconstructed to be exactly the same using setPlanningSceneMsg() */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
-  /** \brief Construct a message (\e scene_msg) with the data requested in \e comp. If all options in \e comp are 
+  /** \brief Construct a message (\e scene_msg) with the data requested in \e comp. If all options in \e comp are
    * filled, this will be a complete planning scene message */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
                            const moveit_msgs::PlanningSceneComponents& comp) const;

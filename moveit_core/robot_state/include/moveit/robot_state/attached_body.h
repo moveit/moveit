@@ -56,9 +56,9 @@ typedef boost::function<void(AttachedBody* body, bool attached)> AttachedBodyCal
 class AttachedBody
 {
 public:
-  /** \brief Construct an attached body for a specified \e parent_link_model. The name of this body is \e id and it 
-   * consists of \e shapes that attach to the link by the transforms \e attach_trans. The set of links that are 
-   * allowed to be touched by this object is specified by \e touch_links. The posture of links for releasing the 
+  /** \brief Construct an attached body for a specified \e parent_link_model. The name of this body is \e id and it
+   * consists of \e shapes that attach to the link by the transforms \e attach_trans. The set of links that are
+   * allowed to be touched by this object is specified by \e touch_links. The posture of links for releasing the
    * object is specified by \e detach_posture. */
   AttachedBody(const LinkModel* parent_link_model, std::string id, std::vector<shapes::ShapeConstPtr> shapes,
                const EigenSTL::vector_Affine3d& attach_trans, std::set<std::string> touch_links,
