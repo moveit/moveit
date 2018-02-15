@@ -436,7 +436,7 @@ public:
    * @param [in] max_distance Cells of greater than this distance will not be added to the marker
    * @param [in] frame_id The frame to use as the header in the marker
    * @param [in] stamp The stamp to use in the header of the marker
-   * @param [out] marker The marker that will contain the indicated cells.
+   * @param [out] inf_marker The marker that will contain the indicated cells.
    */
   void getIsoSurfaceMarkers(double min_distance, double max_distance, const std::string& frame_id,
                             const ros::Time stamp, visualization_msgs::Marker& inf_marker) const;
@@ -480,7 +480,7 @@ public:
    * @param [in] origin The minimum point along each axis to display
    * @param [in] frame_id The frame to use as the header in the marker
    * @param [in] stamp The stamp to use in the header of the marker
-   * @param [out] marker The marker that will contain the indicated cells.
+   * @param [out] plane_marker The marker that will contain the indicated cells.
    */
   void getPlaneMarkers(PlaneVisualizationType type, double length, double width, double height,
                        const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time stamp,
@@ -494,7 +494,7 @@ public:
    * @param [in] frame_id The frame to use as the header in the marker
    * @param [in] stamp The stamp to use in the header of the marker
    *
-   * @param [in] max_distance A max distance for color calculation.
+   * @param [in] max_dist A max distance for color calculation.
    * Distances of this value or greater will show up as fully white in
    * the marker.
    *

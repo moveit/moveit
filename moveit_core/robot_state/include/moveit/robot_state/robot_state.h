@@ -949,7 +949,8 @@ as the new values that correspond to the group */
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
-      @param pose The pose the last link in the chain needs to achieve
+      @param pose_in The pose the last link in the chain needs to achieve
+      @param tip_in The name of the frame for which IK is attempted.
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
@@ -961,9 +962,9 @@ as the new values that correspond to the group */
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
-      @param pose The pose the last link in the chain needs to achieve
-      @param tip The name of the frame for which IK is attempted.
-      @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param pose_in The pose the last link in the chain needs to achieve
+      @param tip_in The name of the frame for which IK is attempted.
+      @param consistency_limits_in This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
@@ -977,8 +978,8 @@ as the new values that correspond to the group */
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
-      @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
+      @param poses_in The poses the last link in each chain needs to achieve
+      @param tips_in The names of the frames for which IK is attempted.
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
@@ -992,9 +993,9 @@ as the new values that correspond to the group */
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
-      @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
-      @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param poses_in The poses the last link in each chain needs to achieve
+      @param tips_in The names of the frames for which IK is attempted.
+      @param consistency_limits_sets This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
@@ -1008,7 +1009,7 @@ as the new values that correspond to the group */
       \brief setFromIK for multiple poses and tips (end effectors) when no solver exists for the jmg that can solver for
       non-chain kinematics. In this case, we divide the group into subgroups and do IK solving individually
       @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
+      @param tips_in The names of the frames for which IK is attempted.
       @param consistency_limits This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
@@ -1526,7 +1527,7 @@ as the new values that correspond to the group */
    * @param shapes The shapes that make up the attached body
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
-   * @param link_name The link to attach to
+   * @param link The link to attach to
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1585,7 +1586,7 @@ as the new values that correspond to the group */
   /** \brief Clear all attached bodies. This calls delete on the AttachedBody instances, if needed. */
   void clearAttachedBodies();
 
-  /** \brief Get the attached body named \e name. Return NULL if not found. */
+  /** \brief Get the attached body named \e id. Return NULL if not found. */
   const AttachedBody* getAttachedBody(const std::string& id) const;
 
   /** \brief Check if an attached body named \e id exists in this state */
