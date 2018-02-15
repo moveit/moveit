@@ -1713,7 +1713,7 @@ private:
     for (std::size_t i = 0; i < mim.size(); ++i)
     {
       position_[mim[i]->getFirstVariableIndex()] = mim[i]->getMimicFactor() * v + mim[i]->getMimicOffset();
-      dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
+      markDirtyJointTransforms(mim[i]);
     }
   }
 
@@ -1725,6 +1725,9 @@ private:
       const int fvi = mim[i]->getFirstVariableIndex();
       position_[fvi] =
           mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset();
+      // Only mark joint transform dirty, but not the associated link transform
+      // as this function is always used in combination of
+      // updateMimicJoint(group->getMimicJointModels()) + markDirtyJointTransforms(group);
       dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
     }
   }
