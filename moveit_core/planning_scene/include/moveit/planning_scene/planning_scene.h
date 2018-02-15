@@ -675,6 +675,7 @@ public:
   /** \brief Load the geometry of the planning scene from a stream at a certain location using offset*/
   void loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset);
 
+<<<<<<< HEAD
   /** \brief Fill the message (\e scene_msg) with the differences between this instance of PlanningScene with respect
    * to the parent. If there is no parent, everything is considered to be a diff and the function behaves like 
    * getPlanningSceneMsg() */
@@ -686,6 +687,21 @@ public:
 
   /** \brief Construct a message (\e scene_msg) with the data requested in \e comp. If all options in \e comp are 
    * filled, this will be a complete planning scene message */
+=======
+  /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the
+     parent.
+      If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg()
+     */
+  void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const;
+
+  /** \brief Construct a message (\e scene) with all the necessary data so that the scene can be later reconstructed to
+     be
+      exactly the same using setPlanningSceneMsg() */
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const;
+
+  /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
+      this will be a complete planning scene message */
+>>>>>>> 834e5577f7d3111f9c2ec2b59deb0d4b212292c5
   void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
                            const moveit_msgs::PlanningSceneComponents& comp) const;
 
@@ -713,12 +729,23 @@ public:
   void getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
 
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff
+<<<<<<< HEAD
    * (is_diff member). A parent is not required to exist. However, the existing data in the planning instance is not
    * cleared. Data from the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
   bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene_msg message,
    * even if the message itself is marked as being a diff (is_diff member) */
+=======
+     (is_diff
+      member). A parent is not required to exist. However, the existing data in the planning instance is not cleared.
+     Data from
+      the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
+  bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg);
+
+  /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message, even if
+   * the message itself is marked as being a diff (is_diff member) */
+>>>>>>> 834e5577f7d3111f9c2ec2b59deb0d4b212292c5
   bool setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message

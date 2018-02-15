@@ -332,7 +332,11 @@ public:
    *  @{
    */
 
+<<<<<<< HEAD
   /** \brief Check if the JointModelGroup \e name exists */
+=======
+  /** \brief Check if the JointModelGroup \e group exists */
+>>>>>>> 834e5577f7d3111f9c2ec2b59deb0d4b212292c5
   bool hasJointModelGroup(const std::string& name) const;
 
   /** \brief Get a joint group from this model (by name) */
@@ -586,7 +590,11 @@ protected:
       the kinematic model by walking  down the tree*/
   JointModel* buildRecursive(LinkModel* parent, const urdf::Link* urdf_link, const srdf::Model& srdf_model);
 
+<<<<<<< HEAD
   /** \brief Construct a JointModelGroup given a SRDF description \e gc */
+=======
+  /** \brief Construct a JointModelGroup given a SRDF description \e group */
+>>>>>>> 834e5577f7d3111f9c2ec2b59deb0d4b212292c5
   bool addJointModelGroup(const srdf::Model::Group& gc);
 
   /** \brief Given a urdf joint model, a child link and a set of virtual joints,

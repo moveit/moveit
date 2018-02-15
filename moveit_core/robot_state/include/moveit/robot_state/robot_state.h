@@ -1586,7 +1586,11 @@ as the new values that correspond to the group */
   /** \brief Clear all attached bodies. This calls delete on the AttachedBody instances, if needed. */
   void clearAttachedBodies();
 
+<<<<<<< HEAD
   /** \brief Get the attached body named \e id. Return NULL if not found. */
+=======
+  /** \brief Get the attached body named \e name. Return NULL if not found. */
+>>>>>>> 834e5577f7d3111f9c2ec2b59deb0d4b212292c5
   const AttachedBody* getAttachedBody(const std::string& id) const;
 
   /** \brief Check if an attached body named \e id exists in this state */
