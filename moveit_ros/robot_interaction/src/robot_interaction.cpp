@@ -91,7 +91,7 @@ void RobotInteraction::decideActiveComponents(const std::string& group, Interact
 {
   decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
-  if (active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
+  if (!group.empty() && active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
     ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. "
                                         "Make sure you have defined an end effector in your SRDF file and that "
                                         "kinematics.yaml is loaded in this node's namespace.",
@@ -185,10 +185,10 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_vj_.clear();
 
-  ROS_DEBUG_NAMED("robot_interaction", "Deciding active joints for group '%s'", group.c_str());
-
   if (group.empty())
     return;
+
+  ROS_DEBUG_NAMED("robot_interaction", "Deciding active joints for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
@@ -261,10 +261,10 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   boost::unique_lock<boost::mutex> ulock(marker_access_lock_);
   active_eef_.clear();
 
-  ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
-
   if (group.empty())
     return;
+
+  ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
