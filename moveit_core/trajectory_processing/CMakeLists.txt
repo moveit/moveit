@@ -3,6 +3,7 @@ set(MOVEIT_LIB_NAME moveit_trajectory_processing)
 add_library(${MOVEIT_LIB_NAME}
   src/iterative_time_parameterization.cpp
   src/trajectory_tools.cpp
+  src/time_optimal_trajectory_generation.cpp
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
 
@@ -14,3 +15,8 @@ install(TARGETS ${MOVEIT_LIB_NAME}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(DIRECTORY include/ DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_time_optimal_trajectory_generation test/test_time_optimal_trajectory_generation.cpp)
+  target_link_libraries(test_time_optimal_trajectory_generation ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${MOVEIT_LIB_NAME})
+endif()

@@ -1,22 +1,49 @@
-#include <cstdlib>
-#include <list>
-#include <Eigen/Core>
-#include "Trajectory.h"
+/*
+ * Copyright (c) 2011, Georgia Tech Research Corporation
+ * All rights reserved.
+ *
+ * Author: Tobias Kunz <tobias@gatech.edu>
+ * Date: 05/2012
+ *
+ * Humanoid Robotics Lab      Georgia Institute of Technology
+ * Director: Mike Stilman     http://www.golems.org
+ *
+ * Algorithm details and publications:
+ * http://www.golems.org/node/1570
+ *
+ * This file is provided under the following "BSD-style" License:
+ *   Redistribution and use in source and binary forms, with or
+ *   without modification, are permitted provided that the following
+ *   conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ *   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ *   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ *   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ *   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ *   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ *   AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *   POSSIBILITY OF SUCH DAMAGE.
+ */
 
-int numTests = 0;
-int numTestsFailed = 0;
+#include <gtest/gtest.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 
-void test(std::string name, std::list<Eigen::VectorXd> waypoints, double maxDeviation, const Eigen::VectorXd& maxVelocities, const Eigen::VectorXd& maxAccelerations, double timeStep) {
-  Trajectory trajectory(Path(waypoints, maxDeviation), maxVelocities, maxAccelerations, timeStep);
-  numTests++;
-  if(!trajectory.isValid()) {
-    numTestsFailed++;
-    std::cout << name << " with time step " << timeStep << " failed." << std::endl;
-    trajectory.outputPhasePlaneTrajectory();
-  }
-}
+using trajectory_processing::Path;
+using trajectory_processing::Trajectory;
 
-void test1() {
+TEST(time_optimal_trajectory_generation, test1)
+{
   Eigen::VectorXd waypoint(4);
   std::list<Eigen::VectorXd> waypoints;
 
@@ -30,10 +57,25 @@ void test1() {
   Eigen::VectorXd maxAccelerations(4);
   maxAccelerations << 0.00249, 0.00249, 0.00249, 0.00249;
 
-  test("Test 1", waypoints, 100.0, maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  EXPECT_TRUE(trajectory.isValid());
+  EXPECT_DOUBLE_EQ(40.080256821829849, trajectory.getDuration());
+
+  // Test start matches
+  EXPECT_DOUBLE_EQ(1424.0, trajectory.getPosition(0.0)[0]);
+  EXPECT_DOUBLE_EQ(984.999694824219, trajectory.getPosition(0.0)[1]);
+  EXPECT_DOUBLE_EQ(2126.0, trajectory.getPosition(0.0)[2]);
+  EXPECT_DOUBLE_EQ(0.0, trajectory.getPosition(0.0)[3]);
+
+  // Test end matches
+  EXPECT_DOUBLE_EQ(1423.0, trajectory.getPosition(trajectory.getDuration())[0]);
+  EXPECT_DOUBLE_EQ(985.000244140625, trajectory.getPosition(trajectory.getDuration())[1]);
+  EXPECT_DOUBLE_EQ(2126.0, trajectory.getPosition(trajectory.getDuration())[2]);
+  EXPECT_DOUBLE_EQ(0.0, trajectory.getPosition(trajectory.getDuration())[3]);
 }
 
-void test2() {
+TEST(time_optimal_trajectory_generation, test2)
+{
   Eigen::VectorXd waypoint(4);
   std::list<Eigen::VectorXd> waypoints;
 
@@ -53,48 +95,63 @@ void test2() {
   Eigen::VectorXd maxAccelerations(4);
   maxAccelerations << 0.002, 0.002, 0.002, 0.002;
 
-  test("Test 2", waypoints, 100.0, maxVelocities, maxAccelerations, 10.0);
+  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations, 10.0);
+  EXPECT_TRUE(trajectory.isValid());
+  EXPECT_DOUBLE_EQ(1922.1418427445944, trajectory.getDuration());
+
+  // Test start matches
+  EXPECT_DOUBLE_EQ(1427.0, trajectory.getPosition(0.0)[0]);
+  EXPECT_DOUBLE_EQ(368.0, trajectory.getPosition(0.0)[1]);
+  EXPECT_DOUBLE_EQ(690.0, trajectory.getPosition(0.0)[2]);
+  EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(0.0)[3]);
+
+  // Test end matches
+  EXPECT_DOUBLE_EQ(452.5, trajectory.getPosition(trajectory.getDuration())[0]);
+  EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
+  EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
+  EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
 }
 
-static inline double randomInRange(double min, double max) {
-  return min + (max-min) * ((double)rand() / (double)RAND_MAX);
+TEST(time_optimal_trajectory_generation, test3)
+{
+  Eigen::VectorXd waypoint(4);
+  std::list<Eigen::VectorXd> waypoints;
+
+  waypoint << 1427.0, 368.0, 690.0, 90.0;
+  waypoints.push_back(waypoint);
+  waypoint << 1427.0, 368.0, 790.0, 90.0;
+  waypoints.push_back(waypoint);
+  waypoint << 952.499938964844, 433.0, 1051.0, 90.0;
+  waypoints.push_back(waypoint);
+  waypoint << 452.5, 533.0, 1051.0, 90.0;
+  waypoints.push_back(waypoint);
+  waypoint << 452.5, 533.0, 951.0, 90.0;
+  waypoints.push_back(waypoint);
+
+  Eigen::VectorXd maxVelocities(4);
+  maxVelocities << 1.3, 0.67, 0.67, 0.5;
+  Eigen::VectorXd maxAccelerations(4);
+  maxAccelerations << 0.002, 0.002, 0.002, 0.002;
+
+  Trajectory trajectory(Path(waypoints, 100.0), maxVelocities, maxAccelerations);
+  EXPECT_TRUE(trajectory.isValid());
+  EXPECT_DOUBLE_EQ(1919.5597888812974, trajectory.getDuration());
+
+  // Test start matches
+  EXPECT_DOUBLE_EQ(1427.0, trajectory.getPosition(0.0)[0]);
+  EXPECT_DOUBLE_EQ(368.0, trajectory.getPosition(0.0)[1]);
+  EXPECT_DOUBLE_EQ(690.0, trajectory.getPosition(0.0)[2]);
+  EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(0.0)[3]);
+
+  // Test end matches
+  EXPECT_DOUBLE_EQ(452.5, trajectory.getPosition(trajectory.getDuration())[0]);
+  EXPECT_DOUBLE_EQ(533.0, trajectory.getPosition(trajectory.getDuration())[1]);
+  EXPECT_DOUBLE_EQ(951.0, trajectory.getPosition(trajectory.getDuration())[2]);
+  EXPECT_DOUBLE_EQ(90.0, trajectory.getPosition(trajectory.getDuration())[3]);
 }
 
-Eigen::VectorXd sampleConfig() {
-  Eigen::VectorXd maxPositions(7);
-  maxPositions << 115.0, 105.0, 90.0, 70.0, 130.0, 90.0, 55.0;
-  maxPositions *= 3.14159 / 180.0;
-  Eigen::VectorXd config(7);
-  for(unsigned int i = 0; i < 7; i++) {
-    config[i] = randomInRange(-maxPositions[i], maxPositions[i]);
-  }
-  return config;
-}
-
-void randomTests() {
-  const int numIterations = 10000;
-
-  Eigen::VectorXd maxVelocities(7);
-  maxVelocities << 1.309, 1.6406, 3.2812, 2.618, 5.236, 3.4907, 3.4907;
-  Eigen::VectorXd maxAccelerations = maxVelocities;
-
-  for(int iteration = 0; iteration < numIterations; iteration++) {
-    std::list<Eigen::VectorXd> waypoints;
-    for(int numWaypoints = 0; numWaypoints < 10; numWaypoints++) {
-      waypoints.push_back(sampleConfig());
-    }
-    std::stringstream name;
-    name << "Random test " << iteration;
-    test(name.str(), waypoints, 0.5, maxVelocities, maxAccelerations, 0.001);
-    test(name.str(), waypoints, 0.5, maxVelocities, maxAccelerations, 0.01);
-  }
-}
-
-int main() {
-  test1();
-  test2();
-  randomTests();
-
-  std::cout << numTestsFailed << " out of " << numTests << " tests failed." << std::endl;
-  return 0;
+int main(int argc, char** argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
