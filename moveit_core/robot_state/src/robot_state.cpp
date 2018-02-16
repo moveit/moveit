@@ -1931,8 +1931,21 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 
   bool test_joint_space_jump = jump_threshold > 0.0;
 
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  double distance = start_quaternion.dot(target_quaternion);
+  if (distance < 0)  // need to bring quaternions to same half sphere?
+  {
+    target_quaternion.w() = -target_quaternion.w();
+    target_quaternion.x() = -target_quaternion.x();
+    target_quaternion.y() = -target_quaternion.y();
+    target_quaternion.z() = -target_quaternion.z();
+  }
+
   // decide how many steps we will need for this trajectory
-  double distance = (rotated_target.translation() - start_pose.translation()).norm();
+  // TODO: use separate max_step arguments for translational and rotational motion
+  distance = std::max((rotated_target.translation() - start_pose.translation()).norm(),
+                      std::acos(start_quaternion.dot(target_quaternion)));
 
   // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
   unsigned int steps = floor(distance / max_step) + 1;
@@ -1943,8 +1956,6 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   traj.push_back(RobotStatePtr(new RobotState(*this)));
 
   double last_valid_percentage = 0.0;
-  Eigen::Quaterniond start_quaternion(start_pose.rotation());
-  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
   for (unsigned int i = 1; i <= steps; ++i)
   {
     double percentage = (double)i / (double)steps;
