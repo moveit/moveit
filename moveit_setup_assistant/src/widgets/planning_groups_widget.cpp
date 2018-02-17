@@ -104,8 +104,8 @@ PlanningGroupsWidget::PlanningGroupsWidget(QWidget* parent, moveit_setup_assista
   // Top Label Area ------------------------------------------------
   HeaderWidget* header = new HeaderWidget(
       "Planning Groups", "Create and edit planning groups for your robot based on joint collections, "
-                         "link collections, kinematic chains and subgroups.\n"
-                         "A planning group defines the set of (joint, link) pairs considered for planning. "
+                         "link collections, kinematic chains or subgroups.\n"
+                         "A planning group defines the set of (joint, link) pairs considered for planning.\n"
                          "Define individual groups for each subset of the robot you want to plan for.",
       this);
   layout->addWidget(header);
