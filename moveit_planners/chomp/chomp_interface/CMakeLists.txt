@@ -56,9 +56,10 @@ install(TARGETS ${PROJECT_NAME} chomp_planner_plugin
 
 if(CATKIN_ENABLE_TESTING)
   find_package(catkin REQUIRED COMPONENTS rostest roscpp moveit_ros_planning_interface)
-
+  include_directories(${catkin_INCLUDE_DIRS})
   add_rostest_gtest(chomp_moveit_test
     test/chomp_moveit.test
     test/chomp_moveit_test.cpp)
   target_link_libraries(chomp_moveit_test ${catkin_LIBRARIES})
+  add_dependencies(chomp_moveit_test chomp_planner_plugin move_group moveit_move_group_default_capabilities moveit_move_group_pick_place_capability)
 endif()
