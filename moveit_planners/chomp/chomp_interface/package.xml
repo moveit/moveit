@@ -22,7 +22,6 @@
 
   <test_depend>moveit_ros_manipulation</test_depend>
   <test_depend>moveit_ros_planning_interface</test_depend>
-  <test_depend>roscpp</test_depend>
   <test_depend>rostest</test_depend>
 
   <export>
