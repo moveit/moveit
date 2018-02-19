@@ -122,7 +122,10 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
     boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
     centered_bounding_box_offsets[this] = aabb.center();
   }
-  shape_extents_ = aabb.sizes();
+  if (shapes_.empty())
+    shape_extents_.setZero();
+  else
+    shape_extents_ = aabb.sizes();
 }
 
 void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
