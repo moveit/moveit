@@ -59,7 +59,8 @@ public:
     robot_model_ = planning_interface::getSharedRobotModel(robot_description);
     if (!robot_model_)
       throw std::runtime_error("RobotInterfacePython: invalid robot model");
-    current_state_monitor_ = planning_interface::getSharedStateMonitor(robot_model_, planning_interface::getSharedTF());
+    current_state_monitor_ =
+        planning_interface::getSharedStateMonitor(robot_description, robot_model_, planning_interface::getSharedTF());
   }
 
   const char* getRobotName() const

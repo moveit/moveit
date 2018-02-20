@@ -56,12 +56,17 @@ class PythonMoveGroupTest(unittest.TestCase):
         plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
+class PythonMoveGroupWithNamespaceTest(PythonMoveGroupTest):
+    @classmethod
+    def setUpClass(self):
+        self.group = MoveGroupInterface(self.PLANNING_GROUP, "test/robot_description", "test")
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'
     NODENAME = 'moveit_test_python_move_group'
     rospy.init_node(NODENAME)
     rostest.rosrun(PKGNAME, NODENAME, PythonMoveGroupTest)
+    rostest.rosrun(PKGNAME, NODENAME, PythonMoveGroupWithNamespaceTest)
 
     # suppress cleanup segfault
     os._exit(0)

@@ -61,10 +61,11 @@ class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if
   // needed
-  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description)
+  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description,
+                            const std::string& ns = "")
     : py_bindings_tools::ROScppInitializer()
-    , MoveGroupInterface(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(),
-                         ros::WallDuration(5, 0))
+    , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)),
+                         boost::shared_ptr<tf::Transformer>(), ros::WallDuration(5, 0))
   {
   }
 
@@ -472,8 +473,8 @@ public:
 class MoveGroupWrapper : public MoveGroupInterfaceWrapper
 {
 public:
-  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description)
-    : MoveGroupInterfaceWrapper(group_name, robot_description)
+  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns = "")
+    : MoveGroupInterfaceWrapper(group_name, robot_description, ns)
   {
     ROS_WARN("The MoveGroup class is deprecated and will be removed in ROS lunar. Please use MoveGroupInterface "
              "instead.");
@@ -483,8 +484,9 @@ public:
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
-      "MoveGroupInterface", bp::init<std::string, std::string>());
+      "MoveGroupInterface", bp::init<std::string, std::string, std::string>());
 
+  MoveGroupInterfaceClass.def(bp::init<std::string, std::string>());
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);
   MoveGroupInterfaceClass.def("execute", &MoveGroupInterfaceWrapper::executePython);
@@ -609,7 +611,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_current_state_bounded", &MoveGroupInterfaceWrapper::getCurrentStateBoundedPython);
 
   bp::class_<MoveGroupWrapper, bp::bases<MoveGroupInterfaceWrapper>, boost::noncopyable> MoveGroupClass(
-      "MoveGroup", bp::init<std::string, std::string>());
+      "MoveGroup", bp::init<std::string, std::string, std::string>());
+  MoveGroupClass.def(bp::init<std::string, std::string>());
 }
 }
 }
