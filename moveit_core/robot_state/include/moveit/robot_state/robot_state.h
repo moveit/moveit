@@ -40,6 +40,7 @@
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/attached_body.h>
+#include <moveit/macros/deprecation.h>
 #include <sensor_msgs/JointState.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <std_msgs/ColorRGBA.h>
@@ -1718,7 +1719,8 @@ private:
   }
 
   /** \brief Update a set of joints that are certain to be mimicking other joints */
-  void updateMimicJoint(const std::vector<const JointModel*>& mim)
+  /* use updateMimicJoints() instead, which also marks joints dirty */
+  MOVEIT_DEPRECATED void updateMimicJoint(const std::vector<const JointModel*>& mim)
   {
     for (std::size_t i = 0; i < mim.size(); ++i)
     {
@@ -1730,6 +1732,17 @@ private:
       // updateMimicJoint(group->getMimicJointModels()) + markDirtyJointTransforms(group);
       dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
     }
+  }
+
+  /** \brief Update all mimic joints within group */
+  void updateMimicJoints(const JointModelGroup* group)
+  {
+    for (const JointModel* jm : group->getMimicJointModels())
+    {
+      const int fvi = jm->getFirstVariableIndex();
+      position_[fvi] = jm->getMimicFactor() * position_[jm->getMimic()->getFirstVariableIndex()] + jm->getMimicOffset();
+    }
+    markDirtyJointTransforms(group);
   }
 
   void updateLinkTransformsInternal(const JointModel* start);
