@@ -239,6 +239,19 @@ public:
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
   LinkModel* getLinkModel(const std::string& link);
 
+  /** \brief Get the latest link upwards the kinematic tree, which is only connected via fixed joints
+   *
+   * This is useful, if the link should be warped to a specific pose using updateStateWithLinkAt().
+   * As updateStateWithLinkAt() warps only the specified link and its descendants, you might not
+   * achieve what you expect, if link is an abstract frame name. Considering the following example:
+   * root -> arm0 -> ... -> armN -> wrist -- grasp_frame
+   *                                      -- palm -> end effector ...
+   * Calling updateStateWithLinkAt(grasp_frame), will not warp the end effector, which is probably
+   * what you went for. Instead, updateStateWithLinkAt(getRigidlyConnectedParentLinkModel(grasp_frame), ...)
+   * will actually warp wrist (and all its descendants).
+   */
+  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link);
+
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
   {

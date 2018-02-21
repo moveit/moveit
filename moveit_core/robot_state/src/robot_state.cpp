@@ -688,12 +688,8 @@ void moveit::core::RobotState::updateStateWithLinkAt(const LinkModel* link, cons
         if (cj[i] != child_link->getParentJointModel())
           updateLinkTransformsInternal(cj[i]);
     }
-    // update the root joint of the model to match (as best as possible given #DOF) the transform we wish to obtain for
-    // the root link.
-    // but I am disabling this code, since I do not think this function should modify variable values.
-    //    parent_link->getParentJointModel()->computeVariableValues(global_link_transforms_[parent_link->getLinkIndex()],
-    //                                                              position_ +
-    //                                                              parent_link->getParentJointModel()->getFirstVariableIndex());
+    // all collision body transforms are invalid now
+    dirty_collision_body_transforms_ = parent_link->getParentJointModel();
   }
 
   // update attached bodies tf; these are usually very few, so we update them all

@@ -1110,11 +1110,7 @@ moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::str
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
 {
-  LinkModelMap::const_iterator it = link_model_map_.find(name);
-  if (it != link_model_map_.end())
-    return it->second;
-  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return const_cast<RobotModel*>(this)->getLinkModel(name);
 }
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
@@ -1135,6 +1131,22 @@ moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::strin
     return it->second;
   logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return NULL;
+}
+
+const moveit::core::LinkModel* moveit::core::RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
+{
+  if (!link)
+    return link;
+  const robot_model::LinkModel* parent_link = link->getParentLinkModel();
+  const robot_model::JointModel* joint = link->getParentJointModel();
+
+  while (parent_link && joint->getType() == robot_model::JointModel::FIXED)
+  {
+    link = parent_link;
+    joint = link->getParentJointModel();
+    parent_link = joint->getParentLinkModel();
+  }
+  return link;
 }
 
 void moveit::core::RobotModel::updateMimicJoints(double* values) const

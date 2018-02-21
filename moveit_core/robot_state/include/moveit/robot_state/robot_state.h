@@ -1296,7 +1296,14 @@ as the new values that correspond to the group */
   /** \brief Update all transforms. */
   void update(bool force = false);
 
-  /** \brief Update the state after setting a particular link to the input global transform pose.*/
+  /** \brief Update the state after setting a particular link to the input global transform pose.
+
+      This "warps" the given link to the given pose, neglecting the joint values of its parent joint.
+      The link transforms of link and all its descendants are updated, but not marked as dirty,
+      although they do not match the joint values anymore!
+      Collision body transforms are not yet updated, but marked dirty only.
+      Use update(false) or updateCollisionBodyTransforms() to update them as well.
+   */
   void updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward = false)
   {
     updateStateWithLinkAt(robot_model_->getLinkModel(link_name), transform, backward);
