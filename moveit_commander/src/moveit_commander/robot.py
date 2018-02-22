@@ -145,6 +145,7 @@ class RobotCommander(object):
             return conversions.list_to_pose_stamped(self._robot._r.get_link_pose(self._name), self._robot.get_planning_frame())
 
     def __init__(self, robot_description="robot_description"):
+        self._robot_description = robot_description
         self._r = _moveit_robot_interface.RobotInterface(robot_description)
         self._groups = {}
         self._joint_owner_groups = {}
@@ -235,7 +236,7 @@ class RobotCommander(object):
         if not self._groups.has_key(name):
             if not self.has_group(name):
                 raise MoveItCommanderException("There is no group named %s" % name)
-            self._groups[name] = MoveGroupCommander(name)
+            self._groups[name] = MoveGroupCommander(name, self._robot_description)
         return self._groups[name]
 
     def has_group(self, name):
