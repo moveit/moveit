@@ -1110,11 +1110,7 @@ moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::str
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
 {
-  LinkModelMap::const_iterator it = link_model_map_.find(name);
-  if (it != link_model_map_.end())
-    return it->second;
-  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return const_cast<RobotModel*>(this)->getLinkModel(name);
 }
 
 const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
@@ -1135,6 +1131,22 @@ moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::strin
     return it->second;
   logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return NULL;
+}
+
+const moveit::core::LinkModel* moveit::core::RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
+{
+  if (!link)
+    return link;
+  const robot_model::LinkModel* parent_link = link->getParentLinkModel();
+  const robot_model::JointModel* joint = link->getParentJointModel();
+
+  while (parent_link && joint->getType() == robot_model::JointModel::FIXED)
+  {
+    link = parent_link;
+    joint = link->getParentJointModel();
+    parent_link = joint->getParentLinkModel();
+  }
+  return link;
 }
 
 void moveit::core::RobotModel::updateMimicJoints(double* values) const
@@ -1258,22 +1270,21 @@ void moveit::core::RobotModel::interpolate(const double* from, const double* to,
 void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
 {
   // we first set all the "simple" allocators -- where a group has one IK solver
-  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+  for (JointModelGroup* jmg : joint_model_groups_)
   {
-    std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(it->second->getName());
+    std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt != allocators.end())
     {
       std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
       result.first = jt->second;
-      it->second->setSolverAllocators(result);
+      jmg->setSolverAllocators(result);
     }
   }
 
   // now we set compound IK solvers; we do this later because we need the index maps computed by the previous calls to
   // setSolverAllocators()
-  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+  for (JointModelGroup* jmg : joint_model_groups_)
   {
-    JointModelGroup* jmg = it->second;
     std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
     std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt == allocators.end())
@@ -1284,13 +1295,12 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
 
       std::vector<const JointModelGroup*> subs;
 
-      // go through the groups that we know have IK allocators and see if they are included in the group that does not;
-      // if so, put that group in sub
+      // go through the groups that have IK allocators and see if they are part of jmg; collect them in subs
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin(); kt != allocators.end();
            ++kt)
       {
         const JointModelGroup* sub = getJointModelGroup(kt->first);
-        if (!sub)
+        if (!sub)  // this should actually not happen, all groups should be well defined
         {
           subs.clear();
           break;
@@ -1299,10 +1309,15 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
         sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
 
         if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
-        {
+        {  // sub_joints included in joints: add sub, remove sub_joints from joints set
           std::set<const JointModel*> resultj;
           std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
                               std::inserter(resultj, resultj.end()));
+          // TODO: instead of maintaining disjoint joint sets here,
+          // should we leave that work to JMG's setSolverAllocators() / computeIKIndexBijection()?
+          // There, a disjoint bijection from joints to solvers is computed anyway.
+          // Underlying question: How do we resolve overlaps? Now the first considered sub group "wins"
+          // But, if the overlap only involves fixed joints, we could consider all sub groups
           subs.push_back(sub);
           joints.swap(resultj);
         }

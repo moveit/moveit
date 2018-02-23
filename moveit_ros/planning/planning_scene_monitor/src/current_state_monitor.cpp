@@ -173,7 +173,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
     {
       if (!joint->isPassive() && !joint->getMimic())
       {
-        ROS_DEBUG("Joint '%s' has never been updated", joint->getName());
+        ROS_DEBUG("Joint '%s' has never been updated", joint->getName().c_str());
         result = false;
       }
     }
@@ -264,7 +264,12 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
     state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
+    {
+      ROS_INFO_STREAM("Didn't received robot state (joint angles) with recent timestamp within "
+                      << wait_time << " seconds.\n"
+                      << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
+    }
   }
   return true;
 }

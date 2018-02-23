@@ -2127,10 +2127,10 @@ unsigned int moveit::planning_interface::MoveGroupInterface::getVariableCount() 
   return impl_->getJointModelGroup()->getVariableCount();
 }
 
-robot_state::RobotStatePtr moveit::planning_interface::MoveGroupInterface::getCurrentState()
+robot_state::RobotStatePtr moveit::planning_interface::MoveGroupInterface::getCurrentState(double wait)
 {
   robot_state::RobotStatePtr current_state;
-  impl_->getCurrentState(current_state);
+  impl_->getCurrentState(current_state, wait);
   return current_state;
 }
 

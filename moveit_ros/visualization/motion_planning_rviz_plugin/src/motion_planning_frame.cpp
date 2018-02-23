@@ -450,14 +450,12 @@ void MotionPlanningFrame::enable()
 
   // activate the frame
   parentWidget()->show();
-  show();
 }
 
 void MotionPlanningFrame::disable()
 {
   move_group_.reset();
   parentWidget()->hide();
-  hide();
 }
 
 void MotionPlanningFrame::tabChanged(int index)

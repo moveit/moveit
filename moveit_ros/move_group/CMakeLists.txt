@@ -81,3 +81,9 @@ install(PROGRAMS
 install(FILES
   default_capabilities_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  # this test is flaky
+  # add_rostest(test/test_cancel_before_plan_execution.test)
+endif()
