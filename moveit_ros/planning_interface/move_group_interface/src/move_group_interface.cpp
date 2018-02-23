@@ -1144,6 +1144,8 @@ public:
 
     if (path_constraints_)
       request.path_constraints = *path_constraints_;
+    if (trajectory_constraints_)
+      request.trajectory_constraints = *trajectory_constraints_;
   }
 
   void constructGoal(moveit_msgs::MoveGroupGoal& goal)
@@ -1213,6 +1215,16 @@ public:
     path_constraints_.reset();
   }
 
+  void setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint)
+  {
+    trajectory_constraints_.reset(new moveit_msgs::TrajectoryConstraints(constraint));
+  }
+
+  void clearTrajectoryConstraints()
+  {
+    trajectory_constraints_.reset();
+  }
+
   std::vector<std::string> getKnownConstraints() const
   {
     while (initializing_constraints_)
@@ -1234,6 +1246,14 @@ public:
       return *path_constraints_;
     else
       return moveit_msgs::Constraints();
+  }
+
+  moveit_msgs::TrajectoryConstraints getTrajectoryConstraints() const
+  {
+    if (trajectory_constraints_)
+      return *trajectory_constraints_;
+    else
+      return moveit_msgs::TrajectoryConstraints();
   }
 
   void initializeConstraintsStorage(const std::string& host, unsigned int port)
@@ -1313,6 +1333,7 @@ private:
   // common properties for goals
   ActiveTargetType active_target_;
   std::unique_ptr<moveit_msgs::Constraints> path_constraints_;
+  std::unique_ptr<moveit_msgs::TrajectoryConstraints> trajectory_constraints_;
   std::string end_effector_link_;
   std::string pose_reference_frame_;
   std::string support_surface_;
@@ -2178,6 +2199,21 @@ void moveit::planning_interface::MoveGroupInterface::setPathConstraints(const mo
 void moveit::planning_interface::MoveGroupInterface::clearPathConstraints()
 {
   impl_->clearPathConstraints();
+}
+
+moveit_msgs::TrajectoryConstraints moveit::planning_interface::MoveGroupInterface::getTrajectoryConstraints() const
+{
+  return impl_->getTrajectoryConstraints();
+}
+
+void moveit::planning_interface::MoveGroupInterface::setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint)
+{
+  impl_->setTrajectoryConstraints(constraint);
+}
+
+void moveit::planning_interface::MoveGroupInterface::clearTrajectoryConstraints()
+{
+  impl_->clearTrajectoryConstraints();
 }
 
 void moveit::planning_interface::MoveGroupInterface::setConstraintsDatabase(const std::string& host, unsigned int port)

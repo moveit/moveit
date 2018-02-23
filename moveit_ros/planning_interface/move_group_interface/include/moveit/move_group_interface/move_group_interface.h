@@ -906,6 +906,11 @@ public:
       This removes any path constraints set in previous calls to setPathConstraints(). */
   void clearPathConstraints();
 
+  moveit_msgs::TrajectoryConstraints getTrajectoryConstraints() const;
+  bool setTrajectoryConstraints(const std::string& constraints);
+  void setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint);
+  void clearTrajectoryConstraints();
+
   /**@}*/
 
 private:
