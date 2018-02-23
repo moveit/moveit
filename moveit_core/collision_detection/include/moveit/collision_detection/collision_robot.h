@@ -42,7 +42,6 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/LinkPadding.h>
 #include <moveit_msgs/LinkScale.h>
-#include <moveit/macros/deprecation.h>
 
 namespace collision_detection
 {
@@ -163,46 +162,29 @@ public:
                                    const robot_state::RobotState& other_state2,
                                    const AllowedCollisionMatrix& acm) const = 0;
 
-  /** \brief The distance to self-collision given the robot is at state \e state.
+  /** \brief The distance to self-collision given the robot is at state \e state. */
+  inline double distanceSelf(const robot_state::RobotState& state) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
 
-      Replace by distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                              const robot_state::RobotState& state) */
-  MOVEIT_DEPRECATED
-  virtual double distanceSelf(const robot_state::RobotState& state) const = 0;
+    req.enableGroup(getRobotModel());
+    distanceSelf(req, res, state);
+    return res.minimum_distance.distance;
+  }
 
   /** \brief The distance to self-collision given the robot is at state \e state, ignoring
-      the distances between links that are allowed to always collide (as specified by \e acm)
+      the distances between links that are allowed to always collide (as specified by \e acm) */
+  inline double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
 
-      Replace by distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                              const robot_state::RobotState& state) */
-  MOVEIT_DEPRECATED
-  virtual double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const = 0;
-
-  /** \brief The distance to another robot instance.
-
-      Replaced by distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
-                                const CollisionRobot& other_robot, const robot_state::RobotState& other_state)
-
-      @param state The state of this robot to consider
-      @param other_robot The other robot instance to measure distance to
-      @param other_state The state of the other robot */
-  MOVEIT_DEPRECATED
-  virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                               const robot_state::RobotState& other_state) const = 0;
-
-  /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always
-     collide.
-
-      Replaced by distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
-                                const CollisionRobot& other_robot, const robot_state::RobotState& other_state)
-
-      @param state The state of this robot to consider
-      @param other_robot The other robot instance to measure distance to
-      @param other_state The state of the other robot
-      @param acm The collision matrix specifying which links are allowed to always collide */
-  MOVEIT_DEPRECATED
-  virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                               const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const = 0;
+    req.enableGroup(getRobotModel());
+    req.acm = &acm;
+    distanceSelf(req, res, state);
+    return res.minimum_distance.distance;
+  }
 
   /** \brief The distance to self-collision given the robot is at state \e state.
       @param req A DistanceRequest object that encapsulates the distance request
@@ -210,6 +192,43 @@ public:
       @param state The state of this robot to consider */
   virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
                             const robot_state::RobotState& state) const = 0;
+
+  /** \brief The distance to another robot instance.
+
+
+      @param state The state of this robot to consider
+      @param other_robot The other robot instance to measure distance to
+      @param other_state The state of the other robot */
+  inline double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                              const robot_state::RobotState& other_state) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    distanceOther(req, res, state, other_robot, other_state);
+    return res.minimum_distance.distance;
+  }
+
+  /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always
+     collide.
+
+
+      @param state The state of this robot to consider
+      @param other_robot The other robot instance to measure distance to
+      @param other_state The state of the other robot
+      @param acm The collision matrix specifying which links are allowed to always collide */
+  inline double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                              const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    req.acm = &acm;
+    distanceOther(req, res, state, other_robot, other_state);
+    return res.minimum_distance.distance;
+  }
 
   /** \brief The distance to self-collision given the robot is at state \e state.
       @param req A DistanceRequest object that encapsulates the distance request

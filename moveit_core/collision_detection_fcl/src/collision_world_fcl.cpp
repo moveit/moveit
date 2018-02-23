@@ -138,7 +138,7 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
     dreq.group_name = req.group_name;
     dreq.acm = acm;
     dreq.enableGroup(robot.getRobotModel());
-    distanceRobotHelper(dreq, dres, robot, state);
+    distanceRobot(dreq, dres, robot, state);
     res.distance = dres.minimum_distance.distance;
   }
 }
@@ -172,7 +172,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
 
     dreq.group_name = req.group_name;
     dreq.acm = acm;
-    distanceWorldHelper(dreq, dres, other_world);
+    distanceWorld(dreq, dres, other_world);
     res.distance = dres.minimum_distance.distance;
   }
 }
@@ -269,26 +269,9 @@ void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectCons
   }
 }
 
-double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot& robot,
-                                                                   const robot_state::RobotState& state,
-                                                                   const AllowedCollisionMatrix* acm,
-                                                                   bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = acm;
-  dreq.verbose = verbose;
-  dreq.enableGroup(robot.getRobotModel());
-
-  distanceRobotHelper(dreq, dres, robot, state);
-
-  return dres.minimum_distance.distance;
-}
-
-void collision_detection::CollisionWorldFCL::distanceRobotHelper(const DistanceRequest& req, DistanceResult& res,
-                                                                 const CollisionRobot& robot,
-                                                                 const robot_state::RobotState& state) const
+void collision_detection::CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res,
+                                                           const CollisionRobot& robot,
+                                                           const robot_state::RobotState& state) const
 {
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -296,94 +279,15 @@ void collision_detection::CollisionWorldFCL::distanceRobotHelper(const DistanceR
 
   DistanceData drd(&req, &res);
   for (std::size_t i = 0; !drd.done && i < fcl_obj.collision_objects_.size(); ++i)
-    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceDetailedCallback);
-}
-
-double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
-                                                             const robot_state::RobotState& state, bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.verbose = verbose;
-  dreq.enableGroup(robot.getRobotModel());
-  distanceRobotHelper(dreq, dres, robot, state);
-
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
-                                                             const robot_state::RobotState& state,
-                                                             const AllowedCollisionMatrix& acm, bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = &acm;
-  dreq.verbose = verbose;
-  dreq.enableGroup(robot.getRobotModel());
-  distanceRobotHelper(dreq, dres, robot, state);
-
-  return dres.minimum_distance.distance;
-}
-
-void collision_detection::CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                                           const CollisionRobot& robot,
-                                                           const robot_state::RobotState& state) const
-{
-  distanceRobotHelper(req, res, robot, state);
-}
-
-double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world, bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.verbose = verbose;
-  distanceWorldHelper(dreq, dres, world);
-
-  return dres.minimum_distance.distance;
-}
-
-double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world,
-                                                             const AllowedCollisionMatrix& acm, bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = &acm;
-  dreq.verbose = verbose;
-  distanceWorldHelper(dreq, dres, world);
-
-  return dres.minimum_distance.distance;
+    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
 
 void collision_detection::CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res,
                                                            const CollisionWorld& world) const
 {
-  distanceWorldHelper(req, res, world);
-}
-
-double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld& world,
-                                                                   const AllowedCollisionMatrix* acm,
-                                                                   bool verbose) const
-{
-  DistanceRequest dreq;
-  DistanceResult dres;
-
-  dreq.acm = acm;
-  dreq.verbose = verbose;
-  distanceWorldHelper(dreq, dres, world);
-
-  return dres.minimum_distance.distance;
-}
-
-void collision_detection::CollisionWorldFCL::distanceWorldHelper(const DistanceRequest& req, DistanceResult& res,
-                                                                 const CollisionWorld& world) const
-{
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
   DistanceData drd(&req, &res);
-  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceDetailedCallback);
+  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceCallback);
 }
 
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>

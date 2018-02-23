@@ -251,7 +251,7 @@ struct DistanceRequest
   bool enable_signed_distance;
 
   /// Indicate if the global minimum should only be found. If this is true
-  /// it will only try to find the global minimum distance and not store information 
+  /// it will only try to find the global minimum distance and not store information
   /// on a link by link basis. If this is set to false it will store distance information
   /// for every link in the active_components_only list.
   bool global_minimum_only;

@@ -140,14 +140,13 @@ public:
     return 0.0;
   }
 
-  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                             const CollisionRobot& robot, const robot_state::RobotState& state) const
+  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+                             const robot_state::RobotState& state) const
   {
     logError("Not implemented");
   }
 
-  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res,
-                             const CollisionWorld& world) const
+  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
   {
     logError("Not implemented");
   }
