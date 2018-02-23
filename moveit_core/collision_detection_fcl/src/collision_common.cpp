@@ -474,7 +474,6 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(),
                             cd2->getID().c_str());
 
-  fcl::DistanceResult fcl_result;
   DistanceResultsData dist_result;
   double dist_threshold = cdata->req->distance_threshold;
   std::map<std::string, DistanceResultsData>::iterator it1, it2;
@@ -513,6 +512,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     dist_threshold = cdata->res->minimum_distance.distance;
   }
 
+  fcl::DistanceResult fcl_result;
   fcl_result.min_distance = dist_threshold;
   double d = fcl::distance(o1, o2, fcl::DistanceRequest(cdata->req->enable_nearest_points), fcl_result);
 
@@ -526,6 +526,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
     dist_result.link_names[0] = cd1->ptr.obj->id_;
     dist_result.link_names[1] = cd2->ptr.obj->id_;
+    dist_result.body_types[0] = cd1->type;
+    dist_result.body_types[1] = cd2->type;
     if (cdata->req->enable_nearest_points)
     {
       dist_result.normal = (dist_result.nearest_points[1] - dist_result.nearest_points[0]).normalized();

@@ -239,7 +239,7 @@ struct DistanceRequest
   void enableGroup(const robot_model::RobotModelConstPtr& kmodel)
   {
     if (kmodel->hasJointModelGroup(group_name))
-      active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsWithGeometrySet();
+      active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsSet();
     else
       active_components_only = nullptr;
   }
@@ -292,6 +292,9 @@ struct DistanceResultsData
   /// The object link names
   std::string link_names[2];
 
+  /// The object body type
+  BodyType body_types[2];
+
   /// A normalized vector pointing from link_names[0] to link_names[1].
   Eigen::Vector3d normal;
 
@@ -301,6 +304,8 @@ struct DistanceResultsData
     distance = std::numeric_limits<double>::max();
     nearest_points[0].setZero();
     nearest_points[1].setZero();
+    body_types[0] = BodyType::WORLD_OBJECT;
+    body_types[1] = BodyType::WORLD_OBJECT;
     link_names[0] = "";
     link_names[1] = "";
     normal.setZero();
@@ -314,6 +319,8 @@ struct DistanceResultsData
     nearest_points[1] = other.nearest_points[1];
     link_names[0] = other.link_names[0];
     link_names[1] = other.link_names[1];
+    body_types[0] = other.body_types[0];
+    body_types[1] = other.body_types[1];
     normal = other.normal;
   }
 };
