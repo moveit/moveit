@@ -34,6 +34,7 @@
 
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints
+from moveit_msgs.msg import MoveItErrorCodes, TrajectoryConstraints
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -388,6 +389,27 @@ class MoveGroupCommander(object):
     def clear_path_constraints(self):
         """ Specify that no path constraints are to be used during motion planning """
         self._g.clear_path_constraints()
+
+    def get_trajectory_constraints(self):
+        """ Get the actual trajectory constraints in form of a moveit_msgs.msgs.Constraints """
+        c = Constraints()
+        c_str = self._g.get_trajectory_constraints()
+        conversions.msg_from_string(c, c_str)
+        return c
+
+    def set_trajectory_constraints(self, value):
+        """ Specify the trajectory constraints to be used (as read from the database) """
+        if value == None:
+            self.clear_path_constraints()
+        else:
+            if type(value) is TrajectoryConstraints:
+                self._g.set_trajectory_constraints_from_msg(conversions.msg_to_string(value))
+            elif not self._g.set_trajectory_constraints(value):
+                raise MoveItCommanderException("Unable to set path constraints " + value)
+
+    def clear_trajectory_constraints(self):
+        """ Specify that no trajectory constraints are to be used during motion planning """
+        self._g.clear_trajectory_constraints()
 
     def set_constraints_database(self, host, port):
         """ Specify which database to connect to for loading possible path constraints """
