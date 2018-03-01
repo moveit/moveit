@@ -1908,8 +1908,6 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  // at least 5 steps per trajectory. Otherwise the jump threshold doens't work well.
-  static const unsigned int MIN_STEPS = 5;
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
   for (std::size_t i = 0; i < cjnt.size(); ++i)
@@ -1925,7 +1923,10 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 
   // decide how many steps we will need for this trajectory
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
-  unsigned int steps = std::max((test_joint_space_jump ? MIN_STEPS : 0), (unsigned int)floor(distance / max_step) + 1);
+
+  // If we are testing using the jump threshold, we always want at least min_steps_for_jump_thresh steps
+  unsigned int steps =
+      std::max(test_joint_space_jump ? min_steps_for_jump_thresh : 0, (unsigned int)floor(distance / max_step) + 1);
 
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
@@ -1960,6 +1961,14 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                     double jump_threshold)
 {
+  if (traj.size() < min_steps_for_jump_thresh)
+  {
+    logWarn("Truncating Cartesian path since the computed trajectory was too short to detect jumps in joint-space "
+            "Needed at least %zu steps, only got %zu. Try a lower max_step.",
+            min_steps_for_jump_thresh, traj.size());
+    traj.resize(0);
+    return 0.0;
+  }
   std::vector<double> dist_vector;
   dist_vector.reserve(traj.size() - 1);
   double total_dist = 0.0;
@@ -1999,7 +2008,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     static const double no_joint_space_jump_test = 0.0;
     std::vector<RobotStatePtr> waypoint_traj;
     double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
-                                                       max_step, jump_threshold, validCallback, options);
+                                                       max_step, no_joint_space_jump_test, validCallback, options);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
@@ -2017,6 +2026,11 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
       traj.insert(traj.end(), start, waypoint_traj.end());
       break;
     }
+  }
+
+  if (jump_threshold > 0.0)
+  {
+    percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
   }
 
   return percentage_solved;
