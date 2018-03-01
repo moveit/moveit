@@ -43,6 +43,7 @@
 #include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
 #include <moveit/robot_model/aabb.h>
+#include <algorithm>
 
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
@@ -1907,6 +1908,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
+  // at least 5 steps per trajectory. Otherwise the jump threshold doens't work well.
+  static const unsigned int MIN_STEPS = 5;
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
   for (std::size_t i = 0; i < cjnt.size(); ++i)
@@ -1922,7 +1925,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 
   // decide how many steps we will need for this trajectory
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
-  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
+  unsigned int steps = std::max((test_joint_space_jump ? MIN_STEPS : 0), (unsigned int)floor(distance / max_step) + 1);
 
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
@@ -1996,7 +1999,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     static const double no_joint_space_jump_test = 0.0;
     std::vector<RobotStatePtr> waypoint_traj;
     double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
-                                                       max_step, no_joint_space_jump_test, validCallback, options);
+                                                       max_step, jump_threshold, validCallback, options);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
@@ -2014,11 +2017,6 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
       traj.insert(traj.end(), start, waypoint_traj.end());
       break;
     }
-  }
-
-  if (jump_threshold > 0.0)
-  {
-    percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
   }
 
   return percentage_solved;
