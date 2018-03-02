@@ -45,6 +45,16 @@
 #include <moveit/robot_model/aabb.h>
 #include <algorithm>
 
+namespace moveit
+{
+namespace core
+{
+/** \brief At least 5 steps per trajectory for testing jump thresholds with computeCartesianPath. Otherwise
+ * testJointSpaceJump doens't work well. */
+static const std::size_t MIN_STEPS_FOR_JUMP_THRESH = 5;
+}
+}
+
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
   , has_velocity_(false)
@@ -1924,9 +1934,12 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   // decide how many steps we will need for this trajectory
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
 
-  // If we are testing using the jump threshold, we always want at least min_steps_for_jump_thresh steps
-  unsigned int steps =
-      std::max(test_joint_space_jump ? min_steps_for_jump_thresh : 0, (unsigned int)floor(distance / max_step) + 1);
+  // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
+  unsigned int steps;
+  if (test_joint_space_jump)
+    steps = std::max(MIN_STEPS_FOR_JUMP_THRESH, (std::size_t)floor(distance / max_step) + 1);
+  else
+    steps = (unsigned int)floor(distance / max_step) + 1;
 
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
@@ -1961,13 +1974,11 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                     double jump_threshold)
 {
-  if (traj.size() < min_steps_for_jump_thresh)
+  if (traj.size() < MIN_STEPS_FOR_JUMP_THRESH)
   {
-    logWarn("Truncating Cartesian path since the computed trajectory was too short to detect jumps in joint-space "
-            "Needed at least %zu steps, only got %zu. Try a lower max_step.",
-            min_steps_for_jump_thresh, traj.size());
-    traj.resize(0);
-    return 0.0;
+    logWarn("The computed trajectory is too short to detect jumps in joint-space "
+            "Need at least %zu steps, only got %zu. Try a lower max_step.",
+            MIN_STEPS_FOR_JUMP_THRESH, traj.size());
   }
   std::vector<double> dist_vector;
   dist_vector.reserve(traj.size() - 1);

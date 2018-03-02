@@ -1773,10 +1773,6 @@ private:
   bool has_acceleration_;
   bool has_effort_;
 
-  /** \brief We at least 5 steps per trajectory for testing jump thresholds with computeCartesianPath. Otherwise
-   * testJointSpaceJump doens't work well. */
-  static const unsigned int min_steps_for_jump_thresh = 5;
-
   const JointModel* dirty_link_transforms_;
   const JointModel* dirty_collision_body_transforms_;
 
