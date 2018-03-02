@@ -850,7 +850,6 @@ void BenchmarkExecutor::collectMetrics(PlannerRunData& metrics,
           correct = false;
         if (!p.getWayPoint(k).satisfiesBounds())
           correct = false;
-
         double d = planning_scene_->distanceToCollisionUnpadded(p.getWayPoint(k));
         if (d > 0.0)  // in case of collision, distance is negative
           clearance += d;

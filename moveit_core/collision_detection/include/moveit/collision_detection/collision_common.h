@@ -221,12 +221,25 @@ struct CollisionRequest
   bool verbose;
 };
 
+namespace DistanceRequestTypes
+{
+enum DistanceRequestType
+{
+  GLOBAL,        /// Find the global minimum
+  SINGLE,        /// Find the global minimum for each pair
+  LIMITED,       /// Find a limited(max_contacts_per_body) set of contacts for a given pair
+  ALL            /// Find all the contacts for a given pair
+};
+}
+typedef DistanceRequestTypes::DistanceRequestType DistanceRequestType;
+
 struct DistanceRequest
 {
   DistanceRequest()
     : enable_nearest_points(false)
     , enable_signed_distance(false)
-    , global_minimum_only(true)
+    , type(DistanceRequestType::GLOBAL)
+    , max_contacts_per_body(1)
     , active_components_only(nullptr)
     , acm(nullptr)
     , distance_threshold(std::numeric_limits<double>::max())
@@ -250,12 +263,15 @@ struct DistanceRequest
   /// Indicate if a signed distance should be calculated in a collision.
   bool enable_signed_distance;
 
-  /// Indicate if the global minimum should only be found. If this is true
-  /// it will only try to find the global minimum distance and not store information
-  /// on a link by link basis. If this is set to false it will store distance information
-  /// for every link in the active_components_only list.
-  bool global_minimum_only;
+  /// Indicate the type of distance request. If using type=ALL, it is
+  /// recommended ot set max_contacts_per_body to the expected number
+  /// of contacts per pair becaused it is uesed to reserving space.
+  DistanceRequestType type;
 
+  /// Maximum number of contacts to store for a bodies (multiple bodies may be within distance threshold)
+  std::size_t max_contacts_per_body;
+
+  /// The group name
   std::string group_name;
 
   /// The set of active components to check
@@ -323,16 +339,25 @@ struct DistanceResultsData
     body_types[1] = other.body_types[1];
     normal = other.normal;
   }
+
+  /// Compare if the distance is less than another
+  bool operator<(const DistanceResultsData& other)
+  {
+    return (distance < other.distance);
+  }
+
+  /// Compare if the distance is greater than another
+  bool operator>(const DistanceResultsData& other)
+  {
+    return (distance > other.distance);
+  }
 };
 
-typedef std::map<std::string, DistanceResultsData> DistanceMap;
+typedef std::map<const std::pair<std::string, std::string>, std::vector<DistanceResultsData> > DistanceMap;
 
 struct DistanceResult
 {
   DistanceResult() : collision(false)
-  {
-  }
-  virtual ~DistanceResult()
   {
   }
 

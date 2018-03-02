@@ -387,7 +387,6 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
 
   const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());
   const CollisionGeometryData* cd2 = static_cast<const CollisionGeometryData*>(o2->collisionGeometry()->getUserData());
-  bool active1 = true, active2 = true;
 
   // do not distance check for geoms part of the same object / link / attached body
   if (cd1->sameObject(*cd2))
@@ -405,14 +404,9 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
             cd2->ptr.link :
             (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : nullptr);
 
-    if (!l1 || cdata->req->active_components_only->find(l1) == cdata->req->active_components_only->end())
-      active1 = false;
-
-    if (!l2 || cdata->req->active_components_only->find(l2) == cdata->req->active_components_only->end())
-      active2 = false;
-
     // If neither of the involved components is active
-    if (active1 == false && active2 == false)
+    if ((!l1 || cdata->req->active_components_only->find(l1) == cdata->req->active_components_only->end()) &&
+        (!l2 || cdata->req->active_components_only->find(l2) == cdata->req->active_components_only->end()))
     {
       return false;
     }
@@ -474,45 +468,37 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(),
                             cd2->getID().c_str());
 
+  fcl::DistanceResult fcl_result;
   DistanceResultsData dist_result;
   double dist_threshold = cdata->req->distance_threshold;
-  std::map<std::string, DistanceResultsData>::iterator it1, it2;
 
-  if (!cdata->req->global_minimum_only)
+  const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
+                                                        std::make_pair(cd1->getID(), cd2->getID()) :
+                                                        std::make_pair(cd2->getID(), cd1->getID());
+
+  DistanceMap::iterator it = cdata->res->distances.find(pc);
+
+
+  if (it != cdata->res->distances.end())
   {
-    it1 = cdata->res->distances.find(cd1->ptr.obj->id_);
-    it2 = cdata->res->distances.find(cd2->ptr.obj->id_);
-
-    if (cdata->req->active_components_only)
+    if (cdata->req->type == DistanceRequestType::LIMITED)
     {
-      if (active1 && active2)
+      // If at the limit for a given pair just return
+      if (it->second.size() >= cdata->req->max_contacts_per_body)
       {
-        if (it1 != cdata->res->distances.end() && it2 != cdata->res->distances.end())
-          dist_threshold = std::max(it1->second.distance, it2->second.distance);
-      }
-      else if (active1 && !active2)
-      {
-        if (it1 != cdata->res->distances.end())
-          dist_threshold = it1->second.distance;
-      }
-      else if (!active1 && active2)
-      {
-        if (it2 != cdata->res->distances.end())
-          dist_threshold = it2->second.distance;
+        return cdata->done;
       }
     }
-    else
+    else if (cdata->req->type != DistanceRequestType::GLOBAL)
     {
-      if (it1 != cdata->res->distances.end() && it2 != cdata->res->distances.end())
-        dist_threshold = std::max(it1->second.distance, it2->second.distance);
+      dist_threshold = cdata->res->minimum_distance.distance;
+    }
+    else if (cdata->req->type != DistanceRequestType::SINGLE)
+    {
+      dist_threshold = it->second[0].distance;
     }
   }
-  else
-  {
-    dist_threshold = cdata->res->minimum_distance.distance;
-  }
 
-  fcl::DistanceResult fcl_result;
   fcl_result.min_distance = dist_threshold;
   double d = fcl::distance(o1, o2, fcl::DistanceRequest(cdata->req->enable_nearest_points), fcl_result);
 
@@ -566,46 +552,47 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       }
     }
 
-    cdata->res->minimum_distance = dist_result;
-
-    if (!cdata->req->global_minimum_only)
+    if (dist_result.distance < cdata->res->minimum_distance.distance)
     {
-      if (d <= 0 && !cdata->res->collision)
-      {
-        cdata->res->collision = true;
-      }
+      cdata->res->minimum_distance = dist_result;
+    }
 
-      if (active1)
-      {
-        if (it1 == cdata->res->distances.end())
-        {
-          cdata->res->distances.insert(std::make_pair(cd1->ptr.obj->id_, dist_result));
-        }
-        else
-        {
-          it1->second = dist_result;
-        }
-      }
+    if (dist_result.distance <= 0 && !cdata->res->collision)
+    {
+      cdata->res->collision = true;
+    }
 
-      if (active2)
+    if (cdata->req->type != DistanceRequestType::GLOBAL)
+    {
+      if (it == cdata->res->distances.end())
       {
-        if (it2 == cdata->res->distances.end())
+        std::vector<DistanceResultsData> data;
+        data.reserve(cdata->req->max_contacts_per_body);
+        data.push_back(dist_result);
+        cdata->res->distances.insert(std::make_pair(pc, data));
+      }
+      else
+      {
+        if (cdata->req->type == DistanceRequestType::ALL)
         {
-          cdata->res->distances.insert(std::make_pair(cd2->ptr.obj->id_, dist_result));
+          it->second.push_back(dist_result);
         }
-        else
+        else if (cdata->req->type == DistanceRequestType::SINGLE)
         {
-          it2->second = dist_result;
+          if (it->second[0].distance < dist_result.distance)
+            it->second[0] = dist_result;
+        }
+        else if (cdata->req->type == DistanceRequestType::LIMITED)
+        {
+          assert(it->second.size() < cdata->req->max_contacts_per_body);
+          it->second.push_back(dist_result);
         }
       }
     }
-    else
+
+    if (!cdata->req->enable_signed_distance && cdata->res->collision)
     {
-      if (d <= 0)
-      {
-        cdata->res->collision = true;
-        cdata->done = true;
-      }
+      cdata->done = true;
     }
   }
 
