@@ -340,21 +340,22 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            CONSOLE_BRIDGE_logError("The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
-                     "in default state '%s' for group '%s'",
-                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
-                     jmg->getName().c_str());
+            CONSOLE_BRIDGE_logError(
+                "The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
+                "in default state '%s' for group '%s'",
+                jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), jmg->getName().c_str());
         }
         else
-          CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'",
-                   ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
+          CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', but that joint is not part of "
+                                  "group '%s'",
+                                  ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!state.empty())
         jmg->addDefaultState(ds[i].name_, state);
     }
     else
-      CONSOLE_BRIDGE_logError("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(),
-               ds[i].group_.c_str());
+      CONSOLE_BRIDGE_logError("Group state '%s' specified for group '%s', but that group does not exist",
+                              ds[i].name_.c_str(), ds[i].group_.c_str());
   }
 }
 
@@ -374,11 +375,11 @@ void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model
             joint_model_vector_[i]->setMimic(jit->second, jm->mimic->multiplier, jm->mimic->offset);
           else
             CONSOLE_BRIDGE_logError("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
-                     joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+                                    joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          CONSOLE_BRIDGE_logError("Joint '%s' cannot mimic unknown joint '%s'", joint_model_vector_[i]->getName().c_str(),
-                   jm->mimic->joint_name.c_str());
+          CONSOLE_BRIDGE_logError("Joint '%s' cannot mimic unknown joint '%s'",
+                                  joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
       }
   }
 
@@ -514,7 +515,8 @@ void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
 
   for (std::size_t i = 0; i < processed.size(); ++i)
     if (!processed[i])
-      CONSOLE_BRIDGE_logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
+      CONSOLE_BRIDGE_logWarn("Could not process group '%s' due to unmet subgroup dependencies",
+                             group_configs[i].name_.c_str());
 
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
     joint_model_groups_.push_back(it->second);
@@ -599,17 +601,18 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& s
               if (jt->second != it->second)
                 eef_parent_group = jt->second;
               else
-                CONSOLE_BRIDGE_logError("Group '%s' for end-effector '%s' cannot be its own parent", eefs[k].parent_group_.c_str(),
-                         eefs[k].name_.c_str());
+                CONSOLE_BRIDGE_logError("Group '%s' for end-effector '%s' cannot be its own parent",
+                                        eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
             else
-              CONSOLE_BRIDGE_logError("Group '%s' was specified as parent group for end-effector '%s' but it does not include the "
-                       "parent link '%s'",
-                       eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
+              CONSOLE_BRIDGE_logError(
+                  "Group '%s' was specified as parent group for end-effector '%s' but it does not include the "
+                  "parent link '%s'",
+                  eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
           }
           else
             CONSOLE_BRIDGE_logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
-                     eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
+                                    eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
         }
 
         // if no parent group was specified, use a default one
@@ -900,12 +903,14 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     {
       if (vjoints[i].child_link_ != child_link->name)
       {
-        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame '%s'",
-                vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
+        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame "
+                               "'%s'",
+                               vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
       }
       else if (vjoints[i].parent_frame_.empty())
       {
-        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its parent frame is empty", vjoints[i].name_.c_str());
+        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its parent frame is empty",
+                               vjoints[i].name_.c_str());
       }
       else
       {
@@ -1332,7 +1337,8 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
           ss << subs[i]->getName() << " ";
           result.second[subs[i]] = allocators.find(subs[i]->getName())->second;
         }
-        CONSOLE_BRIDGE_logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+        CONSOLE_BRIDGE_logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(),
+                                ss.str().c_str());
       }
       jmg->setSolverAllocators(result);
     }

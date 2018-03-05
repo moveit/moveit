@@ -80,7 +80,7 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   if (request_.allowed_planning_time <= 0.0)
   {
     CONSOLE_BRIDGE_logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
-              request_.allowed_planning_time);
+                             request_.allowed_planning_time);
     request_.allowed_planning_time = 1.0;
   }
   if (request_.num_planning_attempts < 0)

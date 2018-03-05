@@ -355,9 +355,10 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
   else
   {
-    CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping existing "
-             "active collision detector '%s'",
-             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+    CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping "
+                            "existing "
+                            "active collision detector '%s'",
+                            collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return false;
   }
 }
@@ -377,7 +378,7 @@ planning_scene::PlanningScene::getCollisionWorld(const std::string& collision_de
   if (it == collision_.end())
   {
     CONSOLE_BRIDGE_logError("Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
-             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+                            collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->cworld_const_;
   }
 
@@ -391,7 +392,7 @@ planning_scene::PlanningScene::getCollisionRobot(const std::string& collision_de
   if (it == collision_.end())
   {
     CONSOLE_BRIDGE_logError("Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
-             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+                            collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobot();
   }
 
@@ -404,8 +405,9 @@ planning_scene::PlanningScene::getCollisionRobotUnpadded(const std::string& coll
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
-    CONSOLE_BRIDGE_logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded '%s' instead",
-             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+    CONSOLE_BRIDGE_logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded "
+                            "'%s' instead",
+                            collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobotUnpadded();
   }
 
@@ -899,7 +901,8 @@ bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose&
       tf::poseEigenToMsg(map->shape_poses_[0], octomap.origin);
       return true;
     }
-    CONSOLE_BRIDGE_logError("Unexpected number of shapes in octomap collision object. Not including '%s' object", OCTOMAP_NS.c_str());
+    CONSOLE_BRIDGE_logError("Unexpected number of shapes in octomap collision object. Not including '%s' object",
+                            OCTOMAP_NS.c_str());
   }
   return false;
 }
@@ -1118,9 +1121,10 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
-      CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. The request to modify the object '%s' is not "
-               "supported. Object is ignored.",
-               state.attached_collision_objects[i].object.id.c_str());
+      CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. The request to modify the object "
+                              "'%s' is not "
+                              "supported. Object is ignored.",
+                              state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
     processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
@@ -1211,8 +1215,8 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
     name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
-    CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene_msg.robot_model_name.c_str(),
-            getRobotModel()->getName().c_str());
+    CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.",
+                           scene_msg.robot_model_name.c_str(), getRobotModel()->getName().c_str());
 
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -1267,8 +1271,8 @@ bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
-    CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene_msg.robot_model_name.c_str(),
-            getRobotModel()->getName().c_str());
+    CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.",
+                           scene_msg.robot_model_name.c_str(), getRobotModel()->getName().c_str());
 
   if (parent_)
     decoupleParent();
@@ -1432,7 +1436,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
     {
-      CONSOLE_BRIDGE_logError("Number of primitive shapes does not match number of poses in attached collision object message");
+      CONSOLE_BRIDGE_logError("Number of primitive shapes does not match number of poses in attached collision object "
+                              "message");
       return false;
     }
 
@@ -1461,7 +1466,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(object.object.id);
         if (obj)
         {
-          CONSOLE_BRIDGE_logInform("Attaching world object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+          CONSOLE_BRIDGE_logInform("Attaching world object '%s' to link '%s'", object.object.id.c_str(),
+                                   object.link_name.c_str());
 
           // extract the shapes from the world
           shapes = obj->shapes_;
@@ -1476,9 +1482,10 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         }
         else
         {
-          CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an object does "
-                   "not exist in the collision world",
-                   object.object.id.c_str(), object.link_name.c_str());
+          CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an "
+                                  "object does "
+                                  "not exist in the collision world",
+                                  object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
       }
@@ -1489,11 +1496,12 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         {
           if (object.object.operation == moveit_msgs::CollisionObject::ADD)
             CONSOLE_BRIDGE_logInform("Removing world object with the same name as newly attached object: '%s'",
-                      object.object.id.c_str());
+                                     object.object.id.c_str());
           else
-            CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object that is actually a world object ('%s'). World "
-                    "geometry is ignored.",
-                    object.object.id.c_str());
+            CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object that is actually a world object "
+                                   "('%s'). World "
+                                   "geometry is ignored.",
+                                   object.object.id.c_str());
         }
 
         for (std::size_t i = 0; i < object.object.primitives.size(); ++i)
@@ -1542,8 +1550,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
 
       if (shapes.empty())
       {
-        CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'", object.link_name.c_str(),
-                 object.object.id.c_str());
+        CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'",
+                                object.link_name.c_str(), object.object.id.c_str());
         return false;
       }
 
@@ -1554,11 +1562,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
       {
         // there should not exist an attached object with this name
         if (kstate_->clearAttachedBody(object.object.id))
-          CONSOLE_BRIDGE_logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
-                    object.object.id.c_str(), object.link_name.c_str());
+          CONSOLE_BRIDGE_logInform("The robot state already had an object named '%s' attached to link '%s'. The object "
+                                   "was replaced.",
+                                   object.object.id.c_str(), object.link_name.c_str());
         kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                             object.detach_posture);
-        CONSOLE_BRIDGE_logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+        CONSOLE_BRIDGE_logInform("Attached object '%s' to link '%s'", object.object.id.c_str(),
+                                 object.link_name.c_str());
       }
       else
       {
@@ -1574,7 +1584,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         else
           kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, detach_posture);
         CONSOLE_BRIDGE_logInform("Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(),
-                  object.link_name.c_str());
+                                 object.link_name.c_str());
       }
 
       return true;
@@ -1624,14 +1634,15 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
       kstate_->clearAttachedBody(name);
 
       if (world_->hasObject(name))
-        CONSOLE_BRIDGE_logWarn("The collision world already has an object with the same name as the body about to be detached. NOT "
-                "adding the detached body '%s' to the collision world.",
-                object.object.id.c_str());
+        CONSOLE_BRIDGE_logWarn("The collision world already has an object with the same name as the body about to be "
+                               "detached. NOT "
+                               "adding the detached body '%s' to the collision world.",
+                               object.object.id.c_str());
       else
       {
         world_->addToObject(name, shapes, poses);
-        CONSOLE_BRIDGE_logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(),
-                  object.link_name.c_str());
+        CONSOLE_BRIDGE_logInform("Detached object '%s' from link '%s' and added it back in the collision world",
+                                 name.c_str(), object.link_name.c_str());
       }
     }
     if (!attached_bodies.empty() || object.object.id.empty())
@@ -1742,7 +1753,8 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     if (world_->hasObject(object.id))
     {
       if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
-        CONSOLE_BRIDGE_logWarn("Move operation for object '%s' ignores the geometry specified in the message.", object.id.c_str());
+        CONSOLE_BRIDGE_logWarn("Move operation for object '%s' ignores the geometry specified in the message.",
+                               object.id.c_str());
 
       const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
       EigenSTL::vector_Affine3d new_poses;
@@ -1775,8 +1787,9 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       }
       else
       {
-        CONSOLE_BRIDGE_logError("Number of supplied poses (%u) for object '%s' does not match number of shapes (%u). Not moving.",
-                 (unsigned int)new_poses.size(), object.id.c_str(), (unsigned int)obj->shapes_.size());
+        CONSOLE_BRIDGE_logError("Number of supplied poses (%u) for object '%s' does not match number of shapes (%u). "
+                                "Not moving.",
+                                (unsigned int)new_poses.size(), object.id.c_str(), (unsigned int)obj->shapes_.size());
         return false;
       }
       return true;

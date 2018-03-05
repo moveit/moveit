@@ -62,33 +62,35 @@ void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, std::size_t 
   CONSOLE_BRIDGE_logDebug(" time   [%i]= %f", i, point.time_from_start.toSec());
   if (point.positions.size() >= 7)
   {
-    CONSOLE_BRIDGE_logDebug(" pos_   [%i]= %f %f %f %f %f %f %f", i, point.positions[0], point.positions[1], point.positions[2],
-             point.positions[3], point.positions[4], point.positions[5], point.positions[6]);
+    CONSOLE_BRIDGE_logDebug(" pos_   [%i]= %f %f %f %f %f %f %f", i, point.positions[0], point.positions[1],
+                            point.positions[2], point.positions[3], point.positions[4], point.positions[5],
+                            point.positions[6]);
   }
   if (point.velocities.size() >= 7)
   {
-    CONSOLE_BRIDGE_logDebug("  vel_  [%i]= %f %f %f %f %f %f %f", i, point.velocities[0], point.velocities[1], point.velocities[2],
-             point.velocities[3], point.velocities[4], point.velocities[5], point.velocities[6]);
+    CONSOLE_BRIDGE_logDebug("  vel_  [%i]= %f %f %f %f %f %f %f", i, point.velocities[0], point.velocities[1],
+                            point.velocities[2], point.velocities[3], point.velocities[4], point.velocities[5],
+                            point.velocities[6]);
   }
   if (point.accelerations.size() >= 7)
   {
     CONSOLE_BRIDGE_logDebug("   acc_ [%i]= %f %f %f %f %f %f %f", i, point.accelerations[0], point.accelerations[1],
-             point.accelerations[2], point.accelerations[3], point.accelerations[4], point.accelerations[5],
-             point.accelerations[6]);
+                            point.accelerations[2], point.accelerations[3], point.accelerations[4],
+                            point.accelerations[5], point.accelerations[6]);
   }
 }
 
 void printStats(const trajectory_msgs::JointTrajectory& trajectory, const std::vector<moveit_msgs::JointLimits>& limits)
 {
-  CONSOLE_BRIDGE_logDebug("jointNames= %s %s %s %s %s %s %s", limits[0].joint_name.c_str(), limits[1].joint_name.c_str(),
-           limits[2].joint_name.c_str(), limits[3].joint_name.c_str(), limits[4].joint_name.c_str(),
-           limits[5].joint_name.c_str(), limits[6].joint_name.c_str());
+  CONSOLE_BRIDGE_logDebug("jointNames= %s %s %s %s %s %s %s", limits[0].joint_name.c_str(),
+                          limits[1].joint_name.c_str(), limits[2].joint_name.c_str(), limits[3].joint_name.c_str(),
+                          limits[4].joint_name.c_str(), limits[5].joint_name.c_str(), limits[6].joint_name.c_str());
   CONSOLE_BRIDGE_logDebug("maxVelocities= %f %f %f %f %f %f %f", limits[0].max_velocity, limits[1].max_velocity,
-           limits[2].max_velocity, limits[3].max_velocity, limits[4].max_velocity, limits[5].max_velocity,
-           limits[6].max_velocity);
-  CONSOLE_BRIDGE_logDebug("maxAccelerations= %f %f %f %f %f %f %f", limits[0].max_acceleration, limits[1].max_acceleration,
-           limits[2].max_acceleration, limits[3].max_acceleration, limits[4].max_acceleration,
-           limits[5].max_acceleration, limits[6].max_acceleration);
+                          limits[2].max_velocity, limits[3].max_velocity, limits[4].max_velocity,
+                          limits[5].max_velocity, limits[6].max_velocity);
+  CONSOLE_BRIDGE_logDebug("maxAccelerations= %f %f %f %f %f %f %f", limits[0].max_acceleration,
+                          limits[1].max_acceleration, limits[2].max_acceleration, limits[3].max_acceleration,
+                          limits[4].max_acceleration, limits[5].max_acceleration, limits[6].max_acceleration);
   // for every point in time:
   for (std::size_t i = 0; i < trajectory.points.size(); ++i)
     printPoint(trajectory.points[i], i);
@@ -111,10 +113,11 @@ void IterativeParabolicTimeParameterization::applyVelocityConstraints(robot_traj
   if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
     velocity_scaling_factor = max_velocity_scaling_factor;
   else if (max_velocity_scaling_factor == 0.0)
-    CONSOLE_BRIDGE_logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+    CONSOLE_BRIDGE_logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.",
+                            velocity_scaling_factor);
   else
-    CONSOLE_BRIDGE_logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
-            velocity_scaling_factor);
+    CONSOLE_BRIDGE_logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.",
+                           max_velocity_scaling_factor, velocity_scaling_factor);
 
   for (int i = 0; i < num_points - 1; ++i)
   {
@@ -325,10 +328,10 @@ void IterativeParabolicTimeParameterization::applyAccelerationConstraints(
     acceleration_scaling_factor = max_acceleration_scaling_factor;
   else if (max_acceleration_scaling_factor == 0.0)
     CONSOLE_BRIDGE_logDebug("A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.",
-             acceleration_scaling_factor);
+                            acceleration_scaling_factor);
   else
     CONSOLE_BRIDGE_logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
-            max_acceleration_scaling_factor, acceleration_scaling_factor);
+                           max_acceleration_scaling_factor, acceleration_scaling_factor);
 
   do
   {

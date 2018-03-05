@@ -991,9 +991,10 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an attached body "
-             "id).",
-             id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
+    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an "
+                            "attached body "
+                            "id).",
+                            id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
   const EigenSTL::vector_Affine3d& tf = jt->second->getGlobalCollisionBodyTransforms();
@@ -1003,9 +1004,10 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
     return identity_transform;
   }
   if (tf.size() > 1)
-    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform for the first "
-             "one.",
-             id.c_str());
+    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform "
+                            "for the first "
+                            "one.",
+                            id.c_str());
   return tf[0];
 }
 
@@ -1129,7 +1131,7 @@ bool moveit::core::RobotState::getJacobian(const JointModelGroup* group, const L
   if (!group->isLinkUpdated(link->getName()))
   {
     CONSOLE_BRIDGE_logError("Link name '%s' does not exist in the chain '%s' or is not a child for this chain",
-             link->getName().c_str(), group->getName().c_str());
+                            link->getName().c_str(), group->getName().c_str());
     return false;
   }
 
@@ -1443,7 +1445,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
     if (!solver->supportsGroup(jmg, &error_msg))
     {
       CONSOLE_BRIDGE_logError("moveit.robot_state: Kinematics solver %s does not support joint group %s.  Error: %s",
-               typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
+                              typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
       valid_solver = false;
     }
   }
@@ -1458,7 +1460,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
     }
     else
     {
-      CONSOLE_BRIDGE_logError("moveit.robot_state: No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
+      CONSOLE_BRIDGE_logError("moveit.robot_state: No kinematics solver instantiated for group '%s'",
+                              jmg->getName().c_str());
       return false;
     }
   }
@@ -1467,9 +1470,10 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK request that is "
-             "being solved by a single IK solver",
-             consistency_limit_sets.size());
+    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK "
+                            "request that is "
+                            "being solved by a single IK solver",
+                            consistency_limit_sets.size());
     return false;
   }
   else if (consistency_limit_sets.size() == 1)
@@ -1524,7 +1528,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
           const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
-            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a reference frame.");
+            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a "
+                                    "reference frame.");
             return false;
           }
           pose_frame = ab->getAttachedLinkName();
@@ -1559,7 +1564,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot compute IK for query %u pose reference frame '%s'", i, pose_frame.c_str());
+      CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot compute IK for query %u pose reference frame '%s'", i,
+                              pose_frame.c_str());
       // Debug available tip frames
       std::stringstream ss;
       for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
@@ -1695,13 +1701,15 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
   // Error check
   if (poses_in.size() != sub_groups.size())
   {
-    CONSOLE_BRIDGE_logError("Number of poses (%u) must be the same as number of sub-groups (%u)", poses_in.size(), sub_groups.size());
+    CONSOLE_BRIDGE_logError("Number of poses (%u) must be the same as number of sub-groups (%u)", poses_in.size(),
+                            sub_groups.size());
     return false;
   }
 
   if (tips_in.size() != sub_groups.size())
   {
-    CONSOLE_BRIDGE_logError("Number of tip names (%u) must be same as number of sub-groups (%u)", tips_in.size(), sub_groups.size());
+    CONSOLE_BRIDGE_logError("Number of tip names (%u) must be same as number of sub-groups (%u)", tips_in.size(),
+                            sub_groups.size());
     return false;
   }
 
@@ -1715,8 +1723,8 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
   {
     if (consistency_limits[i].size() != sub_groups[i]->getVariableCount())
     {
-      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %u but it should be should be %u", (unsigned int)i,
-               sub_groups[i]->getVariableCount());
+      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %u but it should be should be %u",
+                              (unsigned int)i, sub_groups[i]->getVariableCount());
       return false;
     }
   }
@@ -1788,8 +1796,8 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
 
     if (pose_frame != solver_tip_frame)
     {
-      CONSOLE_BRIDGE_logError("Cannot compute IK for query pose reference frame '%s', desired: '%s'", pose_frame.c_str(),
-               solver_tip_frame.c_str());
+      CONSOLE_BRIDGE_logError("Cannot compute IK for query pose reference frame '%s', desired: '%s'",
+                              pose_frame.c_str(), solver_tip_frame.c_str());
       return false;
     }
   }

@@ -75,7 +75,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (!joint_model_group_->isChain())
   {
     CONSOLE_BRIDGE_logError("moveit.dynamics_solver: Group '%s' is not a chain. Will not initialize dynamics solver",
-             group_name.c_str());
+                            group_name.c_str());
     joint_model_group_ = NULL;
     return;
   }
@@ -83,7 +83,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (joint_model_group_->getMimicJointModels().size() > 0)
   {
     CONSOLE_BRIDGE_logError("moveit.dynamics_solver: Group '%s' has a mimic joint. Will not initialize dynamics solver",
-             group_name.c_str());
+                            group_name.c_str());
     joint_model_group_ = NULL;
     return;
   }
@@ -99,7 +99,8 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   base_name_ = joint->getParentLinkModel()->getName();
 
   tip_name_ = joint_model_group_->getLinkModelNames().back();
-  CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Base name: '%s', Tip name: '%s'", base_name_.c_str(), tip_name_.c_str());
+  CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Base name: '%s', Tip name: '%s'", base_name_.c_str(),
+                          tip_name_.c_str());
 
   const urdf::ModelInterfaceSharedPtr urdf_model = robot_model_->getURDF();
   const srdf::ModelConstSharedPtr srdf_model = robot_model_->getSRDF();
@@ -147,7 +148,8 @@ bool DynamicsSolver::getTorques(const std::vector<double>& joint_angles, const s
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
+                            "logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)
@@ -215,7 +217,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
+                            "logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)
@@ -249,7 +252,7 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
-           wrenches.back().force.y, wrenches.back().force.z);
+                          wrenches.back().force.y, wrenches.back().force.z);
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, torques))
     return false;
@@ -260,8 +263,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
     double payload_joint = std::max<double>((max_torques_[i] - zero_torques[i]) / (torques[i] - zero_torques[i]),
                                             (-max_torques_[i] - zero_torques[i]) /
                                                 (torques[i] - zero_torques[i]));  // because we set the payload to 1.0
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i, torques[i],
-             max_torques_[i], zero_torques[i]);
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i,
+                            torques[i], max_torques_[i], zero_torques[i]);
     CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Joint: %d, Payload Allowed (N): %f", i, payload_joint);
     if (payload_joint < min_payload)
     {
@@ -279,7 +282,8 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
+                            "logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)
@@ -304,7 +308,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
-           wrenches.back().force.y, wrenches.back().force.z);
+                          wrenches.back().force.y, wrenches.back().force.z);
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
     return false;

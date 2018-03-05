@@ -108,19 +108,20 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
     velocity_scaling_factor = max_velocity_scaling_factor;
   else if (max_velocity_scaling_factor == 0.0)
-    CONSOLE_BRIDGE_logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+    CONSOLE_BRIDGE_logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.",
+                            velocity_scaling_factor);
   else
-    CONSOLE_BRIDGE_logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
-            velocity_scaling_factor);
+    CONSOLE_BRIDGE_logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.",
+                           max_velocity_scaling_factor, velocity_scaling_factor);
 
   if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)
     acceleration_scaling_factor = max_acceleration_scaling_factor;
   else if (max_acceleration_scaling_factor == 0.0)
     CONSOLE_BRIDGE_logDebug("A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.",
-             acceleration_scaling_factor);
+                            acceleration_scaling_factor);
   else
     CONSOLE_BRIDGE_logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
-            max_acceleration_scaling_factor, acceleration_scaling_factor);
+                           max_acceleration_scaling_factor, acceleration_scaling_factor);
 
   // No wrapped angles.
   trajectory.unwind();
@@ -222,16 +223,18 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     // Error out if bounds don't make sense
     if (t2[j].max_velocity <= 0.0 || t2[j].max_acceleration <= 0.0)
     {
-      CONSOLE_BRIDGE_logError("Joint %d max velocity %f and max acceleration %f must be greater than zero or a solution won't be "
-               "found.\n",
-               j, t2[j].max_velocity, t2[j].max_acceleration);
+      CONSOLE_BRIDGE_logError("Joint %d max velocity %f and max acceleration %f must be greater than zero or a "
+                              "solution won't be "
+                              "found.\n",
+                              j, t2[j].max_velocity, t2[j].max_acceleration);
       return false;
     }
     if (t2[j].min_velocity >= 0.0 || t2[j].min_acceleration >= 0.0)
     {
-      CONSOLE_BRIDGE_logError("Joint %d min velocity %f and min acceleration %f must be less than zero or a solution won't be "
-               "found.\n",
-               j, t2[j].min_velocity, t2[j].min_acceleration);
+      CONSOLE_BRIDGE_logError("Joint %d min velocity %f and min acceleration %f must be less than zero or a solution "
+                              "won't be "
+                              "found.\n",
+                              j, t2[j].min_velocity, t2[j].min_acceleration);
       return false;
     }
   }

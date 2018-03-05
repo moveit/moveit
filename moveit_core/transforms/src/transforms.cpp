@@ -49,7 +49,7 @@ moveit::core::Transforms::Transforms(const std::string& target_frame) : target_f
     if (target_frame_[0] != '/')
     {
       CONSOLE_BRIDGE_logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
-              target_frame_.c_str(), target_frame_.c_str());
+                             target_frame_.c_str(), target_frame_.c_str());
       target_frame_ = '/' + target_frame_;
     }
     transforms_[target_frame_] = Eigen::Affine3d::Identity();
@@ -105,7 +105,7 @@ const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string&
   }
 
   CONSOLE_BRIDGE_logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(),
-           target_frame_.c_str());
+                          target_frame_.c_str());
 
   // return identity
   static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
@@ -129,7 +129,8 @@ void moveit::core::Transforms::setTransform(const Eigen::Affine3d& t, const std:
   {
     if (from_frame[0] != '/')
     {
-      CONSOLE_BRIDGE_logWarn("Transform specified for frame '%s'. Assuming '/%s' instead", from_frame.c_str(), from_frame.c_str());
+      CONSOLE_BRIDGE_logWarn("Transform specified for frame '%s'. Assuming '/%s' instead", from_frame.c_str(),
+                             from_frame.c_str());
       transforms_['/' + from_frame] = t;
     }
     else
@@ -147,8 +148,8 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
   }
   else
   {
-    CONSOLE_BRIDGE_logError("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(),
-             target_frame_.c_str());
+    CONSOLE_BRIDGE_logError("Given transform is to frame '%s', but frame '%s' was expected.",
+                            transform.child_frame_id.c_str(), target_frame_.c_str());
   }
 }
 

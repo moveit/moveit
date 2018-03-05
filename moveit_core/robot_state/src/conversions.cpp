@@ -55,7 +55,7 @@ static bool _jointStateToRobotState(const sensor_msgs::JointState& joint_state, 
   if (joint_state.name.size() != joint_state.position.size())
   {
     CONSOLE_BRIDGE_logError("Different number of names and positions in JointState message: %u, %u",
-             (unsigned int)joint_state.name.size(), (unsigned int)joint_state.position.size());
+                            (unsigned int)joint_state.name.size(), (unsigned int)joint_state.position.size());
     return false;
   }
 
@@ -99,9 +99,10 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       error = true;
 
     if (error)
-      CONSOLE_BRIDGE_logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to transform "
-              "that to frame '%s'",
-              mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
+      CONSOLE_BRIDGE_logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible "
+                             "to transform "
+                             "that to frame '%s'",
+                             mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
 
   for (std::size_t i = 0; i < nj; ++i)
@@ -225,7 +226,8 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
     {
       if (aco.object.primitives.size() != aco.object.primitive_poses.size())
       {
-        CONSOLE_BRIDGE_logError("Number of primitive shapes does not match number of poses in collision object message");
+        CONSOLE_BRIDGE_logError("Number of primitive shapes does not match number of poses in collision object "
+                                "message");
         return;
       }
 
@@ -293,8 +295,9 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           else
           {
             t0.setIdentity();
-            CONSOLE_BRIDGE_logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect",
-                     aco.object.header.frame_id.c_str());
+            CONSOLE_BRIDGE_logError("Cannot properly transform from frame '%s'. The pose of the attached body may be "
+                                    "incorrect",
+                                    aco.object.header.frame_id.c_str());
           }
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
@@ -302,13 +305,14 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
         }
 
         if (shapes.empty())
-          CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(),
-                   aco.object.id.c_str());
+          CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'",
+                                  aco.link_name.c_str(), aco.object.id.c_str());
         else
         {
           if (state.clearAttachedBody(aco.object.id))
-            CONSOLE_BRIDGE_logDebug("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
-                     aco.object.id.c_str(), aco.link_name.c_str());
+            CONSOLE_BRIDGE_logDebug("The robot state already had an object named '%s' attached to link '%s'. The "
+                                    "object was replaced.",
+                                    aco.object.id.c_str(), aco.link_name.c_str());
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
           CONSOLE_BRIDGE_logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
@@ -320,7 +324,8 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
   else if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
   {
     if (!state.clearAttachedBody(aco.object.id))
-      CONSOLE_BRIDGE_logError("The attached body '%s' can not be removed because it does not exist", aco.link_name.c_str());
+      CONSOLE_BRIDGE_logError("The attached body '%s' can not be removed because it does not exist",
+                              aco.link_name.c_str());
   }
   else
     CONSOLE_BRIDGE_logError("Unknown collision object operation: %d", aco.object.operation);

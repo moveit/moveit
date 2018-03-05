@@ -584,8 +584,9 @@ bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<st
       // skip reported fixed joints
       if (hasJointModel(ik_jnames[i]) && getJointModel(ik_jnames[i])->getType() == JointModel::FIXED)
         continue;
-      CONSOLE_BRIDGE_logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a joint.",
-               ik_jnames[i].c_str(), getName().c_str());
+      CONSOLE_BRIDGE_logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a "
+                              "joint.",
+                              ik_jnames[i].c_str(), getName().c_str());
       return false;
     }
     const JointModel* jm = getJointModel(ik_jnames[i]);
@@ -650,8 +651,8 @@ bool moveit::core::JointModelGroup::canSetStateFromIK(const std::string& tip) co
     // remove frame reference, if specified
     const std::string& tip_local = tip[0] == '/' ? tip.substr(1) : tip;
     const std::string& tip_frame_local = tip_frames[i][0] == '/' ? tip_frames[i].substr(1) : tip_frames[i];
-    CONSOLE_BRIDGE_logDebug("joint_model_group.canSetStateFromIK: comparing input tip: %s to this groups tip: %s ", tip_local.c_str(),
-             tip_frame_local.c_str());
+    CONSOLE_BRIDGE_logDebug("joint_model_group.canSetStateFromIK: comparing input tip: %s to this groups tip: %s ",
+                            tip_local.c_str(), tip_frame_local.c_str());
 
     // Check if the IK solver's tip is the same as the frame of inquiry
     if (tip_local != tip_frame_local)

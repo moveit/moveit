@@ -125,7 +125,8 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             {
               count++;
               node_centers.push_back(pt);
-              // CONSOLE_BRIDGE_logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(), pt.y(), pt.z());
+              // CONSOLE_BRIDGE_logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(),
+              // pt.y(), pt.z());
             }
           }
           // CONSOLE_BRIDGE_logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
@@ -144,7 +145,8 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             if (divergence > allowed_angle_divergence)
             {
               modified++;
-              //              CONSOLE_BRIDGE_logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
+              //              CONSOLE_BRIDGE_logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f,
+              //              %.3f, %.3f]",
               //                        divergence,
               //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
               //                        n.x(), n.y(), n.z());
