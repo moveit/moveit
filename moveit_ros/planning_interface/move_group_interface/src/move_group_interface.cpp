@@ -393,6 +393,11 @@ public:
     planner_id_ = planner_id;
   }
 
+  const std::string& getPlannerId() const
+  {
+    return planner_id_;
+  }
+
   void setNumPlanningAttempts(unsigned int num_planning_attempts)
   {
     num_planning_attempts_ = num_planning_attempts;
@@ -1446,6 +1451,11 @@ std::string moveit::planning_interface::MoveGroupInterface::getDefaultPlannerId(
 void moveit::planning_interface::MoveGroupInterface::setPlannerId(const std::string& planner_id)
 {
   impl_->setPlannerId(planner_id);
+}
+
+const std::string& moveit::planning_interface::MoveGroupInterface::getPlannerId() const
+{
+  return impl_->getPlannerId();
 }
 
 void moveit::planning_interface::MoveGroupInterface::setNumPlanningAttempts(unsigned int num_planning_attempts)

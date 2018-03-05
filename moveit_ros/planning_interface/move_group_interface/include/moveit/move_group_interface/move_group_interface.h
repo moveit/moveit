@@ -226,6 +226,9 @@ public:
   /** \brief Specify a planner to be used for further planning */
   void setPlannerId(const std::string& planner_id);
 
+  /** \brief Get the current planner_id */
+  const std::string& getPlannerId() const;
+
   /** \brief Specify the maximum amount of time to use when planning */
   void setPlanningTime(double seconds);
 
