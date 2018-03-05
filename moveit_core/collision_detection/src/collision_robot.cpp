@@ -41,12 +41,12 @@ static inline bool validateScale(double scale)
 {
   if (scale < std::numeric_limits<double>::epsilon())
   {
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Scale must be positive");
+    CONSOLE_BRIDGE_logError("Scale must be positive");
     return false;
   }
   if (scale > std::numeric_limits<double>::max())
   {
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Scale must be finite");
+    CONSOLE_BRIDGE_logError("Scale must be finite");
     return false;
   }
   return true;
@@ -56,12 +56,12 @@ static inline bool validatePadding(double padding)
 {
   if (padding < 0.0)
   {
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Padding cannot be negative");
+    CONSOLE_BRIDGE_logError("Padding cannot be negative");
     return false;
   }
   if (padding > std::numeric_limits<double>::max())
   {
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Padding must be finite");
+    CONSOLE_BRIDGE_logError("Padding must be finite");
     return false;
   }
   return true;

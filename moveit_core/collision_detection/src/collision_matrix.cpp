@@ -53,13 +53,13 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||
       msg.default_entry_names.size() != msg.default_entry_values.size())
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("The number of links does not match the number of entries in AllowedCollisionMatrix "
+    CONSOLE_BRIDGE_logError("The number of links does not match the number of entries in AllowedCollisionMatrix "
                             "message");
   else
   {
     for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
       if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
-        CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
+        CONSOLE_BRIDGE_logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
                                 msg.entry_names[i].c_str());
       else
         for (std::size_t j = i + 1; j < msg.entry_values[i].enabled.size(); ++j)

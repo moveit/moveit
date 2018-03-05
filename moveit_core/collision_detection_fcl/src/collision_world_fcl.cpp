@@ -103,7 +103,7 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
                                                                  const robot_state::RobotState& state1,
                                                                  const robot_state::RobotState& state2) const
 {
-  CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -112,7 +112,7 @@ void collision_detection::CollisionWorldFCL::checkRobotCollision(const Collision
                                                                  const robot_state::RobotState& state2,
                                                                  const AllowedCollisionMatrix& acm) const
 {
-  CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
+  CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req,

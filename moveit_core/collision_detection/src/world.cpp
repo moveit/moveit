@@ -64,7 +64,7 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
 {
   if (shapes.size() != poses.size())
   {
-    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("Number of shapes and number of poses do not match. Not adding this object to collision "
+    CONSOLE_BRIDGE_logError("Number of shapes and number of poses do not match. Not adding this object to collision "
                             "world.");
     return;
   }
