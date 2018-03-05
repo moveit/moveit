@@ -315,7 +315,7 @@ public:
     }
 
     // Otherwise throw error because this function should have been implemented
-    logError("moveit.kinematics_base: This kinematic solver does not support searchPositionIK with multiple poses");
+    CONSOLE_BRIDGE_logError("moveit.kinematics_base: This kinematic solver does not support searchPositionIK with multiple poses");
     return false;
   }
 
@@ -392,7 +392,7 @@ public:
       return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
     }
 
-    logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip "
+    CONSOLE_BRIDGE_logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip "
              "frames");
     return false;
   }
@@ -426,7 +426,7 @@ public:
   virtual const std::string& getTipFrame() const
   {
     if (tip_frames_.size() > 1)
-      logError("moveit.kinematics_base: This kinematic solver has more than one tip frame, do not call getTipFrame()");
+      CONSOLE_BRIDGE_logError("moveit.kinematics_base: This kinematic solver has more than one tip frame, do not call getTipFrame()");
 
     return tip_frame_;  // for backwards-compatibility. should actually use tip_frames_[0]
   }

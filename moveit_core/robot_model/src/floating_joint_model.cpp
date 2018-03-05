@@ -172,7 +172,7 @@ bool moveit::core::FloatingJointModel::normalizeRotation(double* values) const
     double norm = sqrt(normSqr);
     if (norm < std::numeric_limits<double>::epsilon() * 100.0)
     {
-      logWarn("Quaternion is zero in RobotState representation. Setting to identity");
+      CONSOLE_BRIDGE_logWarn("Quaternion is zero in RobotState representation. Setting to identity");
       values[3] = 0.0;
       values[4] = 0.0;
       values[5] = 0.0;

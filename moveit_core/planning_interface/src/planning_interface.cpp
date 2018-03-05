@@ -79,12 +79,12 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_ = request;
   if (request_.allowed_planning_time <= 0.0)
   {
-    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
+    CONSOLE_BRIDGE_logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
               request_.allowed_planning_time);
     request_.allowed_planning_time = 1.0;
   }
   if (request_.num_planning_attempts < 0)
-    logError("The number of desired planning attempts should be positive. Assuming one attempt.");
+    CONSOLE_BRIDGE_logError("The number of desired planning attempts should be positive. Assuming one attempt.");
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 

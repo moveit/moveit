@@ -172,7 +172,7 @@ void moveit::tools::Profiler::console(void)
   std::stringstream ss;
   ss << std::endl;
   status(ss, true);
-  logInform(ss.str().c_str());
+  CONSOLE_BRIDGE_logInform(ss.str().c_str());
 }
 
 /// @cond IGNORE

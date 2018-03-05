@@ -64,12 +64,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
 {
   if (!object)
   {
-    CONSOLE_BRIDGE_logError("No valid Object passed in, cannot refine Normals!");
+    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("No valid Object passed in, cannot refine Normals!");
     return 0;
   }
   if (res.contact_count < 1)
   {
-    CONSOLE_BRIDGE_logWarn("There do not appear to be any contacts, so there is nothing to refine!");
+    CONSOLE_BRIDGE_CONSOLE_BRIDGE_logWarn("There do not appear to be any contacts, so there is nothing to refine!");
     return 0;
   }
 
@@ -125,14 +125,14 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             {
               count++;
               node_centers.push_back(pt);
-              // logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(), pt.y(), pt.z());
+              // CONSOLE_BRIDGE_logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(), pt.y(), pt.z());
             }
           }
-          // logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
+          // CONSOLE_BRIDGE_logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
           //          contact_point.x(), contact_point.y(), contact_point.z(), cell_size, count);
 
           // octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
-          // CONSOLE_BRIDGE_logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
+          // CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
 
           octomath::Vector3 n;
           double depth;
@@ -144,7 +144,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             if (divergence > allowed_angle_divergence)
             {
               modified++;
-              //              logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
+              //              CONSOLE_BRIDGE_logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
               //                        divergence,
               //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
               //                        n.x(), n.y(), n.z());
@@ -266,7 +266,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     }
     else
     {
-      CONSOLE_BRIDGE_logError("This should not be called!");
+      CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("This should not be called!");
     }
 
     double f_val = 0;
@@ -292,7 +292,7 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     }
     else
     {
-      CONSOLE_BRIDGE_logError("This should not be called!");
+      CONSOLE_BRIDGE_CONSOLE_BRIDGE_logError("This should not be called!");
       double r_scaled = r / R;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);
