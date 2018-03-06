@@ -868,4 +868,145 @@ Eigen::VectorXd Trajectory::getVelocity(double time) const
   return path.getTangent(pathPos) * pathVel;
 }
 
+namespace time_optimal_trajectory_generation
+{
+
+bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                       const double max_velocity_scaling_factor,
+                       const double max_acceleration_scaling_factor)
+{
+  double tolerance = 0.01;  // TODO
+  double resample = 0.1;  // TODO
+
+  if (trajectory.empty())
+    return true;
+
+  const robot_model::JointModelGroup* group = trajectory.getGroup();
+  if (!group)
+  {
+    logError("It looks like the planner did not set the group the plan was computed for");
+    return false;
+  }
+
+  // Validate scaling
+  double velocity_scaling_factor = 1.0;
+  if (max_velocity_scaling_factor > 0.0 && max_velocity_scaling_factor <= 1.0)
+  {
+    velocity_scaling_factor = max_velocity_scaling_factor;
+  }
+  else if (max_velocity_scaling_factor == 0.0)
+  {
+    logDebug("A max_velocity_scaling_factor of 0.0 was specified, defaulting to %f instead.", velocity_scaling_factor);
+  }
+  else
+  {
+    logWarn("Invalid max_velocity_scaling_factor %f specified, defaulting to %f instead.", max_velocity_scaling_factor,
+            velocity_scaling_factor);
+  }
+
+  double acceleration_scaling_factor = 1.0;
+  if (max_acceleration_scaling_factor > 0.0 && max_acceleration_scaling_factor <= 1.0)
+  {
+    acceleration_scaling_factor = max_acceleration_scaling_factor;
+  }
+  else if (max_acceleration_scaling_factor == 0.0)
+  {
+    logDebug("A max_acceleration_scaling_factor of 0.0 was specified, defaulting to %f instead.",
+             acceleration_scaling_factor);
+  }
+  else
+  {
+    logWarn("Invalid max_acceleration_scaling_factor %f specified, defaulting to %f instead.",
+            max_acceleration_scaling_factor, acceleration_scaling_factor);
+  }
+
+  // This lib does not actually work properly when angles wrap around, so we need to unwind the path first
+  trajectory.unwind();
+
+  // This is pretty much copied from IterativeParabolicTimeParameterization::applyVelocityConstraints
+  const std::vector<std::string>& vars = group->getVariableNames();
+  const std::vector<int>& idx = group->getVariableIndexList();
+  const robot_model::RobotModel& rmodel = group->getParentModel();
+  const unsigned num_joints = group->getVariableCount();
+  const unsigned num_points = trajectory.getWayPointCount();
+
+  // Get the limits (we do this at same time, unlike IterativeParabolicTimeParameterization)
+  Eigen::VectorXd max_velocity(num_joints);
+  Eigen::VectorXd max_acceleration(num_joints);
+  for (size_t j = 0; j < num_joints; j++)
+  {
+    const robot_model::VariableBounds& bounds = rmodel.getVariableBounds(vars[j]);
+
+    // Limits need to be non-zero, otherwise we never exit
+    max_velocity[j] = 1.0;
+    if (bounds.velocity_bounded_)
+    {
+      max_velocity[j] = std::min(fabs(bounds.max_velocity_), fabs(bounds.min_velocity_)) * velocity_scaling_factor;
+      max_velocity[j] = std::max(0.01, max_velocity[j]);
+    }
+
+    max_acceleration[j] = 1.0;
+    if (bounds.acceleration_bounded_)
+    {
+      max_acceleration[j] = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * acceleration_scaling_factor;
+      max_acceleration[j] = std::max(0.01, max_acceleration[j]);
+    }
+  }
+
+  // Have to convert into Eigen data structs and remove repeated points
+  //  (https://github.com/tobiaskunz/trajectories/issues/3)
+  std::list<Eigen::VectorXd> points;
+  for (size_t p = 0; p < num_points; p++)
+  {
+    robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
+    Eigen::VectorXd new_point(num_joints);
+    bool diverse_point = (p == 0);  // First point is always diverse enough to include
+
+    for (size_t j = 0; j < num_joints; j++)
+    {
+      new_point[j] = waypoint->getVariablePosition(idx[j]);
+      if (p > 0)
+      {
+        if (std::abs(new_point[j] - points.back()[j]) > 0.001)
+          diverse_point = true;
+      }
+    }
+
+    if (diverse_point)
+      points.push_back(new_point);
+  }
+
+  // Now actually call the algorithm
+  Trajectory parameterized(Path(points, tolerance), max_velocity, max_acceleration, 0.001);
+  if (!parameterized.isValid())
+  {
+    logError("Unable to parameterize trajectory.");
+    return false;
+  }
+
+  // Compute how to resample
+  double dt = parameterized.getDuration() / std::ceil(parameterized.getDuration() / resample);
+
+  // Resample and fill in trajectory
+  robot_state::RobotState waypoint = robot_state::RobotState(trajectory.getWayPoint(0));
+  trajectory.clear();
+  for (double t = 0.0; t <= parameterized.getDuration(); t += dt)
+  {
+    Eigen::VectorXd position = parameterized.getPosition(t);
+    Eigen::VectorXd velocity = parameterized.getVelocity(t);
+
+    for (size_t j = 0; j < num_joints; j++)
+    {
+      waypoint.setVariablePosition(idx[j], position[j]);
+      waypoint.setVariableVelocity(idx[j], velocity[j]);
+    }
+
+    trajectory.addSuffixWayPoint(waypoint, dt);
+  }
+
+  return true;
+}
+
+}  // namespace time_optimal_trajectory_generation
+
 }  // namespace trajectory_processing
