@@ -234,8 +234,7 @@ kinematic_constraints::JointConstraint::decide(const robot_state::RobotState& st
                 dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
     CONSOLE_BRIDGE_logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: "
-                             "%f, "
-                             "tolerance_below: %f",
+                             "%f, tolerance_below: %f",
                              result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
                              joint_position_, joint_tolerance_above_, joint_tolerance_below_);
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
@@ -627,8 +626,7 @@ kinematic_constraints::OrientationConstraint::decide(const robot_state::RobotSta
     Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).rotation());
     Eigen::Quaterniond q_des(desired_rotation_matrix_);
     CONSOLE_BRIDGE_logInform("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
-                             "actual: %f %f %f "
-                             "%f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
+                             "actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
                              result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(),
                              q_des.z(), q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2),
                              absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
@@ -683,8 +681,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
   if (vc.cone_sides < 3)
   {
     CONSOLE_BRIDGE_logWarn("The number of sides for the visibility region must be 3 or more. Assuming 3 sides instead "
-                           "of the "
-                           "specified %d",
+                           "of the specified %d",
                            vc.cone_sides);
     cone_sides_ = 3;
   }
@@ -957,8 +954,7 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       {
         if (verbose)
           CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the view angle is %lf (above the maximum "
-                                   "allowed of "
-                                   "%lf)",
+                                   "allowed of %lf)",
                                    ang, max_view_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
@@ -979,8 +975,7 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       {
         if (verbose)
           CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the range angle is %lf (above the "
-                                   "maximum allowed of "
-                                   "%lf)",
+                                   "maximum allowed of %lf)",
                                    ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }

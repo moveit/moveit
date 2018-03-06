@@ -100,8 +100,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
 
     if (error)
       CONSOLE_BRIDGE_logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible "
-                             "to transform "
-                             "that to frame '%s'",
+                             "to transform that to frame '%s'",
                              mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
   }
 

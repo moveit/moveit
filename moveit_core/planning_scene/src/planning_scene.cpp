@@ -356,8 +356,7 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   else
   {
     CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping "
-                            "existing "
-                            "active collision detector '%s'",
+                            "existing active collision detector '%s'",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return false;
   }
@@ -1122,8 +1121,7 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
       CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. The request to modify the object "
-                              "'%s' is not "
-                              "supported. Object is ignored.",
+                              "'%s' is not supported. Object is ignored.",
                               state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
@@ -1483,8 +1481,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         else
         {
           CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an "
-                                  "object does "
-                                  "not exist in the collision world",
+                                  "object does not exist in the collision world",
                                   object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
@@ -1499,8 +1496,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
                                      object.object.id.c_str());
           else
             CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object that is actually a world object "
-                                   "('%s'). World "
-                                   "geometry is ignored.",
+                                   "('%s'). World geometry is ignored.",
                                    object.object.id.c_str());
         }
 
@@ -1635,8 +1631,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
 
       if (world_->hasObject(name))
         CONSOLE_BRIDGE_logWarn("The collision world already has an object with the same name as the body about to be "
-                               "detached. NOT "
-                               "adding the detached body '%s' to the collision world.",
+                               "detached. NOT adding the detached body '%s' to the collision world.",
                                object.object.id.c_str());
       else
       {

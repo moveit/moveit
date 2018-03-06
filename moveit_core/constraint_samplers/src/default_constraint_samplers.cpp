@@ -99,8 +99,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
       std::stringstream cs;
       jc[i].print(cs);
       CONSOLE_BRIDGE_logError("The constraints for joint '%s' are such that there are no possible values for the "
-                              "joint: min_bound: "
-                              "%g, max_bound: %g. Failing.\n",
+                              "joint: min_bound: %g, max_bound: %g. Failing.\n",
                               jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
       clear();
       return false;
@@ -257,9 +256,8 @@ bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose& s
     if (sampling_pose_.position_constraint_->getLinkModel()->getName() !=
         sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
-      CONSOLE_BRIDGE_logError(
-          "Position and orientation constraints need to be specified for the same link in order to use IK-based "
-          "sampling");
+      CONSOLE_BRIDGE_logError("Position and orientation constraints need to be specified for the same link in "
+                              "order to use IK-based sampling");
       return false;
     }
 
@@ -355,8 +353,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     if (!jmg_->getParentModel().hasLinkModel(ik_frame_))
     {
       CONSOLE_BRIDGE_logError("The IK solver expects requests in frame '%s' but this frame is not known to the "
-                              "sampler. Ignoring "
-                              "transformation (IK may fail)",
+                              "sampler. Ignoring transformation (IK may fail)",
                               ik_frame_.c_str());
       transform_ik_ = false;
     }
@@ -443,9 +440,8 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d& pos, 
     }
     else
     {
-      CONSOLE_BRIDGE_logError(
-          "Unable to sample a point inside the constraint region. Constraint region is empty when it should not "
-          "be.");
+      CONSOLE_BRIDGE_logError("Unable to sample a point inside the constraint region. Constraint region is empty "
+                              "when it should not be.");
       return false;
     }
 

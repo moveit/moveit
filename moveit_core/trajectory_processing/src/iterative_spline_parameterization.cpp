@@ -224,16 +224,14 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     if (t2[j].max_velocity <= 0.0 || t2[j].max_acceleration <= 0.0)
     {
       CONSOLE_BRIDGE_logError("Joint %d max velocity %f and max acceleration %f must be greater than zero or a "
-                              "solution won't be "
-                              "found.\n",
+                              "solution won't be found.\n",
                               j, t2[j].max_velocity, t2[j].max_acceleration);
       return false;
     }
     if (t2[j].min_velocity >= 0.0 || t2[j].min_acceleration >= 0.0)
     {
       CONSOLE_BRIDGE_logError("Joint %d min velocity %f and min acceleration %f must be less than zero or a solution "
-                              "won't be "
-                              "found.\n",
+                              "won't be found.\n",
                               j, t2[j].min_velocity, t2[j].min_acceleration);
       return false;
     }

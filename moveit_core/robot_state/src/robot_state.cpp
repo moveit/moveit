@@ -992,8 +992,7 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
   if (jt == attached_body_map_.end())
   {
     CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an "
-                            "attached body "
-                            "id).",
+                            "attached body id).",
                             id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
@@ -1005,8 +1004,7 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
   }
   if (tf.size() > 1)
     CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform "
-                            "for the first "
-                            "one.",
+                            "for the first one.",
                             id.c_str());
   return tf[0];
 }
@@ -1471,8 +1469,7 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
   if (consistency_limit_sets.size() > 1)
   {
     CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK "
-                            "request that is "
-                            "being solved by a single IK solver",
+                            "request that is being solved by a single IK solver",
                             consistency_limit_sets.size());
     return false;
   }

@@ -340,9 +340,8 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            CONSOLE_BRIDGE_logError(
-                "The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
-                "in default state '%s' for group '%s'",
+            CONSOLE_BRIDGE_logError("The model for joint '%s' requires %d variable values, but only %d variable values "
+                                    "were supplied in default state '%s' for group '%s'",
                 jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(), jmg->getName().c_str());
         }
         else
