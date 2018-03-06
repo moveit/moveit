@@ -43,15 +43,14 @@
 #include <moveit/profiler/profiler.h>
 #include <boost/bind.hpp>
 #include <moveit/robot_model/aabb.h>
-#include <algorithm>
 
 namespace moveit
 {
 namespace core
 {
-/** \brief At least 5 steps per trajectory for testing jump thresholds with computeCartesianPath. Otherwise
- * testJointSpaceJump doens't work well. */
-static const std::size_t MIN_STEPS_FOR_JUMP_THRESH = 5;
+/** \brief At least 10 steps per trajectory for testing jump thresholds with computeCartesianPath. Otherwise
+ * testJointSpaceJump doesn't work well. */
+static const std::size_t MIN_STEPS_FOR_JUMP_THRESH = 10;
 }
 }
 
@@ -1935,11 +1934,9 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
 
   // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
-  unsigned int steps;
-  if (test_joint_space_jump)
-    steps = std::max(MIN_STEPS_FOR_JUMP_THRESH, (std::size_t)floor(distance / max_step) + 1);
-  else
-    steps = (unsigned int)floor(distance / max_step) + 1;
+  unsigned int steps = (unsigned int)floor(distance / max_step) + 1;
+  if (test_joint_space_jump && steps<MIN_STEPS_FOR_JUMP_THRESH)
+    steps = MIN_STEPS_FOR_JUMP_THRESH;
 
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
