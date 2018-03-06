@@ -41,6 +41,7 @@
 
 #include <Eigen/Core>
 #include <list>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 
 namespace trajectory_processing
 {
@@ -164,6 +165,15 @@ private:
   mutable double cachedTime;
   mutable std::list<TrajectoryStep>::const_iterator cachedTrajectorySegment;
 };
+
+namespace time_optimal_trajectory_generation
+{
+
+bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
+                       const double max_velocity_scaling_factor,
+                       const double max_acceleration_scaling_factor);
+
+}  // namespace time_optimal_trajectory_generation
 
 }  // namespace trajectory_processing
 
