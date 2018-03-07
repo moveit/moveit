@@ -117,6 +117,7 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
       if (result->id_ < goal->possible_grasps.size())
         action_res.grasp = goal->possible_grasps[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      action_res.planning_time = plan->getLastPlanTime();
     }
   }
   else
@@ -156,6 +157,7 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
       if (result->id_ < goal->place_locations.size())
         action_res.place_location = goal->place_locations[result->id_];
       action_res.error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      action_res.planning_time = plan->getLastPlanTime();
     }
   }
   else
@@ -196,6 +198,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
       if (result->id_ < goal.possible_grasps.size())
         action_res->grasp = goal.possible_grasps[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      action_res->planning_time = pick_plan->getLastPlanTime();
     }
   }
   else
@@ -238,6 +241,7 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
       if (result->id_ < goal.place_locations.size())
         action_res->place_location = goal.place_locations[result->id_];
       plan.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+      action_res->planning_time = place_plan->getLastPlanTime();
     }
   }
   else
