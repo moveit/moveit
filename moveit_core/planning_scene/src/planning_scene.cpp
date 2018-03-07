@@ -355,8 +355,8 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
   else
   {
-    CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping "
-                            "existing active collision detector '%s'",
+    CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
+                            "Keeping existing active collision detector '%s'",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return false;
   }
@@ -404,8 +404,8 @@ planning_scene::PlanningScene::getCollisionRobotUnpadded(const std::string& coll
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
-    CONSOLE_BRIDGE_logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded "
-                            "'%s' instead",
+    CONSOLE_BRIDGE_logError("Could not get CollisionRobotUnpadded named '%s'. "
+                            "Returning active CollisionRobotUnpadded '%s' instead",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
     return active_collision_->getCollisionRobotUnpadded();
   }
@@ -1120,8 +1120,8 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
-      CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. The request to modify the object "
-                              "'%s' is not supported. Object is ignored.",
+      CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. "
+                              "The request to modify the object '%s' is not supported. Object is ignored.",
                               state.attached_collision_objects[i].object.id.c_str());
       continue;
     }
@@ -1434,8 +1434,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
     {
-      CONSOLE_BRIDGE_logError("Number of primitive shapes does not match number of poses in attached collision object "
-                              "message");
+      CONSOLE_BRIDGE_logError("Number of primitive shapes does not match "
+                              "number of poses in attached collision object message");
       return false;
     }
 
@@ -1480,8 +1480,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         }
         else
         {
-          CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an "
-                                  "object does not exist in the collision world",
+          CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified "
+                                  "and such an object does not exist in the collision world",
                                   object.object.id.c_str(), object.link_name.c_str());
           return false;
         }
@@ -1495,8 +1495,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
             CONSOLE_BRIDGE_logInform("Removing world object with the same name as newly attached object: '%s'",
                                      object.object.id.c_str());
           else
-            CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object that is actually a world object "
-                                   "('%s'). World geometry is ignored.",
+            CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object "
+                                   "that is actually a world object ('%s'). World geometry is ignored.",
                                    object.object.id.c_str());
         }
 
@@ -1558,8 +1558,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
       {
         // there should not exist an attached object with this name
         if (kstate_->clearAttachedBody(object.object.id))
-          CONSOLE_BRIDGE_logInform("The robot state already had an object named '%s' attached to link '%s'. The object "
-                                   "was replaced.",
+          CONSOLE_BRIDGE_logInform("The robot state already had an object named '%s' attached to link '%s'. "
+                                   "The object was replaced.",
                                    object.object.id.c_str(), object.link_name.c_str());
         kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                             object.detach_posture);
@@ -1782,9 +1782,9 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       }
       else
       {
-        CONSOLE_BRIDGE_logError("Number of supplied poses (%u) for object '%s' does not match number of shapes (%u). "
-                                "Not moving.",
-                                (unsigned int)new_poses.size(), object.id.c_str(), (unsigned int)obj->shapes_.size());
+        CONSOLE_BRIDGE_logError("Number of supplied poses (%zu) for object '%s' "
+                                "does not match number of shapes (%zu). Not moving.",
+                                new_poses.size(), object.id.c_str(), obj->shapes_.size());
         return false;
       }
       return true;

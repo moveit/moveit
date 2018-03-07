@@ -991,8 +991,8 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an "
-                            "attached body id).",
+    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known "
+                            "('%s' should be a link name or an attached body id).",
                             id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
@@ -1003,8 +1003,8 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
     return identity_transform;
   }
   if (tf.size() > 1)
-    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform "
-                            "for the first one.",
+    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. "
+                            "Returning the transform for the first one.",
                             id.c_str());
   return tf[0];
 }
@@ -1468,8 +1468,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK "
-                            "request that is being solved by a single IK solver",
+    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits "
+                            "for a setFromIK request that is being solved by a single IK solver",
                             consistency_limit_sets.size());
     return false;
   }
@@ -1525,8 +1525,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
           const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
-            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a "
-                                    "reference frame.");
+            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body "
+                                    "with multiple geometries as a reference frame.");
             return false;
           }
           pose_frame = ab->getAttachedLinkName();
@@ -1720,8 +1720,8 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
   {
     if (consistency_limits[i].size() != sub_groups[i]->getVariableCount())
     {
-      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %u but it should be should be %u",
-                              (unsigned int)i, sub_groups[i]->getVariableCount());
+      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %zu but it should be should be %u", i,
+                              sub_groups[i]->getVariableCount());
       return false;
     }
   }

@@ -80,8 +80,8 @@ struct OrderSamplers
         }
     if (b_depends_on_a && a_depends_on_b)
     {
-      CONSOLE_BRIDGE_logWarn("Circular frame dependency! Sampling will likely produce invalid results (sampling for "
-                             "groups '%s' and '%s')",
+      CONSOLE_BRIDGE_logWarn("Circular frame dependency! Sampling will likely produce invalid results "
+                             "(sampling for groups '%s' and '%s')",
                              a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
       return true;
     }

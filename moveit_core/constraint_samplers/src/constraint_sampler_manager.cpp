@@ -118,8 +118,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       JointConstraintSamplerPtr sampler(new JointConstraintSampler(scene, jmg->getName()));
       if (sampler->configure(jc))
       {
-        CONSOLE_BRIDGE_logDebug("Temporary sampler satisfying joint constraints for group '%s' allocated. Looking for "
-                                "different types of constraints before returning though.",
+        CONSOLE_BRIDGE_logDebug("Temporary sampler satisfying joint constraints for group '%s' allocated. "
+                                "Looking for different types of constraints before returning though.",
                                 jmg->getName().c_str());
         joint_sampler = sampler;
       }
@@ -138,8 +138,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   // should be used
   if (ik_alloc)
   {
-    CONSOLE_BRIDGE_logDebug("There is an IK allocator for '%s'. Checking for corresponding position and/or orientation "
-                            "constraints",
+    CONSOLE_BRIDGE_logDebug("There is an IK allocator for '%s'. "
+                            "Checking for corresponding position and/or orientation constraints",
                             jmg->getName().c_str());
 
     // keep track of which links we constrained
@@ -173,8 +173,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
               {
                 // assign the link to a new constraint sampler
                 usedL[constr.position_constraints[p].link_name] = iks;
-                CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' satisfying position and "
-                                        "orientation constraints on link '%s'",
+                CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' "
+                                        "satisfying position and orientation constraints on link '%s'",
                                         jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
               }
             }
@@ -205,8 +205,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           if (use)
           {
             usedL[constr.position_constraints[p].link_name] = iks;
-            CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' satisfying position constraints on "
-                                    "link '%s'",
+            CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' "
+                                    "satisfying position constraints on link '%s'",
                                     jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
           }
         }
@@ -234,8 +234,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
           if (use)
           {
             usedL[constr.orientation_constraints[o].link_name] = iks;
-            CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' satisfying orientation constraints "
-                                    "on link '%s'",
+            CONSOLE_BRIDGE_logDebug("Allocated an IK-based sampler for group '%s' "
+                                    "satisfying orientation constraints on link '%s'",
                                     jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
           }
         }
@@ -284,8 +284,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   // we now check to see if we can use samplers from subgroups
   if (!ik_subgroup_alloc.empty())
   {
-    CONSOLE_BRIDGE_logDebug("There are IK allocators for subgroups of group '%s'. Checking for corresponding position "
-                            "and/or orientation constraints",
+    CONSOLE_BRIDGE_logDebug("There are IK allocators for subgroups of group '%s'. "
+                            "Checking for corresponding position and/or orientation constraints",
                             jmg->getName().c_str());
 
     bool some_sampler_valid = false;
@@ -320,8 +320,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
         ConstraintSamplerPtr cs = selectDefaultSampler(scene, it->first->getName(), sub_constr);
         if (cs)
         {
-          CONSOLE_BRIDGE_logDebug("Constructed a sampler for the joints corresponding to group '%s', but part of group "
-                                  "'%s'",
+          CONSOLE_BRIDGE_logDebug("Constructed a sampler for the joints corresponding to group '%s', "
+                                  "but part of group '%s'",
                                   it->first->getName().c_str(), jmg->getName().c_str());
           some_sampler_valid = true;
           samplers.push_back(cs);
@@ -330,8 +330,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     }
     if (some_sampler_valid)
     {
-      CONSOLE_BRIDGE_logDebug("Constructing sampler for group '%s' as a union of %u samplers", jmg->getName().c_str(),
-                              (unsigned int)samplers.size());
+      CONSOLE_BRIDGE_logDebug("Constructing sampler for group '%s' as a union of %zu samplers", jmg->getName().c_str(),
+                              samplers.size());
       return ConstraintSamplerPtr(new UnionConstraintSampler(scene, jmg->getName(), samplers));
     }
   }

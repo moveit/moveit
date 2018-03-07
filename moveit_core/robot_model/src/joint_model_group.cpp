@@ -584,8 +584,8 @@ bool moveit::core::JointModelGroup::computeIKIndexBijection(const std::vector<st
       // skip reported fixed joints
       if (hasJointModel(ik_jnames[i]) && getJointModel(ik_jnames[i])->getType() == JointModel::FIXED)
         continue;
-      CONSOLE_BRIDGE_logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a "
-                              "joint.",
+      CONSOLE_BRIDGE_logError("IK solver computes joint values for joint '%s' "
+                              "but group '%s' does not contain such a joint.",
                               ik_jnames[i].c_str(), getName().c_str());
       return false;
     }

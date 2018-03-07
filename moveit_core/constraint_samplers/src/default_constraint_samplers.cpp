@@ -440,8 +440,8 @@ bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d& pos, 
     }
     else
     {
-      CONSOLE_BRIDGE_logError("Unable to sample a point inside the constraint region. Constraint region is empty "
-                              "when it should not be.");
+      CONSOLE_BRIDGE_logError("Unable to sample a point inside the constraint region. "
+                              "Constraint region is empty when it should not be.");
       return false;
     }
 

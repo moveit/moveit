@@ -148,8 +148,8 @@ bool DynamicsSolver::getTorques(const std::vector<double>& joint_angles, const s
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
-                            "logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. "
+                            "Check error logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)
@@ -217,8 +217,8 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
-                            "logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. "
+                            "Check error logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)
@@ -282,8 +282,8 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
 {
   if (!joint_model_group_)
   {
-    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. Check error "
-                            "logs.");
+    CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Did not construct DynamicsSolver object properly. "
+                            "Check error logs.");
     return false;
   }
   if (joint_angles.size() != num_joints_)

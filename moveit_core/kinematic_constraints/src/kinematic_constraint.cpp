@@ -110,8 +110,8 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       }
       else if (joint_model_->getVariableCount() > 1)
       {
-        CONSOLE_BRIDGE_logError("Joint '%s' has more than one parameter to constrain. This type of constraint is not "
-                                "supported.",
+        CONSOLE_BRIDGE_logError("Joint '%s' has more than one parameter to constrain. "
+                                "This type of constraint is not supported.",
                                 jc.joint_name.c_str());
         joint_model_ = NULL;
       }
@@ -169,16 +169,16 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       {
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
-        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds "
-                               "instead.",
+        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be below the minimum bounds. "
+                               "Assuming minimum bounds instead.",
                                jc.joint_name.c_str());
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
-        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds "
-                               "instead.",
+        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be above the maximum bounds. "
+                               "Assuming maximum bounds instead.",
                                jc.joint_name.c_str());
       }
     }
@@ -233,8 +233,8 @@ kinematic_constraints::JointConstraint::decide(const robot_state::RobotState& st
   bool result = dif <= (joint_tolerance_above_ + 2.0 * std::numeric_limits<double>::epsilon()) &&
                 dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
-    CONSOLE_BRIDGE_logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: "
-                             "%f, tolerance_below: %f",
+    CONSOLE_BRIDGE_logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
+                             "tolerance_above: %f, tolerance_below: %f",
                              result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
                              joint_position_, joint_tolerance_above_, joint_tolerance_below_);
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
@@ -281,7 +281,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   link_model_ = robot_model_->getLinkModel(pc.link_name);
   if (link_model_ == NULL)
   {
-    CONSOLE_BRIDGE_logWarn("Position constraint link model %s not found in kinematic model.  Constraint invalid.",
+    CONSOLE_BRIDGE_logWarn("Position constraint link model %s not found in kinematic model. Constraint invalid.",
                            pc.link_name.c_str());
     return false;
   }
@@ -680,8 +680,8 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
 
   if (vc.cone_sides < 3)
   {
-    CONSOLE_BRIDGE_logWarn("The number of sides for the visibility region must be 3 or more. Assuming 3 sides instead "
-                           "of the specified %d",
+    CONSOLE_BRIDGE_logWarn("The number of sides for the visibility region must be 3 or more. "
+                           "Assuming 3 sides instead of the specified %d",
                            vc.cone_sides);
     cone_sides_ = 3;
   }
@@ -953,8 +953,8 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       if (max_view_angle_ < ang)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the view angle is %lf (above the maximum "
-                                   "allowed of %lf)",
+          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the view angle is %lf "
+                                   "(above the maximum allowed of %lf)",
                                    ang, max_view_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
@@ -974,8 +974,8 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       if (max_range_angle_ < ang)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the range angle is %lf (above the "
-                                   "maximum allowed of %lf)",
+          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the range angle is %lf "
+                                   "(above the maximum allowed of %lf)",
                                    ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }

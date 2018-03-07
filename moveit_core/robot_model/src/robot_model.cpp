@@ -340,14 +340,14 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            CONSOLE_BRIDGE_logError("The model for joint '%s' requires %d variable values, but only %d variable values "
-                                    "were supplied in default state '%s' for group '%s'",
+            CONSOLE_BRIDGE_logError("The model for joint '%s' requires %d variable values, "
+                                    "but only %d variable values were supplied in default state '%s' for group '%s'",
                                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
                                     jmg->getName().c_str());
         }
         else
-          CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', but that joint is not part of "
-                                  "group '%s'",
+          CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', "
+                                  "but that joint is not part of group '%s'",
                                   ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!state.empty())
@@ -605,10 +605,10 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& s
                                         eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
             else
-              CONSOLE_BRIDGE_logError(
-                  "Group '%s' was specified as parent group for end-effector '%s' but it does not include the "
-                  "parent link '%s'",
-                  eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
+              CONSOLE_BRIDGE_logError("Group '%s' was specified as parent group for end-effector '%s' "
+                                      "but it does not include the parent link '%s'",
+                                      eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(),
+                                      eefs[k].parent_link_.c_str());
           }
           else
             CONSOLE_BRIDGE_logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
@@ -903,8 +903,8 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     {
       if (vjoints[i].child_link_ != child_link->name)
       {
-        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame "
-                               "'%s'",
+        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' "
+                               "does not match the URDF frame '%s'",
                                vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
       }
       else if (vjoints[i].parent_frame_.empty())
