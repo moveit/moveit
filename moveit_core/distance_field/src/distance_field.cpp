@@ -203,7 +203,7 @@ bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, c
     const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
     if (!oc)
     {
-      logError("Problem dynamic casting shape that claims to be OcTree");
+      CONSOLE_BRIDGE_logError("Problem dynamic casting shape that claims to be OcTree");
       return false;
     }
     getOcTreePoints(oc->octree.get(), points);
@@ -291,7 +291,7 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
 {
   if (shape->type == shapes::OCTREE)
   {
-    logWarn("Move shape not supported for Octree");
+    CONSOLE_BRIDGE_logWarn("Move shape not supported for Octree");
     return;
   }
   bodies::Body* body = bodies::createBodyFromShape(shape);

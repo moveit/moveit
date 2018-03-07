@@ -524,7 +524,7 @@ public:
   {
     if (has_acceleration_)
     {
-      logError("Unable to set joint efforts because array is being used for accelerations");
+      CONSOLE_BRIDGE_logError("Unable to set joint efforts because array is being used for accelerations");
       return;
     }
     has_effort_ = true;

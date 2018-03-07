@@ -521,14 +521,14 @@ private:
   void initNeighborhoods();
 
   /**
-   * \brief Debug function that prints all voxels in a set to logDebug
+   * \brief Debug function that prints all voxels in a set to CONSOLE_BRIDGE_logDebug
    *
    * @param set Voxel set to print
    */
   void print(const VoxelSet& set);
 
   /**
-   * \brief Debug function that prints all points in a vector to logDebug
+   * \brief Debug function that prints all points in a vector to CONSOLE_BRIDGE_logDebug
    *
    * @param points Points to print
    */
