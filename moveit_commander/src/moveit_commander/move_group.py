@@ -405,6 +405,10 @@ class MoveGroupCommander(object):
         """ Specify which planner to use when motion planning """
         self._g.set_planner_id(planner_id)
 
+    def get_planner_id(self):
+        """ Get the current planner_id """
+        self._g.get_planner_id()
+
     def set_num_planning_attempts(self, num_planning_attempts):
         """ Set the number of times the motion plan is to be computed from scratch before the shortest solution is returned. The default value is 1. """
         self._g.set_num_planning_attempts(num_planning_attempts)
