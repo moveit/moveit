@@ -1741,6 +1741,7 @@ private:
     {
       const int fvi = jm->getFirstVariableIndex();
       position_[fvi] = jm->getMimicFactor() * position_[jm->getMimic()->getFirstVariableIndex()] + jm->getMimicOffset();
+      markDirtyJointTransforms(jm);
     }
     markDirtyJointTransforms(group);
   }
