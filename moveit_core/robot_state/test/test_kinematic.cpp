@@ -320,7 +320,7 @@ TEST(FK, OneRobot)
       "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
       "    <parent link=\"link_c\"/>"
       "    <child link=\"link_d\"/>"
-      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+      "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
       "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
       "  </joint>"
       "  <joint name=\"joint_f\" type=\"prismatic\">"
@@ -328,7 +328,7 @@ TEST(FK, OneRobot)
       "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
       "    <parent link=\"link_d\"/>"
       "    <child link=\"link_e\"/>"
-      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+      "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
       "  </joint>"
       "<link name=\"link_d\">"
       "  <collision>"
@@ -511,6 +511,46 @@ TEST(FK, OneRobot)
   state.enforceBounds();
   EXPECT_NEAR(state.getVariablePosition("joint_a"), -3.083185, 1e-3);
   EXPECT_TRUE(state.satisfiesBounds(model->getJointModel("joint_a")));
+
+  // mimic joints
+  state.setToDefaultValues();
+  EXPECT_TRUE(state.dirtyLinkTransforms());
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(0.2, 0.5, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(0.3, 0.6, 0));
+
+  // setVariablePosition should update corresponding mimic joints too
+  state.setVariablePosition("joint_f", 1.0);
+  EXPECT_EQ(state.getVariablePosition("joint_f"), 1.0);
+  EXPECT_EQ(state.getVariablePosition("mim_f"), 1.6);
+  EXPECT_TRUE(state.dirtyLinkTransforms());
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+
+  ASSERT_EQ(g_mim->getVariableCount(), 2);
+  double gstate[2];
+  state.copyJointGroupPositions(g_mim, gstate);
+
+  // setToRandomPositions() uses a different mechanism to update mimic joints
+  state.setToRandomPositions(g_mim);
+  double joint_f = state.getVariablePosition("joint_f");
+  double mim_f = state.getVariablePosition("mim_f");
+  EXPECT_NEAR(mim_f, 1.5 * joint_f + 0.1, 1e-8);
+  EXPECT_TRUE(state.dirtyLinkTransforms());
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(0.1 + mim_f, 0.5, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(),
+                     Eigen::Vector3d(0.1 + mim_f + joint_f + 0.1, 0.6, 0));
+
+  // setJointGroupPositions() uses a different mechanism to update mimic joints
+  state.setJointGroupPositions(g_mim, gstate);
+  EXPECT_EQ(state.getVariablePosition("joint_f"), 1.0);
+  EXPECT_EQ(state.getVariablePosition("mim_f"), 1.6);
+  EXPECT_TRUE(state.dirtyLinkTransforms());
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
 }
 
 int main(int argc, char** argv)
