@@ -66,6 +66,22 @@ static bool sameStringIgnoringWS(const std::string& s1, const std::string& s2)
   }
   return i1 == s1.size() && i2 == s2.size();
 }
+static void expect_near(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y,
+                        double eps = std::numeric_limits<double>::epsilon())
+{
+  ASSERT_EQ(x.rows(), y.rows());
+  ASSERT_EQ(x.cols(), y.cols());
+  for (int r = 0; r < x.rows(); ++r)
+    for (int c = 0; c < x.cols(); ++c)
+      EXPECT_NEAR(x(r, c), y(r, c), eps) << "(r,c) = (" << r << "," << c << ")";
+}
+
+// clang-format off
+#define EXPECT_NEAR_TRACED(...) {                 \
+	SCOPED_TRACE("expect_near(" #__VA_ARGS__ ")"); \
+	expect_near(__VA_ARGS__);                      \
+}
+// clang-format on
 
 TEST(Loading, SimpleRobot)
 {
@@ -180,28 +196,22 @@ TEST(LoadingAndFK, SimpleRobot)
   state.setVariablePositions(joint_values, missing_states);
   ASSERT_EQ(missing_states.size(), 0);
 
-  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
-  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
 
   state.setVariableAcceleration("base_joint/x", 0.0);
 
   // making sure that values get copied
   moveit::core::RobotState* new_state = new moveit::core::RobotState(state);
-  EXPECT_NEAR(10.0, new_state->getGlobalLinkTransform("base_link").translation().x(), 1e-5);
-  EXPECT_NEAR(8.0, new_state->getGlobalLinkTransform("base_link").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
   delete new_state;
 
   std::vector<double> jv(state.getVariableCount(), 0.0);
-  jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 10.0;
-  jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 8.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 5.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 4.0;
   jv[state.getRobotModel()->getVariableIndex("base_joint/theta")] = 0.0;
 
   state.setVariablePositions(jv);
-  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
-  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(5, 4, 0));
 }
 
 TEST(FK, OneRobot)
@@ -460,33 +470,25 @@ TEST(FK, OneRobot)
   joint_values["joint_c"] = 0.08;
   state.setVariablePositions(joint_values);
 
-  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
-  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(1, 1, 0));
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.247404, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.968912, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).w(), 1e-5);
 
-  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().x(), 1e-5);
-  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_a").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_a").translation(), Eigen::Vector3d(1, 1, 0));
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).z(), 1e-5);
   EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).w(), 1e-5);
 
-  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_b").translation().x(), 1e-5);
-  EXPECT_NEAR(1.5, state.getGlobalLinkTransform("link_b").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_b").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_b").translation(), Eigen::Vector3d(1, 1.5, 0));
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).x(), 1e-5);
   EXPECT_NEAR(-0.2084598, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.97803091, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).w(), 1e-5);
 
-  EXPECT_NEAR(1.08, state.getGlobalLinkTransform("link_c").translation().x(), 1e-5);
-  EXPECT_NEAR(1.4, state.getGlobalLinkTransform("link_c").translation().y(), 1e-5);
-  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_c").translation().z(), 1e-5);
+  EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(1.08, 1.4, 0));
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).z(), 1e-5);
