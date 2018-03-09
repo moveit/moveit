@@ -48,8 +48,10 @@ namespace moveit
 {
 namespace core
 {
-/** \brief At least 10 steps per trajectory for testing jump thresholds with computeCartesianPath. Otherwise
- * testJointSpaceJump doesn't work well. */
+/** \brief It is recommended that there are at least 10 steps per trajectory
+ * for testing jump thresholds with computeCartesianPath. With less than 10 steps
+ * it is difficult to choose a jump_threshold parameter that effectively separates
+ * valid paths from paths with large joint space jumps. */
 static const std::size_t MIN_STEPS_FOR_JUMP_THRESH = 10;
 }
 }
@@ -1934,8 +1936,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
 
   // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
-  unsigned int steps = (unsigned int)floor(distance / max_step) + 1;
-  if (test_joint_space_jump && steps<MIN_STEPS_FOR_JUMP_THRESH)
+  unsigned int steps = static_cast<unsigned int>(floor(distance / max_step) + 1);
+  if (test_joint_space_jump && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
   traj.clear();
