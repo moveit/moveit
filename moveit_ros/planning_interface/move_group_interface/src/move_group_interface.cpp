@@ -2206,7 +2206,8 @@ moveit_msgs::TrajectoryConstraints moveit::planning_interface::MoveGroupInterfac
   return impl_->getTrajectoryConstraints();
 }
 
-void moveit::planning_interface::MoveGroupInterface::setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint)
+void moveit::planning_interface::MoveGroupInterface::setTrajectoryConstraints(
+    const moveit_msgs::TrajectoryConstraints& constraint)
 {
   impl_->setTrajectoryConstraints(constraint);
 }

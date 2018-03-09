@@ -602,7 +602,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("get_path_constraints", &MoveGroupInterfaceWrapper::getPathConstraintsPython);
   MoveGroupInterfaceClass.def("clear_path_constraints", &MoveGroupInterfaceWrapper::clearPathConstraints);
 
-  MoveGroupInterfaceClass.def("set_trajectory_constraints_from_msg", &MoveGroupInterfaceWrapper::setTrajectoryConstraintsFromMsg);
+  MoveGroupInterfaceClass.def("set_trajectory_constraints_from_msg",
+                              &MoveGroupInterfaceWrapper::setTrajectoryConstraintsFromMsg);
   MoveGroupInterfaceClass.def("get_trajectory_constraints", &MoveGroupInterfaceWrapper::getTrajectoryConstraintsPython);
   MoveGroupInterfaceClass.def("clear_trajectory_constraints", &MoveGroupInterfaceWrapper::clearTrajectoryConstraints);
 
