@@ -109,12 +109,10 @@ namespace fs = boost::filesystem;
 typedef boost::optional<YAML::Node> yaml_node_t;
 
 // Helper function to find a value (yaml-cpp 0.5)
-template <typename T>
-yaml_node_t findValue(const YAML::Node& node, const T& key)
+yaml_node_t findValue(const YAML::Node& node, const std::string& key)
 {
-  if (node[key])
-    return node[key];
-  return yaml_node_t();
+  YAML::Node value = node[key];
+  return yaml_node_t(bool(value), value);
 }
 
 // The >> operator disappeared in yaml-cpp 0.5, so this function is
@@ -129,8 +127,7 @@ void operator>>(const YAML::Node& node, T& i)
 typedef const YAML::Node* yaml_node_t;
 
 // Helper function to find a value (yaml-cpp 0.3)
-template <typename T>
-yaml_node_t findValue(const YAML::Node& node, const T& key)
+yaml_node_t findValue(const YAML::Node& node, const std::string& key)
 {
   return node.FindValue(key);
 }
