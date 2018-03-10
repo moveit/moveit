@@ -45,6 +45,8 @@ find_package(PkgConfig)
 pkg_check_modules(NEW_YAMLCPP yaml-cpp>=0.5)
 if(NEW_YAMLCPP_FOUND)
   add_definitions(-DHAVE_NEW_YAMLCPP)
+  include_directories(${NEW_YAMLCPP_INCLUDE_DIRS})
+  link_directories(${NEW_YAMLCPP_LIBRARY_DIRS})
 endif(NEW_YAMLCPP_FOUND)
 
 find_library(YAML yaml-cpp REQUIRED)
