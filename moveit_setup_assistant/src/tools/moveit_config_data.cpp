@@ -258,6 +258,7 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "package" << YAML::Value << urdf_pkg_name_;
   emitter << YAML::Key << "relative_path" << YAML::Value << urdf_pkg_relative_path_;
+  emitter << YAML::Key << "xacro_args" << YAML::Value << xacro_args_;
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
@@ -1041,7 +1042,7 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
       // URDF Properties
       if (urdf_node = findValue(*title_node, "URDF"))
       {
-        // Load first property
+        // Load package
         if (package_node = findValue(*urdf_node, "package"))
         {
           *package_node >> urdf_pkg_name_;
@@ -1051,7 +1052,7 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
           return false;  // if we do not find this value we cannot continue
         }
 
-        // Load second property
+        // Load relative_path
         if (relative_node = findValue(*urdf_node, "relative_path"))
         {
           *relative_node >> urdf_pkg_relative_path_;
@@ -1059,6 +1060,16 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
         else
         {
           return false;  // if we do not find this value we cannot continue
+        }
+
+        // Load xacro_args
+        if (relative_node = findValue(*urdf_node, "xacro_args"))
+        {
+          *relative_node >> xacro_args_;
+        }
+        else
+        {
+          xacro_args_.clear();  // xacro args are optional
         }
       }
       // SRDF Properties

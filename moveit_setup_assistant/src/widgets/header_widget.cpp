@@ -88,8 +88,8 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
-LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent,
-                               const bool dir_only, const bool load_only)
+LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, const bool dir_only,
+                               const bool load_only)
   : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
 {
   // Set frame graphics
@@ -122,6 +122,8 @@ LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions
 
   // Line Edit for path
   path_box_ = new QLineEdit(this);
+  connect(path_box_, SIGNAL(textChanged(QString)), this, SIGNAL(pathChanged(QString)));
+  connect(path_box_, SIGNAL(editingFinished()), this, SIGNAL(pathEditingFinished()));
   hlayout->addWidget(path_box_);
 
   // Button
@@ -198,5 +200,33 @@ void LoadPathWidget::setPath(const QString& path)
 void LoadPathWidget::setPath(const std::string& path)
 {
   path_box_->setText(QString(path.c_str()));
+}
+
+LoadPathArgsWidget::LoadPathArgsWidget(const QString& title, const QString& instructions,
+                                       const QString& arg_instructions, QWidget* parent, const bool dir_only,
+                                       const bool load_only)
+  : LoadPathWidget(title, instructions, parent, dir_only, load_only)
+{
+  // Line Edit for xacro args
+  args_instructions_ = new QLabel(arg_instructions, this);
+  args_ = new QLineEdit(this);
+
+  layout()->addWidget(args_instructions_);
+  layout()->addWidget(args_);
+}
+
+QString LoadPathArgsWidget::getArgs() const
+{
+  return args_->text();
+}
+
+void LoadPathArgsWidget::setArgs(const QString& args)
+{
+  args_->setText(args);
+}
+
+void LoadPathArgsWidget::setArgsEnabled(bool enabled)
+{
+  args_->setEnabled(enabled);
 }
 }

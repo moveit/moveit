@@ -74,14 +74,18 @@ private:
   // Stores the path qstring
   QLineEdit* path_box_;
 
+Q_SIGNALS:
+  void pathChanged(const QString& path);
+  void pathEditingFinished();
+
 private Q_SLOTS:
   /// Load the file dialog
   void btn_file_dialog();
 
 public:
   /// Constructor
-  LoadPathWidget(const QString &title, const QString &instructions, QWidget* parent,
-                 const bool dir_only = false, const bool load_only = false);
+  LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, const bool dir_only = false,
+                 const bool load_only = false);
 
   /// Returns the file path in QString format
   QString getQPath() const;
@@ -94,6 +98,25 @@ public:
 
   /// Set the path with std string
   void setPath(const std::string& path);
+};
+
+/// Extend LoadPathWidget with additional line edit for arguments
+class LoadPathArgsWidget : public LoadPathWidget
+{
+  Q_OBJECT
+
+private:
+  QLineEdit* args_;
+  QLabel* args_instructions_;
+
+public:
+  /// Constructor
+  LoadPathArgsWidget(const QString& title, const QString& instructions, const QString& arg_instructions,
+                     QWidget* parent, const bool dir_only = false, const bool load_only = false);
+
+  QString getArgs() const;
+  void setArgs(const QString& args);
+  void setArgsEnabled(bool enabled = true);
 };
 }
 
