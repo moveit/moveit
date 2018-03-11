@@ -504,6 +504,11 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path)
     return false;
   }
 
+  if (urdf_string.empty() && rdf_loader::RDFLoader::isXacroFile(urdf_file_path)) {
+    QMessageBox::warning(this, "Error Loading Files", "Running xacro failed.\nPlease check console for errors.");
+    return false;
+  }
+
   // Verify that file is in correct format / not an XACRO by loading into robot model
   if (!config_data_->urdf_model_->initString(urdf_string))
   {
