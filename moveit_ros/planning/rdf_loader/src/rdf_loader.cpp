@@ -193,7 +193,7 @@ bool rdf_loader::RDFLoader::loadXacroFileToString(std::string& buffer, const std
     return false;
   }
 
-  std::string cmd = "rosrun xacro xacro --inorder ";
+  std::string cmd = "rosrun xacro xacro ";
   for (std::vector<std::string>::const_iterator it = xacro_args.begin(); it != xacro_args.end(); ++it)
     cmd += *it + " ";
   cmd += path;
