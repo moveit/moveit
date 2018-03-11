@@ -166,7 +166,7 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic() con
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
     if (joint_time_.find(joint) == joint_time_.end())
@@ -183,7 +183,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_states) const
 {
   bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
     if (joint_time_.find(joint) == joint_time_.end())
@@ -198,7 +198,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
 {
   bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
@@ -226,7 +226,7 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
                                                                     std::vector<std::string>& missing_states) const
 {
   bool result = true;
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
