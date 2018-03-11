@@ -80,14 +80,14 @@ private Q_SLOTS:
 
 public:
   /// Constructor
-  LoadPathWidget(const std::string& title, const std::string& instructions, const bool dir_only = false,
-                 const bool load_only = false, QWidget* parent = 0);
+  LoadPathWidget(const QString &title, const QString &instructions, QWidget* parent,
+                 const bool dir_only = false, const bool load_only = false);
 
   /// Returns the file path in QString format
-  const QString getQPath();
+  QString getQPath() const;
 
   /// Returns the file path in std::string format
-  const std::string getPath();
+  std::string getPath() const;
 
   /// Set the path with QString
   void setPath(const QString& path);

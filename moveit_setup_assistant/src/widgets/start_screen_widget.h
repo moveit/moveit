@@ -56,7 +56,6 @@ namespace moveit_setup_assistant
 // Class Prototypes
 class SelectModeWidget;
 class LoadPathWidget;
-// class LoadURDFWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -83,7 +82,6 @@ public:
   SelectModeWidget* select_mode_;
   LoadPathWidget* stack_path_;
   LoadPathWidget* urdf_file_;
-  // LoadPathWidget *srdf_file_;
   QPushButton* btn_load_;
   QLabel* next_label_;
   QProgressBar* progress_bar_;

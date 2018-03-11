@@ -141,7 +141,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path",
                                    "Specify the package name or path of an existing MoveIt configuration package to be "
                                    "edited for your robot. Example package name: <i>pr2_moveit_config</i>",
-                                   true, this);  // is directory
+                                   this, true);  // is directory
   stack_path_->hide();                           // user needs to select option before this is shown
   left_layout->addWidget(stack_path_);
 
@@ -150,7 +150,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
       new LoadPathWidget("Load a URDF or COLLADA Robot Model",
                          "Specify the location of an existing Universal Robot Description Format or COLLADA file for "
                          "your robot. The robot model will be loaded to the parameter server for you.",
-                         false, true, this);  // no directory, load only
+                         this, false, true);  // no directory, load only
   urdf_file_->hide();                         // user needs to select option before this is shown
   left_layout->addWidget(urdf_file_);
 
@@ -193,7 +193,6 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
 
   // Stretch
   left_layout->setSpacing(30);
-  // hlayout->setContentsMargins( 0, 20, 0, 0);
 
   // Attach Layouts
   hlayout->addLayout(left_layout);
