@@ -231,8 +231,7 @@ void moveit::core::RobotState::setToRandomPositions(const JointModelGroup* group
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t i = 0; i < joints.size(); ++i)
     joints[i]->getVariableRandomPositions(rng, position_ + joints[i]->getFirstVariableIndex());
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& near,
@@ -249,8 +248,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup*
     joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(),
                                                 near.position_ + idx, distances[i]);
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& near,
@@ -266,8 +264,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup*
     joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(),
                                                 near.position_ + idx, distance);
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 bool moveit::core::RobotState::setToDefaultValues(const JointModelGroup* group, const std::string& name)
@@ -425,8 +422,7 @@ void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* gro
     for (std::size_t i = 0; i < il.size(); ++i)
       position_[il[i]] = gstate[i];
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* group, const Eigen::VectorXd& values)
@@ -434,8 +430,7 @@ void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* gro
   const std::vector<int>& il = group->getVariableIndexList();
   for (std::size_t i = 0; i < il.size(); ++i)
     position_[il[i]] = values(i);
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup* group, double* gstate) const
@@ -829,8 +824,7 @@ void moveit::core::RobotState::interpolate(const RobotState& to, double t, Robot
     const int idx = jm[i]->getFirstVariableIndex();
     jm[i]->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
   }
-  state.markDirtyJointTransforms(joint_group);
-  state.updateMimicJoint(joint_group->getMimicJointModels());
+  state.updateMimicJoints(joint_group);
 }
 
 void moveit::core::RobotState::setAttachedBodyUpdateCallback(const AttachedBodyCallback& callback)
