@@ -503,7 +503,9 @@ class MoveGroupCommander(object):
             return self._g.async_move()
 
     def plan(self, joints = None):
-        """ Return a motion plan (a RobotTrajectory) to the set goal state (or specified by the joints argument) """
+        """ Return a tuple of the motion planning results such as
+            (success flag : boolean, trajectory message : RobotTrajectory,
+             planning time : float, error code : MoveitErrorCodes) """
         if type(joints) is JointState:
             self.set_joint_value_target(joints)
 
