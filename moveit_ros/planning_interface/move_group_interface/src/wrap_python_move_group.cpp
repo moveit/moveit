@@ -425,11 +425,9 @@ public:
     return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
   }
 
-  std::string getPlanPython()
+  const char* getPlannerIdCStr() const
   {
-    MoveGroupInterface::Plan plan;
-    MoveGroupInterface::plan(plan);
-    return py_bindings_tools::serializeMsg(plan.trajectory_);
+    return getPlannerId().c_str();
   }
 
   bp::tuple planPython()
@@ -650,7 +648,6 @@ static void wrap_move_group_interface()
                               &MoveGroupInterfaceWrapper::setMaxAccelerationScalingFactor);
   MoveGroupInterfaceClass.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
-  MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
   MoveGroupInterfaceClass.def("plan", &MoveGroupInterfaceWrapper::planPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path",
