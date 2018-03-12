@@ -907,7 +907,6 @@ public:
   void clearPathConstraints();
 
   moveit_msgs::TrajectoryConstraints getTrajectoryConstraints() const;
-  bool setTrajectoryConstraints(const std::string& constraints);
   void setTrajectoryConstraints(const moveit_msgs::TrajectoryConstraints& constraint);
   void clearTrajectoryConstraints();
 
