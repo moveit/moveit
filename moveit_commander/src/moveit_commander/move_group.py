@@ -398,14 +398,14 @@ class MoveGroupCommander(object):
         return c
 
     def set_trajectory_constraints(self, value):
-        """ Specify the trajectory constraints to be used (as read from the database) """
+        """ Specify the trajectory constraints to be used """
         if value == None:
-            self.clear_path_constraints()
+            self.clear_trajectory_constraints()
         else:
             if type(value) is TrajectoryConstraints:
                 self._g.set_trajectory_constraints_from_msg(conversions.msg_to_string(value))
             elif not self._g.set_trajectory_constraints(value):
-                raise MoveItCommanderException("Unable to set path constraints " + value)
+                raise MoveItCommanderException("Unable to set trajectory constraints " + value)
 
     def clear_trajectory_constraints(self):
         """ Specify that no trajectory constraints are to be used during motion planning """
