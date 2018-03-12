@@ -436,8 +436,7 @@ public:
   {
     MoveGroupInterface::Plan plan;
     moveit_msgs::MoveItErrorCodes res = MoveGroupInterface::plan(plan);
-    return bp::make_tuple(py_bindings_tools::serializeMsg(res),
-                          py_bindings_tools::serializeMsg(plan.trajectory_),
+    return bp::make_tuple(py_bindings_tools::serializeMsg(res), py_bindings_tools::serializeMsg(plan.trajectory_),
                           plan.planning_time_);
   }
 
