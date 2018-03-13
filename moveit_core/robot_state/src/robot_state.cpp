@@ -2041,8 +2041,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   target_pose.translation() += rotated_direction * distance;
 
   // call computeCartesianPath for the computed target pose in the global reference frame
-  return (distance *
-          computeCartesianPath(group, traj, link, target_pose, true, max_step, revolute_jump_threshold, prismatic_jump_threshold, validCallback, options));
+  return (distance * computeCartesianPath(group, traj, link, target_pose, true, max_step, revolute_jump_threshold,
+                                          prismatic_jump_threshold, validCallback, options));
 }
 
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
@@ -2110,7 +2110,8 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
     for (std::size_t j = 0; j < jm.size() && still_valid; ++j)
     {
       const int idx = jm[j]->getFirstVariableIndex();
-      double dist = jm[j]->getDistanceFactor() * jm[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
+      double dist =
+          jm[j]->getDistanceFactor() * jm[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
 
       const PrismaticJointModel* pjm = dynamic_cast<const PrismaticJointModel*>(jm[j]);
       const RevoluteJointModel* rjm = dynamic_cast<const RevoluteJointModel*>(jm[j]);
@@ -2119,7 +2120,7 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
         // This is a prismatic joint
         if (dist > prismatic_jump_threshold && prismatic_jump_threshold > 0.0)
         {
-          logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
           percentage = (double)i / (double)(traj.size() - 1);
           traj.resize(i);
           still_valid = false;
@@ -2130,7 +2131,7 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
         // This is a revolute joint
         if (dist > revolute_jump_threshold && revolute_jump_threshold > 0.0)
         {
-          logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
           percentage = (double)i / (double)(traj.size() - 1);
           traj.resize(i);
           still_valid = false;
@@ -2138,7 +2139,9 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
       }
       else
       {
-        logError("Unsupported joint type in JointModelGroup %s at index %zu, As of now testJointSpaceJump only supports prismatic and revolute joints.", group->getName(), j);
+        CONSOLE_BRIDGE_logError("Unsupported joint type in JointModelGroup %s at index %zu, As of now "
+                                "testJointSpaceJump only supports prismatic and revolute joints.",
+                                group->getName(), j);
       }
     }
   }
@@ -2158,8 +2161,9 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     // Don't test joint space jumps for every waypoint, test them later on the whole trajectory.
     static const double no_joint_space_jump_test = 0.0;
     std::vector<RobotStatePtr> waypoint_traj;
-    double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
-                                                       max_step, no_joint_space_jump_test, no_joint_space_jump_test, validCallback, options);
+    double wp_percentage_solved =
+        computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame, max_step,
+                             no_joint_space_jump_test, no_joint_space_jump_test, validCallback, options);
     if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
     {
       percentage_solved = (double)(i + 1) / (double)waypoints.size();
