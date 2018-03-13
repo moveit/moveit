@@ -2134,7 +2134,7 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
           still_valid = false;
         }
       }
-      else
+      else if (joints[i]->getType() != JointModel::FIXED)
       {
         CONSOLE_BRIDGE_logError("Unsupported joint type in JointModelGroup %s at index %zu, As of now "
                                 "testJointSpaceJump only supports prismatic and revolute joints.",
