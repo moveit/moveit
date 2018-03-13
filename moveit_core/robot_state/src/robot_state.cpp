@@ -1936,7 +1936,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
 
   // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
-  unsigned int steps = static_cast<unsigned int>(floor(distance / max_step) + 1);
+  unsigned int steps = floor(distance / max_step) + 1;
   if (test_joint_space_jump && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
