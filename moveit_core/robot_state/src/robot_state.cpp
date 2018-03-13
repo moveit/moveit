@@ -2104,21 +2104,18 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
 {
   double percentage = 1.0;
   bool still_valid = true;
-  const std::vector<const JointModel*>& jm = group->getActiveJointModels();
+  const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t i; i < traj.size() - 1 && still_valid; ++i)
   {
-    for (std::size_t j = 0; j < jm.size() && still_valid; ++j)
+    for (std::size_t j = 0; j < joints.size() && still_valid; ++j)
     {
-      const int idx = jm[j]->getFirstVariableIndex();
-      double dist =
-          jm[j]->getDistanceFactor() * jm[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
+      const int idx = joints[j]->getFirstVariableIndex();
+      double dist = joints[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
 
-      const PrismaticJointModel* pjm = dynamic_cast<const PrismaticJointModel*>(jm[j]);
-      const RevoluteJointModel* rjm = dynamic_cast<const RevoluteJointModel*>(jm[j]);
-      if (pjm)
+      if (joints[i]->getType() == JointModel::PRISMATIC)
       {
         // This is a prismatic joint
-        if (dist > prismatic_jump_threshold && prismatic_jump_threshold > 0.0)
+        if (prismatic_jump_threshold > 0.0 && dist > prismatic_jump_threshold)
         {
           CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
           percentage = (double)i / (double)(traj.size() - 1);
@@ -2126,10 +2123,10 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
           still_valid = false;
         }
       }
-      else if (rjm)
+      else if (joints[i]->getType() == JointModel::REVOLUTE)
       {
         // This is a revolute joint
-        if (dist > revolute_jump_threshold && revolute_jump_threshold > 0.0)
+        if (revolute_jump_threshold > 0.0 && dist > revolute_jump_threshold)
         {
           CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
           percentage = (double)i / (double)(traj.size() - 1);
