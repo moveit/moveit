@@ -2023,6 +2023,170 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   return percentage_solved;
 }
 
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                                                      const LinkModel* link, const Eigen::Vector3d& direction,
+                                                      bool global_reference_frame, double distance, double max_step,
+                                                      double revolute_jump_threshold, double prismatic_jump_threshold,
+                                                      const GroupStateValidityCallbackFn& validCallback,
+                                                      const kinematics::KinematicsQueryOptions& options)
+{
+  // this is the Cartesian pose we start from, and have to move in the direction indicated
+  const Eigen::Affine3d& start_pose = getGlobalLinkTransform(link);
+
+  // the direction can be in the local reference frame (in which case we rotate it)
+  const Eigen::Vector3d rotated_direction = global_reference_frame ? direction : start_pose.rotation() * direction;
+
+  // The target pose is built by applying a translation to the start pose for the desired direction and distance
+  Eigen::Affine3d target_pose = start_pose;
+  target_pose.translation() += rotated_direction * distance;
+
+  // call computeCartesianPath for the computed target pose in the global reference frame
+  return (distance *
+          computeCartesianPath(group, traj, link, target_pose, true, max_step, revolute_jump_threshold, prismatic_jump_threshold, validCallback, options));
+}
+
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                                                      const LinkModel* link, const Eigen::Affine3d& target,
+                                                      bool global_reference_frame, double max_step,
+                                                      double revolute_jump_threshold, double prismatic_jump_threshold,
+                                                      const GroupStateValidityCallbackFn& validCallback,
+                                                      const kinematics::KinematicsQueryOptions& options)
+{
+  const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
+  // make sure that continuous joints wrap
+  for (std::size_t i = 0; i < cjnt.size(); ++i)
+    enforceBounds(cjnt[i]);
+
+  // this is the Cartesian pose we start from, and we move in the direction indicated
+  Eigen::Affine3d start_pose = getGlobalLinkTransform(link);
+
+  // the target can be in the local reference frame (in which case we rotate it)
+  Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
+
+  bool test_joint_space_jump = revolute_jump_threshold > 0.0 || prismatic_jump_threshold > 0.0;
+
+  // decide how many steps we will need for this trajectory
+  double distance = (rotated_target.translation() - start_pose.translation()).norm();
+  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
+
+  traj.clear();
+  traj.push_back(RobotStatePtr(new RobotState(*this)));
+
+  double last_valid_percentage = 0.0;
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  for (unsigned int i = 1; i <= steps; ++i)
+  {
+    double percentage = (double)i / (double)steps;
+
+    Eigen::Affine3d pose(start_quaternion.slerp(percentage, target_quaternion));
+    pose.translation() = percentage * rotated_target.translation() + (1 - percentage) * start_pose.translation();
+
+    if (setFromIK(group, pose, link->getName(), 1, 0.0, validCallback, options))
+    {
+      traj.push_back(RobotStatePtr(new RobotState(*this)));
+    }
+    else
+      break;
+    last_valid_percentage = percentage;
+  }
+
+  if (test_joint_space_jump)
+  {
+    last_valid_percentage *= testJointSpaceJump(group, traj, revolute_jump_threshold, prismatic_jump_threshold);
+  }
+
+  return last_valid_percentage;
+}
+
+double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                                                    double revolute_jump_threshold, double prismatic_jump_threshold)
+{
+  double percentage = 1.0;
+  bool still_valid = true;
+  const std::vector<const JointModel*>& jm = group->getActiveJointModels();
+  for (std::size_t i; i < traj.size() - 1 && still_valid; ++i)
+  {
+    for (std::size_t j = 0; j < jm.size() && still_valid; ++j)
+    {
+      const int idx = jm[j]->getFirstVariableIndex();
+      double dist = jm[j]->getDistanceFactor() * jm[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
+
+      const PrismaticJointModel* pjm = dynamic_cast<const PrismaticJointModel*>(jm[j]);
+      const RevoluteJointModel* rjm = dynamic_cast<const RevoluteJointModel*>(jm[j]);
+      if (pjm)
+      {
+        // This is a prismatic joint
+        if (dist > prismatic_jump_threshold && prismatic_jump_threshold > 0.0)
+        {
+          logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+          percentage = (double)i / (double)(traj.size() - 1);
+          traj.resize(i);
+          still_valid = false;
+        }
+      }
+      else if (rjm)
+      {
+        // This is a revolute joint
+        if (dist > revolute_jump_threshold && revolute_jump_threshold > 0.0)
+        {
+          logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
+          percentage = (double)i / (double)(traj.size() - 1);
+          traj.resize(i);
+          still_valid = false;
+        }
+      }
+      else
+      {
+        logError("Unsupported joint type in JointModelGroup %s at index %zu, As of now testJointSpaceJump only supports prismatic and revolute joints.", group->getName(), j);
+      }
+    }
+  }
+  return percentage;
+}
+
+double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                                                      const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
+                                                      bool global_reference_frame, double max_step,
+                                                      double revolute_jump_threshold, double prismatic_jump_threshold,
+                                                      const GroupStateValidityCallbackFn& validCallback,
+                                                      const kinematics::KinematicsQueryOptions& options)
+{
+  double percentage_solved = 0.0;
+  for (std::size_t i = 0; i < waypoints.size(); ++i)
+  {
+    // Don't test joint space jumps for every waypoint, test them later on the whole trajectory.
+    static const double no_joint_space_jump_test = 0.0;
+    std::vector<RobotStatePtr> waypoint_traj;
+    double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
+                                                       max_step, no_joint_space_jump_test, no_joint_space_jump_test, validCallback, options);
+    if (fabs(wp_percentage_solved - 1.0) < std::numeric_limits<double>::epsilon())
+    {
+      percentage_solved = (double)(i + 1) / (double)waypoints.size();
+      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      if (i > 0 && !waypoint_traj.empty())
+        std::advance(start, 1);
+      traj.insert(traj.end(), start, waypoint_traj.end());
+    }
+    else
+    {
+      percentage_solved += wp_percentage_solved / (double)waypoints.size();
+      std::vector<RobotStatePtr>::iterator start = waypoint_traj.begin();
+      if (i > 0 && !waypoint_traj.empty())
+        std::advance(start, 1);
+      traj.insert(traj.end(), start, waypoint_traj.end());
+      break;
+    }
+  }
+
+  if (revolute_jump_threshold > 0.0 || prismatic_jump_threshold > 0.0)
+  {
+    percentage_solved *= testJointSpaceJump(group, traj, revolute_jump_threshold, prismatic_jump_threshold);
+  }
+
+  return percentage_solved;
+}
+
 void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
 {
   BOOST_VERIFY(checkLinkTransforms());
