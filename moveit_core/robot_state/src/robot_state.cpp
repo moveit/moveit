@@ -2111,35 +2111,37 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
     {
       const int idx = joints[j]->getFirstVariableIndex();
       double dist = joints[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
-
-      if (joints[i]->getType() == JointModel::PRISMATIC)
+      if (joints[j]->getType() == JointModel::PRISMATIC)
       {
         // This is a prismatic joint
         if (prismatic_jump_threshold > 0.0 && dist > prismatic_jump_threshold)
         {
           CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-          percentage = (double)i / (double)(traj.size() - 1);
-          traj.resize(i);
           still_valid = false;
         }
       }
-      else if (joints[i]->getType() == JointModel::REVOLUTE)
+      else if (joints[j]->getType() == JointModel::REVOLUTE)
       {
         // This is a revolute joint
         if (revolute_jump_threshold > 0.0 && dist > revolute_jump_threshold)
         {
-          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-          percentage = (double)i / (double)(traj.size() - 1);
-          traj.resize(i);
+          CONSOLE_BRIDGE_logError("Truncating Cartesian path due to detected jump of %.3f/%.3f in joint-space distance",
+                                  dist, revolute_jump_threshold);
           still_valid = false;
         }
       }
-      else if (joints[i]->getType() != JointModel::FIXED)
+      else if (joints[j]->getType() != JointModel::FIXED)
       {
-        CONSOLE_BRIDGE_logError("Unsupported joint type in JointModelGroup %s at index %zu, As of now "
+        CONSOLE_BRIDGE_logError("Unsupported joint type %zu in JointModelGroup %s at index %zu, As of now "
                                 "testJointSpaceJump only supports prismatic and revolute joints.",
-                                group->getName(), j);
+                                joints[j]->getType(), group->getName().c_str(), j);
+        still_valid = false;
       }
+    }
+    if (!still_valid)
+    {
+      percentage = (double)i / (double)(traj.size() - 1);
+      traj.resize(i);
     }
   }
   return percentage;
