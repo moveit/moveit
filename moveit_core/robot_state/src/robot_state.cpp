@@ -2125,7 +2125,7 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
         // This is a revolute joint
         if (revolute_jump_threshold > 0.0 && dist > revolute_jump_threshold)
         {
-          CONSOLE_BRIDGE_logError("Truncating Cartesian path due to detected jump of %.3f/%.3f in joint-space distance",
+          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.3f/%.3f in joint-space distance",
                                   dist, revolute_jump_threshold);
           still_valid = false;
         }
