@@ -402,47 +402,34 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
   // read multi-dof joint states from TF, if needed
   const std::vector<const moveit::core::JointModel*>& multi_dof_joints = robot_model_->getMultiDOFJointModels();
 
-  ros::Time latest_updates[multi_dof_joints.size()];
-
-  for (size_t i = 0; i < multi_dof_joints.size(); i++)
-  {
-    const moveit::core::JointModel* joint = multi_dof_joints[i];
-    const std::string& child_frame = joint->getChildLinkModel()->getName();
-    const std::string& parent_frame =
-        joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
-
-    std::string err;
-    if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_updates[i], &err) != tf::NO_ERROR)
-    {
-      ROS_DEBUG_STREAM_THROTTLE(1, "Unable to update multi-dof joint '"
-                                       << joint->getName() << "': tf has no common time between '"
-                                       << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
-      latest_updates[i] = ros::Time(0);
-      continue;
-    }
-  }
-
   bool update = false;
   bool changes = false;
-
   {
     boost::mutex::scoped_lock _(state_update_lock_);
 
     for (size_t i = 0; i < multi_dof_joints.size(); i++)
     {
       const moveit::core::JointModel* joint = multi_dof_joints[i];
-
-      if (latest_updates[i] <= joint_time_[joint])
-        continue;
-
       const std::string& child_frame = joint->getChildLinkModel()->getName();
-      const std::string& parent_frame =
-          joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
+      const std::string& parent_frame = joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
+
+      ros::Time latest_common_time;
+      std::string err;
+      if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
+      {
+        ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
+                                    << joint->getName() << "': TF has no common time between '"
+                                    << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+        continue;
+      }
+
+      if (latest_common_time <= joint_time_[joint] && latest_common_time > ros::Time(0))
+        continue;
 
       tf::StampedTransform transf;
       try
       {
-        tf_->lookupTransform(parent_frame, child_frame, latest_updates[i], transf);
+        tf_->lookupTransform(parent_frame, child_frame, latest_common_time, transf);
       }
       catch (tf::TransformException& ex)
       {
@@ -450,20 +437,20 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
                                                                           << "'. TF exception: " << ex.what());
         continue;
       }
-      joint_time_[joint] = latest_updates[i];
+      joint_time_[joint] = latest_common_time;
 
       Eigen::Affine3d eigen_transf;
       tf::transformTFToEigen(transf, eigen_transf);
 
-      double new_values[joint->getStateSpaceDimension()];
-      joint->computeVariablePositions(eigen_transf, new_values);
+      std::vector<double> new_values(joint->getStateSpaceDimension());
+      joint->computeVariablePositions(eigen_transf, &new_values[0]);
 
-      if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
+      if (joint->distance(&new_values[0], robot_state_.getJointPositions(joint)) > 1e-5)
       {
         changes = true;
       }
 
-      robot_state_.setJointPositions(joint, new_values);
+      robot_state_.setJointPositions(joint, &new_values[0]);
       update = true;
     }
   }
@@ -484,3 +471,4 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
     state_update_condition_.notify_all();
   }
 }
+
