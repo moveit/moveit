@@ -2,7 +2,7 @@
 
 This package provides plugins of base class `moveit_controller_manager::MoveItControllerManager` and a new plugin base class for `moveit_controller_manager::MoveItControllerHandle` allocators.
 The allocator class is necessary because `moveit_controller_manager::MoveItControllerHandle` needs a name passed to the constructor.
-Two variantes are provided, `moveit_ros_control_interface::MoveItControllerManager` for interfacing a singe ros_control node and `moveit_ros_control_interface::MoveItMultiControllerManager` for seamless integration with any number of ros_control nodes.
+Two variantes are provided, `moveit_ros_control_interface::MoveItControllerManager` for interfacing a single ros_control node and `moveit_ros_control_interface::MoveItMultiControllerManager` for seamless integration with any number of ros_control nodes.
 
 
 ## moveit_ros_control_interface::MoveItControllerManager

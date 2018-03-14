@@ -143,14 +143,15 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
 
   if (ik_poses.size() != 1)
   {
-    logError("moveit.kinematics_base: This kinematic solver does not support getPositionIK for multiple poses");
+    CONSOLE_BRIDGE_logError("moveit.kinematics_base: This kinematic solver "
+                            "does not support getPositionIK for multiple poses");
     result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }
 
   if (ik_poses.size() == 0)
   {
-    logError("moveit.kinematics_base: Input ik_poses array is empty");
+    CONSOLE_BRIDGE_logError("moveit.kinematics_base: Input ik_poses array is empty");
     result.kinematic_error = kinematics::KinematicErrors::EMPTY_TIP_POSES;
     return false;
   }

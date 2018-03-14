@@ -243,8 +243,7 @@ void moveit::core::RobotState::setToRandomPositions(const JointModelGroup* group
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t i = 0; i < joints.size(); ++i)
     joints[i]->getVariableRandomPositions(rng, position_ + joints[i]->getFirstVariableIndex());
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& near,
@@ -261,8 +260,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup*
     joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(),
                                                 near.position_ + idx, distances[i]);
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup* group, const RobotState& near,
@@ -278,8 +276,7 @@ void moveit::core::RobotState::setToRandomPositionsNearBy(const JointModelGroup*
     joints[i]->getVariableRandomPositionsNearBy(rng, position_ + joints[i]->getFirstVariableIndex(),
                                                 near.position_ + idx, distance);
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 bool moveit::core::RobotState::setToDefaultValues(const JointModelGroup* group, const std::string& name)
@@ -437,8 +434,7 @@ void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* gro
     for (std::size_t i = 0; i < il.size(); ++i)
       position_[il[i]] = gstate[i];
   }
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* group, const Eigen::VectorXd& values)
@@ -446,8 +442,7 @@ void moveit::core::RobotState::setJointGroupPositions(const JointModelGroup* gro
   const std::vector<int>& il = group->getVariableIndexList();
   for (std::size_t i = 0; i < il.size(); ++i)
     position_[il[i]] = values(i);
-  updateMimicJoint(group->getMimicJointModels());
-  markDirtyJointTransforms(group);
+  updateMimicJoints(group);
 }
 
 void moveit::core::RobotState::copyJointGroupPositions(const JointModelGroup* group, double* gstate) const
@@ -841,8 +836,7 @@ void moveit::core::RobotState::interpolate(const RobotState& to, double t, Robot
     const int idx = jm[i]->getFirstVariableIndex();
     jm[i]->interpolate(position_ + idx, to.position_ + idx, t, state.position_ + idx);
   }
-  state.markDirtyJointTransforms(joint_group);
-  state.updateMimicJoint(joint_group->getMimicJointModels());
+  state.updateMimicJoints(joint_group);
 }
 
 void moveit::core::RobotState::setAttachedBodyUpdateCallback(const AttachedBodyCallback& callback)
@@ -1003,9 +997,8 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
   std::map<std::string, AttachedBody*>::const_iterator jt = attached_body_map_.find(id);
   if (jt == attached_body_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known ('%s' should be a link name or an "
-                            "attached body "
-                            "id).",
+    CONSOLE_BRIDGE_logError("Transform from frame '%s' to frame '%s' is not known "
+                            "('%s' should be a link name or an attached body id).",
                             id.c_str(), robot_model_->getModelFrame().c_str(), id.c_str());
     return identity_transform;
   }
@@ -1016,9 +1009,8 @@ const Eigen::Affine3d& moveit::core::RobotState::getFrameTransform(const std::st
     return identity_transform;
   }
   if (tf.size() > 1)
-    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. Returning the transform "
-                            "for the first "
-                            "one.",
+    CONSOLE_BRIDGE_logDebug("There are multiple geometries associated to attached body '%s'. "
+                            "Returning the transform for the first one.",
                             id.c_str());
   return tf[0];
 }
@@ -1482,9 +1474,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits for a setFromIK "
-                            "request that is "
-                            "being solved by a single IK solver",
+    CONSOLE_BRIDGE_logError("moveit.robot_state: Invalid number (%d) of sets of consistency limits "
+                            "for a setFromIK request that is being solved by a single IK solver",
                             consistency_limit_sets.size());
     return false;
   }
@@ -1540,8 +1531,8 @@ bool moveit::core::RobotState::setFromIK(const JointModelGroup* jmg, const Eigen
           const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
-            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body with multiple geometries as a "
-                                    "reference frame.");
+            CONSOLE_BRIDGE_logError("moveit.robot_state: Cannot use an attached body "
+                                    "with multiple geometries as a reference frame.");
             return false;
           }
           pose_frame = ab->getAttachedLinkName();
@@ -1735,8 +1726,8 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
   {
     if (consistency_limits[i].size() != sub_groups[i]->getVariableCount())
     {
-      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %u but it should be should be %u",
-                              (unsigned int)i, sub_groups[i]->getVariableCount());
+      CONSOLE_BRIDGE_logError("Number of joints in consistency_limits is %zu but it should be should be %u", i,
+                              sub_groups[i]->getVariableCount());
       return false;
     }
   }
