@@ -1877,7 +1877,6 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
   return false;
 }
 
-
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const Eigen::Vector3d& direction,
                                                       bool global_reference_frame, double distance, double max_step,
@@ -1911,7 +1910,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   jt.jump_threshold_factor = jump_threshold;
   jt.prismatic_jump_threshold = 0.0;
   jt.revolute_jump_threshold = 0.0;
-  return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step, jt, validCallback, options);
+  return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step, jt,
+                              validCallback, options);
 }
 
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
@@ -1925,9 +1925,9 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   jt.jump_threshold_factor = 0.0;
   jt.prismatic_jump_threshold = prismatic_jump_threshold;
   jt.revolute_jump_threshold = revolute_jump_threshold;
-  return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step, jt, validCallback, options);
+  return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step, jt,
+                              validCallback, options);
 }
-
 
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const Eigen::Affine3d& target,
@@ -1947,7 +1947,9 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   // the target can be in the local reference frame (in which case we rotate it)
   Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
 
-  bool test_joint_space_jump = jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0 ||jump_threshold.jump_threshold_factor > 0.0;
+  bool test_joint_space_jump = jump_threshold.prismatic_jump_threshold > 0.0 ||
+                               jump_threshold.revolute_jump_threshold > 0.0 ||
+                               jump_threshold.jump_threshold_factor > 0.0;
 
   // decide how many steps we will need for this trajectory
   double distance = (rotated_target.translation() - start_pose.translation()).norm();
@@ -2019,11 +2021,11 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
     percentage *= testJointSpaceJump(group, traj, jump_threshold.jump_threshold_factor);
 
   if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
-    percentage *= testJointSpaceJump(group, traj, jump_threshold.revolute_jump_threshold, jump_threshold.prismatic_jump_threshold);
+    percentage *= testJointSpaceJump(group, traj, jump_threshold.revolute_jump_threshold,
+                                     jump_threshold.prismatic_jump_threshold);
 
   return percentage;
 }
-
 
 double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                     double jump_threshold)
@@ -2079,8 +2081,8 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
         // This is a revolute joint
         if (revolute_jump_threshold > 0.0 && dist > revolute_jump_threshold)
         {
-          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance",
-                                  dist, revolute_jump_threshold);
+          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance", dist,
+                                  revolute_jump_threshold);
           still_valid = false;
         }
       }
@@ -2135,7 +2137,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     }
   }
 
-  if (jump_threshold.jump_threshold_factor > 0.0 || jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
+  if (jump_threshold.jump_threshold_factor > 0.0 || jump_threshold.prismatic_jump_threshold > 0.0 ||
+      jump_threshold.revolute_jump_threshold > 0.0)
   {
     percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
   }
@@ -2154,9 +2157,9 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   jt.jump_threshold_factor = jump_threshold;
   jt.prismatic_jump_threshold = 0.0;
   jt.revolute_jump_threshold = 0.0;
-  return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step, jt, validCallback, options);
+  return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step, jt, validCallback,
+                              options);
 }
-
 
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
@@ -2169,7 +2172,8 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
   jt.jump_threshold_factor = 0.0;
   jt.prismatic_jump_threshold = prismatic_jump_threshold;
   jt.revolute_jump_threshold = revolute_jump_threshold;
-  return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step, jt, validCallback, options);
+  return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step, jt, validCallback,
+                              options);
 }
 
 void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
