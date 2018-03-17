@@ -629,7 +629,7 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses)
+  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, PlacePlan& plan)
   {
     std::vector<moveit_msgs::PlaceLocation> locations;
     for (std::size_t i = 0; i < poses.size(); ++i)
@@ -651,10 +651,10 @@ public:
     }
     ROS_DEBUG_NAMED("move_group_interface", "Move group interface has %u place locations",
                     (unsigned int)locations.size());
-    return place(object, locations);
+    return place(object, locations, plan);
   }
 
-  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations)
+  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, PlacePlan& plan)
   {
     if (!place_action_client_)
     {
@@ -684,7 +684,13 @@ public:
     }
     if (place_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      return MoveItErrorCode(place_action_client_->getResult()->error_code);
+      moveit_msgs::PlaceResult::ConstPtr result = place_action_client_->getResult();
+      plan.start_state_ = result->trajectory_start;
+      plan.trajectory_stages_ = result->trajectory_stages;
+      plan.trajectory_descriptions_ = result->trajectory_descriptions;
+      plan.planning_time_ = result->planning_time;
+      plan.place_location_ = result->place_location;
+      return MoveItErrorCode(result->error_code);
     }
     else
     {
@@ -694,7 +700,7 @@ public:
     }
   }
 
-  MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps)
+  MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, PickPlan& plan)
   {
     if (!pick_action_client_)
     {
@@ -723,7 +729,13 @@ public:
     }
     if (pick_action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
-      return MoveItErrorCode(pick_action_client_->getResult()->error_code);
+      moveit_msgs::PickupResult::ConstPtr result = pick_action_client_->getResult();
+      plan.start_state_ = result->trajectory_start;
+      plan.trajectory_stages_ = result->trajectory_stages;
+      plan.trajectory_descriptions_ = result->trajectory_descriptions;
+      plan.planning_time_ = result->planning_time;
+      plan.grasp_ = result->grasp;
+      return MoveItErrorCode(result->error_code);
     }
     else
     {
@@ -733,11 +745,11 @@ public:
     }
   }
 
-  MoveItErrorCode planGraspsAndPick(const std::string& object)
+  MoveItErrorCode planGraspsAndPick(const std::string& object, PickPlan& plan)
   {
     if (object.empty())
     {
-      return planGraspsAndPick(moveit_msgs::CollisionObject());
+      return planGraspsAndPick(moveit_msgs::CollisionObject(), plan);
     }
     moveit::planning_interface::PlanningSceneInterface psi;
 
@@ -750,10 +762,10 @@ public:
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::INVALID_OBJECT_NAME);
     }
 
-    return planGraspsAndPick(objects[object]);
+    return planGraspsAndPick(objects[object], plan);
   }
 
-  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object)
+  MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, PickPlan& plan)
   {
     if (!plan_grasps_service_)
     {
@@ -779,7 +791,7 @@ public:
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
     }
 
-    return pick(object.id, response.grasps);
+    return pick(object.id, response.grasps, plan);
   }
 
   MoveItErrorCode plan(Plan& plan)
@@ -1490,55 +1502,131 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::pick(const std::string& object)
 {
-  return impl_->pick(object, std::vector<moveit_msgs::Grasp>());
+  PickPlan unused;
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(), unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, PickPlan& plan)
+{
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(), plan);
 }
 
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, const moveit_msgs::Grasp& grasp)
 {
-  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp));
+  PickPlan unused;
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp), unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, const moveit_msgs::Grasp& grasp, PickPlan& plan)
+{
+  return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp), plan);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::pick(
     const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps)
 {
-  return impl_->pick(object, grasps);
+  PickPlan unused;
+  return impl_->pick(object, grasps, unused);
+}
+
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::pick(
+    const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, PickPlan& plan)
+{
+  return impl_->pick(object, grasps, plan);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick()
+{
+  PickPlan unused;
+  return impl_->planGraspsAndPick("", unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(PickPlan& plan)
+{
+  return impl_->planGraspsAndPick("", plan);
 }
 
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const std::string& object)
 {
-  return impl_->planGraspsAndPick(object);
+  PickPlan unused;
+  return impl_->planGraspsAndPick(object, unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const std::string& object, PickPlan& plan)
+{
+  return impl_->planGraspsAndPick(object, plan);
 }
 
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const moveit_msgs::CollisionObject& object)
 {
-  return impl_->planGraspsAndPick(object);
+  PickPlan unused;
+  return impl_->planGraspsAndPick(object, unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const moveit_msgs::CollisionObject& object, PickPlan& plan)
+{
+  return impl_->planGraspsAndPick(object, plan);
 }
 
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::place(const std::string& object)
 {
-  return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>());
+  PlacePlan unused;
+  return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>(), unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::place(const std::string& object, PlacePlan& plan)
+{
+  return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>(), plan);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
     const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations)
 {
-  return impl_->place(object, locations);
+  PlacePlan unused;
+  return impl_->place(object, locations, unused);
+}
+
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
+    const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, PlacePlan& plan)
+{
+  return impl_->place(object, locations, plan);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
     const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses)
 {
-  return impl_->place(object, poses);
+  PlacePlan unused;
+  return impl_->place(object, poses, unused);
+}
+
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
+    const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, PlacePlan& plan)
+{
+  return impl_->place(object, poses, plan);
 }
 
 moveit::planning_interface::MoveItErrorCode
 moveit::planning_interface::MoveGroupInterface::place(const std::string& object, const geometry_msgs::PoseStamped& pose)
 {
-  return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose));
+  PlacePlan unused;
+  return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose), unused);
+}
+
+moveit::planning_interface::MoveItErrorCode
+moveit::planning_interface::MoveGroupInterface::place(const std::string& object, const geometry_msgs::PoseStamped& pose, PlacePlan& plan)
+{
+  return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose), plan);
 }
 
 double moveit::planning_interface::MoveGroupInterface::computeCartesianPath(
