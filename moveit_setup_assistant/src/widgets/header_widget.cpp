@@ -88,8 +88,8 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
-LoadPathWidget::LoadPathWidget(const std::string& title, const std::string& instructions, const bool dir_only,
-                               const bool load_only, QWidget* parent)
+LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, const bool dir_only,
+                               const bool load_only)
   : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
 {
   // Set frame graphics
@@ -106,7 +106,7 @@ LoadPathWidget::LoadPathWidget(const std::string& title, const std::string& inst
 
   // Widget Title
   QLabel* widget_title = new QLabel(this);
-  widget_title->setText(title.c_str());
+  widget_title->setText(title);
   QFont widget_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   widget_title->setFont(widget_title_font);
   layout->addWidget(widget_title);
@@ -114,14 +114,16 @@ LoadPathWidget::LoadPathWidget(const std::string& title, const std::string& inst
 
   // Widget Instructions
   QLabel* widget_instructions = new QLabel(this);
-  widget_instructions->setText(instructions.c_str());
+  widget_instructions->setText(instructions);
   widget_instructions->setWordWrap(true);
   widget_instructions->setTextFormat(Qt::RichText);
   layout->addWidget(widget_instructions);
   layout->setAlignment(widget_instructions, Qt::AlignTop);
 
-  // Line Edit
+  // Line Edit for path
   path_box_ = new QLineEdit(this);
+  connect(path_box_, SIGNAL(textChanged(QString)), this, SIGNAL(pathChanged(QString)));
+  connect(path_box_, SIGNAL(editingFinished()), this, SIGNAL(pathEditingFinished()));
   hlayout->addWidget(path_box_);
 
   // Button
@@ -171,7 +173,7 @@ void LoadPathWidget::btn_file_dialog()
 // ******************************************************************************************
 // Get the QString path
 // ******************************************************************************************
-const QString LoadPathWidget::getQPath()
+QString LoadPathWidget::getQPath() const
 {
   return path_box_->text();
 }
@@ -179,7 +181,7 @@ const QString LoadPathWidget::getQPath()
 // ******************************************************************************************
 // Get Std String path
 // ******************************************************************************************
-const std::string LoadPathWidget::getPath()
+std::string LoadPathWidget::getPath() const
 {
   return getQPath().toStdString();
 }
@@ -198,5 +200,33 @@ void LoadPathWidget::setPath(const QString& path)
 void LoadPathWidget::setPath(const std::string& path)
 {
   path_box_->setText(QString(path.c_str()));
+}
+
+LoadPathArgsWidget::LoadPathArgsWidget(const QString& title, const QString& instructions,
+                                       const QString& arg_instructions, QWidget* parent, const bool dir_only,
+                                       const bool load_only)
+  : LoadPathWidget(title, instructions, parent, dir_only, load_only)
+{
+  // Line Edit for xacro args
+  args_instructions_ = new QLabel(arg_instructions, this);
+  args_ = new QLineEdit(this);
+
+  layout()->addWidget(args_instructions_);
+  layout()->addWidget(args_);
+}
+
+QString LoadPathArgsWidget::getArgs() const
+{
+  return args_->text();
+}
+
+void LoadPathArgsWidget::setArgs(const QString& args)
+{
+  args_->setText(args);
+}
+
+void LoadPathArgsWidget::setArgsEnabled(bool enabled)
+{
+  args_->setEnabled(enabled);
 }
 }

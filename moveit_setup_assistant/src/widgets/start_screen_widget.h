@@ -55,8 +55,7 @@ namespace moveit_setup_assistant
 {
 // Class Prototypes
 class SelectModeWidget;
-class LoadPathWidget;
-// class LoadURDFWidget;
+class LoadPathArgsWidget;
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -81,9 +80,8 @@ public:
   // Qt Components
   // ******************************************************************************************
   SelectModeWidget* select_mode_;
-  LoadPathWidget* stack_path_;
-  LoadPathWidget* urdf_file_;
-  // LoadPathWidget *srdf_file_;
+  LoadPathArgsWidget* stack_path_;
+  LoadPathArgsWidget* urdf_file_;
   QPushButton* btn_load_;
   QLabel* next_label_;
   QProgressBar* progress_bar_;
@@ -110,6 +108,12 @@ private Q_SLOTS:
   /// Button event for loading user chosen files
   void loadFilesClick();
 
+  /// load package settings
+  void onPackagePathChanged(const QString& path);
+
+  /// enable xacro arguments
+  void onUrdfPathChanged(const QString& path);
+
 Q_SIGNALS:
 
   // ******************************************************************************************
@@ -134,6 +138,9 @@ private:
   // Private Functions
   // ******************************************************************************************
 
+  /// load package settings from .setup_assistant file
+  bool loadPackageSettings(bool show_warnings);
+
   /// Load chosen files for creating new package
   bool loadNewFiles();
 
@@ -141,7 +148,7 @@ private:
   bool loadExistingFiles();
 
   /// Load URDF File to Parameter Server
-  bool loadURDFFile(const std::string& urdf_file_path);
+  bool loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args);
 
   /// Load SRDF File
   bool loadSRDFFile(const std::string& srdf_file_path);
@@ -157,9 +164,6 @@ private:
 
   /// Make the full SRDF path using the loaded .setup_assistant data
   bool createFullSRDFPath(const std::string& package_path);
-
-  /// Get the full package path for editing an existing package
-  bool createFullPackagePath();
 };
 
 // ******************************************************************************************
