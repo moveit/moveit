@@ -411,15 +411,16 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
     {
       const moveit::core::JointModel* joint = multi_dof_joints[i];
       const std::string& child_frame = joint->getChildLinkModel()->getName();
-      const std::string& parent_frame = joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
+      const std::string& parent_frame =
+          joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
 
       ros::Time latest_common_time;
       std::string err;
       if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
       {
         ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                    << joint->getName() << "': TF has no common time between '"
-                                    << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+                                        << joint->getName() << "': TF has no common time between '"
+                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
         continue;
       }
 
@@ -471,4 +472,3 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
     state_update_condition_.notify_all();
   }
 }
-
