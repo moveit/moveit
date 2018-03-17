@@ -785,11 +785,15 @@ public:
       This applies a number of hard-coded default grasps */
   MoveItErrorCode pick(const std::string& object);
 
+  /** \brief Pick up an object (with returning planning result)
+
+      This applies a number of hard-coded default grasps */
   MoveItErrorCode pick(const std::string& object, PickPlan& plan);
 
   /** \brief Pick up an object given a grasp pose */
   MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp);
 
+  /** \brief Pick up an object given a grasp pose  (with returning planning result) */
   MoveItErrorCode pick(const std::string& object, const moveit_msgs::Grasp& grasp, PickPlan& plan);
 
   /** \brief Pick up an object given possible grasp poses
@@ -797,9 +801,9 @@ public:
       if the vector is left empty this behaves like pick(const std::string &object) */
   MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps);
 
-  /** \brief Pick up an object given possible grasp poses
+  /** \brief Pick up an object given possible grasp poses (with returning planning result)
 
-      This overload returns a result of planning */
+      if the vector is left empty this behaves like pick(const std::string &object) */
   MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, PickPlan& plan);
 
   /** \brief Pick up an object
@@ -807,6 +811,9 @@ public:
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick();
 
+  /** \brief Pick up an object (with returning planning result)
+
+      calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick(PickPlan& plan);
 
   /** \brief Pick up an object
@@ -814,6 +821,9 @@ public:
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick(const std::string& object);
 
+  /** \brief Pick up an object (with returning planning result)
+
+      calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick(const std::string& object, PickPlan& plan);
 
   /** \brief Pick up an object
@@ -821,26 +831,33 @@ public:
       calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object);
 
+  /** \brief Pick up an object (with returning planning result)
+
+      calls the external moveit_msgs::GraspPlanning service "plan_grasps" to compute possible grasps */
   MoveItErrorCode planGraspsAndPick(const moveit_msgs::CollisionObject& object, PickPlan& plan);
 
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   MoveItErrorCode place(const std::string& object);
 
+  /** \brief Place an object somewhere safe in the world (a safe location will be detected) (with returning planning result) */
   MoveItErrorCode place(const std::string& object, PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations);
 
+  /** \brief Place an object at one of the specified possible locations (with returning planning result) */
   MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses);
 
+  /** \brief Place an object at one of the specified possible locations (with returning planning result) */
   MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible location */
   MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose);
 
+  /** \brief Place an object at one of the specified possible location (with returning planning result) */
   MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, PlacePlan& plan);
 
   /** \brief Given the name of an object in the planning scene, make
