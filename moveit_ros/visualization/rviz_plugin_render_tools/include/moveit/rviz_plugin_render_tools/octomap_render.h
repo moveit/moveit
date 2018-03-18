@@ -53,6 +53,8 @@ namespace Ogre
 class SceneManager;
 class SceneNode;
 class AxisAlignedBox;
+class Vector3;
+class Quaternion;
 }
 
 namespace moveit_rviz_plugin
@@ -76,6 +78,9 @@ public:
                OctreeVoxelColorMode octree_color_mode, std::size_t max_octree_depth, Ogre::SceneManager* scene_manager,
                Ogre::SceneNode* parent_node);
   virtual ~OcTreeRender();
+
+  void setPosition(const Ogre::Vector3& position);
+  void setOrientation(const Ogre::Quaternion& orientation);
 
 private:
   void setColor(double z_pos, double min_z, double max_z, double color_factor, rviz::PointCloud::Point* point);
