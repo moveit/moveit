@@ -475,9 +475,17 @@ class MoveGroupCommander(object):
         plan.deserialize(self._g.compute_plan())
         return plan
 
-    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True):
+    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True, path_constraints=None):
         """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
-        (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
+        if path_constraints:
+            if type(path_constraints) is Constraints:
+                constraints_str = conversions.msg_to_string(path_constraints)
+            else:
+                raise MoveItCommanderException("Unable to set path constraints, unknown constraint type " + type(path_constraints))
+            (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions, constraints_str)
+        else:
+            (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
+
         path = RobotTrajectory()
         path.deserialize(ser_path)
         return (path, fraction)
