@@ -783,7 +783,7 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_
   }
 
   IkReal angles[num_joints_];
-  for (unsigned char i = 0; i < angles.size(); i++)
+  for (unsigned char i = 0; i < num_joints_; i++)
     angles[i] = joint_angles[i];
 
   // IKFast56/61
