@@ -158,7 +158,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   std::vector<double> joint_max_vector_;
   std::vector<bool> joint_has_limits_vector_;
   std::vector<std::string> link_names_;
-  size_t num_joints_;
+  const size_t num_joints_;
   std::vector<int> free_params_;
   bool active_;  // Internal variable that indicates whether solvers are configured and ready
 
@@ -175,7 +175,7 @@ public:
   /** @class
    *  @brief Interface for an IKFast kinematics plugin
    */
-  IKFastKinematicsPlugin() : active_(false)
+  IKFastKinematicsPlugin() : num_joints_(GetNumJoints()), active_(false)
   {
     srand(time(NULL));
     supported_methods_.push_back(kinematics::DiscretizationMethods::NO_DISCRETIZATION);
@@ -348,7 +348,6 @@ bool IKFastKinematicsPlugin::initialize(const std::string& robot_description, co
 
   // IKFast56/61
   fillFreeParams(GetNumFreeParameters(), GetFreeParameters());
-  num_joints_ = GetNumJoints();
 
   if (free_params_.size() > 1)
   {
