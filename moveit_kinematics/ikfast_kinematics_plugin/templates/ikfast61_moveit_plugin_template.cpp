@@ -775,8 +775,15 @@ bool IKFastKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_
   bool valid = true;
 
   IkReal eerot[9], eetrans[3];
-  IkReal angles[joint_angles.size()];
-  for (unsigned char i = 0; i < joint_angles.size(); i++)
+
+  if (joint_angles.size() != num_joints_)
+  {
+    ROS_ERROR_NAMED("ik_fast", "Unexpected number of joint angles");
+    return false;
+  }
+
+  IkReal angles[num_joints_];
+  for (unsigned char i = 0; i < angles.size(); i++)
     angles[i] = joint_angles[i];
 
   // IKFast56/61
