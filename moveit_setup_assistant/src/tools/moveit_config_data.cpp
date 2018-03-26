@@ -42,108 +42,14 @@
 #include <boost/filesystem.hpp>        // for creating folders/files
 #include <boost/algorithm/string.hpp>  // for string find and replace in templates
 
-#ifdef HAVE_NEW_YAMLCPP
-#include <boost/optional.hpp>  // optional
-#endif
-
 // ROS
 #include <ros/console.h>
 #include <ros/package.h>  // for getting file path for loading images
-
-#ifdef HAVE_NEW_YAMLCPP
-namespace YAML
-{
-// Create a legacy Iterator that can be used with the yaml-cpp 0.3 API.
-class Iterator
-{
-public:
-  typedef YAML::iterator iterator_t;
-  typedef YAML::const_iterator const_iterator_t;
-
-  Iterator(iterator_t iter) : iter_(iter)
-  {
-  }
-
-  const Node& first() const
-  {
-    return iter_->first;
-  }
-
-  const Node& second() const
-  {
-    return iter_->second;
-  }
-
-  detail::iterator_value operator*()
-  {
-    return *iter_;
-  }
-
-  Iterator operator++()
-  {
-    return Iterator(++iter_);
-  }
-
-  bool operator==(iterator_t const& other) const
-  {
-    return iter_ == other;
-  }
-
-  bool operator!=(iterator_t const& other) const
-  {
-    return iter_ != other;
-  }
-
-private:
-  iterator_t iter_;
-};
-}
-#endif
 
 namespace moveit_setup_assistant
 {
 // File system
 namespace fs = boost::filesystem;
-
-#ifdef HAVE_NEW_YAMLCPP
-typedef boost::optional<YAML::Node> yaml_node_t;
-
-// Helper function to find a value (yaml-cpp 0.5)
-yaml_node_t findValue(const YAML::Node& node, const std::string& key)
-{
-  YAML::Node value = node[key];
-  return yaml_node_t(bool(value), value);
-}
-
-// The >> operator disappeared in yaml-cpp 0.5, so this function is
-// added to provide support for code written under the yaml-cpp 0.3 API.
-template <typename T>
-void operator>>(const YAML::Node& node, T& i)
-{
-  i = node.as<T>();
-}
-
-#else
-typedef const YAML::Node* yaml_node_t;
-
-// Helper function to find a value (yaml-cpp 0.3)
-yaml_node_t findValue(const YAML::Node& node, const std::string& key)
-{
-  return node.FindValue(key);
-}
-#endif
-
-// yaml-cpp 0.5 also changed how you load the YAML document.  This
-// function hides the changes.
-void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
-{
-#ifdef HAVE_NEW_YAMLCPP
-  doc_out = YAML::Load(in_stream);
-#else
-  YAML::Parser parser(in_stream);
-  parser.GetNextDocument(doc_out);
-#endif
-}
 
 // ******************************************************************************************
 // Constructor
@@ -825,6 +731,15 @@ std::string MoveItConfigData::decideProjectionJoints(std::string planning_group)
   return joint_pair;
 }
 
+template <typename T>
+bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& default_value = T())
+{
+  const YAML::Node& n = node[key];
+  bool valid = n;
+  storage = valid ? n.as<T>() : default_value;
+  return valid;
+}
+
 // ******************************************************************************************
 // Input kinematics.yaml file
 // ******************************************************************************************
@@ -841,82 +756,25 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
   // Begin parsing
   try
   {
-    YAML::Node doc;
-    loadYaml(input_stream, doc);
+    YAML::Node doc = YAML::Load(input_stream);
 
-    yaml_node_t prop_name;
-
-// Loop through all groups
-#ifdef HAVE_NEW_YAMLCPP
+    // Loop through all groups
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
-#else
-    for (YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
-#endif
     {
-#ifdef HAVE_NEW_YAMLCPP
-      const std::string group_name = group_it->first.as<std::string>();
-#else
-      std::string group_name;
-      group_it.first() >> group_name;
-#endif
+      const std::string& group_name = group_it->first.as<std::string>();
+      const YAML::Node& group = group_it->second;
 
       // Create new meta data
-      GroupMetaData new_meta_data;
+      GroupMetaData meta_data;
 
-// kinematics_solver
-#ifdef HAVE_NEW_YAMLCPP
-      if (prop_name = findValue(group_it->second, "kinematics_solver"))
-#else
-      if (prop_name = findValue(group_it.second(), "kinematics_solver"))
-#endif
-      {
-        *prop_name >> new_meta_data.kinematics_solver_;
-      }
-
-// kinematics_solver_search_resolution
-#ifdef HAVE_NEW_YAMLCPP
-      if (prop_name = findValue(group_it->second, "kinematics_solver_search_resolution"))
-#else
-      if (prop_name = findValue(group_it.second(), "kinematics_solver_search_resolution"))
-#endif
-      {
-        *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
-      }
-      else
-      {
-        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
-      }
-
-// kinematics_solver_timeout
-#ifdef HAVE_NEW_YAMLCPP
-      if (prop_name = findValue(group_it->second, "kinematics_solver_timeout"))
-#else
-      if (prop_name = findValue(group_it.second(), "kinematics_solver_timeout"))
-#endif
-      {
-        *prop_name >> new_meta_data.kinematics_solver_timeout_;
-      }
-      else
-      {
-        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
-      }
-
-// kinematics_solver_attempts
-#ifdef HAVE_NEW_YAMLCPP
-      if (prop_name = findValue(group_it->second, "kinematics_solver_attempts"))
-#else
-      if (prop_name = findValue(group_it.second(), "kinematics_solver_attempts"))
-#endif
-      {
-        *prop_name >> new_meta_data.kinematics_solver_attempts_;
-      }
-      else
-      {
-        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_ATTEMPTS_;
-      }
+      parse(group, "kinematics_solver", meta_data.kinematics_solver_);
+      parse(group, "kinematics_solver_search_resolution", meta_data.kinematics_solver_search_resolution_,
+            DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_);
+      parse(group, "kinematics_solver_timeout", meta_data.kinematics_solver_timeout_, DEFAULT_KIN_SOLVER_TIMEOUT_);
+      parse(group, "kinematics_solver_attempts", meta_data.kinematics_solver_attempts_, DEFAULT_KIN_SOLVER_ATTEMPTS_);
 
       // Assign meta data to vector
-      group_meta_data_[group_name] = new_meta_data;
+      group_meta_data_[group_name] = meta_data;
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
@@ -1027,82 +885,34 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
   // Begin parsing
   try
   {
-    YAML::Node doc;
-    loadYaml(input_stream, doc);
-
-    yaml_node_t title_node, urdf_node, package_node, srdf_node, relative_node, config_node, timestamp_node,
-        author_name_node, author_email_node;
+    const YAML::Node& doc = YAML::Load(input_stream);
 
     // Get title node
-    if (title_node = findValue(doc, "moveit_setup_assistant_config"))
+    if (const YAML::Node& title_node = doc["moveit_setup_assistant_config"])
     {
       // URDF Properties
-      if (urdf_node = findValue(*title_node, "URDF"))
+      if (const YAML::Node& urdf_node = title_node["URDF"])
       {
-        // Load package
-        if (package_node = findValue(*urdf_node, "package"))
-        {
-          *package_node >> urdf_pkg_name_;
-        }
-        else
-        {
+        if (!parse(urdf_node, "package", urdf_pkg_name_))
           return false;  // if we do not find this value we cannot continue
-        }
 
-        // Load relative_path
-        if (relative_node = findValue(*urdf_node, "relative_path"))
-        {
-          *relative_node >> urdf_pkg_relative_path_;
-        }
-        else
-        {
+        if (!parse(urdf_node, "relative_path", urdf_pkg_relative_path_))
           return false;  // if we do not find this value we cannot continue
-        }
 
-        // Load xacro_args
-        if (relative_node = findValue(*urdf_node, "xacro_args"))
-        {
-          *relative_node >> xacro_args_;
-        }
-        else
-        {
-          xacro_args_.clear();  // xacro args are optional
-        }
+        parse(urdf_node, "xacro_args", xacro_args_);
       }
       // SRDF Properties
-      if (srdf_node = findValue(*title_node, "SRDF"))
+      if (const YAML::Node& srdf_node = title_node["SRDF"])
       {
-        // Load first property
-        if (relative_node = findValue(*srdf_node, "relative_path"))
-        {
-          *relative_node >> srdf_pkg_relative_path_;
-        }
-        else
-        {
+        if (!parse(srdf_node, "relative_path", srdf_pkg_relative_path_))
           return false;  // if we do not find this value we cannot continue
-        }
       }
       // Package generation time
-      if (config_node = findValue(*title_node, "CONFIG"))
+      if (const YAML::Node& config_node = title_node["CONFIG"])
       {
-        // Load author contact details
-        if (author_name_node = findValue(*config_node, "author_name"))
-        {
-          *author_name_node >> author_name_;
-        }
-        if (author_email_node = findValue(*config_node, "author_email"))
-        {
-          *author_email_node >> author_email_;
-        }
-        // Load first property
-        if (timestamp_node = findValue(*config_node, "generated_timestamp"))
-        {
-          *timestamp_node >> config_pkg_generated_timestamp_;
-        }
-        else
-        {
-          // if we do not find this value it is fine, not required
-        }
+        parse(config_node, "author_name", author_name_);
+        parse(config_node, "author_email", author_email_);
+        parse(config_node, "generated_timestamp", config_pkg_generated_timestamp_);
       }
       return true;
     }
