@@ -104,7 +104,9 @@ public:
                             const std_msgs::ColorRGBA& object_color);
 
   /** \brief Apply collision objects to the planning scene of the move_group node synchronously.
-      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene.
+      If the first entries in object_colors have an empty id the id of the corresponding object in collision_objects is
+     filled in. */
   bool applyCollisionObjects(
       const std::vector<moveit_msgs::CollisionObject>& collision_objects,
       const std::vector<moveit_msgs::ObjectColor>& object_colors = std::vector<moveit_msgs::ObjectColor>());
