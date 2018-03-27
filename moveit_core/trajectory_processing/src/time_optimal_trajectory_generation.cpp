@@ -941,14 +941,14 @@ bool computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
     max_velocity[j] = 1.0;
     if (bounds.velocity_bounded_)
     {
-      max_velocity[j] = std::min(fabs(bounds.max_velocity_), fabs(bounds.min_velocity_)) * max_velocity_scaling_factor;
+      max_velocity[j] = std::min(fabs(bounds.max_velocity_), fabs(bounds.min_velocity_)) * velocity_scaling_factor;
       max_velocity[j] = std::max(0.01, max_velocity[j]);
     }
 
     max_acceleration[j] = 1.0;
     if (bounds.acceleration_bounded_)
     {
-      max_acceleration[j] = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * max_acceleration_scaling_factor;
+      max_acceleration[j] = std::min(fabs(bounds.max_acceleration_), fabs(bounds.min_acceleration_)) * acceleration_scaling_factor;
       max_acceleration[j] = std::max(0.01, max_acceleration[j]);
     }
   }
