@@ -595,9 +595,9 @@ protected:
 
 TEST_F(LoadPR2, testJointSpaceJumpCutoff)
 {
-  robot_model::RobotModelPtr robot_model;
-  robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
-  robot_model::JointModelGroup* joint_model_group =
+  // robot_model::RobotModelPtr robot_model;
+  // robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+  const robot_model::JointModelGroup* joint_model_group =
       robot_model->getJointModelGroup("right_arm");
   // std::vector<std::string> joint_names = joint_model_group->getJointModelNames().size();
   std::size_t n_joints = joint_model_group->getJointModelNames().size(); //= joint_names.size();
@@ -619,6 +619,34 @@ TEST_F(LoadPR2, testJointSpaceJumpCutoff)
   traj.push_back(rs);
 
   double result = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
+  EXPECT_NEAR(result, 0.75, 0.01);
+  EXPECT_NEAR(traj.size(), 3, 0.01);
+}
+
+TEST_F(LoadPR2, testJointSpaceJumpCutoffOldMethod)
+{
+  const robot_model::JointModelGroup* joint_model_group =
+      robot_model->getJointModelGroup("right_arm");
+
+  std::size_t n_joints = joint_model_group->getJointModelNames().size(); //= joint_names.size();
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  for (std::size_t i = 0; i<3; ++i)
+  {
+    std::shared_ptr<robot_state::RobotState> rs(new robot_state::RobotState(robot_model));
+    std::vector<double> joint_positions;
+    joint_positions.resize(n_joints, 0.0);
+    rs->setJointGroupPositions(joint_model_group, joint_positions);
+    traj.push_back(rs);
+  }
+  std::vector<double> joint_positions2;
+  joint_positions2.resize(n_joints, 0.0);
+  joint_positions2[0] = 1.01;
+  std::shared_ptr<robot_state::RobotState> rs(new robot_state::RobotState(robot_model));
+  rs->setJointGroupPositions(joint_model_group, joint_positions2);
+  traj.push_back(rs);
+
+  double result = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0);
   EXPECT_NEAR(result, 0.75, 0.01);
   EXPECT_NEAR(traj.size(), 3, 0.01);
 }
