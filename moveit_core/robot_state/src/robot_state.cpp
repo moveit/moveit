@@ -1880,7 +1880,7 @@ bool moveit::core::RobotState::setFromIKSubgroups(const JointModelGroup* jmg, co
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const Eigen::Vector3d& direction,
                                                       bool global_reference_frame, double distance, double max_step,
-                                                      const moveit::core::jump_threshold_t& jump_threshold,
+                                                      const JumpThreshold& jump_threshold,
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
@@ -1906,7 +1906,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
   jt.prismatic_jump_threshold = 0.0;
   jt.revolute_jump_threshold = 0.0;
@@ -1921,7 +1921,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = 0.0;
   jt.prismatic_jump_threshold = prismatic_jump_threshold;
   jt.revolute_jump_threshold = revolute_jump_threshold;
@@ -1932,7 +1932,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const Eigen::Affine3d& target,
                                                       bool global_reference_frame, double max_step,
-                                                      const moveit::core::jump_threshold_t& jump_threshold,
+                                                      const JumpThreshold& jump_threshold,
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
@@ -1992,7 +1992,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
   jt.prismatic_jump_threshold = 0.0;
   jt.revolute_jump_threshold = 0.0;
@@ -2006,7 +2006,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = 0.0;
   jt.prismatic_jump_threshold = prismatic_jump_threshold;
   jt.revolute_jump_threshold = revolute_jump_threshold;
@@ -2014,15 +2014,17 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
 }
 
 double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                    const moveit::core::jump_threshold_t& jump_threshold)
+                                                    const JumpThreshold& jump_threshold)
 {
   double percentage = 1.0;
   if (jump_threshold.jump_threshold_factor > 0.0)
     percentage *= testJointSpaceJump(group, traj, jump_threshold.jump_threshold_factor);
 
-  if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
+  else if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
     percentage *= testJointSpaceJump(group, traj, jump_threshold.revolute_jump_threshold,
                                      jump_threshold.prismatic_jump_threshold);
+  else
+    throw Exception("testJointSpaceJump called without all jump threshold values <= 0");
 
   return percentage;
 }
@@ -2061,43 +2063,35 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
   double percentage = 1.0;
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
-  for (std::size_t i; i < traj.size() - 1 && still_valid; ++i)
+  for (std::size_t traj_ix=0; traj_ix < traj.size() - 1; ++traj_ix)
   {
-    for (std::size_t j = 0; j < joints.size() && still_valid; ++j)
+    for (auto &joint : joints)
     {
-      const int idx = joints[j]->getFirstVariableIndex();
-      double dist = joints[j]->distance(traj[i]->position_ + idx, traj[i + 1]->position_ + idx);
-      if (joints[j]->getType() == JointModel::PRISMATIC)
+      if(!joint->getType() == JointModel::PRISMATIC && !joint->getType() == JointModel::REVOLUTE)
       {
-        // This is a prismatic joint
-        if (prismatic_jump_threshold > 0.0 && dist > prismatic_jump_threshold)
-        {
-          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance");
-          still_valid = false;
-        }
+        CONSOLE_BRIDGE_logError("Unsupported joint type %zu in JointModelGroup %s testJointSpaceJump can only support prismatic and revolute joints.", joint->getType(), group->getName().c_str());
+        throw Exception("Unsupported joint type");
       }
-      else if (joints[j]->getType() == JointModel::REVOLUTE)
+
+      double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
+      if (joint->getType() == JointModel::PRISMATIC && prismatic_jump_threshold > 0.0 && distance > prismatic_jump_threshold)
       {
-        // This is a revolute joint
-        if (revolute_jump_threshold > 0.0 && dist > revolute_jump_threshold)
-        {
-          CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump in joint-space distance", dist,
-                                  revolute_jump_threshold);
-          still_valid = false;
-        }
+        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance", distance,
+                                prismatic_jump_threshold);
+        still_valid = false;
       }
-      else
+      else if (joint->getType() == JointModel::REVOLUTE && revolute_jump_threshold > 0.0 && distance > revolute_jump_threshold)
       {
-        CONSOLE_BRIDGE_logError("Unsupported joint type %zu in JointModelGroup %s at index %zu, As of now "
-                                "testJointSpaceJump only supports prismatic and revolute joints.",
-                                joints[j]->getType(), group->getName().c_str(), j);
+        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance", distance,
+                                revolute_jump_threshold);
         still_valid = false;
       }
     }
     if (!still_valid)
     {
-      percentage = (double)i / (double)(traj.size() - 1);
-      traj.resize(i);
+      percentage = (double)(traj_ix + 1) / (double)(traj.size());
+      traj.resize(traj_ix + 1);
+      break;
     }
   }
   return percentage;
@@ -2106,7 +2100,7 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
 double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                                       const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
                                                       bool global_reference_frame, double max_step,
-                                                      const moveit::core::jump_threshold_t& jump_threshold,
+                                                      const JumpThreshold& jump_threshold,
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
@@ -2153,7 +2147,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
   jt.prismatic_jump_threshold = 0.0;
   jt.revolute_jump_threshold = 0.0;
@@ -2168,7 +2162,7 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                                       const GroupStateValidityCallbackFn& validCallback,
                                                       const kinematics::KinematicsQueryOptions& options)
 {
-  jump_threshold_t jt;
+  JumpThreshold jt;
   jt.jump_threshold_factor = 0.0;
   jt.prismatic_jump_threshold = prismatic_jump_threshold;
   jt.revolute_jump_threshold = revolute_jump_threshold;

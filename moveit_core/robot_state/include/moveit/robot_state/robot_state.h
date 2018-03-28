@@ -69,7 +69,7 @@ typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joi
    detecting joint space jumps and \e prismatic_jump_threshold and \e revolute_jump_threshold which provide abolute
    thresholds for detecting joint space jumps. */
 
-struct jump_threshold_t
+struct JumpThreshold
 {
   double jump_threshold_factor;
   double prismatic_jump_threshold;
@@ -1083,7 +1083,7 @@ as the new values that correspond to the group */
      prismatic_jump_threshold and \e revolute_jump_threshold to 0.0*/
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
-                              double max_step, const jump_threshold_t& jump_threshold,
+                              double max_step, const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1127,7 +1127,7 @@ as the new values that correspond to the group */
      prismatic_jump_threshold and \e revolute_jump_threshold to 0.0*/
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Affine3d& target, bool global_reference_frame, double max_step,
-                              const jump_threshold_t& jump_threshold,
+                              const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1170,7 +1170,7 @@ as the new values that correspond to the group */
      disabled by setting \e prismatic_jump_threshold and \e revolute_jump_threshold to 0.0*/
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame, double max_step,
-                              const jump_threshold_t& jump_threshold,
+                              const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1185,6 +1185,46 @@ as the new values that correspond to the group */
                               double jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
+
+  /**
+   * \brief Tests joint space jumps of a trajectory. If \e jump_threshold.jump_threshold_factor is set, we check for
+   * relative jumps and if \e jump_threshold.prismatic_jump_threshold or \e jump_threshold.revolute_jump_threshold are
+   * greater than 0 then we check for absolute joint space jumps. For relative jumps the average distance between
+   * adjacent trajectory points is computed and if two adjacent trajectory points have distance > \e
+   * jump_threshold_factor * average, the trajectory is cut of at this point. For absolute jump thresholds, the absolute
+   * difference in joint space between sequential points is computed and if it exceededs these limits the returned path
+   * is truncated up to just before the jump.
+   * @param group The joint model group of the robot state.
+   * @param traj The trajectory that should be tested.
+   * @param jump_threshold The struct holding jump thresholds to determine if a joint space jump has occurred.
+   * @return The fraction of the trajectory that passed.
+   */
+  static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                            const JumpThreshold& jump_threshold);
+
+  /**
+   * \brief Tests joint space jumps of a trajectory. First, the average distance between adjacent trajectory points is
+   * computed. If two adjacent trajectory points have distance > \e jump_threshold * average, the trajectory is cut of
+   * at this point.
+   * @param group The joint model group of the robot state.
+   * @param traj The trajectory that should be tested.
+   * @param jump_threshold The threshold to determine if a joint space jump has occurred .
+   * @return The fraction of the trajectory that passed.
+   */
+  static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, double jump_threshold);
+
+  /**
+   * \brief Tests for absolute joint space jumps of a trajectory. The absolute difference in joint space between
+   * sequential points for each active joint is computed and if it exceededs \e prismatic_jump_threshold for prismatic
+   * joints or revolute_jump_threshold for revolute joints, the returned path is truncated up to just before the jump.
+   * @param group The joint model group of the robot state.
+   * @param traj The trajectory that should be tested.
+   * @param prismatic_jump_threshold The threshold to determine if a joint space jump has occurred .
+   * @param revolute_jump_threshold The threshold to determine if a joint space jump has occurred .
+   * @return The fraction of the trajectory that passed.
+   */
+  static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+                            double revolute_jump_threshold, double prismatic_jump_threshold);
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
@@ -1784,46 +1824,6 @@ private:
   void getMissingKeys(const std::map<std::string, double>& variable_map,
                       std::vector<std::string>& missing_variables) const;
   void getStateTreeJointString(std::ostream& ss, const JointModel* jm, const std::string& pfx0, bool last) const;
-
-  /**
-   * \brief Tests joint space jumps of a trajectory. If \e jump_threshold.jump_threshold_factor is set, we check for
-   * relative jumps and if \e jump_threshold.prismatic_jump_threshold or \e jump_threshold.revolute_jump_threshold are
-   * greater than 0 then we check for absolute joint space jumps. For relative jumps the average distance between
-   * adjacent trajectory points is computed and if two adjacent trajectory points have distance > \e
-   * jump_threshold_factor * average, the trajectory is cut of at this point. For absolute jump thresholds, the absolute
-   * difference in joint space between sequential points is computed and if it exceededs these limits the returned path
-   * is truncated up to just before the jump.
-   * @param group The joint model group of the robot state.
-   * @param traj The trajectory that should be tested.
-   * @param jump_threshold The struct holding jump thresholds to determine if a joint space jump has occurred.
-   * @return The fraction of the trajectory that passed.
-   */
-  double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                            const jump_threshold_t& jump_threshold);
-
-  /**
-   * \brief Tests joint space jumps of a trajectory. First, the average distance between adjacent trajectory points is
-   * computed. If two adjacent trajectory points have distance > \e jump_threshold * average, the trajectory is cut of
-   * at this point.
-   * @param group The joint model group of the robot state.
-   * @param traj The trajectory that should be tested.
-   * @param jump_threshold The threshold to determine if a joint space jump has occurred .
-   * @return The fraction of the trajectory that passed.
-   */
-  double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, double jump_threshold);
-
-  /**
-   * \brief Tests for absolute joint space jumps of a trajectory. The absolute difference in joint space between
-   * sequential points for each active joint is computed and if it exceededs \e prismatic_jump_threshold for prismatic
-   * joints or revolute_jump_threshold for revolute joints, the returned path is truncated up to just before the jump.
-   * @param group The joint model group of the robot state.
-   * @param traj The trajectory that should be tested.
-   * @param prismatic_jump_threshold The threshold to determine if a joint space jump has occurred .
-   * @param revolute_jump_threshold The threshold to determine if a joint space jump has occurred .
-   * @return The fraction of the trajectory that passed.
-   */
-  double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                            double revolute_jump_threshold, double prismatic_jump_threshold);
 
   /** \brief This function is only called in debug mode */
   bool checkJointTransforms(const JointModel* joint) const;

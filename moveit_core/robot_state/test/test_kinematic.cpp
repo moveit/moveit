@@ -33,14 +33,19 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-
+#include <boost/filesystem/path.hpp>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
+#include <moveit_resources/config.h>
+#include <gtest/gtest.h>
+
 
 static bool sameStringIgnoringWS(const std::string& s1, const std::string& s2)
 {
@@ -551,6 +556,71 @@ TEST(FK, OneRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+}
+
+class LoadPR2 : public testing::Test
+{
+protected:
+  virtual void SetUp()
+  {
+    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+
+    srdf_model.reset(new srdf::Model());
+    std::string xml_string;
+    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
+    if (xml_file.is_open())
+    {
+      while (xml_file.good())
+      {
+        std::string line;
+        std::getline(xml_file, line);
+        xml_string += (line + "\n");
+      }
+      xml_file.close();
+      urdf_model = urdf::parseURDF(xml_string);
+    }
+    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
+    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+  };
+
+  virtual void TearDown()
+  {
+  }
+
+protected:
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  srdf::ModelSharedPtr srdf_model;
+  moveit::core::RobotModelConstPtr robot_model;
+};
+
+TEST_F(LoadPR2, testJointSpaceJumpCutoff)
+{
+  robot_model::RobotModelPtr robot_model;
+  robot_model.reset(new robot_model::RobotModel(urdf_model, srdf_model));
+  robot_model::JointModelGroup* joint_model_group =
+      robot_model->getJointModelGroup("right_arm");
+  // std::vector<std::string> joint_names = joint_model_group->getJointModelNames().size();
+  std::size_t n_joints = joint_model_group->getJointModelNames().size(); //= joint_names.size();
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  for (std::size_t i = 0; i<3; ++i)
+  {
+    std::shared_ptr<robot_state::RobotState> rs(new robot_state::RobotState(robot_model));
+    std::vector<double> joint_positions;
+    joint_positions.resize(n_joints, 0.0);
+    rs->setJointGroupPositions(joint_model_group, joint_positions);
+    traj.push_back(rs);
+  }
+  std::vector<double> joint_positions2;
+  joint_positions2.resize(n_joints, 0.0);
+  joint_positions2[0] = 1.01;
+  std::shared_ptr<robot_state::RobotState> rs(new robot_state::RobotState(robot_model));
+  rs->setJointGroupPositions(joint_model_group, joint_positions2);
+  traj.push_back(rs);
+
+  double result = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
+  EXPECT_NEAR(result, 0.75, 0.01);
+  EXPECT_NEAR(traj.size(), 3, 0.01);
 }
 
 int main(int argc, char** argv)
