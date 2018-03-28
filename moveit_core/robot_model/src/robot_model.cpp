@@ -293,19 +293,28 @@ void RobotModel::buildJointInfo()
     }
   }
 
+  bool link_considered[link_model_vector_.size()] = { false };
   for (std::size_t i = 0; i < link_model_vector_.size(); ++i)
   {
+    if (link_considered[i])
+      continue;
+
     LinkTransformMap associated_transforms;
     computeFixedTransformsBelow(link_model_vector_[i], link_model_vector_[i]->getJointOriginTransform().inverse(),
-                           associated_transforms);
-    if (associated_transforms.size() > 1)
+                                associated_transforms);
+    for (auto& tf_base : associated_transforms)
     {
-      for (LinkTransformMap::iterator it = associated_transforms.begin(); it != associated_transforms.end(); ++it)
-        if (it->first != link_model_vector_[i])
+      link_considered[tf_base.first->getLinkIndex()] = true;
+      for (auto& tf_target : associated_transforms)
+      {
+        if (&tf_base != &tf_target)
         {
-          getLinkModel(it->first->getName())->addAssociatedFixedTransform(link_model_vector_[i], it->second.inverse());
-          link_model_vector_[i]->addAssociatedFixedTransform(it->first, it->second);
+          // this const-cast is equivalent to
+          // associated_transforms[tf_base.first->getLinkIndex()]
+          const_cast<LinkModel*>(tf_base.first)
+              ->addAssociatedFixedTransform(tf_target.first, tf_base.second.inverse() * tf_target.second);
         }
+      }
     }
   }
 
