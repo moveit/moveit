@@ -443,15 +443,15 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       Eigen::Affine3d eigen_transf;
       tf::transformTFToEigen(transf, eigen_transf);
 
-      double new_values[joint->getStateSpaceDimension()]
+      double new_values[joint->getStateSpaceDimension()];
       joint->computeVariablePositions(eigen_transf, new_values);
 
-      if (joint->distance(&new_values[0], robot_state_.getJointPositions(joint)) > 1e-5)
+      if (joint->distance(new_values, robot_state_.getJointPositions(joint)) > 1e-5)
       {
         changes = true;
       }
 
-      robot_state_.setJointPositions(joint, &new_values[0]);
+      robot_state_.setJointPositions(joint, new_values);
       update = true;
     }
   }
