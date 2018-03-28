@@ -44,6 +44,18 @@
 #include <boost/bind.hpp>
 #include <moveit/robot_model/aabb.h>
 
+namespace moveit
+{
+namespace core
+{
+/** \brief It is recommended that there are at least 10 steps per trajectory
+ * for testing jump thresholds with computeCartesianPath. With less than 10 steps
+ * it is difficult to choose a jump_threshold parameter that effectively separates
+ * valid paths from paths with large joint space jumps. */
+static const std::size_t MIN_STEPS_FOR_JUMP_THRESH = 10;
+}
+}
+
 moveit::core::RobotState::RobotState(const RobotModelConstPtr& robot_model)
   : robot_model_(robot_model)
   , has_velocity_(false)
@@ -1951,16 +1963,31 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
                                jump_threshold.revolute_jump_threshold > 0.0 ||
                                jump_threshold.jump_threshold_factor > 0.0;
 
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
+  double distance = start_quaternion.dot(target_quaternion);
+  if (distance < 0)  // need to bring quaternions to same half sphere?
+  {
+    target_quaternion.w() = -target_quaternion.w();
+    target_quaternion.x() = -target_quaternion.x();
+    target_quaternion.y() = -target_quaternion.y();
+    target_quaternion.z() = -target_quaternion.z();
+  }
+
   // decide how many steps we will need for this trajectory
-  double distance = (rotated_target.translation() - start_pose.translation()).norm();
-  unsigned int steps = (test_joint_space_jump ? 5 : 1) + (unsigned int)floor(distance / max_step);
+  // TODO: use separate max_step arguments for translational and rotational motion
+  distance = std::max((rotated_target.translation() - start_pose.translation()).norm(),
+                      std::acos(start_quaternion.dot(target_quaternion)));
+
+  // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
+  unsigned int steps = floor(distance / max_step) + 1;
+  if (test_joint_space_jump && steps < MIN_STEPS_FOR_JUMP_THRESH)
+    steps = MIN_STEPS_FOR_JUMP_THRESH;
 
   traj.clear();
   traj.push_back(RobotStatePtr(new RobotState(*this)));
 
   double last_valid_percentage = 0.0;
-  Eigen::Quaterniond start_quaternion(start_pose.rotation());
-  Eigen::Quaterniond target_quaternion(rotated_target.rotation());
   for (unsigned int i = 1; i <= steps; ++i)
   {
     double percentage = (double)i / (double)steps;
