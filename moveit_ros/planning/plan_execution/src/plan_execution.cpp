@@ -314,8 +314,13 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
   return true;
 }
 
-moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(const ExecutableMotionPlan& plan)
+moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(ExecutableMotionPlan& plan)
 {
+  if (!plan.planning_scene_monitor_)
+    plan.planning_scene_monitor_ = planning_scene_monitor_;
+  if (!plan.planning_scene_)
+    plan.planning_scene_ = planning_scene_monitor_->getPlanningScene();
+
   moveit_msgs::MoveItErrorCodes result;
 
   // try to execute the trajectory

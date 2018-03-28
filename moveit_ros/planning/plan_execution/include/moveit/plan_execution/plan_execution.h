@@ -130,13 +130,18 @@ public:
   void planAndExecute(ExecutableMotionPlan& plan, const Options& opt);
   void planAndExecute(ExecutableMotionPlan& plan, const moveit_msgs::PlanningScene& scene_diff, const Options& opt);
 
+  /** \brief Execute and monitor a previously created \e plan.
+
+      In case there is no \e planning_scene or \e planning_scene_monitor set in the \e plan they will be set at the
+      start of the method. They are then used to monitor the execution. */
+  moveit_msgs::MoveItErrorCodes executeAndMonitor(ExecutableMotionPlan& plan);
+
   void stop();
 
   std::string getErrorCodeString(const moveit_msgs::MoveItErrorCodes& error_code);
 
 private:
   void planAndExecuteHelper(ExecutableMotionPlan& plan, const Options& opt);
-  moveit_msgs::MoveItErrorCodes executeAndMonitor(const ExecutableMotionPlan& plan);
   bool isRemainingPathValid(const ExecutableMotionPlan& plan);
   bool isRemainingPathValid(const ExecutableMotionPlan& plan, const std::pair<int, int>& path_segment);
 
