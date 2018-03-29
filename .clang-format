@@ -32,7 +32,7 @@ PenaltyExcessCharacter: 1000
 PenaltyReturnTypeOnItsOwnLine: 90
 SpacesBeforeTrailingComments: 2
 Cpp11BracedListStyle: false
-Standard:        Auto
+Standard:        Cpp03
 IndentWidth:     2
 TabWidth:        2
 UseTab:          Never
