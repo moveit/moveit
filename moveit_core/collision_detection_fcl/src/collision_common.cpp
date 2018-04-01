@@ -557,7 +557,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       cdata->res->minimum_distance = dist_result;
     }
 
-    if (dist_result.distance <= 0 && !cdata->res->collision)
+    if (dist_result.distance <= 0)
     {
       cdata->res->collision = true;
     }
@@ -567,7 +567,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       if (it == cdata->res->distances.end())
       {
         std::vector<DistanceResultsData> data;
-        data.reserve(cdata->req->max_contacts_per_body);
+        data.reserve(cdata->req->type == DistanceRequestType::SINGLE ? 1 : cdata->req->max_contacts_per_body);
         data.push_back(dist_result);
         cdata->res->distances.insert(std::make_pair(pc, data));
       }
