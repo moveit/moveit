@@ -225,10 +225,10 @@ namespace DistanceRequestTypes
 {
 enum DistanceRequestType
 {
-  GLOBAL,        /// Find the global minimum
-  SINGLE,        /// Find the global minimum for each pair
-  LIMITED,       /// Find a limited(max_contacts_per_body) set of contacts for a given pair
-  ALL            /// Find all the contacts for a given pair
+  GLOBAL,   /// Find the global minimum
+  SINGLE,   /// Find the global minimum for each pair
+  LIMITED,  /// Find a limited(max_contacts_per_body) set of contacts for a given pair
+  ALL       /// Find all the contacts for a given pair
 };
 }
 typedef DistanceRequestTypes::DistanceRequestType DistanceRequestType;
