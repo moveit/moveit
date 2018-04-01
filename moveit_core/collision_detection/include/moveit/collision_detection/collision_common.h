@@ -264,11 +264,11 @@ struct DistanceRequest
   bool enable_signed_distance;
 
   /// Indicate the type of distance request. If using type=ALL, it is
-  /// recommended ot set max_contacts_per_body to the expected number
+  /// recommended to set max_contacts_per_body to the expected number
   /// of contacts per pair becaused it is uesed to reserving space.
   DistanceRequestType type;
 
-  /// Maximum number of contacts to store for a bodies (multiple bodies may be within distance threshold)
+  /// Maximum number of contacts to store for bodies (multiple bodies may be within distance threshold)
   std::size_t max_contacts_per_body;
 
   /// The group name
@@ -287,8 +287,8 @@ struct DistanceRequest
   /// Log debug information
   bool verbose;
 
-  /// Indicate if gradient should be calculated between each object. This the vector defined by the line connecting the
-  /// closest points on the two objects.
+  /// Indicate if gradient should be calculated between each object.
+  /// This is the normalized vector connecting the closest points on the two objects.
   bool compute_gradient;
 };
 
@@ -311,7 +311,7 @@ struct DistanceResultsData
   /// The object body type
   BodyType body_types[2];
 
-  /// A normalized vector pointing from link_names[0] to link_names[1].
+  /// Normalized vector connecting closest points (from link_names[0] to link_names[1])
   Eigen::Vector3d normal;
 
   /// Clear structure data
@@ -364,7 +364,7 @@ struct DistanceResult
   /// Indicates if two objects were in collision
   bool collision;
 
-  /// The results for the two objects with the minimum distance
+  /// ResultsData for the two objects with the minimum distance
   DistanceResultsData minimum_distance;
 
   /// A map of distance data for each link in the req.active_components_only
