@@ -424,6 +424,7 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
         continue;
       }
 
+      // allow update if time is more recent or if it is a static transform (time = 0)
       if (latest_common_time <= joint_time_[joint] && latest_common_time > ros::Time(0))
         continue;
 
