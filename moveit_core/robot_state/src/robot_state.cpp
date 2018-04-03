@@ -1972,6 +1972,12 @@ double moveit::core::RobotState::computeCartesianPath(const JointModelGroup* gro
     last_valid_percentage = percentage;
   }
 
+  // Check to see if the two first points in the trajectory are identical.
+  if (traj.size() > 1 && (*(*(traj[0])).position_) == (*(*(traj[1])).position_))
+  {
+    logWarn("There is a duplicate waypoint in the path. Check that the starting point is not a waypoint.");
+  }
+
   if (test_joint_space_jump)
   {
     last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
