@@ -2048,11 +2048,9 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
   if (jump_threshold.jump_threshold_factor > 0.0)
     percentage *= testJointSpaceJump(group, traj, jump_threshold.jump_threshold_factor);
 
-  else if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
+  if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
     percentage *= testJointSpaceJump(group, traj, jump_threshold.revolute_jump_threshold,
                                      jump_threshold.prismatic_jump_threshold);
-  else
-    throw Exception("testJointSpaceJump called without all jump threshold values <= 0");
 
   return percentage;
 }
