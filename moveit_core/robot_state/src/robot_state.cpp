@@ -2163,27 +2163,31 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
   double percentage = 1.0;
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
-  for (std::size_t traj_ix=0; traj_ix < traj.size() - 1; ++traj_ix)
+  for (std::size_t traj_ix = 0; traj_ix < traj.size() - 1; ++traj_ix)
   {
-    for (auto &joint : joints)
+    for (auto& joint : joints)
     {
-      if(!joint->getType() == JointModel::PRISMATIC && !joint->getType() == JointModel::REVOLUTE)
+      if (!joint->getType() == JointModel::PRISMATIC && !joint->getType() == JointModel::REVOLUTE)
       {
-        CONSOLE_BRIDGE_logError("Unsupported joint type %zu in JointModelGroup %s testJointSpaceJump can only support prismatic and revolute joints.", joint->getType(), group->getName().c_str());
+        CONSOLE_BRIDGE_logError("Unsupported joint type %zu in JointModelGroup %s testJointSpaceJump can only support "
+                                "prismatic and revolute joints.",
+                                joint->getType(), group->getName().c_str());
         throw Exception("Unsupported joint type");
       }
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if (joint->getType() == JointModel::PRISMATIC && prismatic_jump_threshold > 0.0 && distance > prismatic_jump_threshold)
+      if (joint->getType() == JointModel::PRISMATIC && prismatic_jump_threshold > 0.0 &&
+          distance > prismatic_jump_threshold)
       {
-        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance", distance,
-                                prismatic_jump_threshold);
+        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
+                                distance, prismatic_jump_threshold);
         still_valid = false;
       }
-      else if (joint->getType() == JointModel::REVOLUTE && revolute_jump_threshold > 0.0 && distance > revolute_jump_threshold)
+      else if (joint->getType() == JointModel::REVOLUTE && revolute_jump_threshold > 0.0 &&
+               distance > revolute_jump_threshold)
       {
-        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance", distance,
-                                revolute_jump_threshold);
+        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
+                                distance, revolute_jump_threshold);
         still_valid = false;
       }
     }
@@ -2196,7 +2200,6 @@ double moveit::core::RobotState::testJointSpaceJump(const JointModelGroup* group
   }
   return percentage;
 }
-
 
 void robot_state::RobotState::computeAABB(std::vector<double>& aabb) const
 {
