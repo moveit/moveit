@@ -1935,6 +1935,11 @@ void planning_scene::PlanningScene::getKnownObjectColors(ObjectColorMap& kc) con
 
 void planning_scene::PlanningScene::setObjectColor(const std::string& id, const std_msgs::ColorRGBA& color)
 {
+  if (id.empty())
+  {
+    CONSOLE_BRIDGE_logError("Cannot set color of object with empty id.");
+    return;
+  }
   if (!object_colors_)
     object_colors_.reset(new ObjectColorMap());
   (*object_colors_)[id] = color;
