@@ -1865,11 +1865,11 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const Eigen::Vector3d& direction,
-                                                      bool global_reference_frame, double distance, double max_step,
-                                                      const JumpThreshold& jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const Eigen::Vector3d& direction,
+                                        bool global_reference_frame, double distance, double max_step,
+                                        const JumpThreshold& jump_threshold,
+                                        const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   // this is the Cartesian pose we start from, and have to move in the direction indicated
   const Eigen::Affine3d& start_pose = getGlobalLinkTransform(link);
@@ -1887,11 +1887,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const Eigen::Vector3d& direction,
-                                                      bool global_reference_frame, double distance, double max_step,
-                                                      double jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const Eigen::Vector3d& direction,
+                                        bool global_reference_frame, double distance, double max_step,
+                                        double jump_threshold, const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
@@ -1902,11 +1901,11 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const Eigen::Affine3d& target,
-                                                      bool global_reference_frame, double max_step,
-                                                      const JumpThreshold& jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const Eigen::Affine3d& target,
+                                        bool global_reference_frame, double max_step,
+                                        const JumpThreshold& jump_threshold,
+                                        const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   const std::vector<const JointModel*>& cjnt = group->getContinuousJointModels();
   // make sure that continuous joints wrap
@@ -1973,11 +1972,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const Eigen::Affine3d& target,
-                                                      bool global_reference_frame, double max_step,
-                                                      double jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const Eigen::Affine3d& target,
+                                        bool global_reference_frame, double max_step, double jump_threshold,
+                                        const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
@@ -1987,11 +1985,11 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
-                                                      bool global_reference_frame, double max_step,
-                                                      const JumpThreshold& jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
+                                        bool global_reference_frame, double max_step,
+                                        const JumpThreshold& jump_threshold,
+                                        const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   double percentage_solved = 0.0;
   for (std::size_t i = 0; i < waypoints.size(); ++i)
@@ -2030,11 +2028,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                      const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
-                                                      bool global_reference_frame, double max_step,
-                                                      double jump_threshold,
-                                                      const GroupStateValidityCallbackFn& validCallback,
-                                                      const kinematics::KinematicsQueryOptions& options)
+                                        const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
+                                        bool global_reference_frame, double max_step, double jump_threshold,
+                                        const GroupStateValidityCallbackFn& validCallback,
+                                        const kinematics::KinematicsQueryOptions& options)
 {
   JumpThreshold jt;
   jt.jump_threshold_factor = jump_threshold;
@@ -2045,7 +2042,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                    const JumpThreshold& jump_threshold)
+                                      const JumpThreshold& jump_threshold)
 {
   double percentage = 1.0;
   if (jump_threshold.jump_threshold_factor > 0.0)
@@ -2061,7 +2058,7 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
 }
 
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                    double jump_threshold)
+                                      double jump_threshold)
 {
   std::vector<double> dist_vector;
   dist_vector.reserve(traj.size() - 1);
@@ -2089,7 +2086,7 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
 }
 
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                                    double revolute_jump_threshold, double prismatic_jump_threshold)
+                                      double revolute_jump_threshold, double prismatic_jump_threshold)
 {
   double percentage = 1.0;
   bool still_valid = true;
