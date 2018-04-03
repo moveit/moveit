@@ -1089,12 +1089,6 @@ as the new values that correspond to the group */
 
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
-                              double max_step, double revolute_jump_threshold, double prismatic_jump_threshold,
-                              const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
-                              const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
-
-  double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
                               double max_step, double jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -1133,12 +1127,6 @@ as the new values that correspond to the group */
 
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Affine3d& target, bool global_reference_frame, double max_step,
-                              double revolute_jump_threshold, double prismatic_jump_threshold,
-                              const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
-                              const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
-
-  double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const Eigen::Affine3d& target, bool global_reference_frame, double max_step,
                               double jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -1171,12 +1159,6 @@ as the new values that correspond to the group */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame, double max_step,
                               const JumpThreshold& jump_threshold,
-                              const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
-                              const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
-
-  double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame, double max_step,
-                              double revolute_jump_threshold, double prismatic_jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
