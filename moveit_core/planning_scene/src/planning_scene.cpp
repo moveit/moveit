@@ -1937,7 +1937,7 @@ void planning_scene::PlanningScene::setObjectColor(const std::string& id, const 
 {
   if (id.empty())
   {
-    ROS_ERROR("Cannot set color of object with empty id.");
+    CONSOLE_BRIDGE_logError("Cannot set color of object with empty id.");
     return;
   }
   if (!object_colors_)

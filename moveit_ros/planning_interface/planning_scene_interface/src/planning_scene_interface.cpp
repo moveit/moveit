@@ -234,7 +234,7 @@ public:
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.object_colors = object_colors;
 
-    for (size_t i = 0; i < planning_scene.object_colors.size(); i++)
+    for (size_t i = 0; i < planning_scene.object_colors.size(); ++i)
     {
       if (planning_scene.object_colors[i].id.empty() && i < collision_objects.size())
         planning_scene.object_colors[i].id = collision_objects[i].id;
@@ -343,7 +343,7 @@ bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs
   ps.world.collision_objects = collision_objects;
   ps.object_colors = object_colors;
 
-  for (size_t i = 0; i < ps.object_colors.size(); i++)
+  for (size_t i = 0; i < ps.object_colors.size(); ++i)
   {
     if (ps.object_colors[i].id.empty() && i < collision_objects.size())
       ps.object_colors[i].id = collision_objects[i].id;
