@@ -222,6 +222,7 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     ros::NodeHandle nh;
     plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
     execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
+    stop_subscriber_ = nh.subscribe("/rviz/moveit/stop", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
     update_start_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
     update_goal_state_subscriber_ =
@@ -235,6 +236,7 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
   {  // disable
     plan_subscriber_.shutdown();
     execute_subscriber_.shutdown();
+    stop_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
     update_goal_state_subscriber_.shutdown();
     update_start_state_RobotState_subscriber_.shutdown();

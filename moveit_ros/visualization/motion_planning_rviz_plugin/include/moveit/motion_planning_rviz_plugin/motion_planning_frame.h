@@ -285,6 +285,7 @@ private:
 
   ros::Subscriber plan_subscriber_;
   ros::Subscriber execute_subscriber_;
+  ros::Subscriber stop_subscriber_;
   ros::Subscriber update_start_state_subscriber_;
   ros::Subscriber update_goal_state_subscriber_;
   ros::Subscriber update_start_state_RobotState_subscriber_;
@@ -296,6 +297,7 @@ private:
 
   void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteExecuteCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteStopCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateStartStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg);

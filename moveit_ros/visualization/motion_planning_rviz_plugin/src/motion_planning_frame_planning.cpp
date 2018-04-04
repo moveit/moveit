@@ -417,6 +417,11 @@ void MotionPlanningFrame::remoteExecuteCallback(const std_msgs::EmptyConstPtr& m
   executeButtonClicked();
 }
 
+void MotionPlanningFrame::remoteStopCallback(const std_msgs::EmptyConstPtr& msg)
+{
+  stopButtonClicked();
+}
+
 void MotionPlanningFrame::remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg)
 {
   if (move_group_ && planning_display_)
