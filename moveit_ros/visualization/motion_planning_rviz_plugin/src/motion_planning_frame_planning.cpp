@@ -36,11 +36,13 @@
 
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
+#include <moveit/robot_state/robot_state.h>
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/robot_state/conversions.h>
 
 #include <std_srvs/Empty.h>
+#include <moveit_msgs/RobotState.h>
 
 #include "ui_motion_planning_rviz_plugin_frame.h"
 
@@ -439,6 +441,38 @@ void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyCon
     {
       robot_state::RobotState state = ps->getCurrentState();
       planning_display_->setQueryGoalState(state);
+    }
+  }
+}
+
+void MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
+{
+  moveit_msgs::RobotState msg_no_attached(*msg);
+  if (move_group_ && planning_display_)
+  {
+    planning_display_->waitForCurrentRobotState();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+    if (ps)
+    {
+      robot_state::RobotStatePtr state(new robot_state::RobotState(ps->getCurrentState()));
+      robot_state::robotStateMsgToRobotState(ps->getTransforms(), msg_no_attached, *state);
+      planning_display_->setQueryStartState(*state);
+    }
+  }
+}
+
+void MotionPlanningFrame::remoteUpdateGoalStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
+{
+  moveit_msgs::RobotState msg_no_attached(*msg);
+  if (move_group_ && planning_display_)
+  {
+    planning_display_->waitForCurrentRobotState();
+    const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+    if (ps)
+    {
+      robot_state::RobotStatePtr state(new robot_state::RobotState(ps->getCurrentState()));
+      robot_state::robotStateMsgToRobotState(ps->getTransforms(), msg_no_attached, *state);
+      planning_display_->setQueryGoalState(*state);
     }
   }
 }

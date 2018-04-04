@@ -222,6 +222,10 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
         nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
     update_goal_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
+    update_start_state_RobotState_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_start_state_RobotState", 1, &MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback, this);
+    update_goal_state_RobotState_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_goal_state_RobotState", 1, &MotionPlanningFrame::remoteUpdateGoalStateRobotStateCallback, this);
   }
   else
   {  // disable
@@ -229,6 +233,8 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     execute_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
     update_goal_state_subscriber_.shutdown();
+    update_start_state_RobotState_subscriber_.shutdown();
+    update_goal_state_RobotState_subscriber_.shutdown();
   }
 }
 
