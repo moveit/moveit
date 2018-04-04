@@ -211,6 +211,10 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, b
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
 {
+  if (first_time_)
+  {
+    return;
+  }
   planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
   planning_display_->toggleSelectPlanningGroupSubscription(enable);
   if (enable)
@@ -334,6 +338,10 @@ void MotionPlanningFrame::changePlanningGroupHelper()
         {
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
+        }
+        if(ui_->allow_external_program->isChecked())
+        {
+          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
         }
       }
     }
