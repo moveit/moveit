@@ -285,8 +285,11 @@ private:
 
   ros::Subscriber plan_subscriber_;
   ros::Subscriber execute_subscriber_;
+  ros::Subscriber stop_subscriber_;
   ros::Subscriber update_start_state_subscriber_;
   ros::Subscriber update_goal_state_subscriber_;
+  ros::Subscriber update_custom_start_state_subscriber_;
+  ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
   void importResource(const std::string& path);
@@ -294,8 +297,11 @@ private:
 
   void remotePlanCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteExecuteCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteStopCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
+  void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
+  void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
