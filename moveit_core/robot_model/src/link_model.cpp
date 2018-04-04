@@ -39,7 +39,11 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
-moveit::core::LinkModel::LinkModel(const std::string& name)
+namespace moveit
+{
+namespace core
+{
+LinkModel::LinkModel(const std::string& name)
   : name_(name)
   , parent_joint_model_(NULL)
   , parent_link_model_(NULL)
@@ -51,11 +55,11 @@ moveit::core::LinkModel::LinkModel(const std::string& name)
   joint_origin_transform_.setIdentity();
 }
 
-moveit::core::LinkModel::~LinkModel()
+LinkModel::~LinkModel()
 {
 }
 
-void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
+void LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
 {
   joint_origin_transform_ = transform;
   joint_origin_transform_is_identity_ =
@@ -63,14 +67,13 @@ void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& tra
       joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
 }
 
-void moveit::core::LinkModel::setParentJointModel(const JointModel* joint)
+void LinkModel::setParentJointModel(const JointModel* joint)
 {
   parent_joint_model_ = joint;
   is_parent_joint_fixed_ = joint->getType() == JointModel::FIXED;
 }
 
-void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes,
-                                          const EigenSTL::vector_Affine3d& origins)
+void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Affine3d& origins)
 {
   shapes_ = shapes;
   collision_origin_transform_ = origins;
@@ -111,10 +114,13 @@ void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPt
     shape_extents_ = aabb.sizes();
 }
 
-void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
-                                            const Eigen::Vector3d& scale)
+void LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
+                              const Eigen::Vector3d& scale)
 {
   visual_mesh_filename_ = visual_mesh;
   visual_mesh_origin_ = origin;
   visual_mesh_scale_ = scale;
 }
+
+}  // end of namespace core
+}  // end of namespace moveit
