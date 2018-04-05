@@ -1904,10 +1904,6 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   // the target can be in the local reference frame (in which case we rotate it)
   Eigen::Affine3d rotated_target = global_reference_frame ? target : start_pose * target;
 
-  bool test_joint_space_jump = jump_threshold.prismatic_jump_threshold > 0.0 ||
-                               jump_threshold.revolute_jump_threshold > 0.0 ||
-                               jump_threshold.jump_threshold_factor > 0.0;
-
   Eigen::Quaterniond start_quaternion(start_pose.rotation());
   Eigen::Quaterniond target_quaternion(rotated_target.rotation());
   double distance = start_quaternion.dot(target_quaternion);
@@ -1924,9 +1920,9 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   distance = std::max((rotated_target.translation() - start_pose.translation()).norm(),
                       std::acos(start_quaternion.dot(target_quaternion)));
 
-  // If we are testing using the jump threshold, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
+  // If we are testing for relative jumps, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
   unsigned int steps = floor(distance / max_step) + 1;
-  if (test_joint_space_jump && steps < MIN_STEPS_FOR_JUMP_THRESH)
+  if (jump_threshold.jump_threshold_factor > 0 && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
   traj.clear();
@@ -1949,10 +1945,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     last_valid_percentage = percentage;
   }
 
-  if (test_joint_space_jump)
-  {
-    last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
-  }
+  last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
 
   return last_valid_percentage;
 }
@@ -1991,11 +1984,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     }
   }
 
-  if (jump_threshold.jump_threshold_factor > 0.0 || jump_threshold.prismatic_jump_threshold > 0.0 ||
-      jump_threshold.revolute_jump_threshold > 0.0)
-  {
-    percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
-  }
+  percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
 
   return percentage_solved;
 }
