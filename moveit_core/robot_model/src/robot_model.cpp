@@ -46,7 +46,6 @@
 #include <memory>
 #include "order_robot_model_items.inc"
 
-/* ------------------------ RobotModel ------------------------ */
 namespace moveit
 {
 namespace core
