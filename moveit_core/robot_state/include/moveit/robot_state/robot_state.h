@@ -70,21 +70,29 @@ typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joi
     thresholds for detecting joint space jumps. */
 struct JumpThreshold
 {
+
+  // Test for large joint space jumps using a cutoff factor
+  bool test_for_relative_jump;
   double factor;
+
+  // Test for joint space jumps that exceed some cutoff value
+  bool test_for_absolute_jump;
   double prismatic;
   double revolute;
 
-  explicit JumpThreshold() : factor(0.0), prismatic(0.0), revolute(0.0)
+  explicit JumpThreshold() : test_for_relative_jump(false), factor(0.0), test_for_absolute_jump(false), prismatic(0.0), revolute(0.0)
   {
   }
 
   explicit JumpThreshold(double jt_factor) : JumpThreshold()
   {
+    test_for_relative_jump = true;
     factor = jt_factor;
   }
 
   explicit JumpThreshold(double jt_revolute, double jt_prismatic) : JumpThreshold()
   {
+    test_for_absolute_jump = true;
     prismatic = jt_prismatic;
     revolute = jt_revolute;
   }
@@ -1106,8 +1114,13 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step,
-                                JumpThreshold(jump_threshold_factor), validCallback, options);
+    if (jump_threshold_factor)
+      return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step,
+                                  JumpThreshold(jump_threshold_factor), validCallback, options);
+    else
+      return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step,
+                                  JumpThreshold(), validCallback, options);
+
   }
 
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path, for a particular group.
@@ -1129,8 +1142,13 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, target, global_reference_frame, max_step,
-                                JumpThreshold(jump_threshold_factor), validCallback, options);
+    if (jump_threshold_factor)
+      return computeCartesianPath(group, traj, link, target, global_reference_frame, max_step,
+                                  JumpThreshold(jump_threshold_factor), validCallback, options);
+    else
+      return computeCartesianPath(group, traj, link, target, global_reference_frame, max_step,
+                                  JumpThreshold(), validCallback, options);
+
   }
 
   /** \brief Compute the sequence of joint values that perform a general Cartesian path.
@@ -1151,8 +1169,13 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step,
-                                JumpThreshold(jump_threshold_factor), validCallback, options);
+    if (jump_threshold_factor)
+      return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step,
+                                  JumpThreshold(jump_threshold_factor), validCallback, options);
+    else
+      return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step,
+                                  JumpThreshold(), validCallback, options);
+
   }
 
   /** \brief Tests joint space jumps of a trajectory.

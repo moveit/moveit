@@ -1922,7 +1922,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
   // If we are testing for relative jumps, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
   unsigned int steps = floor(distance / max_step) + 1;
-  if (jump_threshold.factor > 0 && steps < MIN_STEPS_FOR_JUMP_THRESH)
+  if (jump_threshold.test_for_relative_jump && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
   traj.clear();
@@ -1992,14 +1992,11 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       const JumpThreshold& jump_threshold)
 {
-  if (jump_threshold.factor > 0.0)
+  if (jump_threshold.test_for_relative_jump)
     return testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
-  else if (jump_threshold.prismatic > 0.0 && jump_threshold.revolute > 0.0)
+  if (jump_threshold.test_for_absolute_jump)
     return testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
-
-  else if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0)
-    CONSOLE_BRIDGE_logWarn("Attempting to test for absolute joint-space jumps, but zero threshold was provided");
 
   return 1.0;
 }
