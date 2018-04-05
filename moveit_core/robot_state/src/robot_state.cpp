@@ -2007,6 +2007,13 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       double jump_threshold_factor)
 {
+  if (traj.size() < MIN_STEPS_FOR_JUMP_THRESH)
+  {
+    CONSOLE_BRIDGE_logWarn("The computed trajectory is too short to detect jumps in joint-space "
+                           "Need at least %zu steps, only got %zu. Try a lower max_step.",
+                           MIN_STEPS_FOR_JUMP_THRESH, traj.size());
+  }
+
   std::vector<double> dist_vector;
   dist_vector.reserve(traj.size() - 1);
   double total_dist = 0.0;
