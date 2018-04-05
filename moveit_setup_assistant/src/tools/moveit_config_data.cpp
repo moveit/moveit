@@ -238,11 +238,11 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginMap;
     // Output associated planners
     emitter << YAML::Key << "default_planner_config" << YAML::Value
-            << group_meta_data_[group_it->name_].default_planner_;
+            << group_meta_data_[group_it->name_].default_planner_ + "kConfigDefault";
     emitter << YAML::Key << "planner_configs";
     emitter << YAML::Value << YAML::BeginSeq;
     for (std::size_t i = 0; i < pconfigs.size(); ++i)
-      emitter << pconfigs[i];
+      emitter << pconfigs[i] + "kConfigDefault";
     emitter << YAML::EndSeq;
 
     // Output projection_evaluator
@@ -455,11 +455,6 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   SPARStwo.addParameter("dense_delta_fraction", "0.001", "delta fraction for interface detection. default: 0.001");
   SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(SPARStwo);
-
-  for(int i = 0; i < planner_des.size(); ++i)
-  {
-    planner_des[i].name_ += "kConfigDefault";
-  }
 
   return planner_des;
 }
@@ -785,14 +780,22 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
       group_meta_it = group_meta_data_.find(group_name);
       if (group_meta_it != group_meta_data_.end())
       {
-  
-        //if (prop_name = findValue(group_it->second, "default_planner_config"))
-        parse(group_it->second, "default_planner_config", group_meta_data_[group_name].kinematics_default_planner_);
-        //{
-        //  *prop_name >> group_meta_data_[group_name].kinematics_default_planner_;
-        //}
 
-
+#ifdef HAVE_NEW_YAMLCPP
+        if (prop_name = findValue(group_it->second, "default_planner_config"))
+#else
+        if (prop_name = findValue(group_it.second(), "default_planner_config"))
+#endif
+        {
+          std::string planner;
+          *prop_name >> planner;
+          int pos = planner.find_last_not_of("kConfigDefault");
+          if (pos != std::string::npos)
+          {
+            planner = planner.substr(0, pos + 1);
+          }
+          group_meta_data_[group_name].default_planner_ = planner;
+        }
       }
     }
   }
