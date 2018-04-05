@@ -33,18 +33,15 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-#include <boost/filesystem/path.hpp>
+#include <moveit_resources/config.h>
 #include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
 #include <gtest/gtest.h>
-#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <ctype.h>
-#include <moveit_resources/config.h>
-#include <gtest/gtest.h>
 
 static bool sameStringIgnoringWS(const std::string& s1, const std::string& s2)
 {
@@ -562,25 +559,13 @@ class LoadPR2 : public testing::Test
 protected:
   virtual void SetUp()
   {
-    boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
+    std::string res_path(MOVEIT_TEST_RESOURCES_DIR);
 
+    urdf_model = urdf::parseURDFFile(res_path + "/pr2_description/urdf/robot.xml");
     srdf_model.reset(new srdf::Model());
-    std::string xml_string;
-    std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
-    if (xml_file.is_open())
-    {
-      while (xml_file.good())
-      {
-        std::string line;
-        std::getline(xml_file, line);
-        xml_string += (line + "\n");
-      }
-      xml_file.close();
-      urdf_model = urdf::parseURDF(xml_string);
-    }
-    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
+    srdf_model->initFile(*urdf_model, res_path + "/pr2_description/srdf/robot.xml");
     robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
-  };
+  }
 
   virtual void TearDown()
   {
@@ -597,54 +582,42 @@ void generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& tra
                       const robot_model::JointModelGroup* joint_model_group)
 {
   std::size_t n_joints = joint_model_group->getJointModelNames().size();
-  std::vector<double> joint_positions;
-  joint_positions.resize(n_joints, 0.0);
+  std::vector<double> joint_positions(n_joints, 0.0);
+  // 3 waypoints with zero joints
   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
   {
     std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
     robot_state->setJointGroupPositions(joint_model_group, joint_positions);
     traj.push_back(robot_state);
   }
-  std::vector<double> joint_positions2;
-  joint_positions2.resize(n_joints, 0.0);
-  joint_positions2[0] = 1.01;
+  // 4th waypoint with a large jump in first joint
+  joint_positions[0] = 1.01;
   std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
-  robot_state->setJointGroupPositions(joint_model_group, joint_positions2);
+  robot_state->setJointGroupPositions(joint_model_group, joint_positions);
   traj.push_back(robot_state);
 }
 
-TEST_F(LoadPR2, testJointSpaceJumpCutoff)
+TEST_F(LoadPR2, testJointSpaceJumpAbsolute)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-
   generateTestTraj(traj, robot_model, joint_model_group);
-  // Test the absolute joint space jump test function
-  // Traj has 4 points in the trajectory with a joint space jump of 1.01 at the last waypoint.
-  // testJointSpaceJump should identify the jump at the 4th waypoint and trim that off returning
-  // .75 and a trajectory of length 3
-  double result = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
-  EXPECT_NEAR(result, 0.75, 0.01);
-  EXPECT_NEAR(traj.size(), 3, 0.01);
+  ASSERT_EQ(traj.size(), 4);  // traj should have 4 waypoints, with a large jump in the last point
+
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
 }
 
-TEST_F(LoadPR2, testJointSpaceJumpCutoffOldMethod)
+TEST_F(LoadPR2, testJointSpaceJumpRelative)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
-
-  std::size_t n_joints = joint_model_group->getJointModelNames().size();
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-
-  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
   generateTestTraj(traj, robot_model, joint_model_group);
 
-  // Test testJointSpaceJump with a jump_threshold factor
-  // Traj has 4 points in the trajectory with a large jump at the last waypoint.
-  // testJointSpaceJump should identify the jump at the 4th waypoint and trim it
-  // Returning a trajectory of length 3 wich is 3/4 of the original traj length
-  double result = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0);
-  EXPECT_NEAR(result, 3. / 4., 0.01);
-  EXPECT_NEAR(traj.size(), 3, 0.01);
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, 1.0);
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
 }
 
 int main(int argc, char** argv)
