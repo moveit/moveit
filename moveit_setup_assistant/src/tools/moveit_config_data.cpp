@@ -763,16 +763,11 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
   try
   {
     YAML::Node doc = YAML::Load(input_stream);
-    
-    //yaml_node_t prop_name;
-
 
     // Loop through all groups
-    
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
     {
       // get group name
-
       const std::string group_name = group_it->first.as<std::string>();
 
       // compare group name found to list of groups in group_meta_data_
@@ -780,22 +775,14 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
       group_meta_it = group_meta_data_.find(group_name);
       if (group_meta_it != group_meta_data_.end())
       {
-
-#ifdef HAVE_NEW_YAMLCPP
-        if (prop_name = findValue(group_it->second, "default_planner_config"))
-#else
-        if (prop_name = findValue(group_it.second(), "default_planner_config"))
-#endif
+        std::string planner;
+        parse(group_it->second, "default_planner_config", planner);
+        int pos = planner.find_last_not_of("kConfigDefault");
+        if (pos != std::string::npos)
         {
-          std::string planner;
-          *prop_name >> planner;
-          int pos = planner.find_last_not_of("kConfigDefault");
-          if (pos != std::string::npos)
-          {
-            planner = planner.substr(0, pos + 1);
-          }
-          group_meta_data_[group_name].default_planner_ = planner;
+          planner = planner.substr(0, pos + 1);
         }
+        group_meta_data_[group_name].default_planner_ = planner;
       }
     }
   }
@@ -805,7 +792,6 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
     return false;
   }
   return true;
-
 }
 
 // ******************************************************************************************
