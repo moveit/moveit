@@ -1990,21 +1990,22 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                      const JumpThreshold& jump_threshold)
+                                      const JumpThreshold& jt)
 {
-  double percentage = 1.0;
-  if (jump_threshold.jump_threshold_factor > 0.0)
-    percentage *= testJointSpaceJump(group, traj, jump_threshold.jump_threshold_factor);
+  if (jt.jump_threshold_factor > 0.0)
+    return testJointSpaceJump(group, traj, jt.jump_threshold_factor);
 
-  if (jump_threshold.prismatic_jump_threshold > 0.0 || jump_threshold.revolute_jump_threshold > 0.0)
-    percentage *= testJointSpaceJump(group, traj, jump_threshold.revolute_jump_threshold,
-                                     jump_threshold.prismatic_jump_threshold);
+  else if (jt.prismatic_jump_threshold > 0.0 && jt.revolute_jump_threshold > 0.0)
+    return testJointSpaceJump(group, traj, jt.revolute_jump_threshold, jt.prismatic_jump_threshold);
 
-  return percentage;
+  else if (jt.prismatic_jump_threshold > 0.0 || jt.revolute_jump_threshold > 0.0)
+    CONSOLE_BRIDGE_logWarn("Attempting to test for absolute joint-space jumps, but zero threshold was provided");
+
+  return 1.0;
 }
 
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                      double jump_threshold)
+                                      double jump_threshold_factor)
 {
   std::vector<double> dist_vector;
   dist_vector.reserve(traj.size() - 1);
@@ -2018,7 +2019,7 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
 
   double percentage = 1.0;
   // compute the average distance between the states we looked at
-  double thres = jump_threshold * (total_dist / (double)dist_vector.size());
+  double thres = jump_threshold_factor * (total_dist / (double)dist_vector.size());
   for (std::size_t i = 0; i < dist_vector.size(); ++i)
     if (dist_vector[i] > thres)
     {
@@ -2034,10 +2035,9 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       double revolute_jump_threshold, double prismatic_jump_threshold)
 {
-  double percentage = 1.0;
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
-  for (std::size_t traj_ix = 0; traj_ix < traj.size() - 1; ++traj_ix)
+  for (std::size_t traj_ix = 0, ix_end = traj.size() - 1; traj_ix != ix_end; ++traj_ix)
   {
     for (auto& joint : joints)
     {
@@ -2050,29 +2050,25 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
       }
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if (joint->getType() == JointModel::PRISMATIC && prismatic_jump_threshold > 0.0 &&
-          distance > prismatic_jump_threshold)
+      if ((joint->getType() == JointModel::PRISMATIC && distance > prismatic_jump_threshold) ||
+          (joint->getType() == JointModel::REVOLUTE && distance > revolute_jump_threshold))
       {
         CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
-                                distance, prismatic_jump_threshold);
+                                distance, joint->getType() == JointModel::PRISMATIC ? prismatic_jump_threshold :
+                                                                                      revolute_jump_threshold);
         still_valid = false;
-      }
-      else if (joint->getType() == JointModel::REVOLUTE && revolute_jump_threshold > 0.0 &&
-               distance > revolute_jump_threshold)
-      {
-        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
-                                distance, revolute_jump_threshold);
-        still_valid = false;
+        break;
       }
     }
+
     if (!still_valid)
     {
-      percentage = (double)(traj_ix + 1) / (double)(traj.size());
+      double percentage = (double)(traj_ix + 1) / (double)(traj.size());
       traj.resize(traj_ix + 1);
-      break;
+      return percentage;
     }
   }
-  return percentage;
+  return 1.0;
 }
 
 void RobotState::computeAABB(std::vector<double>& aabb) const
