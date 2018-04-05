@@ -1866,7 +1866,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                         const LinkModel* link, const Eigen::Vector3d& direction,
-                                        bool global_reference_frame, double distance, double max_step,
+                                        bool global_reference_frame, double distance, const Distance& max_step,
                                         const JumpThreshold& jump_threshold,
                                         const GroupStateValidityCallbackFn& validCallback,
                                         const kinematics::KinematicsQueryOptions& options)
@@ -1888,7 +1888,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                         const LinkModel* link, const Eigen::Affine3d& target,
-                                        bool global_reference_frame, double max_step,
+                                        bool global_reference_frame, const Distance& max_step,
                                         const JumpThreshold& jump_threshold,
                                         const GroupStateValidityCallbackFn& validCallback,
                                         const kinematics::KinematicsQueryOptions& options)
@@ -1906,19 +1906,20 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 
   Eigen::Quaterniond start_quaternion(start_pose.rotation());
   Eigen::Quaterniond target_quaternion(rotated_target.rotation());
-  double distance = start_quaternion.dot(target_quaternion);
-  if (distance < 0)  // need to bring quaternions to same half sphere?
-  {
-    target_quaternion.w() = -target_quaternion.w();
-    target_quaternion.x() = -target_quaternion.x();
-    target_quaternion.y() = -target_quaternion.y();
-    target_quaternion.z() = -target_quaternion.z();
-  }
+  double rotation_distance = start_quaternion.angularDistance(target_quaternion);
+
+  double translation_distance = (rotated_target.translation() - start_pose.translation()).norm();
 
   // decide how many steps we will need for this trajectory
-  // TODO: use separate max_step arguments for translational and rotational motion
-  distance = std::max((rotated_target.translation() - start_pose.translation()).norm(),
-                      std::acos(start_quaternion.dot(target_quaternion)));
+  unsigned int translation_steps = 0;
+  if (max_step.translation > 0.0)
+    translation_steps = floor(translation_distance / max_step.translation);
+
+  unsigned int rotation_steps = 0;
+  if (max_step.rotation > 0.0)
+    rotation_steps = floor(rotation_distance / max_step.rotation);
+
+  unsigned int steps = std::max(translation_steps, rotation_steps) + 1;
 
   // If we are testing for relative jumps, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
   unsigned int steps = floor(distance / max_step) + 1;
@@ -1946,13 +1947,17 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   }
 
   last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
+  if (max_step.translation > 0.0 || max_step.rotation > 0.0)
+  {
+    last_valid_percentage *= testCartesianSpaceJump(group, link, traj, max_step);
+  }
 
   return last_valid_percentage;
 }
 
 double RobotState::computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                         const LinkModel* link, const EigenSTL::vector_Affine3d& waypoints,
-                                        bool global_reference_frame, double max_step,
+                                        bool global_reference_frame, const Distance& max_step,
                                         const JumpThreshold& jump_threshold,
                                         const GroupStateValidityCallbackFn& validCallback,
                                         const kinematics::KinematicsQueryOptions& options)
@@ -1961,7 +1966,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   for (std::size_t i = 0; i < waypoints.size(); ++i)
   {
     // Don't test joint space jumps for every waypoint, test them later on the whole trajectory.
-    static const double no_joint_space_jump_test = 0.0;
+    static const JumpThreshold no_joint_space_jump_test;
     std::vector<RobotStatePtr> waypoint_traj;
     double wp_percentage_solved = computeCartesianPath(group, waypoint_traj, link, waypoints[i], global_reference_frame,
                                                        max_step, no_joint_space_jump_test, validCallback, options);
@@ -1985,6 +1990,10 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   }
 
   percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
+  if (max_step.translation > 0.0 || max_step.rotation > 0.0)
+  {
+    percentage_solved *= testCartesianSpaceJump(group, link, traj, max_step);
+  }
 
   return percentage_solved;
 }
@@ -2072,6 +2081,62 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
     }
   }
   return 1.0;
+}
+
+double RobotState::testCartesianSpaceJump(const JointModelGroup* group, const std::string& link,
+                                          std::vector<RobotStatePtr>& traj, const Distance& max_step)
+{
+  return testCartesianSpaceJump(group, group->getLinkModel(link), traj, max_step);
+}
+
+double RobotState::testCartesianSpaceJump(const JointModelGroup* group, const LinkModel* link,
+                                          std::vector<RobotStatePtr>& traj, const Distance& max_step)
+{
+  double percentage = 1.0;
+  if (traj.size() <= 1)
+    return percentage;
+
+  Eigen::Affine3d start_pose = traj[0]->getGlobalLinkTransform(link);
+  Eigen::Affine3d mid_pose;
+  Eigen::Affine3d end_pose;
+  Eigen::Quaterniond start_quaternion(start_pose.rotation());
+  Eigen::Quaterniond mid_quaternion;
+  Eigen::Quaterniond end_quaternion;
+
+  std::size_t traj_ix = 1;
+  for (; traj_ix < traj.size(); ++traj_ix)
+  {
+    end_pose = traj[traj_ix]->getGlobalLinkTransform(link);
+
+    RobotState robot_mid_state = RobotState(*traj[traj_ix]);
+    traj[traj_ix]->interpolate(*traj[traj_ix - 1], 0.5, robot_mid_state);
+
+    mid_pose = robot_mid_state.getGlobalLinkTransform(link);
+
+    if (max_step.rotation > 0.0)
+    {
+      mid_quaternion = mid_pose.rotation();
+      end_quaternion = end_pose.rotation();
+      double first_rotation_distance = start_quaternion.angularDistance(mid_quaternion);
+      double second_rotation_distance = end_quaternion.angularDistance(mid_quaternion);
+      if (first_rotation_distance > max_step.rotation || second_rotation_distance > max_step.rotation)
+        break;
+    }
+
+    if (max_step.translation > 0.0)
+    {
+      double first_translation_distance = (start_pose.translation() - mid_pose.translation()).norm();
+      double second_translation_distance = (end_pose.translation() - mid_pose.translation()).norm();
+      if (first_translation_distance > max_step.translation || second_translation_distance > max_step.translation)
+        break;
+    }
+
+    start_pose = end_pose;
+    start_quaternion = end_quaternion;
+  }
+  percentage = (double)(traj_ix) / (double)(traj.size());
+  traj.resize(traj_ix);
+  return percentage;
 }
 
 void RobotState::computeAABB(std::vector<double>& aabb) const

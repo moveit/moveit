@@ -636,9 +636,14 @@ TEST_F(LoadPR2, testJointSpaceJumpAbsolute)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
   std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
 
   robot_state::JumpThreshold jt_abs(1.0, 1.0);
+  // Test the absolute joint space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.01 after the 6th waypoint.
+  // testJointSpaceJump should identify the jump at the 6th waypoint and trim that off returning
+  // 4/N and a trajectory of length 6
   double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_abs);
 
   EXPECT_NEAR(traj.size(), 6, 0.01);
@@ -649,13 +654,50 @@ TEST_F(LoadPR2, testJointSpaceJumpRelative)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
   std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
 
   robot_state::JumpThreshold jt_rel(1.0);
+  // Test testJointSpaceJump with a jump_threshold factor
+  // Traj has N points in the trajectory with a large jump after the 4th waypoint.
+  // testJointSpaceJump should identify the jump at the 4th waypoint and trim it
+  // Returning a trajectory of length 4 wich is 4/N of the original traj length
   double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_rel);
 
   EXPECT_NEAR(traj.size(), 4, 0.01);
   EXPECT_NEAR(fraction, 4. / (double)traj_len, 0.01);
+
+TEST_F(LoadPR2, testCartSpaceJumpCutoff)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  robot_state::Distance max_eef;
+  std::string link = "r_wrist_roll_link";
+  // Test the cartesian space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.01 at the 5th waypoint.
+  // If we disable max_eef checking then we should return the full traj
+  double result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 1.0, 0.01);
+  EXPECT_NEAR(traj.size(), (double)traj_len, 0.01);
+
+  // Test the cartesian space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.0 after the 4th waypoint.
+  // testJointSpaceJump should identify the jump at the 5th waypoint and trim that off returning
+  // 4/N and a trajectory of length 4
+  max_eef.translation = 0.01;
+  max_eef.rotation = 0.0;
+  result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 4. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 4, 0.01);
+
+  traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  max_eef.rotation = 0.1;
+  max_eef.translation = 0.0;
+  result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 4. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 4, 0.01);
 }
 
 int main(int argc, char** argv)

@@ -98,6 +98,13 @@ struct JumpThreshold
   }
 };
 
+/** \brief Struct for containing max_step for computeCartesianPath */
+struct Distance
+{
+  double translation = 0.0;
+  double rotation = 0.0;
+};
+
 /** \brief Representation of a robot's state. This includes position,
     velocity, acceleration and effort.
 
@@ -1104,7 +1111,7 @@ as the new values that correspond to the group */
      before the jump. */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
-                              double max_step, const JumpThreshold& jump_threshold,
+                              const Distance& max_step, const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1130,7 +1137,7 @@ as the new values that correspond to the group */
      rotated accordingly.
      All other comments from the previous function apply. */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const Eigen::Affine3d& target, bool global_reference_frame, double max_step,
+                              const Eigen::Affine3d& target, bool global_reference_frame, const Distance& max_step,
                               const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -1156,8 +1163,8 @@ as the new values that correspond to the group */
      frame or in the local reference frame of the link at the immediately preceeding waypoint. The link needs to move
      in a straight line between two consecutive waypoints. All other comments apply. */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame, double max_step,
-                              const JumpThreshold& jump_threshold,
+                              const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame,
+                              const Distance& max_step, const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1217,6 +1224,22 @@ as the new values that correspond to the group */
   */
   static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double revolute_jump_threshold, double prismatic_jump_threshold);
+
+  /**
+   * \brief Tests for large cartesian space jumps of a trajectory at the end effector.
+   * Takes the midpoint between points in the trajectory and solves the FK. If the pose at the midpoint is further than
+   * the max_step from either the preceding point or the following point, then the returned path is truncated up to
+   * just before the jump
+   * @param group The joint model group of the robot state.
+   * @param link The link used for testing
+   * @param traj The trajectory that should be tested.
+   * @param max_step A struct containing the maximum translation and rotation between waypoints
+   * @return The fraction of the trajectory that passed.
+   */
+  static double testCartesianSpaceJump(const JointModelGroup* group, const LinkModel* link,
+                                       std::vector<RobotStatePtr>& traj, const Distance& max_step);
+  static double testCartesianSpaceJump(const JointModelGroup* group, const std::string& link,
+                                       std::vector<RobotStatePtr>& traj, const Distance& max_step);
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
