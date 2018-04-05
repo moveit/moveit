@@ -20,7 +20,7 @@ if(WITH_OPENGL)
   endif(OPENGL_FOUND)
   set(perception_GL_INCLUDE_DIRS "mesh_filter/include" "depth_image_octomap_updater/include")
   set(SYSTEM_GL_INCLUDE_DIRS ${GLEW_INCLUDE_DIR} ${GLUT_INCLUDE_DIR})
-endif(BUILD_OPENGL)
+endif(WITH_OPENGL)
 
 if(APPLE)
   find_package(X11 REQUIRED)
