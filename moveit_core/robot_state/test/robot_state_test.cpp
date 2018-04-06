@@ -569,7 +569,8 @@ protected:
 
   virtual void TearDown()
   {
-  }
+  }  std::vector<double> joint_positions;
+
 
 protected:
   urdf::ModelInterfaceSharedPtr urdf_model;
@@ -583,15 +584,6 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
 {
   traj.clear();
 
-  std::vector<double> joint_positions;
-
-  std::shared_ptr<robot_state::RobotState> robot_state0(new robot_state::RobotState(robot_model));
-  robot_state0->setToDefaultValues();
-  robot_state0->copyJointGroupPositions(joint_model_group, joint_positions);
-  joint_positions[6] = .01;
-  robot_state0->setJointGroupPositions(joint_model_group, joint_positions);
-  traj.push_back(robot_state0);
-
   std::size_t n_joints = joint_model_group->getJointModelNames().size();
   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
   {
@@ -600,35 +592,15 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
     traj.push_back(robot_state1);
   }
 
-  // This should trip the jump_threshold_factor = 1 check.
+  // This is a jump
   std::shared_ptr<robot_state::RobotState> robot_state2(new robot_state::RobotState(robot_model));
   robot_state2->setToDefaultValues();
+  std::vector<double> joint_positions;
   robot_state2->copyJointGroupPositions(joint_model_group, joint_positions);
-  joint_positions[0] -= 1.0;
+  joint_positions[0] -= 1.01;
   robot_state2->setJointGroupPositions(joint_model_group, joint_positions);
   traj.push_back(robot_state2);
 
-  std::shared_ptr<robot_state::RobotState> robot_state3(new robot_state::RobotState(robot_model));
-  robot_state3->setToDefaultValues();
-  robot_state3->copyJointGroupPositions(joint_model_group, joint_positions);
-  joint_positions[1] -= 0.1;
-  robot_state3->setJointGroupPositions(joint_model_group, joint_positions);
-  traj.push_back(robot_state3);
-
-  // This should trip the revolute_jump_threshold = 1 check
-  std::shared_ptr<robot_state::RobotState> robot_state4(new robot_state::RobotState(robot_model));
-  robot_state4->setToDefaultValues();
-  robot_state4->copyJointGroupPositions(joint_model_group, joint_positions);
-  joint_positions[0] -= 1.01;
-  robot_state4->setJointGroupPositions(joint_model_group, joint_positions);
-  traj.push_back(robot_state4);
-
-  std::shared_ptr<robot_state::RobotState> robot_state5(new robot_state::RobotState(robot_model));
-  robot_state5->setToDefaultValues();
-  robot_state5->copyJointGroupPositions(joint_model_group, joint_positions);
-  joint_positions[1] -= 0.1;
-  robot_state5->setJointGroupPositions(joint_model_group, joint_positions);
-  traj.push_back(robot_state3);
   return traj.size();
 }
 
@@ -641,8 +613,8 @@ TEST_F(LoadPR2, testJointSpaceJumpAbsolute)
   robot_state::JumpThreshold jt_abs(1.0, 1.0);
   double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_abs);
 
-  EXPECT_NEAR(traj.size(), 6, 0.01);
-  EXPECT_NEAR(fraction, 6. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 3, 0.01);
+  EXPECT_NEAR(fraction, 3. / (double)traj_len, 0.01);
 }
 
 TEST_F(LoadPR2, testJointSpaceJumpRelative)
@@ -654,8 +626,8 @@ TEST_F(LoadPR2, testJointSpaceJumpRelative)
   robot_state::JumpThreshold jt_rel(1.0);
   double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_rel);
 
-  EXPECT_NEAR(traj.size(), 4, 0.01);
-  EXPECT_NEAR(fraction, 4. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 3, 0.01);
+  EXPECT_NEAR(fraction, 3. / (double)traj_len, 0.01);
 }
 
 int main(int argc, char** argv)
