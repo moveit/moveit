@@ -33,7 +33,8 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-
+#include <moveit_resources/config.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
@@ -551,6 +552,152 @@ TEST(FK, OneRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+}
+
+class LoadPR2 : public testing::Test
+{
+protected:
+  virtual void SetUp()
+  {
+    std::string res_path(MOVEIT_TEST_RESOURCES_DIR);
+
+    urdf_model = urdf::parseURDFFile(res_path + "/pr2_description/urdf/robot.xml");
+    srdf_model.reset(new srdf::Model());
+    srdf_model->initFile(*urdf_model, res_path + "/pr2_description/srdf/robot.xml");
+    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+  }
+
+  virtual void TearDown()
+  {
+  }
+
+protected:
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  srdf::ModelSharedPtr srdf_model;
+  moveit::core::RobotModelConstPtr robot_model;
+};
+
+std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+                             const moveit::core::RobotModelConstPtr& robot_model,
+                             const robot_model::JointModelGroup* joint_model_group)
+{
+  traj.clear();
+
+  std::vector<double> joint_positions;
+
+  std::shared_ptr<robot_state::RobotState> robot_state0(new robot_state::RobotState(robot_model));
+  robot_state0->setToDefaultValues();
+  robot_state0->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[6] = .01;
+  robot_state0->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state0);
+
+  std::size_t n_joints = joint_model_group->getJointModelNames().size();
+  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+  {
+    std::shared_ptr<robot_state::RobotState> robot_state1(new robot_state::RobotState(robot_model));
+    robot_state1->setToDefaultValues();
+    traj.push_back(robot_state1);
+  }
+
+  // This should trip the jump_threshold_factor = 1 check.
+  std::shared_ptr<robot_state::RobotState> robot_state2(new robot_state::RobotState(robot_model));
+  robot_state2->setToDefaultValues();
+  robot_state2->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[0] -= 1.0;
+  robot_state2->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state2);
+
+  std::shared_ptr<robot_state::RobotState> robot_state3(new robot_state::RobotState(robot_model));
+  robot_state3->setToDefaultValues();
+  robot_state3->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[1] -= 0.1;
+  robot_state3->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state3);
+
+  // This should trip the revolute_jump_threshold = 1 check
+  std::shared_ptr<robot_state::RobotState> robot_state4(new robot_state::RobotState(robot_model));
+  robot_state4->setToDefaultValues();
+  robot_state4->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[0] -= 1.01;
+  robot_state4->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state4);
+
+  std::shared_ptr<robot_state::RobotState> robot_state5(new robot_state::RobotState(robot_model));
+  robot_state5->setToDefaultValues();
+  robot_state5->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[1] -= 0.1;
+  robot_state5->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state3);
+  return traj.size();
+}
+
+TEST_F(LoadPR2, testJointSpaceJumpAbsolute)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+
+  robot_state::JumpThreshold jt_abs(1.0, 1.0);
+  // Test the absolute joint space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.01 after the 6th waypoint.
+  // testJointSpaceJump should identify the jump at the 6th waypoint and trim that off returning
+  // 4/N and a trajectory of length 6
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_abs);
+
+  EXPECT_NEAR(traj.size(), 6, 0.01);
+  EXPECT_NEAR(fraction, 6. / (double)traj_len, 0.01);
+}
+
+TEST_F(LoadPR2, testJointSpaceJumpRelative)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+
+  robot_state::JumpThreshold jt_rel(1.0);
+  // Test testJointSpaceJump with a jump_threshold factor
+  // Traj has N points in the trajectory with a large jump after the 4th waypoint.
+  // testJointSpaceJump should identify the jump at the 4th waypoint and trim it
+  // Returning a trajectory of length 4 wich is 4/N of the original traj length
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_rel);
+
+  EXPECT_NEAR(traj.size(), 4, 0.01);
+  EXPECT_NEAR(fraction, 4. / (double)traj_len, 0.01);
+
+TEST_F(LoadPR2, testCartSpaceJumpCutoff)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  robot_state::Distance max_eef;
+  std::string link = "r_wrist_roll_link";
+  // Test the cartesian space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.01 at the 5th waypoint.
+  // If we disable max_eef checking then we should return the full traj
+  double result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 1.0, 0.01);
+  EXPECT_NEAR(traj.size(), (double)traj_len, 0.01);
+
+  // Test the cartesian space jump test function
+  // Traj has N points in the trajectory with a joint space jump of 1.0 after the 4th waypoint.
+  // testJointSpaceJump should identify the jump at the 5th waypoint and trim that off returning
+  // 4/N and a trajectory of length 4
+  max_eef.translation = 0.01;
+  max_eef.rotation = 0.0;
+  result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 4. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 4, 0.01);
+
+  traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  max_eef.rotation = 0.1;
+  max_eef.translation = 0.0;
+  result = robot_state::RobotState::testCartesianSpaceJump(joint_model_group, link, traj, max_eef);
+  EXPECT_NEAR(result, 4. / (double)traj_len, 0.01);
+  EXPECT_NEAR(traj.size(), 4, 0.01);
 }
 
 int main(int argc, char** argv)
