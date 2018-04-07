@@ -1159,7 +1159,7 @@ as the new values that correspond to the group */
 
      If \e jump_threshold_factor is non-zero, we test for relative jumps.
      If \e prismatic_jump_threshold or \e revolute_jump_threshold are non-zero, we test for absolute jumps.
-     Otherwise (all params are zero), jump detection is skipped.
+     Both tests can be combined. If all params are zero, jump detection is disabled.
      For relative jump detection, the average joint-space distance between consecutive points in the trajectory is
      computed. If any individual joint-space motion delta is larger then this average distance by a factor of
      \e jump_threshold_factor, this step is considered a failure and the returned path is truncated up to just

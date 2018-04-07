@@ -1995,11 +1995,8 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
   if (jump_threshold.factor > 0.0)
     return testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
-  else if (jump_threshold.prismatic > 0.0 && jump_threshold.revolute > 0.0)
+  if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0)
     return testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
-
-  else if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0)
-    CONSOLE_BRIDGE_logWarn("Attempting to test for absolute joint-space jumps, but zero threshold was provided");
 
   return 1.0;
 }
@@ -2040,8 +2037,10 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
 }
 
 double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                              double revolute_jump_threshold, double prismatic_jump_threshold)
+                                              double revolute_threshold, double prismatic_threshold)
 {
+  bool test_revolute = revolute_threshold > 0;
+  bool test_prismatic = revolute_threshold > 0;
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t traj_ix = 0, ix_end = traj.size() - 1; traj_ix != ix_end; ++traj_ix)
@@ -2056,8 +2055,8 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
       }
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if ((joint->getType() == JointModel::PRISMATIC && distance > prismatic_jump_threshold) ||
-          (joint->getType() == JointModel::REVOLUTE && distance > revolute_jump_threshold))
+      if ((test_prismatic && joint->getType() == JointModel::PRISMATIC && distance > prismatic_threshold) ||
+          (test_revolute && joint->getType() == JointModel::REVOLUTE && distance > revolute_threshold))
       {
         CONSOLE_BRIDGE_logError("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
                                 distance, joint->getType() == JointModel::PRISMATIC ? prismatic_jump_threshold :
