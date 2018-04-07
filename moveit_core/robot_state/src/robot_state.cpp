@@ -2049,18 +2049,18 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
     {
       if (!joint->getType() == JointModel::PRISMATIC && !joint->getType() == JointModel::REVOLUTE)
       {
-        CONSOLE_BRIDGE_logWarn("Unsupported joint type %s in JointModelGroup %s testAbsoluteJointSpaceJump can only "
-                               "support prismatic and revolute joints.",
-                               joint->getTypeName().c_str(), group->getName().c_str());
+        CONSOLE_BRIDGE_logWarn("Joint %s is of unsupported type %s. \n"
+                               "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
+                               joint->getName().c_str(), joint->getTypeName().c_str());
       }
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
       if ((test_prismatic && joint->getType() == JointModel::PRISMATIC && distance > prismatic_threshold) ||
           (test_revolute && joint->getType() == JointModel::REVOLUTE && distance > revolute_threshold))
       {
-        CONSOLE_BRIDGE_logError("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint-space distance",
-                                distance, joint->getType() == JointModel::PRISMATIC ? prismatic_jump_threshold :
-                                                                                      revolute_jump_threshold);
+        double limit = joint->getType() == JointModel::PRISMATIC ? prismatic_threshold : revolute_threshold;
+        CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint %s", distance,
+                                limit, joint->getName().c_str());
         still_valid = false;
         break;
       }
