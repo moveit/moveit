@@ -2055,10 +2055,10 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
       }
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if ((test_prismatic && joint->getType() == JointModel::PRISMATIC && distance > prismatic_threshold) ||
-          (test_revolute && joint->getType() == JointModel::REVOLUTE && distance > revolute_threshold))
+      if ((test_revolute && joint->getType() == JointModel::REVOLUTE && distance > revolute_threshold) ||
+          (test_prismatic && joint->getType() == JointModel::PRISMATIC && distance > prismatic_threshold))
       {
-        double limit = joint->getType() == JointModel::PRISMATIC ? prismatic_threshold : revolute_threshold;
+        double limit = joint->getType() == JointModel::REVOLUTE ? revolute_threshold : prismatic_threshold;
         CONSOLE_BRIDGE_logDebug("Truncating Cartesian path due to detected jump of %.4f > %.4f in joint %s", distance,
                                 limit, joint->getName().c_str());
         still_valid = false;

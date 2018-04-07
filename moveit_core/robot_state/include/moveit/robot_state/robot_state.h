@@ -71,10 +71,10 @@ typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joi
 struct JumpThreshold
 {
   double factor;
-  double prismatic;
   double revolute;
+  double prismatic;
 
-  explicit JumpThreshold() : factor(0.0), prismatic(0.0), revolute(0.0)
+  explicit JumpThreshold() : factor(0.0), revolute(0.0), prismatic(0.0)
   {
   }
 
@@ -85,8 +85,8 @@ struct JumpThreshold
 
   explicit JumpThreshold(double jt_revolute, double jt_prismatic) : JumpThreshold()
   {
-    prismatic = jt_prismatic;
     revolute = jt_revolute;
+    prismatic = jt_prismatic;
   }
 };
 

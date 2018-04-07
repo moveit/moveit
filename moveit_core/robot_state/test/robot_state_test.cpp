@@ -617,7 +617,7 @@ TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 
   // ignore revolute joints
   generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 0.0, 1.0);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(0.0, 1.0));
   EXPECT_EQ(traj.size(), 4);  // traj should not be cut
   EXPECT_NEAR(fraction, 4. / 4., 0.01);
 }
