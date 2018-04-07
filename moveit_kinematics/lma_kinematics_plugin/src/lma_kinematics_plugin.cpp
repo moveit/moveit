@@ -35,7 +35,7 @@
 /* Author: Francisco Suarez-Ruiz */
 
 #include <moveit/lma_kinematics_plugin/lma_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 #include <tf_conversions/tf_kdl.h>
 #include <kdl_parser/kdl_parser.hpp>
