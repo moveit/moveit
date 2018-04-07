@@ -46,7 +46,7 @@
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
 #include <boost/thread.hpp>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 #include <memory>
 
