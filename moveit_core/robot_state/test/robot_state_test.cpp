@@ -611,13 +611,13 @@ TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 
   // indirect call
   generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(1.0, 1.0));
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
   EXPECT_EQ(traj.size(), 3);  // traj should be cut
   EXPECT_NEAR(fraction, 3. / 4., 0.01);
 
   // ignore revolute joints
   generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(0.0, 1.0));
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 1.0));
   EXPECT_EQ(traj.size(), 4);  // traj should not be cut
   EXPECT_NEAR(fraction, 4. / 4., 0.01);
 }
@@ -627,15 +627,15 @@ TEST_F(LoadPR2, testRelativeJointSpaceJump)
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
-  // direct call of absolute version
+  // direct call of absolute version: factor slightly smaller than 3 (1.01 > 2.99 * 1.01 / 3)
   generateTestTraj(traj, robot_model, joint_model_group);
-  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 4.);
+  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 2.99);
   EXPECT_EQ(traj.size(), 3);  // traj should be cut
   EXPECT_NEAR(fraction, 3. / 4., 0.01);
 
   // indirect call
   generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(4.0));
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.99));
   EXPECT_EQ(traj.size(), 3);  // traj should be cut
   EXPECT_NEAR(fraction, 3. / 4., 0.01);
 }
