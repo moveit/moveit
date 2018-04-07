@@ -602,21 +602,40 @@ TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-  generateTestTraj(traj, robot_model, joint_model_group);
-  ASSERT_EQ(traj.size(), 4);  // traj should have 4 waypoints, with a large jump in the last point
 
+  // direct call of absolute version
+  generateTestTraj(traj, robot_model, joint_model_group);
   double fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
   EXPECT_EQ(traj.size(), 3);  // traj should be cut
   EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // indirect call
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(1.0, 1.0));
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // ignore revolute joints
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 0.0, 1.0);
+  EXPECT_EQ(traj.size(), 4);  // traj should not be cut
+  EXPECT_NEAR(fraction, 4. / 4., 0.01);
 }
 
 TEST_F(LoadPR2, testRelativeJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-  generateTestTraj(traj, robot_model, joint_model_group);
 
-  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 1.0);
+  // direct call of absolute version
+  generateTestTraj(traj, robot_model, joint_model_group);
+  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 4.);
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // indirect call
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::RobotState::JumpThreshold(4.0));
   EXPECT_EQ(traj.size(), 3);  // traj should be cut
   EXPECT_NEAR(fraction, 3. / 4., 0.01);
 }
