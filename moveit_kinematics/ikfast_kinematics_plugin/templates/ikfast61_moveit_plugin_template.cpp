@@ -1373,5 +1373,5 @@ bool IKFastKinematicsPlugin::sampleRedundantJoint(kinematics::DiscretizationMeth
 }  // end namespace
 
 // register IKFastKinematicsPlugin as a KinematicsBase implementation
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(ikfast_kinematics_plugin::IKFastKinematicsPlugin, kinematics::KinematicsBase);

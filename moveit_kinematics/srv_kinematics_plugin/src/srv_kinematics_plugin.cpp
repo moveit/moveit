@@ -35,7 +35,7 @@
 /* Author: Dave Coleman, Masaki Murooka */
 
 #include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 // URDF, SRDF
 #include <urdf_model/model.h>
