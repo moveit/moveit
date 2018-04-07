@@ -48,7 +48,7 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <QString>
-#include <pluginlib/class_loader.h>  // for loading all avail kinematic planners
+#include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 // Rviz
 #include <rviz/render_panel.h>
 #include <rviz/visualization_manager.h>
