@@ -45,8 +45,8 @@
 #include <controller_manager_msgs/ListControllers.h>
 #include <controller_manager_msgs/SwitchController.h>
 
-#include <pluginlib/class_list_macros.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_list_macros.hpp>
+#include <pluginlib/class_loader.hpp>
 
 #include <boost/bimap.hpp>
 

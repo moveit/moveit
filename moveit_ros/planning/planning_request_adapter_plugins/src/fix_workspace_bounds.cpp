@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/planning_request_adapter/planning_request_adapter.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 #include <ros/ros.h>
 
 namespace default_planner_request_adapters

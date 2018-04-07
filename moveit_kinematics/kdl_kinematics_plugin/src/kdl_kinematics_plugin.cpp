@@ -35,7 +35,7 @@
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>

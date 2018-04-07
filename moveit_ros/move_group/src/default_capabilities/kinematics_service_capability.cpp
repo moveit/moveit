@@ -211,5 +211,5 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
   return true;
 }
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupKinematicsService, move_group::MoveGroupCapability)
