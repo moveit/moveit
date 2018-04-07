@@ -581,18 +581,19 @@ void generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& tra
                       const moveit::core::RobotModelConstPtr& robot_model,
                       const robot_model::JointModelGroup* joint_model_group)
 {
-  std::size_t n_joints = joint_model_group->getJointModelNames().size();
-  std::vector<double> joint_positions(n_joints, 0.0);
-  // 3 waypoints with zero joints
-  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
-  {
-    std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
-    robot_state->setJointGroupPositions(joint_model_group, joint_positions);
-    traj.push_back(robot_state);
-  }
-  // 4th waypoint with a large jump in first joint
-  joint_positions[0] = 1.01;
+  traj.clear();
+
+  // 3 waypoints with default joints
   std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
+  robot_state->setToDefaultValues();
+  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+    traj.push_back(robot_state);
+
+  // 4th waypoint with a large jump of 1.01 in first joint
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  std::vector<double> joint_positions;
+  robot_state->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[0] -= 1.01;
   robot_state->setJointGroupPositions(joint_model_group, joint_positions);
   traj.push_back(robot_state);
 }
