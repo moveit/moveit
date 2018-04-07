@@ -39,7 +39,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/profiler/profiler.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 #include <dynamic_reconfigure/server.h>
 #include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
