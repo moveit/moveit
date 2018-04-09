@@ -1945,7 +1945,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     last_valid_percentage = percentage;
   }
 
-  if (test_joint_space_jump)
+  if (test_joint_space_jump && traj.size() > 1)
   {
     last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
   }
