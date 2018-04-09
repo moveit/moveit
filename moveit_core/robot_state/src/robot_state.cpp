@@ -1992,7 +1992,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       const JumpThreshold& jump_threshold)
 {
-  if (jump_threshold.factor > 0.0)
+  if (jump_threshold.factor > 0.0 && traj.size() > 1)
     return testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
   if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0)
