@@ -45,18 +45,31 @@ ompl_interface::PoseModelStateSpace::PoseModelStateSpace(const ModelBasedStateSp
 {
   jump_factor_ = 3;  // \todo make this a param
 
-  if (spec.joint_model_group_->getGroupKinematics().first)
-    poses_.push_back(PoseComponent(spec.joint_model_group_, spec.joint_model_group_->getGroupKinematics().first));
-  else if (!spec.joint_model_group_->getGroupKinematics().second.empty())
+  const std::pair<moveit::core::JointModelGroup::KinematicsSolver, moveit::core::JointModelGroup::KinematicsSolverMap>&
+      group_kinematics = spec.joint_model_group_->getGroupKinematics();
+  if (group_kinematics.first)
   {
-    const robot_model::JointModelGroup::KinematicsSolverMap& m = spec.joint_model_group_->getGroupKinematics().second;
-    for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = m.begin(); it != m.end(); ++it)
-      poses_.push_back(PoseComponent(it->first, it->second));
+    // Has single kinematics solver for this planning group, as opposed to multiple IK solvers for sub-planning groups
+    poses_.push_back(PoseComponent(spec.joint_model_group_, group_kinematics.first));
   }
+  else if (!group_kinematics.second.empty())
+  {
+    // Has map from group instances to allocator functions & bijections
+    const std::map<const moveit::core::JointModelGroup*, moveit::core::JointModelGroup::KinematicsSolver>& map =
+        group_kinematics.second;
+    for (auto map_it = map.begin(); map_it != map.end(); ++map_it)
+    {
+      poses_.push_back(PoseComponent(map_it->first, map_it->second));
+    }
+  }
+
+  // Error check
   if (poses_.empty())
-    logError("No kinematics solvers specified. Unable to construct a PoseModelStateSpace");
+    logError("No kinematics solvers specified for planning group %s. Unable to construct a PoseModelStateSpace",
+             spec.joint_model_group_->getName().c_str());
   else
     std::sort(poses_.begin(), poses_.end());
+
   setName(getName() + "_" + PARAMETERIZATION_TYPE);
 }
 
