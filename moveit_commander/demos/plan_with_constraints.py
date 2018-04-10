@@ -2,7 +2,7 @@
 
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2013, Willow Garage, Inc.
+# Copyright (c) 2018, Houston Mechatronics, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -48,11 +48,10 @@ if __name__=='__main__':
     robot = RobotCommander()
     rospy.sleep(1)
 
-    # Plan to a random location
     a = robot.right_arm
     a.set_start_state(RobotState())
 
-    print "cutternt pose:"
+    print "current pose:"
     print a.get_current_pose()
     c = Constraints()
 
@@ -73,4 +72,4 @@ if __name__=='__main__':
     waypoints.append(wpose)
 
     plan, fraction = a.compute_cartesian_path(waypoints, 0.01, 0.0, path_constraints=c)
-    print 'Plan success rate: ', fraction
+    print 'Plan success percent: ', fraction
