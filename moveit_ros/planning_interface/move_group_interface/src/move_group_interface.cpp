@@ -139,7 +139,7 @@ public:
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(
         planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
 
-    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_, node_handle_);
+    current_state_monitor_ = getSharedStateMonitor(opt_.robot_description_, robot_model_, tf_, node_handle_);
 
     ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
     if (wait_for_servers == ros::WallDuration())
