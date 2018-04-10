@@ -403,10 +403,26 @@ public:
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
                                        bool avoid_collisions)
   {
+    moveit_msgs::Constraints path_constraints_tmp;
+    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints_tmp);
+  }
+
+  bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
+                                                  bool avoid_collisions, const std::string& path_constraints_str)
+  {
+    moveit_msgs::Constraints path_constraints;
+    py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
+    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints);
+  }
+
+  bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
+                                         bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
+  {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, avoid_collisions);
+    double fraction =
+        computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
@@ -626,6 +642,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
+  MoveGroupInterfaceClass.def("compute_cartesian_path",
+                              &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
   MoveGroupInterfaceClass.def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName);
   MoveGroupInterfaceClass.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
   MoveGroupInterfaceClass.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
