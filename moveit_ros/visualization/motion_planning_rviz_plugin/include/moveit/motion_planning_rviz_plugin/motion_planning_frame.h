@@ -288,8 +288,8 @@ private:
   ros::Subscriber stop_subscriber_;
   ros::Subscriber update_start_state_subscriber_;
   ros::Subscriber update_goal_state_subscriber_;
-  ros::Subscriber update_start_state_RobotState_subscriber_;
-  ros::Subscriber update_goal_state_RobotState_subscriber_;
+  ros::Subscriber update_custom_start_state_subscriber_;
+  ros::Subscriber update_custom_goal_state_subscriber_;
   // General
   void changePlanningGroupHelper();
   void importResource(const std::string& path);

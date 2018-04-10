@@ -227,10 +227,12 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
         nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
     update_goal_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
-    update_start_state_RobotState_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_start_state_RobotState", 1, &MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback, this);
-    update_goal_state_RobotState_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_goal_state_RobotState", 1, &MotionPlanningFrame::remoteUpdateGoalStateRobotStateCallback, this);
+    update_custom_start_state_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_start_state_RobotState", 1,
+                     &MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback, this);
+    update_custom_goal_state_subscriber_ =
+        nh.subscribe("/rviz/moveit/update_goal_state_RobotState", 1,
+                     &MotionPlanningFrame::remoteUpdateGoalStateRobotStateCallback, this);
   }
   else
   {  // disable
@@ -239,8 +241,8 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     stop_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
     update_goal_state_subscriber_.shutdown();
-    update_start_state_RobotState_subscriber_.shutdown();
-    update_goal_state_RobotState_subscriber_.shutdown();
+    update_custom_start_state_subscriber_.shutdown();
+    update_custom_goal_state_subscriber_.shutdown();
   }
 }
 
@@ -341,9 +343,10 @@ void MotionPlanningFrame::changePlanningGroupHelper()
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
         }
-        if(ui_->allow_external_program->isChecked())
+        if (ui_->allow_external_program->isChecked())
         {
-          planning_display_->addMainLoopJob(boost::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
+          planning_display_->addMainLoopJob(
+              boost::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
         }
       }
     }
