@@ -33,8 +33,8 @@
 # Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
-from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints
-from moveit_msgs.msg import MoveItErrorCodes, TrajectoryConstraints
+from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints, RobotState
+from moveit_msgs.msg import MoveItErrorCodes, TrajectoryConstraints, PlannerInterfaceDescription
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -83,6 +83,12 @@ class MoveGroupCommander(object):
         """ Set the name of the link to be considered as an end effector """
         if not self._g.set_end_effector_link(link_name):
             raise MoveItCommanderException("Unable to set end efector link")
+
+    def get_interface_description(self):
+        """ Get the description of the planner interface (list of planner ids) """
+        desc = PlannerInterfaceDescription()
+        conversions.msg_from_string(desc, self._g.get_interface_description())
+        return desc
 
     def get_pose_reference_frame(self):
         """ Get the reference frame assumed for poses of end-effectors """
@@ -166,13 +172,17 @@ class MoveGroupCommander(object):
         allows setting the joint target of the group by calling IK. This does not send a pose to the planner and the planner will do no IK.
         Instead, one IK solution will be computed first, and that will be sent to the planner.
         """
-        if type(arg1) is JointState:
+        if isinstance(arg1, RobotState):
+            if not self._g.set_state_value_target(conversions.msg_to_string(arg1)):
+                raise MoveItCommanderException("Error setting state target. Is the target state within bounds?")
+
+        elif isinstance(arg1, JointState):
             if (arg2 != None or arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target_from_joint_state_message(conversions.msg_to_string(arg1)):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
-        elif (type(arg1) is str):
+        elif isinstance(arg1, str):
             if (arg2 == None):
                 raise MoveItCommanderException("Joint value expected when joint name specified")
             if (arg3 != None):
@@ -180,7 +190,7 @@ class MoveGroupCommander(object):
             if not self._g.set_joint_value_target(arg1, arg2):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
-        elif (type(arg1) is PoseStamped) or (type(arg1) is Pose):
+        elif isinstance(arg1, (Pose, PoseStamped)):
             approx = False
             eef = ""
             if (arg2 != None):
