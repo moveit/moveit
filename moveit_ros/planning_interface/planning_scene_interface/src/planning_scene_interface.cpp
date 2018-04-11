@@ -48,7 +48,7 @@ namespace planning_interface
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  explicit PlanningSceneInterfaceImpl(const std::string& ns="")
+  explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
   {
     node_handle_ = ros::NodeHandle(ns);
     planning_scene_service_ =

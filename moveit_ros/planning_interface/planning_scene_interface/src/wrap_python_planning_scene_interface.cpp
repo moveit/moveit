@@ -55,7 +55,8 @@ class PlanningSceneInterfaceWrapper : protected py_bindings_tools::ROScppInitial
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  PlanningSceneInterfaceWrapper(const std::string& ns) : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface(ns)
+  PlanningSceneInterfaceWrapper(const std::string& ns)
+    : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface(ns)
   {
   }
 
@@ -103,12 +104,12 @@ public:
     return py_bindings_tools::dictFromType(ser_aobjs);
   }
 
-  bool applyPlanningScenePython(const std::string& ps_str){
+  bool applyPlanningScenePython(const std::string& ps_str)
+  {
     moveit_msgs::PlanningScene ps_msg;
     py_bindings_tools::deserializeMsg(ps_str, ps_msg);
     return applyPlanningScene(ps_msg);
   }
-
 };
 
 static void wrap_planning_scene_interface()

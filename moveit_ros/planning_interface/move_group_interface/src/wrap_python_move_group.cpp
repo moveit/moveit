@@ -61,10 +61,11 @@ class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if
   // needed
-  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description, const std::string &ns = "")
+  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description,
+                            const std::string& ns = "")
     : py_bindings_tools::ROScppInitializer()
-    , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)), boost::shared_ptr<tf::Transformer>(),
-                         ros::WallDuration(5, 0))
+    , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)),
+                         boost::shared_ptr<tf::Transformer>(), ros::WallDuration(5, 0))
   {
   }
 
@@ -114,7 +115,7 @@ public:
     moveit_msgs::RobotState msg;
     py_bindings_tools::deserializeMsg(state_str, msg);
     robot_state::RobotState state(moveit::planning_interface::MoveGroupInterface::getJointValueTarget());
-    moveit::core::robotStateMsgToRobotState(msg,state);
+    moveit::core::robotStateMsgToRobotState(msg, state);
     return moveit::planning_interface::MoveGroupInterface::setJointValueTarget(state);
   }
 
@@ -127,10 +128,11 @@ public:
     return l;
   }
 
-  std::string getJointValueTarget(){
+  std::string getJointValueTarget()
+  {
     moveit_msgs::RobotState msg;
     const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
-    moveit::core::robotStateToRobotStateMsg(state,msg);
+    moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
 
@@ -144,7 +146,8 @@ public:
     return getPlanningFrame().c_str();
   }
 
-  std::string getInterfaceDescriptionPython(){
+  std::string getInterfaceDescriptionPython()
+  {
     moveit_msgs::PlannerInterfaceDescription msg;
     getInterfaceDescription(msg);
     return py_bindings_tools::serializeMsg(msg);
@@ -325,9 +328,10 @@ public:
     convertListToArrayOfPoses(poses, msg);
     return setPoseTargets(msg, end_effector_link);
   }
-  std::string getPoseTargetPython(const std::string &end_effector_link){
-      geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveGroupInterface::getPoseTarget(end_effector_link);
-      return py_bindings_tools::serializeMsg(pose);
+  std::string getPoseTargetPython(const std::string& end_effector_link)
+  {
+    geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveGroupInterface::getPoseTarget(end_effector_link);
+    return py_bindings_tools::serializeMsg(pose);
   }
 
   bool setPoseTargetPython(bp::list& pose, const std::string& end_effector_link = "")
@@ -429,7 +433,7 @@ public:
   }
 
   bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                       bool avoid_collisions, const std::string& path_constraints_str)
+                                                  bool avoid_collisions, const std::string& path_constraints_str)
   {
     moveit_msgs::Constraints path_constraints;
     py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
@@ -437,12 +441,13 @@ public:
   }
 
   bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                       bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
+                                         bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
   {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+    double fraction =
+        computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
@@ -513,7 +518,7 @@ public:
 class MoveGroupWrapper : public MoveGroupInterfaceWrapper
 {
 public:
-  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns="")
+  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns = "")
     : MoveGroupInterfaceWrapper(group_name, robot_description, ns)
   {
     ROS_WARN("The MoveGroup class is deprecated and will be removed in ROS lunar. Please use MoveGroupInterface "
@@ -643,7 +648,8 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
-  MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
+  MoveGroupInterfaceClass.def("compute_cartesian_path",
+                              &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
   MoveGroupInterfaceClass.def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName);
   MoveGroupInterfaceClass.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
   MoveGroupInterfaceClass.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
