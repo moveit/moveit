@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan
+# Author: Ioan Sucan, William Baker
 
 from geometry_msgs.msg import Pose, PoseStamped
 from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints, RobotState
@@ -177,15 +177,15 @@ class MoveGroupCommander(object):
                 raise MoveItCommanderException("Error setting state target. Is the target state within bounds?")
 
         elif isinstance(arg1, JointState):
-            if (arg2 != None or arg3 != None):
+            if (arg2 is not None or arg3 is not None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target_from_joint_state_message(conversions.msg_to_string(arg1)):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
         elif isinstance(arg1, str):
-            if (arg2 == None):
+            if (arg2 is None):
                 raise MoveItCommanderException("Joint value expected when joint name specified")
-            if (arg3 != None):
+            if (arg3 is not None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target(arg1, arg2):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
@@ -193,7 +193,7 @@ class MoveGroupCommander(object):
         elif isinstance(arg1, (Pose, PoseStamped)):
             approx = False
             eef = ""
-            if (arg2 != None):
+            if (arg2 is not None):
                 if type(arg2) is str:
                     eef = arg2
                 else:
@@ -201,7 +201,7 @@ class MoveGroupCommander(object):
                         approx = arg2
                     else:
                         raise MoveItCommanderException("Unexpected type")
-            if (arg3 != None):
+            if (arg3 is not None):
                 if type(arg3) is str:
                     eef = arg3
                 else:
@@ -221,7 +221,7 @@ class MoveGroupCommander(object):
                     raise MoveItCommanderException("Error setting joint target. Is IK running?")
 
         elif (hasattr(arg1, '__iter__')):
-            if (arg2 != None or arg3 != None):
+            if (arg2 is not None or arg3 is not None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target(arg1):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
@@ -323,7 +323,7 @@ class MoveGroupCommander(object):
 
     def remember_joint_values(self, name, values = None):
         """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """
-        if values == None:
+        if values is None:
             values = self.get_current_joint_values()
         self._g.remember_joint_values(name, values)
 
@@ -388,7 +388,7 @@ class MoveGroupCommander(object):
 
     def set_path_constraints(self, value):
         """ Specify the path constraints to be used (as read from the database) """
-        if value == None:
+        if value is None:
             self.clear_path_constraints()
         else:
             if type(value) is Constraints:
@@ -409,7 +409,7 @@ class MoveGroupCommander(object):
 
     def set_trajectory_constraints(self, value):
         """ Specify the trajectory constraints to be used """
-        if value == None:
+        if value is None:
             self.clear_trajectory_constraints()
         else:
             if type(value) is TrajectoryConstraints:
@@ -484,7 +484,7 @@ class MoveGroupCommander(object):
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints == None:
+        elif not joints is None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
@@ -502,7 +502,7 @@ class MoveGroupCommander(object):
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints == None:
+        elif not joints is None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
