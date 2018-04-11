@@ -146,7 +146,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 
-  //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
+  // object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
   object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(
       OBJECT_RECOGNITION_ACTION, false));
   object_recognition_subscriber_ =
@@ -160,7 +160,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
     }
     catch (std::exception& ex)
     {
-      //      ROS_ERROR("Object recognition action: %s", ex.what());
+      // ROS_ERROR("Object recognition action: %s", ex.what());
       object_recognition_client_.reset();
     }
   }
@@ -211,6 +211,8 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, b
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
 {
+  // This is needed to prevent UI event (resuming the options) triggered
+  // before getRobotInteraction() is loaded and ready
   if (first_time_)
   {
     return;
@@ -227,12 +229,10 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
         nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
     update_goal_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
-    update_custom_start_state_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_custom_start_state", 1,
-                     &MotionPlanningFrame::remoteUpdateCustomStartStateCallback, this);
-    update_custom_goal_state_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_custom_goal_state", 1,
-                     &MotionPlanningFrame::remoteUpdateCustomGoalStateCallback, this);
+    update_custom_start_state_subscriber_ = nh.subscribe(
+        "/rviz/moveit/update_custom_start_state", 1, &MotionPlanningFrame::remoteUpdateCustomStartStateCallback, this);
+    update_custom_goal_state_subscriber_ = nh.subscribe(
+        "/rviz/moveit/update_custom_goal_state", 1, &MotionPlanningFrame::remoteUpdateCustomGoalStateCallback, this);
   }
   else
   {  // disable
@@ -343,6 +343,7 @@ void MotionPlanningFrame::changePlanningGroupHelper()
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
         }
+        // This ensures subscribers enabled after getRobotInteraction() is loaded and ready
         if (ui_->allow_external_program->isChecked())
         {
           planning_display_->addMainLoopJob(
