@@ -450,9 +450,11 @@ void MotionPlanningFrame::remoteUpdateGoalStateCallback(const std_msgs::EmptyCon
   }
 }
 
-void MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
+void MotionPlanningFrame::remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
 {
   moveit_msgs::RobotState msg_no_attached(*msg);
+  msg_no_attached.attached_collision_objects.clear();
+  msg_no_attached.is_diff = true;
   if (move_group_ && planning_display_)
   {
     planning_display_->waitForCurrentRobotState();
@@ -466,9 +468,11 @@ void MotionPlanningFrame::remoteUpdateStartStateRobotStateCallback(const moveit_
   }
 }
 
-void MotionPlanningFrame::remoteUpdateGoalStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
+void MotionPlanningFrame::remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg)
 {
   moveit_msgs::RobotState msg_no_attached(*msg);
+  msg_no_attached.attached_collision_objects.clear();
+  msg_no_attached.is_diff = true;
   if (move_group_ && planning_display_)
   {
     planning_display_->waitForCurrentRobotState();

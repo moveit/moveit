@@ -300,8 +300,8 @@ private:
   void remoteStopCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateStartStateCallback(const std_msgs::EmptyConstPtr& msg);
   void remoteUpdateGoalStateCallback(const std_msgs::EmptyConstPtr& msg);
-  void remoteUpdateStartStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
-  void remoteUpdateGoalStateRobotStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
+  void remoteUpdateCustomStartStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
+  void remoteUpdateCustomGoalStateCallback(const moveit_msgs::RobotStateConstPtr& msg);
 
   /* Selects or unselects a item in a list by the item name */
   void setItemSelectionInList(const std::string& item_name, bool selection, QListWidget* list);
