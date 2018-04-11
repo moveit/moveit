@@ -60,8 +60,6 @@ static const char* DEFAULT_CAPABILITIES[] = {
 
 static const std::string PLANNER_SERVICE_NAME =
     "plan_kinematic_path";  // name of the advertised service (within the ~ namespace)
-static const std::string EXECUTE_SERVICE_NAME =
-    "execute_kinematic_path";  // name of the advertised service (within the ~ namespace)
 static const std::string EXECUTE_ACTION_NAME = "execute_trajectory";  // name of 'execute' action
 static const std::string QUERY_PLANNERS_SERVICE_NAME =
     "query_planner_interface";  // name of the advertised query planners service
