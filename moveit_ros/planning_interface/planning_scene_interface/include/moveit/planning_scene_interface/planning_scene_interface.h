@@ -53,7 +53,7 @@ MOVEIT_CLASS_FORWARD(PlanningSceneInterface);
 class PlanningSceneInterface
 {
 public:
-  PlanningSceneInterface();
+  explicit PlanningSceneInterface(const std::string& ns="");
   ~PlanningSceneInterface();
 
   /**
