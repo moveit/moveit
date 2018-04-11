@@ -228,10 +228,10 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     update_goal_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
     update_custom_start_state_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_start_state_RobotState", 1,
+        nh.subscribe("/rviz/moveit/update_custom_start_state", 1,
                      &MotionPlanningFrame::remoteUpdateCustomStartStateCallback, this);
     update_custom_goal_state_subscriber_ =
-        nh.subscribe("/rviz/moveit/update_goal_state_RobotState", 1,
+        nh.subscribe("/rviz/moveit/update_custom_goal_state", 1,
                      &MotionPlanningFrame::remoteUpdateCustomGoalStateCallback, this);
   }
   else
