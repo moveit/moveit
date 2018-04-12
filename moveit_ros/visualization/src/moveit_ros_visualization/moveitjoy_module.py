@@ -348,7 +348,7 @@ class StatusHistory():
 
 class MoveitJoy:
     def parseSRDF(self):
-        ri = RobotInterface("/robot_description")
+        ri = RobotInterface("/robot_description", "")
         planning_groups = {}
         for g in ri.get_group_names():
             self.planning_groups_tips[g] = ri.get_group_joint_tips(g)
