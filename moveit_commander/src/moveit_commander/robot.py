@@ -35,6 +35,7 @@
 from moveit_commander import MoveGroupCommander, MoveItCommanderException
 from moveit_ros_planning_interface import _moveit_robot_interface
 from moveit_msgs.msg import RobotState
+from visualization_msgs.msg import MarkerArray
 import conversions
 
 
@@ -157,6 +158,32 @@ class RobotCommander(object):
         is maintained)
         """
         return self._r.get_planning_frame()
+
+    def get_robot_markers(self, *args):
+        """Get a MarkerArray of the markers that make up this robot
+
+        Usage:
+            (): get's all markers for current state
+            state (RobotState): gets markers for a particular state
+            values (dict): get markers with given values
+            values, links (dict, list): get markers with given values and these links
+            group (string):  get all markers for a group
+            group, values (string, dict): get all markers for a group with desired values
+        """
+        mrkr = MarkerArray()
+        if not args:
+            conversions.msg_from_string(mrkr, self._r.get_robot_markers())
+        else:
+            if isinstance(args[0], RobotState):
+                msg_str = conversions.msg_to_string(args[0])
+                conversions.msg_from_string(mrkr, self._r.get_robot_markers(msg_str))
+            elif isinstance(args[0], dict):
+                conversions.msg_from_string(mrkr, self._r.get_robot_markers(*args))
+            elif isinstance(args[0], str):
+                conversions.msg_from_string(mrkr, self._r.get_group_markers(*args))
+            else:
+                raise MoveItCommanderException("Unexpected type")
+        return mrkr
 
     def get_root_link(self):
         """Get the name of the root link of the robot model """
