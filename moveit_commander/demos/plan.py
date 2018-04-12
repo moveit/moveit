@@ -43,14 +43,14 @@ if __name__=='__main__':
 
     roscpp_initialize(sys.argv)
     rospy.init_node('moveit_py_demo', anonymous=True)
-    
+
     robot = RobotCommander()
     rospy.sleep(1)
 
     print "Current state:"
     print robot.get_current_state()
-    
-    # plan to a random location 
+
+    # plan to a random location
     a = robot.right_arm
     a.set_start_state(RobotState())
     r = a.get_random_joint_values()

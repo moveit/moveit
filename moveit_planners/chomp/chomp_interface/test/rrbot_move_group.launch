@@ -10,7 +10,7 @@
 
   <!-- The semantic description that corresponds to the URDF -->
   <param name="$(arg robot_description)_semantic" textfile="$(find moveit_planners_chomp)/test/rrbot.srdf" />
-  
+
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
     <rosparam command="load" file="$(find moveit_planners_chomp)/test/joint_limits.yaml"/>

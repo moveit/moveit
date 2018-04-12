@@ -13,5 +13,5 @@
 
   <!-- Launch python interface -->
   <node pkg="moveit_ros_visualization" type="moveit_joy.py" output="screen" name="moveit_joy"/>
-        
+
 </launch>
