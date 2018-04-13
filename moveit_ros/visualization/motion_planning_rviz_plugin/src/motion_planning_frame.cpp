@@ -329,6 +329,8 @@ void MotionPlanningFrame::changePlanningGroupHelper()
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
         }
+        // This ensures saved UI settings applied after planning_display_ is ready
+        planning_display_->useApproximateIK(ui_->approximate_ik->isChecked());
       }
     }
   }
