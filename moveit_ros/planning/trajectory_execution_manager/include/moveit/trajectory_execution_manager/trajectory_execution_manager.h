@@ -325,7 +325,7 @@ private:
   moveit_controller_manager::ExecutionStatus last_execution_status_;
   std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
   int current_context_;
-  std::vector<ros::Time> time_index_; // used to find current expected trajectory location
+  std::vector<ros::Time> time_index_;  // used to find current expected trajectory location
   mutable boost::mutex time_index_mutex_;
   bool execution_complete_;
 

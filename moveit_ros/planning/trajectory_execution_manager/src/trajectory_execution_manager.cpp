@@ -137,8 +137,7 @@ void TrajectoryExecutionManager::initialize()
   }
   catch (pluginlib::PluginlibException& ex)
   {
-    ROS_FATAL_STREAM_NAMED(name_,
-                           "Exception while creating controller manager plugin loader: " << ex.what());
+    ROS_FATAL_STREAM_NAMED(name_, "Exception while creating controller manager plugin loader: " << ex.what());
     return;
   }
 
@@ -152,13 +151,13 @@ void TrajectoryExecutionManager::initialize()
       {
         controller = classes[0];
         ROS_WARN_NAMED(name_, "Parameter '~moveit_controller_manager' is not specified but only one "
-                                         "matching plugin was found: '%s'. Using that one.",
+                              "matching plugin was found: '%s'. Using that one.",
                        controller.c_str());
       }
       else
         ROS_FATAL_NAMED(name_, "Parameter '~moveit_controller_manager' not specified. This is needed to "
-                                          "identify the plugin to use for interacting with controllers. No paths can "
-                                          "be executed.");
+                               "identify the plugin to use for interacting with controllers. No paths can "
+                               "be executed.");
     }
 
     if (!controller.empty())
@@ -169,7 +168,7 @@ void TrajectoryExecutionManager::initialize()
       catch (pluginlib::PluginlibException& ex)
       {
         ROS_FATAL_STREAM_NAMED(name_, "Exception while loading controller manager '" << controller
-                                                                                                << "': " << ex.what());
+                                                                                     << "': " << ex.what());
       }
   }
 
@@ -505,7 +504,7 @@ void TrajectoryExecutionManager::continuousExecutionThread()
       else
       {
         ROS_ERROR_NAMED(name_, "Not all needed controllers are active. Cannot push and execute. You can try "
-                                          "calling ensureActiveControllers() before pushAndExecute()");
+                               "calling ensureActiveControllers() before pushAndExecute()");
         last_execution_status_ = moveit_controller_manager::ExecutionStatus::ABORTED;
         delete context;
       }
@@ -691,8 +690,7 @@ bool TrajectoryExecutionManager::findControllers(const std::set<std::string>& ac
       sac << available_controllers[i] << " ";
     for (std::set<std::string>::const_iterator it = actuated_joints.begin(); it != actuated_joints.end(); ++it)
       saj << *it << " ";
-    ROS_INFO_NAMED(name_,
-                   "Looking for %zu controllers among [ %s] that cover joints [ %s]. Found %zd options.",
+    ROS_INFO_NAMED(name_, "Looking for %zu controllers among [ %s] that cover joints [ %s]. Found %zd options.",
                    controller_count, sac.str().c_str(), saj.str().c_str(), selected_options.size());
   }
 
@@ -945,8 +943,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
   robot_state::RobotStatePtr current_state;
   if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
   {
-    ROS_WARN_NAMED(name_, "Failed to validate trajectory: couldn't receive full current joint state within "
-                                     "1s");
+    ROS_WARN_NAMED(name_, "Failed to validate trajectory: couldn't receive full current joint state within 1s");
     return false;
   }
 
@@ -980,9 +977,8 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         jm->enforcePositionBounds(&traj_position);
         if (fabs(cur_position - traj_position) > allowed_start_tolerance_)
         {
-          ROS_ERROR_NAMED(name_,
-                          "\nInvalid Trajectory: start point deviates from current robot state more than %g"
-                          "\njoint '%s': expected: %g, current: %g",
+          ROS_ERROR_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than %g"
+                                 "\njoint '%s': expected: %g, current: %g",
                           allowed_start_tolerance_, joint_names[i].c_str(), traj_position, cur_position);
           return false;
         }
@@ -1020,10 +1016,10 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         rotation.fromRotationMatrix(cur_transform.rotation().inverse() * start_transform.rotation());
         if ((offset.array() > allowed_start_tolerance_).any() || rotation.angle() > allowed_start_tolerance_)
         {
-          ROS_ERROR_STREAM_NAMED(name_,
-                                 "\nInvalid Trajectory: start point deviates from current robot state more than "
-                                     << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
-                                     << "': pos delta: " << offset.transpose() << " rot delta: " << rotation.angle());
+          ROS_ERROR_STREAM_NAMED(name_, "\nInvalid Trajectory: start point deviates from current robot state more than "
+                                            << allowed_start_tolerance_ << "\nmulti-dof joint '" << joint_names[i]
+                                            << "': pos delta: " << offset.transpose()
+                                            << " rot delta: " << rotation.angle());
           return false;
         }
       }
@@ -1116,8 +1112,7 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   std::stringstream ss;
   for (std::set<std::string>::const_iterator it = actuated_joints.begin(); it != actuated_joints.end(); ++it)
     ss << *it << " ";
-  ROS_ERROR_NAMED(name_,
-                  "Unable to identify any set of controllers that can actuate the specified joints: [ %s]",
+  ROS_ERROR_NAMED(name_, "Unable to identify any set of controllers that can actuate the specified joints: [ %s]",
                   ss.str().c_str());
 
   std::stringstream ss2;
@@ -1296,8 +1291,7 @@ void TrajectoryExecutionManager::executeThread(const ExecutionCompleteCallback& 
   // only report that execution finished when the robot stopped moving
   waitForRobotToStop(*trajectories_[i - 1]);
 
-  ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...",
-                  last_execution_status_.asString().c_str());
+  ROS_INFO_NAMED(name_, "Completed trajectory execution with status %s ...", last_execution_status_.asString().c_str());
 
   // notify whoever is waiting for the event of trajectory completion
   execution_state_mutex_.lock();
@@ -1465,8 +1459,7 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           if (!execution_complete_ && ros::Time::now() - current_time > expected_trajectory_duration)
           {
             ROS_ERROR_NAMED(name_, "Controller is taking too long to execute trajectory (the expected upper "
-                                              "bound for the trajectory execution was %lf seconds). Stopping "
-                                              "trajectory.",
+                                   "bound for the trajectory execution was %lf seconds). Stopping trajectory.",
                             expected_trajectory_duration.toSec());
             {
               boost::mutex::scoped_lock slock(execution_state_mutex_);
@@ -1489,9 +1482,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
       }
       else if (handles[i]->getLastExecutionStatus() != moveit_controller_manager::ExecutionStatus::SUCCEEDED)
       {
-        ROS_WARN_STREAM_NAMED(name_, "Controller handle "
-                                                    << handles[i]->getName() << " reports status "
-                                                    << handles[i]->getLastExecutionStatus().asString());
+        ROS_WARN_STREAM_NAMED(name_, "Controller handle " << handles[i]->getName() << " reports status "
+                                                          << handles[i]->getLastExecutionStatus().asString());
         last_execution_status_ = handles[i]->getLastExecutionStatus();
         result = false;
       }
