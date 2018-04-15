@@ -33,7 +33,8 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-
+#include <moveit_resources/config.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
@@ -551,6 +552,82 @@ TEST(FK, OneRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+}
+
+class LoadPR2 : public testing::Test
+{
+protected:
+  virtual void SetUp()
+  {
+    std::string res_path(MOVEIT_TEST_RESOURCES_DIR);
+
+    urdf_model = urdf::parseURDFFile(res_path + "/pr2_description/urdf/robot.xml");
+    srdf_model.reset(new srdf::Model());
+    srdf_model->initFile(*urdf_model, res_path + "/pr2_description/srdf/robot.xml");
+    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+  }
+
+  virtual void TearDown()
+  {
+  }  std::vector<double> joint_positions;
+
+
+protected:
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  srdf::ModelSharedPtr srdf_model;
+  moveit::core::RobotModelConstPtr robot_model;
+};
+
+std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+                             const moveit::core::RobotModelConstPtr& robot_model,
+                             const robot_model::JointModelGroup* joint_model_group)
+{
+  traj.clear();
+
+  std::size_t n_joints = joint_model_group->getJointModelNames().size();
+  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+  {
+    std::shared_ptr<robot_state::RobotState> robot_state1(new robot_state::RobotState(robot_model));
+    robot_state1->setToDefaultValues();
+    traj.push_back(robot_state1);
+  }
+
+  // This is a jump
+  std::shared_ptr<robot_state::RobotState> robot_state2(new robot_state::RobotState(robot_model));
+  robot_state2->setToDefaultValues();
+  std::vector<double> joint_positions;
+  robot_state2->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[0] -= 1.01;
+  robot_state2->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state2);
+
+  return traj.size();
+}
+
+TEST_F(LoadPR2, testJointSpaceJumpAbsolute)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+
+  robot_state::JumpThreshold jt_abs(1.0, 1.0);
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_abs);
+
+  EXPECT_NEAR(traj.size(), 3, 0.01);
+  EXPECT_NEAR(fraction, 3. / (double)traj_len, 0.01);
+}
+
+TEST_F(LoadPR2, testJointSpaceJumpRelative)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+
+  robot_state::JumpThreshold jt_rel(1.0);
+  double fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, jt_rel);
+
+  EXPECT_NEAR(traj.size(), 3, 0.01);
+  EXPECT_NEAR(fraction, 3. / (double)traj_len, 0.01);
 }
 
 int main(int argc, char** argv)
