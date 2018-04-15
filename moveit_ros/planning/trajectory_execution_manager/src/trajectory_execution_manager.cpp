@@ -1519,8 +1519,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
-  if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
-    return true;
+  double tolerance = allowed_start_tolerance_;
+  if (tolerance <= 0)  // don't skip the tolerance check on a zero threshold (only on zero wait_time)
+    tolerance = 1.e-4;  // but fallback to small default threshold
 
   ros::WallTime start = ros::WallTime::now();
   double time_remaining = wait_time;
@@ -1554,7 +1555,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
         if (!jm)
           continue;  // joint vanished from robot state (shouldn't happen), but we don't care
 
-        if (fabs(cur_state->getJointPositions(jm)[0] - prev_state->getJointPositions(jm)[0]) > allowed_start_tolerance_)
+        if (fabs(cur_state->getJointPositions(jm)[0] - prev_state->getJointPositions(jm)[0]) > tolerance)
         {
           moved = true;
           no_motion_count = 0;
