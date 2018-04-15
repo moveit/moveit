@@ -296,6 +296,9 @@ private:
 
   void receiveEvent(const std_msgs::StringConstPtr& event);
 
+  // Name of this class for logging
+  const std::string name_ = "trajectory_execution_manager";
+
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr csm_;
   ros::NodeHandle node_handle_;
@@ -322,7 +325,7 @@ private:
   moveit_controller_manager::ExecutionStatus last_execution_status_;
   std::vector<moveit_controller_manager::MoveItControllerHandlePtr> active_handles_;
   int current_context_;
-  std::vector<ros::Time> time_index_;
+  std::vector<ros::Time> time_index_;  // used to find current expected trajectory location
   mutable boost::mutex time_index_mutex_;
   bool execution_complete_;
 
