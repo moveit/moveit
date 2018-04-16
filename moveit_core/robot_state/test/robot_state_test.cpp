@@ -33,7 +33,8 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-
+#include <moveit_resources/config.h>
+#include <moveit/rdf_loader/rdf_loader.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
@@ -551,6 +552,92 @@ TEST(FK, OneRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+}
+
+class LoadPR2 : public testing::Test
+{
+protected:
+  virtual void SetUp()
+  {
+    std::string res_path(MOVEIT_TEST_RESOURCES_DIR);
+
+    urdf_model = urdf::parseURDFFile(res_path + "/pr2_description/urdf/robot.xml");
+    srdf_model.reset(new srdf::Model());
+    srdf_model->initFile(*urdf_model, res_path + "/pr2_description/srdf/robot.xml");
+    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+  }
+
+  virtual void TearDown()
+  {
+  }
+
+protected:
+  urdf::ModelInterfaceSharedPtr urdf_model;
+  srdf::ModelSharedPtr srdf_model;
+  moveit::core::RobotModelConstPtr robot_model;
+};
+
+void generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+                      const moveit::core::RobotModelConstPtr& robot_model,
+                      const robot_model::JointModelGroup* joint_model_group)
+{
+  traj.clear();
+
+  // 3 waypoints with default joints
+  std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
+  robot_state->setToDefaultValues();
+  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+    traj.push_back(robot_state);
+
+  // 4th waypoint with a large jump of 1.01 in first joint
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  std::vector<double> joint_positions;
+  robot_state->copyJointGroupPositions(joint_model_group, joint_positions);
+  joint_positions[0] -= 1.01;
+  robot_state->setJointGroupPositions(joint_model_group, joint_positions);
+  traj.push_back(robot_state);
+}
+
+TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  // direct call of absolute version
+  generateTestTraj(traj, robot_model, joint_model_group);
+  double fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // indirect call
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // ignore revolute joints
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 1.0));
+  EXPECT_EQ(traj.size(), 4);  // traj should not be cut
+  EXPECT_NEAR(fraction, 4. / 4., 0.01);
+}
+
+TEST_F(LoadPR2, testRelativeJointSpaceJump)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("right_arm");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  // direct call of absolute version: factor slightly smaller than 3 (1.01 > 2.99 * 1.01 / 3)
+  generateTestTraj(traj, robot_model, joint_model_group);
+  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 2.99);
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+
+  // indirect call
+  generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.99));
+  EXPECT_EQ(traj.size(), 3);  // traj should be cut
+  EXPECT_NEAR(fraction, 3. / 4., 0.01);
 }
 
 int main(int argc, char** argv)
