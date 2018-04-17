@@ -488,11 +488,11 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
         return cdata->done;
       }
     }
-    else if (cdata->req->type != DistanceRequestType::GLOBAL)
+    else if (cdata->req->type == DistanceRequestType::GLOBAL)
     {
       dist_threshold = cdata->res->minimum_distance.distance;
     }
-    else if (cdata->req->type != DistanceRequestType::SINGLE)
+    else if (cdata->req->type == DistanceRequestType::SINGLE)
     {
       dist_threshold = it->second[0].distance;
     }
