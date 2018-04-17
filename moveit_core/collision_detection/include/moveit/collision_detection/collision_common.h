@@ -312,6 +312,11 @@ struct DistanceResultsData
   BodyType body_types[2];
 
   /// Normalized vector connecting closest points (from link_names[0] to link_names[1])
+  ///
+  /// If you are checking convex to convex and in contact the normal is as
+  /// documented but in the case of non-convex to non-convex or convex to non-convex
+  /// this may not be true. In the case of FCL it provides the contact normal for 
+  /// one of the two triangles that are in contact.
   Eigen::Vector3d normal;
 
   /// Clear structure data
