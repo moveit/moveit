@@ -74,7 +74,7 @@ struct JumpThreshold
   double revolute;
   double prismatic;
 
-  explicit JumpThreshold() : factor(0.0), revolute(0.0), prismatic(0.0)
+  explicit JumpThreshold() : factor(0.0), prismatic(0.0), revolute(0.0)
   {
   }
 
@@ -85,8 +85,31 @@ struct JumpThreshold
 
   explicit JumpThreshold(double jt_revolute, double jt_prismatic) : JumpThreshold()
   {
-    revolute = jt_revolute;
     prismatic = jt_prismatic;
+    revolute = jt_revolute;
+  }
+};
+
+/** \brief Struct for containing max_step for computeCartesianPath
+
+    Setting translation to zero will disable checking for translations and the same goes for rotation */
+struct MaxEEFStep
+{
+  double translation;
+  double rotation;
+
+  explicit MaxEEFStep() : translation(0.0), rotation(0.0)
+  {
+  }
+
+  explicit MaxEEFStep(double max_translation) : MaxEEFStep()
+  {
+    translation = max_translation;
+  }
+
+  explicit MaxEEFStep(double max_translation, double max_rotation)
+    : translation(max_translation), rotation(max_rotation)
+  {
   }
 };
 
@@ -1075,28 +1098,40 @@ as the new values that correspond to the group */
      The Cartesian path to be followed is specified as a direction of motion (\e direction, unit vector) for the origin
      of a robot link (\e link). The direction is assumed to be either in a global reference frame or in the local
      reference frame of the link. In the latter case (\e global_reference_frame is false) the \e direction is rotated
-     accordingly. The link needs to move in a straight line, following the specified direction, for the desired
-     \e distance. The resulting joint values are stored in the vector \e traj, one by one.
-     The maximum distance in Cartesian space between consecutive points on the resulting path is specified by
-     \e max_step.
-     If a \e validCallback is specified, this is passed to the internal call to setFromIK(). In case of IK failure,
-     the computation of the path stops and the value returned corresponds to the distance that was computed and for
-     which corresponding states were added to the path.  At the end of the function call, the state of the group
-     corresponds to the last attempted Cartesian pose.
+     accordingly. The link needs to move in a straight line, following the specified direction, for the desired \e
+     distance. The resulting joint values are stored in the vector \e traj, one by one. The maximum distance in
+     Cartesian space between consecutive points on the resulting path is specified in the \e MaxEEFStep struct which
+     provides two fields: translation and rotation. If a \e validCallback is specified, this is passed to the internal
+     call to setFromIK(). In case of IK failure, the computation of the path stops and the value returned corresponds to
+     the distance that was computed and for which corresponding states were added to the path.  At the end of the
+     function call, the state of the group corresponds to the last attempted Cartesian pose.
+
+     To ensure that the end effector does not move a lot in between consecutive points in the trajectory, the \e
+     max_step parameter is recycled. We use the values within max_step to ensure that the midpoint of two consecutive
+     waypoints in the trajectory does not deviate from either the preceeding or following point by more than
+     max_step.translation or max_step.rotation. This approach is based on Taylor's work on Bounded Deviation Joint
+     Paths.
+
      During the computation of the trajectory, it is usually preferred if consecutive joint values do not 'jump' by a
      large amount in joint space, even if the Cartesian distance between the corresponding points is small as expected.
      To account for this, the \e jump_threshold struct is provided, which comprises three fields:
      \e jump_threshold_factor, \e prismatic_jump_threshold and \e revolute_jump_threshold.
-     If \e prismatic_jump_threshold or \e revolute_jump_threshold are non-zero, we test for absolute jumps.
+     If either \e prismatic_jump_threshold or \e revolute_jump_threshold are non-zero, we test for absolute jumps.
      If \e jump_threshold_factor is non-zero, we test for relative jumps. Otherwise (all params are zero), jump
-     detection is disabled.
+     detection is
+     disabled.
+
      For relative jump detection, the average joint-space distance between consecutive points in the trajectory is
      computed. If any individual joint-space motion delta is larger then this average distance by a factor of
      \e jump_threshold_factor, this step is considered a failure and the returned path is truncated up to just
-     before the jump. */
+     before the jump.
+
+     For absolute jump thresholds, if any individual joint-space motion delta is larger then \e prismatic_jump_threshold
+     for prismatic joints or \e revolute_jump_threshold for revolute joints then this step is considered a failure and
+     the returned path is truncated up to just before the jump.*/
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
-                              double max_step, const JumpThreshold& jump_threshold,
+                              const MaxEEFStep& max_step, const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1106,8 +1141,9 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance, max_step,
-                                JumpThreshold(jump_threshold_factor), validCallback, options);
+    return computeCartesianPath(group, traj, link, direction, global_reference_frame, distance,
+                                MaxEEFStep(max_step, max_step), JumpThreshold(jump_threshold_factor), validCallback,
+                                options);
   }
 
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path, for a particular group.
@@ -1115,10 +1151,9 @@ as the new values that correspond to the group */
      In contrast to the previous function, the Cartesian path is specified as a target frame to be reached (\e target)
      for the origin of a robot link (\e link). The target frame is assumed to be either in a global reference frame or
      in the local reference frame of the link. In the latter case (\e global_reference_frame is false) the \e target is
-     rotated accordingly.
-     All other comments from the previous function apply. */
+     rotated accordingly. All other comments from the previous function apply. */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const Eigen::Affine3d& target, bool global_reference_frame, double max_step,
+                              const Eigen::Affine3d& target, bool global_reference_frame, const MaxEEFStep& max_step,
                               const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -1129,7 +1164,7 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, target, global_reference_frame, max_step,
+    return computeCartesianPath(group, traj, link, target, global_reference_frame, MaxEEFStep(max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
   }
 
@@ -1140,8 +1175,8 @@ as the new values that correspond to the group */
      frame or in the local reference frame of the link at the immediately preceeding waypoint. The link needs to move
      in a straight line between two consecutive waypoints. All other comments apply. */
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
-                              const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame, double max_step,
-                              const JumpThreshold& jump_threshold,
+                              const EigenSTL::vector_Affine3d& waypoints, bool global_reference_frame,
+                              const MaxEEFStep& max_step, const JumpThreshold& jump_threshold,
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1151,8 +1186,19 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, max_step,
+    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, MaxEEFStep(max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
+  }
+
+  /** \brief Helper function that calls both testJointSpaceJump and testCartesianSpaceJump
+  */
+  static double testForJumps(const JointModelGroup* group, const LinkModel* link, std::vector<RobotStatePtr>& traj,
+                             const JumpThreshold& jump_threshold, const MaxEEFStep& max_step);
+
+  static double testForJumps(const JointModelGroup* group, const std::string& link, std::vector<RobotStatePtr>& traj,
+                             const JumpThreshold& jump_threshold, const MaxEEFStep& max_step)
+  {
+    return testForJumps(group, group->getLinkModel(link), traj, jump_threshold, max_step);
   }
 
   /** \brief Tests joint space jumps of a trajectory.
@@ -1164,11 +1210,13 @@ as the new values that correspond to the group */
      computed. If any individual joint-space motion delta is larger then this average distance by a factor of
      \e jump_threshold_factor, this step is considered a failure and the returned path is truncated up to just
      before the jump.
+
      @param group The joint model group of the robot state.
      @param traj The trajectory that should be tested.
      @param jump_threshold The struct holding jump thresholds to determine if a joint space jump has occurred.
      @return The fraction of the trajectory that passed.
   */
+
   static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                    const JumpThreshold& jump_threshold);
 
@@ -1176,6 +1224,7 @@ as the new values that correspond to the group */
 
      First, the average distance between adjacent trajectory points is computed. If two adjacent trajectory points
      have distance > \e jump_threshold_factor * average, the trajectory is truncated at this point.
+
      @param group The joint model group of the robot state.
      @param traj The trajectory that should be tested.
      @param jump_threshold_factor The threshold to determine if a joint space jump has occurred .
@@ -1189,6 +1238,7 @@ as the new values that correspond to the group */
      The joint-space difference between consecutive waypoints is computed for each active joint and compared to
      the absolute thresholds \e prismatic_jump_threshold for prismatic joints or \e revolute_jump_threshold for
      revolute joints. If these thresholds are exceeded, the trajectory is truncated.
+
      @param group The joint model group of the robot state.
      @param traj The trajectory that should be tested.
      @param revolute_jump_threshold Absolute joint-space threshold for revolute joints.
@@ -1197,6 +1247,27 @@ as the new values that correspond to the group */
   */
   static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double revolute_jump_threshold, double prismatic_jump_threshold);
+
+  /** \brief Tests for large cartesian space jumps of a trajectory at the end effector.
+
+     Takes the midpoint between points in the trajectory and solves the FK. If the pose at the midpoint is further than
+     the max_step from either the preceding point or the following point, then the returned path is truncated up to
+     just before the jump
+
+     @param group The joint model group of the robot state.
+     @param link The link used for testing
+     @param traj The trajectory that should be tested.
+     @param max_step A struct containing the maximum translation and rotation between waypoints
+     @return The fraction of the trajectory that passed.
+  */
+  static double testCartesianSpaceJump(const JointModelGroup* group, const LinkModel* link,
+                                       std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step);
+
+  static double testCartesianSpaceJump(const JointModelGroup* group, const std::string& link,
+                                       std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
+  {
+    return testCartesianSpaceJump(group, group->getLinkModel(link), traj, max_step);
+  }
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
