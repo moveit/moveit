@@ -1978,6 +1978,54 @@ bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotSta
   return res.collision;
 }
 
+bool planning_scene::PlanningScene::isPoseColliding(Eigen::Affine3d pose, const robot_model::LinkModel* link,
+                                                    robot_state::RobotState* robot_state,
+                                                    collision_detection::CollisionResult* collision_result) const
+{
+  robot_state::RobotState sandbox_state(getCurrentState());
+  if (!robot_state)
+    robot_state = &sandbox_state;
+
+  // consider all rigidly connected parent links as well
+  const robot_model::LinkModel* parent = robot_model::RobotModel::getRigidlyConnectedParentLinkModel(link);
+  if (parent != link)  // transform pose into pose suitable to place parent
+    pose = pose * robot_state->getGlobalLinkTransform(link).inverse() * robot_state->getGlobalLinkTransform(parent);
+
+  // place link at given pose
+  robot_state->updateStateWithLinkAt(parent, pose);
+  robot_state->updateCollisionBodyTransforms();
+
+  // determine descendent links
+  const auto& links = parent->getParentJointModel()->getDescendantLinkModels();
+  const std::set<const robot_model::LinkModel*> link_set(links.cbegin(), links.cend());
+
+  // disable collision checking for parent links (except links fixed to root)
+  auto acm = collision_detection::AllowedCollisionMatrix(getAllowedCollisionMatrix());
+  std::vector<const std::string*> pending_links;  // parent link names that might be rigidly connected to root
+  while (parent) {
+    pending_links.push_back(&parent->getName());
+    link = parent;
+    const robot_model::JointModel* joint = link->getParentJointModel();
+    parent = joint->getParentLinkModel();
+
+    if (joint->getType() != robot_model::JointModel::FIXED) {
+      for (const std::string* name : pending_links)
+        acm.setDefaultEntry(*name, true);
+      pending_links.clear();
+    }
+  }
+
+  // check collision with the world using the padded version
+  collision_detection::CollisionRequest req;
+  req.contacts = (collision_result != nullptr);
+  req.active_components_only = &link_set;
+
+  collision_detection::CollisionResult sandbox_result;
+  collision_detection::CollisionResult& res = collision_result ? *collision_result : sandbox_result;
+  checkCollision(req, res, *robot_state, acm);
+  return res.collision;
+}
+
 bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotState& state, bool verbose) const
 {
   if (state_feasibility_)
