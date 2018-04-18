@@ -123,8 +123,10 @@ public:
   {
     const robot_state::RobotState& values = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
     bp::list l;
-    for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
-      l.append(*it);
+    std::vector<std::string> names = getActiveJoints();
+    for(std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); ++it) {
+        l.append(*values.getJointPositions(*it));
+    }
     return l;
   }
 
@@ -596,6 +598,7 @@ static void wrap_move_group_interface()
                               &MoveGroupInterfaceWrapper::setJointValueTargetFromJointStatePython);
 
   MoveGroupInterfaceClass.def("get_joint_value_target", &MoveGroupInterfaceWrapper::getJointValueTargetPythonList);
+  MoveGroupInterfaceClass.def("get_joint_state_target", &MoveGroupInterfaceWrapper::getJointValueTarget);
 
   MoveGroupInterfaceClass.def("set_named_target", &MoveGroupInterfaceWrapper::setNamedTarget);
   MoveGroupInterfaceClass.def("set_random_target", &MoveGroupInterfaceWrapper::setRandomTarget);
