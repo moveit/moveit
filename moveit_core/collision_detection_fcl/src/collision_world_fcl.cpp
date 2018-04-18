@@ -126,7 +126,6 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
   robot_fcl.constructFCLObject(state, fcl_obj);
 
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(robot.getRobotModel());
   for (std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 
@@ -135,9 +134,8 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
     DistanceRequest dreq;
     DistanceResult dres;
 
-    dreq.group_name = req.group_name;
+    dreq.active_components_only = req.active_components_only;
     dreq.acm = acm;
-    dreq.enableGroup(robot.getRobotModel());
     distanceRobot(dreq, dres, robot, state);
     res.distance = dres.minimum_distance.distance;
   }
@@ -170,7 +168,7 @@ void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const Col
     DistanceRequest dreq;
     DistanceResult dres;
 
-    dreq.group_name = req.group_name;
+    dreq.active_components_only = req.active_components_only;
     dreq.acm = acm;
     distanceWorld(dreq, dres, other_world);
     res.distance = dres.minimum_distance.distance;

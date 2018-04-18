@@ -1972,7 +1972,7 @@ bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotSta
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
-  req.group_name = group;
+  req.enableGroup(group, state.getRobotModel());
   collision_detection::CollisionResult res;
   checkCollision(req, res, state);
   return res.collision;
@@ -2223,7 +2223,7 @@ void planning_scene::PlanningScene::getCostSources(const robot_trajectory::Robot
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
-  creq.group_name = group_name;
+  creq.enableGroup(group_name, trajectory.getRobotModel());
   creq.cost = true;
   std::set<collision_detection::CostSource> cs;
   std::set<collision_detection::CostSource> cs_start;
@@ -2263,7 +2263,7 @@ void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
-  creq.group_name = group_name;
+  creq.enableGroup(group_name, state.getRobotModel());
   creq.cost = true;
   collision_detection::CollisionResult cres;
   checkCollision(creq, cres, state);

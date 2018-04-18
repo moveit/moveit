@@ -184,7 +184,6 @@ public:
     DistanceResult res;
 
     req.verbose = verbose;
-    req.enableGroup(robot.getRobotModel());
 
     distanceRobot(req, res, robot, state);
     return res.minimum_distance.distance;
@@ -204,7 +203,6 @@ public:
 
     req.acm = &acm;
     req.verbose = verbose;
-    req.enableGroup(robot.getRobotModel());
 
     distanceRobot(req, res, robot, state);
     return res.minimum_distance.distance;

@@ -115,12 +115,12 @@ struct CollisionGeometryData
 
 struct CollisionData
 {
-  CollisionData() : req_(NULL), active_components_only_(NULL), res_(NULL), acm_(NULL), done_(false)
+  CollisionData() : req_(NULL), res_(NULL), acm_(NULL), done_(false)
   {
   }
 
   CollisionData(const CollisionRequest* req, CollisionResult* res, const AllowedCollisionMatrix* acm)
-    : req_(req), active_components_only_(NULL), res_(res), acm_(acm), done_(false)
+    : req_(req), res_(res), acm_(acm), done_(false)
   {
   }
 
@@ -128,16 +128,8 @@ struct CollisionData
   {
   }
 
-  /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr& kmodel);
-
   /// The collision request passed by the user
   const CollisionRequest* req_;
-
-  /// If the collision request includes a group name, this set contains the pointers to the link models that are
-  /// considered for collision;
-  /// If the pointer is NULL, all collisions are considered.
-  const std::set<const robot_model::LinkModel*>* active_components_only_;
 
   /// The user specified response location
   CollisionResult* res_;
