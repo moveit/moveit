@@ -65,13 +65,11 @@ public:
   virtual void checkWorldCollision(const CollisionRequest& req, CollisionResult& res, const CollisionWorld& other_world,
                                    const AllowedCollisionMatrix& acm) const;
 
-  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
-                               bool verbose = false) const;
-  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
-                               const AllowedCollisionMatrix& acm, bool verbose = false) const;
-  virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const;
-  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
-                               bool verbose = false) const;
+  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+                             const robot_state::RobotState& state) const override;
+
+  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res,
+                             const CollisionWorld& world) const override;
 
   virtual void setWorld(const WorldPtr& world);
 
@@ -80,10 +78,6 @@ protected:
                                  const AllowedCollisionMatrix* acm) const;
   void checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                  const robot_state::RobotState& state, const AllowedCollisionMatrix* acm) const;
-  double distanceRobotHelper(const CollisionRobot& robot, const robot_state::RobotState& state,
-                             const AllowedCollisionMatrix* acm, bool verbose = false) const;
-  double distanceWorldHelper(const CollisionWorld& world, const AllowedCollisionMatrix* acm,
-                             bool verbose = false) const;
 
   void constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const;
   void updateFCLObject(const std::string& id);

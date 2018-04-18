@@ -163,27 +163,81 @@ public:
                                    const AllowedCollisionMatrix& acm) const = 0;
 
   /** \brief The distance to self-collision given the robot is at state \e state. */
-  virtual double distanceSelf(const robot_state::RobotState& state) const = 0;
+  inline double distanceSelf(const robot_state::RobotState& state) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    distanceSelf(req, res, state);
+    return res.minimum_distance.distance;
+  }
 
   /** \brief The distance to self-collision given the robot is at state \e state, ignoring
       the distances between links that are allowed to always collide (as specified by \e acm) */
-  virtual double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const = 0;
+  inline double distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    req.acm = &acm;
+    distanceSelf(req, res, state);
+    return res.minimum_distance.distance;
+  }
+
+  /** \brief The distance to self-collision given the robot is at state \e state.
+      @param req A DistanceRequest object that encapsulates the distance request
+      @param res A DistanceResult object that encapsulates the distance result
+      @param state The state of this robot to consider */
+  virtual void distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                            const robot_state::RobotState& state) const = 0;
 
   /** \brief The distance to another robot instance.
+
+
       @param state The state of this robot to consider
       @param other_robot The other robot instance to measure distance to
       @param other_state The state of the other robot */
-  virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                               const robot_state::RobotState& other_state) const = 0;
+  inline double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                              const robot_state::RobotState& other_state) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    distanceOther(req, res, state, other_robot, other_state);
+    return res.minimum_distance.distance;
+  }
 
   /** \brief The distance to another robot instance, ignoring distances between links that are allowed to always
      collide.
+
+
       @param state The state of this robot to consider
       @param other_robot The other robot instance to measure distance to
       @param other_state The state of the other robot
       @param acm The collision matrix specifying which links are allowed to always collide */
-  virtual double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
-                               const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const = 0;
+  inline double distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                              const robot_state::RobotState& other_state, const AllowedCollisionMatrix& acm) const
+  {
+    DistanceRequest req;
+    DistanceResult res;
+
+    req.enableGroup(getRobotModel());
+    req.acm = &acm;
+    distanceOther(req, res, state, other_robot, other_state);
+    return res.minimum_distance.distance;
+  }
+
+  /** \brief The distance to self-collision given the robot is at state \e state.
+      @param req A DistanceRequest object that encapsulates the distance request
+      @param res A DistanceResult object that encapsulates the distance result
+      @param state The state of this robot to consider
+      @param other_robot The other robot instance to measure distance to
+      @param other_state The state of the other robot */
+  virtual void distanceOther(const DistanceRequest& req, DistanceResult& res, const robot_state::RobotState& state,
+                             const CollisionRobot& other_robot, const robot_state::RobotState& other_state) const = 0;
 
   /** @brief The kinematic model corresponding to this collision model*/
   const robot_model::RobotModelConstPtr& getRobotModel() const
