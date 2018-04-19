@@ -123,11 +123,8 @@ public:
   {
     const robot_state::RobotState& values = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
     bp::list l;
-    std::vector<std::string> names = getActiveJoints();
-    for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); ++it)
-    {
-      l.append(*values.getJointPositions(*it));
-    }
+    for (const double *it = values.getVariablePositions(), *end = it + values.getVariableCount(); it != end; ++it)
+      l.append(*it);
     return l;
   }
 
