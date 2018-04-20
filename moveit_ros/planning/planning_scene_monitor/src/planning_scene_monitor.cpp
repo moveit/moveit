@@ -174,7 +174,6 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
-  enforce_next_state_update_ = false;
 
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
@@ -871,17 +870,24 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
 
   if (current_state_monitor_)
   {
-    // Wait for next robot update in state monitor. Those updates are only passed to PSM when robot actually moved!
-    enforce_next_state_update_ = true;  // enforce potential updates to be directly applied
+    // Wait for next robot update in state monitor.
     bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
-    enforce_next_state_update_ =
-        false;  // back to normal throttling behavior, not applying incoming updates immediately
 
-    /* If the robot doesn't move, we will never receive an update from CSM in planning scene.
-       As we ensured that an update, if it is triggered by CSM, is directly passed to the scene,
-       we can early return true here (if we successfully received a CSM update). Otherwise return false. */
+    /* As robot updates are passed to the planning scene only in throttled fashion, there might
+       be still an update pending. If so, explicitly update the planning scene here.
+       If waitForCurrentState failed, we didn't get any new state updates within wait_time. */
     if (success)
+    {
+      boost::mutex::scoped_lock lock(state_pending_mutex_);
+      if (state_update_pending_)  // enforce state update
+      {
+        state_update_pending_ = false;
+        last_robot_state_update_wall_time_ = ros::WallTime::now();
+        lock.unlock();
+        updateSceneWithCurrentState();
+      }
       return true;
+    }
 
     ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
     return false;
@@ -1140,11 +1146,11 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(
   const ros::WallTime& n = ros::WallTime::now();
   ros::WallDuration dt = n - last_robot_state_update_wall_time_;
 
-  bool update = enforce_next_state_update_;
+  bool update = false;
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
 
-    if (dt < dt_state_update_ && !update)
+    if (dt < dt_state_update_)
     {
       state_update_pending_ = true;
     }
