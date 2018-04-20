@@ -137,7 +137,7 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
   if (state_monitor_started_)
   {
     joint_state_subscriber_.shutdown();
-    ROS_DEBUG("No longer listening o joint states");
+    ROS_DEBUG("No longer listening for joint states");
     state_monitor_started_ = false;
   }
 }
