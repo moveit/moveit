@@ -1,0 +1,11 @@
+<launch>
+
+  <rosparam command="load" file="$(find jog_arm)/config/jog_settings.yaml" />
+
+  <node name="joy_node" pkg="joy" type="joy_node" />
+
+  <node name="joy_to_twist" pkg="jog_arm" type="joy_to_twist.py" output="screen" />
+
+  <node name="jog_arm_server" pkg="jog_arm" type="jog_arm_server" output="screen" />
+
+</launch>

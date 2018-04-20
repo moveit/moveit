@@ -1,0 +1,23 @@
+<launch>
+  <!-- Unit test launch file -->
+
+  <!-- The name of the parameter under which the URDF is loaded -->
+  <!-- arg name="robot_description" default="robot_description"-->
+
+  <!-- Launch test node -->
+  <arg name="run_test_node" default="true"/>
+
+  <!-- Debug Info -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+
+
+  <!-- Test Node -->
+  <test test-name="utest" pkg="jog_arm" type="jog_arm_utest"
+  launch-prefix="$(arg launch_prefix)" if="$(arg run_test_node)" time-limit = "200.0">
+
+  </test>
+  
+</launch>
