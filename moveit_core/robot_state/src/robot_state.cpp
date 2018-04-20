@@ -1951,7 +1951,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     last_valid_percentage = percentage;
   }
 
-  last_valid_percentage *= testForJumps(group, link, traj, jump_threshold, max_step);
+  last_valid_percentage *= trimJointAndCartesianSpaceJumps(group, link, traj, jump_threshold, max_step);
 
   return last_valid_percentage;
 }
@@ -1990,13 +1990,14 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     }
   }
 
-  percentage_solved *= testForJumps(group, link, traj, jump_threshold, max_step);
+  percentage_solved *= trimJointAndCartesianSpaceJumps(group, link, traj, jump_threshold, max_step);
 
   return percentage_solved;
 }
 
-double RobotState::testForJumps(const JointModelGroup* group, const LinkModel* link, std::vector<RobotStatePtr>& traj,
-                                const JumpThreshold& jump_threshold, const MaxEEFStep& max_step)
+double RobotState::trimJointAndCartesianSpaceJumps(const JointModelGroup* group, const LinkModel* link,
+                                                   std::vector<RobotStatePtr>& traj,
+                                                   const JumpThreshold& jump_threshold, const MaxEEFStep& max_step)
 {
   double percentage_solved = 1.0;
   if (traj.size() <= 1)
@@ -2022,7 +2023,7 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
     return percentage_solved;
 
   if (jump_threshold.factor > 0.0)
-     percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
+    percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
   if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
     percentage_solved *= testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);

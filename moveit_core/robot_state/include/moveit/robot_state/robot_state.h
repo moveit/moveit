@@ -71,8 +71,8 @@ typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joi
 struct JumpThreshold
 {
   double factor;
-  double revolute;    // Radians
-  double prismatic;   // Meters
+  double revolute;   // Radians
+  double prismatic;  // Meters
 
   explicit JumpThreshold() : factor(0.0), revolute(0.0), prismatic(0.0)
   {
@@ -85,8 +85,8 @@ struct JumpThreshold
 
   explicit JumpThreshold(double jt_revolute, double jt_prismatic) : JumpThreshold()
   {
-    revolute = jt_revolute;     // Radians
-    prismatic = jt_prismatic;   // Meters
+    revolute = jt_revolute;    // Radians
+    prismatic = jt_prismatic;  // Meters
   }
 };
 
@@ -95,8 +95,8 @@ struct JumpThreshold
     Setting translation to zero will disable checking for translations and the same goes for rotation */
 struct MaxEEFStep
 {
-  double translation; // Meters
-  double rotation;    // Radians
+  double translation;  // Meters
+  double rotation;     // Radians
 
   explicit MaxEEFStep() : translation(0.0), rotation(0.0)
   {
@@ -1191,11 +1191,13 @@ as the new values that correspond to the group */
 
   /** \brief Helper function that calls both testJointSpaceJump and testCartesianSpaceJump
   */
-  static double testForJumps(const JointModelGroup* group, const LinkModel* link, std::vector<RobotStatePtr>& traj,
-                             const JumpThreshold& jump_threshold, const MaxEEFStep& max_step);
+  static double trimJointAndCartesianSaceJumps(const JointModelGroup* group, const LinkModel* link,
+                                               std::vector<RobotStatePtr>& traj, const JumpThreshold& jump_threshold,
+                                               const MaxEEFStep& max_step);
 
-  static double testForJumps(const JointModelGroup* group, const std::string& link, std::vector<RobotStatePtr>& traj,
-                             const JumpThreshold& jump_threshold, const MaxEEFStep& max_step)
+  static double trimJointAndCartesianSaceJumps(const JointModelGroup* group, const std::string& link,
+                                               std::vector<RobotStatePtr>& traj, const JumpThreshold& jump_threshold,
+                                               const MaxEEFStep& max_step)
   {
     return testForJumps(group, group->getLinkModel(link), traj, jump_threshold, max_step);
   }

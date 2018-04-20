@@ -655,8 +655,8 @@ TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 
   // Indirect call of relative version using testJumps
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  fraction = robot_state::RobotState::testForJumps(joint_model_group_, link_name_, traj,
-                                                   robot_state::JumpThreshold(1.0, 1.0), robot_state::MaxEEFStep());
+  fraction = robot_state::RobotState::trimJointAndCartesianSpaceJumps(
+      joint_model_group_, link_name_, traj, robot_state::JumpThreshold(1.0, 1.0), robot_state::MaxEEFStep());
   EXPECT_EQ(full_traj_len, expected_full_traj_len);         // full traj should be 7 waypoints long
   EXPECT_EQ(traj.size(), expected_absolute_jump_traj_len);  // traj should be cut
   EXPECT_NEAR(fraction, (double)expected_absolute_jump_traj_len / (double)full_traj_len, 0.01);
@@ -698,8 +698,8 @@ TEST_F(LoadPR2, testRelativeJointSpaceJump)
 
   // Indirect call of relative version using testJumps
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  fraction = robot_state::RobotState::testForJumps(joint_model_group_, link_name_, traj,
-                                                   robot_state::JumpThreshold(1.0), robot_state::MaxEEFStep());
+  fraction = robot_state::RobotState::trimJointAndCartesianSpaceJumps(
+      joint_model_group_, link_name_, traj, robot_state::JumpThreshold(1.0), robot_state::MaxEEFStep());
   EXPECT_EQ(full_traj_len, expected_full_traj_len);         // full traj should be 7 waypoints long
   EXPECT_EQ(traj.size(), expected_relative_jump_traj_len);  // traj should be cut
   EXPECT_NEAR(fraction, (double)expected_relative_jump_traj_len / (double)full_traj_len, 0.01);
@@ -750,8 +750,8 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
 
   // Indirect call of the cartesian jump test
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  fraction = robot_state::RobotState::testForJumps(joint_model_group_, link_name_, traj, robot_state::JumpThreshold(),
-                                                   robot_state::MaxEEFStep(0.05));
+  fraction = robot_state::RobotState::trimJointAndCartesianSpaceJumps(
+      joint_model_group_, link_name_, traj, robot_state::JumpThreshold(), robot_state::MaxEEFStep(0.05));
   EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
   EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
   EXPECT_NEAR(fraction, (double)expected_cart_jump_traj_len / (double)full_traj_len, 0.01);  // traj should be cut
