@@ -624,6 +624,39 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
   return traj.size();
 }
 
+// std::size_t generateNullSpaceTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+//                                       const moveit::core::RobotModelConstPtr& robot_model,
+//                                       const robot_model::JointModelGroup* joint_model_group)
+// {
+//   traj.clear();
+
+//   // 3 waypoints with default joints
+//   std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
+//   robot_state->setToDefaultValues();
+//   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+//     traj.push_back(robot_state);
+
+//   // 4th waypoint with a large jump in the null space
+//   robot_state.reset(new robot_state::RobotState(*robot_state));
+//   robot_state->setToDefaultValues();
+//   std::vector<double> joint_positions4;
+//   robot_state->copyJointGroupPositions(joint_model_group, joint_positions4);
+//   joint_positions4[0] -= 0.01;
+//   robot_state->setJointGroupPositions(joint_model_group, joint_positions4);
+//   traj.push_back(robot_state);
+
+//   // 5th waypoint with no jump
+//   robot_state.reset(new robot_state::RobotState(*robot_state));
+//   robot_state->setToDefaultValues();
+//   std::vector<double> joint_positions5;
+//   robot_state->copyJointGroupPositions(joint_model_group, joint_positions5);
+//   joint_positions5[0] -= 1.01;
+//   robot_state->setJointGroupPositions(joint_model_group, joint_positions5);
+//   traj.push_back(robot_state);
+
+//   return traj.size();
+// }
+
 TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 {
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
@@ -727,14 +760,14 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
   // Test the cartesian space jump test function without MaxEEFStep values. Trajectory should not be cut
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
   fraction =
-      robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, link_name_, traj, robot_state::MaxEEFStep());
+      robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, traj, robot_state::MaxEEFStep());
   EXPECT_EQ(full_traj_len, expected_full_traj_len);                // full traj should be 7 waypoints long
   EXPECT_NEAR(traj.size(), (double)expected_full_traj_len, 0.01);  // traj should not be cut
   EXPECT_NEAR(fraction, 1.0, 0.01);                                // traj should not be cut
 
   // Direct call of the cartesian translation jump test
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  fraction = robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, link_name_, traj,
+  fraction = robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, traj,
                                                              robot_state::MaxEEFStep(0.05));
   EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
   EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
@@ -742,7 +775,7 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
 
   // Direct call of the cartesian rotation jump test
   full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  fraction = robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, link_name_, traj,
+  fraction = robot_state::RobotState::testCartesianSpaceJump(joint_model_group_, traj,
                                                              robot_state::MaxEEFStep(0, 0.05));
   EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
   EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
@@ -755,6 +788,15 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
   EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
   EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
   EXPECT_NEAR(fraction, (double)expected_cart_jump_traj_len / (double)full_traj_len, 0.01);  // traj should be cut
+
+  // Indirect call of the cartesian jump test, testing for null-space movement
+  // full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
+  // fraction = robot_state::RobotState::trimJointAndCartesianSpaceJumps(
+  //     joint_model_group_, link_name_, traj, robot_state::JumpThreshold(), robot_state::MaxEEFStep(0.05));
+  // EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
+  // EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
+  // EXPECT_NEAR(fraction, (double)expected_cart_jump_traj_len / (double)full_traj_len, 0.01);  // traj should be cut
+
 }
 
 int main(int argc, char** argv)

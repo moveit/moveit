@@ -1191,15 +1191,15 @@ as the new values that correspond to the group */
 
   /** \brief Helper function that calls both testJointSpaceJump and testCartesianSpaceJump
   */
-  static double trimJointAndCartesianSaceJumps(const JointModelGroup* group, const LinkModel* link,
+  static double trimJointAndCartesianSpaceJumps(const JointModelGroup* group, const LinkModel* link,
                                                std::vector<RobotStatePtr>& traj, const JumpThreshold& jump_threshold,
                                                const MaxEEFStep& max_step);
 
-  static double trimJointAndCartesianSaceJumps(const JointModelGroup* group, const std::string& link,
+  static double trimJointAndCartesianSpaceJumps(const JointModelGroup* group, const std::string& link,
                                                std::vector<RobotStatePtr>& traj, const JumpThreshold& jump_threshold,
                                                const MaxEEFStep& max_step)
   {
-    return testForJumps(group, group->getLinkModel(link), traj, jump_threshold, max_step);
+    return trimJointAndCartesianSpaceJumps(group, group->getLinkModel(link), traj, jump_threshold, max_step);
   }
 
   /** \brief Tests joint space jumps of a trajectory.
@@ -1249,7 +1249,7 @@ as the new values that correspond to the group */
   static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double revolute_jump_threshold, double prismatic_jump_threshold);
 
-  /** \brief Tests for large Cartesian space jumps of a trajectory at the end effector.
+  /** \brief Tests for large Cartesian space jumps of a trajectory at a specific link.
 
      Takes the midpoint between points in the trajectory and solves the FK. If the pose at the midpoint is further than
      the max_step from either the preceding point or the following point, then the returned path is truncated up to
@@ -1268,6 +1268,26 @@ as the new values that correspond to the group */
                                        std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
   {
     return testCartesianSpaceJump(group, group->getLinkModel(link), traj, max_step);
+  }
+
+  /** \brief Tests for large Cartesian space jumps of a trajectory
+
+    Takes the midpoint between points in the trajectory and solves the FK for each link in the group. If the pose at the midpoint for any of the links is further than the max_step from either the preceding point or the following point, then the returned path is truncated up to just before the jump
+
+     @param group The joint model group of the robot state.
+     @param traj The trajectory that should be tested.
+     @param max_step A struct containing the maximum translation and rotation between waypoints
+     @return The fraction of the trajectory that passed.
+  */
+  static double testCartesianSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
+  {
+    double percent_valid;
+    std::vector<const LinkModel*> links = group->getLinkModels();
+    for (auto& link : links)
+    {
+      percent_valid *= testCartesianSpaceJump(group, link, traj, max_step);
+    }
+    return percent_valid;
   }
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
