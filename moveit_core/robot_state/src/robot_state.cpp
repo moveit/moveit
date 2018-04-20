@@ -1919,16 +1919,16 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   double translation_distance = (rotated_target.translation() - start_pose.translation()).norm();
 
   // decide how many steps we will need for this trajectory
-  unsigned int translation_steps = 0;
+  std::size_t translation_steps = 0;
   if (max_step.translation > 0.0)
     translation_steps = floor(translation_distance / max_step.translation);
 
-  unsigned int rotation_steps = 0;
+  std::size_t rotation_steps = 0;
   if (max_step.rotation > 0.0)
     rotation_steps = floor(rotation_distance / max_step.rotation);
 
   // If we are testing for relative jumps, we always want at least MIN_STEPS_FOR_JUMP_THRESH steps
-  unsigned int steps = std::max(translation_steps, rotation_steps) + 1;
+  std::size_t steps = std::max(translation_steps, rotation_steps) + 1;
   if (jump_threshold.factor > 0 && steps < MIN_STEPS_FOR_JUMP_THRESH)
     steps = MIN_STEPS_FOR_JUMP_THRESH;
 
@@ -1936,7 +1936,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
   traj.push_back(RobotStatePtr(new RobotState(*this)));
 
   double last_valid_percentage = 0.0;
-  for (unsigned int i = 1; i <= steps; ++i)
+  for (std::size_t i = 1; i <= steps; ++i)
   {
     double percentage = (double)i / (double)steps;
 
