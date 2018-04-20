@@ -1072,9 +1072,9 @@ as the new values that correspond to the group */
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                           const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
-  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+  /** \brief Set the joint values from a Cartesian velocity applied during a time dt
    * @param group the group of joints this function operates on
-   * @param twist a cartesian velocity on the 'tip' frame
+   * @param twist a Cartesian velocity on the 'tip' frame
    * @param tip the frame for which the twist is given
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
@@ -1082,9 +1082,9 @@ as the new values that correspond to the group */
   bool setFromDiffIK(const JointModelGroup* group, const Eigen::VectorXd& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
 
-  /** \brief Set the joint values from a cartesian velocity applied during a time dt
+  /** \brief Set the joint values from a Cartesian velocity applied during a time dt
    * @param group the group of joints this function operates on
-   * @param twist a cartesian velocity on the 'tip' frame
+   * @param twist a Cartesian velocity on the 'tip' frame
    * @param tip the frame for which the twist is given
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
@@ -1247,7 +1247,7 @@ as the new values that correspond to the group */
   static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double revolute_jump_threshold, double prismatic_jump_threshold);
 
-  /** \brief Tests for large cartesian space jumps of a trajectory at the end effector.
+  /** \brief Tests for large Cartesian space jumps of a trajectory at the end effector.
 
      Takes the midpoint between points in the trajectory and solves the FK. If the pose at the midpoint is further than
      the max_step from either the preceding point or the following point, then the returned path is truncated up to
