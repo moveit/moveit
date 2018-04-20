@@ -66,15 +66,15 @@ typedef boost::function<bool(RobotState* robot_state, const JointModelGroup* joi
 /** \brief Struct for containing jump_threshold.
 
     For the purposes of maintaining API, we support both \e jump_threshold_factor which provides a scaling factor for
-    detecting joint space jumps and \e prismatic_jump_threshold and \e revolute_jump_threshold which provide abolute
+    detecting joint space jumps and \e revolute_jump_threshold and \e prismatic_jump_threshold which provide abolute
     thresholds for detecting joint space jumps. */
 struct JumpThreshold
 {
   double factor;
-  double revolute;
-  double prismatic;
+  double revolute;    // Radians
+  double prismatic;   // Meters
 
-  explicit JumpThreshold() : factor(0.0), prismatic(0.0), revolute(0.0)
+  explicit JumpThreshold() : factor(0.0), revolute(0.0), prismatic(0.0)
   {
   }
 
@@ -85,8 +85,8 @@ struct JumpThreshold
 
   explicit JumpThreshold(double jt_revolute, double jt_prismatic) : JumpThreshold()
   {
-    prismatic = jt_prismatic;
-    revolute = jt_revolute;
+    revolute = jt_revolute;     // Radians
+    prismatic = jt_prismatic;   // Meters
   }
 };
 
@@ -95,8 +95,8 @@ struct JumpThreshold
     Setting translation to zero will disable checking for translations and the same goes for rotation */
 struct MaxEEFStep
 {
-  double translation;
-  double rotation;
+  double translation; // Meters
+  double rotation;    // Radians
 
   explicit MaxEEFStep() : translation(0.0), rotation(0.0)
   {
@@ -1115,19 +1115,18 @@ as the new values that correspond to the group */
      During the computation of the trajectory, it is usually preferred if consecutive joint values do not 'jump' by a
      large amount in joint space, even if the Cartesian distance between the corresponding points is small as expected.
      To account for this, the \e jump_threshold struct is provided, which comprises three fields:
-     \e jump_threshold_factor, \e prismatic_jump_threshold and \e revolute_jump_threshold.
-     If either \e prismatic_jump_threshold or \e revolute_jump_threshold are non-zero, we test for absolute jumps.
+     \e jump_threshold_factor, \e revolute_jump_threshold and \e prismatic_jump_threshold.
+     If either \e revolute_jump_threshold or \e prismatic_jump_threshold  are non-zero, we test for absolute jumps.
      If \e jump_threshold_factor is non-zero, we test for relative jumps. Otherwise (all params are zero), jump
-     detection is
-     disabled.
+     detection is disabled.
 
      For relative jump detection, the average joint-space distance between consecutive points in the trajectory is
      computed. If any individual joint-space motion delta is larger then this average distance by a factor of
      \e jump_threshold_factor, this step is considered a failure and the returned path is truncated up to just
      before the jump.
 
-     For absolute jump thresholds, if any individual joint-space motion delta is larger then \e prismatic_jump_threshold
-     for prismatic joints or \e revolute_jump_threshold for revolute joints then this step is considered a failure and
+     For absolute jump thresholds, if any individual joint-space motion delta is larger then \e revolute_jump_threshold
+     for revolute joints or \e prismatic_jump_threshold for prismatic joints then this step is considered a failure and
      the returned path is truncated up to just before the jump.*/
   double computeCartesianPath(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const LinkModel* link,
                               const Eigen::Vector3d& direction, bool global_reference_frame, double distance,
@@ -1204,7 +1203,7 @@ as the new values that correspond to the group */
   /** \brief Tests joint space jumps of a trajectory.
 
      If \e jump_threshold_factor is non-zero, we test for relative jumps.
-     If \e prismatic_jump_threshold or \e revolute_jump_threshold are non-zero, we test for absolute jumps.
+     If \e revolute_jump_threshold  or \e prismatic_jump_threshold are non-zero, we test for absolute jumps.
      Both tests can be combined. If all params are zero, jump detection is disabled.
      For relative jump detection, the average joint-space distance between consecutive points in the trajectory is
      computed. If any individual joint-space motion delta is larger then this average distance by a factor of
@@ -1235,9 +1234,9 @@ as the new values that correspond to the group */
 
   /** \brief Tests for absolute joint space jumps of the trajectory \e traj.
 
-     The joint-space difference between consecutive waypoints is computed for each active joint and compared to
-     the absolute thresholds \e prismatic_jump_threshold for prismatic joints or \e revolute_jump_threshold for
-     revolute joints. If these thresholds are exceeded, the trajectory is truncated.
+     The joint-space difference between consecutive waypoints is computed for each active joint and compared to the
+     absolute thresholds \e revolute_jump_threshold for revolute joints and \e prismatic_jump_threshold for prismatic
+     joints. If these thresholds are exceeded, the trajectory is truncated.
 
      @param group The joint model group of the robot state.
      @param traj The trajectory that should be tested.
