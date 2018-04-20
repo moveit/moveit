@@ -2005,7 +2005,7 @@ double RobotState::testForJumps(const JointModelGroup* group, const LinkModel* l
   if (jump_threshold.factor > 0.0)
     percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
-  if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0)
+  if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
     percentage_solved *= testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
 
   if (max_step.translation > 0.0 || max_step.rotation > 0.0)
@@ -2017,13 +2017,17 @@ double RobotState::testForJumps(const JointModelGroup* group, const LinkModel* l
 double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       const JumpThreshold& jump_threshold)
 {
-  if (jump_threshold.factor > 0.0 && traj.size() > 1)
-    return testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
+  double percentage_solved = 1.0;
+  if (traj.size() <= 1)
+    return percentage_solved;
 
-  if (jump_threshold.prismatic > 0.0 || jump_threshold.revolute > 0.0 && traj.size() > 1)
-    return testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
+  if (jump_threshold.factor > 0.0)
+     percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
-  return 1.0;
+  if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
+    percentage_solved *= testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
+
+  return percentage_solved;
 }
 
 double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
