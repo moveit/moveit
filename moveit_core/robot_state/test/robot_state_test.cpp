@@ -576,8 +576,8 @@ protected:
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
   moveit::core::RobotModelConstPtr robot_model_;
-  std::string link_name_ = "r_wrist_roll_link";
-  std::string group_name_ = "right_arm";
+  const std::string link_name_ = "r_wrist_roll_link";
+  const std::string group_name_ = "right_arm";
   const robot_model::JointModelGroup* joint_model_group_;
 };
 
