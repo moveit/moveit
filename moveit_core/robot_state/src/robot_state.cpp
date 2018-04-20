@@ -2109,9 +2109,9 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
 double RobotState::testCartesianSpaceJump(const JointModelGroup* group, const LinkModel* link,
                                           std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
 {
-  double percentage = 1.0;
+  double percent_valid = 1.0;
   if (traj.size() <= 1)
-    return percentage;
+    return percent_valid;
 
   Eigen::Affine3d start_pose = traj[0]->getGlobalLinkTransform(link);
   Eigen::Affine3d mid_pose;
@@ -2151,9 +2151,11 @@ double RobotState::testCartesianSpaceJump(const JointModelGroup* group, const Li
     start_pose = end_pose;
     start_quaternion = end_quaternion;
   }
-  percentage = (double)(traj_ix) / (double)(traj.size());
+
+  // This trims the trajectory before the jump if one is found. If no jump is found traj_ix is equal to the size of the trajectory leaving the trajectory unchanged
+  percent_valid = (double)(traj_ix) / (double)(traj.size());
   traj.resize(traj_ix);
-  return percentage;
+  return percent_valid;
 }
 
 void RobotState::computeAABB(std::vector<double>& aabb) const
