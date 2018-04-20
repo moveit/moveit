@@ -1996,21 +1996,21 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
 }
 
 double RobotState::trimJointAndCartesianSpaceJumps(const JointModelGroup* group, const LinkModel* link,
-                                                   std::vector<RobotStatePtr>& traj,
+                                                   std::vector<RobotStatePtr>& trajectory,
                                                    const JumpThreshold& jump_threshold, const MaxEEFStep& max_step)
 {
   double percentage_solved = 1.0;
-  if (traj.size() <= 1)
+  if (trajectory.size() <= 1)
     return percentage_solved;
 
   if (jump_threshold.factor > 0.0)
-    percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
+    percentage_solved *= testRelativeJointSpaceJump(group, trajectory, jump_threshold.factor);
 
   if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
-    percentage_solved *= testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
+    percentage_solved *= testAbsoluteJointSpaceJump(group, trajectory, jump_threshold.revolute, jump_threshold.prismatic);
 
   if (max_step.translation > 0.0 || max_step.rotation > 0.0)
-    percentage_solved *= testCartesianSpaceJump(group, link, traj, max_step);
+    percentage_solved *= testCartesianSpaceJump(group, link, trajectory, max_step);
 
   return percentage_solved;
 }
@@ -2098,9 +2098,9 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
 
     if (!still_valid)
     {
-      double percentage = (double)(traj_ix + 1) / (double)(traj.size());
+      double percent_valid = (double)(traj_ix + 1) / (double)(traj.size());
       traj.resize(traj_ix + 1);
-      return percentage;
+      return percent_valid;
     }
   }
   return 1.0;
