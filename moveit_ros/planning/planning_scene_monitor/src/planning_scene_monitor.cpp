@@ -860,9 +860,23 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
 
   if (current_state_monitor_)
   {
+    // Wait for next robot update in state monitor.
     bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
+
+    /* As robot updates are passed to the planning scene only in throttled fashion, there might
+       be still an update pending. If so, explicitly update the planning scene here.
+       If waitForCurrentState failed, we didn't get any new state updates within wait_time. */
     if (success)
+    {
+      boost::mutex::scoped_lock lock(state_pending_mutex_);
+      if (state_update_pending_)  // enforce state update
+      {
+        state_update_pending_ = false;
+        lock.unlock();
+        updateSceneWithCurrentState();
+      }
       return true;
+    }
 
     ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
     return false;
