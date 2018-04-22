@@ -8,25 +8,29 @@ namespace compliant_control_test {
 TEST(compliantControlTest, constructor) {
   std::vector<double> stiffness(6, 1.);
   std::vector<double> deadband(6, 10.);
-  std::vector<double> condF(6, 0.0);
+  std::vector<double> end_condition_wrench(6, 0.0);
   double filterCutoff = 10.;
   std::vector<double> haltF(6, 20.0);
   geometry_msgs::WrenchStamped ftData0;
-  double highestAllowableFT = 100.;
-  compliant_control::compliantControl control(
-      stiffness, deadband, condF, filterCutoff, ftData0, highestAllowableFT);
+  double highestAllowableForce = 100.;
+  double highestAllowableTorque = 100.;
+  compliant_control::CompliantControl control(
+      stiffness, deadband, end_condition_wrench, filterCutoff, ftData0,
+      highestAllowableForce, highestAllowableTorque);
 }
 
 TEST(compliantControlTest, setStiffness) {
   std::vector<double> stiffness(6, 1.);
   std::vector<double> deadband(6, 10.);
-  std::vector<double> condF(6, 0.0);
+  std::vector<double> end_condition_wrench(6, 0.0);
   double filterCutoff = 10.;
   std::vector<double> haltF(6, 20.0);
   geometry_msgs::WrenchStamped ftData0;
-  double highestAllowableFT = 100.;
-  compliant_control::compliantControl control(
-      stiffness, deadband, condF, filterCutoff, ftData0, highestAllowableFT);
+  double highestAllowableForce = 100.;
+  double highestAllowableTorque = 100.;
+  compliant_control::CompliantControl control(
+      stiffness, deadband, end_condition_wrench, filterCutoff, ftData0,
+      highestAllowableForce, highestAllowableTorque);
 
   std::vector<double> bin(6, DBL_MAX);
   bin[0] = 12.0;
@@ -47,13 +51,15 @@ TEST(compliantControlTest, setStiffness) {
 TEST(compliantControlTest, setEndCondition) {
   std::vector<double> stiffness(6, 1.);
   std::vector<double> deadband(6, 10.);
-  std::vector<double> condF(6, 0.0);
+  std::vector<double> end_condition_wrench(6, 0.0);
   double filterCutoff = 10.;
   std::vector<bool> endCondition(6, false);
   geometry_msgs::WrenchStamped ftData0;
-  double highestAllowableFT = 100.;
-  compliant_control::compliantControl control(
-      stiffness, deadband, condF, filterCutoff, ftData0, highestAllowableFT);
+  double highestAllowableForce = 100.;
+  double highestAllowableTorque = 100.;
+  compliant_control::CompliantControl control(
+      stiffness, deadband, end_condition_wrench, filterCutoff, ftData0,
+      highestAllowableForce, highestAllowableTorque);
 
   std::vector<double> fCond(6, 0.0);
   fCond[0] = 12.0;
@@ -63,12 +69,12 @@ TEST(compliantControlTest, setEndCondition) {
 
   control.setEndCondition(fCond);
 
-  EXPECT_NEAR(control.endConditionWrench_[0], 12.0, 1e-4);
-  EXPECT_NEAR(control.endConditionWrench_[1], 10.0, 1e-4);
-  EXPECT_NEAR(control.endConditionWrench_[2], 0.0, 1e-4);
-  EXPECT_NEAR(control.endConditionWrench_[3], 0.0, 1e-4);
-  EXPECT_NEAR(control.endConditionWrench_[4], -12.0, 1e-4);
-  EXPECT_NEAR(control.endConditionWrench_[5], 0.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[0], 12.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[1], 10.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[2], 0.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[3], 0.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[4], -12.0, 1e-4);
+  EXPECT_NEAR(control.end_condition_wrench_[5], 0.0, 1e-4);
 }
 
 TEST(compliantControlTest, getVelocity) {
@@ -76,16 +82,18 @@ TEST(compliantControlTest, getVelocity) {
 
   std::vector<double> deadband(6, 1.);
 
-  std::vector<double> condF(6, 12.0);
+  std::vector<double> end_condition_wrench(6, 12.0);
 
   double filterCutoff = 10.;
 
   // Input velocity set #1
 
   geometry_msgs::WrenchStamped ftData0;
-  double highestAllowableFT = 100.;
-  compliant_control::compliantControl control(
-      stiffness, deadband, condF, filterCutoff, ftData0, highestAllowableFT);
+  double highestAllowableForce = 100.;
+  double highestAllowableTorque = 100.;
+  compliant_control::CompliantControl control(
+      stiffness, deadband, end_condition_wrench, filterCutoff, ftData0,
+      highestAllowableForce, highestAllowableTorque);
 
   std::vector<double> vIn(6, 0.), vOut(6, 0.);
   vIn[0] = 1.0;
@@ -122,9 +130,9 @@ TEST(compliantControlTest, getVelocity) {
   sprintf(cmd, "speedl([%1.5f, %1.5f, %1.5f, %1.5f, %1.5f, %1.5f], 0.2, 0.1)\n",
           vOut[0], vOut[1], vOut[2], vOut[3], vOut[4], vOut[5]);
 
-  //  One of the controlled element has met the end condition so velocity in
+  //  One of the controlled velocities has met the force/torque end condition so
+  //  velocity in
   //  that direction should be zero.
-  //  Exceeds condF[1]
   ftData.wrench.force.y = 50.0;
 
   // No other applied wrench
@@ -148,17 +156,18 @@ TEST(compliantControlTest, getVelocity) {
 
   //  One of the controlled element has exceeded the safety limit
   // so velocity should be set to zero.
-  control.setSafetyLimit(20.);
-  ftData.wrench.force.x = 24.0;
+  ftData.wrench.force.x = 124.0;
   ftData.wrench.force.y = 0.;
   ftData.wrench.force.z = 0.;
   ftData.wrench.torque.x = 0.;
   ftData.wrench.torque.y = 0.;
   ftData.wrench.torque.z = 0.;
 
-  compliantEnum::exitCondition endcondition4 =
-      control.getVelocity(vIn, ftData, vOut);
-  EXPECT_TRUE(endcondition4 == compliantEnum::FT_VIOLATION);
+  // Spam this several times to allow the filter to settle
+  for (int i = 0; i < 20; i++)
+    endcondition = control.getVelocity(vIn, ftData, vOut);
+
+  EXPECT_TRUE(endcondition == compliantEnum::FT_VIOLATION);
   EXPECT_EQ(vOut[0], 0.0);
   EXPECT_EQ(vOut[1], 0.0);
   EXPECT_EQ(vOut[2], 0.0);

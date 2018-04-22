@@ -118,7 +118,7 @@ CompliantControl::getVelocity(std::vector<double> vIn,
   getFT(ftData);
 
   if (((fabs(ft_[0]) + fabs(ft_[1]) + fabs(ft_[2])) >= safeForceLimit_) ||
-      ((fabs(ft_[3]) + fabs(ft_[4]) + fabs(ft_[5])))) {
+      ((fabs(ft_[3]) + fabs(ft_[4]) + fabs(ft_[5])) >= safeTorqueLimit_)) {
     ROS_ERROR_NAMED(
         "compliant_control",
         "Total force or torque exceeds safety limits. Stopping motion.");
