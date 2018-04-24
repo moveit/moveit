@@ -47,24 +47,23 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
-namespace compliance_test {
-
-class ComplianceClass {
-
+namespace compliance_test
+{
+class ComplianceClass
+{
 public:
   ComplianceClass();
 
 private:
   // CB for halt warnings from the jog_arm nodes
-  void haltCB(const std_msgs::Bool::ConstPtr &msg);
+  void haltCB(const std_msgs::Bool::ConstPtr& msg);
 
   // CB for force/torque data
-  void ftCB(const geometry_msgs::WrenchStamped::ConstPtr &msg);
+  void ftCB(const geometry_msgs::WrenchStamped::ConstPtr& msg);
 
   // Transform a wrench to the EE frame
-  geometry_msgs::WrenchStamped
-  transformToEEF(const geometry_msgs::WrenchStamped wrench_in,
-                 const std::string desired_ee_frame);
+  geometry_msgs::WrenchStamped transformToEEF(const geometry_msgs::WrenchStamped wrench_in,
+                                              const std::string desired_ee_frame);
 
   ros::NodeHandle n_;
 
@@ -84,6 +83,6 @@ private:
   tf2_ros::TransformListener tf_listener_;
 };
 
-} // end namespace compliance_test
+}  // end namespace compliance_test
 
 #endif

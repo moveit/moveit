@@ -38,7 +38,8 @@
 
 #include "jog_arm/compliance_test/compliance_test.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "compliance_test");
 
   compliance_test::ComplianceClass test;
@@ -46,18 +47,15 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-compliance_test::ComplianceClass::ComplianceClass()
-    : spinner_(1), tf_listener_(tf_buffer_) {
-
+compliance_test::ComplianceClass::ComplianceClass() : spinner_(1), tf_listener_(tf_buffer_)
+{
   spinner_.start();
 
   // To publish commands to robots
-  vel_pub_ = n_.advertise<geometry_msgs::TwistStamped>(
-      "left_arm/jog_arm_server/delta_jog_cmds", 1);
+  vel_pub_ = n_.advertise<geometry_msgs::TwistStamped>("left_arm/jog_arm_server/delta_jog_cmds", 1);
 
   // Listen to the jog_arm warning topic. Exit if the jogger stops
-  jog_arm_warning_sub_ =
-      n_.subscribe("jog_arm_server/halted", 1, &ComplianceClass::haltCB, this);
+  jog_arm_warning_sub_ = n_.subscribe("jog_arm_server/halted", 1, &ComplianceClass::haltCB, this);
 
   // Listen to wrench data from a force/torque sensor
   ft_sub_ = n_.subscribe("left_ur5_wrench", 1, &ComplianceClass::ftCB, this);
@@ -86,9 +84,7 @@ compliance_test::ComplianceClass::ComplianceClass()
   std::vector<double> endConditionWrench(6, 60.0);
 
   // An object for compliant control
-  compliant_control::CompliantControl comp(stiffness, deadband,
-                                           endConditionWrench, filterCutoff,
-                                           ft_data_, 100., 50.);
+  compliant_control::CompliantControl comp(stiffness, deadband, endConditionWrench, filterCutoff, ft_data_, 100., 50.);
 
   // The 6 nominal velocity components.
   // For this demo, the robot should be stationary unless a force/torque is
@@ -103,14 +99,13 @@ compliance_test::ComplianceClass::ComplianceClass()
 
   // Get initial status
   ft_data_ = transformToEEF(ft_data_, jog_cmd.header.frame_id);
-  compliantEnum::exitCondition compliance_condition =
-      comp.getVelocity(vel_nom, ft_data_, vel_out);
+  compliantEnum::exitCondition compliance_condition = comp.getVelocity(vel_nom, ft_data_, vel_out);
 
   // Loop at X Hz. Specific frequency is not critical
   ros::Rate rate(100.);
 
-  while (ros::ok() && !jog_is_halted_ &&
-         (compliance_condition == compliantEnum::CONDITION_NOT_MET)) {
+  while (ros::ok() && !jog_is_halted_ && (compliance_condition == compliantEnum::CONDITION_NOT_MET))
+  {
     ft_data_ = transformToEEF(ft_data_, jog_cmd.header.frame_id);
     compliance_condition = comp.getVelocity(vel_nom, ft_data_, vel_out);
 
@@ -134,27 +129,26 @@ compliance_test::ComplianceClass::ComplianceClass()
 }
 
 // CB for halt warnings from the jog_arm nodes
-void compliance_test::ComplianceClass::haltCB(
-    const std_msgs::Bool::ConstPtr &msg) {
+void compliance_test::ComplianceClass::haltCB(const std_msgs::Bool::ConstPtr& msg)
+{
   jog_is_halted_ = msg->data;
 }
 
 // CB for force/torque data
-void compliance_test::ComplianceClass::ftCB(
-    const geometry_msgs::WrenchStamped::ConstPtr &msg) {
+void compliance_test::ComplianceClass::ftCB(const geometry_msgs::WrenchStamped::ConstPtr& msg)
+{
   ft_data_ = *msg;
   ft_data_.header.frame_id = "left_ur5_base";
 }
 
 // Transform a wrench to the EE frame
 geometry_msgs::WrenchStamped compliance_test::ComplianceClass::transformToEEF(
-    const geometry_msgs::WrenchStamped wrench_in,
-    const std::string desired_ee_frame) {
+    const geometry_msgs::WrenchStamped wrench_in, const std::string desired_ee_frame)
+{
   geometry_msgs::TransformStamped prev_frame_to_new;
 
   prev_frame_to_new =
-      tf_buffer_.lookupTransform(desired_ee_frame, wrench_in.header.frame_id,
-                                 ros::Time(0), ros::Duration(1.0));
+      tf_buffer_.lookupTransform(desired_ee_frame, wrench_in.header.frame_id, ros::Time(0), ros::Duration(1.0));
 
   // There is no method to transform a Wrench, so break it into vectors and
   // transform one at a time
