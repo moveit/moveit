@@ -1281,7 +1281,7 @@ as the new values that correspond to the group */
   */
   static double testCartesianSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
   {
-    double percent_valid;
+    double percent_valid = 1.0;
     std::vector<const LinkModel*> links = group->getLinkModels();
     for (auto& link : links)
     {

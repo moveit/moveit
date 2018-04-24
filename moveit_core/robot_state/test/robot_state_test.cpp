@@ -624,38 +624,47 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
   return traj.size();
 }
 
-// std::size_t generateNullSpaceTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
-//                                       const moveit::core::RobotModelConstPtr& robot_model,
-//                                       const robot_model::JointModelGroup* joint_model_group)
-// {
-//   traj.clear();
+std::size_t generateNullSpaceTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+                                      const moveit::core::RobotModelConstPtr& robot_model,
+                                      const robot_model::JointModelGroup* joint_model_group)
+{
+  traj.clear();
+  std::vector<double> joint_positions0, joint_positions1;
 
-//   // 3 waypoints with default joints
-//   std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
-//   robot_state->setToDefaultValues();
-//   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
-//     traj.push_back(robot_state);
+  // 3 waypoints with default joints except configure the wrist to be as straight out as possible
+  std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
+  robot_state->setToDefaultValues();
+  robot_state->copyJointGroupPositions(joint_model_group, joint_positions0);
+  // Configure the wrist to be as straight out as possible
+  joint_positions0[5] = -0.1;
+  robot_state->setJointGroupPositions(joint_model_group, joint_positions0);
 
-//   // 4th waypoint with a large jump in the null space
-//   robot_state.reset(new robot_state::RobotState(*robot_state));
-//   robot_state->setToDefaultValues();
-//   std::vector<double> joint_positions4;
-//   robot_state->copyJointGroupPositions(joint_model_group, joint_positions4);
-//   joint_positions4[0] -= 0.01;
-//   robot_state->setJointGroupPositions(joint_model_group, joint_positions4);
-//   traj.push_back(robot_state);
+  // Make 3 copies in trajectory
+  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
+    traj.push_back(robot_state);
 
-//   // 5th waypoint with no jump
-//   robot_state.reset(new robot_state::RobotState(*robot_state));
-//   robot_state->setToDefaultValues();
-//   std::vector<double> joint_positions5;
-//   robot_state->copyJointGroupPositions(joint_model_group, joint_positions5);
-//   joint_positions5[0] -= 1.01;
-//   robot_state->setJointGroupPositions(joint_model_group, joint_positions5);
-//   traj.push_back(robot_state);
+  // 4th waypoint with a large jump in the null space
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  robot_state->setToDefaultValues();
+  robot_state->copyJointGroupPositions(joint_model_group, joint_positions1);
 
-//   return traj.size();
-// }
+  // Configure the wrist to be as straight out as possible
+  joint_positions1[5] = -0.1;
+
+  // As close to null space movement as is possible on the PR2
+  joint_positions1[4] = -3;
+  joint_positions1[6] = 3;
+
+  robot_state->setJointGroupPositions(joint_model_group, joint_positions1);
+  traj.push_back(robot_state);
+
+  // 5th waypoint with no jump
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  robot_state->setJointGroupPositions(joint_model_group, joint_positions1);
+  traj.push_back(robot_state);
+
+  return traj.size();
+}
 
 TEST_F(LoadPR2, testAbsoluteJointSpaceJump)
 {
@@ -752,7 +761,8 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
   // The absolute jump of -1.0 occurs at the 5th waypoint so the test should trim the trajectory to lenght 4
   std::size_t expected_cart_jump_traj_len = 4;
   std::size_t expected_full_traj_len = 7;
-
+  std::size_t expected_trimmed_null_space_jump_traj_len = 3;
+  std::size_t expected_full_null_space_jump_traj_len = 5;
   // Containers for results
   std::size_t full_traj_len;
   double fraction;
@@ -790,13 +800,12 @@ TEST_F(LoadPR2, testCartSpaceJumpCutoff)
   EXPECT_NEAR(fraction, (double)expected_cart_jump_traj_len / (double)full_traj_len, 0.01);  // traj should be cut
 
   // Indirect call of the cartesian jump test, testing for null-space movement
-  // full_traj_len = generateTestTraj(traj, robot_model_, joint_model_group_);
-  // fraction = robot_state::RobotState::trimJointAndCartesianSpaceJumps(
-  //     joint_model_group_, link_name_, traj, robot_state::JumpThreshold(), robot_state::MaxEEFStep(0.05));
-  // EXPECT_EQ(full_traj_len, expected_full_traj_len);             // full traj should be 7 waypoints long
-  // EXPECT_NEAR(traj.size(), expected_cart_jump_traj_len, 0.01);  // traj should be cut
-  // EXPECT_NEAR(fraction, (double)expected_cart_jump_traj_len / (double)full_traj_len, 0.01);  // traj should be cut
-
+  full_traj_len = generateNullSpaceTestTraj(traj, robot_model_, joint_model_group_);
+  fraction = robot_state::RobotState::testCartesianSpaceJump(
+      joint_model_group_, traj, robot_state::MaxEEFStep(1.0, 1.0));
+  EXPECT_EQ(full_traj_len, expected_full_null_space_jump_traj_len);           // full traj should be 7 waypoints long
+  EXPECT_NEAR(traj.size(), expected_trimmed_null_space_jump_traj_len, 0.01);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_trimmed_null_space_jump_traj_len / (double)expected_full_null_space_jump_traj_len, 0.01);  // traj should be cut
 }
 
 int main(int argc, char** argv)

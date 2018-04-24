@@ -2110,7 +2110,7 @@ double RobotState::testCartesianSpaceJump(const JointModelGroup* group, const Li
                                           std::vector<RobotStatePtr>& traj, const MaxEEFStep& max_step)
 {
   double percent_valid = 1.0;
-  if (traj.size() <= 1)
+  if (traj.size() <= 1 || max_step.rotation == 0.0 && max_step.translation == 0.0)
     return percent_valid;
 
   Eigen::Affine3d start_pose = traj[0]->getGlobalLinkTransform(link);
