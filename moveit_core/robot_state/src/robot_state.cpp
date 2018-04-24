@@ -2039,7 +2039,7 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
   {
     for (auto& joint : joints)
     {
-      if ((!(joint->getType()) == JointModel::PRISMATIC) && (!(joint->getType()) == JointModel::REVOLUTE))
+      if ((joint->getType() != JointModel::PRISMATIC) && (joint->getType() != JointModel::REVOLUTE))
       {
         CONSOLE_BRIDGE_logWarn("Joint %s is of unsupported type %s. \n"
                                "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",

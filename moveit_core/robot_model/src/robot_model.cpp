@@ -594,8 +594,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
             }
             else
               CONSOLE_BRIDGE_logError("Group '%s' was specified as parent group for end-effector '%s' but it does not "
-                                      "include the "
-                                      "parent link '%s'",
+                                      "include the parent link '%s'",
                                       eef.parent_group_.c_str(), eef.name_.c_str(), eef.parent_link_.c_str());
           }
           else
