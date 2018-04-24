@@ -59,8 +59,8 @@ public:
 
 private:
   void executePathCallback(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal);
-  void executePathCallback_Execute(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
-                                   moveit_msgs::ExecuteTrajectoryResult& action_res);
+  void executePath(const moveit_msgs::ExecuteTrajectoryGoalConstPtr& goal,
+                   moveit_msgs::ExecuteTrajectoryResult& action_res);
   void preemptExecuteTrajectoryCallback();
   void setExecuteTrajectoryState(MoveGroupState state);
 

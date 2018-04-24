@@ -91,7 +91,7 @@ void print(PropagationDistanceField& pdf, int numX, int numY, int numZ)
       {
         if (pdf.getCell(x, y, z).distance_square_ == 0)
         {
-          // logInform("Obstacle cell %d %d %d", x, y, z);
+          // CONSOLE_BRIDGE_logInform("Obstacle cell %d %d %d", x, y, z);
         }
       }
     }
@@ -353,7 +353,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   EigenSTL::vector_Vector3d points;
   points.push_back(point1);
   points.push_back(point2);
-  logInform("Adding %u points", points.size());
+  CONSOLE_BRIDGE_logInform("Adding %u points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
 
@@ -469,7 +469,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   }
 
   df.reset();
-  logInform("Adding %u points", points.size());
+  CONSOLE_BRIDGE_logInform("Adding %u points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
   // printNeg(df, numX, numY, numZ);
@@ -767,7 +767,7 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
         if (!valid)
         {
-          logWarn("Something wrong");
+          CONSOLE_BRIDGE_logWarn("Something wrong");
           continue;
         }
         bad_vec.push_back(loc);

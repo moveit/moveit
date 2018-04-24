@@ -184,6 +184,8 @@ void robot_model_loader::RobotModelLoader::loadKinematicsSolvers(
     std::stringstream ss;
     std::copy(groups.begin(), groups.end(), std::ostream_iterator<std::string>(ss, " "));
     ROS_DEBUG_STREAM("Loaded information about the following groups: '" << ss.str() << "'");
+    if (groups.empty() && !model_->getJointModelGroups().empty())
+      ROS_WARN("No kinematics plugins defined. Fill and load kinematics.yaml!");
 
     std::map<std::string, robot_model::SolverAllocatorFn> imap;
     for (std::size_t i = 0; i < groups.size(); ++i)

@@ -73,13 +73,13 @@ void moveit::tools::BackgroundProcessing::processingThread()
       action_lock_.unlock();
       try
       {
-        logDebug("moveit.background: Begin executing '%s'", action_name.c_str());
+        CONSOLE_BRIDGE_logDebug("moveit.background: Begin executing '%s'", action_name.c_str());
         fn();
-        logDebug("moveit.background: Done executing '%s'", action_name.c_str());
+        CONSOLE_BRIDGE_logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
       catch (std::exception& ex)
       {
-        logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
+        CONSOLE_BRIDGE_logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
       }
       processing_ = false;
       if (queue_change_event_)

@@ -116,6 +116,11 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
     ROS_ERROR_STREAM("FAILED TO LOAD " << image_path);
   }
 
+  right_layout->addWidget(logo_image_label_);
+  right_layout->setAlignment(logo_image_label_, Qt::AlignLeft | Qt::AlignTop);
+  right_layout->addWidget(right_image_label_);
+  right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
+
   // Top Label Area ---------------------------------------------------
   HeaderWidget* header = new HeaderWidget(
       "MoveIt Setup Assistant", "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a "
@@ -126,9 +131,6 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
       this);
   layout->addWidget(header);
 
-  left_layout->addWidget(logo_image_label_);
-  left_layout->setAlignment(logo_image_label_, Qt::AlignLeft | Qt::AlignTop);
-
   // Select Mode Area -------------------------------------------------
   select_mode_ = new SelectModeWidget(this);
   connect(select_mode_->btn_new_, SIGNAL(clicked()), this, SLOT(showNewOptions()));
@@ -138,20 +140,25 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   // Path Box Area ----------------------------------------------------
 
   // Stack Path Dialog
-  stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path",
-                                   "Specify the package name or path of an existing MoveIt configuration package to be "
-                                   "edited for your robot. Example package name: <i>pr2_moveit_config</i>",
-                                   true, this);  // is directory
-  stack_path_->hide();                           // user needs to select option before this is shown
+  stack_path_ =
+      new LoadPathArgsWidget("Load MoveIt Configuration Package Path",
+                             "Specify the package name or path of an existing MoveIt configuration package to be "
+                             "edited for your robot. Example package name: <i>pr2_moveit_config</i>",
+                             "xacro arguments", this, true);  // directory
+  stack_path_->hide();                                        // user needs to select option before this is shown
+  stack_path_->setArgs("--inorder ");
+  connect(stack_path_, SIGNAL(pathChanged(QString)), this, SLOT(onPackagePathChanged(QString)));
   left_layout->addWidget(stack_path_);
 
   // URDF File Dialog
-  urdf_file_ =
-      new LoadPathWidget("Load a URDF or COLLADA Robot Model",
-                         "Specify the location of an existing Universal Robot Description Format or COLLADA file for "
-                         "your robot. The robot model will be loaded to the parameter server for you.",
-                         false, true, this);  // no directory, load only
-  urdf_file_->hide();                         // user needs to select option before this is shown
+  urdf_file_ = new LoadPathArgsWidget("Load a URDF or COLLADA Robot Model",
+                                      "Specify the location of an existing Universal Robot Description Format or "
+                                      "COLLADA file for "
+                                      "your robot. The robot model will be loaded to the parameter server for you.",
+                                      "xacro arguments", this, false, true);  // no directory, load only
+  urdf_file_->hide();  // user needs to select option before this is shown
+  urdf_file_->setArgs("--inorder ");
+  connect(urdf_file_, SIGNAL(pathChanged(QString)), this, SLOT(onUrdfPathChanged(QString)));
   left_layout->addWidget(urdf_file_);
 
   // Load settings box ---------------------------------------------
@@ -162,7 +169,6 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   progress_bar_->setMinimum(0);
   progress_bar_->hide();
   load_files_layout->addWidget(progress_bar_);
-  // load_files_layout->setContentsMargins( 20, 30, 20, 30 );
 
   btn_load_ = new QPushButton("&Load Files", this);
   btn_load_->setMinimumWidth(180);
@@ -181,9 +187,6 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   //  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   next_label_->hide();  // only show once the files have been loaded.
 
-  right_layout->addWidget(right_image_label_);
-  right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
-
   // Final Layout Setup ---------------------------------------------
   // Alignment
   layout->setAlignment(Qt::AlignTop);
@@ -192,8 +195,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   right_layout->setAlignment(Qt::AlignTop);
 
   // Stretch
-  left_layout->setSpacing(30);
-  // hlayout->setContentsMargins( 0, 20, 0, 0);
+  left_layout->setSpacing(10);
 
   // Attach Layouts
   hlayout->addLayout(left_layout);
@@ -306,7 +308,67 @@ void StartScreenWidget::loadFilesClick()
   {
     // Hide the logo image so that other screens can resize the rviz thing properly
     right_image_label_->hide();
+    logo_image_label_->hide();
   }
+}
+
+void StartScreenWidget::onPackagePathChanged(const QString& path)
+{
+  if (!loadPackageSettings(false))
+    return;
+  // set xacro args from loaded settings
+  stack_path_->setArgs(QString::fromStdString(config_data_->xacro_args_));
+}
+
+void StartScreenWidget::onUrdfPathChanged(const QString& path)
+{
+  urdf_file_->setArgsEnabled(rdf_loader::RDFLoader::isXacroFile(path.toStdString()));
+}
+
+bool StartScreenWidget::loadPackageSettings(bool show_warnings)
+{
+  // Get the package path
+  std::string package_path_input = stack_path_->getPath();
+  // Check that input is provided
+  if (package_path_input.empty())
+  {
+    if (show_warnings)
+      QMessageBox::warning(this, "Error Loading Files", "Please specify a configuration package path to load.");
+    return false;
+  }
+
+  // check that the folder exists
+  if (!config_data_->setPackagePath(package_path_input))
+  {
+    if (show_warnings)
+      QMessageBox::critical(this, "Error Loading Files", "The specified path is not a directory or is not accessable");
+    return false;
+  }
+
+  std::string setup_assistant_path;
+
+  // Check if the old package is a setup assistant package. If it is not, quit
+  if (!config_data_->getSetupAssistantYAMLPath(setup_assistant_path))
+  {
+    if (show_warnings)
+      QMessageBox::warning(
+          this, "Incorrect Directory/Package",
+          QString("The chosen package location exists but was not created using MoveIt Setup Assistant. "
+                  "If this is a mistake, provide the missing file: ")
+              .append(setup_assistant_path.c_str()));
+    return false;
+  }
+
+  // Get setup assistant data
+  if (!config_data_->inputSetupAssistantYAML(setup_assistant_path))
+  {
+    if (show_warnings)
+      QMessageBox::warning(this, "Setup Assistant File Error",
+                           QString("Unable to correctly parse the setup assistant configuration file: ")
+                               .append(setup_assistant_path.c_str()));
+    return false;
+  }
+  return true;
 }
 
 // ******************************************************************************************
@@ -318,31 +380,8 @@ bool StartScreenWidget::loadExistingFiles()
   progress_bar_->setValue(10);
   QApplication::processEvents();
 
-  // Get the package path
-  if (!createFullPackagePath())
-    return false;  // error occured
-
-  std::string setup_assistant_path;
-
-  // Check if the old package is a setup assistant package. If it is not, quit
-  if (!config_data_->getSetupAssistantYAMLPath(setup_assistant_path))
-  {
-    QMessageBox::warning(
-        this, "Incorrect Directory/Package",
-        QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. "
-                "If this is a mistake, replace the missing file: ")
-            .append(setup_assistant_path.c_str()));
+  if (!loadPackageSettings(true))
     return false;
-  }
-
-  // Get setup assistant data
-  if (!config_data_->inputSetupAssistantYAML(setup_assistant_path))
-  {
-    QMessageBox::warning(this, "Setup Assistant File Error",
-                         QString("Unable to correctly parse the setup assistant configuration file: ")
-                             .append(setup_assistant_path.c_str()));
-    return false;
-  }
 
   // Progress Indicator
   progress_bar_->setValue(30);
@@ -352,8 +391,11 @@ bool StartScreenWidget::loadExistingFiles()
   if (!createFullURDFPath())
     return false;  // error occured
 
+  // use xacro args from GUI
+  config_data_->xacro_args_ = stack_path_->getArgs().toStdString();
+
   // Load the URDF
-  if (!loadURDFFile(config_data_->urdf_path_))
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->xacro_args_))
     return false;  // error occured
 
   // Get the SRDF path using the loaded .setup_assistant data and check it
@@ -444,8 +486,11 @@ bool StartScreenWidget::loadNewFiles()
   progress_bar_->setValue(20);
   QApplication::processEvents();
 
+  // use xacro args from GUI
+  config_data_->xacro_args_ = urdf_file_->getArgs().toStdString();
+
   // Load the URDF to the parameter server and check that it is correct format
-  if (!loadURDFFile(config_data_->urdf_path_))
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->xacro_args_))
     return false;  // error occurred
 
   // Progress Indicator
@@ -492,15 +537,21 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 // Load URDF File to Parameter Server
 // ******************************************************************************************
-bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path)
+bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args)
 {
-  const std::vector<std::string> xacro_args;  // TODO: somehow allow arguments to be passed in when parsing xacro URDFs
+  const std::vector<std::string> xacro_args_ = { xacro_args };
 
   std::string urdf_string;
-  if (!rdf_loader::RDFLoader::loadXmlFileToString(urdf_string, urdf_file_path, xacro_args))
+  if (!rdf_loader::RDFLoader::loadXmlFileToString(urdf_string, urdf_file_path, xacro_args_))
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
+    return false;
+  }
+
+  if (urdf_string.empty() && rdf_loader::RDFLoader::isXacroFile(urdf_file_path))
+  {
+    QMessageBox::warning(this, "Error Loading Files", "Running xacro failed.\nPlease check console for errors.");
     return false;
   }
 
@@ -695,13 +746,12 @@ bool StartScreenWidget::createFullURDFPath()
     }
     else
     {
-      QMessageBox::warning(
-          this, "Error Loading Files",
-          QString("Unable to locate the URDF file in package. File: ").append(config_data_->urdf_path_.c_str()));
+      QMessageBox::warning(this, "Error Loading Files",
+                           QString("Unable to locate the URDF file in package. Expected File: \n")
+                               .append(config_data_->urdf_path_.c_str()));
     }
     return false;
   }
-  fs::path urdf_path;
 
   // Check if a package name was provided
   if (config_data_->urdf_pkg_name_.empty())
@@ -725,29 +775,6 @@ bool StartScreenWidget::createFullSRDFPath(const std::string& package_path)
   }
 
   return true;  // success
-}
-
-// ******************************************************************************************
-// Get the full package path for editing an existing package
-// ******************************************************************************************
-bool StartScreenWidget::createFullPackagePath()
-{
-  // Get package path
-  std::string package_path_input = stack_path_->getPath();
-  // check that input is provided
-  if (package_path_input.empty())
-  {
-    QMessageBox::warning(this, "Error Loading Files", "Please specify a configuration package path to load.");
-    return false;
-  }
-
-  // check that the folder exists
-  if (!config_data_->setPackagePath(package_path_input))
-  {
-    QMessageBox::critical(this, "Error Loading Files", "The specified path is not a directory or is not accessable");
-    return false;
-  }
-  return true;
 }
 
 // ******************************************************************************************

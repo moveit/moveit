@@ -101,26 +101,26 @@ int PropagationDistanceField::eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i 
 
 void PropagationDistanceField::print(const VoxelSet& set)
 {
-  logDebug("[");
+  CONSOLE_BRIDGE_logDebug("[");
   VoxelSet::const_iterator it;
   for (it = set.begin(); it != set.end(); ++it)
   {
     Eigen::Vector3i loc1 = *it;
-    logDebug("%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
+    CONSOLE_BRIDGE_logDebug("%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
   }
-  logDebug("] size=%u\n", (unsigned int)set.size());
+  CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)set.size());
 }
 
 void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 {
-  logDebug("[");
+  CONSOLE_BRIDGE_logDebug("[");
   EigenSTL::vector_Vector3d::const_iterator it;
   for (it = points.begin(); it != points.end(); ++it)
   {
     Eigen::Vector3d loc1 = *it;
-    logDebug("%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
+    CONSOLE_BRIDGE_logDebug("%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
   }
-  logDebug("] size=%u\n", (unsigned int)points.size());
+  CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)points.size());
 }
 
 void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
@@ -164,19 +164,19 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
     {
       new_not_in_current.push_back(point);
     }
-    // logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
+    // CONSOLE_BRIDGE_logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
   }
 
   removeObstacleVoxels(old_not_new);
   addNewObstacleVoxels(new_not_in_current);
 
-  // logDebug( "new=" );
+  // CONSOLE_BRIDGE_logDebug( "new=" );
   // print(points_added);
-  // logDebug( "removed=" );
+  // CONSOLE_BRIDGE_logDebug( "removed=" );
   // print(points_removed);
-  // logDebug( "obstacle_voxel_locations_=" );
+  // CONSOLE_BRIDGE_logDebug( "obstacle_voxel_locations_=" );
   // print(object_voxel_locations_);
-  // logDebug("");
+  // CONSOLE_BRIDGE_logDebug("");
 }
 
 void PropagationDistanceField::addPointsToField(const EigenSTL::vector_Vector3d& points)
@@ -413,7 +413,7 @@ void PropagationDistanceField::propagatePositive()
       // This will never happen.  update_direction_ is always set before voxel is added to bucket queue.
       if (vptr->update_direction_ < 0 || vptr->update_direction_ > 26)
       {
-        logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
+        CONSOLE_BRIDGE_logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
         continue;
       }
 
@@ -470,7 +470,7 @@ void PropagationDistanceField::propagateNegative()
       // negative_bucket_queue_.
       if (vptr->negative_update_direction_ < 0 || vptr->negative_update_direction_ > 26)
       {
-        logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
+        CONSOLE_BRIDGE_logError("PROGRAMMING ERROR: Invalid update direction detected: %d", vptr->update_direction_);
         continue;
       }
 

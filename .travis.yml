@@ -4,6 +4,7 @@ dist: trusty
 services:
   - docker
 language: generic
+cache: ccache
 compiler:
   - gcc
 notifications:

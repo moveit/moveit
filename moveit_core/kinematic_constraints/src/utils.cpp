@@ -59,8 +59,8 @@ moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_ms
         double low = std::max(a.position - a.tolerance_below, b.position - b.tolerance_below);
         double high = std::min(a.position + a.tolerance_above, b.position + b.tolerance_above);
         if (low > high)
-          logError("Attempted to merge incompatible constraints for joint '%s'. Discarding constraint.",
-                   a.joint_name.c_str());
+          CONSOLE_BRIDGE_logError("Attempted to merge incompatible constraints for joint '%s'. Discarding constraint.",
+                                  a.joint_name.c_str());
         else
         {
           m.joint_name = a.joint_name;

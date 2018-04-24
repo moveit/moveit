@@ -125,11 +125,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             {
               count++;
               node_centers.push_back(pt);
-              // logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(), pt.y(), pt.z());
+              // CONSOLE_BRIDGE_logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]",
+              //                          count, prob, pt.x(), pt.y(), pt.z());
             }
           }
-          // logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
-          //          contact_point.x(), contact_point.y(), contact_point.z(), cell_size, count);
+          // CONSOLE_BRIDGE_logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
+          //                          contact_point.x(), contact_point.y(), contact_point.z(), cell_size, count);
 
           // octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
           // CONSOLE_BRIDGE_logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
@@ -144,10 +145,9 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             if (divergence > allowed_angle_divergence)
             {
               modified++;
-              //              logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
-              //                        divergence,
-              //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
-              //                        n.x(), n.y(), n.z());
+              // CONSOLE_BRIDGE_logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
+              //                          divergence, contact_normal.x(), contact_normal.y(), contact_normal.z(),
+              //                          n.x(), n.y(), n.z());
               contact_info.normal = Eigen::Vector3d(n.x(), n.y(), n.z());
             }
 

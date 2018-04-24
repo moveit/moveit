@@ -14,7 +14,7 @@ class PythonMoveGroupTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description")
+        self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description", rospy.get_namespace())
 
     @classmethod
     def tearDown(self):

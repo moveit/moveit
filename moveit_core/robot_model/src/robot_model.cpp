@@ -46,10 +46,11 @@
 #include <memory>
 #include "order_robot_model_items.inc"
 
-/* ------------------------ RobotModel ------------------------ */
-
-moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
-                                     const srdf::ModelConstSharedPtr& srdf_model)
+namespace moveit
+{
+namespace core
+{
+RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
 {
   root_joint_ = nullptr;
   urdf_ = urdf_model;
@@ -57,7 +58,7 @@ moveit::core::RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_m
   buildModel(*urdf_model, *srdf_model);
 }
 
-moveit::core::RobotModel::~RobotModel()
+RobotModel::~RobotModel()
 {
   for (auto& group : joint_model_group_map_)
     delete group.second;
@@ -67,17 +68,17 @@ moveit::core::RobotModel::~RobotModel()
     delete link_model;
 }
 
-const moveit::core::JointModel* moveit::core::RobotModel::getRootJoint() const
+const JointModel* RobotModel::getRootJoint() const
 {
   return root_joint_;
 }
 
-const moveit::core::LinkModel* moveit::core::RobotModel::getRootLink() const
+const LinkModel* RobotModel::getRootLink() const
 {
   return root_link_;
 }
 
-void moveit::core::RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::Model& srdf_model)
+void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::Model& srdf_model)
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
@@ -87,45 +88,41 @@ void moveit::core::RobotModel::buildModel(const urdf::ModelInterface& urdf_model
   link_geometry_count_ = 0;
   variable_count_ = 0;
   model_name_ = urdf_model.getName();
-  logInform("Loading robot model '%s'...", model_name_.c_str());
+  CONSOLE_BRIDGE_logInform("Loading robot model '%s'...", model_name_.c_str());
 
   if (urdf_model.getRoot())
   {
     const urdf::Link* root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
 
-    logDebug("... building kinematic chain");
+    CONSOLE_BRIDGE_logDebug("... building kinematic chain");
     root_joint_ = buildRecursive(nullptr, root_link_ptr, srdf_model);
     if (root_joint_)
       root_link_ = root_joint_->getChildLinkModel();
-    logDebug("... building mimic joints");
+    CONSOLE_BRIDGE_logDebug("... building mimic joints");
     buildMimic(urdf_model);
 
-    logDebug("... computing joint indexing");
+    CONSOLE_BRIDGE_logDebug("... computing joint indexing");
     buildJointInfo();
 
     if (link_models_with_collision_geometry_vector_.empty())
-      logWarn("No geometry is associated to any robot links");
+      CONSOLE_BRIDGE_logWarn("No geometry is associated to any robot links");
 
     // build groups
 
-    logDebug("... constructing joint groups");
+    CONSOLE_BRIDGE_logDebug("... constructing joint groups");
     buildGroups(srdf_model);
 
-    logDebug("... constructing joint group states");
+    CONSOLE_BRIDGE_logDebug("... constructing joint group states");
     buildGroupStates(srdf_model);
 
     // For debugging entire model
     // printModelInfo(std::cout);
   }
   else
-    logWarn("No root link found");
+    CONSOLE_BRIDGE_logWarn("No root link found");
 }
 
-namespace moveit
-{
-namespace core
-{
 namespace
 {
 typedef std::map<const JointModel*, std::pair<std::set<const LinkModel*, OrderLinksByIndex>,
@@ -193,10 +190,8 @@ void computeCommonRootsHelper(const JointModel* joint, std::vector<int>& common_
   }
 }
 }
-}
-}
 
-void moveit::core::RobotModel::computeCommonRoots()
+void RobotModel::computeCommonRoots()
 {
   // compute common roots for all pairs of joints;
   // there are 3 cases of pairs (X, Y):
@@ -226,7 +221,7 @@ void moveit::core::RobotModel::computeCommonRoots()
   }
 }
 
-void moveit::core::RobotModel::computeDescendants()
+void RobotModel::computeDescendants()
 {
   // compute the list of descendants for all joints
   std::vector<const JointModel*> parents;
@@ -244,7 +239,7 @@ void moveit::core::RobotModel::computeDescendants()
   }
 }
 
-void moveit::core::RobotModel::buildJointInfo()
+void RobotModel::buildJointInfo()
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildJointInfo");
@@ -314,7 +309,7 @@ void moveit::core::RobotModel::buildJointInfo()
   computeCommonRoots();  // must be called _after_ list of descendants was computed
 }
 
-void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
+void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
 {
   // copy the default states to the groups
   const std::vector<srdf::Model::GroupState>& ds = srdf_model.getGroupStates();
@@ -334,25 +329,26 @@ void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
-            logError("The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
-                     "in default state '%s' for group '%s'",
-                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), d.name_.c_str(),
-                     jmg->getName().c_str());
+            CONSOLE_BRIDGE_logError(
+                "The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
+                "in default state '%s' for group '%s'",
+                jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), d.name_.c_str(), jmg->getName().c_str());
         }
         else
-          logError("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'",
-                   d.name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
+          CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', but that joint is not part of "
+                                  "group '%s'",
+                                  d.name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
       }
       if (!state.empty())
         jmg->addDefaultState(d.name_, state);
     }
     else
-      logError("Group state '%s' specified for group '%s', but that group does not exist", d.name_.c_str(),
-               d.group_.c_str());
+      CONSOLE_BRIDGE_logError("Group state '%s' specified for group '%s', but that group does not exist",
+                              d.name_.c_str(), d.group_.c_str());
   }
 }
 
-void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
+void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
 {
   // compute mimic joints
   for (auto& joint_model : joint_model_vector_)
@@ -367,12 +363,12 @@ void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model
           if (joint_model->getVariableCount() == jit->second->getVariableCount())
             joint_model->setMimic(jit->second, jm->mimic->multiplier, jm->mimic->offset);
           else
-            logError("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
-                     joint_model->getName().c_str(), jm->mimic->joint_name.c_str());
+            CONSOLE_BRIDGE_logError("Join '%s' cannot mimic joint '%s' because they have different number of DOF",
+                                    joint_model->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          logError("Joint '%s' cannot mimic unknown joint '%s'", joint_model->getName().c_str(),
-                   jm->mimic->joint_name.c_str());
+          CONSOLE_BRIDGE_logError("Joint '%s' cannot mimic unknown joint '%s'", joint_model->getName().c_str(),
+                                  jm->mimic->joint_name.c_str());
       }
   }
 
@@ -394,7 +390,7 @@ void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model
         }
         if (joint_model == joint_model->getMimic())
         {
-          logError("Cycle found in joint that mimic each other. Ignoring all mimic joints.");
+          CONSOLE_BRIDGE_logError("Cycle found in joint that mimic each other. Ignoring all mimic joints.");
           for (auto& joint_model_2 : joint_model_vector_)
             joint_model_2->setMimic(nullptr, 0.0, 0.0);
           change = false;
@@ -411,12 +407,12 @@ void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model
     }
 }
 
-bool moveit::core::RobotModel::hasEndEffector(const std::string& eef) const
+bool RobotModel::hasEndEffector(const std::string& eef) const
 {
   return end_effectors_map_.find(eef) != end_effectors_map_.end();
 }
 
-const moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const std::string& name) const
+const JointModelGroup* RobotModel::getEndEffector(const std::string& name) const
 {
   auto it = end_effectors_map_.find(name);
   if (it == end_effectors_map_.end())
@@ -424,13 +420,13 @@ const moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(co
     it = joint_model_group_map_.find(name);
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
-    logError("End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    CONSOLE_BRIDGE_logError("End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
     return nullptr;
   }
   return it->second;
 }
 
-moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const std::string& name)
+JointModelGroup* RobotModel::getEndEffector(const std::string& name)
 {
   JointModelGroupMap::const_iterator it = end_effectors_map_.find(name);
   if (it == end_effectors_map_.end())
@@ -438,40 +434,40 @@ moveit::core::JointModelGroup* moveit::core::RobotModel::getEndEffector(const st
     it = joint_model_group_map_.find(name);
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
-    logError("End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    CONSOLE_BRIDGE_logError("End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
     return nullptr;
   }
   return it->second;
 }
 
-bool moveit::core::RobotModel::hasJointModelGroup(const std::string& name) const
+bool RobotModel::hasJointModelGroup(const std::string& name) const
 {
   return joint_model_group_map_.find(name) != joint_model_group_map_.end();
 }
 
-const moveit::core::JointModelGroup* moveit::core::RobotModel::getJointModelGroup(const std::string& name) const
+const JointModelGroup* RobotModel::getJointModelGroup(const std::string& name) const
 {
   auto it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    CONSOLE_BRIDGE_logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
     return nullptr;
   }
   return it->second;
 }
 
-moveit::core::JointModelGroup* moveit::core::RobotModel::getJointModelGroup(const std::string& name)
+JointModelGroup* RobotModel::getJointModelGroup(const std::string& name)
 {
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
-    logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+    CONSOLE_BRIDGE_logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
     return nullptr;
   }
   return it->second;
 }
 
-void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
+void RobotModel::buildGroups(const srdf::Model& srdf_model)
 {
   const std::vector<srdf::Model::Group>& group_configs = srdf_model.getGroups();
 
@@ -500,14 +496,15 @@ void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
           added = true;
           processed[i] = true;
           if (!addJointModelGroup(group_configs[i]))
-            logWarn("Failed to add group '%s'", group_configs[i].name_.c_str());
+            CONSOLE_BRIDGE_logWarn("Failed to add group '%s'", group_configs[i].name_.c_str());
         }
       }
   }
 
   for (std::size_t i = 0; i < processed.size(); ++i)
     if (!processed[i])
-      logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
+      CONSOLE_BRIDGE_logWarn("Could not process group '%s' due to unmet subgroup dependencies",
+                             group_configs[i].name_.c_str());
 
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
     joint_model_groups_.push_back(it->second);
@@ -522,7 +519,7 @@ void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
-void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
+void RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -551,7 +548,7 @@ void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf
   }
 }
 
-void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
+void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
 {
   // set the end-effector flags
   const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEffectors();
@@ -592,17 +589,18 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& s
               if (jt->second != it->second)
                 eef_parent_group = jt->second;
               else
-                logError("Group '%s' for end-effector '%s' cannot be its own parent", eef.parent_group_.c_str(),
-                         eef.name_.c_str());
+                CONSOLE_BRIDGE_logError("Group '%s' for end-effector '%s' cannot be its own parent",
+                                        eef.parent_group_.c_str(), eef.name_.c_str());
             }
             else
-              logError("Group '%s' was specified as parent group for end-effector '%s' but it does not include the "
-                       "parent link '%s'",
-                       eef.parent_group_.c_str(), eef.name_.c_str(), eef.parent_link_.c_str());
+              CONSOLE_BRIDGE_logError("Group '%s' was specified as parent group for end-effector '%s' but it does not "
+                                      "include the "
+                                      "parent link '%s'",
+                                      eef.parent_group_.c_str(), eef.name_.c_str(), eef.parent_link_.c_str());
           }
           else
-            logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
-                     eef.parent_group_.c_str(), eef.name_.c_str());
+            CONSOLE_BRIDGE_logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
+                                    eef.parent_group_.c_str(), eef.name_.c_str());
         }
 
         // if no parent group was specified, use a default one
@@ -625,7 +623,7 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& s
         }
         else
         {
-          logWarn("Could not identify parent group for end-effector '%s'", eef.name_.c_str());
+          CONSOLE_BRIDGE_logWarn("Could not identify parent group for end-effector '%s'", eef.name_.c_str());
           it->second->setEndEffectorParent("", eef.parent_link_);
         }
         break;
@@ -634,11 +632,11 @@ void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& s
   std::sort(end_effectors_.begin(), end_effectors_.end(), OrderGroupsByName());
 }
 
-bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
+bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
-    logWarn("A group named '%s' already exists. Not adding.", gc.name_.c_str());
+    CONSOLE_BRIDGE_logWarn("A group named '%s' already exists. Not adding.", gc.name_.c_str());
     return false;
   }
 
@@ -735,7 +733,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 
   if (jset.empty())
   {
-    logWarn("Group '%s' must have at least one valid joint", gc.name_.c_str());
+    CONSOLE_BRIDGE_logWarn("Group '%s' must have at least one valid joint", gc.name_.c_str());
     return false;
   }
 
@@ -749,8 +747,7 @@ bool moveit::core::RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   return true;
 }
 
-moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf_link,
-                                                                   const srdf::Model& srdf_model)
+JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf_link, const srdf::Model& srdf_model)
 {
   // construct the joint
   JointModel* joint = urdf_link->parent_joint ?
@@ -800,9 +797,9 @@ moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel* pa
 namespace
 {
 // construct bounds for 1DOF joint
-static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
+static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
 {
-  moveit::core::VariableBounds b;
+  VariableBounds b;
   if (urdf_joint->safety)
   {
     b.position_bounded_ = true;
@@ -835,9 +832,8 @@ static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint
 }
 }
 
-moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const urdf::Joint* urdf_joint,
-                                                                        const urdf::Link* child_link,
-                                                                        const srdf::Model& srdf_model)
+JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
+                                            const srdf::Model& srdf_model)
 {
   JointModel* result = nullptr;
 
@@ -882,7 +878,7 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
         result = new FixedJointModel(urdf_joint->name);
         break;
       default:
-        logError("Unknown joint type: %d", (int)urdf_joint->type);
+        CONSOLE_BRIDGE_logError("Unknown joint type: %d", (int)urdf_joint->type);
         break;
     }
   }
@@ -893,12 +889,13 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     {
       if (vjoint.child_link_ != child_link->name)
       {
-        logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame '%s'",
-                vjoint.name_.c_str(), vjoint.child_link_.c_str(), child_link->name.c_str());
+        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame "
+                               "'%s'",
+                               vjoint.name_.c_str(), vjoint.child_link_.c_str(), child_link->name.c_str());
       }
       else if (vjoint.parent_frame_.empty())
       {
-        logWarn("Skipping virtual joint '%s' because its parent frame is empty", vjoint.name_.c_str());
+        CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its parent frame is empty", vjoint.name_.c_str());
       }
       else
       {
@@ -923,7 +920,7 @@ moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const ur
     }
     if (!result)
     {
-      logInform("No root/virtual joint specified in SRDF. Assuming fixed joint");
+      CONSOLE_BRIDGE_logInform("No root/virtual joint specified in SRDF. Assuming fixed joint");
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
@@ -955,7 +952,7 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
 }
 }
 
-moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf::Link* urdf_link)
+LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {
   auto result = new LinkModel(urdf_link->name);
 
@@ -1026,7 +1023,7 @@ moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf
   return result;
 }
 
-shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry* geom)
+shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
 {
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
@@ -1058,82 +1055,94 @@ shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry* 
     }
     break;
     default:
-      logError("Unknown geometry type: %d", (int)geom->type);
+      CONSOLE_BRIDGE_logError("Unknown geometry type: %d", (int)geom->type);
       break;
   }
 
   return shapes::ShapePtr(result);
 }
 
-bool moveit::core::RobotModel::hasJointModel(const std::string& name) const
+bool RobotModel::hasJointModel(const std::string& name) const
 {
   return joint_model_map_.find(name) != joint_model_map_.end();
 }
 
-bool moveit::core::RobotModel::hasLinkModel(const std::string& name) const
+bool RobotModel::hasLinkModel(const std::string& name) const
 {
   return link_model_map_.find(name) != link_model_map_.end();
 }
 
-const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name) const
+const JointModel* RobotModel::getJointModel(const std::string& name) const
 {
   auto it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
     return it->second;
-  logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  CONSOLE_BRIDGE_logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return nullptr;
 }
 
-const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(int index) const
+const JointModel* RobotModel::getJointModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(joint_model_vector_.size()))
   {
-    logError("Joint index '%i' out of bounds of joints in model '%s'", index, model_name_.c_str());
+    CONSOLE_BRIDGE_logError("Joint index '%i' out of bounds of joints in model '%s'", index, model_name_.c_str());
     return nullptr;
   }
   assert(joint_model_vector_[index]->getJointIndex() == index);
   return joint_model_vector_[index];
 }
 
-moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name)
+JointModel* RobotModel::getJointModel(const std::string& name)
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
     return it->second;
-  logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  CONSOLE_BRIDGE_logError("Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return nullptr;
 }
 
-const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
+const LinkModel* RobotModel::getLinkModel(const std::string& name) const
 {
-  auto it = link_model_map_.find(name);
-  if (it != link_model_map_.end())
-    return it->second;
-  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return nullptr;
+  return const_cast<RobotModel*>(this)->getLinkModel(name);
 }
 
-const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(int index) const
+const LinkModel* RobotModel::getLinkModel(int index) const
 {
   if (index < 0 || index >= static_cast<int>(link_model_vector_.size()))
   {
-    logError("Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
+    CONSOLE_BRIDGE_logError("Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
     return nullptr;
   }
   assert(link_model_vector_[index]->getLinkIndex() == index);
   return link_model_vector_[index];
 }
 
-moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name)
+LinkModel* RobotModel::getLinkModel(const std::string& name)
 {
   LinkModelMap::const_iterator it = link_model_map_.find(name);
   if (it != link_model_map_.end())
     return it->second;
-  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  CONSOLE_BRIDGE_logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
   return nullptr;
 }
 
-void moveit::core::RobotModel::updateMimicJoints(double* values) const
+const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
+{
+  if (!link)
+    return link;
+  const robot_model::LinkModel* parent_link = link->getParentLinkModel();
+  const robot_model::JointModel* joint = link->getParentJointModel();
+
+  while (parent_link && joint->getType() == robot_model::JointModel::FIXED)
+  {
+    link = parent_link;
+    joint = link->getParentJointModel();
+    parent_link = joint->getParentLinkModel();
+  }
+  return link;
+}
+
+void RobotModel::updateMimicJoints(double* values) const
 {
   for (auto mimic_joint : mimic_joints_)
   {
@@ -1143,16 +1152,15 @@ void moveit::core::RobotModel::updateMimicJoints(double* values) const
   }
 }
 
-void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
-                                                          double* values) const
+void RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values) const
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableRandomPositions(rng, values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
-                                                          std::map<std::string, double>& values) const
+void RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                            std::map<std::string, double>& values) const
 {
   std::vector<double> tmp(variable_count_);
   getVariableRandomPositions(rng, &tmp[0]);
@@ -1161,14 +1169,14 @@ void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::Random
     values[variable_names_[i]] = tmp[i];
 }
 
-void moveit::core::RobotModel::getVariableDefaultPositions(double* values) const
+void RobotModel::getVariableDefaultPositions(double* values) const
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableDefaultPositions(values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
-void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string, double>& values) const
+void RobotModel::getVariableDefaultPositions(std::map<std::string, double>& values) const
 {
   std::vector<double> tmp(variable_count_);
   getVariableDefaultPositions(&tmp[0]);
@@ -1177,8 +1185,8 @@ void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string,
     values[variable_names_[i]] = tmp[i];
 }
 
-void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::string>& variables,
-                                                       std::vector<std::string>& missing_variables) const
+void RobotModel::getMissingVariableNames(const std::vector<std::string>& variables,
+                                         std::vector<std::string>& missing_variables) const
 {
   missing_variables.clear();
   std::set<std::string> keys(variables.begin(), variables.end());
@@ -1188,7 +1196,7 @@ void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::st
         missing_variables.push_back(variable_name);
 }
 
-int moveit::core::RobotModel::getVariableIndex(const std::string& variable) const
+int RobotModel::getVariableIndex(const std::string& variable) const
 {
   auto it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
@@ -1196,7 +1204,7 @@ int moveit::core::RobotModel::getVariableIndex(const std::string& variable) cons
   return it->second;
 }
 
-double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds) const
+double RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds) const
 {
   double max_distance = 0.0;
   for (std::size_t j = 0; j < active_joint_model_vector_.size(); ++j)
@@ -1205,9 +1213,8 @@ double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector& activ
   return max_distance;
 }
 
-bool moveit::core::RobotModel::satisfiesPositionBounds(const double* state,
-                                                       const JointBoundsVector& active_joint_bounds,
-                                                       double margin) const
+bool RobotModel::satisfiesPositionBounds(const double* state, const JointBoundsVector& active_joint_bounds,
+                                         double margin) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1217,7 +1224,7 @@ bool moveit::core::RobotModel::satisfiesPositionBounds(const double* state,
   return true;
 }
 
-bool moveit::core::RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const
+bool RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   bool change = false;
@@ -1230,7 +1237,7 @@ bool moveit::core::RobotModel::enforcePositionBounds(double* state, const JointB
   return change;
 }
 
-double moveit::core::RobotModel::distance(const double* state1, const double* state2) const
+double RobotModel::distance(const double* state1, const double* state2) const
 {
   double d = 0.0;
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1240,7 +1247,7 @@ double moveit::core::RobotModel::distance(const double* state1, const double* st
   return d;
 }
 
-void moveit::core::RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
+void RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
 {
   // we interpolate values only for active joint models (non-mimic)
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1251,25 +1258,24 @@ void moveit::core::RobotModel::interpolate(const double* from, const double* to,
   updateMimicJoints(state);
 }
 
-void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
+void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
 {
   // we first set all the "simple" allocators -- where a group has one IK solver
-  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+  for (JointModelGroup* jmg : joint_model_groups_)
   {
-    auto jt = allocators.find(it->second->getName());
+    auto jt = allocators.find(jmg->getName());
     if (jt != allocators.end())
     {
       std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
       result.first = jt->second;
-      it->second->setSolverAllocators(result);
+      jmg->setSolverAllocators(result);
     }
   }
 
   // now we set compound IK solvers; we do this later because we need the index maps computed by the previous calls to
   // setSolverAllocators()
-  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+  for (JointModelGroup* jmg : joint_model_groups_)
   {
-    JointModelGroup* jmg = it->second;
     std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
     auto jt = allocators.find(jmg->getName());
     if (jt == allocators.end())
@@ -1280,12 +1286,11 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
 
       std::vector<const JointModelGroup*> subs;
 
-      // go through the groups that we know have IK allocators and see if they are included in the group that does not;
-      // if so, put that group in sub
+      // go through the groups that have IK allocators and see if they are part of jmg; collect them in subs
       for (const auto& allocator : allocators)
       {
         const JointModelGroup* sub = getJointModelGroup(allocator.first);
-        if (!sub)
+        if (!sub)  // this should actually not happen, all groups should be well defined
         {
           subs.clear();
           break;
@@ -1294,10 +1299,15 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
         sub_joints.insert(sub->getJointModels().begin(), sub->getJointModels().end());
 
         if (std::includes(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end()))
-        {
+        {  // sub_joints included in joints: add sub, remove sub_joints from joints set
           std::set<const JointModel*> resultj;
           std::set_difference(joints.begin(), joints.end(), sub_joints.begin(), sub_joints.end(),
                               std::inserter(resultj, resultj.end()));
+          // TODO: instead of maintaining disjoint joint sets here,
+          // should we leave that work to JMG's setSolverAllocators() / computeIKIndexBijection()?
+          // There, a disjoint bijection from joints to solvers is computed anyway.
+          // Underlying question: How do we resolve overlaps? Now the first considered sub group "wins"
+          // But, if the overlap only involves fixed joints, we could consider all sub groups
           subs.push_back(sub);
           joints.swap(resultj);
         }
@@ -1312,14 +1322,15 @@ void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::strin
           ss << sub->getName() << " ";
           result.second[sub] = allocators.find(sub->getName())->second;
         }
-        logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(), ss.str().c_str());
+        CONSOLE_BRIDGE_logDebug("Added sub-group IK allocators for group '%s': [ %s]", jmg->getName().c_str(),
+                                ss.str().c_str());
       }
       jmg->setSolverAllocators(result);
     }
   }
 }
 
-void moveit::core::RobotModel::printModelInfo(std::ostream& out) const
+void RobotModel::printModelInfo(std::ostream& out) const
 {
   out << "Model " << model_name_ << " in frame " << model_frame_ << ", using " << getVariableCount() << " variables"
       << std::endl;
@@ -1368,8 +1379,8 @@ void moveit::core::RobotModel::printModelInfo(std::ostream& out) const
     joint_model_group->printGroupInfo(out);
 }
 
-void moveit::core::RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
-                                                      LinkTransformMap& associated_transforms)
+void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+                                        LinkTransformMap& associated_transforms)
 {
   associated_transforms[link] = transform * link->getJointOriginTransform();
   for (std::size_t i = 0; i < link->getChildJointModels().size(); ++i)
@@ -1377,3 +1388,6 @@ void moveit::core::RobotModel::computeFixedTransforms(const LinkModel* link, con
       computeFixedTransforms(link->getChildJointModels()[i]->getChildLinkModel(),
                              transform * link->getJointOriginTransform(), associated_transforms);
 }
+
+}  // end of namespace core
+}  // end of namespace moveit

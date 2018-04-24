@@ -5,7 +5,7 @@ import rospy
 import readline
 import sys
 import os
-import signal 
+import signal
 
 import argparse
 from moveit_commander import MoveGroupCommandInterpreter, MoveGroupInfoLevel, roscpp_initialize, roscpp_shutdown
@@ -19,7 +19,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 class SimpleCompleter(object):
-    
+
     def __init__(self, options):
         self.options = options
 
@@ -39,11 +39,11 @@ class SimpleCompleter(object):
             # This is the first time for this text, so build a match list.
             if text:
                 if len(prefix) == 0:
-                    self.matches = sorted([s 
+                    self.matches = sorted([s
                                            for s in self.options.keys()
                                            if s and s.startswith(text)])
                 else:
-                    self.matches = sorted([s 
+                    self.matches = sorted([s
                                            for s in self.options[prefix]
                                            if s and s.startswith(text)])
             else:
@@ -51,7 +51,7 @@ class SimpleCompleter(object):
                     self.matches = sorted(self.options.keys())
                 else:
                     self.matches = self.options[prefix]
-        
+
         # Return the state'th item from the match list,
         # if we have that many.
         try:
@@ -73,7 +73,7 @@ def print_message(level, msg):
         print msg
 
 def get_context_keywords(interpreter):
-    kw = interpreter.get_keywords()            
+    kw = interpreter.get_keywords()
     kw["quit"] = []
     return kw
 
@@ -91,7 +91,7 @@ def run_interactive(group_name):
 
     while not rospy.is_shutdown():
         cmd = ""
-        try:  
+        try:
             name = ""
             ag = c.get_active_group()
             if ag != None:
@@ -114,8 +114,8 @@ def run_interactive(group_name):
         print_message(level, msg)
         # update the set of keywords
         completer.set_options(get_context_keywords(c))
-            
-def run_service(group_name): 
+
+def run_service(group_name):
     c = MoveGroupCommandInterpreter()
     if len(group_name) > 0:
         c.execute("use " + group_name)
@@ -133,7 +133,7 @@ def sigint_handler(signal, frame):
     sys.exit(0)
 
 if __name__=='__main__':
-    
+
     signal.signal(signal.SIGINT, sigint_handler)
 
     roscpp_initialize(sys.argv)
@@ -147,7 +147,7 @@ if __name__=='__main__':
     parser.add_argument("-s", "--service", action="store_true", dest="service", default=False,
                         help="Run the command processing script as a ROS service")
     parser.add_argument("group_name", type=str, default="", nargs='?', help="Group name to initialize the CLI for.")
-    
+
     opt = parser.parse_args(rospy.myargv()[1:])
 
     if opt.service:

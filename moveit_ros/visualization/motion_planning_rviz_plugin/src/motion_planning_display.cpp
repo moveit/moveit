@@ -1241,7 +1241,7 @@ void MotionPlanningDisplay::onEnable()
   int_marker_display_->setEnabled(true);
   int_marker_display_->setFixedFrame(fixed_frame_);
 
-  if (frame_)
+  if (frame_ && frame_->parentWidget())
     frame_->parentWidget()->show();
 }
 
@@ -1263,7 +1263,7 @@ void MotionPlanningDisplay::onDisable()
   // Planned Path Display
   trajectory_visual_->onDisable();
 
-  if (frame_)
+  if (frame_ && frame_->parentWidget())
     frame_->parentWidget()->hide();
 }
 
@@ -1319,6 +1319,8 @@ void MotionPlanningDisplay::load(const rviz::Config& config)
     bool b;
     if (config.mapGetBool("MoveIt_Use_Constraint_Aware_IK", &b))
       frame_->ui_->collision_aware_ik->setChecked(b);
+    if (config.mapGetBool("MoveIt_Allow_Approximate_IK", &b))
+      frame_->ui_->approximate_ik->setChecked(b);
 
     rviz::Config workspace = config.mapGetChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapGetChild("Center");
@@ -1366,6 +1368,7 @@ void MotionPlanningDisplay::save(rviz::Config config) const
     config.mapSetValue("MoveIt_Planning_Attempts", frame_->ui_->planning_attempts->value());
     config.mapSetValue("MoveIt_Goal_Tolerance", frame_->ui_->goal_tolerance->value());
     config.mapSetValue("MoveIt_Use_Constraint_Aware_IK", frame_->ui_->collision_aware_ik->isChecked());
+    config.mapSetValue("MoveIt_Allow_Approximate_IK", frame_->ui_->approximate_ik->isChecked());
 
     rviz::Config workspace = config.mapMakeChild("MoveIt_Workspace");
     rviz::Config ws_center = workspace.mapMakeChild("Center");
