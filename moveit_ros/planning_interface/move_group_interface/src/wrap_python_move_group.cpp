@@ -116,7 +116,7 @@ public:
   {
     moveit_msgs::RobotState msg;
     py_bindings_tools::deserializeMsg(state_str, msg);
-    robot_state::RobotState state(moveit::planning_interface::MoveGroupInterface::getJointValueTarget());
+    robot_state::RobotState state(moveit::planning_interface::MoveGroupInterface::getTargetRobotState());
     moveit::core::robotStateMsgToRobotState(msg, state);
     return moveit::planning_interface::MoveGroupInterface::setJointValueTarget(state);
   }
@@ -134,7 +134,7 @@ public:
   std::string getJointValueTarget()
   {
     moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
+    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getTargetRobotState();
     moveit::core::robotStateToRobotStateMsg(state, msg);
     return py_bindings_tools::serializeMsg(msg);
   }
