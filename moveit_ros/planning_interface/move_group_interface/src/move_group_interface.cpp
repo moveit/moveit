@@ -1603,6 +1603,12 @@ bool moveit::planning_interface::MoveGroupInterface::setNamedTarget(const std::s
   }
 }
 
+void moveit::planning_interface::MoveGroupInterface::getJointValueTarget(
+    std::vector<double>& group_variable_values) const
+{
+  impl_->getJointStateTarget().copyJointGroupPositions(impl_->getJointModelGroup(), group_variable_values);
+}
+
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const std::vector<double>& joint_values)
 {
   if (joint_values.size() != impl_->getJointModelGroup()->getVariableCount())

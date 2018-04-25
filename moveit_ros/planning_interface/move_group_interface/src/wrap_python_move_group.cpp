@@ -123,10 +123,11 @@ public:
 
   bp::list getJointValueTargetPythonList()
   {
-    const robot_state::RobotState& values = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
+    std::vector<double> values;
+    MoveGroupInterface::getJointValueTarget(values);
     bp::list l;
-    for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
-      l.append(*it);
+    for (const double value : values)
+      l.append(value);
     return l;
   }
 

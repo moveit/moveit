@@ -330,9 +330,8 @@ public:
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
-      \e group_variable_values MUST contain exactly one value per joint
-      variable in the same order as returned by
-      getJointValueTarget().getJointModelGroup(getName())->getVariableNames().
+      \e group_variable_values MUST exactly match the variable order as returned by
+      getJointValueTarget(std::vector<double>&).
 
       This always sets all of the group's joint values.
 
@@ -494,6 +493,9 @@ public:
   /** \brief Set the current joint values to be ones previously remembered by rememberJointValues() or, if not found,
       that are specified in the SRDF under the name \e name as a group state*/
   bool setNamedTarget(const std::string& name);
+
+  /** \brief Get the current joint state goal in a form compatible to setJointValueTarget() */
+  void getJointValueTarget(std::vector<double>& group_variable_values) const;
 
   /// Get the currently set joint state goal
   const robot_state::RobotState& getJointValueTarget() const;
