@@ -1619,10 +1619,21 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
 }
 
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(
-    const std::map<std::string, double>& joint_values)
+    const std::map<std::string, double>& variable_values)
 {
+  const auto& allowed = impl_->getJointModelGroup()->getVariableNames();
+  for (const auto& pair : variable_values)
+  {
+    if (std::find(allowed.begin(), allowed.end(), pair.first) == allowed.end())
+    {
+      ROS_ERROR_STREAM("joint variable " << pair.first << " is not part of group "
+                                         << impl_->getJointModelGroup()->getName());
+      return false;
+    }
+  }
+
   impl_->setTargetType(JOINT);
-  impl_->getTargetRobotState().setVariablePositions(joint_values);
+  impl_->getTargetRobotState().setVariablePositions(variable_values);
   return impl_->getTargetRobotState().satisfiesBounds(impl_->getGoalJointTolerance());
 }
 
@@ -1643,12 +1654,14 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const s
                                                                          const std::vector<double>& values)
 {
   impl_->setTargetType(JOINT);
-  const robot_model::JointModel* jm = impl_->getTargetRobotState().getJointModel(joint_name);
+  const robot_model::JointModel* jm = impl_->getJointModelGroup()->getJointModel(joint_name);
   if (jm && jm->getVariableCount() == values.size())
   {
     impl_->getTargetRobotState().setJointPositions(jm, values);
     return impl_->getTargetRobotState().satisfiesBounds(jm, impl_->getGoalJointTolerance());
   }
+
+  ROS_ERROR_STREAM("joint " << joint_name << " is not part of group " << impl_->getJointModelGroup()->getName());
   return false;
 }
 
