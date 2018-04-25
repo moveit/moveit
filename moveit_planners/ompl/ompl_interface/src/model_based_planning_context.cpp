@@ -512,7 +512,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
   {
     double ptime = getLastPlanTime();
-    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    if (simplify_solutions_)
     {
       simplifySolution(request_.allowed_planning_time - ptime);
       ptime += getLastSimplifyTime();
@@ -551,7 +551,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     getSolutionPath(*res.trajectory_.back());
 
     // simplify solution if time remains
-    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    if (simplify_solutions_)
     {
       simplifySolution(request_.allowed_planning_time - ptime);
       res.processing_time_.push_back(getLastSimplifyTime());
