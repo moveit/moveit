@@ -368,7 +368,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  bool setJointValueTarget(const robot_state::RobotState& robot_state);
+  MOVEIT_DEPRECATED bool setJointValueTarget(const robot_state::RobotState& robot_state);
 
   /** \brief Set the JointValueTarget and use it for future planning requests.
 
@@ -406,7 +406,7 @@ public:
 
       If these values are out of bounds then false is returned BUT THE VALUES
       ARE STILL SET AS THE GOAL. */
-  bool setJointValueTarget(const sensor_msgs::JointState& state);
+  MOVEIT_DEPRECATED bool setJointValueTarget(const sensor_msgs::JointState& state);
 
   /** \brief Set the joint state goal for a particular joint by computing IK.
 
