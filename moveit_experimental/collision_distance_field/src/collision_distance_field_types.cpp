@@ -449,7 +449,7 @@ void collision_detection::getProximityGradientMarkers(
 {
   if (gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size())
   {
-    logWarn("Size mismatch between gradients %u and decompositions %u", (unsigned int)gradients.size(),
+    CONSOLE_BRIDGE_logWarn("Size mismatch between gradients %u and decompositions %u", (unsigned int)gradients.size(),
             (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
     return;
   }
@@ -482,12 +482,12 @@ void collision_detection::getProximityGradientMarkers(
         }
         else
         {
-          logDebug("Negative length for %u %d %lf", i, arrow_mark.id, gradients[i].gradients[j].norm());
+          CONSOLE_BRIDGE_logDebug("Negative length for %u %d %lf", i, arrow_mark.id, gradients[i].gradients[j].norm());
         }
       }
       else
       {
-        logDebug("Negative dist %lf for %u %d", gradients[i].distances[j], i, arrow_mark.id);
+        CONSOLE_BRIDGE_logDebug("Negative dist %lf for %u %d", gradients[i].distances[j], i, arrow_mark.id);
       }
       arrow_mark.points.resize(2);
       if (i < posed_decompositions.size())
@@ -549,7 +549,7 @@ void collision_detection::getCollisionMarkers(
 {
   if (gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size())
   {
-    logWarn("Size mismatch between gradients %u and decompositions ", (unsigned int)gradients.size(),
+    CONSOLE_BRIDGE_logWarn("Size mismatch between gradients %u and decompositions ", (unsigned int)gradients.size(),
             (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
     return;
   }

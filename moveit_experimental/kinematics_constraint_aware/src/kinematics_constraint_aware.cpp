@@ -50,7 +50,7 @@ KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotMod
 {
   if (!kinematic_model->hasJointModelGroup(group_name))
   {
-    logError("The group %s does not exist", group_name.c_str());
+    CONSOLE_BRIDGE_logError("The group %s does not exist", group_name.c_str());
     joint_model_group_ = NULL;
     return;
   }
@@ -64,7 +64,7 @@ KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotMod
   }
   else
   {
-    logDebug("No kinematics solver instance defined for group %s", group_name.c_str());
+    CONSOLE_BRIDGE_logDebug("No kinematics solver instance defined for group %s", group_name.c_str());
     bool is_solvable_group = true;
     if (!(joint_model_group_->getSubgroupNames().empty()))
     {
@@ -79,7 +79,7 @@ KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotMod
       }
       if (is_solvable_group)
       {
-        logDebug("Group %s is a group for which we can solve IK", joint_model_group_->getName().c_str());
+        CONSOLE_BRIDGE_logDebug("Group %s is a group for which we can solve IK", joint_model_group_->getName().c_str());
         sub_groups_names_ = sub_groups_names;
       }
       else
@@ -91,7 +91,7 @@ KinematicsConstraintAware::KinematicsConstraintAware(const robot_model::RobotMod
     else
     {
       joint_model_group_ = NULL;
-      logInform("No solver allocated for group %s", group_name.c_str());
+      CONSOLE_BRIDGE_logInform("No solver allocated for group %s", group_name.c_str());
     }
     has_sub_groups_ = true;
   }
@@ -104,13 +104,13 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 {
   if (!joint_model_group_)
   {
-    logError("This solver has not been constructed properly");
+    CONSOLE_BRIDGE_logError("This solver has not been constructed properly");
     return false;
   }
 
   if (!planning_scene)
   {
-    logError("Planning scene must be allocated");
+    CONSOLE_BRIDGE_logError("Planning scene must be allocated");
     return false;
   }
 
@@ -148,7 +148,7 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
       else if (!kinematic_model_->getJointModelGroup(sub_groups_names_[i])
                     ->canSetStateFromIK(request.ik_link_names_[i]))
       {
-        logError("Could not find IK solver for link %s for group %s", request.ik_link_names_[i].c_str(),
+        CONSOLE_BRIDGE_logError("Could not find IK solver for link %s for group %s", request.ik_link_names_[i].c_str(),
                  sub_groups_names_[i].c_str());
         return false;
       }
@@ -210,7 +210,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
     planning_scene->checkCollision(collision_request, collision_result, *joint_state_group->getRobotState());
     if (collision_result.collision)
     {
-      logDebug("IK solution is in collision");
+      CONSOLE_BRIDGE_logDebug("IK solution is in collision");
       response.error_code_.val = response.error_code_.GOAL_IN_COLLISION;
       return false;
     }
@@ -224,7 +224,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
         request.constraints_->decide(*joint_state_group->getRobotState(), response.constraint_eval_results_);
     if (!constraint_result.satisfied)
     {
-      logDebug("IK solution violates constraints");
+      CONSOLE_BRIDGE_logDebug("IK solution violates constraints");
       response.error_code_.val = response.error_code_.GOAL_VIOLATES_PATH_CONSTRAINTS;
       return false;
     }
@@ -235,7 +235,7 @@ bool KinematicsConstraintAware::validityCallbackFn(const planning_scene::Plannin
   {
     if (!request.constraint_callback_(joint_state_group, joint_group_variable_values))
     {
-      logDebug("IK solution violates user specified constraints");
+      CONSOLE_BRIDGE_logDebug("IK solution violates user specified constraints");
       response.error_code_.val = response.error_code_.GOAL_VIOLATES_PATH_CONSTRAINTS;
       return false;
     }
@@ -250,13 +250,13 @@ bool KinematicsConstraintAware::getIK(const planning_scene::PlanningSceneConstPt
 {
   if (!joint_model_group_)
   {
-    logError("This solver has not been constructed properly");
+    CONSOLE_BRIDGE_logError("This solver has not been constructed properly");
     return false;
   }
 
   if (!planning_scene)
   {
-    logError("Planning scene must be allocated");
+    CONSOLE_BRIDGE_logError("Planning scene must be allocated");
     return false;
   }
 
@@ -283,7 +283,7 @@ bool KinematicsConstraintAware::convertServiceRequest(
 {
   if (request.ik_request.group_name != group_name_)
   {
-    logError("This kinematics solver does not support requests for group: %s", request.ik_request.group_name.c_str());
+    CONSOLE_BRIDGE_logError("This kinematics solver does not support requests for group: %s", request.ik_request.group_name.c_str());
     kinematics_response.error_code_.val = kinematics_response.error_code_.INVALID_GROUP_NAME;
     return false;
   }
@@ -291,7 +291,7 @@ bool KinematicsConstraintAware::convertServiceRequest(
   if (!request.ik_request.pose_stamped_vector.empty() &&
       request.ik_request.pose_stamped_vector.size() != sub_groups_names_.size())
   {
-    logError("Number of poses in request: %d must match number of sub groups %d in this group",
+    CONSOLE_BRIDGE_logError("Number of poses in request: %d must match number of sub groups %d in this group",
              request.ik_request.pose_stamped_vector.size(), sub_groups_names_.size());
     kinematics_response.error_code_.val = kinematics_response.error_code_.INVALID_GROUP_NAME;
     return false;
@@ -299,7 +299,7 @@ bool KinematicsConstraintAware::convertServiceRequest(
 
   if (!request.ik_request.ik_link_names.empty() && request.ik_request.ik_link_names.size() != sub_groups_names_.size())
   {
-    logError("Number of ik_link_names in request: %d must match number of sub groups %d in this group or must be zero",
+    CONSOLE_BRIDGE_logError("Number of ik_link_names in request: %d must match number of sub groups %d in this group or must be zero",
              request.ik_request.ik_link_names.size(), sub_groups_names_.size());
     kinematics_response.error_code_.val = kinematics_response.error_code_.INVALID_GROUP_NAME;
     return false;

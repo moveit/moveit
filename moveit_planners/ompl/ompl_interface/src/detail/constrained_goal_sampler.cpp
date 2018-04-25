@@ -54,7 +54,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
 {
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
-  logDebug("Constructed a ConstrainedGoalSampler instance at address %p", this);
+  CONSOLE_BRIDGE_logDebug("Constructed a ConstrainedGoalSampler instance at address %p", this);
   startSampling();
 }
 
@@ -134,7 +134,7 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
           {
             warned_invalid_samples_ = true;
-            logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal "
+            CONSOLE_BRIDGE_logWarn("More than 80%% of the sampled goal states fail to satisfy the constraints imposed on the goal "
                     "sampler. Is the constrained sampler working correctly?");
           }
         }

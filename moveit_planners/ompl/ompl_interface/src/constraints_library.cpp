@@ -270,11 +270,11 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
   std::ifstream fin((path + "/manifest").c_str());
   if (!fin.good())
   {
-    logWarn("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
+    CONSOLE_BRIDGE_logWarn("Manifest not found in folder '%s'. Not loading constraint approximations.", path.c_str());
     return;
   }
 
-  logInform("Loading constrained space approximations from '%s'...", path.c_str());
+  CONSOLE_BRIDGE_logInform("Loading constrained space approximations from '%s'...", path.c_str());
 
   while (fin.good() && !fin.eof())
   {
@@ -297,7 +297,7 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
     if (fin.eof())
       break;
     fin >> filename;
-    logInform("Loading constraint approximation of type '%s' for group '%s' from '%s'...",
+    CONSOLE_BRIDGE_logInform("Loading constraint approximation of type '%s' for group '%s' from '%s'...",
               state_space_parameterization.c_str(), group.c_str(), filename.c_str());
     const ModelBasedPlanningContextPtr& pc = context_manager_.getPlanningContext(group, state_space_parameterization);
     if (pc)
@@ -311,22 +311,22 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
                                                                  msg, filename, ompl::base::StateStoragePtr(cass),
                                                                  milestones));
       if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
-        logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
+        CONSOLE_BRIDGE_logWarn("Overwriting constraint approximation named '%s'", cap->getName().c_str());
       constraint_approximations_[cap->getName()] = cap;
       std::size_t sum = 0;
       for (std::size_t i = 0; i < cass->size(); ++i)
         sum += cass->getMetadata(i).first.size();
-      logInform("Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) for constraint named '%s'%s",
+      CONSOLE_BRIDGE_logInform("Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) for constraint named '%s'%s",
                 cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
                 msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }
   }
-  logInform("Done loading constrained space approximations.");
+  CONSOLE_BRIDGE_logInform("Done loading constrained space approximations.");
 }
 
 void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std::string& path)
 {
-  logInform("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(),
+  CONSOLE_BRIDGE_logInform("Saving %u constrained space approximations to '%s'", (unsigned int)constraint_approximations_.size(),
             path.c_str());
   try
   {
@@ -353,7 +353,7 @@ void ompl_interface::ConstraintsLibrary::saveConstraintApproximations(const std:
         it->second->getStateStorage()->store((path + "/" + it->second->getFilename()).c_str());
     }
   else
-    logError("Unable to save constraint approximation to '%s'", path.c_str());
+    CONSOLE_BRIDGE_logError("Unable to save constraint approximation to '%s'", path.c_str());
   fout.close();
 }
 
@@ -411,7 +411,7 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(
 
     ros::WallTime start = ros::WallTime::now();
     ompl::base::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, options, res);
-    logInform("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
+    CONSOLE_BRIDGE_logInform("Spent %lf seconds constructing the database", (ros::WallTime::now() - start).toSec());
     if (ss)
     {
       ConstraintApproximationPtr ca(new ConstraintApproximation(
@@ -420,12 +420,12 @@ ompl_interface::ConstraintsLibrary::addConstraintApproximation(
               ".ompldb",
           ss, res.milestones));
       if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-        logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
+        CONSOLE_BRIDGE_logWarn("Overwriting constraint approximation named '%s'", ca->getName().c_str());
       constraint_approximations_[ca->getName()] = ca;
       res.approx = ca;
     }
     else
-      logError("Unable to construct constraint approximation for group '%s'", group.c_str());
+      CONSOLE_BRIDGE_logError("Unable to construct constraint approximation for group '%s'", group.c_str());
   }
   return res;
 }
@@ -479,18 +479,18 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     if (done != done_now)
     {
       done = done_now;
-      logInform("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
+      CONSOLE_BRIDGE_logInform("%d%% complete (kept %0.1lf%% sampled states)", done, 100.0 * (double)sstor->size() / (double)attempts);
     }
 
     if (!slow_warn && attempts > 10 && attempts > sstor->size() * 100)
     {
       slow_warn = true;
-      logWarn("Computation of valid state database is very slow...");
+      CONSOLE_BRIDGE_logWarn("Computation of valid state database is very slow...");
     }
 
     if (attempts > options.samples && sstor->size() == 0)
     {
-      logError("Unable to generate any samples");
+      CONSOLE_BRIDGE_logError("Unable to generate any samples");
       break;
     }
 
@@ -507,17 +507,17 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
   }
 
   result.state_sampling_time = ompl::time::seconds(ompl::time::now() - start);
-  logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time);
+  CONSOLE_BRIDGE_logInform("Generated %u states in %lf seconds", (unsigned int)sstor->size(), result.state_sampling_time);
   if (csmp)
   {
     result.sampling_success_rate = csmp->getConstrainedSamplingRate();
-    logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
+    CONSOLE_BRIDGE_logInform("Constrained sampling rate: %lf", result.sampling_success_rate);
   }
 
   result.milestones = sstor->size();
   if (options.edges_per_sample > 0)
   {
-    logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
+    CONSOLE_BRIDGE_logInform("Computing graph connections (max %u edges per sample) ...", options.edges_per_sample);
 
     // construct connexions
     const ob::StateSpacePtr& space = pcontext->getOMPLSimpleSetup()->getStateSpace();
@@ -535,7 +535,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
       if (done != done_now)
       {
         done = done_now;
-        logInform("%d%% complete", done);
+        CONSOLE_BRIDGE_logInform("%d%% complete", done);
       }
       if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
         continue;
@@ -592,7 +592,7 @@ ompl::base::StateStoragePtr ompl_interface::ConstraintsLibrary::constructConstra
     }
 
     result.state_connection_time = ompl::time::seconds(ompl::time::now() - start);
-    logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
+    CONSOLE_BRIDGE_logInform("Computed possible connexions in %lf seconds. Added %d connexions", result.state_connection_time, good);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->freeStates(int_states);
 
     return sstor;

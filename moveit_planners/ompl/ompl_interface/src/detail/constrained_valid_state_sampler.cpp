@@ -50,7 +50,7 @@ ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(
   if (!constraint_sampler_)
     default_sampler_ = si_->allocStateSampler();
   inv_dim_ = si_->getStateSpace()->getDimension() > 0 ? 1.0 / (double)si_->getStateSpace()->getDimension() : 1.0;
-  logDebug("Constructed a ValidConstrainedSampler instance at address %p", this);
+  CONSOLE_BRIDGE_logDebug("Constructed a ValidConstrainedSampler instance at address %p", this);
 }
 
 bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State* state)

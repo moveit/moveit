@@ -481,7 +481,7 @@ public:
         }
         else
         {
-          logError("Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
+          CONSOLE_BRIDGE_logError("Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
                    getRobotModel()->getModelFrame().c_str());
           return false;
         }
