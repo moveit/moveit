@@ -67,6 +67,10 @@ class MoveGroupCommander(object):
         """ Get the joints of this group """
         return self._g.get_joints()
 
+    def get_named_targets(self):
+        """ Get the named targets available in MoveIt! """
+        return self._g.get_named_targets()
+
     def get_variable_count(self):
         """ Return the number of variables used to parameterize a state in this group (larger or equal to number of DOF)"""
         return self._g.get_variable_count()
@@ -541,27 +545,27 @@ class MoveGroupCommander(object):
         """ Given the name of a link, detach the object(s) from that link. If no such link exists, the name is interpreted as an object name. If there is no name specified, an attempt is made to detach all objects attached to any link in the group."""
         return self._g.detach_object(name)
 
-    def pick(self, object_name, grasp = []):
+    def pick(self, object_name, grasp = [], plan_only=False):
         """Pick the named object. A grasp message, or a list of Grasp messages can also be specified as argument."""
         if type(grasp) is Grasp:
-            return self._g.pick(object_name, conversions.msg_to_string(grasp))
+            return self._g.pick(object_name, conversions.msg_to_string(grasp), plan_only)
         else:
-            return self._g.pick(object_name, [conversions.msg_to_string(x) for x in grasp])
+            return self._g.pick(object_name, [conversions.msg_to_string(x) for x in grasp], plan_only)
 
-    def place(self, object_name, location=None):
+    def place(self, object_name, location=None, plan_only=False):
         """Place the named object at a particular location in the environment or somewhere safe in the world if location is not provided"""
         result = False
         if location is None:
-            result = self._g.place(object_name)
+            result = self._g.place(object_name, plan_only)
         elif type(location) is PoseStamped:
             old = self.get_pose_reference_frame()
             self.set_pose_reference_frame(location.header.frame_id)
-            result = self._g.place(object_name, conversions.pose_to_list(location.pose))
+            result = self._g.place(object_name, conversions.pose_to_list(location.pose), plan_only)
             self.set_pose_reference_frame(old)
         elif type(location) is Pose:
-            result = self._g.place(object_name, conversions.pose_to_list(location))
+            result = self._g.place(object_name, conversions.pose_to_list(location), plan_only)
         elif type(location) is PlaceLocation:
-            result = self._g.place(object_name, conversions.msg_to_string(location))
+            result = self._g.place(object_name, conversions.msg_to_string(location), plan_only)
         else:
             raise MoveItCommanderException("Parameter location must be a Pose, PoseStamped or PlaceLocation object")
         return result
