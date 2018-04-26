@@ -329,8 +329,7 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
   if (ompl_simple_setup_->haveSolutionPath())
   {
     og::PathGeometric& pg = ompl_simple_setup_->getSolutionPath();
-    pg.interpolate(
-        std::max((unsigned int)floor(0.5 + pg.length() / max_solution_segment_length_), minimum_waypoint_count_));
+    pg.interpolate();
   }
 }
 
