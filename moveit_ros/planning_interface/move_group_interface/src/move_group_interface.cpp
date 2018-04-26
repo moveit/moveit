@@ -645,7 +645,8 @@ public:
   }
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, bool plan_only=false)
+  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
+                        bool plan_only = false)
   {
     std::vector<moveit_msgs::PlaceLocation> locations;
     for (std::size_t i = 0; i < poses.size(); ++i)
@@ -670,7 +671,8 @@ public:
     return place(object, locations, plan_only);
   }
 
-  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, bool plan_only=false)
+  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations,
+                        bool plan_only = false)
   {
     if (!place_action_client_)
     {
@@ -710,7 +712,7 @@ public:
     }
   }
 
-  MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, bool plan_only=false)
+  MoveItErrorCode pick(const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, bool plan_only = false)
   {
     if (!pick_action_client_)
     {
@@ -1522,19 +1524,19 @@ moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGrou
 }
 
 moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, bool plan_only=false)
+moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, bool plan_only = false)
 {
   return impl_->pick(object, std::vector<moveit_msgs::Grasp>(), plan_only);
 }
 
-moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::pick(const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only=false)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::pick(
+    const std::string& object, const moveit_msgs::Grasp& grasp, bool plan_only = false)
 {
   return impl_->pick(object, std::vector<moveit_msgs::Grasp>(1, grasp), plan_only);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::pick(
-    const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, bool plan_only=false)
+    const std::string& object, const std::vector<moveit_msgs::Grasp>& grasps, bool plan_only = false)
 {
   return impl_->pick(object, grasps, plan_only);
 }
@@ -1552,25 +1554,25 @@ moveit::planning_interface::MoveGroupInterface::planGraspsAndPick(const moveit_m
 }
 
 moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::place(const std::string& object, bool plan_only=false)
+moveit::planning_interface::MoveGroupInterface::place(const std::string& object, bool plan_only = false)
 {
   return impl_->place(object, std::vector<moveit_msgs::PlaceLocation>(), plan_only);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
-    const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, bool plan_only=false)
+    const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, bool plan_only = false)
 {
   return impl_->place(object, locations, plan_only);
 }
 
 moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
-    const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, bool plan_only=false)
+    const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, bool plan_only = false)
 {
   return impl_->place(object, poses, plan_only);
 }
 
-moveit::planning_interface::MoveItErrorCode
-moveit::planning_interface::MoveGroupInterface::place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only=false)
+moveit::planning_interface::MoveItErrorCode moveit::planning_interface::MoveGroupInterface::place(
+    const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only = false)
 {
   return impl_->place(object, std::vector<geometry_msgs::PoseStamped>(1, pose), plan_only);
 }

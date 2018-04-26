@@ -778,10 +778,12 @@ public:
   MoveItErrorCode place(const std::string& object, bool plan_only);
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, bool plan_only);
+  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations,
+                        bool plan_only);
 
   /** \brief Place an object at one of the specified possible locations */
-  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, bool plan_only);
+  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
+                        bool plan_only);
 
   /** \brief Place an object at one of the specified possible location */
   MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose, bool plan_only);

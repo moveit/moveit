@@ -254,7 +254,7 @@ public:
     return py_bindings_tools::listFromString(getKnownConstraints());
   }
 
-  bool placePose(const std::string& object_name, const bp::list& pose, bool plan_only=false)
+  bool placePose(const std::string& object_name, const bp::list& pose, bool plan_only = false)
   {
     geometry_msgs::PoseStamped msg;
     convertListToPose(pose, msg.pose);
@@ -263,14 +263,14 @@ public:
     return place(object_name, msg, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
-  bool placeLocation(const std::string& object_name, const std::string& location_str, bool plan_only=false)
+  bool placeLocation(const std::string& object_name, const std::string& location_str, bool plan_only = false)
   {
     std::vector<moveit_msgs::PlaceLocation> locations(1);
     py_bindings_tools::deserializeMsg(location_str, locations[0]);
     return place(object_name, locations, plan_only) == MoveItErrorCode::SUCCESS;
   }
 
-  bool placeAnywhere(const std::string& object_name, bool plan_only=false)
+  bool placeAnywhere(const std::string& object_name, bool plan_only = false)
   {
     return place(object_name, plan_only) == MoveItErrorCode::SUCCESS;
   }
@@ -451,14 +451,14 @@ public:
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
-  int pickGrasp(const std::string& object, const std::string& grasp_str, bool plan_only=false)
+  int pickGrasp(const std::string& object, const std::string& grasp_str, bool plan_only = false)
   {
     moveit_msgs::Grasp grasp;
     py_bindings_tools::deserializeMsg(grasp_str, grasp);
     return pick(object, grasp, plan_only).val;
   }
 
-  int pickGrasps(const std::string& object, const bp::list& grasp_list, bool plan_only=false)
+  int pickGrasps(const std::string& object, const bp::list& grasp_list, bool plan_only = false)
   {
     int l = bp::len(grasp_list);
     std::vector<moveit_msgs::Grasp> grasps(l);
