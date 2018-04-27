@@ -233,7 +233,6 @@ private:
     }
 
     ompl_interface_->simplifySolutions(config.simplify_solutions);
-    ompl_interface_->getPlanningContextManager().setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
     ompl_interface_->getPlanningContextManager().setMinimumWaypointCount(config.minimum_waypoint_count);
     if (display_random_valid_states_ && !config.display_random_valid_states)
     {
