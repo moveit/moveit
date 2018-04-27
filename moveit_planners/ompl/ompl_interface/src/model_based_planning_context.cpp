@@ -74,7 +74,6 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_state_sampling_attempts_(0)
   , max_goal_sampling_attempts_(0)
   , max_planning_threads_(0)
-  , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
   , simplify_solutions_(true)
@@ -329,7 +328,13 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
   if (ompl_simple_setup_->haveSolutionPath())
   {
     og::PathGeometric& pg = ompl_simple_setup_->getSolutionPath();
+    // Interpolate the path to have as the exact states that are checked when validating motions.
     pg.interpolate();
+    // if that's not enough states, do it again.
+    if (pg.getStateCount() < minimum_waypoint_count_)
+    {
+      pg.interpolate(minimum_waypoint_count_);
+    }
   }
 }
 

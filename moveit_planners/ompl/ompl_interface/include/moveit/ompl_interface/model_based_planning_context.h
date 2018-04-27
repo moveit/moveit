@@ -199,18 +199,6 @@ public:
     max_planning_threads_ = max_planning_threads;
   }
 
-  /* \brief Get the maximum solution segment length */
-  double getMaximumSolutionSegmentLength() const
-  {
-    return max_solution_segment_length_;
-  }
-
-  /* \brief Set the maximum solution segment length */
-  void setMaximumSolutionSegmentLength(double mssl)
-  {
-    max_solution_segment_length_ = mssl;
-  }
-
   unsigned int getMinimumWaypointCount() const
   {
     return minimum_waypoint_count_;
@@ -365,10 +353,6 @@ protected:
 
   /// when planning in parallel, this is the maximum number of threads to use at one time
   unsigned int max_planning_threads_;
-
-  /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the
-  /// extent of the space
-  double max_solution_segment_length_;
 
   /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
   /// needed)
