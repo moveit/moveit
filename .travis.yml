@@ -3,10 +3,10 @@ sudo: required
 dist: trusty
 services:
   - docker
-language: generic
+language: cpp
 cache: ccache
-compiler:
-  - gcc
+compiler: gcc
+
 notifications:
   email:
     recipients:
@@ -22,4 +22,4 @@ env:
 before_script:
   - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
 script:
-  - source .moveit_ci/travis.sh
+  - .moveit_ci/travis.sh
