@@ -204,7 +204,11 @@ void ChompOptimizer::initialize()
   for (size_t i = 0; i < joint_model_group_->getFixedJointModels().size(); i++)
   {
     const moveit::core::JointModel* model = joint_model_group_->getFixedJointModels()[i];
-    fixed_link_resolution_map[model->getName()] = model->getParentLinkModel()->getParentJointModel()->getName();
+    // In case this is the base joint (eg: a fixed virtual_joint) then we need to check for NULL
+    if (model->getParentLinkModel())
+    {
+      fixed_link_resolution_map[model->getName()] = model->getParentLinkModel()->getParentJointModel()->getName();
+    }
   }
 
   // TODO - is this just the joint_roots_?
