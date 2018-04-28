@@ -64,11 +64,23 @@ bool move_group::MoveGroupPlanService::computePlanService(moveit_msgs::GetMotion
     context_->planning_pipeline_->generatePlan(ps, req.motion_plan_request, mp_res);
     mp_res.getMessage(res.motion_plan_response);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
+=======
+  catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
+<<<<<<< HEAD
+=======
+  catch (...)
+  {
+    ROS_ERROR("Planning pipeline threw an exception");
+    res.motion_plan_response.error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+>>>>>>> upstream/indigo-devel
 
   return true;
 }

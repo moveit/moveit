@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 <package format="2">
   <name>moveit_planners_chomp</name>
   <description>The interface for using CHOMP within MoveIt!</description>
 
   <version>0.9.11</version>
+=======
+<package>
+  <name>moveit_planners_chomp</name>
+  <description>The interface for using CHOMP within MoveIt!</description>
+
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <author email="gjones@willowgarage.com">Gil Jones</author>
 
   <maintainer email="chitt@live.in">Chittaranjan Srinivas Swaminathan</maintainer>
@@ -13,6 +21,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+<<<<<<< HEAD
   <depend>roscpp</depend>
   <depend>moveit_core</depend>
   <depend>pluginlib</depend>
@@ -23,6 +32,18 @@
   <test_depend>moveit_ros_manipulation</test_depend>
   <test_depend>moveit_ros_planning_interface</test_depend>
   <test_depend>rostest</test_depend>
+=======
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>chomp_motion_planner</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>moveit_experimental</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>pluginlib</run_depend>
+>>>>>>> upstream/indigo-devel
 
   <export>
     <moveit_core plugin="${prefix}/chomp_interface_plugin_description.xml"/>

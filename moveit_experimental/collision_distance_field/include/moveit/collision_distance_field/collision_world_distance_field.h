@@ -44,18 +44,28 @@
 
 namespace collision_detection
 {
+<<<<<<< HEAD
 MOVEIT_CLASS_FORWARD(CollisionWorldDistanceField)
 
+=======
+>>>>>>> upstream/indigo-devel
 class CollisionWorldDistanceField : public CollisionWorld
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+<<<<<<< HEAD
 
   MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry)
   struct DistanceFieldCacheEntry
   {
     std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;
     distance_field::DistanceFieldPtr distance_field_;
+=======
+  struct DistanceFieldCacheEntry
+  {
+    std::map<std::string, std::vector<PosedBodyPointDecompositionPtr>> posed_body_point_decompositions_;
+    boost::shared_ptr<distance_field::DistanceField> distance_field_;
+>>>>>>> upstream/indigo-devel
   };
 
   CollisionWorldDistanceField(Eigen::Vector3d size = Eigen::Vector3d(DEFAULT_SIZE_X, DEFAULT_SIZE_Y, DEFAULT_SIZE_Z),
@@ -80,27 +90,45 @@ public:
                               const robot_state::RobotState& state) const;
 
   virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+<<<<<<< HEAD
                               const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
+=======
+                              const robot_state::RobotState& state,
+                              boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                               const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
   virtual void checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                               const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+<<<<<<< HEAD
                               GroupStateRepresentationPtr& gsr) const;
+=======
+                              boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                    const robot_state::RobotState& state) const;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+<<<<<<< HEAD
                                    const robot_state::RobotState& state, GroupStateRepresentationPtr& gsr) const;
+=======
+                                   const robot_state::RobotState& state,
+                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                    const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const;
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                    const robot_state::RobotState& state, const AllowedCollisionMatrix& acm,
+<<<<<<< HEAD
                                    GroupStateRepresentationPtr& gsr) const;
+=======
+                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   virtual void checkRobotCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2) const
@@ -120,12 +148,17 @@ public:
   {
   }
 
+<<<<<<< HEAD
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
                                bool verbose = false) const
+=======
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
   {
     return 0.0;
   }
   virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+<<<<<<< HEAD
                                const AllowedCollisionMatrix& acm, bool verbose = false) const
   {
     return 0.0;
@@ -136,6 +169,17 @@ public:
   }
   virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
                                bool verbose = false) const
+=======
+                               const AllowedCollisionMatrix& acm) const
+  {
+    return 0.0;
+  }
+  virtual double distanceWorld(const CollisionWorld& world) const
+  {
+    return 0.0;
+  }
+  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
   {
     return 0.0;
   }
@@ -144,18 +188,27 @@ public:
 
   void generateEnvironmentDistanceField(bool redo = true);
 
+<<<<<<< HEAD
   distance_field::DistanceFieldConstPtr getDistanceField() const
+=======
+  boost::shared_ptr<const distance_field::DistanceField> getDistanceField() const
+>>>>>>> upstream/indigo-devel
   {
     return distance_field_cache_entry_->distance_field_;
   }
 
+<<<<<<< HEAD
   collision_detection::GroupStateRepresentationConstPtr getLastGroupStateRepresentation() const
+=======
+  boost::shared_ptr<const collision_detection::GroupStateRepresentation> getLastGroupStateRepresentation() const
+>>>>>>> upstream/indigo-devel
   {
     return last_gsr_;
   }
 
   void getCollisionGradients(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
                              const robot_state::RobotState& state, const AllowedCollisionMatrix* acm,
+<<<<<<< HEAD
                              GroupStateRepresentationPtr& gsr) const;
 
   void getAllCollisions(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
@@ -174,6 +227,28 @@ protected:
 
   bool getEnvironmentProximityGradients(const distance_field::DistanceFieldConstPtr& env_distance_field,
                                         GroupStateRepresentationPtr& gsr) const;
+=======
+                             boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  void getAllCollisions(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                        const robot_state::RobotState& state, const AllowedCollisionMatrix* acm,
+                        boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+protected:
+  boost::shared_ptr<DistanceFieldCacheEntry> generateDistanceFieldCacheEntry();
+
+  void updateDistanceObject(const std::string& id,
+                            boost::shared_ptr<CollisionWorldDistanceField::DistanceFieldCacheEntry>& dfce,
+                            EigenSTL::vector_Vector3d& add_points, EigenSTL::vector_Vector3d& subtract_points);
+
+  bool getEnvironmentCollisions(const CollisionRequest& req, CollisionResult& res,
+                                const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+
+  bool
+  getEnvironmentProximityGradients(const boost::shared_ptr<const distance_field::DistanceField>& env_distance_field,
+                                   boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   static void notifyObjectChange(CollisionWorldDistanceField* self, const ObjectConstPtr& obj, World::Action action);
 
@@ -185,8 +260,13 @@ protected:
   double max_propogation_distance_;
 
   mutable boost::mutex update_cache_lock_;
+<<<<<<< HEAD
   DistanceFieldCacheEntryPtr distance_field_cache_entry_;
   GroupStateRepresentationPtr last_gsr_;
+=======
+  boost::shared_ptr<DistanceFieldCacheEntry> distance_field_cache_entry_;
+  boost::shared_ptr<collision_detection::GroupStateRepresentation> last_gsr_;
+>>>>>>> upstream/indigo-devel
   World::ObserverHandle observer_handle_;
 };
 }

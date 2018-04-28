@@ -76,8 +76,13 @@ protected:
   }
 
 protected:
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdf_model;
   srdf::ModelSharedPtr srdf_model;
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdf_model;
+  boost::shared_ptr<srdf::Model> srdf_model;
+>>>>>>> upstream/indigo-devel
   robot_model::RobotModelPtr kmodel;
 };
 

@@ -39,7 +39,11 @@ add_library(moveit_move_group_capabilities_base
   src/move_group_context.cpp
   src/move_group_capability.cpp
   )
+<<<<<<< HEAD
 set_target_properties(moveit_move_group_capabilities_base PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(moveit_move_group_capabilities_base PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 add_dependencies(moveit_move_group_capabilities_base ${catkin_EXPORTED_TARGETS}) # wait until all *_msgs packages are finished being built
 
 add_executable(move_group src/move_group.cpp)
@@ -59,7 +63,11 @@ add_library(moveit_move_group_default_capabilities
   src/default_capabilities/apply_planning_scene_service_capability.cpp
   src/default_capabilities/clear_octomap_service_capability.cpp
   )
+<<<<<<< HEAD
 set_target_properties(moveit_move_group_default_capabilities PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(moveit_move_group_default_capabilities PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 add_dependencies(moveit_move_group_default_capabilities ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(moveit_move_group_capabilities_base ${catkin_LIBRARIES} ${Boost_LIBRARIES})

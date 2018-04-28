@@ -475,6 +475,13 @@ public:
     return absolute_z_axis_tolerance_;
   }
 
+<<<<<<< HEAD
+=======
+  /** \brief Change this constraint to a different link, applying a specified rotation to the constraint region.
+      This should be used for links that are associated to each other via fixed transforms */
+  void swapLinkModel(const robot_model::LinkModel* new_link, const Eigen::Matrix3d& update);
+
+>>>>>>> upstream/indigo-devel
 protected:
   const robot_model::LinkModel* link_model_;    /**< \brief The target link model */
   Eigen::Matrix3d desired_rotation_matrix_;     /**< \brief The desired rotation matrix in the tf frame */
@@ -638,6 +645,13 @@ public:
     return mobile_frame_;
   }
 
+<<<<<<< HEAD
+=======
+  /** \brief Change this constraint to a different link, applying a specified transform to the constraint region.
+      This should be used for links that are associated to each other via fixed transforms */
+  void swapLinkModel(const robot_model::LinkModel* new_link, const Eigen::Affine3d& update);
+
+>>>>>>> upstream/indigo-devel
 protected:
   Eigen::Vector3d offset_;                         /**< \brief The target offset */
   bool has_offset_;                                /**< \brief Whether the offset is substantially different than 0.0 */

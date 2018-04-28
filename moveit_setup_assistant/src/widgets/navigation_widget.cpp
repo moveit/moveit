@@ -163,7 +163,12 @@ void NavDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, c
   QRect textRect(option.rect.x() + 10, option.rect.y(), option.rect.width() - 10, option.rect.height());
 
   QFont textFont(painter->font());
+<<<<<<< HEAD
   textFont.setPixelSize(14);  // Set font size
+=======
+  textFont.setPixelSize(14);    // Set font size
+  textFont.setFamily("Arial");  // Helvetica Neue");
+>>>>>>> upstream/indigo-devel
   painter->setFont(textFont);
 
   // Font color

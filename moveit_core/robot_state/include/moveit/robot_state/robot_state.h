@@ -525,7 +525,11 @@ public:
   {
     if (has_acceleration_)
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Unable to set joint efforts because array is being used for accelerations");
+=======
+      logError("Unable to set joint efforts because array is being used for accelerations");
+>>>>>>> upstream/indigo-devel
       return;
     }
     has_effort_ = true;
@@ -1297,6 +1301,7 @@ as the new values that correspond to the group */
   /** \brief Update all transforms. */
   void update(bool force = false);
 
+<<<<<<< HEAD
   /** \brief Update the state after setting a particular link to the input global transform pose.
 
       This "warps" the given link to the given pose, neglecting the joint values of its parent joint.
@@ -1305,6 +1310,9 @@ as the new values that correspond to the group */
       Collision body transforms are not yet updated, but marked dirty only.
       Use update(false) or updateCollisionBodyTransforms() to update them as well.
    */
+=======
+  /** \brief Update the state after setting a particular link to the input global transform pose.*/
+>>>>>>> upstream/indigo-devel
   void updateStateWithLinkAt(const std::string& link_name, const Eigen::Affine3d& transform, bool backward = false)
   {
     updateStateWithLinkAt(robot_model_->getLinkModel(link_name), transform, backward);
@@ -1495,6 +1503,7 @@ as the new values that correspond to the group */
   std::pair<double, const JointModel*>
   getMinDistanceToPositionBounds(const std::vector<const JointModel*>& joints) const;
 
+<<<<<<< HEAD
   /**
    * \brief Check that the time to move between two waypoints is sufficient given velocity limits and time step
    * \param other - robot state to compare joint positions against
@@ -1503,6 +1512,8 @@ as the new values that correspond to the group */
    */
   bool isValidVelocityMove(const RobotState& other, const JointModelGroup* group, double dt) const;
 
+=======
+>>>>>>> upstream/indigo-devel
   /** @} */
 
   /** \name Managing attached bodies
@@ -1721,26 +1732,38 @@ private:
     for (std::size_t i = 0; i < mim.size(); ++i)
     {
       position_[mim[i]->getFirstVariableIndex()] = mim[i]->getMimicFactor() * v + mim[i]->getMimicOffset();
+<<<<<<< HEAD
       markDirtyJointTransforms(mim[i]);
+=======
+      dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
+>>>>>>> upstream/indigo-devel
     }
   }
 
   /** \brief Update a set of joints that are certain to be mimicking other joints */
+<<<<<<< HEAD
   /* use updateMimicJoints() instead, which also marks joints dirty */
   MOVEIT_DEPRECATED void updateMimicJoint(const std::vector<const JointModel*>& mim)
+=======
+  void updateMimicJoint(const std::vector<const JointModel*>& mim)
+>>>>>>> upstream/indigo-devel
   {
     for (std::size_t i = 0; i < mim.size(); ++i)
     {
       const int fvi = mim[i]->getFirstVariableIndex();
       position_[fvi] =
           mim[i]->getMimicFactor() * position_[mim[i]->getMimic()->getFirstVariableIndex()] + mim[i]->getMimicOffset();
+<<<<<<< HEAD
       // Only mark joint transform dirty, but not the associated link transform
       // as this function is always used in combination of
       // updateMimicJoint(group->getMimicJointModels()) + markDirtyJointTransforms(group);
+=======
+>>>>>>> upstream/indigo-devel
       dirty_joint_transforms_[mim[i]->getJointIndex()] = 1;
     }
   }
 
+<<<<<<< HEAD
   /** \brief Update all mimic joints within group */
   void updateMimicJoints(const JointModelGroup* group)
   {
@@ -1753,6 +1776,8 @@ private:
     markDirtyJointTransforms(group);
   }
 
+=======
+>>>>>>> upstream/indigo-devel
   void updateLinkTransformsInternal(const JointModel* start);
 
   void getMissingKeys(const std::map<std::string, double>& variable_map,

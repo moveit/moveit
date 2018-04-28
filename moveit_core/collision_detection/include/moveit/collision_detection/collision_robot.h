@@ -59,7 +59,11 @@ public:
    *  @param padding The padding to use for all objects/links on the robot
    *  @scale scale A common scaling to use for all objects/links on the robot
    */
+<<<<<<< HEAD
   CollisionRobot(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);  // NOLINT
+=======
+  CollisionRobot(const robot_model::RobotModelConstPtr& model, double padding = 0.0, double scale = 1.0);
+>>>>>>> upstream/indigo-devel
 
   /**  @brief A copy constructor*/
   CollisionRobot(const CollisionRobot& other);

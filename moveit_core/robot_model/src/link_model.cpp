@@ -39,11 +39,27 @@
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/robot_model/aabb.h>
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 LinkModel::LinkModel(const std::string& name)
+=======
+#include <map>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/lock_guard.hpp>
+
+/** \brief Center of the axis aligned bounding box per link (zero if symmetric along all axes). Always lock the
+ * mutex_centered_bounding_box_offsets when working with this map!
+ *
+ * This global variable is used to retain ABI compatibility for indigo. The kinetic version uses a member variable.
+ */
+std::map<const moveit::core::LinkModel* const, Eigen::Vector3d> centered_bounding_box_offsets;
+boost::mutex mutex_centered_bounding_box_offsets;
+
+moveit::core::LinkModel::LinkModel(const std::string& name)
+>>>>>>> upstream/indigo-devel
   : name_(name)
   , parent_joint_model_(NULL)
   , parent_link_model_(NULL)
@@ -53,13 +69,19 @@ LinkModel::LinkModel(const std::string& name)
   , link_index_(-1)
 {
   joint_origin_transform_.setIdentity();
+  centered_bounding_box_offsets[this] = Eigen::Vector3d::Zero();
 }
 
 LinkModel::~LinkModel()
 {
+  centered_bounding_box_offsets.erase(this);
 }
 
+<<<<<<< HEAD
 void LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
+=======
+void moveit::core::LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
+>>>>>>> upstream/indigo-devel
 {
   joint_origin_transform_ = transform;
   joint_origin_transform_is_identity_ =
@@ -67,13 +89,22 @@ void LinkModel::setJointOriginTransform(const Eigen::Affine3d& transform)
       joint_origin_transform_.translation().norm() < std::numeric_limits<double>::epsilon();
 }
 
+<<<<<<< HEAD
 void LinkModel::setParentJointModel(const JointModel* joint)
+=======
+void moveit::core::LinkModel::setParentJointModel(const JointModel* joint)
+>>>>>>> upstream/indigo-devel
 {
   parent_joint_model_ = joint;
   is_parent_joint_fixed_ = joint->getType() == JointModel::FIXED;
 }
 
+<<<<<<< HEAD
 void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, const EigenSTL::vector_Affine3d& origins)
+=======
+void moveit::core::LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes,
+                                          const EigenSTL::vector_Affine3d& origins)
+>>>>>>> upstream/indigo-devel
 {
   shapes_ = shapes;
   collision_origin_transform_ = origins;
@@ -107,20 +138,44 @@ void LinkModel::setGeometry(const std::vector<shapes::ShapeConstPtr>& shapes, co
     }
   }
 
+<<<<<<< HEAD
   centered_bounding_box_offset_ = aabb.center();
+=======
+  {
+    boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
+    centered_bounding_box_offsets[this] = aabb.center();
+  }
+>>>>>>> upstream/indigo-devel
   if (shapes_.empty())
     shape_extents_.setZero();
   else
     shape_extents_ = aabb.sizes();
 }
 
+<<<<<<< HEAD
 void LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
                               const Eigen::Vector3d& scale)
+=======
+void moveit::core::LinkModel::setVisualMesh(const std::string& visual_mesh, const Eigen::Affine3d& origin,
+                                            const Eigen::Vector3d& scale)
+>>>>>>> upstream/indigo-devel
 {
   visual_mesh_filename_ = visual_mesh;
   visual_mesh_origin_ = origin;
   visual_mesh_scale_ = scale;
 }
 
+<<<<<<< HEAD
 }  // end of namespace core
 }  // end of namespace moveit
+=======
+const Eigen::Vector3d moveit::core::LinkModel::getCenteredBoundingBoxOffset() const
+{
+  Eigen::Vector3d offset;
+  boost::lock_guard<boost::mutex> lock(mutex_centered_bounding_box_offsets);
+
+  offset = centered_bounding_box_offsets.at(this);
+
+  return offset;
+}
+>>>>>>> upstream/indigo-devel

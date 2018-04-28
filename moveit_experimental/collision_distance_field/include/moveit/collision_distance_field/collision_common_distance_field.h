@@ -45,8 +45,12 @@
 
 namespace collision_detection
 {
+<<<<<<< HEAD
 MOVEIT_CLASS_FORWARD(GroupStateRepresentation);
 MOVEIT_CLASS_FORWARD(DistanceFieldCacheEntry);
+=======
+struct DistanceFieldCacheEntry;
+>>>>>>> upstream/indigo-devel
 
 /** collision volume representation for a particular pose and link group
  *
@@ -81,7 +85,11 @@ struct GroupStateRepresentation
   }
 
   /** dfce used to generate this GSR */
+<<<<<<< HEAD
   DistanceFieldCacheEntryConstPtr dfce_;
+=======
+  boost::shared_ptr<const DistanceFieldCacheEntry> dfce_;
+>>>>>>> upstream/indigo-devel
 
   /** posed spheres representing collision volume for the links in the group
    * (dfce_.group_name_) and all links below the group (i.e. links that can
@@ -177,7 +185,12 @@ PosedBodySphereDecompositionVectorPtr getAttachedBodySphereDecomposition(const r
 PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const robot_state::AttachedBody* att,
                                                                        double resolution);
 
+<<<<<<< HEAD
 void getBodySphereVisualizationMarkers(GroupStateRepresentationPtr& gsr, std::string reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array);
+=======
+void getBodySphereVisualizationMarkers(boost::shared_ptr<const collision_detection::GroupStateRepresentation>& gsr,
+                                       std::string reference_frame, visualization_msgs::MarkerArray& body_marker_array);
+>>>>>>> upstream/indigo-devel
 }
 #endif

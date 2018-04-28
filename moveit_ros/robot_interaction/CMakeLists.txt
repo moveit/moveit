@@ -42,7 +42,11 @@ add_library(${MOVEIT_LIB_NAME}
   src/locked_robot_state.cpp
   src/interaction_handler.cpp
   src/robot_interaction.cpp)
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 if (CATKIN_ENABLE_TESTING)

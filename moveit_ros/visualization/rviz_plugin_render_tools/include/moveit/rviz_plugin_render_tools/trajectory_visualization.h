@@ -40,8 +40,11 @@
 #include <moveit/macros/class_forward.h>
 #include <rviz/display.h>
 #include <rviz/panel_dock_widget.h>
+<<<<<<< HEAD
 
 #ifndef Q_MOC_RUN
+=======
+>>>>>>> upstream/indigo-devel
 #include <moveit/rviz_plugin_render_tools/robot_state_visualization.h>
 #include <moveit/rviz_plugin_render_tools/trajectory_panel.h>
 #include <ros/ros.h>

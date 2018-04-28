@@ -43,14 +43,38 @@
 
 namespace moveit_warehouse
 {
+<<<<<<< HEAD
 /** \brief This class provides the mechanism to connect to a database and reads needed ROS parameters when appropriate.
+=======
+/** \brief This class provides the mechanism to connect to a MongoDB and reads needed ROS parameters when appropriate.
+>>>>>>> upstream/indigo-devel
  */
 class MoveItMessageStorage
 {
 public:
+<<<<<<< HEAD
   /// \brief Takes a warehouse_ros DatabaseConnection.  The DatabaseConnection is expected to have already been
   /// initialized.
   MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn);
+=======
+  /** \brief Initialize the storage to connect to a specified \e host and \e port for the MongoDB.
+      If defaults are used for the parameters (empty host name, 0 port), the constructor looks for ROS params specifying
+      which host/port to use. NodeHandle::searchParam() is used starting from ~ to look for warehouse_port and
+     warehouse_host.
+      If these params are not found either, a final attempt is made to look for the param values under
+     /moveit_warehouse/warehouse_*.
+      If no values are found, the defaults are left to be the ones MongoDB uses.
+      If \e wait_seconds is above 0, then a maximum number of seconds can elapse until connection is successful, or a
+     runtime exception is thrown. */
+  MoveItMessageStorage(const std::string& host = "", const unsigned int port = 0, double wait_seconds = 5.0);
+
+  virtual ~MoveItMessageStorage();
+
+  const std::string& getDatabaseHost() const
+  {
+    return db_host_;
+  }
+>>>>>>> upstream/indigo-devel
 
   virtual ~MoveItMessageStorage()
   {
@@ -60,7 +84,15 @@ protected:
   /// Keep only the \e names that match \e regex
   void filterNames(const std::string& regex, std::vector<std::string>& names) const;
 
+<<<<<<< HEAD
   warehouse_ros::DatabaseConnection::Ptr conn_;
+=======
+  void drop(const std::string& db);
+
+  std::string db_host_;
+  unsigned int db_port_;
+  double timeout_;
+>>>>>>> upstream/indigo-devel
 };
 
 /// \brief Load a database connection

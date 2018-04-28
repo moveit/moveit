@@ -133,7 +133,11 @@ public:
             if (controller_list[i].hasMember("allow_failure"))
               static_cast<GripperControllerHandle*>(new_handle.get())->allowFailure(true);
 
+<<<<<<< HEAD
             ROS_INFO_STREAM_NAMED("manager", "Added GripperCommand controller for " << name);
+=======
+            ROS_INFO_STREAM("Added GripperCommand controller for " << name);
+>>>>>>> upstream/indigo-devel
             controllers_[name] = new_handle;
           }
         }
@@ -142,7 +146,11 @@ public:
           new_handle.reset(new FollowJointTrajectoryControllerHandle(name, action_ns));
           if (static_cast<FollowJointTrajectoryControllerHandle*>(new_handle.get())->isConnected())
           {
+<<<<<<< HEAD
             ROS_INFO_STREAM_NAMED("manager", "Added FollowJointTrajectory controller for " << name);
+=======
+            ROS_INFO_STREAM("Added FollowJointTrajectory controller for " << name);
+>>>>>>> upstream/indigo-devel
             controllers_[name] = new_handle;
           }
         }
@@ -225,9 +233,15 @@ public:
     }
     else
     {
+<<<<<<< HEAD
       ROS_WARN_NAMED("manager", "The joints for controller '%s' are not known. Perhaps the controller configuration is "
                                 "not loaded on the param server?",
                      name.c_str());
+=======
+      ROS_WARN("The joints for controller '%s' are not known. Perhaps the controller configuration is not loaded on "
+               "the param server?",
+               name.c_str());
+>>>>>>> upstream/indigo-devel
       joints.clear();
     }
   }

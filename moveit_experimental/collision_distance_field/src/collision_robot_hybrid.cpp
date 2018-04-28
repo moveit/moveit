@@ -71,7 +71,11 @@ void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detec
 void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult& res,
                                                            const robot_state::RobotState& state,
+<<<<<<< HEAD
                                                            GroupStateRepresentationPtr& gsr) const
+=======
+                                                           boost::shared_ptr<GroupStateRepresentation>& gsr) const
+>>>>>>> upstream/indigo-devel
 {
   crobot_distance_->checkSelfCollision(req, res, state, gsr);
 }
@@ -88,7 +92,11 @@ void CollisionRobotHybrid::checkSelfCollisionDistanceField(const collision_detec
                                                            collision_detection::CollisionResult& res,
                                                            const robot_state::RobotState& state,
                                                            const collision_detection::AllowedCollisionMatrix& acm,
+<<<<<<< HEAD
                                                            GroupStateRepresentationPtr& gsr) const
+=======
+                                                           boost::shared_ptr<GroupStateRepresentation>& gsr) const
+>>>>>>> upstream/indigo-devel
 {
   crobot_distance_->checkSelfCollision(req, res, state, acm, gsr);
 }

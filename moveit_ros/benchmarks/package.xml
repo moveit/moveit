@@ -1,19 +1,32 @@
 <package>
   <name>moveit_ros_benchmarks</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
 
   <description>Enhanced tools for benchmarks in MoveIt!</description>
 
   <author email="rluna@rice.edu">Ryan Luna</author>
+<<<<<<< HEAD
 
   <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
   <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+=======
+>>>>>>> upstream/indigo-devel
 
+  <maintainer email="dave@dav.ee">Dave Coleman</maintainer>
+  <maintainer email="moveit_releasers@googlegroups.com">MoveIt! Release Team</maintainer>
+  <license>BSD</license>
   <url type="website">http://moveit.ros.org</url>
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit</url>
+<<<<<<< HEAD
 
   <license>BSD</license>
+=======
+>>>>>>> upstream/indigo-devel
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -39,7 +39,11 @@
 
 moveit::ConstructException::ConstructException(const std::string& what_arg) : std::runtime_error(what_arg)
 {
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logError("Error during construction of object: %s\nException thrown.", what_arg.c_str());
+=======
+  logError("Error during construction of object: %s\nException thrown.", what_arg.c_str());
+>>>>>>> upstream/indigo-devel
 }
 
 moveit::Exception::Exception(const std::string& what_arg) : std::runtime_error(what_arg)

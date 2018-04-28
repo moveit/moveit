@@ -58,8 +58,11 @@
 #include <boost/algorithm/string.hpp>  // for trimming whitespace from user input
 #include <boost/filesystem.hpp>        // for reading folders/files
 #include <boost/algorithm/string.hpp>  // for string find and replace in paths
+<<<<<<< HEAD
 // MoveIt
 #include <moveit/rdf_loader/rdf_loader.h>
+=======
+>>>>>>> upstream/indigo-devel
 
 namespace moveit_setup_assistant
 {
@@ -116,11 +119,14 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
     ROS_ERROR_STREAM("FAILED TO LOAD " << image_path);
   }
 
+<<<<<<< HEAD
   right_layout->addWidget(logo_image_label_);
   right_layout->setAlignment(logo_image_label_, Qt::AlignLeft | Qt::AlignTop);
   right_layout->addWidget(right_image_label_);
   right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
 
+=======
+>>>>>>> upstream/indigo-devel
   // Top Label Area ---------------------------------------------------
   HeaderWidget* header = new HeaderWidget(
       "MoveIt Setup Assistant", "Welcome to the MoveIt Setup Assistant! These tools will assist you in creating a "
@@ -130,6 +136,12 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
                                 "groups, OMPL planner, planning contexts and the planning warehouse.",
       this);
   layout->addWidget(header);
+<<<<<<< HEAD
+=======
+
+  left_layout->addWidget(logo_image_label_);
+  left_layout->setAlignment(logo_image_label_, Qt::AlignLeft | Qt::AlignTop);
+>>>>>>> upstream/indigo-devel
 
   // Select Mode Area -------------------------------------------------
   select_mode_ = new SelectModeWidget(this);
@@ -140,6 +152,7 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   // Path Box Area ----------------------------------------------------
 
   // Stack Path Dialog
+<<<<<<< HEAD
   stack_path_ =
       new LoadPathArgsWidget("Load MoveIt Configuration Package Path",
                              "Specify the package name or path of an existing MoveIt configuration package to be "
@@ -160,6 +173,32 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   urdf_file_->setArgs("--inorder ");
   connect(urdf_file_, SIGNAL(pathChanged(QString)), this, SLOT(onUrdfPathChanged(QString)));
   left_layout->addWidget(urdf_file_);
+=======
+  stack_path_ = new LoadPathWidget("Load MoveIt Configuration Package Path",
+                                   "Specify the package name or path of an existing MoveIt configuration package to be "
+                                   "edited for your robot. Example package name: <i>pr2_moveit_config</i>",
+                                   true, this);  // is directory
+  stack_path_->hide();                           // user needs to select option before this is shown
+  left_layout->addWidget(stack_path_);
+
+  // URDF File Dialog
+  urdf_file_ =
+      new LoadPathWidget("Load a URDF or COLLADA Robot Model",
+                         "Specify the location of an existing Universal Robot Description Format or COLLADA file for "
+                         "your robot. The robot model will be loaded to the parameter server for you.",
+                         false, true, this);  // no directory, load only
+  urdf_file_->hide();                         // user needs to select option before this is shown
+  left_layout->addWidget(urdf_file_);
+
+  // Checkbox to enable Jade+ xacro extensions when loading xacros.
+  // Add it to the urdf LoadPathWidget's layout instead of to the left_layout,
+  // as we want this widget to appear on the urdf LoadPathWidget only.
+  chk_use_jade_xacro_ = new QCheckBox("Enable Jade+ xacro extensions", urdf_file_);
+  chk_use_jade_xacro_->setToolTip("Enables the use of the xacro extensions that are available on ROS Jade and\n"
+                                  "newer in ROS Indigo. Enable this if the xacro that will be loaded makes use\n"
+                                  "of any of those features.");
+  urdf_file_->layout()->addWidget(chk_use_jade_xacro_);
+>>>>>>> upstream/indigo-devel
 
   // Load settings box ---------------------------------------------
   QHBoxLayout* load_files_layout = new QHBoxLayout();
@@ -169,6 +208,10 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   progress_bar_->setMinimum(0);
   progress_bar_->hide();
   load_files_layout->addWidget(progress_bar_);
+<<<<<<< HEAD
+=======
+  // load_files_layout->setContentsMargins( 20, 30, 20, 30 );
+>>>>>>> upstream/indigo-devel
 
   btn_load_ = new QPushButton("&Load Files", this);
   btn_load_->setMinimumWidth(180);
@@ -180,12 +223,22 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
 
   // Next step instructions
   next_label_ = new QLabel(this);
+<<<<<<< HEAD
   QFont next_label_font(QFont().defaultFamily(), 11, QFont::Bold);
+=======
+  QFont next_label_font("Arial", 11, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   next_label_->setFont(next_label_font);
   // next_label_->setWordWrap(true);
   next_label_->setText("Success! Use the left navigation pane to continue.");
   //  next_label_->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
   next_label_->hide();  // only show once the files have been loaded.
+<<<<<<< HEAD
+=======
+
+  right_layout->addWidget(right_image_label_);
+  right_layout->setAlignment(right_image_label_, Qt::AlignRight | Qt::AlignTop);
+>>>>>>> upstream/indigo-devel
 
   // Final Layout Setup ---------------------------------------------
   // Alignment
@@ -195,7 +248,12 @@ StartScreenWidget::StartScreenWidget(QWidget* parent, moveit_setup_assistant::Mo
   right_layout->setAlignment(Qt::AlignTop);
 
   // Stretch
+<<<<<<< HEAD
   left_layout->setSpacing(10);
+=======
+  left_layout->setSpacing(30);
+  // hlayout->setContentsMargins( 0, 20, 0, 0);
+>>>>>>> upstream/indigo-devel
 
   // Attach Layouts
   hlayout->addLayout(left_layout);
@@ -310,6 +368,7 @@ void StartScreenWidget::loadFilesClick()
     right_image_label_->hide();
     logo_image_label_->hide();
   }
+<<<<<<< HEAD
 }
 
 void StartScreenWidget::onPackagePathChanged(const QString& path)
@@ -318,16 +377,25 @@ void StartScreenWidget::onPackagePathChanged(const QString& path)
     return;
   // set xacro args from loaded settings
   stack_path_->setArgs(QString::fromStdString(config_data_->xacro_args_));
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 void StartScreenWidget::onUrdfPathChanged(const QString& path)
 {
+<<<<<<< HEAD
   urdf_file_->setArgsEnabled(rdf_loader::RDFLoader::isXacroFile(path.toStdString()));
 }
+=======
+  // Progress Indicator
+  progress_bar_->setValue(10);
+  QApplication::processEvents();
+>>>>>>> upstream/indigo-devel
 
 bool StartScreenWidget::loadPackageSettings(bool show_warnings)
 {
   // Get the package path
+<<<<<<< HEAD
   std::string package_path_input = stack_path_->getPath();
   // Check that input is provided
   if (package_path_input.empty())
@@ -344,28 +412,46 @@ bool StartScreenWidget::loadPackageSettings(bool show_warnings)
       QMessageBox::critical(this, "Error Loading Files", "The specified path is not a directory or is not accessable");
     return false;
   }
+=======
+  if (!createFullPackagePath())
+    return false;  // error occured
+>>>>>>> upstream/indigo-devel
 
   std::string setup_assistant_path;
 
   // Check if the old package is a setup assistant package. If it is not, quit
   if (!config_data_->getSetupAssistantYAMLPath(setup_assistant_path))
   {
+<<<<<<< HEAD
     if (show_warnings)
       QMessageBox::warning(
           this, "Incorrect Directory/Package",
           QString("The chosen package location exists but was not created using MoveIt Setup Assistant. "
                   "If this is a mistake, provide the missing file: ")
               .append(setup_assistant_path.c_str()));
+=======
+    QMessageBox::warning(
+        this, "Incorrect Directory/Package",
+        QString("The chosen package location exists but was not previously created using this MoveIt Setup Assistant. "
+                "If this is a mistake, replace the missing file: ")
+            .append(setup_assistant_path.c_str()));
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
   // Get setup assistant data
   if (!config_data_->inputSetupAssistantYAML(setup_assistant_path))
   {
+<<<<<<< HEAD
     if (show_warnings)
       QMessageBox::warning(this, "Setup Assistant File Error",
                            QString("Unable to correctly parse the setup assistant configuration file: ")
                                .append(setup_assistant_path.c_str()));
+=======
+    QMessageBox::warning(this, "Setup Assistant File Error",
+                         QString("Unable to correctly parse the setup assistant configuration file: ")
+                             .append(setup_assistant_path.c_str()));
+>>>>>>> upstream/indigo-devel
     return false;
   }
   return true;
@@ -390,12 +476,18 @@ bool StartScreenWidget::loadExistingFiles()
   // Get the URDF path using the loaded .setup_assistant data and check it
   if (!createFullURDFPath())
     return false;  // error occured
+<<<<<<< HEAD
 
   // use xacro args from GUI
   config_data_->xacro_args_ = stack_path_->getArgs().toStdString();
 
   // Load the URDF
   if (!loadURDFFile(config_data_->urdf_path_, config_data_->xacro_args_))
+=======
+
+  // Load the URDF
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->urdf_requires_jade_xacro_))
+>>>>>>> upstream/indigo-devel
     return false;  // error occured
 
   // Get the SRDF path using the loaded .setup_assistant data and check it
@@ -460,6 +552,8 @@ bool StartScreenWidget::loadNewFiles()
 {
   // Get URDF file path
   config_data_->urdf_path_ = urdf_file_->getPath();
+  // Check whether user wants to enable Jade+ Xacro extensions (only used when actually loading a XACRO)
+  config_data_->urdf_requires_jade_xacro_ = chk_use_jade_xacro_->isChecked();
 
   // Check that box is filled out
   if (config_data_->urdf_path_.empty())
@@ -490,7 +584,11 @@ bool StartScreenWidget::loadNewFiles()
   config_data_->xacro_args_ = urdf_file_->getArgs().toStdString();
 
   // Load the URDF to the parameter server and check that it is correct format
+<<<<<<< HEAD
   if (!loadURDFFile(config_data_->urdf_path_, config_data_->xacro_args_))
+=======
+  if (!loadURDFFile(config_data_->urdf_path_, config_data_->urdf_requires_jade_xacro_))
+>>>>>>> upstream/indigo-devel
     return false;  // error occurred
 
   // Progress Indicator
@@ -537,22 +635,75 @@ bool StartScreenWidget::loadNewFiles()
 // ******************************************************************************************
 // Load URDF File to Parameter Server
 // ******************************************************************************************
+<<<<<<< HEAD
 bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args)
 {
   const std::vector<std::string> xacro_args_ = { xacro_args };
 
   std::string urdf_string;
   if (!rdf_loader::RDFLoader::loadXmlFileToString(urdf_string, urdf_file_path, xacro_args_))
+=======
+bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, bool use_jade_xacro)
+{
+  // check that URDF can be loaded
+  std::ifstream urdf_stream(urdf_file_path.c_str());
+  if (!urdf_stream.good())  // File not found
+>>>>>>> upstream/indigo-devel
   {
     QMessageBox::warning(this, "Error Loading Files",
                          QString("URDF/COLLADA file not found: ").append(urdf_file_path.c_str()));
     return false;
   }
 
+<<<<<<< HEAD
   if (urdf_string.empty() && rdf_loader::RDFLoader::isXacroFile(urdf_file_path))
   {
     QMessageBox::warning(this, "Error Loading Files", "Running xacro failed.\nPlease check console for errors.");
     return false;
+=======
+  if (urdf_file_path.find(".xacro") != std::string::npos)
+  {
+    std::string cmd("rosrun xacro xacro.py ");
+
+    // enable Jade+ xacro extensions
+    if (use_jade_xacro)
+      cmd += "--inorder ";
+
+    cmd += urdf_file_path;
+    ROS_INFO("Running '%s'...", cmd.c_str());
+
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe)
+    {
+      QMessageBox::warning(this, "Error Loading Files",
+                           QString("XACRO file or parser not found: ").append(urdf_file_path.c_str()));
+      return false;
+    }
+    char buffer[128] = { 0 };
+    while (!feof(pipe))
+    {
+      if (fgets(buffer, sizeof(buffer), pipe) != NULL)
+        urdf_string += buffer;
+    }
+    pclose(pipe);
+
+    if (urdf_string.empty())
+    {
+      QMessageBox::warning(this, "Error Loading Files",
+                           QString("Unable to parse XACRO file: ").append(urdf_file_path.c_str()));
+      return false;
+    }
+    xacro = true;
+  }
+  else
+  {
+    // Load the file to a string using an efficient memory allocation technique
+    urdf_stream.seekg(0, std::ios::end);
+    urdf_string.reserve(urdf_stream.tellg());
+    urdf_stream.seekg(0, std::ios::beg);
+    urdf_string.assign((std::istreambuf_iterator<char>(urdf_stream)), std::istreambuf_iterator<char>());
+    urdf_stream.close();
+>>>>>>> upstream/indigo-devel
   }
 
   // Verify that file is in correct format / not an XACRO by loading into robot model
@@ -588,6 +739,7 @@ bool StartScreenWidget::loadURDFFile(const std::string& urdf_file_path, const st
 // ******************************************************************************************
 bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path)
 {
+<<<<<<< HEAD
   const std::vector<std::string> xacro_args;
 
   std::string srdf_string;
@@ -597,6 +749,25 @@ bool StartScreenWidget::loadSRDFFile(const std::string& srdf_file_path)
     return false;
   }
 
+=======
+  // check that SRDF can be loaded
+  std::ifstream srdf_stream(srdf_file_path.c_str());
+  if (!srdf_stream.good())  // File not found
+  {
+    QMessageBox::warning(this, "Error Loading Files",
+                         QString("SRDF file not found: ").append(config_data_->srdf_path_.c_str()));
+    return false;
+  }
+
+  // Load the file to a string using an efficient memory allocation technique
+  std::string srdf_string;
+  srdf_stream.seekg(0, std::ios::end);
+  srdf_string.reserve(srdf_stream.tellg());
+  srdf_stream.seekg(0, std::ios::beg);
+  srdf_string.assign((std::istreambuf_iterator<char>(srdf_stream)), std::istreambuf_iterator<char>());
+  srdf_stream.close();
+
+>>>>>>> upstream/indigo-devel
   // Put on param server
   return setSRDFFile(srdf_string);
 }
@@ -746,9 +917,15 @@ bool StartScreenWidget::createFullURDFPath()
     }
     else
     {
+<<<<<<< HEAD
       QMessageBox::warning(this, "Error Loading Files",
                            QString("Unable to locate the URDF file in package. Expected File: \n")
                                .append(config_data_->urdf_path_.c_str()));
+=======
+      QMessageBox::warning(
+          this, "Error Loading Files",
+          QString("Unable to locate the URDF file in package. File: ").append(config_data_->urdf_path_.c_str()));
+>>>>>>> upstream/indigo-devel
     }
     return false;
   }
@@ -778,6 +955,32 @@ bool StartScreenWidget::createFullSRDFPath(const std::string& package_path)
 }
 
 // ******************************************************************************************
+<<<<<<< HEAD
+=======
+// Get the full package path for editing an existing package
+// ******************************************************************************************
+bool StartScreenWidget::createFullPackagePath()
+{
+  // Get package path
+  std::string package_path_input = stack_path_->getPath();
+  // check that input is provided
+  if (package_path_input.empty())
+  {
+    QMessageBox::warning(this, "Error Loading Files", "Please specify a configuration package path to load.");
+    return false;
+  }
+
+  // check that the folder exists
+  if (!config_data_->setPackagePath(package_path_input))
+  {
+    QMessageBox::critical(this, "Error Loading Files", "The specified path is not a directory or is not accessable");
+    return false;
+  }
+  return true;
+}
+
+// ******************************************************************************************
+>>>>>>> upstream/indigo-devel
 // ******************************************************************************************
 // Class for selecting which mode
 // ******************************************************************************************
@@ -803,7 +1006,11 @@ SelectModeWidget::SelectModeWidget(QWidget* parent) : QFrame(parent)
   // Widget Title
   QLabel* widget_title = new QLabel(this);
   widget_title->setText("Choose mode:");
+<<<<<<< HEAD
   QFont widget_title_font(QFont().defaultFamily(), 12, QFont::Bold);
+=======
+  QFont widget_title_font("Arial", 12, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   widget_title->setFont(widget_title_font);
   layout->addWidget(widget_title);
   layout->setAlignment(widget_title, Qt::AlignTop);

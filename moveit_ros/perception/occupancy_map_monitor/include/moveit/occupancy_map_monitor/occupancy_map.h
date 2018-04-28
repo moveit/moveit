@@ -113,8 +113,13 @@ private:
   boost::function<void()> update_callback_;
 };
 
+<<<<<<< HEAD
 typedef std::shared_ptr<OccMapTree> OccMapTreePtr;
 typedef std::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
+=======
+typedef boost::shared_ptr<OccMapTree> OccMapTreePtr;
+typedef boost::shared_ptr<const OccMapTree> OccMapTreeConstPtr;
+>>>>>>> upstream/indigo-devel
 }
 
 #endif

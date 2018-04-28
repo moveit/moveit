@@ -319,11 +319,23 @@ void RobotPosesWidget::editDoubleClicked(int row, int column)
 // ******************************************************************************************
 void RobotPosesWidget::previewClicked(int row, int column)
 {
+<<<<<<< HEAD
   const std::string& name = data_table_->item(row, 0)->text().toStdString();
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
 
   // Find the selected in datastructure
   srdf::Model::GroupState* pose = findPoseByName(name, group);
+=======
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if (!selected.size())
+    return;
+
+  // Find the selected in datastructure
+  srdf::Model::GroupState* pose = findPoseByName(selected[0]->text().toStdString());
+>>>>>>> upstream/indigo-devel
 
   showPose(pose);
 }
@@ -405,21 +417,38 @@ void RobotPosesWidget::playPoses()
 // ******************************************************************************************
 void RobotPosesWidget::editSelected()
 {
+<<<<<<< HEAD
   const auto& ranges = data_table_->selectedRanges();
   if (!ranges.size())
     return;
   edit(ranges[0].bottomRow());
+=======
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if (!selected.size())
+    return;
+
+  // Get selected name and edit it
+  edit(selected[0]->text().toStdString());
+>>>>>>> upstream/indigo-devel
 }
 
 // ******************************************************************************************
 // Edit pose
 // ******************************************************************************************
+<<<<<<< HEAD
 void RobotPosesWidget::edit(int row)
+=======
+void RobotPosesWidget::edit(const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   const std::string& name = data_table_->item(row, 0)->text().toStdString();
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
 
   // Find the selected in datastruture
+<<<<<<< HEAD
   srdf::Model::GroupState* pose = findPoseByName(name, group);
   current_edit_pose_ = pose;
 
@@ -434,6 +463,12 @@ void RobotPosesWidget::edit(int row)
     return;
   }
   group_name_field_->setCurrentIndex(index);
+=======
+  srdf::Model::GroupState* pose = findPoseByName(name);
+
+  // Set pose name
+  pose_name_field_->setText(pose->name_.c_str());
+>>>>>>> upstream/indigo-devel
 
   // Set pose joint values by adding them to the local joint state map
   for (std::map<std::string, std::vector<double> >::const_iterator value_it = pose->joint_values_.begin();
@@ -446,6 +481,20 @@ void RobotPosesWidget::edit(int row)
   // Update robot model in rviz
   publishJoints();
 
+<<<<<<< HEAD
+=======
+  // Set group:
+  int index = group_name_field_->findText(pose->group_.c_str());
+  if (index == -1)
+  {
+    QMessageBox::critical(this, "Error Loading", "Unable to find group name in drop down box");
+    return;
+  }
+
+  // Load joint sliders
+  group_name_field_->setCurrentIndex(index);
+
+>>>>>>> upstream/indigo-devel
   // Switch to screen - do this before setCurrentIndex
   stacked_layout_->setCurrentIndex(1);
 
@@ -514,6 +563,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 
   // Iterate through the joints
   int num_joints = 0;
+<<<<<<< HEAD
   for (const robot_model::JointModel* joint_model : joint_models_)
   {
     if (joint_model->getVariableCount() != 1 ||  // only consider 1-variable joints
@@ -542,6 +592,36 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
     // Connect value change event
     connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
             SLOT(updateRobotModel(const std::string&, double)));
+=======
+  for (std::vector<const robot_model::JointModel*>::const_iterator joint_it = joint_models_.begin();
+       joint_it < joint_models_.end(); ++joint_it)
+  {
+    // Check that this joint only represents 1 variable.
+    if ((*joint_it)->getVariableCount() == 1)
+    {
+      double init_value;
+
+      // Decide what this joint's initial value is
+      if (joint_state_map_.find((*joint_it)->getName()) == joint_state_map_.end())
+      {
+        // the joint state map does not yet have an entry for this joint
+
+        // get the first joint value in its vector
+        (*joint_it)->getVariableDefaultPositions(&init_value);
+      }
+      else  // there is already a value in the map
+      {
+        init_value = joint_state_map_[(*joint_it)->getName()];
+      }
+
+      // For each joint in group add slider
+      SliderWidget* sw = new SliderWidget(this, *joint_it, init_value);
+      joint_list_layout_->addWidget(sw);
+
+      // Connect value change event
+      connect(sw, SIGNAL(jointValueChanged(const std::string&, double)), this,
+              SLOT(updateRobotModel(const std::string&, double)));
+>>>>>>> upstream/indigo-devel
 
     ++num_joints;
   }
@@ -560,6 +640,7 @@ void RobotPosesWidget::loadJointSliders(const QString& selected)
 // ******************************************************************************************
 // Find the associated data by name
 // ******************************************************************************************
+<<<<<<< HEAD
 srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& name, const std::string& group)
 {
   // Find the group state we are editing based on the pose name
@@ -575,6 +656,31 @@ srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& nam
   }
 
   return searched_state;
+=======
+srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& name)
+{
+  // Find the group state we are editing based on the pose name
+  srdf::Model::GroupState* searched_group = NULL;  // used for holding our search results
+
+  for (std::vector<srdf::Model::GroupState>::iterator pose_it = config_data_->srdf_->group_states_.begin();
+       pose_it != config_data_->srdf_->group_states_.end(); ++pose_it)
+  {
+    if (pose_it->name_ == name)  // string match
+    {
+      searched_group = &(*pose_it);  // convert to pointer from iterator
+      break;                         // we are done searching
+    }
+  }
+
+  // Check if pose was found
+  if (searched_group == NULL)  // not found
+  {
+    QMessageBox::critical(this, "Error Saving", "An internal error has occured while saving. Quitting.");
+    QApplication::quit();
+  }
+
+  return searched_group;
+>>>>>>> upstream/indigo-devel
 }
 
 // ******************************************************************************************
@@ -582,8 +688,16 @@ srdf::Model::GroupState* RobotPosesWidget::findPoseByName(const std::string& nam
 // ******************************************************************************************
 void RobotPosesWidget::deleteSelected()
 {
+<<<<<<< HEAD
   const auto& ranges = data_table_->selectedRanges();
   if (!ranges.size())
+=======
+  // Get list of all selected items
+  QList<QTableWidgetItem*> selected = data_table_->selectedItems();
+
+  // Check that an element was selected
+  if (!selected.size())
+>>>>>>> upstream/indigo-devel
     return;
   int row = ranges[0].bottomRow();
 
@@ -591,9 +705,16 @@ void RobotPosesWidget::deleteSelected()
   const std::string& group = data_table_->item(row, 1)->text().toStdString();
 
   // Confirm user wants to delete group
+<<<<<<< HEAD
   if (QMessageBox::question(this, "Confirm Pose Deletion",
                             QString("Are you sure you want to delete the pose '").append(name.c_str()).append("'?"),
                             QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+=======
+  if (QMessageBox::question(
+          this, "Confirm Pose Deletion",
+          QString("Are you sure you want to delete the pose '").append(current_edit_pose_.c_str()).append("'?"),
+          QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+>>>>>>> upstream/indigo-devel
   {
     return;
   }
@@ -603,7 +724,11 @@ void RobotPosesWidget::deleteSelected()
        pose_it != config_data_->srdf_->group_states_.end(); ++pose_it)
   {
     // check if this is the group we want to delete
+<<<<<<< HEAD
     if (pose_it->name_ == name && pose_it->group_ == group)  // match
+=======
+    if (pose_it->name_ == current_edit_pose_)  // string match
+>>>>>>> upstream/indigo-devel
     {
       config_data_->srdf_->group_states_.erase(pose_it);
       break;
@@ -628,6 +753,7 @@ void RobotPosesWidget::doneEditing()
   srdf::Model::GroupState* searched_data = NULL;
 
   // Check that name field is not empty
+<<<<<<< HEAD
   if (name.empty())
   {
     QMessageBox::warning(this, "Error Saving", "A name must be given for the pose!");
@@ -650,11 +776,47 @@ void RobotPosesWidget::doneEditing()
     {
       if (QMessageBox::warning(this, "Warning Saving", "A pose already exists with that name! Overwrite?",
                                QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+=======
+  if (pose_name.empty())
+  {
+    QMessageBox::warning(this, "Error Saving", "A name must be given for the pose!");
+    return;
+  }
+
+  // Check if this is an existing group
+  if (!current_edit_pose_.empty())
+  {
+    // Find the group we are editing based on the goup name string
+    searched_data = findPoseByName(current_edit_pose_);
+  }
+
+  // Check that the pose name is unique
+  for (std::vector<srdf::Model::GroupState>::const_iterator data_it = config_data_->srdf_->group_states_.begin();
+       data_it != config_data_->srdf_->group_states_.end(); ++data_it)
+  {
+    if (data_it->name_.compare(pose_name) == 0)  // the names are the same
+    {
+      // is this our existing pose? check if pose pointers are same
+      if (&(*data_it) != searched_data)
+      {
+        QMessageBox::warning(this, "Error Saving", "A pose already exists with that name!");
+>>>>>>> upstream/indigo-devel
         return;
     }
   }
   else
     searched_data = current_edit_pose_;  // overwrite edited pose
+
+<<<<<<< HEAD
+  config_data_->changes |= MoveItConfigData::POSES;
+=======
+  // Check that a group was selected
+  if (group_name_field_->currentText().isEmpty())
+  {
+    QMessageBox::warning(this, "Error Saving", "A planning group must be chosen!");
+    return;
+  }
+>>>>>>> upstream/indigo-devel
 
   config_data_->changes |= MoveItConfigData::POSES;
 

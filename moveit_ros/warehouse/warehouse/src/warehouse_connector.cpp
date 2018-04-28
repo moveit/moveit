@@ -42,7 +42,11 @@
 
 namespace moveit_warehouse
 {
+<<<<<<< HEAD
 WarehouseConnector::WarehouseConnector(const std::string& dbexec) : dbexec_(dbexec), child_pid_(0)
+=======
+WarehouseConnector::WarehouseConnector(const std::string& mongoexec) : mongoexec_(mongoexec), child_pid_(0)
+>>>>>>> upstream/indigo-devel
 {
 }
 

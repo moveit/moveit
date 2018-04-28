@@ -2,15 +2,20 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 0.9.11 (2017-12-25)
 -------------------
 
 0.9.10 (2017-12-09)
+=======
+0.7.13 (2017-12-25)
+>>>>>>> upstream/indigo-devel
 -------------------
 * [fix] always return true in MoveGroupPlanService callback `#674 <https://github.com/ros-planning/moveit/pull/674>`_
 * [improve] adding swp's to gitignore and removing redundant capabilites from capability_names.h (`#704 <https://github.com/ros-planning/moveit/issues/704>`_)
 * Contributors: Mike Lautman, Shingo Kitagawa
 
+<<<<<<< HEAD
 0.9.9 (2017-08-06)
 ------------------
 
@@ -52,6 +57,76 @@ Changelog for package moveit_ros_move_group
 * capability plugin MoveGroupPlannerParamsService to get/set planner params
 * Fixed bug(?) in move_group::MoveGroupKinematicsService::computeIK link name selection.
 * Contributors: Dave Coleman, Mihai Pomarlan, Robert Haschke
+=======
+0.7.12 (2017-08-06)
+-------------------
+
+0.7.11 (2017-06-21)
+-------------------
+
+0.7.10 (2017-06-07)
+-------------------
+
+0.7.9 (2017-04-03)
+------------------
+
+0.7.8 (2017-03-08)
+------------------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* Contributors: Dmitry Rozhkov
+
+0.7.7 (2017-02-06)
+------------------
+* clang-format upgraded to 3.8 (`#404 <https://github.com/ros-planning/moveit/issues/404>`_)
+* Contributors: Dave Coleman
+
+0.7.6 (2016-12-30)
+------------------
+
+0.7.5 (2016-12-25)
+------------------
+
+0.7.4 (2016-12-22)
+------------------
+
+0.7.3 (2016-12-20)
+------------------
+
+0.7.2 (2016-06-20)
+------------------
+* apply planning scene: use newly exposed success value of newPlanningSceneMessage
+* add apply_planning_scene capability
+  This new capability allows to apply changes to a monitored planning
+  scene and *blocks* until the changes are applied. This is meant to
+  replace the quasi-standard pattern:
+  ```
+  planning_scene_interface.addCollisionObjects(...)
+  sleep(2.0)
+  group.pick("object")
+  ```
+  by
+  ```
+  ros::ServiceClient client = n.serviceClient<moveit_msgs::ApplyPlanningScene>("apply_planning_scene");
+  client.call(...)
+  group.pick("object")
+  ```
+  This makes it much more convenient to add&interact with objects
+  without useless and arbitrarily long sleeps to ensure planning scene
+  updates succeeded.
+* clear_octomap_service: fix runtime name (`#685 <https://github.com/ros-planning/moveit_ros/issues/685>`_)
+  Looks like the author copy&pasted from a different capability
+  and forgot to change the name.
+* Contributors: v4hn
+
+0.7.1 (2016-04-11)
+------------------
+
+0.7.0 (2016-01-30)
+------------------
+* Removed trailing whitespace from entire repository
+* Fixed bug(?) in move_group::MoveGroupKinematicsService::computeIK link name selection.
+* Contributors: Dave Coleman, Mihai Pomarlan
+>>>>>>> upstream/indigo-devel
 
 0.6.5 (2015-01-24)
 ------------------

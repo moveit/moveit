@@ -58,7 +58,11 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
 {
   std::vector<urdf::Pose> link_offset;
   int num_joints = 0;
+<<<<<<< HEAD
   urdf::LinkConstSharedPtr link = robot_model.getLink(tip_name);
+=======
+  boost::shared_ptr<const urdf::Link> link = robot_model.getLink(tip_name);
+>>>>>>> upstream/indigo-devel
   while (link && num_joints < 7)
   {
     urdf::JointConstSharedPtr joint;
@@ -67,9 +71,15 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
     if (!joint)
     {
       if (link->parent_joint)
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("Could not find joint: %s", link->parent_joint->name.c_str());
       else
         CONSOLE_BRIDGE_logError("Link %s has no parent joint", link->name.c_str());
+=======
+        logError("Could not find joint: %s", link->parent_joint->name.c_str());
+      else
+        logError("Link %s has no parent joint", link->name.c_str());
+>>>>>>> upstream/indigo-devel
       return false;
     }
     if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED)
@@ -77,8 +87,12 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
       link_offset.push_back(link->parent_joint->parent_to_joint_origin_transform);
       angle_multipliers_.push_back(joint->axis.x * fabs(joint->axis.x) + joint->axis.y * fabs(joint->axis.y) +
                                    joint->axis.z * fabs(joint->axis.z));
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logDebug("Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x, joint->axis.y,
                               joint->axis.z);
+=======
+      logDebug("Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x, joint->axis.y, joint->axis.z);
+>>>>>>> upstream/indigo-devel
       if (joint->type != urdf::Joint::CONTINUOUS)
       {
         if (joint->safety)
@@ -97,7 +111,11 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
           {
             min_angles_.push_back(0.0);
             max_angles_.push_back(0.0);
+<<<<<<< HEAD
             CONSOLE_BRIDGE_logWarn("No joint limits or joint '%s'", joint->name.c_str());
+=======
+            logWarn("No joint limits or joint '%s'", joint->name.c_str());
+>>>>>>> upstream/indigo-devel
           }
         }
         continuous_joint_.push_back(false);
@@ -129,8 +147,12 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
 
   if (num_joints != 7)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("PR2ArmIK:: Chain from %s to %s does not have 7 joints", root_name.c_str(),
                             tip_name.c_str());
+=======
+    logError("PR2ArmIK:: Chain from %s to %s does not have 7 joints", root_name.c_str(), tip_name.c_str());
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -152,7 +174,11 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
   return true;
 }
 
+<<<<<<< HEAD
 void PR2ArmIK::addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo& info)
+=======
+void PR2ArmIK::addJointToChainInfo(boost::shared_ptr<const urdf::Joint> joint, moveit_msgs::KinematicSolverInfo& info)
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::JointLimits limit;
   info.joint_names.push_back(joint->name);  // Joints are coming in reverse order

@@ -393,8 +393,13 @@ public:
       return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
     }
 
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("moveit.kinematics_base: This kinematic solver "
                             "does not support initialization with more than one tip frames");
+=======
+    logError("moveit.kinematics_base: This kinematic solver does not support initialization with more than one tip "
+             "frames");
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -604,6 +609,7 @@ protected:
 
   /**
    * @brief Enables kinematics plugins access to parameters that are defined
+<<<<<<< HEAD
    * for the private namespace and inside 'robot_description_kinematics'.
    * Parameters are searched in the following locations and order
    *
@@ -612,6 +618,12 @@ protected:
    * robot_description_kinematics/<group_name>/<param>
    * robot_description_kinematics/<param>
    *
+=======
+   * for the 'robot_description_kinematics' namespace.
+   * Parameters are queried in order of the specified group hierarchy.
+   * That is parameters are first searched in the private namespace
+   * then in the subroup namespace and finally in the group namespace.
+>>>>>>> upstream/indigo-devel
    * This order maintains default behavior by keeping the private namespace
    * as the predominant configuration but also allows groupwise specifications.
    */
@@ -619,6 +631,7 @@ protected:
   inline bool lookupParam(const std::string& param, T& val, const T& default_val) const
   {
     ros::NodeHandle pnh("~");
+<<<<<<< HEAD
     if (pnh.hasParam(group_name_ + "/" + param))
     {
       val = pnh.param(group_name_ + "/" + param, default_val);
@@ -638,14 +651,35 @@ protected:
       return true;
     }
 
+=======
+    if (pnh.hasParam(param))
+    {
+      val = pnh.param(param, default_val);
+      return true;
+    }
+
+    ros::NodeHandle nh;
+    if (nh.hasParam("robot_description_kinematics/" + group_name_ + "/" + param))
+    {
+      val = nh.param("robot_description_kinematics/" + group_name_ + "/" + param, default_val);
+      return true;
+    }
+
+>>>>>>> upstream/indigo-devel
     if (nh.hasParam("robot_description_kinematics/" + param))
     {
       val = nh.param("robot_description_kinematics/" + param, default_val);
       return true;
     }
+<<<<<<< HEAD
 
     val = default_val;
 
+=======
+
+    val = default_val;
+
+>>>>>>> upstream/indigo-devel
     return false;
   }
 

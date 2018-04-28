@@ -12,12 +12,16 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_experimental
 )
 
+<<<<<<< HEAD
 find_package(Eigen3 REQUIRED)
 
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
 if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
+=======
+find_package(Eigen 3 REQUIRED)
+>>>>>>> upstream/indigo-devel
 
 find_package(Boost REQUIRED)
 
@@ -34,11 +38,19 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} src/chomp_interface.cpp src/chomp_planning_context.cpp)
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_library(chomp_planner_plugin src/chomp_plugin.cpp)
 set_target_properties(chomp_planner_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+
+add_library(chomp_planner_plugin src/chomp_plugin.cpp)
+set_target_properties(chomp_planner_plugin PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(chomp_planner_plugin ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(FILES chomp_interface_plugin_description.xml
@@ -53,6 +65,7 @@ install(TARGETS ${PROJECT_NAME} chomp_planner_plugin
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+<<<<<<< HEAD
 
 if(CATKIN_ENABLE_TESTING)
   find_package(catkin REQUIRED COMPONENTS rostest roscpp moveit_ros_planning_interface)
@@ -63,3 +76,5 @@ if(CATKIN_ENABLE_TESTING)
   target_link_libraries(chomp_moveit_test ${catkin_LIBRARIES})
   add_dependencies(chomp_moveit_test chomp_planner_plugin move_group moveit_move_group_default_capabilities moveit_move_group_pick_place_capability)
 endif()
+=======
+>>>>>>> upstream/indigo-devel

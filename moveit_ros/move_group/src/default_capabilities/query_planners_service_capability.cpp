@@ -46,11 +46,14 @@ void move_group::MoveGroupQueryPlannersService::initialize()
 {
   query_service_ = root_node_handle_.advertiseService(QUERY_PLANNERS_SERVICE_NAME,
                                                       &MoveGroupQueryPlannersService::queryInterface, this);
+<<<<<<< HEAD
 
   get_service_ = root_node_handle_.advertiseService(GET_PLANNER_PARAMS_SERVICE_NAME,
                                                     &MoveGroupQueryPlannersService::getParams, this);
   set_service_ = root_node_handle_.advertiseService(SET_PLANNER_PARAMS_SERVICE_NAME,
                                                     &MoveGroupQueryPlannersService::setParams, this);
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 bool move_group::MoveGroupQueryPlannersService::queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& req,

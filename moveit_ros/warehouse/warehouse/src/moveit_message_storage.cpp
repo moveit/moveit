@@ -40,10 +40,56 @@
 #include <boost/regex.hpp>
 #include <memory>
 
+<<<<<<< HEAD
 moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(warehouse_ros::DatabaseConnection::Ptr conn) : conn_(conn)
 {
 }
 
+=======
+moveit_warehouse::MoveItMessageStorage::MoveItMessageStorage(const std::string& host, const unsigned int port,
+                                                             double wait_seconds)
+  : db_host_(host), db_port_(port), timeout_(wait_seconds)
+{
+  // if we are using default values for initialization, attempt to use ROS params for initialization
+  if (db_host_.empty() || db_port_ == 0)
+  {
+    ros::NodeHandle nh("~");
+    // search for the warehouse_port parameter in the local name space of the node, and up the tree of namespaces;
+    // if the desired param is not found, make a final attempt to look fro the param in the default namespace defined
+    // above
+    if (db_port_ == 0)
+    {
+      std::string paramName;
+      if (!nh.searchParam("warehouse_port", paramName))
+        paramName = "warehouse_port";
+      int param_port;
+      if (nh.getParam(paramName, param_port))
+        db_port_ = param_port;
+    }
+    if (db_host_.empty())
+    {
+      std::string paramName;
+      if (!nh.searchParam("warehouse_host", paramName))
+        paramName = "warehouse_host";
+      std::string param_host;
+      if (nh.getParam(paramName, param_host))
+        db_host_ = param_host;
+    }
+  }
+  ROS_DEBUG("Connecting to MongoDB on host '%s' port '%u'...", db_host_.c_str(), db_port_);
+}
+
+moveit_warehouse::MoveItMessageStorage::~MoveItMessageStorage()
+{
+}
+
+void moveit_warehouse::MoveItMessageStorage::drop(const std::string& db)
+{
+  mongo_ros::dropDatabase(db, db_host_, db_port_, timeout_);
+  ROS_DEBUG("Dropped database '%s'", db.c_str());
+}
+
+>>>>>>> upstream/indigo-devel
 void moveit_warehouse::MoveItMessageStorage::filterNames(const std::string& regex,
                                                          std::vector<std::string>& names) const
 {

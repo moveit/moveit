@@ -101,26 +101,46 @@ int PropagationDistanceField::eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i 
 
 void PropagationDistanceField::print(const VoxelSet& set)
 {
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("[");
+=======
+  logDebug("[");
+>>>>>>> upstream/indigo-devel
   VoxelSet::const_iterator it;
   for (it = set.begin(); it != set.end(); ++it)
   {
     Eigen::Vector3i loc1 = *it;
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
   }
   CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)set.size());
+=======
+    logDebug("%d, %d, %d ", loc1.x(), loc1.y(), loc1.z());
+  }
+  logDebug("] size=%u\n", (unsigned int)set.size());
+>>>>>>> upstream/indigo-devel
 }
 
 void PropagationDistanceField::print(const EigenSTL::vector_Vector3d& points)
 {
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("[");
+=======
+  logDebug("[");
+>>>>>>> upstream/indigo-devel
   EigenSTL::vector_Vector3d::const_iterator it;
   for (it = points.begin(); it != points.end(); ++it)
   {
     Eigen::Vector3d loc1 = *it;
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
   }
   CONSOLE_BRIDGE_logDebug("] size=%u\n", (unsigned int)points.size());
+=======
+    logDebug("%g, %g, %g ", loc1.x(), loc1.y(), loc1.z());
+  }
+  logDebug("] size=%u\n", (unsigned int)points.size());
+>>>>>>> upstream/indigo-devel
 }
 
 void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector3d& old_points,
@@ -166,7 +186,11 @@ void PropagationDistanceField::updatePointsInField(const EigenSTL::vector_Vector
     {
       new_not_in_current.push_back(new_not_old[i]);
     }
+<<<<<<< HEAD
     // CONSOLE_BRIDGE_logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
+=======
+    // logInform("Adding obstacle voxel %d %d %d", (*it).x(), (*it).y(), (*it).z());
+>>>>>>> upstream/indigo-devel
   }
 
   removeObstacleVoxels(old_not_new);

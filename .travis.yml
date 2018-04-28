@@ -12,12 +12,18 @@ notifications:
       - 130s@2000.jukuin.keio.ac.jp
 env:
   matrix:
+<<<<<<< HEAD
     - ROS_DISTRO=kinetic ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=kinetic ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=kinetic TEST=clang-format         UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=lunar   ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=lunar   ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
     - ROS_DISTRO=lunar   TEST=clang-format         UPSTREAM_WORKSPACE=moveit.rosinstall
+=======
+    - ROS_DISTRO=indigo ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
+    - ROS_DISTRO=indigo ROS_REPO=ros-shadow-fixed UPSTREAM_WORKSPACE=moveit.rosinstall
+    - ROS_DISTRO=indigo TEST=clang-format         UPSTREAM_WORKSPACE=moveit.rosinstall
+>>>>>>> upstream/indigo-devel
 before_script:
   - git clone -q https://github.com/ros-planning/moveit_ci.git .moveit_ci
 script:

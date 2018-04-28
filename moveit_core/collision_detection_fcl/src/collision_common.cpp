@@ -62,11 +62,19 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     const robot_model::LinkModel* l1 =
         cd1->type == BodyTypes::ROBOT_LINK ?
             cd1->ptr.link :
+<<<<<<< HEAD
             (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : nullptr);
     const robot_model::LinkModel* l2 =
         cd2->type == BodyTypes::ROBOT_LINK ?
             cd2->ptr.link :
             (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : nullptr);
+=======
+            (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel* l2 =
+        cd2->type == BodyTypes::ROBOT_LINK ?
+            cd2->ptr.link :
+            (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+>>>>>>> upstream/indigo-devel
 
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -88,7 +96,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logDebug(
+=======
+          logDebug(
+>>>>>>> upstream/indigo-devel
               "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. No contacts are computed.",
               cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
       }
@@ -96,8 +108,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
         if (cdata->req_->verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(),
                                   cd2->getID().c_str());
+=======
+          logDebug("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(),
+                   cd2->getID().c_str());
+>>>>>>> upstream/indigo-devel
       }
     }
   }
@@ -121,8 +138,13 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
                                 cd2->getID().c_str(), cd1->getID().c_str());
+=======
+        logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                 cd2->getID().c_str(), cd1->getID().c_str());
+>>>>>>> upstream/indigo-devel
     }
   }
   // bodies attached to the same link should not collide
@@ -174,9 +196,15 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logInform("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check "
                                  "if they are accepted or not",
                                  num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
+=======
+        logInform("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check if they are "
+                  "accepted or not",
+                  num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
+>>>>>>> upstream/indigo-devel
       Contact c;
       const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
                                                           std::make_pair(cd1->getID(), cd2->getID()) :
@@ -194,6 +222,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
             cdata->res_->contacts[pc].push_back(c);
             cdata->res_->contact_count++;
             if (cdata->req_->verbose)
+<<<<<<< HEAD
               CONSOLE_BRIDGE_logInform("Found unacceptable contact between '%s' and '%s'. Contact was stored.",
                                        cd1->getID().c_str(), cd2->getID().c_str());
           }
@@ -201,6 +230,15 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
             CONSOLE_BRIDGE_logInform(
                 "Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
                 cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+=======
+              logInform("Found unacceptable contact between '%s' and '%s'. Contact was stored.", cd1->getID().c_str(),
+                        cd2->getID().c_str());
+          }
+          else if (cdata->req_->verbose)
+            logInform("Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
+                      cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                      cd2->getTypeString().c_str());
+>>>>>>> upstream/indigo-devel
           cdata->res_->collision = true;
           if (want_contact_count == 0)
             break;
@@ -250,10 +288,17 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
         }
 
         if (cdata->req_->verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logInform("Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute "
                                    "a collision. %d contacts will be stored",
                                    num_contacts_initial, cd1->getID().c_str(), cd1->getTypeString().c_str(),
                                    cd2->getID().c_str(), cd2->getTypeString().c_str(), num_contacts);
+=======
+          logInform("Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute a collision. %d "
+                    "contacts will be stored",
+                    num_contacts_initial, cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                    cd2->getTypeString().c_str(), num_contacts);
+>>>>>>> upstream/indigo-devel
 
         const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
                                                             std::make_pair(cd1->getID(), cd2->getID()) :
@@ -295,10 +340,17 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         cdata->res_->collision = true;
         if (cdata->req_->verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logInform(
               "Found a contact between '%s' (type '%s') and '%s' (type '%s'), which constitutes a collision. "
               "Contact information is not stored.",
               cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+=======
+          logInform("Found a contact between '%s' (type '%s') and '%s' (type '%s'), which constitutes a collision. "
+                    "Contact information is not stored.",
+                    cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                    cd2->getTypeString().c_str());
+>>>>>>> upstream/indigo-devel
       }
 
       if (enable_cost)
@@ -333,10 +385,16 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
   {
     cdata->done_ = cdata->req_->is_done(*cdata->res_);
     if (cdata->done_ && cdata->req_->verbose)
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logInform(
           "Collision checking is considered complete due to external callback. %s was found. %u contacts are "
           "stored.",
           cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
+=======
+      logInform("Collision checking is considered complete due to external callback. %s was found. %u contacts are "
+                "stored.",
+                cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
+>>>>>>> upstream/indigo-devel
   }
 
   return cdata->done_;
@@ -344,9 +402,12 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
 
 struct FCLShapeCache
 {
+<<<<<<< HEAD
   using ShapeKey = std::weak_ptr<const shapes::Shape>;
   using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
 
+=======
+>>>>>>> upstream/indigo-devel
   FCLShapeCache() : clean_count_(0)
   {
   }
@@ -360,23 +421,38 @@ struct FCLShapeCache
     {
       clean_count_ = 0;
       unsigned int from = map_.size();
+<<<<<<< HEAD
       for (auto it = map_.begin(); it != map_.end();)
       {
         auto nit = it;
+=======
+      for (std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator it = map_.begin();
+           it != map_.end();)
+      {
+        std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator nit = it;
+>>>>>>> upstream/indigo-devel
         ++nit;
         if (it->first.expired())
           map_.erase(it);
         it = nit;
       }
+<<<<<<< HEAD
       //      CONSOLE_BRIDGE_logDebug("Cleaning up cache for FCL objects that correspond to static shapes. Cache size
       //      reduced from %u
+=======
+      //      logDebug("Cleaning up cache for FCL objects that correspond to static shapes. Cache size reduced from %u
+>>>>>>> upstream/indigo-devel
       //      to %u", from, (unsigned int)map_.size());
     }
   }
 
   static const unsigned int MAX_CLEAN_COUNT = 100;  // every this many uses of the cache, a cleaning operation is
                                                     // executed (this is only removal of expired entries)
+<<<<<<< HEAD
   ShapeMap map_;
+=======
+  std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr> map_;
+>>>>>>> upstream/indigo-devel
   unsigned int clean_count_;
   boost::mutex lock_;
 };
@@ -398,11 +474,19 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     const robot_model::LinkModel* l1 =
         cd1->type == BodyTypes::ROBOT_LINK ?
             cd1->ptr.link :
+<<<<<<< HEAD
             (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : nullptr);
     const robot_model::LinkModel* l2 =
         cd2->type == BodyTypes::ROBOT_LINK ?
             cd2->ptr.link :
             (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : nullptr);
+=======
+            (cd1->type == BodyTypes::ROBOT_ATTACHED ? cd1->ptr.ab->getAttachedLink() : NULL);
+    const robot_model::LinkModel* l2 =
+        cd2->type == BodyTypes::ROBOT_LINK ?
+            cd2->ptr.link :
+            (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : NULL);
+>>>>>>> upstream/indigo-devel
 
     // If neither of the involved components is active
     if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
@@ -427,8 +511,13 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is always allowed. No distances are computed.",
                                   cd1->getID().c_str(), cd2->getID().c_str());
+=======
+          logDebug("Collision between '%s' and '%s' is always allowed. No contacts are computed.", cd1->getID().c_str(),
+                   cd2->getID().c_str());
+>>>>>>> upstream/indigo-devel
       }
     }
   }
@@ -468,6 +557,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   }
 
   fcl::DistanceResult dist_result;
+<<<<<<< HEAD
   dist_result.update(cdata->res_->distance, nullptr, nullptr, fcl::DistanceResult::NONE,
                      fcl::DistanceResult::NONE);  // can be faster
   const double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
@@ -476,6 +566,13 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     CONSOLE_BRIDGE_logDebug("Distance between %s and %s: %f", cd1->getID().c_str(), cd2->getID().c_str(), d);
 
   if (d < 0)  // a penetration was found, no further distance calculations are necessary
+=======
+  dist_result.update(cdata->res_->distance, NULL, NULL, fcl::DistanceResult::NONE,
+                     fcl::DistanceResult::NONE);  // can be faster
+  double d = fcl::distance(o1, o2, fcl::DistanceRequest(), dist_result);
+
+  if (d < 0)
+>>>>>>> upstream/indigo-devel
   {
     cdata->done_ = true;
     cdata->res_->distance = -1;
@@ -483,10 +580,13 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
   else
   {
     if (cdata->res_->distance > d)
+<<<<<<< HEAD
     {
       if (cdata->req_->verbose)
         CONSOLE_BRIDGE_logWarn("Distance between %s and %s: %f decreased", cd1->getID().c_str(), cd2->getID().c_str(),
                                d);
+=======
+>>>>>>> upstream/indigo-devel
       cdata->res_->distance = d;
     }
   }
@@ -525,28 +625,45 @@ struct IfSameType<T, T>
 template <typename BV, typename T>
 FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, const T* data, int shape_index)
 {
+<<<<<<< HEAD
   using ShapeKey = std::weak_ptr<const shapes::Shape>;
   using ShapeMap = std::map<ShapeKey, FCLGeometryConstPtr, std::owner_less<ShapeKey>>;
+=======
+  FCLShapeCache& cache = GetShapeCache<BV, T>();
+>>>>>>> upstream/indigo-devel
 
   FCLShapeCache& cache = GetShapeCache<BV, T>();
 
   std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
+<<<<<<< HEAD
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
+=======
+    std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::const_iterator cache_it =
+        cache.map_.find(wptr);
+>>>>>>> upstream/indigo-devel
     if (cache_it != cache.map_.end())
     {
       if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
       {
+<<<<<<< HEAD
         //        CONSOLE_BRIDGE_logDebug("Collision data structures for object %s retrieved from cache.",
+=======
+        //        logDebug("Collision data structures for object %s retrieved from cache.",
+>>>>>>> upstream/indigo-devel
         //        cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
       }
       else if (cache_it->second.unique())
       {
         const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
+<<<<<<< HEAD
         //          CONSOLE_BRIDGE_logDebug("Collision data structures for object %s retrieved from cache after updating
         //          the source
+=======
+        //          logDebug("Collision data structures for object %s retrieved from cache after updating the source
+>>>>>>> upstream/indigo-devel
         //          object.", cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
       }
@@ -563,7 +680,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
     // attached bodies could be just moved from the environment.
     othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
+<<<<<<< HEAD
     auto cache_it = othercache.map_.find(wptr);
+=======
+    std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator cache_it = othercache.map_.find(wptr);
+>>>>>>> upstream/indigo-devel
     if (cache_it != othercache.map_.end())
     {
       if (cache_it->second.unique())
@@ -576,8 +697,12 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
+<<<<<<< HEAD
         //        CONSOLE_BRIDGE_logDebug("Collision data structures for attached body %s retrieved from the cache for
         //        world objects.",
+=======
+        //        logDebug("Collision data structures for attached body %s retrieved from the cache for world objects.",
+>>>>>>> upstream/indigo-devel
         //        obj_cache->collision_geometry_data_->getID().c_str());
 
         // add to the new cache
@@ -600,7 +725,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
 
     // attached bodies could be just moved from the environment.
     othercache.lock_.lock();  // lock manually to avoid having 2 simultaneous locks active (avoids possible deadlock)
+<<<<<<< HEAD
     auto cache_it = othercache.map_.find(wptr);
+=======
+    std::map<boost::weak_ptr<const shapes::Shape>, FCLGeometryConstPtr>::iterator cache_it = othercache.map_.find(wptr);
+>>>>>>> upstream/indigo-devel
     if (cache_it != othercache.map_.end())
     {
       if (cache_it->second.unique())
@@ -613,8 +742,12 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
+<<<<<<< HEAD
         //          CONSOLE_BRIDGE_logDebug("Collision data structures for world object %s retrieved from the cache for
         //          attached
+=======
+        //          logDebug("Collision data structures for world object %s retrieved from the cache for attached
+>>>>>>> upstream/indigo-devel
         //          bodies.",
         //                   obj_cache->collision_geometry_data_->getID().c_str());
 
@@ -628,7 +761,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     othercache.lock_.unlock();
   }
 
+<<<<<<< HEAD
   fcl::CollisionGeometry* cg_g = nullptr;
+=======
+  fcl::CollisionGeometry* cg_g = NULL;
+>>>>>>> upstream/indigo-devel
   if (shape->type == shapes::PLANE)  // shapes that directly produce CollisionGeometry
   {
     // handle cases individually
@@ -675,7 +812,11 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       break;
       case shapes::MESH:
       {
+<<<<<<< HEAD
         auto g = new fcl::BVHModel<BV>();
+=======
+        fcl::BVHModel<BV>* g = new fcl::BVHModel<BV>();
+>>>>>>> upstream/indigo-devel
         const shapes::Mesh* mesh = static_cast<const shapes::Mesh*>(shape.get());
         if (mesh->vertex_count > 0 && mesh->triangle_count > 0)
         {
@@ -702,8 +843,13 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       }
       break;
       default:
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("This shape type (%d) is not supported using FCL yet", (int)shape->type);
         cg_g = nullptr;
+=======
+        logError("This shape type (%d) is not supported using FCL yet", (int)shape->type);
+        cg_g = NULL;
+>>>>>>> upstream/indigo-devel
     }
   }
   if (cg_g)
@@ -803,8 +949,13 @@ void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager*
 
 void collision_detection::FCLObject::unregisterFrom(fcl::BroadPhaseCollisionManager* manager)
 {
+<<<<<<< HEAD
   for (auto& collision_object : collision_objects_)
     manager->unregisterObject(collision_object.get());
+=======
+  for (std::size_t i = 0; i < collision_objects_.size(); ++i)
+    manager->unregisterObject(collision_objects_[i].get());
+>>>>>>> upstream/indigo-devel
 }
 
 void collision_detection::FCLObject::clear()

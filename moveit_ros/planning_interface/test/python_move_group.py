@@ -6,7 +6,11 @@ import rospy
 import rostest
 import os
 
+<<<<<<< HEAD
 from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroupInterface
+=======
+from moveit_ros_planning_interface._moveit_move_group_interface import MoveGroup
+>>>>>>> upstream/indigo-devel
 
 
 class PythonMoveGroupTest(unittest.TestCase):
@@ -14,7 +18,11 @@ class PythonMoveGroupTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+<<<<<<< HEAD
         self.group = MoveGroupInterface(self.PLANNING_GROUP, "robot_description")
+=======
+        self.group = MoveGroup(self.PLANNING_GROUP, "robot_description")
+>>>>>>> upstream/indigo-devel
 
     @classmethod
     def tearDown(self):

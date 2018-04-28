@@ -1,6 +1,10 @@
 <package>
   <name>moveit_ros_planning_interface</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>Components of MoveIt that offer simpler interfaces to planning and execution</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

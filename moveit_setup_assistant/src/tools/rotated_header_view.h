@@ -41,6 +41,7 @@
 
 namespace moveit_setup_assistant
 {
+<<<<<<< HEAD:moveit_setup_assistant/src/tools/rotated_header_view.h
 class RotatedHeaderView : public QHeaderView
 {
 public:
@@ -49,6 +50,12 @@ public:
   QSize sectionSizeFromContents(int logicalIndex) const;
   int sectionSizeHint(int logicalIndex) const;
 };
+=======
+void setButtonState(QPushButton* button, bool checked, const QString& text, const QString& style);
+void showCriticalMessage(QWidget* parent, const QString& title, const QString& text);
+void selectFirstItemInList(QListWidget* list);
+void selectLastItemInList(QListWidget* list);
+>>>>>>> upstream/indigo-devel:moveit_ros/benchmarks_gui/include/ui_utils.h
 }
 
 #endif  // MOVEIT_ROS_MOVEIT_SETUP_ASSISTANT_WIDGETS_ROTATED_HEADERVIEW_H

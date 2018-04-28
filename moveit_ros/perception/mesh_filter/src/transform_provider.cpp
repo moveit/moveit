@@ -151,7 +151,11 @@ void TransformProvider::updateTransforms()
       handle2context_[contextIt->first]->mutex_.unlock();
       continue;
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
+=======
+    catch (...)
+>>>>>>> upstream/indigo-devel
     {
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }

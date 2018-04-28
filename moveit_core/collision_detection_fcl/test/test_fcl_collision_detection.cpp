@@ -57,7 +57,11 @@ typedef collision_detection::CollisionRobotFCL DefaultCRobotType;
 class FclCollisionDetectionTester : public testing::Test
 {
 protected:
+<<<<<<< HEAD
   void SetUp() override
+=======
+  virtual void SetUp()
+>>>>>>> upstream/indigo-devel
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
     std::string urdf_file = (res_path / "pr2_description/urdf/robot.xml").string();
@@ -103,8 +107,13 @@ protected:
   bool urdf_ok_;
   bool srdf_ok_;
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdf_model_;
   srdf::ModelSharedPtr srdf_model_;
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdf_model_;
+  boost::shared_ptr<srdf::Model> srdf_model_;
+>>>>>>> upstream/indigo-devel
 
   robot_model::RobotModelPtr kmodel_;
 

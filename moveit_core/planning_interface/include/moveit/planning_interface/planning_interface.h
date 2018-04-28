@@ -60,11 +60,17 @@ struct PlannerConfigurationSettings
 {
   /** \brief The group (as defined in the SRDF) this configuration is meant for */
   std::string group;
+<<<<<<< HEAD
 
   /* \brief Name of the configuration.
 
      For a group's default configuration, this should be the same as the group name.
      Otherwise, the form "group_name[config_name]" is expected for the name. */
+=======
+
+  /* \brief Name of the configuration. If there is only one configuration, this should be the same as the group name.
+     If there are multiple configurations, the form "group_name[config_name]" is expected for the name. */
+>>>>>>> upstream/indigo-devel
   std::string name;
 
   /** \brief Key-value pairs of settings that get passed to the planning algorithm */

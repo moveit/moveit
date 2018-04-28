@@ -1,6 +1,10 @@
 <package>
   <name>moveit_plugins</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>Metapackage for moveit plugins.</description>
 
   <author email="mferguson@fetchrobotics.com">Michael Ferguson</author>

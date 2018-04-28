@@ -55,7 +55,11 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
 
   // Label ------------------------------------------------
   title_ = new QLabel(this);  // specify the title from the parent widget
+<<<<<<< HEAD
   QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
+=======
+  QFont group_title_font("Arial", 12, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 
@@ -97,12 +101,20 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   QVBoxLayout* new_buttons_layout = new QVBoxLayout();
 
   QLabel* save_and_add = new QLabel("Next, Add Components To Group:", this);
+<<<<<<< HEAD
   QFont save_and_add_font(QFont().defaultFamily(), 12, QFont::Bold);
+=======
+  QFont save_and_add_font("Arial", 12, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   save_and_add->setFont(save_and_add_font);
   new_buttons_layout->addWidget(save_and_add);
 
   QLabel* add_subtitle = new QLabel("Recommended: ", this);
+<<<<<<< HEAD
   QFont add_subtitle_font(QFont().defaultFamily(), 10, QFont::Bold);
+=======
+  QFont add_subtitle_font("Arial", 10, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   add_subtitle->setFont(add_subtitle_font);
   new_buttons_layout->addWidget(add_subtitle);
 

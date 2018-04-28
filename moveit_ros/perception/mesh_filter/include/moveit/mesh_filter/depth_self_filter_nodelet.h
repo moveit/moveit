@@ -92,11 +92,19 @@ private:
 
 private:
   // member variables to handle ros messages
+<<<<<<< HEAD
   std::shared_ptr<image_transport::ImageTransport> input_depth_transport_;
   std::shared_ptr<image_transport::ImageTransport> filtered_label_transport_;
   std::shared_ptr<image_transport::ImageTransport> filtered_depth_transport_;
   std::shared_ptr<image_transport::ImageTransport> model_depth_transport_;
   std::shared_ptr<image_transport::ImageTransport> model_label_transport_;
+=======
+  boost::shared_ptr<image_transport::ImageTransport> input_depth_transport_;
+  boost::shared_ptr<image_transport::ImageTransport> filtered_label_transport_;
+  boost::shared_ptr<image_transport::ImageTransport> filtered_depth_transport_;
+  boost::shared_ptr<image_transport::ImageTransport> model_depth_transport_;
+  boost::shared_ptr<image_transport::ImageTransport> model_label_transport_;
+>>>>>>> upstream/indigo-devel
   image_transport::CameraSubscriber sub_depth_image_;
   image_transport::CameraPublisher pub_filtered_depth_image_;
   image_transport::CameraPublisher pub_filtered_label_image_;

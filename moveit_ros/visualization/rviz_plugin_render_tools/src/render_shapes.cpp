@@ -158,8 +158,12 @@ void RenderShapes::renderShape(Ogre::SceneNode* node, const shapes::Shape* s, co
     {
       OcTreeRenderPtr octree(new OcTreeRender(static_cast<const shapes::OcTree*>(s)->octree, octree_voxel_rendering,
                                               octree_color_mode, 0u, context_->getSceneManager(), node));
+<<<<<<< HEAD
       octree->setPosition(position);
       octree->setOrientation(orientation);
+=======
+
+>>>>>>> upstream/indigo-devel
       octree_voxel_grids_.push_back(octree);
     }
     break;

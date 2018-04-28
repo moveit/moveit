@@ -40,9 +40,13 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
+<<<<<<< HEAD
 namespace constraint_samplers
 {
 bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
+=======
+bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
+>>>>>>> upstream/indigo-devel
 {
   // construct the constraints
   std::vector<kinematic_constraints::JointConstraint> jc;
@@ -56,7 +60,12 @@ bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
   return jc.empty() ? false : configure(jc);
 }
 
+<<<<<<< HEAD
 bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::JointConstraint>& jc)
+=======
+bool constraint_samplers::JointConstraintSampler::configure(
+    const std::vector<kinematic_constraints::JointConstraint>& jc)
+>>>>>>> upstream/indigo-devel
 {
   clear();
 
@@ -92,16 +101,27 @@ bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::
         std::max(joint_bounds.min_position_, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
         std::min(joint_bounds.max_position_, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
 
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(),
                             ji.min_bound_, ji.max_bound_);
+=======
+    logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(), ji.min_bound_,
+             ji.max_bound_);
+>>>>>>> upstream/indigo-devel
 
     if (ji.min_bound_ > ji.max_bound_ + std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs;
       jc[i].print(cs);
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("The constraints for joint '%s' are such that there are no possible values for the "
                               "joint: min_bound: %g, max_bound: %g. Failing.\n",
                               jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
+=======
+      logError("The constraints for joint '%s' are such that there are no possible values for the joint: min_bound: "
+               "%g, max_bound: %g. Failing.\n",
+               jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
+>>>>>>> upstream/indigo-devel
       clear();
       return false;
     }
@@ -146,9 +166,15 @@ bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::
   return true;
 }
 
+<<<<<<< HEAD
 bool JointConstraintSampler::sample(robot_state::RobotState& state,
                                     const robot_state::RobotState& /* reference_state */,
                                     unsigned int /* max_attempts */)
+=======
+bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState& state,
+                                                         const robot_state::RobotState& /* reference_state */,
+                                                         unsigned int /* max_attempts */)
+>>>>>>> upstream/indigo-devel
 {
   if (!is_valid_)
   {
@@ -176,7 +202,11 @@ bool JointConstraintSampler::sample(robot_state::RobotState& state,
   return true;
 }
 
+<<<<<<< HEAD
 bool JointConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+=======
+bool constraint_samplers::JointConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   return sample(state, state, max_attempts);
 }
@@ -194,23 +224,37 @@ IKSamplingPose::IKSamplingPose()
 {
 }
 
+<<<<<<< HEAD
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint& pc)
+=======
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint& pc)
+>>>>>>> upstream/indigo-devel
   : position_constraint_(new kinematic_constraints::PositionConstraint(pc))
 {
 }
 
+<<<<<<< HEAD
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraint& oc)
+=======
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraint& oc)
+>>>>>>> upstream/indigo-devel
   : orientation_constraint_(new kinematic_constraints::OrientationConstraint(oc))
 {
 }
 
+<<<<<<< HEAD
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint& pc,
                                const kinematic_constraints::OrientationConstraint& oc)
+=======
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint& pc,
+                                                    const kinematic_constraints::OrientationConstraint& oc)
+>>>>>>> upstream/indigo-devel
   : position_constraint_(new kinematic_constraints::PositionConstraint(pc))
   , orientation_constraint_(new kinematic_constraints::OrientationConstraint(oc))
 {
 }
 
+<<<<<<< HEAD
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc) : position_constraint_(pc)
 {
 }
@@ -221,6 +265,20 @@ IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstrain
 
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
                                const kinematic_constraints::OrientationConstraintPtr& oc)
+=======
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc)
+  : position_constraint_(pc)
+{
+}
+
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc)
+  : orientation_constraint_(oc)
+{
+}
+
+constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
+                                                    const kinematic_constraints::OrientationConstraintPtr& oc)
+>>>>>>> upstream/indigo-devel
   : position_constraint_(pc), orientation_constraint_(oc)
 {
 }
@@ -235,7 +293,11 @@ void IKConstraintSampler::clear()
   need_eef_to_ik_tip_transform_ = false;
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::configure(const IKSamplingPose& sp)
+=======
+bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose& sp)
+>>>>>>> upstream/indigo-devel
 {
   clear();
   if (!sp.position_constraint_ && !sp.orientation_constraint_)
@@ -245,7 +307,11 @@ bool IKConstraintSampler::configure(const IKSamplingPose& sp)
       (sp.position_constraint_ && sp.orientation_constraint_ && !sp.position_constraint_->enabled() &&
        !sp.orientation_constraint_->enabled()))
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("No enabled constraints in sampling pose");
+=======
+    logWarn("No enabled constraints in sampling pose");
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -255,8 +321,13 @@ bool IKConstraintSampler::configure(const IKSamplingPose& sp)
     if (sampling_pose_.position_constraint_->getLinkModel()->getName() !=
         sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Position and orientation constraints need to be specified for the same link in "
                               "order to use IK-based sampling");
+=======
+      logError("Position and orientation constraints need to be specified for the same link in order to use IK-based "
+               "sampling");
+>>>>>>> upstream/indigo-devel
       return false;
     }
 
@@ -275,7 +346,11 @@ bool IKConstraintSampler::configure(const IKSamplingPose& sp)
   return is_valid_;
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::configure(const moveit_msgs::Constraints& constr)
+=======
+bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Constraints& constr)
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t p = 0; p < constr.position_constraints.size(); ++p)
     for (std::size_t o = 0; o < constr.orientation_constraints.size(); ++o)
@@ -351,9 +426,15 @@ bool IKConstraintSampler::loadIKSolver()
   if (transform_ik_)
     if (!jmg_->getParentModel().hasLinkModel(ik_frame_))
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("The IK solver expects requests in frame '%s' but this frame is not known to the "
                               "sampler. Ignoring transformation (IK may fail)",
                               ik_frame_.c_str());
+=======
+      logError("The IK solver expects requests in frame '%s' but this frame is not known to the sampler. Ignoring "
+               "transformation (IK may fail)",
+               ik_frame_.c_str());
+>>>>>>> upstream/indigo-devel
       transform_ik_ = false;
     }
 
@@ -369,8 +450,13 @@ bool IKConstraintSampler::loadIKSolver()
       for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
         if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
         {
+<<<<<<< HEAD
           eef_to_ik_tip_transform_ = it->second;
           need_eef_to_ik_tip_transform_ = true;
+=======
+          sampling_pose_.position_constraint_->swapLinkModel(jmg_->getParentModel().getLinkModel(it->first->getName()),
+                                                             it->second);
+>>>>>>> upstream/indigo-devel
           wrong_link = false;
           break;
         }
@@ -387,8 +473,13 @@ bool IKConstraintSampler::loadIKSolver()
       for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
         if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
         {
+<<<<<<< HEAD
           eef_to_ik_tip_transform_ = it->second;
           need_eef_to_ik_tip_transform_ = true;
+=======
+          sampling_pose_.orientation_constraint_->swapLinkModel(
+              jmg_->getParentModel().getLinkModel(it->first->getName()), it->second.rotation());
+>>>>>>> upstream/indigo-devel
           wrong_link = false;
           break;
         }
@@ -397,24 +488,41 @@ bool IKConstraintSampler::loadIKSolver()
 
   if (wrong_link)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.",
                             sampling_pose_.position_constraint_ ?
                                 sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() :
                                 sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(),
                             kb_->getTipFrame().c_str());
+=======
+    logError("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.",
+             sampling_pose_.position_constraint_ ?
+                 sampling_pose_.position_constraint_->getLinkModel()->getName().c_str() :
+                 sampling_pose_.orientation_constraint_->getLinkModel()->getName().c_str(),
+             kb_->getTipFrame().c_str());
+>>>>>>> upstream/indigo-devel
     return false;
   }
   return true;
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat, const robot_state::RobotState& ks,
                                      unsigned int max_attempts)
+=======
+bool constraint_samplers::IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat,
+                                                          const robot_state::RobotState& ks, unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   if (ks.dirtyLinkTransforms())
   {
     // samplePose below requires accurate transforms
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("IKConstraintSampler received dirty robot state, but valid transforms are required. "
                             "Failing.");
+=======
+    logError("IKConstraintSampler received dirty robot state, but valid transforms are required. Failing.");
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -439,8 +547,13 @@ bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& q
     }
     else
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Unable to sample a point inside the constraint region. "
                               "Constraint region is empty when it should not be.");
+=======
+      logError("Unable to sample a point inside the constraint region. Constraint region is empty when it should not "
+               "be.");
+>>>>>>> upstream/indigo-devel
       return false;
     }
 
@@ -518,14 +631,26 @@ void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_mod
 }
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
                                  unsigned int max_attempts)
+=======
+bool constraint_samplers::IKConstraintSampler::sample(robot_state::RobotState& state,
+                                                      const robot_state::RobotState& reference_state,
+                                                      unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   return sampleHelper(state, reference_state, max_attempts, false);
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
                                        unsigned int max_attempts, bool project)
+=======
+bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotState& state,
+                                                            const robot_state::RobotState& reference_state,
+                                                            unsigned int max_attempts, bool project)
+>>>>>>> upstream/indigo-devel
 {
   if (!is_valid_)
   {
@@ -585,12 +710,20 @@ bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const rob
   return false;
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+=======
+bool constraint_samplers::IKConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   return sampleHelper(state, state, max_attempts, true);
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::validate(robot_state::RobotState& state) const
+=======
+bool constraint_samplers::IKConstraintSampler::validate(robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
   state.update();
   return (!sampling_pose_.orientation_constraint_ ||
@@ -599,9 +732,15 @@ bool IKConstraintSampler::validate(robot_state::RobotState& state) const
           sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
 }
 
+<<<<<<< HEAD
 bool IKConstraintSampler::callIK(const geometry_msgs::Pose& ik_query,
                                  const kinematics::KinematicsBase::IKCallbackFn& adapted_ik_validity_callback,
                                  double timeout, robot_state::RobotState& state, bool use_as_seed)
+=======
+bool constraint_samplers::IKConstraintSampler::callIK(
+    const geometry_msgs::Pose& ik_query, const kinematics::KinematicsBase::IKCallbackFn& adapted_ik_validity_callback,
+    double timeout, robot_state::RobotState& state, bool use_as_seed)
+>>>>>>> upstream/indigo-devel
 {
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);
@@ -637,9 +776,15 @@ bool IKConstraintSampler::callIK(const geometry_msgs::Pose& ik_query,
     if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION &&
         error.val != moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE &&
         error.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT)
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("IK solver failed with error %d", error.val);
     else if (verbose_)
       CONSOLE_BRIDGE_logInform("IK failed");
+=======
+      logError("IK solver failed with error %d", error.val);
+    else if (verbose_)
+      logInform("IK failed");
+>>>>>>> upstream/indigo-devel
   }
   return false;
 }

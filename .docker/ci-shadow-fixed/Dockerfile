@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 # moveit/moveit:kinetic-ci-shadow-fixed
 # Sets up a base image to use for running Continuous Integration on Travis
 
 FROM ros:kinetic-ros-base
+=======
+# moveit/moveit:indigo-ci-shadow-fixed
+# Sets up a base image to use for running Continuous Integration on Travis
+
+FROM moveit/moveit:indigo-ci
+>>>>>>> upstream/indigo-devel
 MAINTAINER Dave Coleman dave@dav.ee
 
 ENV TERM xterm
@@ -12,6 +19,7 @@ RUN mkdir -p $CATKIN_WS/src
 WORKDIR $CATKIN_WS/src
 
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
+<<<<<<< HEAD
 RUN wstool init . && \
     # Download moveit source so that we can get necessary dependencies
     wstool merge https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
@@ -40,6 +48,14 @@ RUN wstool init . && \
     # Remove the source code from this container. TODO: in the future we may want to keep this here for further optimization of later containers
     cd .. && \
     rm -rf src/ && \
+=======
+# Switch to shadow-fixed
+RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` main" | tee /etc/apt/sources.list.d/ros-latest.list && \
+    # Update apt-get because previous images clear this cache
+    apt-get -qq update && \
+    # Do a dist-upgrade to ensure our CI is building on top of the latest version of packages
+    apt-get -qq dist-upgrade && \
+>>>>>>> upstream/indigo-devel
     # Clear apt-cache to reduce image size
     rm -rf /var/lib/apt/lists/*
 

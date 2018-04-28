@@ -106,6 +106,7 @@ struct GradientInfo
   }
 };
 
+<<<<<<< HEAD
 MOVEIT_CLASS_FORWARD(PosedDistanceField)
 MOVEIT_CLASS_FORWARD(BodyDecomposition);
 MOVEIT_CLASS_FORWARD(PosedBodySphereDecomposition)
@@ -113,6 +114,8 @@ MOVEIT_CLASS_FORWARD(PosedBodyPointDecomposition)
 MOVEIT_CLASS_FORWARD(PosedBodySphereDecompositionVector)
 MOVEIT_CLASS_FORWARD(PosedBodyPointDecompositionVector)
 
+=======
+>>>>>>> upstream/indigo-devel
 class PosedDistanceField : public distance_field::PropagationDistanceField
 {
 public:
@@ -193,6 +196,12 @@ protected:
   Eigen::Affine3d pose_;
 };
 
+<<<<<<< HEAD
+=======
+typedef boost::shared_ptr<PosedDistanceField> PosedDistanceFieldPtr;
+typedef boost::shared_ptr<const PosedDistanceField> PosedDistanceFieldConstPtr;
+
+>>>>>>> upstream/indigo-devel
 // determines set of collision spheres given a posed body; this is BAD!
 // Allocation erorrs will happen; change this function so it does not return
 // that vector by value
@@ -260,6 +269,7 @@ public:
   }
 
   const bodies::Body* getBody(unsigned int i) const
+<<<<<<< HEAD
   {
     return bodies_.getBody(i);
   }
@@ -269,6 +279,17 @@ public:
     return bodies_.getCount();
   }
 
+=======
+  {
+    return bodies_.getBody(i);
+  }
+
+  unsigned int getBodiesCount()
+  {
+    return bodies_.getCount();
+  }
+
+>>>>>>> upstream/indigo-devel
   Eigen::Affine3d getRelativeCylinderPose() const
   {
     return relative_cylinder_pose_;
@@ -292,6 +313,12 @@ protected:
   EigenSTL::vector_Vector3d relative_collision_points_;
 };
 
+<<<<<<< HEAD
+=======
+typedef boost::shared_ptr<BodyDecomposition> BodyDecompositionPtr;
+typedef boost::shared_ptr<const BodyDecomposition> BodyDecompositionConstPtr;
+
+>>>>>>> upstream/indigo-devel
 class PosedBodySphereDecomposition
 {
 public:
@@ -348,7 +375,11 @@ public:
 
   PosedBodyPointDecomposition(const BodyDecompositionConstPtr& body_decomposition, const Eigen::Affine3d& pose);
 
+<<<<<<< HEAD
   PosedBodyPointDecomposition(std::shared_ptr<const octomap::OcTree> octree);
+=======
+  PosedBodyPointDecomposition(boost::shared_ptr<const octomap::OcTree> octree);
+>>>>>>> upstream/indigo-devel
 
   const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
@@ -493,6 +524,14 @@ private:
   std::vector<PosedBodyPointDecompositionPtr> decomp_vector_;
 };
 
+<<<<<<< HEAD
+=======
+typedef boost::shared_ptr<PosedBodySphereDecompositionVector> PosedBodySphereDecompositionVectorPtr;
+typedef boost::shared_ptr<const PosedBodySphereDecompositionVector> PosedBodySphereDecompositionVectorConstPtr;
+typedef boost::shared_ptr<PosedBodyPointDecompositionVector> PosedBodyPointDecompositionVectorPtr;
+typedef boost::shared_ptr<const PosedBodyPointDecompositionVector> PosedBodyPointDecompositionVectorConstPtr;
+
+>>>>>>> upstream/indigo-devel
 struct ProximityInfo
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -238,7 +238,11 @@ private:
   std::map<std::string, std::vector<double> > search_res_;
   std::map<std::string, std::vector<std::string> > iksolver_to_tip_links_;  // a map between each ik solver and a vector
                                                                             // of custom-specified tip link(s)
+<<<<<<< HEAD
   std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+=======
+  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_;
+>>>>>>> upstream/indigo-devel
   std::map<const robot_model::JointModelGroup*, std::vector<kinematics::KinematicsBasePtr> > instances_;
   boost::mutex lock_;
 };
@@ -267,7 +271,11 @@ robot_model::SolverAllocatorFn kinematics_plugin_loader::KinematicsPluginLoader:
 }
 
 robot_model::SolverAllocatorFn
+<<<<<<< HEAD
 kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const srdf::ModelSharedPtr& srdf_model)
+=======
+kinematics_plugin_loader::KinematicsPluginLoader::getLoaderFunction(const boost::shared_ptr<srdf::Model>& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("KinematicsPluginLoader::getLoaderFunction(SRDF)");

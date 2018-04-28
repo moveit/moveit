@@ -36,9 +36,14 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
+<<<<<<< HEAD
 namespace collision_detection
 {
 CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& model, double padding, double scale)
+=======
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& model, double padding,
+                                                          double scale)
+>>>>>>> upstream/indigo-devel
   : CollisionRobot(model, padding, scale)
 {
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
@@ -46,6 +51,7 @@ CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& mode
   geoms_.resize(robot_model_->getLinkGeometryCount());
   fcl_objs_.resize(robot_model_->getLinkGeometryCount());
   // we keep the same order of objects as what RobotState *::getLinkState() returns
+<<<<<<< HEAD
   for (auto link : links)
     for (std::size_t j = 0; j < link->getShapes().size(); ++j)
     {
@@ -54,6 +60,16 @@ CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& mode
       if (g)
       {
         index = link->getFirstCollisionBodyTransformIndex() + j;
+=======
+  for (std::size_t i = 0; i < links.size(); ++i)
+    for (std::size_t j = 0; j < links[i]->getShapes().size(); ++j)
+    {
+      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()),
+                                                      getLinkPadding(links[i]->getName()), links[i], j);
+      if (g)
+      {
+        index = links[i]->getFirstCollisionBodyTransformIndex() + j;
+>>>>>>> upstream/indigo-devel
         geoms_[index] = g;
 
         // Need to store the FCL object so the AABB does not get recreated every time.
@@ -67,14 +83,23 @@ CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& mode
     }
 }
 
+<<<<<<< HEAD
 CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL& other) : CollisionRobot(other)
+=======
+collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL& other) : CollisionRobot(other)
+>>>>>>> upstream/indigo-devel
 {
   geoms_ = other.geoms_;
   fcl_objs_ = other.fcl_objs_;
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
                                                std::vector<FCLGeometryConstPtr>& geoms) const
+=======
+void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
+                                                                    std::vector<FCLGeometryConstPtr>& geoms) const
+>>>>>>> upstream/indigo-devel
 {
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
   for (std::size_t i = 0; i < shapes.size(); ++i)
@@ -85,7 +110,12 @@ void CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody* 
   }
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const
+=======
+void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
+                                                                FCLObject& fcl_obj) const
+>>>>>>> upstream/indigo-devel
 {
   fcl_obj.collision_objects_.reserve(geoms_.size());
   fcl::Transform3f fcl_tf;
@@ -96,7 +126,11 @@ void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
       transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
                                                     geoms_[i]->collision_geometry_data_->shape_index),
                     fcl_tf);
+<<<<<<< HEAD
       auto collObj = new fcl::CollisionObject(*fcl_objs_[i]);
+=======
+      fcl::CollisionObject* collObj = new fcl::CollisionObject(*fcl_objs_[i]);
+>>>>>>> upstream/indigo-devel
       collObj->setTransform(fcl_tf);
       collObj->computeAABB();
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
@@ -105,11 +139,19 @@ void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
   // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's
   std::vector<const robot_state::AttachedBody*> ab;
   state.getAttachedBodies(ab);
+<<<<<<< HEAD
   for (auto& body : ab)
   {
     std::vector<FCLGeometryConstPtr> objs;
     getAttachedBodyObjects(body, objs);
     const EigenSTL::vector_Affine3d& ab_t = body->getGlobalCollisionBodyTransforms();
+=======
+  for (std::size_t j = 0; j < ab.size(); ++j)
+  {
+    std::vector<FCLGeometryConstPtr> objs;
+    getAttachedBodyObjects(ab[j], objs);
+    const EigenSTL::vector_Affine3d& ab_t = ab[j]->getGlobalCollisionBodyTransforms();
+>>>>>>> upstream/indigo-devel
     for (std::size_t k = 0; k < objs.size(); ++k)
       if (objs[k]->collision_geometry_)
       {
@@ -123,7 +165,12 @@ void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
   }
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const
+=======
+void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state,
+                                                                          FCLManager& manager) const
+>>>>>>> upstream/indigo-devel
 {
   auto m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -133,36 +180,66 @@ void CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotSta
   // manager.manager_->update();
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                            const robot_state::RobotState& state) const
+=======
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                            const robot_state::RobotState& state,
                                            const AllowedCollisionMatrix& acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                const robot_state::RobotState& state,
+                                                                const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                            const robot_state::RobotState& state1,
                                            const robot_state::RobotState& state2) const
+=======
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                const robot_state::RobotState& state1,
+                                                                const robot_state::RobotState& state2) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
                                            const robot_state::RobotState& state1, const robot_state::RobotState& state2,
                                            const AllowedCollisionMatrix& acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                const robot_state::RobotState& state1,
+                                                                const robot_state::RobotState& state2,
+                                                                const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                  const robot_state::RobotState& state,
                                                  const AllowedCollisionMatrix* acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                                      const robot_state::RobotState& state,
+                                                                      const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -173,45 +250,88 @@ void CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, Co
     res.distance = distanceSelfHelper(state, acm);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
                                             const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                             const robot_state::RobotState& other_state) const
+=======
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                 const robot_state::RobotState& state,
+                                                                 const CollisionRobot& other_robot,
+                                                                 const robot_state::RobotState& other_state) const
+>>>>>>> upstream/indigo-devel
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, nullptr);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
                                             const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                             const robot_state::RobotState& other_state,
                                             const AllowedCollisionMatrix& acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                 const robot_state::RobotState& state,
+                                                                 const CollisionRobot& other_robot,
+                                                                 const robot_state::RobotState& other_state,
+                                                                 const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
                                             const robot_state::RobotState& state1,
                                             const robot_state::RobotState& state2, const CollisionRobot& other_robot,
                                             const robot_state::RobotState& other_state1,
                                             const robot_state::RobotState& other_state2) const
+=======
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                 const robot_state::RobotState& state1,
+                                                                 const robot_state::RobotState& state2,
+                                                                 const CollisionRobot& other_robot,
+                                                                 const robot_state::RobotState& other_state1,
+                                                                 const robot_state::RobotState& other_state2) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
                                             const robot_state::RobotState& state1,
                                             const robot_state::RobotState& state2, const CollisionRobot& other_robot,
                                             const robot_state::RobotState& other_state1,
                                             const robot_state::RobotState& other_state2,
                                             const AllowedCollisionMatrix& acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                                                 const robot_state::RobotState& state1,
+                                                                 const robot_state::RobotState& state2,
+                                                                 const CollisionRobot& other_robot,
+                                                                 const robot_state::RobotState& other_state1,
+                                                                 const robot_state::RobotState& other_state2,
+                                                                 const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
                                                   const robot_state::RobotState& state,
                                                   const CollisionRobot& other_robot,
                                                   const robot_state::RobotState& other_state,
                                                   const AllowedCollisionMatrix* acm) const
+=======
+void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req,
+                                                                       CollisionResult& res,
+                                                                       const robot_state::RobotState& state,
+                                                                       const CollisionRobot& other_robot,
+                                                                       const robot_state::RobotState& other_state,
+                                                                       const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -228,12 +348,21 @@ void CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req, C
     res.distance = distanceOtherHelper(state, other_robot, other_state, acm);
 }
 
+<<<<<<< HEAD
 void CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& links)
 {
   std::size_t index;
   for (const auto& link : links)
   {
     const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(link);
+=======
+void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& links)
+{
+  std::size_t index;
+  for (std::size_t i = 0; i < links.size(); ++i)
+  {
+    const robot_model::LinkModel* lmodel = robot_model_->getLinkModel(links[i]);
+>>>>>>> upstream/indigo-devel
     if (lmodel)
     {
       for (std::size_t j = 0; j < lmodel->getShapes().size(); ++j)
@@ -253,18 +382,32 @@ void CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& 
   }
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state) const
+=======
+double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
   return distanceSelfHelper(state, nullptr);
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
+=======
+double collision_detection::CollisionRobotFCL::distanceSelf(const robot_state::RobotState& state,
+                                                            const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   return distanceSelfHelper(state, &acm);
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceSelfHelper(const robot_state::RobotState& state,
                                              const AllowedCollisionMatrix* acm) const
+=======
+double collision_detection::CollisionRobotFCL::distanceSelfHelper(const robot_state::RobotState& state,
+                                                                  const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -279,22 +422,42 @@ double CollisionRobotFCL::distanceSelfHelper(const robot_state::RobotState& stat
   return res.distance;
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                         const robot_state::RobotState& other_state) const
+=======
+double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
+                                                             const CollisionRobot& other_robot,
+                                                             const robot_state::RobotState& other_state) const
+>>>>>>> upstream/indigo-devel
 {
   return distanceOtherHelper(state, other_robot, other_state, nullptr);
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceOther(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                         const robot_state::RobotState& other_state,
                                         const AllowedCollisionMatrix& acm) const
+=======
+double collision_detection::CollisionRobotFCL::distanceOther(const robot_state::RobotState& state,
+                                                             const CollisionRobot& other_robot,
+                                                             const robot_state::RobotState& other_state,
+                                                             const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   return distanceOtherHelper(state, other_robot, other_state, &acm);
 }
 
+<<<<<<< HEAD
 double CollisionRobotFCL::distanceOtherHelper(const robot_state::RobotState& state, const CollisionRobot& other_robot,
                                               const robot_state::RobotState& other_state,
                                               const AllowedCollisionMatrix* acm) const
+=======
+double collision_detection::CollisionRobotFCL::distanceOtherHelper(const robot_state::RobotState& state,
+                                                                   const CollisionRobot& other_robot,
+                                                                   const robot_state::RobotState& other_state,
+                                                                   const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);

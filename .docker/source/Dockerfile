@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 # moveit/moveit:kinetic-source
 # Downloads the moveit source code, install remaining debian dependencies, and builds workspace
 
 FROM moveit/moveit:kinetic-ci-shadow-fixed
+=======
+# moveit/moveit:indigo-source
+# Downloads the moveit source code, install remaining debian dependencies, and builds workspace
+
+FROM moveit/moveit:indigo-ci
+>>>>>>> upstream/indigo-devel
 MAINTAINER Dave Coleman dave@dav.ee
 
 ENV CATKIN_WS=/root/ws_moveit
@@ -14,7 +21,11 @@ RUN wstool init . && \
     wstool update
 
 # Update apt-get because osrf image clears this cache. download deps
+<<<<<<< HEAD
 # Note that because we're building on top of kinetic-ci, there should not be any deps installed
+=======
+# Note that because we're building on top of indigo-ci, there should not be any deps installed
+>>>>>>> upstream/indigo-devel
 # unless something has changed in the source code since the other container was made
 # (they are triggered together so should only be one-build out of sync)
 RUN apt-get -qq update && \
@@ -32,7 +43,12 @@ RUN mv /bin/sh /bin/sh-old && \
 WORKDIR $CATKIN_WS
 ENV TERM xterm
 ENV PYTHONIOENCODING UTF-8
+<<<<<<< HEAD
 RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out, but not too much
     # such that the Docker log gets too long (another form of timeout)
     catkin build --jobs 1 --limit-status-rate 0.001 --no-notify
+=======
+RUN source /ros_entrypoint.sh && \
+    catkin build --no-status
+>>>>>>> upstream/indigo-devel

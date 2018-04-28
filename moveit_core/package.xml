@@ -1,6 +1,10 @@
 <package>
   <name>moveit_core</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>Core libraries used by MoveIt!</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
@@ -21,11 +25,20 @@
 
   <build_depend>assimp</build_depend>
   <build_depend>boost</build_depend>
+<<<<<<< HEAD
   <build_depend>eigen</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>eigen_stl_containers</build_depend>
   <build_depend>libfcl-dev</build_depend>
   <build_depend version_gte="0.5.2">geometric_shapes</build_depend>
+=======
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>eigen_stl_containers</build_depend>
+  <build_depend>fcl</build_depend>
+  <build_depend version_gte="0.3.4">geometric_shapes</build_depend>
+>>>>>>> upstream/indigo-devel
   <build_depend>geometry_msgs</build_depend>
   <build_depend>kdl_parser</build_depend>
   <build_depend>libconsole-bridge-dev</build_depend>
@@ -50,8 +63,13 @@
   <run_depend>eigen</run_depend>
   <run_depend>eigen_conversions</run_depend>
   <run_depend>eigen_stl_containers</run_depend>
+<<<<<<< HEAD
   <run_depend>libfcl-dev</run_depend>
   <run_depend version_gte="0.5.2">geometric_shapes</run_depend>
+=======
+  <run_depend>fcl</run_depend>
+  <run_depend version_gte="0.3.4">geometric_shapes</run_depend>
+>>>>>>> upstream/indigo-devel
   <run_depend>geometry_msgs</run_depend>
   <run_depend>kdl_parser</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>

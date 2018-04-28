@@ -82,7 +82,11 @@ void MotionPlanningFrame::saveSceneButtonClicked()
                                     .append("' already exists. Do you wish to "
                                             "overwrite that scene?"),
                                 QMessageBox::Yes | QMessageBox::No, this));
+<<<<<<< HEAD
       std::unique_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
+=======
+      boost::scoped_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
+>>>>>>> upstream/indigo-devel
       if (q->exec() != QMessageBox::Yes)
       {
         if (q->clickedButton() == rename.get())
@@ -155,7 +159,11 @@ void MotionPlanningFrame::saveQueryButtonClicked()
                                         .append("' already exists. Do you wish "
                                                 "to overwrite that query?"),
                                     QMessageBox::Yes | QMessageBox::No, this));
+<<<<<<< HEAD
           std::unique_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
+=======
+          boost::scoped_ptr<QPushButton> rename(q->addButton("&Rename", QMessageBox::AcceptRole));
+>>>>>>> upstream/indigo-devel
           if (q->exec() == QMessageBox::Yes)
             break;
           else

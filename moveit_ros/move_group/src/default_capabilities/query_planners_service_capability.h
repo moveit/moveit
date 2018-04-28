@@ -54,9 +54,12 @@ public:
 private:
   bool queryInterface(moveit_msgs::QueryPlannerInterfaces::Request& req,
                       moveit_msgs::QueryPlannerInterfaces::Response& res);
+<<<<<<< HEAD
 
   bool getParams(moveit_msgs::GetPlannerParams::Request& req, moveit_msgs::GetPlannerParams::Response& res);
   bool setParams(moveit_msgs::SetPlannerParams::Request& req, moveit_msgs::SetPlannerParams::Response& res);
+=======
+>>>>>>> upstream/indigo-devel
 
   ros::ServiceServer query_service_;
   ros::ServiceServer get_service_;

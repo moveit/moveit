@@ -236,11 +236,18 @@ void plan_execution::PlanExecution::planAndExecuteHelper(ExecutableMotionPlan& p
       // othewrise, we wait (if needed)
       if (opt.replan_delay_ > 0.0)
       {
+<<<<<<< HEAD
         ROS_INFO_NAMED("plan_execution", "Waiting for a %lf seconds before attempting a new plan ...",
                        opt.replan_delay_);
         ros::WallDuration d(opt.replan_delay_);
         d.sleep();
         ROS_INFO_NAMED("plan_execution", "Done waiting");
+=======
+        ROS_INFO("Waiting for a %lf seconds before attempting a new plan ...", opt.replan_delay_);
+        ros::WallDuration d(opt.replan_delay_);
+        d.sleep();
+        ROS_INFO("Done waiting");
+>>>>>>> upstream/indigo-devel
       }
     }
   } while (!preempt_requested_ && max_replan_attempts > replan_attempts);
@@ -271,9 +278,14 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
 bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionPlan& plan,
                                                          const std::pair<int, int>& path_segment)
 {
+<<<<<<< HEAD
   if (path_segment.first >= 0 &&
       plan.plan_components_[path_segment.first].trajectory_monitoring_)  // If path_segment.second <= 0, the function
                                                                          // will fallback to check the entire trajectory
+=======
+  if (path_segment.first >= 0 && path_segment.second >= 0 &&
+      plan.plan_components_[path_segment.first].trajectory_monitoring_)
+>>>>>>> upstream/indigo-devel
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(plan.planning_scene_monitor_);  // lock the scene so that it
                                                                                          // does not modify the world
@@ -296,8 +308,13 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
       if (res.collision || !plan.planning_scene_->isStateFeasible(t.getWayPoint(i), false))
       {
         // Dave's debacle
+<<<<<<< HEAD
         ROS_INFO_NAMED("plan_execution", "Trajectory component '%s' is invalid",
                        plan.plan_components_[path_segment.first].description_.c_str());
+=======
+        ROS_INFO("Trajectory component '%s' is invalid",
+                 plan.plan_components_[path_segment.first].description_.c_str());
+>>>>>>> upstream/indigo-devel
 
         // call the same functions again, in verbose mode, to show what issues have been detected
         plan.planning_scene_->isStateFeasible(t.getWayPoint(i), true);
@@ -435,6 +452,19 @@ moveit_msgs::MoveItErrorCodes plan_execution::PlanExecution::executeAndMonitor(c
                                      "Possibly the node is about to shut down.");
     trajectory_execution_manager_->stopExecution();
   }
+<<<<<<< HEAD
+=======
+  else if (path_became_invalid_)
+  {
+    ROS_INFO("Stopping execution because the path to execute became invalid (probably the environment changed)");
+    trajectory_execution_manager_->stopExecution();
+  }
+  else if (!execution_complete_)
+  {
+    ROS_WARN("Stopping execution due to unknown reason. Possibly the node is about to shut down.");
+    trajectory_execution_manager_->stopExecution();
+  }
+>>>>>>> upstream/indigo-devel
 
   // stop recording trajectory states
   if (trajectory_monitor_)

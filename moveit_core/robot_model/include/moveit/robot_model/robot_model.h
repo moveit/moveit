@@ -69,7 +69,12 @@ class RobotModel
 {
 public:
   /** \brief Construct a kinematic model from a parsed description and a list of planning groups */
+<<<<<<< HEAD
   RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model);
+=======
+  RobotModel(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+             const boost::shared_ptr<const srdf::Model>& srdf_model);
+>>>>>>> upstream/indigo-devel
 
   /** \brief Destructor. Clear all memory. */
   ~RobotModel();
@@ -238,6 +243,7 @@ public:
 
   /** \brief Get a link by its name. Output error and return NULL when the link is missing. */
   LinkModel* getLinkModel(const std::string& link);
+<<<<<<< HEAD
 
   /** \brief Get the latest link upwards the kinematic tree, which is only connected via fixed joints
    *
@@ -251,6 +257,8 @@ public:
    * will actually warp wrist (and all its descendants).
    */
   static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link);
+=======
+>>>>>>> upstream/indigo-devel
 
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
@@ -453,11 +461,19 @@ protected:
 
   /** \brief The reference frame for this model */
   std::string model_frame_;
+<<<<<<< HEAD
+=======
+
+  boost::shared_ptr<const srdf::Model> srdf_;
+>>>>>>> upstream/indigo-devel
 
   srdf::ModelConstSharedPtr srdf_;
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdf_;
 
+=======
+>>>>>>> upstream/indigo-devel
   // LINKS
 
   /** \brief The first physical link for the robot */

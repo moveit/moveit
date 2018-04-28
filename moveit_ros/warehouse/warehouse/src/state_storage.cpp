@@ -41,18 +41,29 @@ const std::string moveit_warehouse::RobotStateStorage::DATABASE_NAME = "moveit_r
 const std::string moveit_warehouse::RobotStateStorage::STATE_NAME = "state_id";
 const std::string moveit_warehouse::RobotStateStorage::ROBOT_NAME = "robot_id";
 
+<<<<<<< HEAD
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::RobotStateStorage::RobotStateStorage(warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(conn)
+=======
+moveit_warehouse::RobotStateStorage::RobotStateStorage(const std::string& host, const unsigned int port,
+                                                       double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
+>>>>>>> upstream/indigo-devel
 {
   createCollections();
 }
 
 void moveit_warehouse::RobotStateStorage::createCollections()
 {
+<<<<<<< HEAD
   state_collection_ = conn_->openCollectionPtr<moveit_msgs::RobotState>(DATABASE_NAME, "robot_states");
+=======
+  state_collection_.reset(
+      new RobotStateCollection::element_type(DATABASE_NAME, "robot_states", db_host_, db_port_, timeout_));
+>>>>>>> upstream/indigo-devel
 }
 
 void moveit_warehouse::RobotStateStorage::reset()
@@ -71,9 +82,13 @@ void moveit_warehouse::RobotStateStorage::addRobotState(const moveit_msgs::Robot
     removeRobotState(name, robot);
     replace = true;
   }
+<<<<<<< HEAD
   Metadata::Ptr metadata = state_collection_->createMetadata();
   metadata->append(STATE_NAME, name);
   metadata->append(ROBOT_NAME, robot);
+=======
+  mongo_ros::Metadata metadata(STATE_NAME, name, ROBOT_NAME, robot);
+>>>>>>> upstream/indigo-devel
   state_collection_->insert(msg, metadata);
   ROS_DEBUG("%s robot state '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
@@ -101,10 +116,17 @@ void moveit_warehouse::RobotStateStorage::getKnownRobotStates(std::vector<std::s
   names.clear();
   Query::Ptr q = state_collection_->createQuery();
   if (!robot.empty())
+<<<<<<< HEAD
     q->append(ROBOT_NAME, robot);
   std::vector<RobotStateWithMetadata> constr = state_collection_->queryList(q, true, STATE_NAME, true);
   for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(STATE_NAME))
+=======
+    q.append(ROBOT_NAME, robot);
+  std::vector<RobotStateWithMetadata> constr = state_collection_->pullAllResults(q, true, STATE_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
+    if (constr[i]->metadata.hasField(STATE_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       names.push_back(constr[i]->lookupString(STATE_NAME));
 }
 

@@ -2,14 +2,19 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 0.9.11 (2017-12-25)
 -------------------
 
 0.9.10 (2017-12-09)
+=======
+0.7.13 (2017-12-25)
+>>>>>>> upstream/indigo-devel
 -------------------
 * [improve] removed deprecated pluginlib macro (`#677 <https://github.com/ros-planning/moveit/issues/677>`_)
 * Contributors: Mikael Arguedas
 
+<<<<<<< HEAD
 0.9.9 (2017-08-06)
 ------------------
 
@@ -51,6 +56,46 @@ Changelog for package moveit_ros_perception
 * remove unknown dependency sensor_msgs_generate_cpp
   dependencies are pulled in via ${catkin_LIBRARIES}
 * Find X11 for build on OS X 10.11
+=======
+0.7.12 (2017-08-06)
+-------------------
+
+0.7.11 (2017-06-21)
+-------------------
+
+0.7.10 (2017-06-07)
+-------------------
+
+0.7.9 (2017-04-03)
+------------------
+* [fix] gcc6 build error (`#471 <https://github.com/ros-planning/moveit/issues/471>`_, `#458 <https://github.com/ros-planning/moveit/issues/458>`_)
+* Contributors: Michael Goerner
+
+0.7.8 (2017-03-08)
+------------------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* Contributors: Dmitry Rozhkov
+
+0.7.7 (2017-02-06)
+------------------
+* clang-format upgraded to 3.8 (`#404 <https://github.com/ros-planning/moveit/issues/404>`_)
+* Contributors: Dave Coleman
+
+0.7.6 (2016-12-30)
+------------------
+
+0.7.5 (2016-12-25)
+------------------
+
+0.7.4 (2016-12-22)
+------------------
+
+0.7.3 (2016-12-20)
+------------------
+
+0.7.2 (2016-06-20)
+------------------
+>>>>>>> upstream/indigo-devel
 * set empty display function for glut window
   With freeglut 3.0 moveit aborts over here, printing
   > ERROR: No display callback registered for window 1
@@ -58,11 +103,26 @@ Changelog for package moveit_ros_perception
   and https://www.opengl.org/resources/libraries/glut/spec3/node46.html
   a callback *must* be registered for each window.
   With this patch moveit starts up as expected.
+<<<<<<< HEAD
 * Remove OpenMP parallelization, fixes `#563 <https://github.com/ros-planning/moveit_ros/issues/563>`_
 * Removed trailing whitespace from entire repository
 * last comment
 * Added missing dependency on moveit_msgs package
 * Contributors: Andriy Petlovanyy, Dave Coleman, Isaac I.Y. Saito, Kentaro Wada, Robert Haschke, Stefan Kohlbrecher, dg, v4hn
+=======
+* Contributors: v4hn
+
+0.7.1 (2016-04-11)
+------------------
+* [fix] Remove OpenMP parallelization (fixes `#563 <https://github.com/ros-planning/moveit_ros/issues/563>`_)
+* Contributors: Stefan Kohlbrecher
+
+0.7.0 (2016-01-30)
+------------------
+* Removed trailing whitespace from entire repository
+* Added missing dependency on moveit_msgs package
+* Contributors: Andriy Petlovanyy, Dave Coleman, dg
+>>>>>>> upstream/indigo-devel
 
 0.6.5 (2015-01-24)
 ------------------

@@ -58,7 +58,11 @@ static double normalizeAngle(double angle)
   return v;
 }
 
+<<<<<<< HEAD
 KinematicConstraint::KinematicConstraint(const robot_model::RobotModelConstPtr& model)
+=======
+kinematic_constraints::KinematicConstraint::KinematicConstraint(const robot_model::RobotModelConstPtr& model)
+>>>>>>> upstream/indigo-devel
   : type_(UNKNOWN_CONSTRAINT), robot_model_(model), constraint_weight_(std::numeric_limits<double>::epsilon())
 {
 }
@@ -67,7 +71,11 @@ KinematicConstraint::~KinematicConstraint()
 {
 }
 
+<<<<<<< HEAD
 bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
+=======
+bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
+>>>>>>> upstream/indigo-devel
 {
   // clearing before we configure to get rid of any old data
   clear();
@@ -114,6 +122,15 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
                                 jc.joint_name.c_str());
         joint_model_ = NULL;
       }
+<<<<<<< HEAD
+=======
+      else if (joint_model_->getVariableCount() > 1)
+      {
+        logError("Joint '%s' has more than one parameter to constrain. This type of constraint is not supported.",
+                 jc.joint_name.c_str());
+        joint_model_ = NULL;
+      }
+>>>>>>> upstream/indigo-devel
     }
     else
     {
@@ -127,8 +144,13 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
         }
       if (found < 0)
       {
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("Local variable name '%s' is not known to joint '%s'", local_variable_name_.c_str(),
                                 joint_model_->getName().c_str());
+=======
+        logError("Local variable name '%s' is not known to joint '%s'", local_variable_name_.c_str(),
+                 joint_model_->getName().c_str());
+>>>>>>> upstream/indigo-devel
         joint_model_ = NULL;
       }
     }
@@ -168,17 +190,27 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
       {
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be below the minimum bounds. "
                                "Assuming minimum bounds instead.",
                                jc.joint_name.c_str());
+=======
+        logWarn("Joint %s is constrained to be below the minimum bounds. Assuming minimum bounds instead.",
+                jc.joint_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be above the maximum bounds. "
                                "Assuming maximum bounds instead.",
                                jc.joint_name.c_str());
+=======
+        logWarn("Joint %s is constrained to be above the maximum bounds. Assuming maximum bounds instead.",
+                jc.joint_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
     }
 
@@ -194,7 +226,11 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
   return joint_model_ != NULL;
 }
 
+<<<<<<< HEAD
 bool JointConstraint::equal(const KinematicConstraint& other, double margin) const
+=======
+bool kinematic_constraints::JointConstraint::equal(const KinematicConstraint& other, double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (other.getType() != type_)
     return false;
@@ -206,7 +242,12 @@ bool JointConstraint::equal(const KinematicConstraint& other, double margin) con
   return false;
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult JointConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult
+kinematic_constraints::JointConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (!joint_model_)
     return ConstraintEvaluationResult(true, 0.0);
@@ -231,10 +272,17 @@ ConstraintEvaluationResult JointConstraint::decide(const robot_state::RobotState
   bool result = dif <= (joint_tolerance_above_ + 2.0 * std::numeric_limits<double>::epsilon()) &&
                 dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
                              "tolerance_above: %f, tolerance_below: %f",
                              result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
                              joint_position_, joint_tolerance_above_, joint_tolerance_below_);
+=======
+    logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, tolerance_above: %f, "
+              "tolerance_below: %f",
+              result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position, joint_position_,
+              joint_tolerance_above_, joint_tolerance_below_);
+>>>>>>> upstream/indigo-devel
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
 }
 
@@ -253,7 +301,11 @@ void JointConstraint::clear()
   joint_position_ = joint_tolerance_below_ = joint_tolerance_above_ = 0.0;
 }
 
+<<<<<<< HEAD
 void JointConstraint::print(std::ostream& out) const
+=======
+void kinematic_constraints::JointConstraint::print(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   if (joint_model_)
   {
@@ -270,7 +322,12 @@ void JointConstraint::print(std::ostream& out) const
     out << "No constraint" << std::endl;
 }
 
+<<<<<<< HEAD
 bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc,
+                                                          const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   // clearing before we configure to get rid of any old data
   clear();
@@ -278,8 +335,13 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
   link_model_ = robot_model_->getLinkModel(pc.link_name);
   if (link_model_ == NULL)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("Position constraint link model %s not found in kinematic model. Constraint invalid.",
                            pc.link_name.c_str());
+=======
+    logWarn("Position constraint link model %s not found in kinematic model.  Constraint invalid.",
+            pc.link_name.c_str());
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -355,14 +417,22 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
     }
     else
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("Could not construct mesh shape %d", i);
+=======
+      logWarn("Could not construct mesh shape %d", i);
+>>>>>>> upstream/indigo-devel
     }
   }
 
   if (pc.weight <= std::numeric_limits<double>::epsilon())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.",
                            pc.link_name.c_str());
+=======
+    logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.", pc.link_name.c_str());
+>>>>>>> upstream/indigo-devel
     constraint_weight_ = 1.0;
   }
   else
@@ -371,7 +441,21 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
   return !constraint_region_.empty();
 }
 
+<<<<<<< HEAD
 bool PositionConstraint::equal(const KinematicConstraint& other, double margin) const
+=======
+void kinematic_constraints::PositionConstraint::swapLinkModel(const robot_model::LinkModel* new_link,
+                                                              const Eigen::Affine3d& update)
+{
+  if (!enabled())
+    return;
+  link_model_ = new_link;
+  for (std::size_t i = 0; i < constraint_region_pose_.size(); ++i)
+    constraint_region_pose_[i] = constraint_region_pose_[i] * update;
+}
+
+bool kinematic_constraints::PositionConstraint::equal(const KinematicConstraint& other, double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (other.getType() != type_)
     return false;
@@ -410,25 +494,43 @@ bool PositionConstraint::equal(const KinematicConstraint& other, double margin) 
 }
 
 // helper function to avoid code duplication
+<<<<<<< HEAD
 static inline ConstraintEvaluationResult finishPositionConstraintDecision(const Eigen::Vector3d& pt,
                                                                           const Eigen::Vector3d& desired,
                                                                           const std::string& name, double weight,
                                                                           bool result, bool verbose)
+=======
+static inline kinematic_constraints::ConstraintEvaluationResult
+finishPositionConstraintDecision(const Eigen::Vector3d& pt, const Eigen::Vector3d& desired, const std::string& name,
+                                 double weight, bool result, bool verbose)
+>>>>>>> upstream/indigo-devel
 {
   double dx = desired.x() - pt.x();
   double dy = desired.y() - pt.y();
   double dz = desired.z() - pt.z();
   if (verbose)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
                              result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(),
                              pt.x(), pt.y(), pt.z());
     CONSOLE_BRIDGE_logInform("Differences %g %g %g", dx, dy, dz);
+=======
+    logInform("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
+              result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(),
+              pt.z());
+    logInform("Differences %g %g %g", dx, dy, dz);
+>>>>>>> upstream/indigo-devel
   }
   return ConstraintEvaluationResult(result, weight * sqrt(dx * dx + dy * dy + dz * dz));
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult PositionConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult
+kinematic_constraints::PositionConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (!link_model_ || constraint_region_.empty())
     return ConstraintEvaluationResult(true, 0.0);
@@ -464,7 +566,11 @@ ConstraintEvaluationResult PositionConstraint::decide(const robot_state::RobotSt
   return ConstraintEvaluationResult(false, 0.0);
 }
 
+<<<<<<< HEAD
 void PositionConstraint::print(std::ostream& out) const
+=======
+void kinematic_constraints::PositionConstraint::print(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   if (enabled())
     out << "Position constraint on link '" << link_model_->getName() << "'" << std::endl;
@@ -488,7 +594,12 @@ bool PositionConstraint::enabled() const
   return link_model_ && !constraint_region_.empty();
 }
 
+<<<<<<< HEAD
 bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& oc, const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& oc,
+                                                             const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   // clearing out any old data
   clear();
@@ -503,9 +614,14 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   tf::quaternionMsgToEigen(oc.orientation, q);
   if (fabs(q.norm() - 1.0) > 1e-3)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn(
         "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.",
         oc.link_name.c_str(), oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
+=======
+    logWarn("Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.",
+            oc.link_name.c_str(), oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
+>>>>>>> upstream/indigo-devel
     q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
   }
 
@@ -528,8 +644,13 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   }
   std::stringstream matrix_str;
   matrix_str << desired_rotation_matrix_;
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("The desired rotation matrix for link '%s' in frame %s is:\n%s", oc.link_name.c_str(),
                           desired_rotation_frame_id_.c_str(), matrix_str.str().c_str());
+=======
+  logDebug("The desired rotation matrix for link '%s' in frame %s is:\n%s", oc.link_name.c_str(),
+           desired_rotation_frame_id_.c_str(), matrix_str.str().c_str());
+>>>>>>> upstream/indigo-devel
 
   if (oc.weight <= std::numeric_limits<double>::epsilon())
   {
@@ -552,7 +673,21 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   return link_model_ != NULL;
 }
 
+<<<<<<< HEAD
 bool OrientationConstraint::equal(const KinematicConstraint& other, double margin) const
+=======
+void kinematic_constraints::OrientationConstraint::swapLinkModel(const robot_model::LinkModel* new_link,
+                                                                 const Eigen::Matrix3d& update)
+{
+  if (!enabled())
+    return;
+  link_model_ = new_link;
+  desired_rotation_matrix_ = desired_rotation_matrix_ * update;
+  desired_rotation_matrix_inv_ = desired_rotation_matrix_.inverse();
+}
+
+bool kinematic_constraints::OrientationConstraint::equal(const KinematicConstraint& other, double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (other.getType() != type_)
     return false;
@@ -586,7 +721,12 @@ bool OrientationConstraint::enabled() const
   return link_model_;
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult OrientationConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult
+kinematic_constraints::OrientationConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (!link_model_)
     return ConstraintEvaluationResult(true, 0.0);
@@ -617,17 +757,29 @@ ConstraintEvaluationResult OrientationConstraint::decide(const robot_state::Robo
   {
     Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).rotation());
     Eigen::Quaterniond q_des(desired_rotation_matrix_);
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
                              "actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
                              result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(),
                              q_des.z(), q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2),
                              absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
+=======
+    logInform("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion actual: %f %f %f "
+              "%f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
+              result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(), q_des.z(),
+              q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2), absolute_x_axis_tolerance_,
+              absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
+>>>>>>> upstream/indigo-devel
   }
 
   return ConstraintEvaluationResult(result, constraint_weight_ * (xyz(0) + xyz(1) + xyz(2)));
 }
 
+<<<<<<< HEAD
 void OrientationConstraint::print(std::ostream& out) const
+=======
+void kinematic_constraints::OrientationConstraint::print(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   if (link_model_)
   {
@@ -639,7 +791,11 @@ void OrientationConstraint::print(std::ostream& out) const
     out << "No constraint" << std::endl;
 }
 
+<<<<<<< HEAD
 VisibilityConstraint::VisibilityConstraint(const robot_model::RobotModelConstPtr& model)
+=======
+kinematic_constraints::VisibilityConstraint::VisibilityConstraint(const robot_model::RobotModelConstPtr& model)
+>>>>>>> upstream/indigo-devel
   : KinematicConstraint(model), collision_robot_(new collision_detection::CollisionRobotFCL(model))
 {
   type_ = VISIBILITY_CONSTRAINT;
@@ -661,7 +817,12 @@ void VisibilityConstraint::clear()
   max_range_angle_ = 0.0;
 }
 
+<<<<<<< HEAD
 bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc, const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc,
+                                                            const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   clear();
   target_radius_ = fabs(vc.target_radius);
@@ -671,9 +832,15 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
 
   if (vc.cone_sides < 3)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("The number of sides for the visibility region must be 3 or more. "
                            "Assuming 3 sides instead of the specified %d",
                            vc.cone_sides);
+=======
+    logWarn("The number of sides for the visibility region must be 3 or more. Assuming 3 sides instead of the "
+            "specified %d",
+            vc.cone_sides);
+>>>>>>> upstream/indigo-devel
     cone_sides_ = 3;
   }
   else
@@ -736,7 +903,11 @@ bool VisibilityConstraint::configure(const moveit_msgs::VisibilityConstraint& vc
   return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
+<<<<<<< HEAD
 bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin) const
+=======
+bool kinematic_constraints::VisibilityConstraint::equal(const KinematicConstraint& other, double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (other.getType() != type_)
     return false;
@@ -768,7 +939,11 @@ bool VisibilityConstraint::enabled() const
   return target_radius_ > std::numeric_limits<double>::epsilon();
 }
 
+<<<<<<< HEAD
 shapes::Mesh* VisibilityConstraint::getVisibilityCone(const robot_state::RobotState& state) const
+=======
+shapes::Mesh* kinematic_constraints::VisibilityConstraint::getVisibilityCone(const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
   // the current pose of the sensor
 
@@ -779,7 +954,11 @@ shapes::Mesh* VisibilityConstraint::getVisibilityCone(const robot_state::RobotSt
 
   // transform the points on the disc to the desired target frame
   const EigenSTL::vector_Vector3d* points = &points_;
+<<<<<<< HEAD
   std::unique_ptr<EigenSTL::vector_Vector3d> tempPoints;
+=======
+  boost::scoped_ptr<EigenSTL::vector_Vector3d> tempPoints;
+>>>>>>> upstream/indigo-devel
   if (mobile_target_frame_)
   {
     tempPoints.reset(new EigenSTL::vector_Vector3d(points_.size()));
@@ -842,8 +1021,13 @@ shapes::Mesh* VisibilityConstraint::getVisibilityCone(const robot_state::RobotSt
   return m;
 }
 
+<<<<<<< HEAD
 void VisibilityConstraint::getMarkers(const robot_state::RobotState& state,
                                       visualization_msgs::MarkerArray& markers) const
+=======
+void kinematic_constraints::VisibilityConstraint::getMarkers(const robot_state::RobotState& state,
+                                                             visualization_msgs::MarkerArray& markers) const
+>>>>>>> upstream/indigo-devel
 {
   shapes::Mesh* m = getVisibilityCone(state);
   visualization_msgs::Marker mk;
@@ -914,7 +1098,12 @@ void VisibilityConstraint::getMarkers(const robot_state::RobotState& state,
   markers.markers.push_back(mka);
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult
+kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (target_radius_ <= std::numeric_limits<double>::epsilon())
     return ConstraintEvaluationResult(true, 0.0);
@@ -943,9 +1132,15 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
       if (max_view_angle_ < ang)
       {
         if (verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the view angle is %lf "
                                    "(above the maximum allowed of %lf)",
                                    ang, max_view_angle_);
+=======
+          logInform("Visibility constraint is violated because the view angle is %lf (above the maximum allowed of "
+                    "%lf)",
+                    ang, max_view_angle_);
+>>>>>>> upstream/indigo-devel
         return ConstraintEvaluationResult(false, 0.0);
       }
     }
@@ -964,9 +1159,15 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
       if (max_range_angle_ < ang)
       {
         if (verbose)
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the range angle is %lf "
                                    "(above the maximum allowed of %lf)",
                                    ang, max_range_angle_);
+=======
+          logInform("Visibility constraint is violated because the range angle is %lf (above the maximum allowed of "
+                    "%lf)",
+                    ang, max_range_angle_);
+>>>>>>> upstream/indigo-devel
         return ConstraintEvaluationResult(false, 0.0);
       }
     }
@@ -994,14 +1195,23 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const robot_state::Robot
   {
     std::stringstream ss;
     m->print(ss);
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s",
                              res.collision ? "not " : "", ss.str().c_str());
+=======
+    logInform("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s", res.collision ? "not " : "",
+              ss.str().c_str());
+>>>>>>> upstream/indigo-devel
   }
 
   return ConstraintEvaluationResult(!res.collision, res.collision ? res.contacts.begin()->second.front().depth : 0.0);
 }
 
+<<<<<<< HEAD
 bool VisibilityConstraint::decideContact(const collision_detection::Contact& contact) const
+=======
+bool kinematic_constraints::VisibilityConstraint::decideContact(const collision_detection::Contact& contact) const
+>>>>>>> upstream/indigo-devel
 {
   if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_ATTACHED ||
       contact.body_type_2 == collision_detection::BodyTypes::ROBOT_ATTACHED)
@@ -1011,7 +1221,11 @@ bool VisibilityConstraint::decideContact(const collision_detection::Contact& con
       (robot_state::Transforms::sameFrame(contact.body_name_1, sensor_frame_id_) ||
        robot_state::Transforms::sameFrame(contact.body_name_1, target_frame_id_)))
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("Accepted collision with either sensor or target");
+=======
+    logDebug("Accepted collision with either sensor or target");
+>>>>>>> upstream/indigo-devel
     return true;
   }
   if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK &&
@@ -1019,13 +1233,21 @@ bool VisibilityConstraint::decideContact(const collision_detection::Contact& con
       (robot_state::Transforms::sameFrame(contact.body_name_2, sensor_frame_id_) ||
        robot_state::Transforms::sameFrame(contact.body_name_2, target_frame_id_)))
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("Accepted collision with either sensor or target");
+=======
+    logDebug("Accepted collision with either sensor or target");
+>>>>>>> upstream/indigo-devel
     return true;
   }
   return false;
 }
 
+<<<<<<< HEAD
 void VisibilityConstraint::print(std::ostream& out) const
+=======
+void kinematic_constraints::VisibilityConstraint::print(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   if (enabled())
   {
@@ -1047,7 +1269,11 @@ void KinematicConstraintSet::clear()
   visibility_constraints_.clear();
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint>& jc)
+=======
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint>& jc)
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   for (unsigned int i = 0; i < jc.size(); ++i)
@@ -1062,8 +1288,13 @@ bool KinematicConstraintSet::add(const std::vector<moveit_msgs::JointConstraint>
   return result;
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::add(const std::vector<moveit_msgs::PositionConstraint>& pc,
                                  const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::PositionConstraint>& pc,
+                                                        const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   for (unsigned int i = 0; i < pc.size(); ++i)
@@ -1078,8 +1309,13 @@ bool KinematicConstraintSet::add(const std::vector<moveit_msgs::PositionConstrai
   return result;
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::add(const std::vector<moveit_msgs::OrientationConstraint>& oc,
                                  const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::OrientationConstraint>& oc,
+                                                        const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   for (unsigned int i = 0; i < oc.size(); ++i)
@@ -1094,8 +1330,13 @@ bool KinematicConstraintSet::add(const std::vector<moveit_msgs::OrientationConst
   return result;
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstraint>& vc,
                                  const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstraint>& vc,
+                                                        const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   for (unsigned int i = 0; i < vc.size(); ++i)
@@ -1110,7 +1351,12 @@ bool KinematicConstraintSet::add(const std::vector<moveit_msgs::VisibilityConstr
   return result;
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::add(const moveit_msgs::Constraints& c, const robot_state::Transforms& tf)
+=======
+bool kinematic_constraints::KinematicConstraintSet::add(const moveit_msgs::Constraints& c,
+                                                        const robot_state::Transforms& tf)
+>>>>>>> upstream/indigo-devel
 {
   bool j = add(c.joint_constraints);
   bool p = add(c.position_constraints, tf);
@@ -1119,7 +1365,12 @@ bool KinematicConstraintSet::add(const moveit_msgs::Constraints& c, const robot_
   return j && p && o && v;
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult KinematicConstraintSet::decide(const robot_state::RobotState& state, bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult
+kinematic_constraints::KinematicConstraintSet::decide(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   ConstraintEvaluationResult res(true, 0.0);
   for (unsigned int i = 0; i < kinematic_constraints_.size(); ++i)
@@ -1132,9 +1383,14 @@ ConstraintEvaluationResult KinematicConstraintSet::decide(const robot_state::Rob
   return res;
 }
 
+<<<<<<< HEAD
 ConstraintEvaluationResult KinematicConstraintSet::decide(const robot_state::RobotState& state,
                                                           std::vector<ConstraintEvaluationResult>& results,
                                                           bool verbose) const
+=======
+kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::KinematicConstraintSet::decide(
+    const robot_state::RobotState& state, std::vector<ConstraintEvaluationResult>& results, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   ConstraintEvaluationResult result(true, 0.0);
   results.resize(kinematic_constraints_.size());
@@ -1148,14 +1404,22 @@ ConstraintEvaluationResult KinematicConstraintSet::decide(const robot_state::Rob
   return result;
 }
 
+<<<<<<< HEAD
 void KinematicConstraintSet::print(std::ostream& out) const
+=======
+void kinematic_constraints::KinematicConstraintSet::print(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   out << kinematic_constraints_.size() << " kinematic constraints" << std::endl;
   for (unsigned int i = 0; i < kinematic_constraints_.size(); ++i)
     kinematic_constraints_[i]->print(out);
 }
 
+<<<<<<< HEAD
 bool KinematicConstraintSet::equal(const KinematicConstraintSet& other, double margin) const
+=======
+bool kinematic_constraints::KinematicConstraintSet::equal(const KinematicConstraintSet& other, double margin) const
+>>>>>>> upstream/indigo-devel
 {
   // each constraint in this matches some in the other
   for (unsigned int i = 0; i < kinematic_constraints_.size(); ++i)

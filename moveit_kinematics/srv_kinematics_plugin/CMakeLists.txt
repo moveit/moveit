@@ -1,7 +1,11 @@
 set(MOVEIT_LIB_NAME moveit_srv_kinematics_plugin)
 
 add_library(${MOVEIT_LIB_NAME} src/srv_kinematics_plugin.cpp)
+<<<<<<< HEAD:moveit_kinematics/srv_kinematics_plugin/CMakeLists.txt
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel:moveit_kinematics/srv_kinematics_plugin/CMakeLists.txt
 
 target_link_libraries(${MOVEIT_LIB_NAME} moveit_rdf_loader ${catkin_LIBRARIES})
 

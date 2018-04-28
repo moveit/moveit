@@ -62,9 +62,15 @@ int main(int argc, char** argv)
 
   boost::program_options::options_description desc;
   desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+<<<<<<< HEAD
                                                                                                         "DB.")(
       "port", boost::program_options::value<std::size_t>(),
       "Port for the DB.")("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")(
+=======
+                                                                                                        "MongoDB.")(
+      "port", boost::program_options::value<std::size_t>(),
+      "Port for the MongoDB.")("scene", boost::program_options::value<std::string>(), "Name of scene to publish.")(
+>>>>>>> upstream/indigo-devel
       "planning_requests", "Also publish the planning requests that correspond to the scene")(
       "planning_results", "Also publish the planning results that correspond to the scene")(
       "constraint", boost::program_options::value<std::string>(), "Name of constraint to publish.")(

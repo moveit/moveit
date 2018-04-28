@@ -46,13 +46,21 @@
 #include <ros/ros.h>
 
 // System
+<<<<<<< HEAD
 #include <memory>
+=======
+#include <boost/shared_ptr.hpp>
+>>>>>>> upstream/indigo-devel
 
 // ROS msgs
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
+<<<<<<< HEAD
 #include <moveit_msgs/KinematicSolverInfo.h>
+=======
+#include <moveit_msgs/GetKinematicSolverInfo.h>
+>>>>>>> upstream/indigo-devel
 #include <moveit_msgs/MoveItErrorCodes.h>
 
 // MoveIt!
@@ -166,7 +174,11 @@ private:
 
   int num_possible_redundant_joints_;
 
+<<<<<<< HEAD
   std::shared_ptr<ros::ServiceClient> ik_service_client_;
+=======
+  boost::shared_ptr<ros::ServiceClient> ik_service_client_;
+>>>>>>> upstream/indigo-devel
 };
 }
 

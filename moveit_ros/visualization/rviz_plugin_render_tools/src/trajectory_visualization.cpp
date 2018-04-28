@@ -108,11 +108,19 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
                                                                           "shown in the trajectory trail.",
                                                     widget, SLOT(changedTrailStepSize()), this);
   trail_step_size_property_->setMin(1);
+<<<<<<< HEAD
 
   interrupt_display_property_ = new rviz::BoolProperty(
       "Interrupt Display", false,
       "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
 
+=======
+
+  interrupt_display_property_ = new rviz::BoolProperty(
+      "Interrupt Display", false,
+      "Immediately show newly planned trajectory, interrupting the currently displayed one.", widget);
+
+>>>>>>> upstream/indigo-devel
   robot_color_property_ = new rviz::ColorProperty(
       "Robot Color", QColor(150, 50, 150), "The color of the animated robot", widget, SLOT(changedRobotColor()), this);
 
@@ -194,6 +202,14 @@ void TrajectoryVisualization::reset()
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
+<<<<<<< HEAD
+=======
+
+  if (!robot_model_)
+    ROS_WARN_STREAM_NAMED("trajectory_visualization", "No robot model found");
+  else
+    display_path_robot_->load(*robot_model_->getURDF());
+>>>>>>> upstream/indigo-devel
 }
 
 void TrajectoryVisualization::clearTrajectoryTrail()
@@ -360,6 +376,10 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
   {
     animating_path_ = false;
     displaying_trajectory_message_.reset();
+<<<<<<< HEAD
+=======
+    display_path_robot_->setVisible(false);
+>>>>>>> upstream/indigo-devel
     trajectory_slider_panel_->update(0);
     drop_displaying_trajectory_ = false;
   }
@@ -384,8 +404,16 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       }
       else if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible())
       {
+<<<<<<< HEAD
         if (trajectory_slider_panel_->getSliderPosition() >= displaying_trajectory_message_->getWayPointCount() - 1)
           return;  // nothing more to do
+=======
+        if (trajectory_slider_panel_->getSliderPosition() == displaying_trajectory_message_->getWayPointCount() - 1)
+        {  // show the last waypoint if the slider is enabled
+          display_path_robot_->update(
+              displaying_trajectory_message_->getWayPointPtr(displaying_trajectory_message_->getWayPointCount() - 1));
+        }
+>>>>>>> upstream/indigo-devel
         else
           animating_path_ = true;
       }
@@ -394,8 +422,17 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
 
     if (animating_path_)
     {
+<<<<<<< HEAD
       // restart animation
       current_state_ = -1;
+=======
+      current_state_ = -1;
+      current_state_time_ = std::numeric_limits<float>::infinity();
+      display_path_robot_->update(displaying_trajectory_message_->getFirstWayPointPtr());
+      display_path_robot_->setVisible(display_->isEnabled());
+      if (trajectory_slider_panel_)
+        trajectory_slider_panel_->setSliderPosition(0);
+>>>>>>> upstream/indigo-devel
     }
   }
 
@@ -405,6 +442,7 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
     int waypoint_count = displaying_trajectory_message_->getWayPointCount();
     current_state_time_ += wall_dt;
     float tm = getStateDisplayTime();
+<<<<<<< HEAD
 
     if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
       current_state_ = trajectory_slider_panel_->getSliderPosition();
@@ -421,6 +459,33 @@ void TrajectoryVisualization::update(float wall_dt, float ros_dt)
       {
         current_state_time_ -= tm;
         ++current_state_;
+=======
+    if (tm < 0.0)  // if we should use realtime
+      tm = displaying_trajectory_message_->getWayPointDurationFromPrevious(current_state_ + 1);
+    if (current_state_time_ > tm)
+    {
+      if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
+        current_state_ = trajectory_slider_panel_->getSliderPosition();
+      else
+        ++current_state_;
+      int waypoint_count = displaying_trajectory_message_->getWayPointCount();
+      if ((std::size_t)current_state_ < waypoint_count)
+      {
+        if (trajectory_slider_panel_)
+          trajectory_slider_panel_->setSliderPosition(current_state_);
+        display_path_robot_->update(displaying_trajectory_message_->getWayPointPtr(current_state_));
+        for (std::size_t i = 0; i < trajectory_trail_.size(); ++i)
+          trajectory_trail_[i]->setVisible(
+              std::min(waypoint_count - 1, static_cast<int>(i) * trail_step_size_property_->getInt()) <=
+              current_state_);
+      }
+      else
+      {
+        animating_path_ = false;  // animation finished
+        display_path_robot_->setVisible(loop_display_property_->getBool());
+        if (!loop_display_property_->getBool() && trajectory_slider_panel_)
+          trajectory_slider_panel_->pauseButton(true);
+>>>>>>> upstream/indigo-devel
       }
     }
     else if (current_state_time_ > tm)
@@ -510,14 +575,28 @@ void TrajectoryVisualization::enabledRobotColor()
 
 void TrajectoryVisualization::unsetRobotColor(rviz::Robot* robot)
 {
+<<<<<<< HEAD
   for (auto& link : robot->getLinks())
     link.second->unsetColor();
+=======
+  typedef rviz::Robot::M_NameToLink LinksMap;
+  const LinksMap& links = robot->getLinks();
+  for (LinksMap::const_iterator it = links.begin(); it != links.end(); it++)
+    it->second->unsetColor();
+>>>>>>> upstream/indigo-devel
 }
 
 void TrajectoryVisualization::setRobotColor(rviz::Robot* robot, const QColor& color)
 {
+<<<<<<< HEAD
   for (auto& link : robot->getLinks())
     robot->getLink(link.first)->setColor(color.redF(), color.greenF(), color.blueF());
+=======
+  typedef rviz::Robot::M_NameToLink LinksMap;
+  const LinksMap& links = robot->getLinks();
+  for (LinksMap::const_iterator it = links.begin(); it != links.end(); it++)
+    it->second->setColor(color.redF(), color.greenF(), color.blueF());
+>>>>>>> upstream/indigo-devel
 }
 
 void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)

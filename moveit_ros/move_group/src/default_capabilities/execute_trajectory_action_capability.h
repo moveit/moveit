@@ -46,7 +46,10 @@
 #include <moveit/move_group/move_group_capability.h>
 #include <actionlib/server/simple_action_server.h>
 #include <moveit_msgs/ExecuteTrajectoryAction.h>
+<<<<<<< HEAD
 #include <memory>
+=======
+>>>>>>> upstream/indigo-devel
 
 namespace move_group
 {
@@ -64,7 +67,11 @@ private:
   void preemptExecuteTrajectoryCallback();
   void setExecuteTrajectoryState(MoveGroupState state);
 
+<<<<<<< HEAD
   std::unique_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
+=======
+  boost::scoped_ptr<actionlib::SimpleActionServer<moveit_msgs::ExecuteTrajectoryAction> > execute_action_server_;
+>>>>>>> upstream/indigo-devel
 };
 
 }  // namespace move_group

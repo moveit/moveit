@@ -59,7 +59,11 @@ DoubleListWidget::DoubleListWidget(QWidget* parent, moveit_setup_assistant::Move
 
   // Label ------------------------------------------------
   title_ = new QLabel("", this);  // specify the title from the parent widget
+<<<<<<< HEAD
   QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
+=======
+  QFont group_title_font("Arial", 12, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 

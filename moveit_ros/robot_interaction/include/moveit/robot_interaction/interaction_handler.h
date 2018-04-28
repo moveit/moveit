@@ -151,7 +151,11 @@ public:
   /** \brief Set the menu handler that defines menus and callbacks for all
    *         interactive markers drawn by this interaction handler.
    * @param  A menu handler. */
+<<<<<<< HEAD
   void setMenuHandler(const std::shared_ptr<interactive_markers::MenuHandler>& mh);
+=======
+  void setMenuHandler(const boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+>>>>>>> upstream/indigo-devel
 
   /** \brief Get the menu handler that defines menus and callbacks for all
    *         interactive markers drawn by this interaction handler.
@@ -331,7 +335,11 @@ public:
   void setGroupStateValidityCallback(const robot_state::GroupStateValidityCallbackFn& callback);
   void setIKTimeout(double timeout);
   void setIKAttempts(unsigned int attempts);
+<<<<<<< HEAD
   kinematics::KinematicsQueryOptions getKinematicsQueryOptions() const;
+=======
+  const kinematics::KinematicsQueryOptions& getKinematicsQueryOptions() const;
+>>>>>>> upstream/indigo-devel
   void setKinematicsQueryOptions(const kinematics::KinematicsQueryOptions& opt);
   void setKinematicsQueryOptionsForGroup(const std::string& group_name,
                                          const kinematics::KinematicsQueryOptions& options);

@@ -56,9 +56,12 @@
 
 #include <std_msgs/String.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+<<<<<<< HEAD
 #endif
 
 #include <memory>
+=======
+>>>>>>> upstream/indigo-devel
 
 namespace Ogre
 {
@@ -139,7 +142,11 @@ public:
   // Pick Place
   void clearPlaceLocationsDisplay();
   void visualizePlaceLocations(const std::vector<geometry_msgs::PoseStamped>& place_poses);
+<<<<<<< HEAD
   std::vector<std::shared_ptr<rviz::Shape> > place_locations_display_;
+=======
+  std::vector<boost::shared_ptr<rviz::Shape> > place_locations_display_;
+>>>>>>> upstream/indigo-devel
 
   std::string getCurrentPlanningGroup() const;
 
@@ -220,7 +227,11 @@ protected:
   void backgroundJobUpdate(moveit::tools::BackgroundProcessing::JobEvent event, const std::string& jobname);
 
   void setQueryStateHelper(bool use_start_state, const std::string& v);
+<<<<<<< HEAD
   void populateMenuHandler(std::shared_ptr<interactive_markers::MenuHandler>& mh);
+=======
+  void populateMenuHandler(boost::shared_ptr<interactive_markers::MenuHandler>& mh);
+>>>>>>> upstream/indigo-devel
 
   void selectPlanningGroupCallback(const std_msgs::StringConstPtr& msg);
 

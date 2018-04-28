@@ -73,11 +73,14 @@ public:
     return initialized_;
   }
 
+<<<<<<< HEAD:moveit_planners/chomp/chomp_motion_planner/include/chomp_motion_planner/chomp_optimizer.h
   bool isCollisionFree() const
   {
     return is_collision_free_;
   }
 
+=======
+>>>>>>> upstream/indigo-devel:moveit_planners/chomp/chomp_motion_planner/include/chomp_motion_planner/chomp_optimizer.h
 private:
   inline double getPotential(double field_distance, double radius, double clearence)
   {

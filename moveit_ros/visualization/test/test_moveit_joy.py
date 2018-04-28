@@ -17,8 +17,13 @@
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
 #  * Neither the name of Tokyo Opensource Robotics Kyokai Association
+<<<<<<< HEAD
 #    nor the names of its contributors may be used to endorse or promote 
 #    products derived from this software without specific prior written 
+=======
+#    nor the names of its contributors may be used to endorse or promote
+#    products derived from this software without specific prior written
+>>>>>>> upstream/indigo-devel
 #    permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS

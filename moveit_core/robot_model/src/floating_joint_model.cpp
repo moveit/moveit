@@ -41,11 +41,16 @@
 #include <limits>
 #include <cmath>
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(name), angular_distance_weight_(1.0)
+=======
+moveit::core::FloatingJointModel::FloatingJointModel(const std::string& name)
+  : JointModel(name), angular_distance_weight_(1.0)
+>>>>>>> upstream/indigo-devel
 {
   type_ = FLOATING;
   local_variable_names_.push_back("trans_x");
@@ -89,7 +94,11 @@ FloatingJointModel::FloatingJointModel(const std::string& name) : JointModel(nam
   computeVariableBoundsMsg();
 }
 
+<<<<<<< HEAD
 double FloatingJointModel::getMaximumExtent(const Bounds& other_bounds) const
+=======
+double moveit::core::FloatingJointModel::getMaximumExtent(const Bounds& other_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   double dx = other_bounds[0].max_position_ - other_bounds[0].min_position_;
   double dy = other_bounds[1].max_position_ - other_bounds[1].min_position_;
@@ -97,12 +106,20 @@ double FloatingJointModel::getMaximumExtent(const Bounds& other_bounds) const
   return sqrt(dx * dx + dy * dy + dz * dz) + boost::math::constants::pi<double>() * 0.5 * angular_distance_weight_;
 }
 
+<<<<<<< HEAD
 double FloatingJointModel::distance(const double* values1, const double* values2) const
+=======
+double moveit::core::FloatingJointModel::distance(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   return distanceTranslation(values1, values2) + angular_distance_weight_ * distanceRotation(values1, values2);
 }
 
+<<<<<<< HEAD
 double FloatingJointModel::distanceTranslation(const double* values1, const double* values2) const
+=======
+double moveit::core::FloatingJointModel::distanceTranslation(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   double dx = values1[0] - values2[0];
   double dy = values1[1] - values2[1];
@@ -110,7 +127,11 @@ double FloatingJointModel::distanceTranslation(const double* values1, const doub
   return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+<<<<<<< HEAD
 double FloatingJointModel::distanceRotation(const double* values1, const double* values2) const
+=======
+double moveit::core::FloatingJointModel::distanceRotation(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   double dq =
       fabs(values1[3] * values2[3] + values1[4] * values2[4] + values1[5] * values2[5] + values1[6] * values2[6]);
@@ -120,7 +141,12 @@ double FloatingJointModel::distanceRotation(const double* values1, const double*
     return acos(dq);
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+=======
+void moveit::core::FloatingJointModel::interpolate(const double* from, const double* to, const double t,
+                                                   double* state) const
+>>>>>>> upstream/indigo-devel
 {
   // interpolate position
   state[0] = from[0] + (to[0] - from[0]) * t;
@@ -150,7 +176,12 @@ void FloatingJointModel::interpolate(const double* from, const double* to, const
   }
 }
 
+<<<<<<< HEAD
 bool FloatingJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
+=======
+bool moveit::core::FloatingJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
+                                                               double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
@@ -164,7 +195,11 @@ bool FloatingJointModel::satisfiesPositionBounds(const double* values, const Bou
   return true;
 }
 
+<<<<<<< HEAD
 bool FloatingJointModel::normalizeRotation(double* values) const
+=======
+bool moveit::core::FloatingJointModel::normalizeRotation(double* values) const
+>>>>>>> upstream/indigo-devel
 {
   // normalize the quaternion if we need to
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
@@ -197,7 +232,11 @@ unsigned int FloatingJointModel::getStateSpaceDimension() const
   return 6;
 }
 
+<<<<<<< HEAD
 bool FloatingJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+=======
+bool moveit::core::FloatingJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   bool result = normalizeRotation(values);
   for (unsigned int i = 0; i < 3; ++i)
@@ -216,14 +255,23 @@ bool FloatingJointModel::enforcePositionBounds(double* values, const Bounds& bou
   return result;
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+=======
+void moveit::core::FloatingJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+>>>>>>> upstream/indigo-devel
 {
   transf = Eigen::Affine3d(
       Eigen::Translation3d(joint_values[0], joint_values[1], joint_values[2]) *
       Eigen::Quaterniond(joint_values[6], joint_values[3], joint_values[4], joint_values[5]).toRotationMatrix());
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
+=======
+void moveit::core::FloatingJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
+                                                                double* joint_values) const
+>>>>>>> upstream/indigo-devel
 {
   joint_values[0] = transf.translation().x();
   joint_values[1] = transf.translation().y();
@@ -235,7 +283,11 @@ void FloatingJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
   joint_values[6] = q.w();
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+=======
+void moveit::core::FloatingJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   for (unsigned int i = 0; i < 3; ++i)
   {
@@ -252,8 +304,13 @@ void FloatingJointModel::getVariableDefaultPositions(double* values, const Bound
   values[6] = 1.0;
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
                                                     const Bounds& bounds) const
+=======
+void moveit::core::FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                                  double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())
@@ -279,9 +336,15 @@ void FloatingJointModel::getVariableRandomPositions(random_numbers::RandomNumber
   values[6] = q[3];
 }
 
+<<<<<<< HEAD
 void FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
                                                           const Bounds& bounds, const double* near,
                                                           const double distance) const
+=======
+void moveit::core::FloatingJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
+                                                                        double* values, const Bounds& bounds,
+                                                                        const double* near, const double distance) const
+>>>>>>> upstream/indigo-devel
 {
   if (bounds[0].max_position_ >= std::numeric_limits<double>::infinity() ||
       bounds[0].min_position_ <= -std::numeric_limits<double>::infinity())

@@ -2,7 +2,11 @@
   <name>chomp_motion_planner</name>
   <description>chomp_motion_planner</description>
 
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <author email="gjones@willowgarage.com">Gil Jones</author>
   <author email="mail@mrinal.net">Mrinal Kalakrishnan</author>
   

@@ -241,11 +241,23 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       solved = context ? context->solve(res) : false;
     }
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
+=======
+  catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
   {
     ROS_ERROR("Exception caught: '%s'", ex.what());
     return false;
   }
+<<<<<<< HEAD
+=======
+  catch (...)
+  {
+    ROS_ERROR("Unknown exception thrown by planner");
+    return false;
+  }
+>>>>>>> upstream/indigo-devel
   bool valid = true;
 
   if (solved && res.trajectory_)

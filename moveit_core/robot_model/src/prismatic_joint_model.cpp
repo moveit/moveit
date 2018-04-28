@@ -37,11 +37,15 @@
 #include <moveit/robot_model/prismatic_joint_model.h>
 #include <limits>
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 PrismaticJointModel::PrismaticJointModel(const std::string& name) : JointModel(name), axis_(0.0, 0.0, 0.0)
+=======
+moveit::core::PrismaticJointModel::PrismaticJointModel(const std::string& name) : JointModel(name), axis_(0.0, 0.0, 0.0)
+>>>>>>> upstream/indigo-devel
 {
   type_ = PRISMATIC;
   variable_names_.push_back(name_);
@@ -58,12 +62,20 @@ unsigned int PrismaticJointModel::getStateSpaceDimension() const
   return 1;
 }
 
+<<<<<<< HEAD
 double PrismaticJointModel::getMaximumExtent(const Bounds& other_bounds) const
+=======
+double moveit::core::PrismaticJointModel::getMaximumExtent(const Bounds& other_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   return variable_bounds_[0].max_position_ - other_bounds[0].min_position_;
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+=======
+void moveit::core::PrismaticJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   // if zero is a valid value
   if (bounds[0].min_position_ <= 0.0 && bounds[0].max_position_ >= 0.0)
@@ -72,28 +84,49 @@ void PrismaticJointModel::getVariableDefaultPositions(double* values, const Boun
     values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
+<<<<<<< HEAD
 bool PrismaticJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
+=======
+bool moveit::core::PrismaticJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
+                                                                double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
   return true;
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
                                                      const Bounds& bounds) const
+=======
+void moveit::core::PrismaticJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                                   double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
                                                            const Bounds& bounds, const double* near,
                                                            const double distance) const
+=======
+void moveit::core::PrismaticJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
+                                                                         double* values, const Bounds& bounds,
+                                                                         const double* near,
+                                                                         const double distance) const
+>>>>>>> upstream/indigo-devel
 {
   values[0] = rng.uniformReal(std::max(bounds[0].min_position_, near[0] - distance),
                               std::min(bounds[0].max_position_, near[0] + distance));
 }
 
+<<<<<<< HEAD
 bool PrismaticJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+=======
+bool moveit::core::PrismaticJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   if (values[0] < bounds[0].min_position_)
   {
@@ -108,17 +141,30 @@ bool PrismaticJointModel::enforcePositionBounds(double* values, const Bounds& bo
   return false;
 }
 
+<<<<<<< HEAD
 double PrismaticJointModel::distance(const double* values1, const double* values2) const
+=======
+double moveit::core::PrismaticJointModel::distance(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   return fabs(values1[0] - values2[0]);
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+=======
+void moveit::core::PrismaticJointModel::interpolate(const double* from, const double* to, const double t,
+                                                    double* state) const
+>>>>>>> upstream/indigo-devel
 {
   state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+=======
+void moveit::core::PrismaticJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+>>>>>>> upstream/indigo-devel
 {
   double* d = transf.data();
   d[0] = 1.0;
@@ -145,7 +191,12 @@ void PrismaticJointModel::computeTransform(const double* joint_values, Eigen::Af
   //  transf.translation() = Eigen::Vector3d(axis_ * joint_values[0]);
 }
 
+<<<<<<< HEAD
 void PrismaticJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
+=======
+void moveit::core::PrismaticJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
+                                                                 double* joint_values) const
+>>>>>>> upstream/indigo-devel
 {
   joint_values[0] = transf.translation().dot(axis_);
 }

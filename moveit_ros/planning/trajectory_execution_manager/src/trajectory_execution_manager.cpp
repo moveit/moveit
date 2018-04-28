@@ -77,6 +77,14 @@ private:
   dynamic_reconfigure::Server<TrajectoryExecutionDynamicReconfigureConfig> dynamic_reconfigure_server_;
 };
 
+<<<<<<< HEAD
+=======
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& kmodel)
+  : TrajectoryExecutionManager(kmodel, planning_scene_monitor::CurrentStateMonitorPtr())
+{
+}
+
+>>>>>>> upstream/indigo-devel
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm)
   : robot_model_(kmodel), csm_(csm), node_handle_("~")
@@ -87,6 +95,15 @@ TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotM
   initialize();
 }
 
+<<<<<<< HEAD
+=======
+TrajectoryExecutionManager::TrajectoryExecutionManager(const moveit::core::RobotModelConstPtr& kmodel,
+                                                       bool manage_controllers)
+  : TrajectoryExecutionManager(kmodel, planning_scene_monitor::CurrentStateMonitorPtr(), manage_controllers)
+{
+}
+
+>>>>>>> upstream/indigo-devel
 TrajectoryExecutionManager::TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
                                                        const planning_scene_monitor::CurrentStateMonitorPtr& csm,
                                                        bool manage_controllers)
@@ -180,6 +197,10 @@ void TrajectoryExecutionManager::initialize()
       root_node_handle_.subscribe(EXECUTION_EVENT_TOPIC, 100, &TrajectoryExecutionManager::receiveEvent, this);
 
   reconfigure_impl_ = new DynamicReconfigureImpl(this);
+
+  if (!csm_)
+    ROS_WARN_NAMED("traj_execution", "Trajectory validation is disabled, because no CurrentStateMonitor was provided "
+                                     "in constructor.");
 
   if (manage_controllers_)
     ROS_INFO_NAMED("traj_execution", "Trajectory execution is managing controllers");
@@ -442,9 +463,15 @@ void TrajectoryExecutionManager::continuousExecutionThread()
           {
             h = controller_manager_->getControllerHandle(context->controllers_[i]);
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
           {
             ROS_ERROR_NAMED("traj_execution", "%s caught when retrieving controller handle", ex.what());
+=======
+          catch (...)
+          {
+            ROS_ERROR_NAMED("traj_execution", "Exception caught when retrieving controller handle");
+>>>>>>> upstream/indigo-devel
           }
           if (!h)
           {
@@ -472,9 +499,15 @@ void TrajectoryExecutionManager::continuousExecutionThread()
             {
               ok = handles[i]->sendTrajectory(context->trajectory_parts_[i]);
             }
+<<<<<<< HEAD
             catch (std::exception& ex)
             {
               ROS_ERROR_NAMED("traj_execution", "Caught %s when sending trajectory to controller", ex.what());
+=======
+            catch (...)
+            {
+              ROS_ERROR_NAMED("traj_execution", "Exception caught when sending trajectory to controller");
+>>>>>>> upstream/indigo-devel
             }
             if (!ok)
             {
@@ -483,9 +516,15 @@ void TrajectoryExecutionManager::continuousExecutionThread()
                 {
                   handles[j]->cancelExecution();
                 }
+<<<<<<< HEAD
                 catch (std::exception& ex)
                 {
                   ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution", ex.what());
+=======
+                catch (...)
+                {
+                  ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution");
+>>>>>>> upstream/indigo-devel
                 }
               ROS_ERROR_NAMED("traj_execution", "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
                               context->trajectory_parts_.size(), handles[i]->getName().c_str());
@@ -936,6 +975,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 }
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& context) const
+<<<<<<< HEAD
 {
   if (allowed_start_tolerance_ == 0)  // skip validation on this magic number
     return true;
@@ -1038,11 +1078,83 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
   {
+=======
+{
+  if (!csm_ || allowed_start_tolerance_ == 0)  // skip validation if csm is nil or on this magic number
+    return true;
+
+  ROS_DEBUG_NAMED("traj_execution", "Validating trajectory with allowed_start_tolerance %g", allowed_start_tolerance_);
+
+  robot_state::RobotStatePtr current_state;
+  if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
+  {
+    ROS_WARN_NAMED("traj_execution", "Failed to validate trajectory: couldn't receive full current joint state within "
+                                     "1s");
+    return false;
+  }
+
+  for (std::vector<moveit_msgs::RobotTrajectory>::const_iterator traj_it = context.trajectory_parts_.begin();
+       traj_it != context.trajectory_parts_.end(); ++traj_it)
+  {
+    if (!traj_it->multi_dof_joint_trajectory.points.empty())
+    {
+      ROS_WARN_NAMED("traj_execution", "Validation of MultiDOFJointTrajectory is not implemented.");
+      // go on to check joint_trajectory component though
+    }
+    if (traj_it->joint_trajectory.points.empty())
+    {
+      // There is nothing to check
+      continue;
+    }
+    const std::vector<double>& positions = traj_it->joint_trajectory.points.front().positions;
+    const std::vector<std::string>& joint_names = traj_it->joint_trajectory.joint_names;
+    const std::size_t n = joint_names.size();
+    if (positions.size() != n)
+    {
+      ROS_ERROR_NAMED("traj_execution", "Wrong trajectory: #joints: %zu != #positions: %zu", n, positions.size());
+      return false;
+    }
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      const robot_model::JointModel* jm = current_state->getJointModel(joint_names[i]);
+      if (!jm)
+      {
+        ROS_ERROR_STREAM_NAMED("traj_execution", "Unknown joint in trajectory: " << joint_names[i]);
+        return false;
+      }
+
+      double cur_position = current_state->getJointPositions(jm)[0];
+      double traj_position = positions[i];
+      // normalize positions and compare
+      jm->enforcePositionBounds(&cur_position);
+      jm->enforcePositionBounds(&traj_position);
+      if (fabs(cur_position - traj_position) > allowed_start_tolerance_)
+      {
+        ROS_ERROR_NAMED("traj_execution",
+                        "\nInvalid Trajectory: start point deviates from current robot state more than %g"
+                        "\njoint '%s': expected: %g, current: %g",
+                        allowed_start_tolerance_, joint_names[i].c_str(), traj_position, cur_position);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
+                                           const moveit_msgs::RobotTrajectory& trajectory,
+                                           const std::vector<std::string>& controllers)
+{
+  if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
+  {
+>>>>>>> upstream/indigo-devel
     ROS_WARN_NAMED("traj_execution", "The trajectory to execute is empty");
     return false;
   }
   std::set<std::string> actuated_joints;
 
+<<<<<<< HEAD
   auto isActuated = [this](const std::string& joint_name) -> bool {
     const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
     return (jm && !jm->isPassive() && !jm->getMimic() && jm->getType() != robot_model::JointModel::FIXED);
@@ -1053,6 +1165,37 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
   for (const std::string& joint_name : trajectory.joint_trajectory.joint_names)
     if (isActuated(joint_name))
       actuated_joints.insert(joint_name);
+=======
+  std::vector<std::string>::const_iterator it;
+  for (it = trajectory.multi_dof_joint_trajectory.joint_names.begin();
+       it != trajectory.multi_dof_joint_trajectory.joint_names.end(); ++it)
+  {
+    const std::string& joint_name = *it;
+    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
+      actuated_joints.insert(joint_name);
+    }
+  }
+
+  for (it = trajectory.joint_trajectory.joint_names.begin(); it != trajectory.joint_trajectory.joint_names.end(); ++it)
+  {
+    const std::string& joint_name = *it;
+    const robot_model::JointModel* jm = robot_model_->getJointModel(joint_name);
+    if (jm)
+    {
+      if (jm->isPassive() || jm->getMimic() != NULL || jm->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
+      actuated_joints.insert(joint_name);
+    }
+  }
+>>>>>>> upstream/indigo-devel
 
   if (actuated_joints.empty())
   {
@@ -1150,9 +1293,15 @@ void TrajectoryExecutionManager::stopExecutionInternal()
     {
       active_handles_[i]->cancelExecution();
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
     {
       ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution.", ex.what());
+=======
+    catch (...)
+    {
+      ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution.");
+>>>>>>> upstream/indigo-devel
     }
 }
 
@@ -1342,9 +1491,15 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           {
             h = controller_manager_->getControllerHandle(context.controllers_[i]);
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
           {
             ROS_ERROR_NAMED("traj_execution", "Caught %s when retrieving controller handle", ex.what());
+=======
+          catch (...)
+          {
+            ROS_ERROR_NAMED("traj_execution", "Exception caught when retrieving controller handle");
+>>>>>>> upstream/indigo-devel
           }
           if (!h)
           {
@@ -1365,9 +1520,15 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           {
             ok = active_handles_[i]->sendTrajectory(context.trajectory_parts_[i]);
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
           {
             ROS_ERROR_NAMED("traj_execution", "Caught %s when sending trajectory to controller", ex.what());
+=======
+          catch (...)
+          {
+            ROS_ERROR_NAMED("traj_execution", "Exception caught when sending trajectory to controller");
+>>>>>>> upstream/indigo-devel
           }
           if (!ok)
           {
@@ -1376,9 +1537,15 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
               {
                 active_handles_[j]->cancelExecution();
               }
+<<<<<<< HEAD
               catch (std::exception& ex)
               {
                 ROS_ERROR_NAMED("traj_execution", "Caught %s when canceling execution", ex.what());
+=======
+              catch (...)
+              {
+                ROS_ERROR_NAMED("traj_execution", "Exception caught when canceling execution");
+>>>>>>> upstream/indigo-devel
               }
             ROS_ERROR_NAMED("traj_execution", "Failed to send trajectory part %zu of %zu to controller %s", i + 1,
                             context.trajectory_parts_.size(), active_handles_[i]->getName().c_str());
@@ -1543,9 +1710,15 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
 
     // check for motion in effected joints of execution context
     bool moved = false;
+<<<<<<< HEAD
     for (const auto& trajectory : context.trajectory_parts_)
     {
       const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
+=======
+    for (size_t t = 0; t < context.trajectory_parts_.size(); ++t)
+    {
+      const std::vector<std::string>& joint_names = context.trajectory_parts_[t].joint_trajectory.joint_names;
+>>>>>>> upstream/indigo-devel
       const std::size_t n = joint_names.size();
 
       for (std::size_t i = 0; i < n && !moved; ++i)

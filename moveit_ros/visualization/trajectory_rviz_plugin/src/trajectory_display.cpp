@@ -41,7 +41,11 @@
 
 namespace moveit_rviz_plugin
 {
+<<<<<<< HEAD
 TrajectoryDisplay::TrajectoryDisplay() : Display(), load_robot_model_(false)
+=======
+TrajectoryDisplay::TrajectoryDisplay() : Display()
+>>>>>>> upstream/indigo-devel
 {
   // The robot description property is only needed when using the trajectory playback standalone (not within motion
   // planning plugin)
@@ -65,24 +69,40 @@ void TrajectoryDisplay::onInitialize()
 
 void TrajectoryDisplay::loadRobotModel()
 {
+<<<<<<< HEAD
   load_robot_model_ = false;
+=======
+>>>>>>> upstream/indigo-devel
   rdf_loader_.reset(new rdf_loader::RDFLoader(robot_description_property_->getStdString()));
 
   if (!rdf_loader_->getURDF())
   {
+<<<<<<< HEAD
     this->setStatus(rviz::StatusProperty::Error, "Robot Model",
                     "Failed to load from parameter " + robot_description_property_->getString());
+=======
+    ROS_DEBUG_STREAM_NAMED("trajectory_display", "Unable to load robot model from parameter "
+                                                     << robot_description_property_->getStdString());
+>>>>>>> upstream/indigo-devel
     return;
   }
   this->setStatus(rviz::StatusProperty::Ok, "Robot Model", "Successfully loaded");
 
+<<<<<<< HEAD
   const srdf::ModelSharedPtr& srdf =
       rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+=======
+  const boost::shared_ptr<srdf::Model>& srdf =
+      rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   robot_model_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
 
   // Send to child class
   trajectory_visual_->onRobotModelLoaded(robot_model_);
+<<<<<<< HEAD
   trajectory_visual_->onEnable();
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 void TrajectoryDisplay::reset()
@@ -115,6 +135,15 @@ void TrajectoryDisplay::update(float wall_dt, float ros_dt)
 }
 
 void TrajectoryDisplay::setName(const QString& name)
+<<<<<<< HEAD
+=======
+{
+  BoolProperty::setName(name);
+  trajectory_visual_->setName(name);
+}
+
+void TrajectoryDisplay::changedRobotDescription()
+>>>>>>> upstream/indigo-devel
 {
   BoolProperty::setName(name);
   trajectory_visual_->setName(name);

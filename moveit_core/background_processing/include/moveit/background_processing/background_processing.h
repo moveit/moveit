@@ -97,7 +97,11 @@ public:
   void clearJobUpdateEvent();
 
 private:
+<<<<<<< HEAD
   std::unique_ptr<boost::thread> processing_thread_;
+=======
+  boost::scoped_ptr<boost::thread> processing_thread_;
+>>>>>>> upstream/indigo-devel
   bool run_processing_thread_;
 
   mutable boost::mutex action_lock_;

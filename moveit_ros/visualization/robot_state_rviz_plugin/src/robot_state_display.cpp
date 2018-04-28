@@ -349,8 +349,13 @@ void RobotStateDisplay::loadRobotModel()
 
   if (rdf_loader_->getURDF())
   {
+<<<<<<< HEAD
     const srdf::ModelSharedPtr& srdf =
         rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : srdf::ModelSharedPtr(new srdf::Model());
+=======
+    const boost::shared_ptr<srdf::Model>& srdf =
+        rdf_loader_->getSRDF() ? rdf_loader_->getSRDF() : boost::shared_ptr<srdf::Model>(new srdf::Model());
+>>>>>>> upstream/indigo-devel
     kmodel_.reset(new robot_model::RobotModel(rdf_loader_->getURDF(), srdf));
     robot_->load(*kmodel_->getURDF());
     kstate_.reset(new robot_state::RobotState(kmodel_));
@@ -360,10 +365,13 @@ void RobotStateDisplay::loadRobotModel()
     root_link_name_property_->blockSignals(oldState);
     update_state_ = true;
     setStatus(rviz::StatusProperty::Ok, "RobotState", "Planning Model Loaded Successfully");
+<<<<<<< HEAD
 
     changedEnableVisualVisible();
     changedEnableCollisionVisible();
     robot_->setVisible(true);
+=======
+>>>>>>> upstream/indigo-devel
   }
   else
     setStatus(rviz::StatusProperty::Error, "RobotState", "No Planning Model Loaded");
@@ -375,7 +383,10 @@ void RobotStateDisplay::onEnable()
 {
   Display::onEnable();
   load_robot_model_ = true;  // allow loading of robot model in update()
+<<<<<<< HEAD
   calculateOffsetPosition();
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 // ******************************************************************************************
@@ -397,6 +408,10 @@ void RobotStateDisplay::update(float wall_dt, float ros_dt)
   {
     loadRobotModel();
     changedRobotStateTopic();
+<<<<<<< HEAD
+=======
+    robot_->setVisible(true);
+>>>>>>> upstream/indigo-devel
   }
 
   calculateOffsetPosition();

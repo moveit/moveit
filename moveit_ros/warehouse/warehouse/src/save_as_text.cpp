@@ -81,8 +81,13 @@ int main(int argc, char** argv)
 
   boost::program_options::options_description desc;
   desc.add_options()("help", "Show help message")("host", boost::program_options::value<std::string>(), "Host for the "
+<<<<<<< HEAD
                                                                                                         "DB.")(
       "port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+=======
+                                                                                                        "MongoDB.")(
+      "port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
+>>>>>>> upstream/indigo-devel
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -105,9 +110,20 @@ int main(int argc, char** argv)
 
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION);
 
+<<<<<<< HEAD
   moveit_warehouse::PlanningSceneStorage pss(conn);
   moveit_warehouse::RobotStateStorage rss(conn);
   moveit_warehouse::ConstraintsStorage cs(conn);
+=======
+  moveit_warehouse::PlanningSceneStorage pss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                             vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+
+  moveit_warehouse::RobotStateStorage rss(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                          vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+
+  moveit_warehouse::ConstraintsStorage cs(vm.count("host") ? vm["host"].as<std::string>() : "",
+                                          vm.count("port") ? vm["port"].as<std::size_t>() : 0);
+>>>>>>> upstream/indigo-devel
 
   std::vector<std::string> scene_names;
   pss.getPlanningSceneNames(scene_names);

@@ -56,7 +56,12 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
+<<<<<<< HEAD
 PlanningContext::PlanningContext(const std::string& name, const std::string& group) : name_(name), group_(group)
+=======
+planning_interface::PlanningContext::PlanningContext(const std::string& name, const std::string& group)
+  : name_(name), group_(group)
+>>>>>>> upstream/indigo-devel
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
@@ -70,18 +75,31 @@ PlanningContext::~PlanningContext()
   ac.contexts_.erase(this);
 }
 
+<<<<<<< HEAD
 void PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+=======
+void planning_interface::PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+>>>>>>> upstream/indigo-devel
 {
   planning_scene_ = planning_scene;
 }
 
+<<<<<<< HEAD
 void PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
+=======
+void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
+>>>>>>> upstream/indigo-devel
 {
   request_ = request;
   if (request_.allowed_planning_time <= 0.0)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
                              request_.allowed_planning_time);
+=======
+    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
+              request_.allowed_planning_time);
+>>>>>>> upstream/indigo-devel
     request_.allowed_planning_time = 1.0;
   }
   if (request_.num_planning_attempts < 0)
@@ -89,7 +107,11 @@ void PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
+<<<<<<< HEAD
 bool PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
+=======
+bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
+>>>>>>> upstream/indigo-devel
 {
   return true;
 }
@@ -99,20 +121,33 @@ std::string PlannerManager::getDescription() const
   return "";
 }
 
+<<<<<<< HEAD
 PlanningContextPtr PlannerManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                       const MotionPlanRequest& req) const
+=======
+planning_interface::PlanningContextPtr planning_interface::PlannerManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const MotionPlanRequest& req) const
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);
 }
 
+<<<<<<< HEAD
 void PlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
+=======
+void planning_interface::PlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
+>>>>>>> upstream/indigo-devel
 {
   // nothing by default
   algs.clear();
 }
 
+<<<<<<< HEAD
 void PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap& pcs)
+=======
+void planning_interface::PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap& pcs)
+>>>>>>> upstream/indigo-devel
 {
   config_settings_ = pcs;
 }

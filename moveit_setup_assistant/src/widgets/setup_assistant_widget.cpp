@@ -220,7 +220,11 @@ void SetupAssistantWidget::moveToScreen(const int index)
     main_content_->setCurrentIndex(index);
 
     // Send the focus given command to the screen widget
+<<<<<<< HEAD
     ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(index));
+=======
+    SetupScreenWidget* ssw = qobject_cast<SetupScreenWidget*>(main_content_->widget(index));
+>>>>>>> upstream/indigo-devel
     ssw->focusGiven();
 
     // Change navigation selected option

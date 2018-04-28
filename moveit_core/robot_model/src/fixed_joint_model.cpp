@@ -36,11 +36,15 @@
 
 #include <moveit/robot_model/fixed_joint_model.h>
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
+=======
+moveit::core::FixedJointModel::FixedJointModel(const std::string& name) : JointModel(name)
+>>>>>>> upstream/indigo-devel
 {
   type_ = FIXED;
 }
@@ -50,6 +54,7 @@ unsigned int FixedJointModel::getStateSpaceDimension() const
   return 0;
 }
 
+<<<<<<< HEAD
 void FixedJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
 {
 }
@@ -66,35 +71,80 @@ void FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNum
 }
 
 bool FixedJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+=======
+void moveit::core::FixedJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+{
+}
+
+void moveit::core::FixedJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                               double* values, const Bounds& bounds) const
+{
+}
+
+void moveit::core::FixedJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
+                                                                     double* values, const Bounds& bounds,
+                                                                     const double* near, const double distance) const
+{
+}
+
+bool moveit::core::FixedJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   return false;
 }
 
+<<<<<<< HEAD
 bool FixedJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
+=======
+bool moveit::core::FixedJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
+                                                            double margin) const
+>>>>>>> upstream/indigo-devel
 {
   return true;
 }
 
+<<<<<<< HEAD
 double FixedJointModel::distance(const double* values1, const double* values2) const
+=======
+double moveit::core::FixedJointModel::distance(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   return 0.0;
 }
 
+<<<<<<< HEAD
 double FixedJointModel::getMaximumExtent(const Bounds& other_bounds) const
+=======
+double moveit::core::FixedJointModel::getMaximumExtent(const Bounds& other_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   return 0.0;
 }
 
+<<<<<<< HEAD
 void FixedJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
 {
 }
 
 void FixedJointModel::computeTransform(const double* /* joint_values */, Eigen::Affine3d& transf) const
+=======
+void moveit::core::FixedJointModel::interpolate(const double* from, const double* to, const double t,
+                                                double* state) const
+{
+}
+
+void moveit::core::FixedJointModel::computeTransform(const double* /* joint_values */, Eigen::Affine3d& transf) const
+>>>>>>> upstream/indigo-devel
 {
   transf.setIdentity();
 }
 
+<<<<<<< HEAD
 void FixedJointModel::computeVariablePositions(const Eigen::Affine3d& /* transform */, double* /* joint_values */) const
+=======
+void moveit::core::FixedJointModel::computeVariablePositions(const Eigen::Affine3d& /* transform */,
+                                                             double* /* joint_values */) const
+>>>>>>> upstream/indigo-devel
 {
 }
 

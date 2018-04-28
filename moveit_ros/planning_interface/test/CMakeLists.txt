@@ -2,8 +2,14 @@ if (CATKIN_ENABLE_TESTING)
   find_package(moveit_resources)
   find_package(rostest)
 
+<<<<<<< HEAD
   add_rostest_gtest(test_cleanup cleanup.test cleanup.cpp)
   target_link_libraries(test_cleanup moveit_move_group_interface)
+=======
+  # This test fails due to a ROS core bug: https://github.com/ros/ros_comm/pull/871
+  #add_rostest_gtest(test_cleanup cleanup.test cleanup.cpp)
+  #target_link_libraries(test_cleanup moveit_move_group_interface)
+>>>>>>> upstream/indigo-devel
 
   add_rostest(python_move_group.test)
   add_rostest(robot_state_update.test)

@@ -122,8 +122,13 @@ protected:
   }
 
 protected:
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdf_model;
   srdf::ModelSharedPtr srdf_model;
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdf_model;
+  boost::shared_ptr<srdf::Model> srdf_model;
+>>>>>>> upstream/indigo-devel
   robot_model::RobotModelPtr kmodel;
   planning_scene::PlanningScenePtr ps;
   pr2_arm_kinematics::PR2ArmKinematicsPluginPtr pr2_kinematics_plugin_right_arm_;
@@ -709,7 +714,11 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 
   iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
+<<<<<<< HEAD
   ASSERT_TRUE(static_cast<bool>(iks->getOrientationConstraint()));
+=======
+  ASSERT_TRUE(iks->getOrientationConstraint());
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(iks->getOrientationConstraint()->getXAxisTolerance(), .1, .0001);
 }
 
@@ -730,7 +739,11 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "right_arm", con);
+<<<<<<< HEAD
   EXPECT_FALSE(static_cast<bool>(s));
+=======
+  EXPECT_FALSE(s);
+>>>>>>> upstream/indigo-devel
   s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);
   EXPECT_TRUE(static_cast<bool>(s));
 
@@ -802,7 +815,11 @@ TEST_F(LoadPlanningModelsPr2, JointVersusPoseConstraintSamplerManager)
 
   // this still works, but we should get a JointConstraintSampler
   s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", con);
+<<<<<<< HEAD
   EXPECT_TRUE(static_cast<bool>(s));
+=======
+  EXPECT_TRUE(s);
+>>>>>>> upstream/indigo-devel
   constraint_samplers::JointConstraintSampler* jcs =
       dynamic_cast<constraint_samplers::JointConstraintSampler*>(s.get());
   EXPECT_TRUE(jcs);
@@ -1104,7 +1121,11 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
   robot_state::Transforms& tf = ps->getTransformsNonConst();
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
+<<<<<<< HEAD
   EXPECT_TRUE(static_cast<bool>(s));
+=======
+  EXPECT_TRUE(s);
+>>>>>>> upstream/indigo-devel
   constraint_samplers::UnionConstraintSampler* ucs =
       dynamic_cast<constraint_samplers::UnionConstraintSampler*>(s.get());
   EXPECT_TRUE(ucs);
@@ -1128,9 +1149,14 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
     if (s->sample(ks, ks_const, 1))
       succ++;
   }
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both "
                            "arms: %lf",
                            (double)succ / (double)NT);
+=======
+  logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf",
+            (double)succ / (double)NT);
+>>>>>>> upstream/indigo-devel
 }
 
 int main(int argc, char** argv)

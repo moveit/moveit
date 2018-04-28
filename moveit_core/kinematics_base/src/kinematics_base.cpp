@@ -37,6 +37,7 @@
 #include <moveit/kinematics_base/kinematics_base.h>
 #include <moveit/robot_model/joint_model_group.h>
 
+<<<<<<< HEAD
 namespace kinematics
 {
 const double KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
@@ -45,6 +46,14 @@ const double KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
                                const std::string& base_frame, const std::string& tip_frame,
                                double search_discretization)
+=======
+const double kinematics::KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
+const double kinematics::KinematicsBase::DEFAULT_TIMEOUT = 1.0;
+
+void kinematics::KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
+                                           const std::string& base_frame, const std::string& tip_frame,
+                                           double search_discretization)
+>>>>>>> upstream/indigo-devel
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -55,9 +64,15 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
   setSearchDiscretization(search_discretization);
 }
 
+<<<<<<< HEAD
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
                                const std::string& base_frame, const std::vector<std::string>& tip_frames,
                                double search_discretization)
+=======
+void kinematics::KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
+                                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                                           double search_discretization)
+>>>>>>> upstream/indigo-devel
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -75,7 +90,11 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
     tip_frame_ = removeSlash(tip_frames[0]);
 }
 
+<<<<<<< HEAD
 bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
+=======
+bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redundant_joint_indices)
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < redundant_joint_indices.size(); ++i)
   {
@@ -90,7 +109,11 @@ bool KinematicsBase::setRedundantJoints(const std::vector<unsigned int>& redunda
   return true;
 }
 
+<<<<<<< HEAD
 bool KinematicsBase::setRedundantJoints(const std::vector<std::string>& redundant_joint_names)
+=======
+bool kinematics::KinematicsBase::setRedundantJoints(const std::vector<std::string>& redundant_joint_names)
+>>>>>>> upstream/indigo-devel
 {
   const std::vector<std::string>& jnames = getJointNames();
   std::vector<unsigned int> redundant_joint_indices;
@@ -105,12 +128,21 @@ bool KinematicsBase::setRedundantJoints(const std::vector<std::string>& redundan
                                                                           false;
 }
 
+<<<<<<< HEAD
 std::string KinematicsBase::removeSlash(const std::string& str) const
+=======
+std::string kinematics::KinematicsBase::removeSlash(const std::string& str) const
+>>>>>>> upstream/indigo-devel
 {
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
 }
 
+<<<<<<< HEAD
 bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out) const
+=======
+bool kinematics::KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg,
+                                               std::string* error_text_out) const
+>>>>>>> upstream/indigo-devel
 {
   // Default implementation for legacy solvers:
   if (!jmg->isChain())
@@ -125,10 +157,18 @@ bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg, std
   return true;
 }
 
+<<<<<<< HEAD
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
                                    const std::vector<double>& ik_seed_state,
                                    std::vector<std::vector<double> >& solutions, KinematicsResult& result,
                                    const KinematicsQueryOptions& options) const
+=======
+bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
+                                               const std::vector<double>& ik_seed_state,
+                                               std::vector<std::vector<double> >& solutions,
+                                               kinematics::KinematicsResult& result,
+                                               const kinematics::KinematicsQueryOptions& options) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<double> solution;
   result.solution_percentage = 0.0;

@@ -91,9 +91,16 @@ void RobotInteraction::decideActiveComponents(const std::string& group, Interact
 {
   decideActiveEndEffectors(group, style);
   decideActiveJoints(group);
+<<<<<<< HEAD
   if (!group.empty() && active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
     ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. "
                                         "Make sure that kinematics.yaml is loaded in this node's namespace.",
+=======
+  if (active_eef_.empty() && active_vj_.empty() && active_generic_.empty())
+    ROS_INFO_NAMED("robot_interaction", "No active joints or end effectors found for group '%s'. "
+                                        "Make sure you have defined an end effector in your SRDF file and that "
+                                        "kinematics.yaml is loaded in this node's namespace.",
+>>>>>>> upstream/indigo-devel
                    group.c_str());
 }
 
@@ -187,9 +194,13 @@ void RobotInteraction::decideActiveJoints(const std::string& group)
   if (group.empty())
     return;
 
+<<<<<<< HEAD
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active joints for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
+=======
+  const boost::shared_ptr<const srdf::Model>& srdf = robot_model_->getSRDF();
+>>>>>>> upstream/indigo-devel
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
@@ -263,9 +274,13 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
   if (group.empty())
     return;
 
+<<<<<<< HEAD
   ROS_DEBUG_NAMED("robot_interaction", "Deciding active end-effectors for group '%s'", group.c_str());
 
   const srdf::ModelConstSharedPtr& srdf = robot_model_->getSRDF();
+=======
+  const boost::shared_ptr<const srdf::Model>& srdf = robot_model_->getSRDF();
+>>>>>>> upstream/indigo-devel
   const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
 
   if (!jmg || !srdf)
@@ -304,6 +319,24 @@ void RobotInteraction::decideActiveEndEffectors(const std::string& group, Intera
       ee.interaction = style;
       active_eef_.push_back(ee);
     }
+<<<<<<< HEAD
+=======
+    else
+    {
+      for (std::size_t i = 0; i < eef.size(); ++i)
+        if ((jmg->hasLinkModel(eef[i].parent_link_) || jmg->getName() == eef[i].parent_group_) &&
+            jmg->canSetStateFromIK(eef[i].parent_link_))
+        {
+          // We found an end-effector whose parent is the group.
+          EndEffectorInteraction ee;
+          ee.parent_group = group;
+          ee.parent_link = eef[i].parent_link_;
+          ee.eef_group = eef[i].component_group_;
+          ee.interaction = style;
+          active_eef_.push_back(ee);
+        }
+    }
+>>>>>>> upstream/indigo-devel
   }
   else if (!smap.second.empty())
   {
@@ -796,6 +829,7 @@ void RobotInteraction::processingThread()
           {
             ih->handleEndEffector(eef, feedback);
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
           {
             ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
@@ -813,11 +847,19 @@ void RobotInteraction::processingThread()
             ih->handleJoint(vj, feedback);
           }
           catch (std::exception& ex)
+=======
+          catch (std::runtime_error& ex)
+          {
+            ROS_ERROR("Exception caught while handling end-effector update: %s", ex.what());
+          }
+          catch (...)
+>>>>>>> upstream/indigo-devel
           {
             ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
           }
           marker_access_lock_.lock();
         }
+<<<<<<< HEAD
         else if (marker_class == "GG")
         {
           ::robot_interaction::InteractionHandlerPtr ih = jt->second;
@@ -831,12 +873,55 @@ void RobotInteraction::processingThread()
           {
             ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
           }
+=======
+        else if (marker_class == "JJ")
+        {
+          // make a copy of the data, so we do not lose it while we are unlocked
+          JointInteraction vj = active_vj_[it->second];
+          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          marker_access_lock_.unlock();
+          try
+          {
+            ih->handleJoint(vj, feedback);
+          }
+          catch (std::runtime_error& ex)
+          {
+            ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
+          }
+          catch (...)
+          {
+            ROS_ERROR("Exception caught while handling joint update");
+          }
+          marker_access_lock_.lock();
+        }
+        else if (marker_class == "GG")
+        {
+          ::robot_interaction::InteractionHandlerPtr ih = jt->second;
+          GenericInteraction g = active_generic_[it->second];
+          marker_access_lock_.unlock();
+          try
+          {
+            ih->handleGeneric(g, feedback);
+          }
+          catch (std::runtime_error& ex)
+          {
+            ROS_ERROR("Exception caught while handling joint update: %s", ex.what());
+          }
+          catch (...)
+          {
+            ROS_ERROR("Exception caught while handling joint update");
+          }
+>>>>>>> upstream/indigo-devel
           marker_access_lock_.lock();
         }
         else
           ROS_ERROR("Unknown marker class ('%s') for marker '%s'", marker_class.c_str(), feedback->marker_name.c_str());
       }
+<<<<<<< HEAD
       catch (std::exception& ex)
+=======
+      catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
       {
         ROS_ERROR("Exception caught while processing event: %s", ex.what());
       }

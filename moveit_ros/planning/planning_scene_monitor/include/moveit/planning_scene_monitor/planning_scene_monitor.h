@@ -445,9 +445,12 @@ protected:
   planning_scene::PlanningSceneConstPtr scene_const_;
   planning_scene::PlanningScenePtr parent_scene_;  /// if diffs are monitored, this is the pointer to the parent scene
   boost::shared_mutex scene_update_mutex_;         /// mutex for stored scene
+<<<<<<< HEAD
   ros::Time last_update_time_;                     /// Last time the state was updated
   ros::Time last_robot_motion_time_;               /// Last time the robot has moved
   bool enforce_next_state_update_;                 /// flag to enforce immediate state update in onStateUpdate()
+=======
+>>>>>>> upstream/indigo-devel
 
   ros::NodeHandle nh_;
   ros::NodeHandle root_nh_;
@@ -469,7 +472,11 @@ protected:
 
   // variables for planning scene publishing
   ros::Publisher planning_scene_publisher_;
+<<<<<<< HEAD
   std::unique_ptr<boost::thread> publish_planning_scene_;
+=======
+  boost::scoped_ptr<boost::thread> publish_planning_scene_;
+>>>>>>> upstream/indigo-devel
   double publish_planning_scene_frequency_;
   SceneUpdateType publish_update_types_;
   SceneUpdateType new_scene_update_;
@@ -496,7 +503,11 @@ protected:
   typedef std::map<const robot_state::AttachedBody*,
                    std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t> > >
       AttachedBodyShapeHandles;
+<<<<<<< HEAD
   typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, const Eigen::Affine3d*> > >
+=======
+  typedef std::map<std::string, std::vector<std::pair<occupancy_map_monitor::ShapeHandle, Eigen::Affine3d*> > >
+>>>>>>> upstream/indigo-devel
       CollisionBodyShapeHandles;
 
   LinkShapeHandles link_shape_handles_;
@@ -508,6 +519,10 @@ protected:
   boost::recursive_mutex update_lock_;
   std::vector<boost::function<void(SceneUpdateType)> > update_callbacks_;  /// List of callbacks to trigger when updates
                                                                            /// are received
+<<<<<<< HEAD
+=======
+  ros::Time last_update_time_;                                             /// Last time the state was updated
+>>>>>>> upstream/indigo-devel
 
 private:
   void getUpdatedFrameTransforms(std::vector<geometry_msgs::TransformStamped>& transforms);

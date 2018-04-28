@@ -44,8 +44,11 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
 
+<<<<<<< HEAD
 #include <memory>
 
+=======
+>>>>>>> upstream/indigo-devel
 using namespace distance_field;
 
 static const double width = 1.0;
@@ -91,7 +94,11 @@ void print(PropagationDistanceField& pdf, int numX, int numY, int numZ)
       {
         if (pdf.getCell(x, y, z).distance_square_ == 0)
         {
+<<<<<<< HEAD
           // CONSOLE_BRIDGE_logInform("Obstacle cell %d %d %d", x, y, z);
+=======
+          // logInform("Obstacle cell %d %d %d", x, y, z);
+>>>>>>> upstream/indigo-devel
         }
       }
     }
@@ -767,7 +774,11 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
         if (!valid)
         {
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logWarn("Something wrong");
+=======
+          logWarn("Something wrong");
+>>>>>>> upstream/indigo-devel
           continue;
         }
         bad_vec.push_back(loc);
@@ -863,7 +874,11 @@ TEST(TestSignedPropagationDistanceField, TestOcTree)
   std::cout << "Occupied cells " << countOccupiedCells(df_highres) << std::endl;
 
   // testing adding shape that happens to be octree
+<<<<<<< HEAD
   std::shared_ptr<octomap::OcTree> tree_shape(new octomap::OcTree(.05));
+=======
+  boost::shared_ptr<octomap::OcTree> tree_shape(new octomap::OcTree(.05));
+>>>>>>> upstream/indigo-devel
   octomap::point3d tpoint1(1.0, .5, 1.0);
   octomap::point3d tpoint2(1.7, .5, .5);
   octomap::point3d tpoint3(1.8, .5, .5);

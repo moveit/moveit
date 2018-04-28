@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 <package>
   <name>moveit_kinematics</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>Package for all inverse kinematics solvers in MoveIt!</description>
 
   <author email="dave@dav.ee">Dave Coleman</author>
@@ -32,12 +36,18 @@
   <run_depend>actionlib</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/indigo-devel
   <export>
     <moveit_core plugin="${prefix}/kdl_kinematics_plugin_description.xml"/>
     <moveit_core plugin="${prefix}/lma_kinematics_plugin_description.xml"/>
     <moveit_core plugin="${prefix}/srv_kinematics_plugin_description.xml"/>
+<<<<<<< HEAD
     <moveit_core plugin="${prefix}/cached_ik_kinematics_plugin_description.xml"/>
+=======
+>>>>>>> upstream/indigo-devel
   </export>
 
 </package>

@@ -85,7 +85,11 @@ public:
 
   /** \brief Get a function pointer that allocates and initializes a kinematics solver. If not previously called, this
    * function reads ROS parameters for the groups defined in the SRDF. */
+<<<<<<< HEAD
   robot_model::SolverAllocatorFn getLoaderFunction(const srdf::ModelSharedPtr& srdf_model);
+=======
+  robot_model::SolverAllocatorFn getLoaderFunction(const boost::shared_ptr<srdf::Model>& srdf_model);
+>>>>>>> upstream/indigo-devel
 
   /** \brief Get the groups for which the function pointer returned by getLoaderFunction() can allocate a solver */
   const std::vector<std::string>& getKnownGroups() const

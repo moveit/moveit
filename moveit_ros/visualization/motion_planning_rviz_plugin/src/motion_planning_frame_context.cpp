@@ -138,7 +138,11 @@ void MotionPlanningFrame::computeDatabaseConnectButtonClicked()
         return;
       }
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
+=======
+    catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
     {
       planning_display_->addMainLoopJob(
           boost::bind(&MotionPlanningFrame::computeDatabaseConnectButtonClickedHelper, this, 3));

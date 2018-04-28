@@ -49,7 +49,11 @@ namespace moveit_rviz_plugin
 typedef std::vector<rviz::PointCloud::Point> VPoint;
 typedef std::vector<VPoint> VVPoint;
 
+<<<<<<< HEAD
 OcTreeRender::OcTreeRender(const std::shared_ptr<const octomap::OcTree>& octree,
+=======
+OcTreeRender::OcTreeRender(const boost::shared_ptr<const octomap::OcTree>& octree,
+>>>>>>> upstream/indigo-devel
                            OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode,
                            std::size_t max_octree_depth, Ogre::SceneManager* scene_manager,
                            Ogre::SceneNode* parent_node = NULL)
@@ -94,6 +98,7 @@ OcTreeRender::~OcTreeRender()
   {
     delete cloud_[i];
   }
+<<<<<<< HEAD
 }
 
 void OcTreeRender::setPosition(const Ogre::Vector3& position)
@@ -104,6 +109,8 @@ void OcTreeRender::setPosition(const Ogre::Vector3& position)
 void moveit_rviz_plugin::OcTreeRender::setOrientation(const Ogre::Quaternion& orientation)
 {
   scene_node_->setOrientation(orientation);
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 // method taken from octomap_server package
@@ -154,7 +161,11 @@ void OcTreeRender::setColor(double z_pos, double min_z, double max_z, double col
   }
 }
 
+<<<<<<< HEAD
 void OcTreeRender::octreeDecoding(const std::shared_ptr<const octomap::OcTree>& octree,
+=======
+void OcTreeRender::octreeDecoding(const boost::shared_ptr<const octomap::OcTree>& octree,
+>>>>>>> upstream/indigo-devel
                                   OctreeVoxelRenderMode octree_voxel_rendering, OctreeVoxelColorMode octree_color_mode)
 {
   VVPoint pointBuf_;

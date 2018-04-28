@@ -2,6 +2,7 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 0.9.11 (2017-12-25)
 -------------------
 
@@ -44,6 +45,50 @@ Changelog for package moveit_planners_ompl
 * Contributors: Dave Coleman, Ian McMahon, Ruben Burger
 
 0.9.2 (2016-11-05)
+=======
+0.7.13 (2017-12-25)
+-------------------
+
+0.7.12 (2017-08-06)
+-------------------
+* [moveit_ros] [moveit_planners] Optional forced use of JointModelStateSpaceFactory (`#541 <https://github.com/ros-planning/moveit/issues/541>`_)
+  * Implements optional ompl_planning config parameter 'force_joint_model_state_space'.
+  * Renames parameter to 'enforce_joint_model_state_space'.
+  Expands workaround comment.
+* Contributors: henhenhen
+
+0.7.11 (2017-06-21)
+-------------------
+
+0.7.10 (2017-06-07)
+-------------------
+
+0.7.9 (2017-04-03)
+------------------
+* [fix][moveit_planners_ompl] Always update initial robot state to prevent dirty robot state error. `#448 <https://github.com/ros-planning/moveit/pull/448>`_
+* Contributors: Henning Kayser
+
+0.7.8 (2017-03-08)
+------------------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* Contributors: Dmitry Rozhkov
+
+0.7.7 (2017-02-06)
+------------------
+* [maintenance] clang-format upgraded to 3.8 (`#404 <https://github.com/ros-planning/moveit/issues/404>`_)
+* Contributors: Dave Coleman
+
+0.7.6 (2016-12-30)
+------------------
+
+0.7.5 (2016-12-25)
+------------------
+
+0.7.4 (2016-12-22)
+------------------
+
+0.7.3 (2016-12-20)
+>>>>>>> upstream/indigo-devel
 ------------------
 
 0.7.0 (2016-01-30)

@@ -103,8 +103,13 @@ TEST(Loading, SimpleRobot)
       "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
       "</robot>";
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL0);
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL0);
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   srdfModel->initString(*urdfModel, SMODEL0);
 
   EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
@@ -167,9 +172,15 @@ TEST(LoadingAndFK, SimpleRobot)
       "</group>"
       "</robot>";
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL1);
 
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL1);
+
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   srdfModel->initString(*urdfModel, SMODEL1);
 
   moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
@@ -196,12 +207,19 @@ TEST(LoadingAndFK, SimpleRobot)
   state.setVariablePositions(joint_values, missing_states);
   ASSERT_EQ(missing_states.size(), 0);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
+=======
+  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
 
   state.setVariableAcceleration("base_joint/x", 0.0);
 
   // making sure that values get copied
   moveit::core::RobotState* new_state = new moveit::core::RobotState(state);
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
   delete new_state;
 
@@ -212,6 +230,22 @@ TEST(LoadingAndFK, SimpleRobot)
 
   state.setVariablePositions(jv);
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(5, 4, 0));
+=======
+  EXPECT_NEAR(10.0, new_state->getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, new_state->getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  delete new_state;
+
+  std::vector<double> jv(state.getVariableCount(), 0.0);
+  jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 10.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 8.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/theta")] = 0.0;
+
+  state.setVariablePositions(jv);
+  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
 }
 
 TEST(FK, OneRobot)
@@ -320,7 +354,11 @@ TEST(FK, OneRobot)
       "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
       "    <parent link=\"link_c\"/>"
       "    <child link=\"link_d\"/>"
+<<<<<<< HEAD
       "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+=======
+      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+>>>>>>> upstream/indigo-devel
       "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
       "  </joint>"
       "  <joint name=\"joint_f\" type=\"prismatic\">"
@@ -328,7 +366,11 @@ TEST(FK, OneRobot)
       "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
       "    <parent link=\"link_d\"/>"
       "    <child link=\"link_e\"/>"
+<<<<<<< HEAD
       "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+=======
+      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+>>>>>>> upstream/indigo-devel
       "  </joint>"
       "<link name=\"link_d\">"
       "  <collision>"
@@ -386,9 +428,15 @@ TEST(FK, OneRobot)
       "</group>"
       "</robot>";
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL2);
 
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL2);
+
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   srdfModel->initString(*urdfModel, SMODEL2);
 
   moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
@@ -470,25 +518,49 @@ TEST(FK, OneRobot)
   joint_values["joint_c"] = 0.08;
   state.setVariablePositions(joint_values);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(1, 1, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.247404, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.968912, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_a").translation(), Eigen::Vector3d(1, 1, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().x(), 1e-5);
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_a").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).z(), 1e-5);
   EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_b").translation(), Eigen::Vector3d(1, 1.5, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_b").translation().x(), 1e-5);
+  EXPECT_NEAR(1.5, state.getGlobalLinkTransform("link_b").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_b").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).x(), 1e-5);
   EXPECT_NEAR(-0.2084598, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.97803091, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(1.08, 1.4, 0));
+=======
+  EXPECT_NEAR(1.08, state.getGlobalLinkTransform("link_c").translation().x(), 1e-5);
+  EXPECT_NEAR(1.4, state.getGlobalLinkTransform("link_c").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_c").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).z(), 1e-5);
@@ -511,6 +583,7 @@ TEST(FK, OneRobot)
   state.enforceBounds();
   EXPECT_NEAR(state.getVariablePosition("joint_a"), -3.083185, 1e-3);
   EXPECT_TRUE(state.satisfiesBounds(model->getJointModel("joint_a")));
+<<<<<<< HEAD
 
   // mimic joints
   state.setToDefaultValues();
@@ -551,6 +624,8 @@ TEST(FK, OneRobot)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 int main(int argc, char** argv)

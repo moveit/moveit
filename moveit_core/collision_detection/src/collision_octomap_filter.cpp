@@ -76,7 +76,12 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
   int modified = 0;
 
   // iterate through contacts
+<<<<<<< HEAD
   for (auto& contact : res.contacts)
+=======
+  for (collision_detection::CollisionResult::ContactMap::iterator it = res.contacts.begin(); it != res.contacts.end();
+       ++it)
+>>>>>>> upstream/indigo-devel
   {
     std::string contact1 = contact.first.first;
     std::string contact2 = contact.first.second;
@@ -96,15 +101,26 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
     if (!object->shapes_.empty())
     {
       const shapes::ShapeConstPtr& shape = object->shapes_[0];
+<<<<<<< HEAD
       std::shared_ptr<const shapes::OcTree> shape_octree = std::dynamic_pointer_cast<const shapes::OcTree>(shape);
+=======
+      boost::shared_ptr<const shapes::OcTree> shape_octree = boost::dynamic_pointer_cast<const shapes::OcTree>(shape);
+>>>>>>> upstream/indigo-devel
       if (shape_octree)
       {
         std::shared_ptr<const octomap::OcTree> octree = shape_octree->octree;
         cell_size = octree->getResolution();
+<<<<<<< HEAD
         for (auto& contact_info : contact_vector)
         {
           const Eigen::Vector3d& point = contact_info.pos;
           const Eigen::Vector3d& normal = contact_info.normal;
+=======
+        for (size_t contact_index = 0; contact_index < contact_vector.size(); contact_index++)
+        {
+          const Eigen::Vector3d& point = contact_vector[contact_index].pos;
+          const Eigen::Vector3d& normal = contact_vector[contact_index].normal;
+>>>>>>> upstream/indigo-devel
 
           octomath::Vector3 contact_point(point[0], point[1], point[2]);
           octomath::Vector3 contact_normal(normal[0], normal[1], normal[2]);
@@ -125,6 +141,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             {
               count++;
               node_centers.push_back(pt);
+<<<<<<< HEAD
               // CONSOLE_BRIDGE_logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]",
               //                          count, prob, pt.x(), pt.y(), pt.z());
             }
@@ -134,6 +151,16 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
 
           // octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
           // CONSOLE_BRIDGE_logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
+=======
+              // logInform("Adding point %d with prob %.3f at [%.3f, %.3f, %.3f]", count, prob, pt.x(), pt.y(), pt.z());
+            }
+          }
+          // logInform("Contact point at [%.3f, %.3f, %.3f], cell size %.3f, occupied cells %d",
+          //          contact_point.x(), contact_point.y(), contact_point.z(), cell_size, count);
+
+          // octree->getOccupiedLeafsBBX(node_centers, bbx_min, bbx_max);
+          // logError("bad stuff in collision_octomap_filter.cpp; need to port octomap call for groovy");
+>>>>>>> upstream/indigo-devel
 
           octomath::Vector3 n;
           double depth;
@@ -145,6 +172,7 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
             if (divergence > allowed_angle_divergence)
             {
               modified++;
+<<<<<<< HEAD
               // CONSOLE_BRIDGE_logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
               //                          divergence, contact_normal.x(), contact_normal.y(), contact_normal.z(),
               //                          n.x(), n.y(), n.z());
@@ -153,6 +181,17 @@ int collision_detection::refineContactNormals(const World::ObjectConstPtr& objec
 
             if (estimate_depth)
               contact_info.depth = depth;
+=======
+              //              logInform("Normals differ by %.3f, changing: [%.3f, %.3f, %.3f] -> [%.3f, %.3f, %.3f]",
+              //                        divergence,
+              //                        contact_normal.x(), contact_normal.y(), contact_normal.z(),
+              //                        n.x(), n.y(), n.z());
+              contact_vector[contact_index].normal = Eigen::Vector3d(n.x(), n.y(), n.z());
+            }
+
+            if (estimate_depth)
+              contact_vector[contact_index].depth = depth;
+>>>>>>> upstream/indigo-devel
           }
         }
       }
@@ -292,7 +331,11 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
     }
     else
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("This should not be called!");
+=======
+      logError("This should not be called!");
+>>>>>>> upstream/indigo-devel
       double r_scaled = r / R;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);

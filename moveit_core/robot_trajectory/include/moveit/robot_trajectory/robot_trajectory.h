@@ -38,7 +38,10 @@
 #define MOVEIT_ROBOT_TRAJECTORY_KINEMATIC_TRAJECTORY_
 
 #include <moveit/macros/class_forward.h>
+<<<<<<< HEAD
 #include <moveit/macros/deprecation.h>
+=======
+>>>>>>> upstream/indigo-devel
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_msgs/RobotTrajectory.h>
 #include <moveit_msgs/RobotState.h>

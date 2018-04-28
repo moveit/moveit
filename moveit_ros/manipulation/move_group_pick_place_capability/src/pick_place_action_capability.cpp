@@ -66,6 +66,12 @@ void move_group::MoveGroupPickPlaceAction::initialize()
       root_node_handle_, PLACE_ACTION, boost::bind(&MoveGroupPickPlaceAction::executePlaceCallback, this, _1), false));
   place_action_server_->registerPreemptCallback(boost::bind(&MoveGroupPickPlaceAction::preemptPlaceCallback, this));
   place_action_server_->start();
+<<<<<<< HEAD
+=======
+
+  grasp_planning_service_ =
+      root_node_handle_.serviceClient<manipulation_msgs::GraspPlanning>("database_grasp_planning");
+>>>>>>> upstream/indigo-devel
 }
 
 void move_group::MoveGroupPickPlaceAction::startPickupExecutionCallback()
@@ -97,10 +103,21 @@ void move_group::MoveGroupPickPlaceAction::executePickupCallback_PlanOnly(const 
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPick(ps, *goal);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
+=======
+  catch (std::runtime_error& ex)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
+  }
+  catch (...)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
+  }
+>>>>>>> upstream/indigo-devel
 
   if (plan)
   {
@@ -136,10 +153,21 @@ void move_group::MoveGroupPickPlaceAction::executePlaceCallback_PlanOnly(const m
     planning_scene_monitor::LockedPlanningSceneRO ps(context_->planning_scene_monitor_);
     plan = pick_place_->planPlace(ps, *goal);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
+=======
+  catch (std::runtime_error& ex)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
+  }
+  catch (...)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
+  }
+>>>>>>> upstream/indigo-devel
 
   if (plan)
   {
@@ -179,10 +207,21 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Pickup(const movei
   {
     pick_plan = pick_place_->planPick(plan.planning_scene_, goal);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
+=======
+  catch (std::runtime_error& ex)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
+  }
+  catch (...)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
+  }
+>>>>>>> upstream/indigo-devel
 
   if (pick_plan)
   {
@@ -221,10 +260,21 @@ bool move_group::MoveGroupPickPlaceAction::planUsingPickPlace_Place(const moveit
   {
     place_plan = pick_place_->planPlace(plan.planning_scene_, goal);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
   {
     ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
   }
+=======
+  catch (std::runtime_error& ex)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception: %s", ex.what());
+  }
+  catch (...)
+  {
+    ROS_ERROR_NAMED("manipulation", "Pick&place threw an exception");
+  }
+>>>>>>> upstream/indigo-devel
 
   if (place_plan)
   {
@@ -419,6 +469,7 @@ void move_group::MoveGroupPickPlaceAction::setPlaceState(MoveGroupState state)
 
 void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& goal)
 {
+<<<<<<< HEAD
   planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
 
   ROS_DEBUG_NAMED("manipulation", "Using default grasp poses");
@@ -456,6 +507,149 @@ void move_group::MoveGroupPickPlaceAction::fillGrasps(moveit_msgs::PickupGoal& g
     g.grasp_posture.joint_names = g.pre_grasp_posture.joint_names;
     g.grasp_posture.points.resize(1);
     g.grasp_posture.points[0].positions.resize(g.grasp_posture.joint_names.size(), -std::numeric_limits<double>::max());
+=======
+  if (grasp_planning_service_)
+  {
+    manipulation_msgs::GraspPlanning::Request request;
+    manipulation_msgs::GraspPlanning::Response response;
+    bool valid = true;
+    std::string planning_frame;
+
+    // the planning_scene should be unlocked when calling the service below
+    {
+      planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
+      planning_frame = lscene->getPlanningFrame();
+
+      collision_detection::World::ObjectConstPtr object = lscene->getWorld()->getObject(goal.target_name);
+      if (!object || object->shape_poses_.empty())
+      {
+        ROS_ERROR_NAMED("manipulation", "Object '%s' does not exist or has no pose", goal.target_name.c_str());
+        return;
+      }
+
+      request.arm_name = goal.group_name;
+      request.collision_object_name = goal.target_name;
+      request.target.reference_frame_id = planning_frame;
+
+      if (lscene->hasObjectType(goal.target_name) && !lscene->getObjectType(goal.target_name).key.empty())
+      {
+        household_objects_database_msgs::DatabaseModelPose dbp;
+        dbp.pose.header.frame_id = planning_frame;
+        dbp.pose.header.stamp = ros::Time::now();
+        tf::poseEigenToMsg(object->shape_poses_[0], dbp.pose.pose);
+        dbp.type = lscene->getObjectType(goal.target_name);
+        try
+        {
+          dbp.model_id = boost::lexical_cast<int>(dbp.type.key);
+          ROS_DEBUG_NAMED("manipulation", "Asking database for grasps for '%s' with model id: %d", dbp.type.key.c_str(),
+                          dbp.model_id);
+          request.target.potential_models.push_back(dbp);
+        }
+        catch (boost::bad_lexical_cast&)
+        {
+          valid = false;
+          ROS_ERROR_NAMED("manipulation", "Expected an integer object id, not '%s'", dbp.type.key.c_str());
+        }
+      }
+    }
+
+    if (valid)
+    {
+      ROS_DEBUG_NAMED("manipulation", "Calling grasp planner...");
+      if (grasp_planning_service_.call(request, response))
+      {
+        goal.possible_grasps.resize(response.grasps.size());
+        for (std::size_t i = 0; i < response.grasps.size(); ++i)
+        {
+          // construct a moveit grasp from a grasp planner grasp
+          goal.possible_grasps[i].id = response.grasps[i].id;
+
+          goal.possible_grasps[i].pre_grasp_posture.header = response.grasps[i].pre_grasp_posture.header;
+          goal.possible_grasps[i].pre_grasp_posture.joint_names = response.grasps[i].pre_grasp_posture.name;
+          goal.possible_grasps[i].pre_grasp_posture.points.resize(1);
+          goal.possible_grasps[i].pre_grasp_posture.points[0].positions = response.grasps[i].pre_grasp_posture.position;
+          goal.possible_grasps[i].pre_grasp_posture.points[0].velocities =
+              response.grasps[i].pre_grasp_posture.velocity;
+          goal.possible_grasps[i].pre_grasp_posture.points[0].effort = response.grasps[i].pre_grasp_posture.effort;
+
+          goal.possible_grasps[i].grasp_posture.header = response.grasps[i].grasp_posture.header;
+          goal.possible_grasps[i].grasp_posture.joint_names = response.grasps[i].grasp_posture.name;
+          goal.possible_grasps[i].grasp_posture.points.resize(1);
+          goal.possible_grasps[i].grasp_posture.points[0].positions = response.grasps[i].grasp_posture.position;
+          goal.possible_grasps[i].grasp_posture.points[0].velocities = response.grasps[i].grasp_posture.velocity;
+          goal.possible_grasps[i].grasp_posture.points[0].effort = response.grasps[i].grasp_posture.effort;
+
+          goal.possible_grasps[i].grasp_pose = response.grasps[i].grasp_pose;
+          goal.possible_grasps[i].grasp_quality = response.grasps[i].grasp_quality;
+
+          goal.possible_grasps[i].pre_grasp_approach.direction = response.grasps[i].approach.direction;
+          goal.possible_grasps[i].pre_grasp_approach.desired_distance = response.grasps[i].approach.desired_distance;
+          goal.possible_grasps[i].pre_grasp_approach.min_distance = response.grasps[i].approach.min_distance;
+
+          //  here we hard-code in the decision that after grasping, the object is lifted "up" (against gravity)
+          //  we expect that in the planning frame Z points up
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.x = 0.0;
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.y = 0.0;
+          goal.possible_grasps[i].post_grasp_retreat.direction.vector.z = 1.0;
+          goal.possible_grasps[i].post_grasp_retreat.desired_distance = 0.1;
+          goal.possible_grasps[i].post_grasp_retreat.min_distance = 0.0;
+          goal.possible_grasps[i].post_grasp_retreat.direction.header.frame_id = planning_frame;
+
+          goal.possible_grasps[i].post_place_retreat.direction = response.grasps[i].retreat.direction;
+          goal.possible_grasps[i].post_place_retreat.desired_distance = response.grasps[i].retreat.desired_distance;
+          goal.possible_grasps[i].post_place_retreat.min_distance = response.grasps[i].retreat.min_distance;
+
+          goal.possible_grasps[i].max_contact_force = response.grasps[i].max_contact_force;
+          goal.possible_grasps[i].allowed_touch_objects = response.grasps[i].allowed_touch_objects;
+        }
+      }
+    }
+  }
+
+  if (goal.possible_grasps.empty())
+  {
+    planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
+
+    ROS_DEBUG_NAMED("manipulation", "Using default grasp poses");
+    goal.minimize_object_distance = true;
+
+    // add a number of default grasp points
+    // \todo add more!
+    moveit_msgs::Grasp g;
+    g.grasp_pose.header.frame_id = goal.target_name;
+    g.grasp_pose.pose.position.x = -0.2;
+    g.grasp_pose.pose.position.y = 0.0;
+    g.grasp_pose.pose.position.z = 0.0;
+    g.grasp_pose.pose.orientation.x = 0.0;
+    g.grasp_pose.pose.orientation.y = 0.0;
+    g.grasp_pose.pose.orientation.z = 0.0;
+    g.grasp_pose.pose.orientation.w = 1.0;
+
+    g.pre_grasp_approach.direction.header.frame_id = lscene->getPlanningFrame();
+    g.pre_grasp_approach.direction.vector.x = 1.0;
+    g.pre_grasp_approach.min_distance = 0.1;
+    g.pre_grasp_approach.desired_distance = 0.2;
+
+    g.post_grasp_retreat.direction.header.frame_id = lscene->getPlanningFrame();
+    g.post_grasp_retreat.direction.vector.z = 1.0;
+    g.post_grasp_retreat.min_distance = 0.1;
+    g.post_grasp_retreat.desired_distance = 0.2;
+
+    if (lscene->getRobotModel()->hasEndEffector(goal.end_effector))
+    {
+      g.pre_grasp_posture.joint_names =
+          lscene->getRobotModel()->getEndEffector(goal.end_effector)->getJointModelNames();
+      g.pre_grasp_posture.points.resize(1);
+      g.pre_grasp_posture.points[0].positions.resize(g.pre_grasp_posture.joint_names.size(),
+                                                     std::numeric_limits<double>::max());
+
+      g.grasp_posture.joint_names = g.pre_grasp_posture.joint_names;
+      g.grasp_posture.points.resize(1);
+      g.grasp_posture.points[0].positions.resize(g.grasp_posture.joint_names.size(),
+                                                 -std::numeric_limits<double>::max());
+    }
+    goal.possible_grasps.push_back(g);
+>>>>>>> upstream/indigo-devel
   }
   goal.possible_grasps.push_back(g);
 }

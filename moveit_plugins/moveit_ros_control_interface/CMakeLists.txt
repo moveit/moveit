@@ -31,7 +31,11 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME}_plugin
   src/controller_manager_plugin.cpp
 )
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME}_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME}_plugin PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${PROJECT_NAME}_plugin
   ${catkin_LIBRARIES} ${Boost_LIBRARIES}
 )
@@ -39,7 +43,11 @@ target_link_libraries(${PROJECT_NAME}_plugin
 add_library(${PROJECT_NAME}_trajectory_plugin
   src/joint_trajectory_controller_plugin.cpp
 )
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME}_trajectory_plugin PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME}_trajectory_plugin PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${PROJECT_NAME}_trajectory_plugin
   ${catkin_LIBRARIES} ${Boost_LIBRARIES}
 )

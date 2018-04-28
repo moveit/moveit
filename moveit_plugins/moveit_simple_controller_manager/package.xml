@@ -1,6 +1,10 @@
 <package>
   <name>moveit_simple_controller_manager</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>A generic, simple controller manager plugin for MoveIt.</description>
 
   <author email="mferguson@fetchrobotics.com">Michael Ferguson</author>

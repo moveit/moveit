@@ -45,6 +45,7 @@
 #include <std_msgs/String.h>
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
+#include <moveit/macros/deprecation.h>
 #include <boost/thread.hpp>
 #include <pluginlib/class_loader.h>
 
@@ -82,10 +83,20 @@ public:
   };
 
   /// Load the controller manager plugin, start listening for events on a topic.
+<<<<<<< HEAD
+=======
+  MOVEIT_DEPRECATED TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel);  // switch to following
+                                                                                                // constructor!
+>>>>>>> upstream/indigo-devel
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
                              const planning_scene_monitor::CurrentStateMonitorPtr& csm);
 
   /// Load the controller manager plugin, start listening for events on a topic.
+<<<<<<< HEAD
+=======
+  MOVEIT_DEPRECATED TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
+                                               bool manage_controllers);  // switch to following constructor!
+>>>>>>> upstream/indigo-devel
   TrajectoryExecutionManager(const robot_model::RobotModelConstPtr& kmodel,
                              const planning_scene_monitor::CurrentStateMonitorPtr& csm, bool manage_controllers);
 
@@ -331,7 +342,11 @@ private:
   std::vector<TrajectoryExecutionContext*> trajectories_;
   std::deque<TrajectoryExecutionContext*> continuous_execution_queue_;
 
+<<<<<<< HEAD
   std::unique_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> >
+=======
+  boost::scoped_ptr<pluginlib::ClassLoader<moveit_controller_manager::MoveItControllerManager> >
+>>>>>>> upstream/indigo-devel
       controller_manager_loader_;
   moveit_controller_manager::MoveItControllerManagerPtr controller_manager_;
 

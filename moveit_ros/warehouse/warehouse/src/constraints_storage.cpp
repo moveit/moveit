@@ -42,18 +42,29 @@ const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_ID_NAME = "c
 const std::string moveit_warehouse::ConstraintsStorage::CONSTRAINTS_GROUP_NAME = "group_id";
 const std::string moveit_warehouse::ConstraintsStorage::ROBOT_NAME = "robot_id";
 
+<<<<<<< HEAD
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::ConstraintsStorage::ConstraintsStorage(warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(conn)
+=======
+moveit_warehouse::ConstraintsStorage::ConstraintsStorage(const std::string& host, const unsigned int port,
+                                                         double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
+>>>>>>> upstream/indigo-devel
 {
   createCollections();
 }
 
 void moveit_warehouse::ConstraintsStorage::createCollections()
 {
+<<<<<<< HEAD
   constraints_collection_ = conn_->openCollectionPtr<moveit_msgs::Constraints>(DATABASE_NAME, "constraints");
+=======
+  constraints_collection_.reset(
+      new ConstraintsCollection::element_type(DATABASE_NAME, "constraints", db_host_, db_port_, timeout_));
+>>>>>>> upstream/indigo-devel
 }
 
 void moveit_warehouse::ConstraintsStorage::reset()
@@ -72,10 +83,14 @@ void moveit_warehouse::ConstraintsStorage::addConstraints(const moveit_msgs::Con
     removeConstraints(msg.name, robot, group);
     replace = true;
   }
+<<<<<<< HEAD
   Metadata::Ptr metadata = constraints_collection_->createMetadata();
   metadata->append(CONSTRAINTS_ID_NAME, msg.name);
   metadata->append(ROBOT_NAME, robot);
   metadata->append(CONSTRAINTS_GROUP_NAME, group);
+=======
+  mongo_ros::Metadata metadata(CONSTRAINTS_ID_NAME, msg.name, ROBOT_NAME, robot, CONSTRAINTS_GROUP_NAME, group);
+>>>>>>> upstream/indigo-devel
   constraints_collection_->insert(msg, metadata);
   ROS_DEBUG("%s constraints '%s'", replace ? "Replaced" : "Added", msg.name.c_str());
 }
@@ -109,10 +124,18 @@ void moveit_warehouse::ConstraintsStorage::getKnownConstraints(std::vector<std::
   if (!robot.empty())
     q->append(ROBOT_NAME, robot);
   if (!group.empty())
+<<<<<<< HEAD
     q->append(CONSTRAINTS_GROUP_NAME, group);
   std::vector<ConstraintsWithMetadata> constr = constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
   for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(CONSTRAINTS_ID_NAME))
+=======
+    q.append(CONSTRAINTS_GROUP_NAME, group);
+  std::vector<ConstraintsWithMetadata> constr =
+      constraints_collection_->pullAllResults(q, true, CONSTRAINTS_ID_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
+    if (constr[i]->metadata.hasField(CONSTRAINTS_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       names.push_back(constr[i]->lookupString(CONSTRAINTS_ID_NAME));
 }
 

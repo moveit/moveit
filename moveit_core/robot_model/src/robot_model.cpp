@@ -46,11 +46,18 @@
 #include <memory>
 #include "order_robot_model_items.inc"
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
+=======
+/* ------------------------ RobotModel ------------------------ */
+
+moveit::core::RobotModel::RobotModel(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+                                     const boost::shared_ptr<const srdf::Model>& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   root_joint_ = NULL;
   urdf_ = urdf_model;
@@ -78,7 +85,11 @@ const LinkModel* RobotModel::getRootLink() const
   return root_link_;
 }
 
+<<<<<<< HEAD
 void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::Model& srdf_model)
+=======
+void moveit::core::RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
@@ -88,13 +99,18 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
   link_geometry_count_ = 0;
   variable_count_ = 0;
   model_name_ = urdf_model.getName();
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logInform("Loading robot model '%s'...", model_name_.c_str());
+=======
+  logInform("Loading robot model '%s'...", model_name_.c_str());
+>>>>>>> upstream/indigo-devel
 
   if (urdf_model.getRoot())
   {
     const urdf::Link* root_link_ptr = urdf_model.getRoot().get();
     model_frame_ = '/' + root_link_ptr->name;
 
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("... building kinematic chain");
     root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
     if (root_joint_)
@@ -103,6 +119,16 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
     buildMimic(urdf_model);
 
     CONSOLE_BRIDGE_logDebug("... computing joint indexing");
+=======
+    logDebug("... building kinematic chain");
+    root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
+    if (root_joint_)
+      root_link_ = root_joint_->getChildLinkModel();
+    logDebug("... building mimic joints");
+    buildMimic(urdf_model);
+
+    logDebug("... computing joint indexing");
+>>>>>>> upstream/indigo-devel
     buildJointInfo();
 
     if (link_models_with_collision_geometry_vector_.empty())
@@ -110,10 +136,17 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
 
     // build groups
 
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("... constructing joint groups");
     buildGroups(srdf_model);
 
     CONSOLE_BRIDGE_logDebug("... constructing joint group states");
+=======
+    logDebug("... constructing joint groups");
+    buildGroups(srdf_model);
+
+    logDebug("... constructing joint group states");
+>>>>>>> upstream/indigo-devel
     buildGroupStates(srdf_model);
 
     // For debugging entire model
@@ -124,6 +157,13 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
     CONSOLE_BRIDGE_logWarn("No root link found");
 }
 
+<<<<<<< HEAD
+=======
+namespace moveit
+{
+namespace core
+{
+>>>>>>> upstream/indigo-devel
 namespace
 {
 typedef std::map<const JointModel*, std::pair<std::set<const LinkModel*, OrderLinksByIndex>,
@@ -190,6 +230,11 @@ void computeCommonRootsHelper(const JointModel* joint, std::vector<int>& common_
     computeCommonRootsHelper(ch[i], common_roots, size);
   }
 }
+<<<<<<< HEAD
+=======
+}
+}
+>>>>>>> upstream/indigo-devel
 }
 
 void RobotModel::computeCommonRoots()
@@ -314,7 +359,11 @@ void RobotModel::buildJointInfo()
   computeCommonRoots();  // must be called _after_ list of descendants was computed
 }
 
+<<<<<<< HEAD
 void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
+=======
+void moveit::core::RobotModel::buildGroupStates(const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   // copy the default states to the groups
   const std::vector<srdf::Model::GroupState>& ds = srdf_model.getGroupStates();
@@ -335,6 +384,7 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
             for (std::size_t j = 0; j < vn.size(); ++j)
               state[vn[j]] = jt->second[j];
           else
+<<<<<<< HEAD
             CONSOLE_BRIDGE_logError("The model for joint '%s' requires %d variable values, "
                                     "but only %d variable values were supplied in default state '%s' for group '%s'",
                                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
@@ -344,17 +394,36 @@ void RobotModel::buildGroupStates(const srdf::Model& srdf_model)
           CONSOLE_BRIDGE_logError("Group state '%s' specifies value for joint '%s', "
                                   "but that joint is not part of group '%s'",
                                   ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
+=======
+            logError("The model for joint '%s' requires %d variable values, but only %d variable values were supplied "
+                     "in default state '%s' for group '%s'",
+                     jt->first.c_str(), (int)vn.size(), (int)jt->second.size(), ds[i].name_.c_str(),
+                     jmg->getName().c_str());
+        }
+        else
+          logError("Group state '%s' specifies value for joint '%s', but that joint is not part of group '%s'",
+                   ds[i].name_.c_str(), jt->first.c_str(), jmg->getName().c_str());
+>>>>>>> upstream/indigo-devel
       }
       if (!state.empty())
         jmg->addDefaultState(ds[i].name_, state);
     }
     else
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Group state '%s' specified for group '%s', but that group does not exist",
                               ds[i].name_.c_str(), ds[i].group_.c_str());
   }
 }
 
 void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
+=======
+      logError("Group state '%s' specified for group '%s', but that group does not exist", ds[i].name_.c_str(),
+               ds[i].group_.c_str());
+  }
+}
+
+void moveit::core::RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
+>>>>>>> upstream/indigo-devel
 {
   // compute mimic joints
   for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
@@ -373,8 +442,13 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
                                     joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logError("Joint '%s' cannot mimic unknown joint '%s'",
                                   joint_model_vector_[i]->getName().c_str(), jm->mimic->joint_name.c_str());
+=======
+          logError("Joint '%s' cannot mimic unknown joint '%s'", joint_model_vector_[i]->getName().c_str(),
+                   jm->mimic->joint_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
   }
 
@@ -397,7 +471,11 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
         }
         if (joint_model_vector_[i] == joint_model_vector_[i]->getMimic())
         {
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logError("Cycle found in joint that mimic each other. Ignoring all mimic joints.");
+=======
+          logError("Cycle found in joint that mimic each other. Ignoring all mimic joints.");
+>>>>>>> upstream/indigo-devel
           for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
             joint_model_vector_[i]->setMimic(NULL, 0.0, 0.0);
           change = false;
@@ -447,7 +525,11 @@ JointModelGroup* RobotModel::getEndEffector(const std::string& name)
   return it->second;
 }
 
+<<<<<<< HEAD
 bool RobotModel::hasJointModelGroup(const std::string& name) const
+=======
+bool moveit::core::RobotModel::hasJointModelGroup(const std::string& name) const
+>>>>>>> upstream/indigo-devel
 {
   return joint_model_group_map_.find(name) != joint_model_group_map_.end();
 }
@@ -468,13 +550,21 @@ JointModelGroup* RobotModel::getJointModelGroup(const std::string& name)
   JointModelGroupMap::const_iterator it = joint_model_group_map_.find(name);
   if (it == joint_model_group_map_.end())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+=======
+    logError("Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+>>>>>>> upstream/indigo-devel
     return NULL;
   }
   return it->second;
 }
 
+<<<<<<< HEAD
 void RobotModel::buildGroups(const srdf::Model& srdf_model)
+=======
+void moveit::core::RobotModel::buildGroups(const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   const std::vector<srdf::Model::Group>& group_configs = srdf_model.getGroups();
 
@@ -510,8 +600,12 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
 
   for (std::size_t i = 0; i < processed.size(); ++i)
     if (!processed[i])
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("Could not process group '%s' due to unmet subgroup dependencies",
                              group_configs[i].name_.c_str());
+=======
+      logWarn("Could not process group '%s' due to unmet subgroup dependencies", group_configs[i].name_.c_str());
+>>>>>>> upstream/indigo-devel
 
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
     joint_model_groups_.push_back(it->second);
@@ -526,7 +620,11 @@ void RobotModel::buildGroups(const srdf::Model& srdf_model)
   buildGroupsInfo_EndEffectors(srdf_model);
 }
 
+<<<<<<< HEAD
 void RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
+=======
+void moveit::core::RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   // compute subgroups
   for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
@@ -555,7 +653,11 @@ void RobotModel::buildGroupsInfo_Subgroups(const srdf::Model& srdf_model)
   }
 }
 
+<<<<<<< HEAD
 void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
+=======
+void moveit::core::RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   // set the end-effector flags
   const std::vector<srdf::Model::EndEffector>& eefs = srdf_model.getEndEffectors();
@@ -596,6 +698,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
               if (jt->second != it->second)
                 eef_parent_group = jt->second;
               else
+<<<<<<< HEAD
                 CONSOLE_BRIDGE_logError("Group '%s' for end-effector '%s' cannot be its own parent",
                                         eefs[k].parent_group_.c_str(), eefs[k].name_.c_str());
             }
@@ -604,6 +707,15 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
                                       "but it does not include the parent link '%s'",
                                       eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(),
                                       eefs[k].parent_link_.c_str());
+=======
+                logError("Group '%s' for end-effector '%s' cannot be its own parent", eefs[k].parent_group_.c_str(),
+                         eefs[k].name_.c_str());
+            }
+            else
+              logError("Group '%s' was specified as parent group for end-effector '%s' but it does not include the "
+                       "parent link '%s'",
+                       eefs[k].parent_group_.c_str(), eefs[k].name_.c_str(), eefs[k].parent_link_.c_str());
+>>>>>>> upstream/indigo-devel
           }
           else
             CONSOLE_BRIDGE_logError("Group name '%s' not found (specified as parent group for end-effector '%s')",
@@ -643,7 +755,11 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
 {
   if (joint_model_group_map_.find(gc.name_) != joint_model_group_map_.end())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("A group named '%s' already exists. Not adding.", gc.name_.c_str());
+=======
+    logWarn("A group named '%s' already exists. Not adding.", gc.name_.c_str());
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -754,7 +870,12 @@ bool RobotModel::addJointModelGroup(const srdf::Model::Group& gc)
   return true;
 }
 
+<<<<<<< HEAD
 JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf_link, const srdf::Model& srdf_model)
+=======
+moveit::core::JointModel* moveit::core::RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf_link,
+                                                                   const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   // construct the joint
   JointModel* joint = urdf_link->parent_joint ?
@@ -804,7 +925,11 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
 namespace
 {
 // construct bounds for 1DOF joint
+<<<<<<< HEAD
 static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
+=======
+static inline moveit::core::VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
+>>>>>>> upstream/indigo-devel
 {
   VariableBounds b;
   if (urdf_joint->safety)
@@ -839,8 +964,14 @@ static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
 }
 }
 
+<<<<<<< HEAD
 JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                             const srdf::Model& srdf_model)
+=======
+moveit::core::JointModel* moveit::core::RobotModel::constructJointModel(const urdf::Joint* urdf_joint,
+                                                                        const urdf::Link* child_link,
+                                                                        const srdf::Model& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   JointModel* result = NULL;
 
@@ -885,7 +1016,11 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
         result = new FixedJointModel(urdf_joint->name);
         break;
       default:
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("Unknown joint type: %d", (int)urdf_joint->type);
+=======
+        logError("Unknown joint type: %d", (int)urdf_joint->type);
+>>>>>>> upstream/indigo-devel
         break;
     }
   }
@@ -896,6 +1031,7 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     {
       if (vjoints[i].child_link_ != child_link->name)
       {
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its child frame '%s' "
                                "does not match the URDF frame '%s'",
                                vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
@@ -904,6 +1040,14 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
       {
         CONSOLE_BRIDGE_logWarn("Skipping virtual joint '%s' because its parent frame is empty",
                                vjoints[i].name_.c_str());
+=======
+        logWarn("Skipping virtual joint '%s' because its child frame '%s' does not match the URDF frame '%s'",
+                vjoints[i].name_.c_str(), vjoints[i].child_link_.c_str(), child_link->name.c_str());
+      }
+      else if (vjoints[i].parent_frame_.empty())
+      {
+        logWarn("Skipping virtual joint '%s' because its parent frame is empty", vjoints[i].name_.c_str());
+>>>>>>> upstream/indigo-devel
       }
       else
       {
@@ -928,7 +1072,11 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
     }
     if (!result)
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logInform("No root/virtual joint specified in SRDF. Assuming fixed joint");
+=======
+      logInform("No root/virtual joint specified in SRDF. Assuming fixed joint");
+>>>>>>> upstream/indigo-devel
       result = new FixedJointModel("ASSUMED_FIXED_ROOT_JOINT");
     }
   }
@@ -960,12 +1108,21 @@ static inline Eigen::Affine3d urdfPose2Affine3d(const urdf::Pose& pose)
 }
 }
 
+<<<<<<< HEAD
 LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
 {
   LinkModel* result = new LinkModel(urdf_link->name);
 
   const std::vector<urdf::CollisionSharedPtr>& col_array =
       urdf_link->collision_array.empty() ? std::vector<urdf::CollisionSharedPtr>(1, urdf_link->collision) :
+=======
+moveit::core::LinkModel* moveit::core::RobotModel::constructLinkModel(const urdf::Link* urdf_link)
+{
+  LinkModel* result = new LinkModel(urdf_link->name);
+
+  const std::vector<boost::shared_ptr<urdf::Collision> >& col_array =
+      urdf_link->collision_array.empty() ? std::vector<boost::shared_ptr<urdf::Collision> >(1, urdf_link->collision) :
+>>>>>>> upstream/indigo-devel
                                            urdf_link->collision_array;
 
   std::vector<shapes::ShapeConstPtr> shapes;
@@ -983,9 +1140,15 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
     }
   if (shapes.empty())
   {
+<<<<<<< HEAD
     const std::vector<urdf::VisualSharedPtr>& vis_array = urdf_link->visual_array.empty() ?
                                                               std::vector<urdf::VisualSharedPtr>(1, urdf_link->visual) :
                                                               urdf_link->visual_array;
+=======
+    const std::vector<boost::shared_ptr<urdf::Visual> >& vis_array =
+        urdf_link->visual_array.empty() ? std::vector<boost::shared_ptr<urdf::Visual> >(1, urdf_link->visual) :
+                                          urdf_link->visual_array;
+>>>>>>> upstream/indigo-devel
     for (std::size_t i = 0; i < vis_array.size(); ++i)
       if (vis_array[i] && vis_array[i]->geometry)
       {
@@ -1028,7 +1191,11 @@ LinkModel* RobotModel::constructLinkModel(const urdf::Link* urdf_link)
   return result;
 }
 
+<<<<<<< HEAD
 shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
+=======
+shapes::ShapePtr moveit::core::RobotModel::constructShape(const urdf::Geometry* geom)
+>>>>>>> upstream/indigo-devel
 {
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
@@ -1060,24 +1227,40 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
     }
     break;
     default:
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Unknown geometry type: %d", (int)geom->type);
+=======
+      logError("Unknown geometry type: %d", (int)geom->type);
+>>>>>>> upstream/indigo-devel
       break;
   }
 
   return shapes::ShapePtr(result);
 }
 
+<<<<<<< HEAD
 bool RobotModel::hasJointModel(const std::string& name) const
+=======
+bool moveit::core::RobotModel::hasJointModel(const std::string& name) const
+>>>>>>> upstream/indigo-devel
 {
   return joint_model_map_.find(name) != joint_model_map_.end();
 }
 
+<<<<<<< HEAD
 bool RobotModel::hasLinkModel(const std::string& name) const
+=======
+bool moveit::core::RobotModel::hasLinkModel(const std::string& name) const
+>>>>>>> upstream/indigo-devel
 {
   return link_model_map_.find(name) != link_model_map_.end();
 }
 
+<<<<<<< HEAD
 const JointModel* RobotModel::getJointModel(const std::string& name) const
+=======
+const moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name) const
+>>>>>>> upstream/indigo-devel
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
@@ -1097,7 +1280,11 @@ const JointModel* RobotModel::getJointModel(int index) const
   return joint_model_vector_[index];
 }
 
+<<<<<<< HEAD
 JointModel* RobotModel::getJointModel(const std::string& name)
+=======
+moveit::core::JointModel* moveit::core::RobotModel::getJointModel(const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   JointModelMap::const_iterator it = joint_model_map_.find(name);
   if (it != joint_model_map_.end())
@@ -1106,9 +1293,19 @@ JointModel* RobotModel::getJointModel(const std::string& name)
   return NULL;
 }
 
+<<<<<<< HEAD
 const LinkModel* RobotModel::getLinkModel(const std::string& name) const
 {
   return const_cast<RobotModel*>(this)->getLinkModel(name);
+=======
+const moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name) const
+{
+  LinkModelMap::const_iterator it = link_model_map_.find(name);
+  if (it != link_model_map_.end())
+    return it->second;
+  logError("Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
+  return NULL;
+>>>>>>> upstream/indigo-devel
 }
 
 const LinkModel* RobotModel::getLinkModel(int index) const
@@ -1122,7 +1319,11 @@ const LinkModel* RobotModel::getLinkModel(int index) const
   return link_model_vector_[index];
 }
 
+<<<<<<< HEAD
 LinkModel* RobotModel::getLinkModel(const std::string& name)
+=======
+moveit::core::LinkModel* moveit::core::RobotModel::getLinkModel(const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   LinkModelMap::const_iterator it = link_model_map_.find(name);
   if (it != link_model_map_.end())
@@ -1131,6 +1332,7 @@ LinkModel* RobotModel::getLinkModel(const std::string& name)
   return NULL;
 }
 
+<<<<<<< HEAD
 const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
 {
   if (!link)
@@ -1149,6 +1351,10 @@ const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel*
 
 void RobotModel::updateMimicJoints(double* values) const
 {
+=======
+void moveit::core::RobotModel::updateMimicJoints(double* values) const
+{
+>>>>>>> upstream/indigo-devel
   for (std::size_t i = 0; i < mimic_joints_.size(); ++i)
   {
     int src = mimic_joints_[i]->getMimic()->getFirstVariableIndex();
@@ -1157,15 +1363,25 @@ void RobotModel::updateMimicJoints(double* values) const
   }
 }
 
+<<<<<<< HEAD
 void RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values) const
+=======
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                          double* values) const
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableRandomPositions(rng, values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
+<<<<<<< HEAD
 void RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
                                             std::map<std::string, double>& values) const
+=======
+void moveit::core::RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                          std::map<std::string, double>& values) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<double> tmp(variable_count_);
   getVariableRandomPositions(rng, &tmp[0]);
@@ -1174,14 +1390,22 @@ void RobotModel::getVariableRandomPositions(random_numbers::RandomNumberGenerato
     values[variable_names_[i]] = tmp[i];
 }
 
+<<<<<<< HEAD
 void RobotModel::getVariableDefaultPositions(double* values) const
+=======
+void moveit::core::RobotModel::getVariableDefaultPositions(double* values) const
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
     active_joint_model_vector_[i]->getVariableDefaultPositions(values + active_joint_model_start_index_[i]);
   updateMimicJoints(values);
 }
 
+<<<<<<< HEAD
 void RobotModel::getVariableDefaultPositions(std::map<std::string, double>& values) const
+=======
+void moveit::core::RobotModel::getVariableDefaultPositions(std::map<std::string, double>& values) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<double> tmp(variable_count_);
   getVariableDefaultPositions(&tmp[0]);
@@ -1190,8 +1414,13 @@ void RobotModel::getVariableDefaultPositions(std::map<std::string, double>& valu
     values[variable_names_[i]] = tmp[i];
 }
 
+<<<<<<< HEAD
 void RobotModel::getMissingVariableNames(const std::vector<std::string>& variables,
                                          std::vector<std::string>& missing_variables) const
+=======
+void moveit::core::RobotModel::getMissingVariableNames(const std::vector<std::string>& variables,
+                                                       std::vector<std::string>& missing_variables) const
+>>>>>>> upstream/indigo-devel
 {
   missing_variables.clear();
   std::set<std::string> keys(variables.begin(), variables.end());
@@ -1201,7 +1430,11 @@ void RobotModel::getMissingVariableNames(const std::vector<std::string>& variabl
         missing_variables.push_back(variable_names_[i]);
 }
 
+<<<<<<< HEAD
 int RobotModel::getVariableIndex(const std::string& variable) const
+=======
+int moveit::core::RobotModel::getVariableIndex(const std::string& variable) const
+>>>>>>> upstream/indigo-devel
 {
   VariableIndexMap::const_iterator it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
@@ -1209,7 +1442,11 @@ int RobotModel::getVariableIndex(const std::string& variable) const
   return it->second;
 }
 
+<<<<<<< HEAD
 double RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds) const
+=======
+double moveit::core::RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   double max_distance = 0.0;
   for (std::size_t j = 0; j < active_joint_model_vector_.size(); ++j)
@@ -1218,8 +1455,14 @@ double RobotModel::getMaximumExtent(const JointBoundsVector& active_joint_bounds
   return max_distance;
 }
 
+<<<<<<< HEAD
 bool RobotModel::satisfiesPositionBounds(const double* state, const JointBoundsVector& active_joint_bounds,
                                          double margin) const
+=======
+bool moveit::core::RobotModel::satisfiesPositionBounds(const double* state,
+                                                       const JointBoundsVector& active_joint_bounds,
+                                                       double margin) const
+>>>>>>> upstream/indigo-devel
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1229,7 +1472,11 @@ bool RobotModel::satisfiesPositionBounds(const double* state, const JointBoundsV
   return true;
 }
 
+<<<<<<< HEAD
 bool RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const
+=======
+bool moveit::core::RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& active_joint_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   assert(active_joint_bounds.size() == active_joint_model_vector_.size());
   bool change = false;
@@ -1242,7 +1489,11 @@ bool RobotModel::enforcePositionBounds(double* state, const JointBoundsVector& a
   return change;
 }
 
+<<<<<<< HEAD
 double RobotModel::distance(const double* state1, const double* state2) const
+=======
+double moveit::core::RobotModel::distance(const double* state1, const double* state2) const
+>>>>>>> upstream/indigo-devel
 {
   double d = 0.0;
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1252,7 +1503,11 @@ double RobotModel::distance(const double* state1, const double* state2) const
   return d;
 }
 
+<<<<<<< HEAD
 void RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
+=======
+void moveit::core::RobotModel::interpolate(const double* from, const double* to, double t, double* state) const
+>>>>>>> upstream/indigo-devel
 {
   // we interpolate values only for active joint models (non-mimic)
   for (std::size_t i = 0; i < active_joint_model_vector_.size(); ++i)
@@ -1263,10 +1518,17 @@ void RobotModel::interpolate(const double* from, const double* to, double t, dou
   updateMimicJoints(state);
 }
 
+<<<<<<< HEAD
 void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
 {
   // we first set all the "simple" allocators -- where a group has one IK solver
   for (JointModelGroup* jmg : joint_model_groups_)
+=======
+void moveit::core::RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAllocatorFn>& allocators)
+{
+  // we first set all the "simple" allocators -- where a group has one IK solver
+  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt != allocators.end())
@@ -1279,8 +1541,14 @@ void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAlloc
 
   // now we set compound IK solvers; we do this later because we need the index maps computed by the previous calls to
   // setSolverAllocators()
+<<<<<<< HEAD
   for (JointModelGroup* jmg : joint_model_groups_)
   {
+=======
+  for (JointModelGroupMap::const_iterator it = joint_model_group_map_.begin(); it != joint_model_group_map_.end(); ++it)
+  {
+    JointModelGroup* jmg = it->second;
+>>>>>>> upstream/indigo-devel
     std::pair<SolverAllocatorFn, SolverAllocatorMapFn> result;
     std::map<std::string, SolverAllocatorFn>::const_iterator jt = allocators.find(jmg->getName());
     if (jt == allocators.end())
@@ -1291,12 +1559,21 @@ void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAlloc
 
       std::vector<const JointModelGroup*> subs;
 
+<<<<<<< HEAD
       // go through the groups that have IK allocators and see if they are part of jmg; collect them in subs
+=======
+      // go through the groups that we know have IK allocators and see if they are included in the group that does not;
+      // if so, put that group in sub
+>>>>>>> upstream/indigo-devel
       for (std::map<std::string, SolverAllocatorFn>::const_iterator kt = allocators.begin(); kt != allocators.end();
            ++kt)
       {
         const JointModelGroup* sub = getJointModelGroup(kt->first);
+<<<<<<< HEAD
         if (!sub)  // this should actually not happen, all groups should be well defined
+=======
+        if (!sub)
+>>>>>>> upstream/indigo-devel
         {
           subs.clear();
           break;
@@ -1336,7 +1613,11 @@ void RobotModel::setKinematicsAllocators(const std::map<std::string, SolverAlloc
   }
 }
 
+<<<<<<< HEAD
 void RobotModel::printModelInfo(std::ostream& out) const
+=======
+void moveit::core::RobotModel::printModelInfo(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   out << "Model " << model_name_ << " in frame " << model_frame_ << ", using " << getVariableCount() << " variables"
       << std::endl;
@@ -1387,8 +1668,13 @@ void RobotModel::printModelInfo(std::ostream& out) const
     joint_model_groups_[i]->printGroupInfo(out);
 }
 
+<<<<<<< HEAD
 void RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
                                         LinkTransformMap& associated_transforms)
+=======
+void moveit::core::RobotModel::computeFixedTransforms(const LinkModel* link, const Eigen::Affine3d& transform,
+                                                      LinkTransformMap& associated_transforms)
+>>>>>>> upstream/indigo-devel
 {
   associated_transforms[link] = transform * link->getJointOriginTransform();
   for (std::size_t i = 0; i < link->getChildJointModels().size(); ++i)

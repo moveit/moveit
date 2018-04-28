@@ -20,9 +20,15 @@ add_library(${MOVEIT_LIB_NAME}
   src/octomap_render.cpp
   src/trajectory_visualization.cpp
   src/trajectory_panel.cpp
+<<<<<<< HEAD
   ${HEADERS}
 )
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+  ${MOC_SOURCES}
+)
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 
 target_link_libraries(${MOVEIT_LIB_NAME}
   ${catkin_LIBRARIES}

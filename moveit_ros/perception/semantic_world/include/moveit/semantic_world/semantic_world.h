@@ -47,11 +47,14 @@
 
 namespace shapes
 {
+<<<<<<< HEAD
 MOVEIT_CLASS_FORWARD(Shape);
 }
 
 namespace moveit
 {
+=======
+>>>>>>> upstream/indigo-devel
 namespace semantic_world
 {
 MOVEIT_CLASS_FORWARD(SemanticWorld);

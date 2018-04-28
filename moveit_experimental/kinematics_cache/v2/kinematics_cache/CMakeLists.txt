@@ -3,7 +3,11 @@ set(MOVEIT_LIB_NAME moveit_kinematics_cache)
 add_library(${MOVEIT_LIB_NAME}
   src/kinematics_cache.cpp
 )
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 # This line is needed to ensure that messages are done being built before this is built
 add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 

@@ -41,20 +41,130 @@
 #include <yaml-cpp/yaml.h>             // outputing yaml config files
 #include <boost/filesystem.hpp>        // for creating folders/files
 #include <boost/algorithm/string.hpp>  // for string find and replace in templates
+<<<<<<< HEAD
+=======
+
+#ifdef HAVE_NEW_YAMLCPP
+#include <boost/optional.hpp>  // optional
+#endif
+>>>>>>> upstream/indigo-devel
 
 // ROS
 #include <ros/console.h>
 #include <ros/package.h>  // for getting file path for loading images
+<<<<<<< HEAD
+=======
+
+#ifdef HAVE_NEW_YAMLCPP
+namespace YAML
+{
+// Create a legacy Iterator that can be used with the yaml-cpp 0.3 API.
+class Iterator
+{
+public:
+  typedef YAML::iterator iterator_t;
+  typedef YAML::const_iterator const_iterator_t;
+
+  Iterator(iterator_t iter) : iter_(iter)
+  {
+  }
+
+  const Node& first() const
+  {
+    return iter_->first;
+  }
+
+  const Node& second() const
+  {
+    return iter_->second;
+  }
+
+  detail::iterator_value operator*()
+  {
+    return *iter_;
+  }
+
+  Iterator operator++()
+  {
+    return Iterator(++iter_);
+  }
+
+  bool operator==(iterator_t const& other) const
+  {
+    return iter_ == other;
+  }
+
+  bool operator!=(iterator_t const& other) const
+  {
+    return iter_ != other;
+  }
+
+private:
+  iterator_t iter_;
+};
+}
+#endif
+>>>>>>> upstream/indigo-devel
 
 namespace moveit_setup_assistant
 {
 // File system
 namespace fs = boost::filesystem;
 
+<<<<<<< HEAD
 // ******************************************************************************************
 // Constructor
 // ******************************************************************************************
 MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0)
+=======
+#ifdef HAVE_NEW_YAMLCPP
+typedef boost::optional<YAML::Node> yaml_node_t;
+
+// Helper function to find a value (yaml-cpp 0.5)
+template <typename T>
+yaml_node_t findValue(const YAML::Node& node, const T& key)
+{
+  if (node[key])
+    return node[key];
+  return yaml_node_t();
+}
+
+// The >> operator disappeared in yaml-cpp 0.5, so this function is
+// added to provide support for code written under the yaml-cpp 0.3 API.
+template <typename T>
+void operator>>(const YAML::Node& node, T& i)
+{
+  i = node.as<T>();
+}
+
+#else
+typedef const YAML::Node* yaml_node_t;
+
+// Helper function to find a value (yaml-cpp 0.3)
+template <typename T>
+yaml_node_t findValue(const YAML::Node& node, const T& key)
+{
+  return node.FindValue(key);
+}
+#endif
+
+// yaml-cpp 0.5 also changed how you load the YAML document.  This
+// function hides the changes.
+void loadYaml(std::istream& in_stream, YAML::Node& doc_out)
+{
+#ifdef HAVE_NEW_YAMLCPP
+  doc_out = YAML::Load(in_stream);
+#else
+  YAML::Parser parser(in_stream);
+  parser.GetNextDocument(doc_out);
+#endif
+}
+
+// ******************************************************************************************
+// Constructor
+// ******************************************************************************************
+MoveItConfigData::MoveItConfigData() : config_pkg_generated_timestamp_(0), urdf_requires_jade_xacro_(false)
+>>>>>>> upstream/indigo-devel
 {
   // Create an instance of SRDF writer and URDF model for all widgets to share
   srdf_.reset(new srdf::SRDFWriter());
@@ -161,7 +271,12 @@ bool MoveItConfigData::outputSetupAssistantFile(const std::string& file_path)
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "package" << YAML::Value << urdf_pkg_name_;
   emitter << YAML::Key << "relative_path" << YAML::Value << urdf_pkg_relative_path_;
+<<<<<<< HEAD
   emitter << YAML::Key << "xacro_args" << YAML::Value << xacro_args_;
+=======
+  if (urdf_requires_jade_xacro_)
+    emitter << YAML::Key << "use_jade_xacro" << YAML::Value << urdf_requires_jade_xacro_;
+>>>>>>> upstream/indigo-devel
   emitter << YAML::EndMap;
 
   /// SRDF Path Location
@@ -278,6 +393,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   PRM.addParameter("max_nearest_neighbors", "10", "use k nearest neighbors. default: 10");
   planner_des.push_back(PRM);
 
+<<<<<<< HEAD
   OMPLPlannerDescription PRMstar("PRMstar", "geometric");  // no declares in code
   planner_des.push_back(PRMstar);
 
@@ -386,6 +502,11 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(SPARStwo);
 
+=======
+  OMPLPlannerDescription PRMstar("PRMstar", "geometric");  // no delcares in code
+  planner_des.push_back(PRMstar);
+
+>>>>>>> upstream/indigo-devel
   // Add Planners with parameter values
   std::vector<std::string> pconfigs;
   for (std::size_t i = 0; i < planner_des.size(); ++i)
@@ -531,9 +652,18 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
     // Iterate through the joints
     for (const robot_model::JointModel* joint : joint_models)
     {
+<<<<<<< HEAD
       if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
         continue;
       emitter << joint->getName();
+=======
+      if ((*joint_it)->isPassive() || (*joint_it)->getMimic() != NULL ||
+          (*joint_it)->getType() == robot_model::JointModel::FIXED)
+      {
+        continue;
+      }
+      emitter << (*joint_it)->getName();
+>>>>>>> upstream/indigo-devel
     }
     emitter << YAML::EndSeq;
     emitter << YAML::EndMap;
@@ -756,15 +886,30 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
   // Begin parsing
   try
   {
+<<<<<<< HEAD
     YAML::Node doc = YAML::Load(input_stream);
 
     // Loop through all groups
     for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
+=======
+    YAML::Node doc;
+    loadYaml(input_stream, doc);
+
+    yaml_node_t prop_name;
+
+// Loop through all groups
+#ifdef HAVE_NEW_YAMLCPP
+    for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
+#else
+    for (YAML::Iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
+#endif
+>>>>>>> upstream/indigo-devel
     {
       const std::string& group_name = group_it->first.as<std::string>();
       const YAML::Node& group = group_it->second;
 
       // Create new meta data
+<<<<<<< HEAD
       GroupMetaData meta_data;
 
       parse(group, "kinematics_solver", meta_data.kinematics_solver_);
@@ -775,6 +920,64 @@ bool MoveItConfigData::inputKinematicsYAML(const std::string& file_path)
 
       // Assign meta data to vector
       group_meta_data_[group_name] = meta_data;
+=======
+      GroupMetaData new_meta_data;
+
+// kinematics_solver
+#ifdef HAVE_NEW_YAMLCPP
+      if (prop_name = findValue(group_it->second, "kinematics_solver"))
+#else
+      if (prop_name = findValue(group_it.second(), "kinematics_solver"))
+#endif
+      {
+        *prop_name >> new_meta_data.kinematics_solver_;
+      }
+
+// kinematics_solver_search_resolution
+#ifdef HAVE_NEW_YAMLCPP
+      if (prop_name = findValue(group_it->second, "kinematics_solver_search_resolution"))
+#else
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_search_resolution"))
+#endif
+      {
+        *prop_name >> new_meta_data.kinematics_solver_search_resolution_;
+      }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_SEARCH_RESOLUTION_;
+      }
+
+// kinematics_solver_timeout
+#ifdef HAVE_NEW_YAMLCPP
+      if (prop_name = findValue(group_it->second, "kinematics_solver_timeout"))
+#else
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_timeout"))
+#endif
+      {
+        *prop_name >> new_meta_data.kinematics_solver_timeout_;
+      }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_TIMEOUT_;
+      }
+
+// kinematics_solver_attempts
+#ifdef HAVE_NEW_YAMLCPP
+      if (prop_name = findValue(group_it->second, "kinematics_solver_attempts"))
+#else
+      if (prop_name = findValue(group_it.second(), "kinematics_solver_attempts"))
+#endif
+      {
+        *prop_name >> new_meta_data.kinematics_solver_attempts_;
+      }
+      else
+      {
+        new_meta_data.kinematics_solver_attempts_ = DEFAULT_KIN_SOLVER_ATTEMPTS_;
+      }
+
+      // Assign meta data to vector
+      group_meta_data_[group_name] = new_meta_data;
+>>>>>>> upstream/indigo-devel
     }
   }
   catch (YAML::ParserException& e)  // Catch errors
@@ -885,6 +1088,7 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
   // Begin parsing
   try
   {
+<<<<<<< HEAD
     const YAML::Node& doc = YAML::Load(input_stream);
 
     // Get title node
@@ -913,6 +1117,83 @@ bool MoveItConfigData::inputSetupAssistantYAML(const std::string& file_path)
         parse(config_node, "author_name", author_name_);
         parse(config_node, "author_email", author_email_);
         parse(config_node, "generated_timestamp", config_pkg_generated_timestamp_);
+=======
+    YAML::Node doc;
+    loadYaml(input_stream, doc);
+
+    yaml_node_t title_node, urdf_node, package_node, jade_xacro_node, srdf_node, relative_node, config_node,
+        timestamp_node, author_name_node, author_email_node;
+
+    // Get title node
+    if (title_node = findValue(doc, "moveit_setup_assistant_config"))
+    {
+      // URDF Properties
+      if (urdf_node = findValue(*title_node, "URDF"))
+      {
+        // Load first property
+        if (package_node = findValue(*urdf_node, "package"))
+        {
+          *package_node >> urdf_pkg_name_;
+        }
+        else
+        {
+          return false;  // if we do not find this value we cannot continue
+        }
+
+        // Load second property
+        if (relative_node = findValue(*urdf_node, "relative_path"))
+        {
+          *relative_node >> urdf_pkg_relative_path_;
+        }
+        else
+        {
+          return false;  // if we do not find this value we cannot continue
+        }
+        // should Jade+ xacro extensions be enabled for this package?
+        if (jade_xacro_node = findValue(*urdf_node, "use_jade_xacro"))
+        {
+          *jade_xacro_node >> urdf_requires_jade_xacro_;
+        }
+        else
+        {
+          // value for this node is not required
+        }
+      }
+      // SRDF Properties
+      if (srdf_node = findValue(*title_node, "SRDF"))
+      {
+        // Load first property
+        if (relative_node = findValue(*srdf_node, "relative_path"))
+        {
+          *relative_node >> srdf_pkg_relative_path_;
+        }
+        else
+        {
+          return false;  // if we do not find this value we cannot continue
+        }
+      }
+      // Package generation time
+      if (config_node = findValue(*title_node, "CONFIG"))
+      {
+        // Load author contact details
+        if (author_name_node = findValue(*config_node, "author_name"))
+        {
+          *author_name_node >> author_name_;
+        }
+        if (author_email_node = findValue(*config_node, "author_email"))
+        {
+          *author_email_node >> author_email_;
+        }
+        // Load first property
+        if (timestamp_node = findValue(*config_node, "generated_timestamp"))
+        {
+          *timestamp_node >> config_pkg_generated_timestamp_;
+        }
+        else
+        {
+          // if we do not find this value it is fine, not required
+        }
+>>>>>>> upstream/indigo-devel
       }
       return true;
     }

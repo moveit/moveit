@@ -145,11 +145,14 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
   if (state_monitor_started_)
   {
     joint_state_subscriber_.shutdown();
+<<<<<<< HEAD
     if (tf_ && tf_connection_)
     {
       tf_->removeTransformsChangedListener(*tf_connection_);
       tf_connection_.reset();
     }
+=======
+>>>>>>> upstream/indigo-devel
     ROS_DEBUG("No longer listening for joint states");
     state_monitor_started_ = false;
   }
@@ -163,6 +166,7 @@ std::string planning_scene_monitor::CurrentStateMonitor::getMonitoredTopic() con
     return "";
 }
 
+<<<<<<< HEAD
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 {
   bool result = true;
@@ -170,6 +174,37 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
     if (joint_time_.find(joint) == joint_time_.end())
+=======
+bool planning_scene_monitor::CurrentStateMonitor::isPassiveOrMimicDOF(const std::string& dof) const
+{
+  if (robot_model_->hasJointModel(dof))
+  {
+    if (robot_model_->getJointModel(dof)->isPassive() || robot_model_->getJointModel(dof)->getMimic())
+      return true;
+  }
+  else
+  {
+    // check if this DOF is part of a multi-dof passive joint
+    std::size_t slash = dof.find_last_of("/");
+    if (slash != std::string::npos)
+    {
+      std::string joint_name = dof.substr(0, slash);
+      if (robot_model_->hasJointModel(joint_name))
+        if (robot_model_->getJointModel(joint_name)->isPassive() || robot_model_->getJointModel(joint_name)->getMimic())
+          return true;
+    }
+  }
+  return false;
+}
+
+bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
+{
+  bool result = true;
+  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  for (std::size_t i = 0; i < dof.size(); ++i)
+    if (joint_time_.find(dof[i]) == joint_time_.end())
+>>>>>>> upstream/indigo-devel
     {
       if (!joint->isPassive() && !joint->getMimic())
       {
@@ -183,11 +218,19 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState() const
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<std::string>& missing_states) const
 {
   bool result = true;
+<<<<<<< HEAD
   const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
     if (joint_time_.find(joint) == joint_time_.end())
       if (!joint->isPassive() && !joint->getMimic())
+=======
+  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  for (std::size_t i = 0; i < dof.size(); ++i)
+    if (joint_time_.find(dof[i]) == joint_time_.end())
+      if (!isPassiveOrMimicDOF(dof[i]))
+>>>>>>> upstream/indigo-devel
       {
         missing_states.push_back(joint->getName());
         result = false;
@@ -198,11 +241,19 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(std::vector<
 bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::Duration& age) const
 {
   bool result = true;
+<<<<<<< HEAD
   const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
+=======
+  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  ros::Time now = ros::Time::now();
+  ros::Time old = now - age;
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  for (std::size_t i = 0; i < dof.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     if (joint->isPassive() || joint->getMimic())
       continue;
@@ -218,6 +269,15 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
                 joint->getName().c_str(), (now - it->second).toSec(), age.toSec());
       result = false;
     }
+<<<<<<< HEAD
+=======
+    else if (it->second < old)
+    {
+      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+      result = false;
+    }
+>>>>>>> upstream/indigo-devel
   }
   return result;
 }
@@ -226,11 +286,19 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
                                                                     std::vector<std::string>& missing_states) const
 {
   bool result = true;
+<<<<<<< HEAD
   const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getActiveJointModels();
   ros::Time now = ros::Time::now();
   ros::Time old = now - age;
   boost::mutex::scoped_lock slock(state_update_lock_);
   for (const moveit::core::JointModel* joint : joints)
+=======
+  const std::vector<std::string>& dof = robot_model_->getVariableNames();
+  ros::Time now = ros::Time::now();
+  ros::Time old = now - age;
+  boost::mutex::scoped_lock slock(state_update_lock_);
+  for (std::size_t i = 0; i < dof.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     if (joint->isPassive() || joint->getMimic())
       continue;
@@ -248,19 +316,35 @@ bool planning_scene_monitor::CurrentStateMonitor::haveCompleteState(const ros::D
       missing_states.push_back(joint->getName());
       result = false;
     }
+<<<<<<< HEAD
+=======
+    else if (it->second < old)
+    {
+      ROS_DEBUG("Joint variable '%s' was last updated %0.3lf seconds ago (older than the allowed %0.3lf seconds)",
+                dof[i].c_str(), (now - it->second).toSec(), age.toSec());
+      missing_states.push_back(dof[i]);
+      result = false;
+    }
+>>>>>>> upstream/indigo-devel
   }
   return result;
 }
 
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros::Time t, double wait_time) const
 {
+<<<<<<< HEAD
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration elapsed(0, 0);
   ros::WallDuration timeout(wait_time);
+=======
+  ros::WallTime timeout = ros::WallTime::now() + ros::WallDuration(wait_time);
+  ros::WallDuration busywait(0.1);
+>>>>>>> upstream/indigo-devel
 
   boost::mutex::scoped_lock lock(state_update_lock_);
   while (current_state_time_ < t)
   {
+<<<<<<< HEAD
     state_update_condition_.wait_for(lock, boost::chrono::nanoseconds((timeout - elapsed).toNSec()));
     elapsed = ros::WallTime::now() - start;
     if (elapsed > timeout)
@@ -270,11 +354,22 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const ros:
                       << "Check clock synchronization if your are running ROS across multiple machines!");
       return false;
     }
+=======
+    lock.unlock();
+    busywait.sleep();
+    if (ros::WallTime::now() >= timeout)
+      return false;
+    lock.lock();
+>>>>>>> upstream/indigo-devel
   }
   return true;
 }
 
+<<<<<<< HEAD
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(double wait_time) const
+=======
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wait_time) const
+>>>>>>> upstream/indigo-devel
 {
   double slept_time = 0.0;
   double sleep_step_s = std::min(0.05, wait_time / 10.0);
@@ -291,7 +386,11 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(double wai
   waitForCompleteState(wait_time);
 }
 
+<<<<<<< HEAD
 bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std::string& group, double wait_time) const
+=======
+bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std::string& group, double wait_time) const
+>>>>>>> upstream/indigo-devel
 {
   if (waitForCompleteState(wait_time))
     return true;
@@ -301,7 +400,11 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std
   std::vector<std::string> missing_joints;
   if (!haveCompleteState(missing_joints))
   {
+<<<<<<< HEAD
     const moveit::core::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+=======
+    const robot_model::JointModelGroup* jmg = robot_model_->getJointModelGroup(group);
+>>>>>>> upstream/indigo-devel
     if (jmg)
     {
       std::set<std::string> mj;
@@ -318,11 +421,14 @@ bool planning_scene_monitor::CurrentStateMonitor::waitForCompleteState(const std
   return ok;
 }
 
+<<<<<<< HEAD
 bool planning_scene_monitor::CurrentStateMonitor::waitForCurrentState(const std::string& group, double wait_time) const
 {
   waitForCompleteState(group, wait_time);
 }
 
+=======
+>>>>>>> upstream/indigo-devel
 void planning_scene_monitor::CurrentStateMonitor::jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state)
 {
   if (joint_state->name.size() != joint_state->position.size())
@@ -414,6 +520,7 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
     std::string err;
     if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_updates[i], &err) != tf::NO_ERROR)
     {
+<<<<<<< HEAD
       ROS_DEBUG_STREAM_THROTTLE(1, "Unable to update multi-dof joint '"
                                        << joint->getName() << "': tf has no common time between '"
                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
@@ -438,10 +545,15 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       const std::string& child_frame = joint->getChildLinkModel()->getName();
       const std::string& parent_frame =
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
+=======
+      const std::string& child_frame = robot_model_->getRootLink()->getName();
+      const std::string& parent_frame = robot_model_->getModelFrame();
+>>>>>>> upstream/indigo-devel
 
       tf::StampedTransform transf;
       try
       {
+<<<<<<< HEAD
         tf_->lookupTransform(parent_frame, child_frame, latest_updates[i], transf);
       }
       catch (tf::TransformException& ex)
@@ -449,6 +561,32 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
         ROS_ERROR_STREAM_THROTTLE(1, "Unable to update multi-dof joint '" << joint->getName()
                                                                           << "'. TF exception: " << ex.what());
         continue;
+=======
+        try
+        {
+          tf_->lookupTransform(parent_frame, child_frame, tm, transf);
+          ok = true;
+        }
+        catch (tf::TransformException& ex)
+        {
+          ROS_ERROR_THROTTLE(1, "Unable to lookup transform from %s to %s.  Exception: %s", parent_frame.c_str(),
+                             child_frame.c_str(), ex.what());
+        }
+      }
+      else
+        ROS_DEBUG_THROTTLE(1, "Unable to lookup transform from %s to %s: no common time.", parent_frame.c_str(),
+                           child_frame.c_str());
+      if (ok && last_tf_update_ != tm)
+      {
+        update = true;
+        last_tf_update_ = tm;
+        const std::vector<std::string>& vars = robot_model_->getRootJoint()->getVariableNames();
+        for (std::size_t j = 0; j < vars.size(); ++j)
+          joint_time_[vars[j]] = tm;
+        Eigen::Affine3d eigen_transf;
+        tf::transformTFToEigen(transf, eigen_transf);
+        robot_state_.setJointPositions(robot_model_->getRootJoint(), eigen_transf);
+>>>>>>> upstream/indigo-devel
       }
       joint_time_[joint] = latest_updates[i];
 
@@ -469,11 +607,15 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
   }
 
   // callbacks, if needed
+<<<<<<< HEAD
   if (changes)
   {
     // stub joint state: multi-dof joints are not modelled in the message,
     // but we should still trigger the update callbacks
     sensor_msgs::JointStatePtr joint_state(new sensor_msgs::JointState);
+=======
+  if (update)
+>>>>>>> upstream/indigo-devel
     for (std::size_t i = 0; i < update_callbacks_.size(); ++i)
       update_callbacks_[i](joint_state);
   }

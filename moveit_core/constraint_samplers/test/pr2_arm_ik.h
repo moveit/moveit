@@ -168,7 +168,11 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
+<<<<<<< HEAD
   void addJointToChainInfo(urdf::JointConstSharedPtr joint, moveit_msgs::KinematicSolverInfo& info);
+=======
+  void addJointToChainInfo(boost::shared_ptr<const urdf::Joint> joint, moveit_msgs::KinematicSolverInfo& info);
+>>>>>>> upstream/indigo-devel
 
   bool checkJointLimits(const std::vector<double>& joint_values) const;
 

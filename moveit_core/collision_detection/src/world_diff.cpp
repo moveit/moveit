@@ -37,25 +37,41 @@
 #include <moveit/collision_detection/world_diff.h>
 #include <boost/bind.hpp>
 
+<<<<<<< HEAD
 namespace collision_detection
 {
 WorldDiff::~WorldDiff()
+=======
+collision_detection::WorldDiff::~WorldDiff()
+>>>>>>> upstream/indigo-devel
 {
   WorldPtr old_world = world_.lock();
   if (old_world)
     old_world->removeObserver(observer_handle_);
 }
 
+<<<<<<< HEAD
 WorldDiff::WorldDiff()
 {
 }
 
 WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
+=======
+collision_detection::WorldDiff::WorldDiff()
+{
+}
+
+collision_detection::WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
+>>>>>>> upstream/indigo-devel
 {
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
+<<<<<<< HEAD
 WorldDiff::WorldDiff(WorldDiff& other)
+=======
+collision_detection::WorldDiff::WorldDiff(WorldDiff& other)
+>>>>>>> upstream/indigo-devel
 {
   WorldPtr world = other.world_.lock();
   if (world)

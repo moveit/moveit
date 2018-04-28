@@ -81,9 +81,19 @@ void BackgroundProcessing::processingThread()
         fn();
         CONSOLE_BRIDGE_logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
+<<<<<<< HEAD
       catch (std::exception& ex)
       {
         CONSOLE_BRIDGE_logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
+=======
+      catch (std::runtime_error& ex)
+      {
+        logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
+      }
+      catch (...)
+      {
+        logError("Exception caught while processing action '%s'", action_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
       processing_ = false;
       if (queue_change_event_)
@@ -93,7 +103,11 @@ void BackgroundProcessing::processingThread()
   }
 }
 
+<<<<<<< HEAD
 void BackgroundProcessing::addJob(const boost::function<void()>& job, const std::string& name)
+=======
+void moveit::tools::BackgroundProcessing::addJob(const boost::function<void()>& job, const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   {
     boost::mutex::scoped_lock _(action_lock_);
@@ -126,7 +140,11 @@ std::size_t BackgroundProcessing::getJobCount() const
   return actions_.size() + (processing_ ? 1 : 0);
 }
 
+<<<<<<< HEAD
 void BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback& event)
+=======
+void moveit::tools::BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback& event)
+>>>>>>> upstream/indigo-devel
 {
   boost::mutex::scoped_lock _(action_lock_);
   queue_change_event_ = event;

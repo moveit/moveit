@@ -53,5 +53,8 @@ CATKIN_IGNORE
 
 # Continous Integration
 .moveit_ci
+<<<<<<< HEAD:.gitignore
 
 *.pyc
+=======
+>>>>>>> upstream/indigo-devel:.gitignore

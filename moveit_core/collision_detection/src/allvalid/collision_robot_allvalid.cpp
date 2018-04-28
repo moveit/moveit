@@ -79,7 +79,11 @@ void collision_detection::CollisionRobotAllValid::checkSelfCollision(const Colli
 {
   res.collision = false;
   if (req.verbose)
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("Using AllValid collision detection. No collision checking is performed.");
+=======
+    logInform("Using AllValid collision detection. No collision checking is performed.");
+>>>>>>> upstream/indigo-devel
 }
 
 void collision_detection::CollisionRobotAllValid::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
