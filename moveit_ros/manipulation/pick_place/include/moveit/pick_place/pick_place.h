@@ -106,7 +106,11 @@ public:
   bool plan(const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::PlaceGoal& goal);
 };
 
+<<<<<<< HEAD
 class PickPlace : private boost::noncopyable, public std::enable_shared_from_this<PickPlace>
+=======
+class PickPlace : private boost::noncopyable, public boost::enable_shared_from_this<PickPlace>
+>>>>>>> upstream/indigo-devel
 {
 public:
   static const std::string DISPLAY_PATH_TOPIC;

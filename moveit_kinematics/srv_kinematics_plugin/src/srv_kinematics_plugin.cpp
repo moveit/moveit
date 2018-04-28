@@ -68,8 +68,13 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
   setValues(robot_description, group_name, base_frame, tip_frames, search_discretization);
 
   rdf_loader::RDFLoader rdf_loader(robot_description_);
+<<<<<<< HEAD:moveit_kinematics/srv_kinematics_plugin/src/srv_kinematics_plugin.cpp
   const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
+=======
+  const boost::shared_ptr<srdf::Model>& srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
+>>>>>>> upstream/indigo-devel:moveit_kinematics/srv_kinematics_plugin/src/srv_kinematics_plugin.cpp
 
   if (!urdf_model || !srdf)
   {
@@ -134,7 +139,11 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
 
   // Create the ROS service client
   ros::NodeHandle nonprivate_handle("");
+<<<<<<< HEAD:moveit_kinematics/srv_kinematics_plugin/src/srv_kinematics_plugin.cpp
   ik_service_client_ = std::make_shared<ros::ServiceClient>(
+=======
+  ik_service_client_ = boost::make_shared<ros::ServiceClient>(
+>>>>>>> upstream/indigo-devel:moveit_kinematics/srv_kinematics_plugin/src/srv_kinematics_plugin.cpp
       nonprivate_handle.serviceClient<moveit_msgs::GetPositionIK>(ik_service_name));
   if (!ik_service_client_->waitForExistence(ros::Duration(0.1)))  // wait 0.1 seconds, blocking
     ROS_WARN_STREAM_NAMED("srv",

@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 # moveit/moveit:kinetic-release
 # Full debian-based install of MoveIt! using apt-get
 
 FROM moveit/moveit:kinetic-ci
+=======
+# moveit/moveit:indigo-release
+# Full debian-based install of MoveIt! using apt-get
+
+FROM moveit/moveit:indigo-ci
+>>>>>>> upstream/indigo-devel
 MAINTAINER Dave Coleman dave@dav.ee
 
 # Commands are combined in single RUN statement with "lists" folder removal to reduce image size

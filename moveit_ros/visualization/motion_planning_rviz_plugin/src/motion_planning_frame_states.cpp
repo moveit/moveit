@@ -82,7 +82,11 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
   {
     robot_state_storage_->getKnownRobotStates(pattern, names);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
+=======
+  catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
   {
     QMessageBox::warning(this, "Cannot query the database",
                          QString("Wrongly formatted regular expression for robot states: ").append(ex.what()));
@@ -100,7 +104,11 @@ void MotionPlanningFrame::loadStoredStates(const std::string& pattern)
     {
       got_state = robot_state_storage_->getRobotState(rs, names[i]);
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
+=======
+    catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
     {
       ROS_ERROR("%s", ex.what());
     }
@@ -154,7 +162,11 @@ void MotionPlanningFrame::saveRobotStateButtonClicked(const robot_state::RobotSt
           {
             robot_state_storage_->addRobotState(msg, name, planning_display_->getRobotModel()->getName());
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
+=======
+          catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
           {
             ROS_ERROR("Cannot save robot state on the database: %s", ex.what());
           }
@@ -231,7 +243,11 @@ void MotionPlanningFrame::removeStateButtonClicked()
             robot_state_storage_->removeRobotState(name);
             robot_states_.erase(name);
           }
+<<<<<<< HEAD
           catch (std::exception& ex)
+=======
+          catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
           {
             ROS_ERROR("%s", ex.what());
           }

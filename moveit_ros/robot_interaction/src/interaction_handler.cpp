@@ -344,7 +344,31 @@ void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const 
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
     pose = state->getGlobalLinkTransform(vj->parent_frame).inverse() * pose;
 
+<<<<<<< HEAD
   state->setJointPositions(vj->joint_name, pose);
+=======
+  Eigen::Quaterniond q;
+  tf::quaternionMsgToEigen(rel_pose.orientation, q);
+  std::map<std::string, double> vals;
+  if (vj->dof == 3)
+  {
+    vals[vj->joint_name + "/x"] = rel_pose.position.x;
+    vals[vj->joint_name + "/y"] = rel_pose.position.y;
+    Eigen::Vector3d xyz = q.matrix().eulerAngles(0, 1, 2);
+    vals[vj->joint_name + "/theta"] = xyz[2];
+  }
+  else if (vj->dof == 6)
+  {
+    vals[vj->joint_name + "/trans_x"] = rel_pose.position.x;
+    vals[vj->joint_name + "/trans_y"] = rel_pose.position.y;
+    vals[vj->joint_name + "/trans_z"] = rel_pose.position.z;
+    vals[vj->joint_name + "/rot_x"] = q.x();
+    vals[vj->joint_name + "/rot_y"] = q.y();
+    vals[vj->joint_name + "/rot_z"] = q.z();
+    vals[vj->joint_name + "/rot_w"] = q.w();
+  }
+  state->setVariablePositions(vals);
+>>>>>>> upstream/indigo-devel
   state->update();
 
   if (update_callback_)

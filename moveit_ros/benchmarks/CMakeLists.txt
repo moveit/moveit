@@ -30,10 +30,15 @@ catkin_package(
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} )
 link_directories(${catkin_LIBRARY_DIRS})
 
+<<<<<<< HEAD
 add_library(${MOVEIT_LIB_NAME} src/BenchmarkOptions.cpp
                                src/BenchmarkExecutor.cpp)
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+=======
+include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
+>>>>>>> upstream/indigo-devel
 
 add_executable(moveit_run_benchmark src/RunBenchmark.cpp)
 target_link_libraries(moveit_run_benchmark ${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})

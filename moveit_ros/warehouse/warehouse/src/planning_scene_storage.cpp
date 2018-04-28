@@ -42,22 +42,37 @@ const std::string moveit_warehouse::PlanningSceneStorage::DATABASE_NAME = "movei
 const std::string moveit_warehouse::PlanningSceneStorage::PLANNING_SCENE_ID_NAME = "planning_scene_id";
 const std::string moveit_warehouse::PlanningSceneStorage::MOTION_PLAN_REQUEST_ID_NAME = "motion_request_id";
 
+<<<<<<< HEAD
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(conn)
+=======
+moveit_warehouse::PlanningSceneStorage::PlanningSceneStorage(const std::string& host, const unsigned int port,
+                                                             double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
+>>>>>>> upstream/indigo-devel
 {
   createCollections();
 }
 
 void moveit_warehouse::PlanningSceneStorage::createCollections()
 {
+<<<<<<< HEAD
   planning_scene_collection_ = conn_->openCollectionPtr<moveit_msgs::PlanningScene>(DATABASE_NAME, "planning_scene");
   motion_plan_request_collection_ =
       conn_->openCollectionPtr<moveit_msgs::MotionPlanRequest>(DATABASE_NAME, "motion_plan_request");
   robot_trajectory_collection_ =
       conn_->openCollectionPtr<moveit_msgs::RobotTrajectory>(DATABASE_NAME, "robot_trajectory");
+=======
+  planning_scene_collection_.reset(
+      new PlanningSceneCollection::element_type(DATABASE_NAME, "planning_scene", db_host_, db_port_, timeout_));
+  motion_plan_request_collection_.reset(new MotionPlanRequestCollection::element_type(
+      DATABASE_NAME, "motion_plan_request", db_host_, db_port_, timeout_));
+  robot_trajectory_collection_.reset(
+      new RobotTrajectoryCollection::element_type(DATABASE_NAME, "robot_trajectory", db_host_, db_port_, timeout_));
+>>>>>>> upstream/indigo-devel
 }
 
 void moveit_warehouse::PlanningSceneStorage::reset()
@@ -95,9 +110,15 @@ std::string moveit_warehouse::PlanningSceneStorage::getMotionPlanRequestName(
     const moveit_msgs::MotionPlanRequest& planning_query, const std::string& scene_name) const
 {
   // get all existing motion planning requests for this planning scene
+<<<<<<< HEAD
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
   std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->queryList(q, false);
+=======
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<MotionPlanRequestWithMetadata> existing_requests =
+      motion_plan_request_collection_->pullAllResults(q, false);
+>>>>>>> upstream/indigo-devel
 
   // if there are no requests stored, we are done
   if (existing_requests.empty())
@@ -148,9 +169,15 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(
   if (id.empty())
   {
     std::set<std::string> used;
+<<<<<<< HEAD
     Query::Ptr q = motion_plan_request_collection_->createQuery();
     q->append(PLANNING_SCENE_ID_NAME, scene_name);
     std::vector<MotionPlanRequestWithMetadata> existing_requests = motion_plan_request_collection_->queryList(q, true);
+=======
+    mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+    std::vector<MotionPlanRequestWithMetadata> existing_requests =
+        motion_plan_request_collection_->pullAllResults(q, true);
+>>>>>>> upstream/indigo-devel
     for (std::size_t i = 0; i < existing_requests.size(); ++i)
       used.insert(existing_requests[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
     std::size_t index = existing_requests.size();
@@ -160,9 +187,13 @@ std::string moveit_warehouse::PlanningSceneStorage::addNewPlanningRequest(
       index++;
     } while (used.find(id) != used.end());
   }
+<<<<<<< HEAD
   Metadata::Ptr metadata = motion_plan_request_collection_->createMetadata();
   metadata->append(PLANNING_SCENE_ID_NAME, scene_name);
   metadata->append(MOTION_PLAN_REQUEST_ID_NAME, id);
+=======
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name, MOTION_PLAN_REQUEST_ID_NAME, id);
+>>>>>>> upstream/indigo-devel
   motion_plan_request_collection_->insert(planning_query, metadata);
   ROS_DEBUG("Saved planning query '%s' for scene '%s'", id.c_str(), scene_name.c_str());
   return id;
@@ -175,20 +206,32 @@ void moveit_warehouse::PlanningSceneStorage::addPlanningResult(const moveit_msgs
   std::string id = getMotionPlanRequestName(planning_query, scene_name);
   if (id.empty())
     id = addNewPlanningRequest(planning_query, scene_name, "");
+<<<<<<< HEAD
   Metadata::Ptr metadata = robot_trajectory_collection_->createMetadata();
   metadata->append(PLANNING_SCENE_ID_NAME, scene_name);
   metadata->append(MOTION_PLAN_REQUEST_ID_NAME, id);
+=======
+  mongo_ros::Metadata metadata(PLANNING_SCENE_ID_NAME, scene_name, MOTION_PLAN_REQUEST_ID_NAME, id);
+>>>>>>> upstream/indigo-devel
   robot_trajectory_collection_->insert(result, metadata);
 }
 
 void moveit_warehouse::PlanningSceneStorage::getPlanningSceneNames(std::vector<std::string>& names) const
 {
   names.clear();
+<<<<<<< HEAD
   Query::Ptr q = planning_scene_collection_->createQuery();
   std::vector<PlanningSceneWithMetadata> planning_scenes =
       planning_scene_collection_->queryList(q, true, PLANNING_SCENE_ID_NAME, true);
   for (std::size_t i = 0; i < planning_scenes.size(); ++i)
     if (planning_scenes[i]->lookupField(PLANNING_SCENE_ID_NAME))
+=======
+  mongo_ros::Query q;
+  std::vector<PlanningSceneWithMetadata> planning_scenes =
+      planning_scene_collection_->pullAllResults(q, true, PLANNING_SCENE_ID_NAME, true);
+  for (std::size_t i = 0; i < planning_scenes.size(); ++i)
+    if (planning_scenes[i]->metadata.hasField(PLANNING_SCENE_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       names.push_back(planning_scenes[i]->lookupString(PLANNING_SCENE_ID_NAME));
 }
 
@@ -234,10 +277,17 @@ bool moveit_warehouse::PlanningSceneStorage::getPlanningQuery(MotionPlanRequestW
                                                               const std::string& scene_name,
                                                               const std::string& query_name)
 {
+<<<<<<< HEAD
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
   q->append(MOTION_PLAN_REQUEST_ID_NAME, query_name);
   std::vector<MotionPlanRequestWithMetadata> planning_queries = motion_plan_request_collection_->queryList(q, false);
+=======
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  q.append(MOTION_PLAN_REQUEST_ID_NAME, query_name);
+  std::vector<MotionPlanRequestWithMetadata> planning_queries =
+      motion_plan_request_collection_->pullAllResults(q, false);
+>>>>>>> upstream/indigo-devel
   if (planning_queries.empty())
   {
     ROS_ERROR("Planning query '%s' not found for scene '%s'", query_name.c_str(), scene_name.c_str());
@@ -261,12 +311,21 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(
 void moveit_warehouse::PlanningSceneStorage::getPlanningQueriesNames(std::vector<std::string>& query_names,
                                                                      const std::string& scene_name) const
 {
+<<<<<<< HEAD
   Query::Ptr q = motion_plan_request_collection_->createQuery();
   q->append(PLANNING_SCENE_ID_NAME, scene_name);
   std::vector<MotionPlanRequestWithMetadata> planning_queries = motion_plan_request_collection_->queryList(q, true);
   query_names.clear();
   for (std::size_t i = 0; i < planning_queries.size(); ++i)
     if (planning_queries[i]->lookupField(MOTION_PLAN_REQUEST_ID_NAME))
+=======
+  mongo_ros::Query q(PLANNING_SCENE_ID_NAME, scene_name);
+  std::vector<MotionPlanRequestWithMetadata> planning_queries =
+      motion_plan_request_collection_->pullAllResults(q, true);
+  query_names.clear();
+  for (std::size_t i = 0; i < planning_queries.size(); ++i)
+    if (planning_queries[i]->metadata.hasField(MOTION_PLAN_REQUEST_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       query_names.push_back(planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME));
 }
 
@@ -301,7 +360,11 @@ void moveit_warehouse::PlanningSceneStorage::getPlanningQueries(
   planning_queries = motion_plan_request_collection_->queryList(q, false);
   query_names.resize(planning_queries.size());
   for (std::size_t i = 0; i < planning_queries.size(); ++i)
+<<<<<<< HEAD
     if (planning_queries[i]->lookupField(MOTION_PLAN_REQUEST_ID_NAME))
+=======
+    if (planning_queries[i]->metadata.hasField(MOTION_PLAN_REQUEST_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       query_names[i] = planning_queries[i]->lookupString(MOTION_PLAN_REQUEST_ID_NAME);
     else
       query_names[i].clear();

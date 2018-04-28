@@ -37,7 +37,11 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <ros/ros.h>
 
+<<<<<<< HEAD
 void demoPick(moveit::planning_interface::MoveGroupInterface& group)
+=======
+void demoPick(moveit::planning_interface::MoveGroup& group)
+>>>>>>> upstream/indigo-devel
 {
   std::vector<moveit_msgs::Grasp> grasps;
   for (std::size_t i = 0; i < 20; ++i)
@@ -71,7 +75,11 @@ void demoPick(moveit::planning_interface::MoveGroupInterface& group)
   group.pick("bubu", grasps);
 }
 
+<<<<<<< HEAD
 void demoPlace(moveit::planning_interface::MoveGroupInterface& group)
+=======
+void demoPlace(moveit::planning_interface::MoveGroup& group)
+>>>>>>> upstream/indigo-devel
 {
   std::vector<moveit_msgs::PlaceLocation> loc;
   for (std::size_t i = 0; i < 20; ++i)

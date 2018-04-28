@@ -37,30 +37,50 @@
 #include <moveit/collision_detection/world.h>
 #include <console_bridge/console.h>
 
+<<<<<<< HEAD
+namespace collision_detection
+{
+World::World()
+{
+}
+
+World::World(const World& other)
+=======
 collision_detection::World::World()
 {
 }
 
 collision_detection::World::World(const World& other)
+>>>>>>> upstream/indigo-devel
 {
   objects_ = other.objects_;
 }
 
-collision_detection::World::~World()
+World::~World()
 {
   while (!observers_.empty())
     removeObserver(observers_.front());
 }
 
+<<<<<<< HEAD
+inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
+                                       const Eigen::Affine3d& pose)
+=======
 inline void collision_detection::World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
                                                             const Eigen::Affine3d& pose)
+>>>>>>> upstream/indigo-devel
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
+<<<<<<< HEAD
+void World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                        const EigenSTL::vector_Affine3d& poses)
+=======
 void collision_detection::World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                                              const EigenSTL::vector_Affine3d& poses)
+>>>>>>> upstream/indigo-devel
 {
   if (shapes.size() != poses.size())
   {
@@ -89,8 +109,12 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
   notify(obj, Action(action));
 }
 
+<<<<<<< HEAD
+void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+=======
 void collision_detection::World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape,
                                              const Eigen::Affine3d& pose)
+>>>>>>> upstream/indigo-devel
 {
   int action = ADD_SHAPE;
 
@@ -107,15 +131,24 @@ void collision_detection::World::addToObject(const std::string& id, const shapes
   notify(obj, Action(action));
 }
 
-std::vector<std::string> collision_detection::World::getObjectIds() const
+std::vector<std::string> World::getObjectIds() const
 {
   std::vector<std::string> id;
+<<<<<<< HEAD
   for (const auto& object : objects_)
     id.push_back(object.first);
   return id;
 }
 
+World::ObjectConstPtr World::getObject(const std::string& id) const
+=======
+  for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
+    id.push_back(it->first);
+  return id;
+}
+
 collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   auto it = objects_.find(id);
   if (it == objects_.end())
@@ -124,19 +157,31 @@ collision_detection::World::ObjectConstPtr collision_detection::World::getObject
     return it->second;
 }
 
+<<<<<<< HEAD
+void World::ensureUnique(ObjectPtr& obj)
+=======
 void collision_detection::World::ensureUnique(ObjectPtr& obj)
+>>>>>>> upstream/indigo-devel
 {
   if (obj && !obj.unique())
     obj.reset(new Object(*obj));
 }
 
+<<<<<<< HEAD
+bool World::hasObject(const std::string& id) const
+=======
 bool collision_detection::World::hasObject(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   return objects_.find(id) != objects_.end();
 }
 
+<<<<<<< HEAD
+bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
+=======
 bool collision_detection::World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape,
                                                    const Eigen::Affine3d& pose)
+>>>>>>> upstream/indigo-devel
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -155,7 +200,11 @@ bool collision_detection::World::moveShapeInObject(const std::string& id, const 
   return false;
 }
 
+<<<<<<< HEAD
+bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
+=======
 bool collision_detection::World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
+>>>>>>> upstream/indigo-devel
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -183,7 +232,11 @@ bool collision_detection::World::removeShapeFromObject(const std::string& id, co
   return false;
 }
 
+<<<<<<< HEAD
+bool World::removeObject(const std::string& id)
+=======
 bool collision_detection::World::removeObject(const std::string& id)
+>>>>>>> upstream/indigo-devel
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -195,22 +248,32 @@ bool collision_detection::World::removeObject(const std::string& id)
   return false;
 }
 
-void collision_detection::World::clearObjects()
+void World::clearObjects()
 {
   notifyAll(DESTROY);
   objects_.clear();
 }
 
-collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
+<<<<<<< HEAD
+World::ObserverHandle World::addObserver(const ObserverCallbackFn& callback)
 {
   auto o = new Observer(callback);
+=======
+collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
+{
+  Observer* o = new Observer(callback);
+>>>>>>> upstream/indigo-devel
   observers_.push_back(o);
   return ObserverHandle(o);
 }
 
-void collision_detection::World::removeObserver(ObserverHandle observer_handle)
+void World::removeObserver(ObserverHandle observer_handle)
 {
+<<<<<<< HEAD
   for (auto obs = observers_.begin(); obs != observers_.end(); ++obs)
+=======
+  for (std::vector<Observer*>::iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+>>>>>>> upstream/indigo-devel
   {
     if (*obs == observer_handle.observer_)
     {
@@ -221,28 +284,39 @@ void collision_detection::World::removeObserver(ObserverHandle observer_handle)
   }
 }
 
-void collision_detection::World::notifyAll(Action action)
+void World::notifyAll(Action action)
 {
   for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
     notify(it->second, action);
 }
 
-void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
+void World::notify(const ObjectConstPtr& obj, Action action)
 {
   for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
     (*obs)->callback_(obj, action);
 }
 
-void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
+void World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
+<<<<<<< HEAD
   for (auto observer : observers_)
+=======
+  for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
+>>>>>>> upstream/indigo-devel
   {
     if (observer == observer_handle.observer_)
     {
       // call the callback for each object
+<<<<<<< HEAD
       for (const auto& object : objects_)
         observer->callback_(object.second, action);
+=======
+      for (std::map<std::string, ObjectPtr>::const_iterator obj = objects_.begin(); obj != objects_.end(); ++obj)
+        (*obs)->callback_(obj->second, action);
+>>>>>>> upstream/indigo-devel
       break;
     }
   }
 }
+
+}  // end of namespace collision_detection

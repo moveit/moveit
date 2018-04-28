@@ -53,7 +53,7 @@ MOVEIT_CLASS_FORWARD(PlanningSceneInterface);
 class PlanningSceneInterface
 {
 public:
-  explicit PlanningSceneInterface(const std::string& ns = "");
+  PlanningSceneInterface();
   ~PlanningSceneInterface();
 
   /**
@@ -96,6 +96,7 @@ public:
 
   /** \brief Apply collision object to the planning scene of the move_group node synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+<<<<<<< HEAD
   bool applyCollisionObject(const moveit_msgs::CollisionObject& collision_object);
 
   /** \brief Apply collision object to the planning scene of the move_group node synchronously.
@@ -104,8 +105,7 @@ public:
                             const std_msgs::ColorRGBA& object_color);
 
   /** \brief Apply collision objects to the planning scene of the move_group node synchronously.
-      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene.
-      If object_colors do not specify an id, the corresponding object id from collision_objects is used. */
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyCollisionObjects(
       const std::vector<moveit_msgs::CollisionObject>& collision_objects,
       const std::vector<moveit_msgs::ObjectColor>& object_colors = std::vector<moveit_msgs::ObjectColor>());
@@ -113,6 +113,17 @@ public:
   /** \brief Apply attached collision object to the planning scene of the move_group node synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
   bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_object);
+=======
+  bool applyCollisionObject(const moveit_msgs::CollisionObject& collision_objects);
+
+  /** \brief Apply collision objects to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects);
+
+  /** \brief Apply attached collision object to the planning scene of the move_group node synchronously.
+      Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
+  bool applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& attached_collision_objects);
+>>>>>>> upstream/indigo-devel
 
   /** \brief Apply attached collision objects to the planning scene of the move_group node synchronously.
       Other PlanningSceneMonitors will NOT receive the update unless they subscribe to move_group's monitored scene */
@@ -128,9 +139,13 @@ public:
 
       The update runs asynchronously. If you need the objects to be available *directly* after you called this function,
       consider using `applyCollisionObjects` instead. */
+<<<<<<< HEAD
   void addCollisionObjects(
       const std::vector<moveit_msgs::CollisionObject>& collision_objects,
       const std::vector<moveit_msgs::ObjectColor>& object_colors = std::vector<moveit_msgs::ObjectColor>()) const;
+=======
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const;
+>>>>>>> upstream/indigo-devel
 
   /** \brief Remove collision objects from the world via /planning_scene.
 

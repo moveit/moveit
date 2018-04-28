@@ -8,7 +8,11 @@ add_library(${MOVEIT_LIB_NAME}
   src/trajectory_constraints_storage.cpp
   src/state_storage.cpp
   src/warehouse_connector.cpp)
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(moveit_warehouse_broadcast src/broadcast.cpp)

@@ -48,9 +48,8 @@ namespace planning_interface
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
+  PlanningSceneInterfaceImpl()
   {
-    node_handle_ = ros::NodeHandle(ns);
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
@@ -183,6 +182,7 @@ public:
               object_ids.end())
       {
         result[response.scene.world.collision_objects[i].id] = response.scene.world.collision_objects[i];
+<<<<<<< HEAD
       }
     }
     return result;
@@ -210,11 +210,43 @@ public:
       {
         result[response.scene.robot_state.attached_collision_objects[i].object.id] =
             response.scene.robot_state.attached_collision_objects[i];
+=======
+>>>>>>> upstream/indigo-devel
       }
     }
     return result;
   }
 
+<<<<<<< HEAD
+=======
+  std::map<std::string, moveit_msgs::AttachedCollisionObject>
+  getAttachedObjects(const std::vector<std::string>& object_ids)
+  {
+    moveit_msgs::GetPlanningScene::Request request;
+    moveit_msgs::GetPlanningScene::Response response;
+    std::map<std::string, moveit_msgs::AttachedCollisionObject> result;
+    request.components.components = request.components.ROBOT_STATE_ATTACHED_OBJECTS;
+    if (!planning_scene_service_.call(request, response))
+    {
+      ROS_WARN_NAMED("planning_scene_interface", "Could not call planning scene service to get attached object "
+                                                 "geometries");
+      return result;
+    }
+
+    for (std::size_t i = 0; i < response.scene.robot_state.attached_collision_objects.size(); ++i)
+    {
+      if (object_ids.empty() ||
+          std::find(object_ids.begin(), object_ids.end(),
+                    response.scene.robot_state.attached_collision_objects[i].object.id) != object_ids.end())
+      {
+        result[response.scene.robot_state.attached_collision_objects[i].object.id] =
+            response.scene.robot_state.attached_collision_objects[i];
+      }
+    }
+    return result;
+  }
+
+>>>>>>> upstream/indigo-devel
   bool applyPlanningScene(const moveit_msgs::PlanningScene& planning_scene)
   {
     moveit_msgs::ApplyPlanningScene::Request request;
@@ -228,21 +260,16 @@ public:
     return response.success;
   }
 
+<<<<<<< HEAD
   void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects,
                            const std::vector<moveit_msgs::ObjectColor>& object_colors) const
+=======
+  void addCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects) const
+>>>>>>> upstream/indigo-devel
   {
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects = collision_objects;
     planning_scene.object_colors = object_colors;
-
-    for (size_t i = 0; i < planning_scene.object_colors.size(); ++i)
-    {
-      if (planning_scene.object_colors[i].id.empty() && i < collision_objects.size())
-        planning_scene.object_colors[i].id = collision_objects[i].id;
-      else
-        break;
-    }
-
     planning_scene.is_diff = true;
     planning_scene_diff_publisher_.publish(planning_scene);
   }
@@ -269,9 +296,9 @@ private:
   robot_model::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)
+PlanningSceneInterface::PlanningSceneInterface()
 {
-  impl_ = new PlanningSceneInterfaceImpl(ns);
+  impl_ = new PlanningSceneInterfaceImpl();
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()
@@ -320,12 +347,17 @@ bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionOb
   return applyPlanningScene(ps);
 }
 
+<<<<<<< HEAD
 bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionObject& collision_object,
                                                   const std_msgs::ColorRGBA& object_color)
+=======
+bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects)
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
   ps.is_diff = true;
+<<<<<<< HEAD
   ps.world.collision_objects.reserve(1);
   ps.world.collision_objects.push_back(collision_object);
   moveit_msgs::ObjectColor oc;
@@ -337,25 +369,48 @@ bool PlanningSceneInterface::applyCollisionObject(const moveit_msgs::CollisionOb
 
 bool PlanningSceneInterface::applyCollisionObjects(const std::vector<moveit_msgs::CollisionObject>& collision_objects,
                                                    const std::vector<moveit_msgs::ObjectColor>& object_colors)
-{
-  moveit_msgs::PlanningScene ps;
-  ps.robot_state.is_diff = true;
-  ps.is_diff = true;
+=======
   ps.world.collision_objects = collision_objects;
-  ps.object_colors = object_colors;
-
-  for (size_t i = 0; i < ps.object_colors.size(); ++i)
-  {
-    if (ps.object_colors[i].id.empty() && i < collision_objects.size())
-      ps.object_colors[i].id = collision_objects[i].id;
-    else
-      break;
-  }
-
   return applyPlanningScene(ps);
 }
 
 bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& collision_object)
+>>>>>>> upstream/indigo-devel
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+<<<<<<< HEAD
+  ps.world.collision_objects = collision_objects;
+  ps.object_colors = object_colors;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::AttachedCollisionObject& collision_object)
+=======
+  ps.robot_state.attached_collision_objects.reserve(1);
+  ps.robot_state.attached_collision_objects.push_back(collision_object);
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyAttachedCollisionObjects(
+    const std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objects)
+{
+  moveit_msgs::PlanningScene ps;
+  ps.robot_state.is_diff = true;
+  ps.is_diff = true;
+  ps.robot_state.attached_collision_objects = attached_collision_objects;
+  return applyPlanningScene(ps);
+}
+
+bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)
+{
+  impl_->applyPlanningScene(ps);
+}
+
+void PlanningSceneInterface::addCollisionObjects(
+    const std::vector<moveit_msgs::CollisionObject>& collision_objects) const
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -365,8 +420,12 @@ bool PlanningSceneInterface::applyAttachedCollisionObject(const moveit_msgs::Att
   return applyPlanningScene(ps);
 }
 
+<<<<<<< HEAD
 bool PlanningSceneInterface::applyAttachedCollisionObjects(
     const std::vector<moveit_msgs::AttachedCollisionObject>& collision_objects)
+=======
+void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::string>& object_ids) const
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::PlanningScene ps;
   ps.robot_state.is_diff = true;
@@ -374,6 +433,7 @@ bool PlanningSceneInterface::applyAttachedCollisionObjects(
   ps.robot_state.attached_collision_objects = collision_objects;
   return applyPlanningScene(ps);
 }
+<<<<<<< HEAD
 
 bool PlanningSceneInterface::applyPlanningScene(const moveit_msgs::PlanningScene& ps)
 {
@@ -390,5 +450,7 @@ void PlanningSceneInterface::removeCollisionObjects(const std::vector<std::strin
 {
   impl_->removeCollisionObjects(object_ids);
 }
+=======
+>>>>>>> upstream/indigo-devel
 }
 }

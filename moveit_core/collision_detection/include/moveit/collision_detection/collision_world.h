@@ -175,84 +175,47 @@ public:
 
   /** \brief Compute the shortest distance between a robot and the world
    *  @param robot The robot to check distance for
+<<<<<<< HEAD
    *  @param state The state for the robot to check distances from
    *  @param verbose Output debug information about distance checks */
-  inline double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
-                              bool verbose = false) const
-  {
-    DistanceRequest req;
-    DistanceResult res;
-
-    req.verbose = verbose;
-    req.enableGroup(robot.getRobotModel());
-
-    distanceRobot(req, res, robot, state);
-    return res.minimum_distance.distance;
-  }
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                               bool verbose = false) const = 0;
+=======
+   *  @param state The state for the robot to check distances from */
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state) const = 0;
+>>>>>>> upstream/indigo-devel
 
   /** \brief Compute the shortest distance between a robot and the world
    *  @param robot The robot to check distance for
    *  @param state The state for the robot to check distances from
    *  @param acm Using an allowed collision matrix has the effect of ignoring distances from links that are always
+<<<<<<< HEAD
    * allowed to be in collision.
    *  @param verbose Output debug information about distance checks */
-  inline double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
-                              const AllowedCollisionMatrix& acm, bool verbose = false) const
-  {
-    DistanceRequest req;
-    DistanceResult res;
-
-    req.acm = &acm;
-    req.verbose = verbose;
-    req.enableGroup(robot.getRobotModel());
-
-    distanceRobot(req, res, robot, state);
-    return res.minimum_distance.distance;
-  }
-
-  /** \brief Compute the distance between a robot and the world
-   *  @param req A DistanceRequest object that encapsulates the distance request
-   *  @param res A DistanceResult object that encapsulates the distance result
-   *  @param robot The robot to check distance for
-   *  @param state The state for the robot to check distances from */
-  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
-                             const robot_state::RobotState& state) const = 0;
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                               const AllowedCollisionMatrix& acm, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world)
    *  @param verbose Output debug information about distance checks */
-  inline double distanceWorld(const CollisionWorld& world, bool verbose = false) const
-  {
-    DistanceRequest req;
-    DistanceResult res;
-
-    req.verbose = verbose;
-    distanceWorld(req, res, world);
-
-    return res.minimum_distance.distance;
-  }
+  virtual double distanceWorld(const CollisionWorld& world, bool verbose = false) const = 0;
 
   /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
    * that are allowed to collide (as specified by \e acm)
    *  @param verbose Output debug information about distance checks */
-  inline double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
-                              bool verbose = false) const
-  {
-    DistanceRequest req;
-    DistanceResult res;
+  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
+                               bool verbose = false) const = 0;
+=======
+   * allowed to be in collision. */
+  virtual double distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                               const AllowedCollisionMatrix& acm) const = 0;
 
-    req.acm = &acm;
-    req.verbose = verbose;
-    distanceWorld(req, res, world);
+  /** \brief The shortest distance to another world instance (\e world) */
+  virtual double distanceWorld(const CollisionWorld& world) const = 0;
 
-    return res.minimum_distance.distance;
-  }
-
-  /** \brief Compute the distance between another world
-   *  @param req A DistanceRequest object that encapsulates the distance request
-   *  @param res A DistanceResult object that encapsulates the distance result
-   *  @param world The world to check distance for */
-  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const = 0;
-
+  /** \brief The shortest distance to another world instance (\e world), ignoring the distances between world elements
+   * that are allowed to collide (as specified by \e acm) */
+  virtual double distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm) const = 0;
+>>>>>>> upstream/indigo-devel
   /** set the world to use.
    * This can be expensive unless the new and old world are empty.
    * Passing NULL will result in a new empty world being created. */

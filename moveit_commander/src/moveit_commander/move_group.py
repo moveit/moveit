@@ -30,11 +30,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Ioan Sucan, William Baker
+# Author: Ioan Sucan
 
 from geometry_msgs.msg import Pose, PoseStamped
-from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints, RobotState
-from moveit_msgs.msg import MoveItErrorCodes, TrajectoryConstraints, PlannerInterfaceDescription
+from moveit_msgs.msg import RobotTrajectory, Grasp, PlaceLocation, Constraints
+from moveit_msgs.msg import MoveItErrorCodes, TrajectoryConstraints
 from sensor_msgs.msg import JointState
 import rospy
 import tf
@@ -47,9 +47,9 @@ class MoveGroupCommander(object):
     Execution of simple commands for a particular group
     """
 
-    def __init__(self, name, robot_description="robot_description", ns=""):
+    def __init__(self, name, robot_description="robot_description"):
         """ Specify the group name for which to construct this commander instance. Throws an exception if there is an initialization error. """
-        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description, ns)
+        self._g = _moveit_move_group_interface.MoveGroupInterface(name, robot_description)
 
     def get_name(self):
         """ Get the name of the group this instance was initialized for """
@@ -84,12 +84,6 @@ class MoveGroupCommander(object):
         if not self._g.set_end_effector_link(link_name):
             raise MoveItCommanderException("Unable to set end efector link")
 
-    def get_interface_description(self):
-        """ Get the description of the planner interface (list of planner ids) """
-        desc = PlannerInterfaceDescription()
-        conversions.msg_from_string(desc, self._g.get_interface_description())
-        return desc
-
     def get_pose_reference_frame(self):
         """ Get the reference frame assumed for poses of end-effectors """
         return self._g.get_pose_reference_frame()
@@ -97,7 +91,7 @@ class MoveGroupCommander(object):
     def set_pose_reference_frame(self, reference_frame):
         """ Set the reference frame to assume for poses of end-effectors """
         self._g.set_pose_reference_frame(reference_frame)
-
+    
     def get_planning_frame(self):
         """ Get the name of the frame where all planning is performed """
         return self._g.get_planning_frame()
@@ -163,37 +157,33 @@ class MoveGroupCommander(object):
         Specify a target joint configuration for the group.
         - if the type of arg1 is one of the following: dict, list, JointState message, then no other arguments should be provided.
         The dict should specify pairs of joint variable names and their target values, the list should specify all the variable values
-        for the group. The JointState message specifies the positions of some single-dof joints.
+        for the group. The JointState message specifies the positions of some single-dof joints. 
         - if the type of arg1 is string, then arg2 is expected to be defined and be either a real value or a list of real values. This is
         interpreted as setting a particular joint to a particular value.
         - if the type of arg1 is Pose or PoseStamped, both arg2 and arg3 could be defined. If arg2 or arg3 are defined, their types must
         be either string or bool. The string type argument is interpreted as the end-effector the pose is specified for (default is to use
         the default end-effector), and the bool is used to decide whether the pose specified is approximate (default is false). This situation
         allows setting the joint target of the group by calling IK. This does not send a pose to the planner and the planner will do no IK.
-        Instead, one IK solution will be computed first, and that will be sent to the planner.
+        Instead, one IK solution will be computed first, and that will be sent to the planner. 
         """
-        if isinstance(arg1, RobotState):
-            if not self._g.set_state_value_target(conversions.msg_to_string(arg1)):
-                raise MoveItCommanderException("Error setting state target. Is the target state within bounds?")
-
-        elif isinstance(arg1, JointState):
-            if (arg2 is not None or arg3 is not None):
+        if type(arg1) is JointState:
+            if (arg2 != None or arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target_from_joint_state_message(conversions.msg_to_string(arg1)):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
-        elif isinstance(arg1, str):
-            if (arg2 is None):
+        elif (type(arg1) is str):
+            if (arg2 == None):
                 raise MoveItCommanderException("Joint value expected when joint name specified")
-            if (arg3 is not None):
+            if (arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target(arg1, arg2):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
 
-        elif isinstance(arg1, (Pose, PoseStamped)):
+        elif (type(arg1) is PoseStamped) or (type(arg1) is Pose):
             approx = False
             eef = ""
-            if (arg2 is not None):
+            if (arg2 != None):
                 if type(arg2) is str:
                     eef = arg2
                 else:
@@ -201,7 +191,7 @@ class MoveGroupCommander(object):
                         approx = arg2
                     else:
                         raise MoveItCommanderException("Unexpected type")
-            if (arg3 is not None):
+            if (arg3 != None):
                 if type(arg3) is str:
                     eef = arg3
                 else:
@@ -221,7 +211,7 @@ class MoveGroupCommander(object):
                     raise MoveItCommanderException("Error setting joint target. Is IK running?")
 
         elif (hasattr(arg1, '__iter__')):
-            if (arg2 is not None or arg3 is not None):
+            if (arg2 != None or arg3 != None):
                 raise MoveItCommanderException("Too many arguments specified")
             if not self._g.set_joint_value_target(arg1):
                 raise MoveItCommanderException("Error setting joint target. Is the target within bounds?")
@@ -307,7 +297,7 @@ class MoveGroupCommander(object):
     def clear_pose_target(self, end_effector_link):
         """ Clear the pose target for a particular end-effector """
         self._g.clear_pose_target(end_effector_link)
-
+        
     def clear_pose_targets(self):
         """ Clear all known pose targets """
         self._g.clear_pose_targets()
@@ -323,14 +313,14 @@ class MoveGroupCommander(object):
 
     def remember_joint_values(self, name, values = None):
         """ Record the specified joint configuration of the group under the specified name. If no values are specified, the current state of the group is recorded. """
-        if values is None:
+        if values == None:
             values = self.get_current_joint_values()
         self._g.remember_joint_values(name, values)
 
     def get_remembered_joint_values(self):
         """ Get a dictionary that maps names to joint configurations for the group """
         return self._g.get_remembered_joint_values()
-
+    
     def forget_joint_values(self, name):
         """ Forget a stored joint configuration """
         self._g.forget_joint_values(name)
@@ -374,7 +364,7 @@ class MoveGroupCommander(object):
     def allow_replanning(self, value):
         """ Enable/disable replanning """
         self._g.allow_replanning(value)
-
+        
     def get_known_constraints(self):
         """ Get a list of names for the constraints specific for this group, as read from the warehouse """
         return self._g.get_known_constraints()
@@ -388,7 +378,7 @@ class MoveGroupCommander(object):
 
     def set_path_constraints(self, value):
         """ Specify the path constraints to be used (as read from the database) """
-        if value is None:
+        if value == None:
             self.clear_path_constraints()
         else:
             if type(value) is Constraints:
@@ -409,7 +399,7 @@ class MoveGroupCommander(object):
 
     def set_trajectory_constraints(self, value):
         """ Specify the trajectory constraints to be used """
-        if value is None:
+        if value == None:
             self.clear_trajectory_constraints()
         else:
             if type(value) is TrajectoryConstraints:
@@ -459,7 +449,7 @@ class MoveGroupCommander(object):
                     raise MoveItCommanderException("Expected 0, 4 or 6 values in list specifying workspace")
 
     def set_max_velocity_scaling_factor(self, value):
-        """ Set a scaling factor for optionally reducing the maximum joint velocity. Allowed values are in (0,1]. """
+        """ Set a scaling factor for optionally reducing the maximum joint velocity. Allowed values are in (0,1]. """        
         if value > 0 and value <= 1:
             self._g.set_max_velocity_scaling_factor(value)
         else:
@@ -484,7 +474,7 @@ class MoveGroupCommander(object):
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints is None:
+        elif not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
@@ -502,7 +492,7 @@ class MoveGroupCommander(object):
         elif type(joints) is Pose:
             self.set_pose_target(joints)
 
-        elif not joints is None:
+        elif not joints == None:
             try:
                 self.set_joint_value_target(self.get_remembered_joint_values()[joints])
             except:
@@ -511,17 +501,9 @@ class MoveGroupCommander(object):
         plan.deserialize(self._g.compute_plan())
         return plan
 
-    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True, path_constraints = None):
-        """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath; Kinematic constraints for the path given by path_constraints will be met for every point along the trajectory, if they are not met, a partial solution will be returned. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
-        if path_constraints:
-            if type(path_constraints) is Constraints:
-                constraints_str = conversions.msg_to_string(path_constraints)
-            else:
-                raise MoveItCommanderException("Unable to set path constraints, unknown constraint type " + type(path_constraints))
-            (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions, constraints_str)
-        else:
-            (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
-
+    def compute_cartesian_path(self, waypoints, eef_step, jump_threshold, avoid_collisions = True):
+        """ Compute a sequence of waypoints that make the end-effector move in straight line segments that follow the poses specified as waypoints. Configurations are computed for every eef_step meters; The jump_threshold specifies the maximum distance in configuration space between consecutive points in the resultingpath. The return value is a tuple: a fraction of how much of the path was followed, the actual RobotTrajectory. """
+        (ser_path, fraction) = self._g.compute_cartesian_path([conversions.pose_to_list(p) for p in waypoints], eef_step, jump_threshold, avoid_collisions)
         path = RobotTrajectory()
         path.deserialize(ser_path)
         return (path, fraction)

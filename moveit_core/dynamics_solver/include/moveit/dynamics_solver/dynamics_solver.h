@@ -136,8 +136,13 @@ public:
   }
 
 private:
+<<<<<<< HEAD
   std::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_;  // KDL chain inverse dynamics
   KDL::Chain kdl_chain_;                                     // KDL chain
+=======
+  boost::shared_ptr<KDL::ChainIdSolver_RNE> chain_id_solver_;  // KDL chain inverse dynamics
+  KDL::Chain kdl_chain_;                                       // KDL chain
+>>>>>>> upstream/indigo-devel
 
   robot_model::RobotModelConstPtr robot_model_;
   const robot_model::JointModelGroup* joint_model_group_;

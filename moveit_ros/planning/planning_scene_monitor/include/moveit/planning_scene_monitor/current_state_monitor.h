@@ -142,6 +142,7 @@ public:
 
   /** @brief Wait for at most \e wait_time seconds (default 1s) for a robot state more recent than t
    *  @return true on success, false if up-to-date robot state wasn't received within \e wait_time
+<<<<<<< HEAD
   */
   bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
 
@@ -156,6 +157,18 @@ public:
   bool waitForCompleteState(const std::string& group, double wait_time) const;
   /** replaced by waitForCompleteState, will be removed in L-turtle: function waits for complete robot state */
   MOVEIT_DEPRECATED bool waitForCurrentState(const std::string& group, double wait_time) const;
+=======
+   */
+  bool waitForCurrentState(const ros::Time t = ros::Time::now(), double wait_time = 1.0) const;
+
+  /** @brief Wait for at most \e wait_time seconds until the complete current state is known. Return true if the full
+   * state is known */
+  bool waitForCurrentState(double wait_time) const;
+
+  /** @brief Wait for at most \e wait_time seconds until the joint values from the group \e group are known. Return true
+   * if values for all joints in \e group are known */
+  bool waitForCurrentState(const std::string& group, double wait_time) const;
+>>>>>>> upstream/indigo-devel
 
   /** @brief Get the time point when the monitor was started */
   const ros::Time& getMonitorStartTime() const
@@ -187,6 +200,7 @@ public:
     return error_;
   }
 
+<<<<<<< HEAD
   /** @brief Allow the joint_state arrrays velocity and effort to be copied into the robot state
    *  this is useful in some but not all applications
    */
@@ -198,24 +212,41 @@ public:
 private:
   void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
   void tfCallback();
+=======
+private:
+  void jointStateCallback(const sensor_msgs::JointStateConstPtr& joint_state);
+  bool isPassiveOrMimicDOF(const std::string& dof) const;
+>>>>>>> upstream/indigo-devel
 
   ros::NodeHandle nh_;
   boost::shared_ptr<tf::Transformer> tf_;
   robot_model::RobotModelConstPtr robot_model_;
   robot_state::RobotState robot_state_;
+<<<<<<< HEAD
   std::map<const moveit::core::JointModel*, ros::Time> joint_time_;
   bool state_monitor_started_;
   bool copy_dynamics_;  // Copy velocity and effort from joint_state
+=======
+  std::map<std::string, ros::Time> joint_time_;
+  bool state_monitor_started_;
+>>>>>>> upstream/indigo-devel
   ros::Time monitor_start_time_;
   double error_;
   ros::Subscriber joint_state_subscriber_;
   ros::Time current_state_time_;
+<<<<<<< HEAD
 
   mutable boost::mutex state_update_lock_;
   mutable boost::condition_variable state_update_condition_;
   std::vector<JointStateUpdateCallback> update_callbacks_;
 
   std::shared_ptr<TFConnection> tf_connection_;
+=======
+  ros::Time last_tf_update_;
+
+  mutable boost::mutex state_update_lock_;
+  std::vector<JointStateUpdateCallback> update_callbacks_;
+>>>>>>> upstream/indigo-devel
 };
 
 MOVEIT_CLASS_FORWARD(CurrentStateMonitor);

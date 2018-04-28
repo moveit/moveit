@@ -77,7 +77,11 @@ public:
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
                                        collision_detection::CollisionResult& res, const robot_state::RobotState& state,
+<<<<<<< HEAD
                                        GroupStateRepresentationPtr& gsr) const;
+=======
+                                       boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+>>>>>>> upstream/indigo-devel
 
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
                                        collision_detection::CollisionResult& res, const robot_state::RobotState& state,
@@ -86,14 +90,23 @@ public:
   void checkSelfCollisionDistanceField(const collision_detection::CollisionRequest& req,
                                        collision_detection::CollisionResult& res, const robot_state::RobotState& state,
                                        const collision_detection::AllowedCollisionMatrix& acm,
+<<<<<<< HEAD
                                        GroupStateRepresentationPtr& gsr) const;
   const CollisionRobotDistanceFieldConstPtr getCollisionRobotDistanceField() const
+=======
+                                       boost::shared_ptr<GroupStateRepresentation>& gsr) const;
+  const boost::shared_ptr<const collision_detection::CollisionRobotDistanceField> getCollisionRobotDistanceField() const
+>>>>>>> upstream/indigo-devel
   {
     return crobot_distance_;
   }
 
 protected:
+<<<<<<< HEAD
   CollisionRobotDistanceFieldPtr crobot_distance_;
+=======
+  boost::shared_ptr<collision_detection::CollisionRobotDistanceField> crobot_distance_;
+>>>>>>> upstream/indigo-devel
 };
 }
 

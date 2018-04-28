@@ -236,7 +236,11 @@ public:
 protected:
   bool active_;
   int free_angle_;
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr robot_model_;
+=======
+  boost::shared_ptr<urdf::ModelInterface> robot_model_;
+>>>>>>> upstream/indigo-devel
   pr2_arm_kinematics::PR2ArmIKSolverPtr pr2_arm_ik_solver_;
   std::string root_name_;
   int dimension_;

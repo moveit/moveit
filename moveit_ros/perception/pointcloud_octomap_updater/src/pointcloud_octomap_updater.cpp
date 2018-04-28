@@ -213,11 +213,19 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
   std::unique_ptr<sensor_msgs::PointCloud2> filtered_cloud;
 
   // We only use these iterators if we are creating a filtered_cloud for
+<<<<<<< HEAD
   // publishing. We cannot default construct these, so we use unique_ptr's
   // to defer construction
   std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
   std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
   std::unique_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
+=======
+  // publishing. We cannot default construct these, so we use scoped_ptr's
+  // to defer construction
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_x;
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_y;
+  boost::scoped_ptr<sensor_msgs::PointCloud2Iterator<float> > iter_filtered_z;
+>>>>>>> upstream/indigo-devel
 
   if (!filtered_cloud_topic_.empty())
   {

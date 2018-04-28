@@ -575,7 +575,11 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   }
   moveit_msgs::RobotState start_state_msg;
   moveit::core::robotStateToRobotStateMsg(start_state_, start_state_msg);
+<<<<<<< HEAD:moveit_planners/chomp/chomp_motion_planner/src/chomp_optimizer.cpp
   return planning_scene_->isPathValid(start_state_msg, traj, planning_group_);
+=======
+  return planning_scene_->isPathValid(start_state_msg, traj);
+>>>>>>> upstream/indigo-devel:moveit_planners/chomp/chomp_motion_planner/src/chomp_optimizer.cpp
 }
 
 // CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()

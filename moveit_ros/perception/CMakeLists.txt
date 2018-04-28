@@ -20,7 +20,7 @@ if(WITH_OPENGL)
   endif(OPENGL_FOUND)
   set(perception_GL_INCLUDE_DIRS "mesh_filter/include" "depth_image_octomap_updater/include")
   set(SYSTEM_GL_INCLUDE_DIRS ${GLEW_INCLUDE_DIR} ${GLUT_INCLUDE_DIR})
-endif(WITH_OPENGL)
+endif(BUILD_OPENGL)
 
 if(APPLE)
   find_package(X11 REQUIRED)
@@ -81,15 +81,25 @@ include_directories(lazy_free_space_updater/include
                     occupancy_map_monitor/include
                     pointcloud_octomap_updater/include
                     semantic_world/include
+<<<<<<< HEAD
                     ${perception_GL_INCLUDE_DIRS}
+=======
+                    ${OpenCV_INCLUDE_DIRS}
+>>>>>>> upstream/indigo-devel
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
                     )
 include_directories(SYSTEM
+<<<<<<< HEAD
                     ${OpenCV_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${SYSTEM_GL_INCLUDE_DIR}
                     ${X11_INCLUDE_DIR}
+=======
+                    ${EIGEN_INCLUDE_DIRS}
+                    ${GLEW_INCLUDE_DIR}
+                    ${GLUT_INCLUDE_DIR}
+>>>>>>> upstream/indigo-devel
                     )
 
 link_directories(${Boost_LIBRARY_DIRS})

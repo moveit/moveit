@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 # moveit/moveit:kinetic-ci
 # Sets up a base image to use for running Continuous Integration on Travis
 
 FROM ros:kinetic-ros-base
+=======
+# moveit/moveit:indigo-ci
+# Sets up a base image to use for running Continuous Integration on Travis
+
+FROM ros:indigo-ros-base
+>>>>>>> upstream/indigo-devel
 MAINTAINER Dave Coleman dave@dav.ee
 
 ENV TERM xterm
@@ -20,14 +27,24 @@ RUN wstool init . && \
     apt-get -qq update && \
     # Install some base dependencies
     apt-get -qq install -y \
+<<<<<<< HEAD
         # Some source builds require a package.xml be downloaded via wget from an external location
         wget \
+=======
+>>>>>>> upstream/indigo-devel
         # Required for rosdep command
         sudo \
         # Required for installing dependencies
         python-rosdep \
         # Preferred build tool
+<<<<<<< HEAD
         python-catkin-tools && \
+=======
+        python-catkin-tools \
+        # Not sure if necessary:
+        ros-$ROS_DISTRO-rosbash \
+        ros-$ROS_DISTRO-rospack && \
+>>>>>>> upstream/indigo-devel
     # Download all dependencies of MoveIt!
     rosdep update && \
     rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \

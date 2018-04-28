@@ -39,6 +39,10 @@
 #include <moveit/controller_manager/controller_manager.h>
 #include <ros/publisher.h>
 #include <ros/rate.h>
+<<<<<<< HEAD
+=======
+#include <boost/shared_ptr.hpp>
+>>>>>>> upstream/indigo-devel
 #include <boost/thread/thread.hpp>
 
 #ifndef MOVEIT_FAKE_CONTROLLERS

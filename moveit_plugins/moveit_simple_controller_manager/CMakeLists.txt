@@ -32,7 +32,11 @@ catkin_package(
     )
 
 add_library(${PROJECT_NAME} src/moveit_simple_controller_manager.cpp)
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})

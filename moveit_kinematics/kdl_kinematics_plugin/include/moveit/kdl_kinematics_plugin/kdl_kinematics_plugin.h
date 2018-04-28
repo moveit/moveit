@@ -41,11 +41,21 @@
 #include <ros/ros.h>
 #include <random_numbers/random_numbers.h>
 
+<<<<<<< HEAD
+=======
+// System
+#include <boost/shared_ptr.hpp>
+
+>>>>>>> upstream/indigo-devel
 // ROS msgs
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit_msgs/GetPositionFK.h>
 #include <moveit_msgs/GetPositionIK.h>
+<<<<<<< HEAD
 #include <moveit_msgs/KinematicSolverInfo.h>
+=======
+#include <moveit_msgs/GetKinematicSolverInfo.h>
+>>>>>>> upstream/indigo-devel
 #include <moveit_msgs/MoveItErrorCodes.h>
 
 // KDL

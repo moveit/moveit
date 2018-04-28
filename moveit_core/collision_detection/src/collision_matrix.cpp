@@ -38,29 +38,44 @@
 #include <boost/bind.hpp>
 #include <iomanip>
 
-collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix()
+namespace collision_detection
+{
+AllowedCollisionMatrix::AllowedCollisionMatrix()
 {
 }
 
-collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed)
+AllowedCollisionMatrix::AllowedCollisionMatrix(const std::vector<std::string>& names, bool allowed)
 {
   for (std::size_t i = 0; i < names.size(); ++i)
     for (std::size_t j = i; j < names.size(); ++j)
       setEntry(names[i], names[j], allowed);
 }
 
-collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg)
+<<<<<<< HEAD
+AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg)
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||
       msg.default_entry_names.size() != msg.default_entry_values.size())
     CONSOLE_BRIDGE_logError("The number of links does not match the number of entries in AllowedCollisionMatrix "
                             "message");
+=======
+collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit_msgs::AllowedCollisionMatrix& msg)
+{
+  if (msg.entry_names.size() != msg.entry_values.size() ||
+      msg.default_entry_names.size() != msg.default_entry_values.size())
+    logError("The number of links does not match the number of entries in AllowedCollisionMatrix message");
+>>>>>>> upstream/indigo-devel
   else
   {
     for (std::size_t i = 0; i < msg.entry_names.size(); ++i)
       if (msg.entry_values[i].enabled.size() != msg.entry_names.size())
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
                                 msg.entry_names[i].c_str());
+=======
+        logError("Number of entries is incorrect for link '%s' in AllowedCollisionMatrix message",
+                 msg.entry_names[i].c_str());
+>>>>>>> upstream/indigo-devel
       else
         for (std::size_t j = i + 1; j < msg.entry_values[i].enabled.size(); ++j)
           setEntry(msg.entry_names[i], msg.entry_names[j], msg.entry_values[i].enabled[j]);
@@ -70,7 +85,7 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit
   }
 }
 
-collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix& acm)
+AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix& acm)
 {
   entries_ = acm.entries_;
   allowed_contacts_ = acm.allowed_contacts_;
@@ -78,8 +93,12 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const Allowe
   default_allowed_contacts_ = acm.default_allowed_contacts_;
 }
 
+<<<<<<< HEAD
+bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2, DecideContactFn& fn) const
+=======
 bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
                                                            DecideContactFn& fn) const
+>>>>>>> upstream/indigo-devel
 {
   auto it1 = allowed_contacts_.find(name1);
   if (it1 == allowed_contacts_.end())
@@ -91,8 +110,13 @@ bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& na
   return true;
 }
 
+<<<<<<< HEAD
+bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
+                                      AllowedCollision::Type& allowed_collision) const
+=======
 bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
                                                            AllowedCollision::Type& allowed_collision) const
+>>>>>>> upstream/indigo-devel
 {
   auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
@@ -104,12 +128,12 @@ bool collision_detection::AllowedCollisionMatrix::getEntry(const std::string& na
   return true;
 }
 
-bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name) const
+bool AllowedCollisionMatrix::hasEntry(const std::string& name) const
 {
   return entries_.find(name) != entries_.end();
 }
 
-bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::string& name2) const
+bool AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::string& name2) const
 {
   auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
@@ -120,8 +144,12 @@ bool collision_detection::AllowedCollisionMatrix::hasEntry(const std::string& na
   return true;
 }
 
+<<<<<<< HEAD
+void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2, bool allowed)
+=======
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2,
                                                            bool allowed)
+>>>>>>> upstream/indigo-devel
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
   entries_[name1][name2] = entries_[name2][name1] = v;
@@ -143,24 +171,40 @@ void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& na
   }
 }
 
+<<<<<<< HEAD
+void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2, const DecideContactFn& fn)
+=======
 void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2,
                                                            const DecideContactFn& fn)
+>>>>>>> upstream/indigo-devel
 {
   entries_[name1][name2] = entries_[name2][name1] = AllowedCollision::CONDITIONAL;
   allowed_contacts_[name1][name2] = allowed_contacts_[name2][name1] = fn;
 }
 
-void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string& name)
+void AllowedCollisionMatrix::removeEntry(const std::string& name)
 {
   entries_.erase(name);
   allowed_contacts_.erase(name);
+<<<<<<< HEAD
   for (auto& entry : entries_)
     entry.second.erase(name);
   for (auto& allowed_contact : allowed_contacts_)
     allowed_contact.second.erase(name);
 }
 
+void AllowedCollisionMatrix::removeEntry(const std::string& name1, const std::string& name2)
+=======
+  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it = entries_.begin();
+       it != entries_.end(); ++it)
+    it->second.erase(name);
+  for (std::map<std::string, std::map<std::string, DecideContactFn> >::iterator it = allowed_contacts_.begin();
+       it != allowed_contacts_.end(); ++it)
+    it->second.erase(name);
+}
+
 void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string& name1, const std::string& name2)
+>>>>>>> upstream/indigo-devel
 {
   auto jt = entries_.find(name1);
   if (jt != entries_.end())
@@ -193,55 +237,96 @@ void collision_detection::AllowedCollisionMatrix::removeEntry(const std::string&
   }
 }
 
-void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name,
-                                                           const std::vector<std::string>& other_names, bool allowed)
+<<<<<<< HEAD
+void AllowedCollisionMatrix::setEntry(const std::string& name, const std::vector<std::string>& other_names,
+                                      bool allowed)
 {
   for (const auto& other_name : other_names)
     if (other_name != name)
       setEntry(other_name, name, allowed);
 }
 
-void collision_detection::AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
-                                                           const std::vector<std::string>& names2, bool allowed)
+void AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1, const std::vector<std::string>& names2,
+                                      bool allowed)
 {
   for (const auto& name1 : names1)
     setEntry(name1, names2, allowed);
+=======
+void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name,
+                                                           const std::vector<std::string>& other_names, bool allowed)
+{
+  for (std::size_t i = 0; i < other_names.size(); ++i)
+    if (other_names[i] != name)
+      setEntry(other_names[i], name, allowed);
 }
 
-void collision_detection::AllowedCollisionMatrix::setEntry(const std::string& name, bool allowed)
+void collision_detection::AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
+                                                           const std::vector<std::string>& names2, bool allowed)
+{
+  for (std::size_t i = 0; i < names1.size(); ++i)
+    setEntry(names1[i], names2, allowed);
+>>>>>>> upstream/indigo-devel
+}
+
+void AllowedCollisionMatrix::setEntry(const std::string& name, bool allowed)
 {
   std::string last = name;
+<<<<<<< HEAD
   for (auto& entry : entries_)
     if (name != entry.first && last != entry.first)
+=======
+  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it = entries_.begin();
+       it != entries_.end(); ++it)
+    if (name != it->first && last != it->first)
+>>>>>>> upstream/indigo-devel
     {
       last = entry.first;
       setEntry(name, entry.first, allowed);
     }
 }
 
-void collision_detection::AllowedCollisionMatrix::setEntry(bool allowed)
+void AllowedCollisionMatrix::setEntry(bool allowed)
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
+<<<<<<< HEAD
   for (auto& entry : entries_)
     for (auto& it2 : entry.second)
       it2.second = v;
 }
 
+void AllowedCollisionMatrix::setDefaultEntry(const std::string& name, bool allowed)
+=======
+  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::iterator it1 = entries_.begin();
+       it1 != entries_.end(); ++it1)
+    for (std::map<std::string, AllowedCollision::Type>::iterator it2 = it1->second.begin(); it2 != it1->second.end();
+         ++it2)
+      it2->second = v;
+}
+
 void collision_detection::AllowedCollisionMatrix::setDefaultEntry(const std::string& name, bool allowed)
+>>>>>>> upstream/indigo-devel
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
   default_entries_[name] = v;
   default_allowed_contacts_.erase(name);
 }
 
+<<<<<<< HEAD
+void AllowedCollisionMatrix::setDefaultEntry(const std::string& name, const DecideContactFn& fn)
+=======
 void collision_detection::AllowedCollisionMatrix::setDefaultEntry(const std::string& name, const DecideContactFn& fn)
+>>>>>>> upstream/indigo-devel
 {
   default_entries_[name] = AllowedCollision::CONDITIONAL;
   default_allowed_contacts_[name] = fn;
 }
 
+<<<<<<< HEAD
+bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name, AllowedCollision::Type& allowed_collision) const
+=======
 bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::string& name,
                                                                   AllowedCollision::Type& allowed_collision) const
+>>>>>>> upstream/indigo-devel
 {
   auto it = default_entries_.find(name);
   if (it == default_entries_.end())
@@ -250,7 +335,11 @@ bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::str
   return true;
 }
 
+<<<<<<< HEAD
+bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name, DecideContactFn& fn) const
+=======
 bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::string& name, DecideContactFn& fn) const
+>>>>>>> upstream/indigo-devel
 {
   auto it = default_allowed_contacts_.find(name);
   if (it == default_allowed_contacts_.end())
@@ -259,8 +348,15 @@ bool collision_detection::AllowedCollisionMatrix::getDefaultEntry(const std::str
   return true;
 }
 
-namespace collision_detection
+static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f2, Contact& contact)
 {
+<<<<<<< HEAD
+  return f1(contact) && f2(contact);
+}
+
+bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
+                                                 DecideContactFn& fn) const
+=======
 static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f2,
                              collision_detection::Contact& contact)
 {
@@ -271,6 +367,7 @@ static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f
 bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std::string& name1,
                                                                       const std::string& name2,
                                                                       DecideContactFn& fn) const
+>>>>>>> upstream/indigo-devel
 {
   DecideContactFn fn1, fn2;
   bool found1 = getDefaultEntry(name1, fn1);
@@ -292,9 +389,14 @@ bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std:
   }
 }
 
+<<<<<<< HEAD
+bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
+                                                 AllowedCollision::Type& allowed_collision) const
+=======
 bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std::string& name1,
                                                                       const std::string& name2,
                                                                       AllowedCollision::Type& allowed_collision) const
+>>>>>>> upstream/indigo-devel
 {
   AllowedCollision::Type t1, t2;
   bool found1 = getDefaultEntry(name1, t1);
@@ -323,7 +425,7 @@ bool collision_detection::AllowedCollisionMatrix::getAllowedCollision(const std:
   }
 }
 
-void collision_detection::AllowedCollisionMatrix::clear()
+void AllowedCollisionMatrix::clear()
 {
   entries_.clear();
   allowed_contacts_.clear();
@@ -331,17 +433,27 @@ void collision_detection::AllowedCollisionMatrix::clear()
   default_allowed_contacts_.clear();
 }
 
-void collision_detection::AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
+void AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
 {
   names.clear();
+<<<<<<< HEAD
   for (const auto& entry : entries_)
     if (!names.empty() && names.back() == entry.first)
+=======
+  for (std::map<std::string, std::map<std::string, AllowedCollision::Type> >::const_iterator it = entries_.begin();
+       it != entries_.end(); ++it)
+    if (!names.empty() && names.back() == it->first)
+>>>>>>> upstream/indigo-devel
       continue;
     else
       names.push_back(entry.first);
 }
 
+<<<<<<< HEAD
+void AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg) const
+=======
 void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg) const
+>>>>>>> upstream/indigo-devel
 {
   msg.entry_names.clear();
   msg.entry_values.clear();
@@ -377,14 +489,18 @@ void collision_detection::AllowedCollisionMatrix::getMessage(moveit_msgs::Allowe
   }
 }
 
-void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
+void AllowedCollisionMatrix::print(std::ostream& out) const
 {
   std::vector<std::string> names;
   getAllEntryNames(names);
   std::sort(names.begin(), names.end());
 
   std::size_t L = 4;
+<<<<<<< HEAD
   for (auto& name : names)
+=======
+  for (std::size_t i = 0; i < names.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     std::size_t l = name.length();
     if (l > L)
@@ -426,3 +542,5 @@ void collision_detection::AllowedCollisionMatrix::print(std::ostream& out) const
     out << std::endl;
   }
 }
+
+}  // end of namespace collision_detection

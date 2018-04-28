@@ -37,7 +37,11 @@
 #include <moveit/background_processing/background_processing.h>
 #include <console_bridge/console.h>
 
-moveit::tools::BackgroundProcessing::BackgroundProcessing()
+namespace moveit
+{
+namespace tools
+{
+BackgroundProcessing::BackgroundProcessing()
 {
   // spin a thread that will process user events
   run_processing_thread_ = true;
@@ -45,14 +49,14 @@ moveit::tools::BackgroundProcessing::BackgroundProcessing()
   processing_thread_.reset(new boost::thread(boost::bind(&BackgroundProcessing::processingThread, this)));
 }
 
-moveit::tools::BackgroundProcessing::~BackgroundProcessing()
+BackgroundProcessing::~BackgroundProcessing()
 {
   run_processing_thread_ = false;
   new_action_condition_.notify_all();
   processing_thread_->join();
 }
 
-void moveit::tools::BackgroundProcessing::processingThread()
+void BackgroundProcessing::processingThread()
 {
   boost::unique_lock<boost::mutex> ulock(action_lock_);
 
@@ -77,9 +81,19 @@ void moveit::tools::BackgroundProcessing::processingThread()
         fn();
         CONSOLE_BRIDGE_logDebug("moveit.background: Done executing '%s'", action_name.c_str());
       }
+<<<<<<< HEAD
       catch (std::exception& ex)
       {
         CONSOLE_BRIDGE_logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
+=======
+      catch (std::runtime_error& ex)
+      {
+        logError("Exception caught while processing action '%s': %s", action_name.c_str(), ex.what());
+      }
+      catch (...)
+      {
+        logError("Exception caught while processing action '%s'", action_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
       processing_ = false;
       if (queue_change_event_)
@@ -89,7 +103,11 @@ void moveit::tools::BackgroundProcessing::processingThread()
   }
 }
 
+<<<<<<< HEAD
+void BackgroundProcessing::addJob(const boost::function<void()>& job, const std::string& name)
+=======
 void moveit::tools::BackgroundProcessing::addJob(const boost::function<void()>& job, const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   {
     boost::mutex::scoped_lock _(action_lock_);
@@ -101,7 +119,7 @@ void moveit::tools::BackgroundProcessing::addJob(const boost::function<void()>& 
     queue_change_event_(ADD, name);
 }
 
-void moveit::tools::BackgroundProcessing::clear()
+void BackgroundProcessing::clear()
 {
   bool update = false;
   std::deque<std::string> removed;
@@ -116,19 +134,26 @@ void moveit::tools::BackgroundProcessing::clear()
       queue_change_event_(REMOVE, *it);
 }
 
-std::size_t moveit::tools::BackgroundProcessing::getJobCount() const
+std::size_t BackgroundProcessing::getJobCount() const
 {
   boost::mutex::scoped_lock _(action_lock_);
   return actions_.size() + (processing_ ? 1 : 0);
 }
 
+<<<<<<< HEAD
+void BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback& event)
+=======
 void moveit::tools::BackgroundProcessing::setJobUpdateEvent(const JobUpdateCallback& event)
+>>>>>>> upstream/indigo-devel
 {
   boost::mutex::scoped_lock _(action_lock_);
   queue_change_event_ = event;
 }
 
-void moveit::tools::BackgroundProcessing::clearJobUpdateEvent()
+void BackgroundProcessing::clearJobUpdateEvent()
 {
   setJobUpdateEvent(JobUpdateCallback());
 }
+
+}  // end of namespace tools
+}  // end of namespace moveit

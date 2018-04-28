@@ -39,12 +39,17 @@
 
 #include <moveit/collision_detection/world.h>
 #include <moveit/macros/class_forward.h>
+<<<<<<< HEAD
 
 #include <memory>
+=======
+#include <boost/weak_ptr.hpp>
+>>>>>>> upstream/indigo-devel
 
 namespace collision_detection
 {
 MOVEIT_CLASS_FORWARD(WorldDiff);
+<<<<<<< HEAD
 
 /** \brief Maintain a diff list of changes that have happened to a World. */
 class WorldDiff
@@ -103,6 +108,66 @@ public:
   /** set the entry for an id */
   void set(const std::string& id, World::Action val)
   {
+=======
+
+/** \brief Maintain a diff list of changes that have happened to a World. */
+class WorldDiff
+{
+public:
+  /** \brief Constructor */
+  WorldDiff();
+
+  /** \brief Constructor */
+  WorldDiff(const WorldPtr& world);
+
+  /** \brief copy constructor. */
+  WorldDiff(WorldDiff& other);
+
+  ~WorldDiff();
+
+  /** \brief Set which world to record.  Records all objects in old world (if
+   * any) as DESTROYED and all objects in new world as CREATED and ADD_SHAPE
+   * */
+  void setWorld(const WorldPtr& world);
+
+  /** \brief Set which world to record.  Erases all previously recorded
+   * changes.  */
+  void reset(const WorldPtr& world);
+
+  /** \brief Turn off recording and erase all previously recorded changes. */
+  void reset();
+
+  /** \brief Return all the changes that have been recorded */
+  const std::map<std::string, World::Action>& getChanges() const
+  {
+    return changes_;
+  }
+
+  typedef std::map<std::string, World::Action>::const_iterator const_iterator;
+  /** iterator pointing to first change */
+  const_iterator begin() const
+  {
+    return changes_.begin();
+  }
+  /** iterator pointing to end of changes */
+  const_iterator end() const
+  {
+    return changes_.end();
+  }
+  /** number of changes stored */
+  size_t size() const
+  {
+    return changes_.size();
+  }
+  /** find changes for a named object */
+  const_iterator find(const std::string& id) const
+  {
+    return changes_.find(id);
+  }
+  /** set the entry for an id */
+  void set(const std::string& id, World::Action val)
+  {
+>>>>>>> upstream/indigo-devel
     if (val)
       changes_[id] = val;
     else
@@ -123,7 +188,11 @@ private:
   World::ObserverHandle observer_handle_;
 
   /* used to unregister the notifier */
+<<<<<<< HEAD
   std::weak_ptr<World> world_;
+=======
+  boost::weak_ptr<World> world_;
+>>>>>>> upstream/indigo-devel
 };
 }
 

@@ -10,7 +10,7 @@
 
   <!-- The semantic description that corresponds to the URDF -->
   <param name="$(arg robot_description)_semantic" textfile="$(find moveit_planners_chomp)/test/rrbot.srdf" />
-
+  
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
     <rosparam command="load" file="$(find moveit_planners_chomp)/test/joint_limits.yaml"/>
@@ -18,8 +18,8 @@
 
   <!-- We do not have a robot connected, so publish fake joint states -->
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="use_gui" value="$(arg use_gui)"/>
-    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    <param name="/use_gui" value="$(arg use_gui)"/>
+    <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
   </node>
 
   <!-- Given the published joint states, publish tf for the robot links -->

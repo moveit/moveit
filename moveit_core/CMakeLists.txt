@@ -14,12 +14,18 @@ find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 
 find_package(console_bridge REQUIRED)
 
+<<<<<<< HEAD
 find_package(Eigen3 REQUIRED)
 
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
 if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
+=======
+# required to find 'Eigen' in indigo
+find_package(cmake_modules REQUIRED)
+find_package(Eigen REQUIRED)
+>>>>>>> upstream/indigo-devel
 
 find_package(PkgConfig REQUIRED)
 
@@ -127,16 +133,24 @@ catkin_package(
     visualization_msgs
   DEPENDS
     Boost
+<<<<<<< HEAD
     EIGEN3
     LIBFCL
+=======
+    Eigen
+>>>>>>> upstream/indigo-devel
     OCTOMAP
     console_bridge
     urdfdom
     urdfdom_headers
     )
 
+<<<<<<< HEAD
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS}
                            ${LIBFCL_INCLUDE_DIRS}
+=======
+include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
+>>>>>>> upstream/indigo-devel
                            )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS}

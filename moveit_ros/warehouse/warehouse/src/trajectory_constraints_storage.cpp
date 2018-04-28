@@ -42,20 +42,32 @@ const std::string moveit_warehouse::TrajectoryConstraintsStorage::CONSTRAINTS_ID
 const std::string moveit_warehouse::TrajectoryConstraintsStorage::CONSTRAINTS_GROUP_NAME = "group_id";
 const std::string moveit_warehouse::TrajectoryConstraintsStorage::ROBOT_NAME = "robot_id";
 
+<<<<<<< HEAD
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(
     warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(conn)
+=======
+moveit_warehouse::TrajectoryConstraintsStorage::TrajectoryConstraintsStorage(const std::string& host,
+                                                                             const unsigned int port,
+                                                                             double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
+>>>>>>> upstream/indigo-devel
 {
   createCollections();
 }
 
 void moveit_warehouse::TrajectoryConstraintsStorage::createCollections(void)
 {
+<<<<<<< HEAD
   constraints_collection_ =
       conn_->openCollectionPtr<moveit_msgs::TrajectoryConstraints>(DATABASE_NAME, "trajectory_constraints");
+=======
+  constraints_collection_.reset(new TrajectoryConstraintsCollection::element_type(
+      DATABASE_NAME, "trajectory_constraints", db_host_, db_port_, timeout_));
+>>>>>>> upstream/indigo-devel
 }
 
 void moveit_warehouse::TrajectoryConstraintsStorage::reset(void)
@@ -75,10 +87,14 @@ void moveit_warehouse::TrajectoryConstraintsStorage::addTrajectoryConstraints(
     removeTrajectoryConstraints(name, robot, group);
     replace = true;
   }
+<<<<<<< HEAD
   Metadata::Ptr metadata = constraints_collection_->createMetadata();
   metadata->append(CONSTRAINTS_ID_NAME, name);
   metadata->append(ROBOT_NAME, robot);
   metadata->append(CONSTRAINTS_GROUP_NAME, group);
+=======
+  mongo_ros::Metadata metadata(CONSTRAINTS_ID_NAME, name, ROBOT_NAME, robot, CONSTRAINTS_GROUP_NAME, group);
+>>>>>>> upstream/indigo-devel
   constraints_collection_->insert(msg, metadata);
   ROS_DEBUG("%s constraints '%s'", replace ? "Replaced" : "Added", name.c_str());
 }
@@ -87,8 +103,12 @@ bool moveit_warehouse::TrajectoryConstraintsStorage::hasTrajectoryConstraints(co
                                                                               const std::string& robot,
                                                                               const std::string& group) const
 {
+<<<<<<< HEAD
   Query::Ptr q = constraints_collection_->createQuery();
   q->append(CONSTRAINTS_ID_NAME, name);
+=======
+  mongo_ros::Query q(CONSTRAINTS_ID_NAME, name);
+>>>>>>> upstream/indigo-devel
   if (!robot.empty())
     q->append(ROBOT_NAME, robot);
   if (!group.empty())
@@ -115,11 +135,19 @@ void moveit_warehouse::TrajectoryConstraintsStorage::getKnownTrajectoryConstrain
   if (!robot.empty())
     q->append(ROBOT_NAME, robot);
   if (!group.empty())
+<<<<<<< HEAD
     q->append(CONSTRAINTS_GROUP_NAME, group);
   std::vector<TrajectoryConstraintsWithMetadata> constr =
       constraints_collection_->queryList(q, true, CONSTRAINTS_ID_NAME, true);
   for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(CONSTRAINTS_ID_NAME))
+=======
+    q.append(CONSTRAINTS_GROUP_NAME, group);
+  std::vector<TrajectoryConstraintsWithMetadata> constr =
+      constraints_collection_->pullAllResults(q, true, CONSTRAINTS_ID_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
+    if (constr[i]->metadata.hasField(CONSTRAINTS_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       names.push_back(constr[i]->lookupString(CONSTRAINTS_ID_NAME));
 }
 

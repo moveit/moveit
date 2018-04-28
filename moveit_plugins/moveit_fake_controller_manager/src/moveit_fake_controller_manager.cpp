@@ -179,8 +179,12 @@ public:
       }
       catch (...)
       {
+<<<<<<< HEAD
         ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Caught unknown exception while reading initial pose "
                                                        "information.");
+=======
+        ROS_ERROR_ONCE_NAMED("loadInitialJointValues", "Unable to parse initial pose information.");
+>>>>>>> upstream/indigo-devel
       }
     }
 

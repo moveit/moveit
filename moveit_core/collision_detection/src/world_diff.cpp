@@ -37,23 +37,41 @@
 #include <moveit/collision_detection/world_diff.h>
 #include <boost/bind.hpp>
 
+<<<<<<< HEAD
+namespace collision_detection
+{
+WorldDiff::~WorldDiff()
+=======
 collision_detection::WorldDiff::~WorldDiff()
+>>>>>>> upstream/indigo-devel
 {
   WorldPtr old_world = world_.lock();
   if (old_world)
     old_world->removeObserver(observer_handle_);
 }
 
+<<<<<<< HEAD
+WorldDiff::WorldDiff()
+{
+}
+
+WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
+=======
 collision_detection::WorldDiff::WorldDiff()
 {
 }
 
 collision_detection::WorldDiff::WorldDiff(const WorldPtr& world) : world_(world)
+>>>>>>> upstream/indigo-devel
 {
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
+<<<<<<< HEAD
+WorldDiff::WorldDiff(WorldDiff& other)
+=======
 collision_detection::WorldDiff::WorldDiff(WorldDiff& other)
+>>>>>>> upstream/indigo-devel
 {
   WorldPtr world = other.world_.lock();
   if (world)
@@ -65,7 +83,7 @@ collision_detection::WorldDiff::WorldDiff(WorldDiff& other)
   }
 }
 
-void collision_detection::WorldDiff::reset()
+void WorldDiff::reset()
 {
   clearChanges();
 
@@ -76,7 +94,7 @@ void collision_detection::WorldDiff::reset()
   world_.reset();
 }
 
-void collision_detection::WorldDiff::reset(const WorldPtr& world)
+void WorldDiff::reset(const WorldPtr& world)
 {
   clearChanges();
 
@@ -88,7 +106,7 @@ void collision_detection::WorldDiff::reset(const WorldPtr& world)
   observer_handle_ = world->addObserver(boost::bind(&WorldDiff::notify, this, _1, _2));
 }
 
-void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
+void WorldDiff::setWorld(const WorldPtr& world)
 {
   WorldPtr old_world = world_.lock();
   if (old_world)
@@ -103,12 +121,12 @@ void collision_detection::WorldDiff::setWorld(const WorldPtr& world)
   world->notifyObserverAllObjects(observer_handle_, World::CREATE | World::ADD_SHAPE);
 }
 
-void collision_detection::WorldDiff::clearChanges()
+void WorldDiff::clearChanges()
 {
   changes_.clear();
 }
 
-void collision_detection::WorldDiff::notify(const World::ObjectConstPtr& obj, World::Action action)
+void WorldDiff::notify(const World::ObjectConstPtr& obj, World::Action action)
 {
   World::Action& a = changes_[obj->id_];
   if (action == World::DESTROY)
@@ -116,3 +134,5 @@ void collision_detection::WorldDiff::notify(const World::ObjectConstPtr& obj, Wo
   else
     a = a | action;
 }
+
+}  // end of namespace collision_detection

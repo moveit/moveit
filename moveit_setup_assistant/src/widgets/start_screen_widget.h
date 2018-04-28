@@ -40,6 +40,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QLabel>
 #include <QProgressBar>
 
@@ -55,7 +56,12 @@ namespace moveit_setup_assistant
 {
 // Class Prototypes
 class SelectModeWidget;
+<<<<<<< HEAD
 class LoadPathArgsWidget;
+=======
+class LoadPathWidget;
+// class LoadURDFWidget;
+>>>>>>> upstream/indigo-devel
 
 /**
  * \brief Start screen user interface for MoveIt Configuration Assistant
@@ -80,8 +86,15 @@ public:
   // Qt Components
   // ******************************************************************************************
   SelectModeWidget* select_mode_;
+<<<<<<< HEAD
   LoadPathArgsWidget* stack_path_;
   LoadPathArgsWidget* urdf_file_;
+=======
+  LoadPathWidget* stack_path_;
+  LoadPathWidget* urdf_file_;
+  // LoadPathWidget *srdf_file_;
+  QCheckBox* chk_use_jade_xacro_;
+>>>>>>> upstream/indigo-devel
   QPushButton* btn_load_;
   QLabel* next_label_;
   QProgressBar* progress_bar_;
@@ -148,7 +161,11 @@ private:
   bool loadExistingFiles();
 
   /// Load URDF File to Parameter Server
+<<<<<<< HEAD
   bool loadURDFFile(const std::string& urdf_file_path, const std::string& xacro_args);
+=======
+  bool loadURDFFile(const std::string& urdf_file_path, bool use_jade_xacro = false);
+>>>>>>> upstream/indigo-devel
 
   /// Load SRDF File
   bool loadSRDFFile(const std::string& srdf_file_path);
@@ -164,6 +181,12 @@ private:
 
   /// Make the full SRDF path using the loaded .setup_assistant data
   bool createFullSRDFPath(const std::string& package_path);
+<<<<<<< HEAD
+=======
+
+  /// Get the full package path for editing an existing package
+  bool createFullPackagePath();
+>>>>>>> upstream/indigo-devel
 };
 
 // ******************************************************************************************

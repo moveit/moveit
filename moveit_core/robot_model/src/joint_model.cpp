@@ -84,7 +84,11 @@ std::string JointModel::getTypeName() const
   }
 }
 
+<<<<<<< HEAD
 int JointModel::getLocalVariableIndex(const std::string& variable) const
+=======
+int moveit::core::JointModel::getLocalVariableIndex(const std::string& variable) const
+>>>>>>> upstream/indigo-devel
 {
   VariableIndexMap::const_iterator it = variable_index_map_.find(variable);
   if (it == variable_index_map_.end())
@@ -92,7 +96,11 @@ int JointModel::getLocalVariableIndex(const std::string& variable) const
   return it->second;
 }
 
+<<<<<<< HEAD
 bool JointModel::enforceVelocityBounds(double* values, const Bounds& other_bounds) const
+=======
+bool moveit::core::JointModel::enforceVelocityBounds(double* values, const Bounds& other_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   bool change = false;
   for (std::size_t i = 0; i < other_bounds.size(); ++i)
@@ -109,7 +117,12 @@ bool JointModel::enforceVelocityBounds(double* values, const Bounds& other_bound
   return change;
 }
 
+<<<<<<< HEAD
 bool JointModel::satisfiesVelocityBounds(const double* values, const Bounds& other_bounds, double margin) const
+=======
+bool moveit::core::JointModel::satisfiesVelocityBounds(const double* values, const Bounds& other_bounds,
+                                                       double margin) const
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < other_bounds.size(); ++i)
     if (other_bounds[i].max_velocity_ + margin < values[i])
@@ -178,26 +191,42 @@ void JointModel::computeVariableBoundsMsg()
   }
 }
 
+<<<<<<< HEAD
 void JointModel::setMimic(const JointModel* mimic, double factor, double offset)
+=======
+void moveit::core::JointModel::setMimic(const JointModel* mimic, double factor, double offset)
+>>>>>>> upstream/indigo-devel
 {
   mimic_ = mimic;
   mimic_factor_ = factor;
   mimic_offset_ = offset;
 }
 
+<<<<<<< HEAD
 void JointModel::addMimicRequest(const JointModel* joint)
+=======
+void moveit::core::JointModel::addMimicRequest(const JointModel* joint)
+>>>>>>> upstream/indigo-devel
 {
   mimic_requests_.push_back(joint);
 }
 
+<<<<<<< HEAD
 void JointModel::addDescendantJointModel(const JointModel* joint)
+=======
+void moveit::core::JointModel::addDescendantJointModel(const JointModel* joint)
+>>>>>>> upstream/indigo-devel
 {
   descendant_joint_models_.push_back(joint);
   if (joint->getType() != FIXED)
     non_fixed_descendant_joint_models_.push_back(joint);
 }
 
+<<<<<<< HEAD
 void JointModel::addDescendantLinkModel(const LinkModel* link)
+=======
+void moveit::core::JointModel::addDescendantLinkModel(const LinkModel* link)
+>>>>>>> upstream/indigo-devel
 {
   descendant_link_models_.push_back(link);
 }
@@ -215,7 +244,11 @@ inline void printBoundHelper(std::ostream& out, double v)
 }
 }
 
+<<<<<<< HEAD
 std::ostream& operator<<(std::ostream& out, const VariableBounds& b)
+=======
+std::ostream& moveit::core::operator<<(std::ostream& out, const VariableBounds& b)
+>>>>>>> upstream/indigo-devel
 {
   out << "P." << (b.position_bounded_ ? "bounded" : "unbounded") << " [";
   printBoundHelper(out, b.min_position_);

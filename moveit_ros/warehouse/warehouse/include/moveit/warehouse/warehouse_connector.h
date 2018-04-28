@@ -44,14 +44,22 @@ namespace moveit_warehouse
 class WarehouseConnector
 {
 public:
+<<<<<<< HEAD
   WarehouseConnector(const std::string& dbexec);
+=======
+  WarehouseConnector(const std::string& mongoexec);
+>>>>>>> upstream/indigo-devel
 
   ~WarehouseConnector();
 
   bool connectToDatabase(const std::string& db_dirname);
 
 private:
+<<<<<<< HEAD
   std::string dbexec_;
+=======
+  std::string mongoexec_;
+>>>>>>> upstream/indigo-devel
   int child_pid_;
 };
 }

@@ -19,7 +19,11 @@ add_library(${PROJECT_NAME}
   src/chomp_optimizer.cpp
   src/chomp_planner.cpp
 )
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

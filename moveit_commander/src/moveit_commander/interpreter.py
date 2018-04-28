@@ -153,7 +153,7 @@ class MoveGroupCommandInterpreter(object):
                       self.execute(line.rstrip())
                     line_content = ""
                 return (MoveGroupInfoLevel.DEBUG, "OK")
-            except MoveItCommanderException as e:
+            except MoveItCommanderException as e:  
                 if line_num > 0:
                     return (MoveGroupInfoLevel.WARN, "Error at %s:%d:  %s\n%s" % (filename, line_num, line_content, str(e)))
                 else:
@@ -272,7 +272,7 @@ class MoveGroupCommandInterpreter(object):
                 return (MoveGroupInfoLevel.SUCCESS, assign_match.group(1) + " is now the same as " + assign_match.group(2))
             else:
                 return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
-
+        
         # see if we have assignment of matlab-like vector syntax
         set_match = re.match(r"^(\w+)\s*=\s*\[([\d\.e\-\+\s]+)\]$", cmd)
         if set_match:
@@ -377,7 +377,7 @@ class MoveGroupCommandInterpreter(object):
                 g.remember_joint_values(clist[1], g.get_random_joint_values())
                 return (MoveGroupInfoLevel.SUCCESS, "Remembered random joint values under the name " + clist[1])
             elif clist[0] == "del" or clist[0] == "delete":
-                g.forget_joint_values(clist[1])
+                g.forget_joint_values(clist[1])    
                 return (MoveGroupInfoLevel.SUCCESS, "Forgot joint values under the name " + clist[1])
             elif clist[0] == "show":
                 known = g.get_remembered_joint_values()
@@ -495,7 +495,7 @@ class MoveGroupCommandInterpreter(object):
                     return (MoveGroupInfoLevel.WARN, "Going to pose target: %s" % (str(e)))
                 except:
                     return (MoveGroupInfoLevel.WARN, "Unable to parse pose '" + " ".join(clist[1:]) + "'")
-
+ 
         return (MoveGroupInfoLevel.WARN, "Unknown command: '" + cmd + "'")
 
     def command_show(self, g):
@@ -504,7 +504,7 @@ class MoveGroupCommandInterpreter(object):
         for k in known.keys():
             res.append(k + " = [" + " ".join([str(x) for x in known[k]]) + "]")
         return (MoveGroupInfoLevel.INFO, "\n".join(res))
-
+        
     def command_current(self, g):
         res = "joints = [" + " ".join([str(x) for x in g.get_current_joint_values()]) + "]"
         if len(g.get_end_effector_link()) > 0:

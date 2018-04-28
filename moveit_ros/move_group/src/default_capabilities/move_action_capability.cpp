@@ -43,8 +43,12 @@
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/move_group/capability_names.h>
 
+<<<<<<< HEAD
 move_group::MoveGroupMoveAction::MoveGroupMoveAction()
   : MoveGroupCapability("MoveAction"), move_state_(IDLE), preempt_requested_{ false }
+=======
+move_group::MoveGroupMoveAction::MoveGroupMoveAction() : MoveGroupCapability("MoveAction"), move_state_(IDLE)
+>>>>>>> upstream/indigo-devel
 {
 }
 
@@ -183,11 +187,23 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
   {
     context_->planning_pipeline_->generatePlan(the_scene, goal->request, res);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
+=======
+  catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
+<<<<<<< HEAD
+=======
+  catch (...)
+  {
+    ROS_ERROR("Planning pipeline threw an exception");
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+>>>>>>> upstream/indigo-devel
 
   convertToMsg(res.trajectory_, action_res.trajectory_start, action_res.planned_trajectory);
   action_res.error_code = res.error_code_;
@@ -206,11 +222,23 @@ bool move_group::MoveGroupMoveAction::planUsingPlanningPipeline(const planning_i
   {
     solved = context_->planning_pipeline_->generatePlan(plan.planning_scene_, req, res);
   }
+<<<<<<< HEAD
   catch (std::exception& ex)
+=======
+  catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
   {
     ROS_ERROR("Planning pipeline threw an exception: %s", ex.what());
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
   }
+<<<<<<< HEAD
+=======
+  catch (...)
+  {
+    ROS_ERROR("Planning pipeline threw an exception");
+    res.error_code_.val = moveit_msgs::MoveItErrorCodes::FAILURE;
+  }
+>>>>>>> upstream/indigo-devel
   if (res.trajectory_)
   {
     plan.plan_components_.resize(1);

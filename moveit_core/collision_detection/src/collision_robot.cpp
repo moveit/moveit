@@ -67,8 +67,15 @@ static inline bool validatePadding(double padding)
   return true;
 }
 
-collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model,  // NOLINT
-                                                    double padding, double scale)
+<<<<<<< HEAD
+namespace collision_detection
+{
+CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model,  // NOLINT
+                               double padding, double scale)
+=======
+collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotModelConstPtr& model, double padding,
+                                                    double scale)
+>>>>>>> upstream/indigo-devel
   : robot_model_(model)
 {
   if (!validateScale(scale))
@@ -77,26 +84,38 @@ collision_detection::CollisionRobot::CollisionRobot(const robot_model::RobotMode
     padding = 0.0;
 
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+<<<<<<< HEAD
   for (auto link : links)
+=======
+  for (std::size_t i = 0; i < links.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     link_padding_[link->getName()] = padding;
     link_scale_[link->getName()] = scale;
   }
 }
 
+<<<<<<< HEAD
+CollisionRobot::CollisionRobot(const CollisionRobot& other) : robot_model_(other.robot_model_)
+=======
 collision_detection::CollisionRobot::CollisionRobot(const CollisionRobot& other) : robot_model_(other.robot_model_)
+>>>>>>> upstream/indigo-devel
 {
   link_padding_ = other.link_padding_;
   link_scale_ = other.link_scale_;
 }
 
-void collision_detection::CollisionRobot::setPadding(double padding)
+void CollisionRobot::setPadding(double padding)
 {
   if (!validatePadding(padding))
     return;
   std::vector<std::string> u;
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+<<<<<<< HEAD
   for (auto link : links)
+=======
+  for (std::size_t i = 0; i < links.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     if (getLinkPadding(link->getName()) != padding)
       u.push_back(link->getName());
@@ -106,13 +125,17 @@ void collision_detection::CollisionRobot::setPadding(double padding)
     updatedPaddingOrScaling(u);
 }
 
-void collision_detection::CollisionRobot::setScale(double scale)
+void CollisionRobot::setScale(double scale)
 {
   if (!validateScale(scale))
     return;
   std::vector<std::string> u;
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
+<<<<<<< HEAD
   for (auto link : links)
+=======
+  for (std::size_t i = 0; i < links.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     if (getLinkScale(link->getName()) != scale)
       u.push_back(link->getName());
@@ -122,7 +145,11 @@ void collision_detection::CollisionRobot::setScale(double scale)
     updatedPaddingOrScaling(u);
 }
 
+<<<<<<< HEAD
+void CollisionRobot::setLinkPadding(const std::string& link_name, double padding)
+=======
 void collision_detection::CollisionRobot::setLinkPadding(const std::string& link_name, double padding)
+>>>>>>> upstream/indigo-devel
 {
   bool update = getLinkPadding(link_name) != padding;
   link_padding_[link_name] = padding;
@@ -133,7 +160,11 @@ void collision_detection::CollisionRobot::setLinkPadding(const std::string& link
   }
 }
 
+<<<<<<< HEAD
+double CollisionRobot::getLinkPadding(const std::string& link_name) const
+=======
 double collision_detection::CollisionRobot::getLinkPadding(const std::string& link_name) const
+>>>>>>> upstream/indigo-devel
 {
   auto it = link_padding_.find(link_name);
   if (it != link_padding_.end())
@@ -142,10 +173,17 @@ double collision_detection::CollisionRobot::getLinkPadding(const std::string& li
     return 0.0;
 }
 
-void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::string, double>& padding)
+<<<<<<< HEAD
+void CollisionRobot::setLinkPadding(const std::map<std::string, double>& padding)
 {
   std::vector<std::string> u;
   for (const auto& link_pad_pair : padding)
+=======
+void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::string, double>& padding)
+{
+  std::vector<std::string> u;
+  for (std::map<std::string, double>::const_iterator it = padding.begin(); it != padding.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     bool update = getLinkPadding(link_pad_pair.first) != link_pad_pair.second;
     link_padding_[link_pad_pair.first] = link_pad_pair.second;
@@ -156,12 +194,20 @@ void collision_detection::CollisionRobot::setLinkPadding(const std::map<std::str
     updatedPaddingOrScaling(u);
 }
 
+<<<<<<< HEAD
+const std::map<std::string, double>& CollisionRobot::getLinkPadding() const
+=======
 const std::map<std::string, double>& collision_detection::CollisionRobot::getLinkPadding() const
+>>>>>>> upstream/indigo-devel
 {
   return link_padding_;
 }
 
+<<<<<<< HEAD
+void CollisionRobot::setLinkScale(const std::string& link_name, double scale)
+=======
 void collision_detection::CollisionRobot::setLinkScale(const std::string& link_name, double scale)
+>>>>>>> upstream/indigo-devel
 {
   bool update = getLinkScale(link_name) != scale;
   link_scale_[link_name] = scale;
@@ -172,7 +218,11 @@ void collision_detection::CollisionRobot::setLinkScale(const std::string& link_n
   }
 }
 
+<<<<<<< HEAD
+double CollisionRobot::getLinkScale(const std::string& link_name) const
+=======
 double collision_detection::CollisionRobot::getLinkScale(const std::string& link_name) const
+>>>>>>> upstream/indigo-devel
 {
   auto it = link_scale_.find(link_name);
   if (it != link_scale_.end())
@@ -181,10 +231,17 @@ double collision_detection::CollisionRobot::getLinkScale(const std::string& link
     return 1.0;
 }
 
-void collision_detection::CollisionRobot::setLinkScale(const std::map<std::string, double>& scale)
+<<<<<<< HEAD
+void CollisionRobot::setLinkScale(const std::map<std::string, double>& scale)
 {
   std::vector<std::string> u;
   for (const auto& link_scale_pair : scale)
+=======
+void collision_detection::CollisionRobot::setLinkScale(const std::map<std::string, double>& scale)
+{
+  std::vector<std::string> u;
+  for (std::map<std::string, double>::const_iterator it = scale.begin(); it != scale.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     bool update = getLinkScale(link_scale_pair.first) != link_scale_pair.second;
     link_scale_[link_scale_pair.first] = link_scale_pair.second;
@@ -195,15 +252,26 @@ void collision_detection::CollisionRobot::setLinkScale(const std::map<std::strin
     updatedPaddingOrScaling(u);
 }
 
+<<<<<<< HEAD
+const std::map<std::string, double>& CollisionRobot::getLinkScale() const
+=======
 const std::map<std::string, double>& collision_detection::CollisionRobot::getLinkScale() const
+>>>>>>> upstream/indigo-devel
 {
   return link_scale_;
 }
 
-void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_msgs::LinkPadding>& padding)
+<<<<<<< HEAD
+void CollisionRobot::setPadding(const std::vector<moveit_msgs::LinkPadding>& padding)
 {
   std::vector<std::string> u;
   for (const auto& p : padding)
+=======
+void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_msgs::LinkPadding>& padding)
+{
+  std::vector<std::string> u;
+  for (std::size_t i = 0; i < padding.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     bool update = getLinkPadding(p.link_name) != p.padding;
     link_padding_[p.link_name] = p.padding;
@@ -214,10 +282,17 @@ void collision_detection::CollisionRobot::setPadding(const std::vector<moveit_ms
     updatedPaddingOrScaling(u);
 }
 
-void collision_detection::CollisionRobot::setScale(const std::vector<moveit_msgs::LinkScale>& scale)
+<<<<<<< HEAD
+void CollisionRobot::setScale(const std::vector<moveit_msgs::LinkScale>& scale)
 {
   std::vector<std::string> u;
   for (const auto& s : scale)
+=======
+void collision_detection::CollisionRobot::setScale(const std::vector<moveit_msgs::LinkScale>& scale)
+{
+  std::vector<std::string> u;
+  for (std::size_t i = 0; i < scale.size(); ++i)
+>>>>>>> upstream/indigo-devel
   {
     bool update = getLinkScale(s.link_name) != s.scale;
     link_scale_[s.link_name] = s.scale;
@@ -228,10 +303,17 @@ void collision_detection::CollisionRobot::setScale(const std::vector<moveit_msgs
     updatedPaddingOrScaling(u);
 }
 
-void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::LinkPadding>& padding) const
+<<<<<<< HEAD
+void CollisionRobot::getPadding(std::vector<moveit_msgs::LinkPadding>& padding) const
 {
   padding.clear();
   for (const auto& lp : link_padding_)
+=======
+void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::LinkPadding>& padding) const
+{
+  padding.clear();
+  for (std::map<std::string, double>::const_iterator it = link_padding_.begin(); it != link_padding_.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     moveit_msgs::LinkPadding lp_msg;
     lp_msg.link_name = lp.first;
@@ -240,10 +322,17 @@ void collision_detection::CollisionRobot::getPadding(std::vector<moveit_msgs::Li
   }
 }
 
-void collision_detection::CollisionRobot::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
+<<<<<<< HEAD
+void CollisionRobot::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
 {
   scale.clear();
   for (const auto& ls : link_scale_)
+=======
+void collision_detection::CollisionRobot::getScale(std::vector<moveit_msgs::LinkScale>& scale) const
+{
+  scale.clear();
+  for (std::map<std::string, double>::const_iterator it = link_scale_.begin(); it != link_scale_.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     moveit_msgs::LinkScale ls_msg;
     ls_msg.link_name = ls.first;
@@ -252,6 +341,12 @@ void collision_detection::CollisionRobot::getScale(std::vector<moveit_msgs::Link
   }
 }
 
+<<<<<<< HEAD
+void CollisionRobot::updatedPaddingOrScaling(const std::vector<std::string>& links)
+=======
 void collision_detection::CollisionRobot::updatedPaddingOrScaling(const std::vector<std::string>& links)
+>>>>>>> upstream/indigo-devel
 {
 }
+
+}  // end of namespace collision_detection

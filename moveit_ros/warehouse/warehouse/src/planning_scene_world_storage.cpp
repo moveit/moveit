@@ -39,19 +39,30 @@
 const std::string moveit_warehouse::PlanningSceneWorldStorage::DATABASE_NAME = "moveit_planning_scene_worlds";
 const std::string moveit_warehouse::PlanningSceneWorldStorage::PLANNING_SCENE_WORLD_ID_NAME = "world_id";
 
+<<<<<<< HEAD
 using warehouse_ros::Metadata;
 using warehouse_ros::Query;
 
 moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(warehouse_ros::DatabaseConnection::Ptr conn)
   : MoveItMessageStorage(conn)
+=======
+moveit_warehouse::PlanningSceneWorldStorage::PlanningSceneWorldStorage(const std::string& host, const unsigned int port,
+                                                                       double wait_seconds)
+  : MoveItMessageStorage(host, port, wait_seconds)
+>>>>>>> upstream/indigo-devel
 {
   createCollections();
 }
 
 void moveit_warehouse::PlanningSceneWorldStorage::createCollections()
 {
+<<<<<<< HEAD
   planning_scene_world_collection_ =
       conn_->openCollectionPtr<moveit_msgs::PlanningSceneWorld>(DATABASE_NAME, "planning_scene_worlds");
+=======
+  planning_scene_world_collection_.reset(new PlanningSceneWorldCollection::element_type(
+      DATABASE_NAME, "planning_scene_worlds", db_host_, db_port_, timeout_));
+>>>>>>> upstream/indigo-devel
 }
 
 void moveit_warehouse::PlanningSceneWorldStorage::reset()
@@ -94,11 +105,19 @@ void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(co
 void moveit_warehouse::PlanningSceneWorldStorage::getKnownPlanningSceneWorlds(std::vector<std::string>& names) const
 {
   names.clear();
+<<<<<<< HEAD
   Query::Ptr q = planning_scene_world_collection_->createQuery();
   std::vector<PlanningSceneWorldWithMetadata> constr =
       planning_scene_world_collection_->queryList(q, true, PLANNING_SCENE_WORLD_ID_NAME, true);
   for (std::size_t i = 0; i < constr.size(); ++i)
     if (constr[i]->lookupField(PLANNING_SCENE_WORLD_ID_NAME))
+=======
+  mongo_ros::Query q;
+  std::vector<PlanningSceneWorldWithMetadata> constr =
+      planning_scene_world_collection_->pullAllResults(q, true, PLANNING_SCENE_WORLD_ID_NAME, true);
+  for (std::size_t i = 0; i < constr.size(); ++i)
+    if (constr[i]->metadata.hasField(PLANNING_SCENE_WORLD_ID_NAME.c_str()))
+>>>>>>> upstream/indigo-devel
       names.push_back(constr[i]->lookupString(PLANNING_SCENE_WORLD_ID_NAME));
 }
 

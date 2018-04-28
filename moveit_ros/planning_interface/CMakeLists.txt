@@ -67,7 +67,11 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
+<<<<<<< HEAD
                     ${EIGEN3_INCLUDE_DIRS}
+=======
+                    ${EIGEN_INCLUDE_DIRS}
+>>>>>>> upstream/indigo-devel
                     ${PYTHON_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})

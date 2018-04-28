@@ -8,14 +8,23 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
+<<<<<<< HEAD
 find_package(catkin REQUIRED
+=======
+find_package(catkin REQUIRED 
+>>>>>>> upstream/indigo-devel
 COMPONENTS
   moveit_core
   moveit_msgs
   resource_retriever
   kdl_parser
   geometric_shapes
+<<<<<<< HEAD
   eigen_stl_containers
+=======
+  shape_tools
+  eigen_stl_containers 
+>>>>>>> upstream/indigo-devel
   eigen_conversions
   random_numbers
   visualization_msgs
@@ -25,6 +34,7 @@ COMPONENTS
   cmake_modules
 )
 find_package(console_bridge REQUIRED)
+<<<<<<< HEAD
 find_package(Eigen3 REQUIRED)
 
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
@@ -32,6 +42,9 @@ if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
+=======
+find_package(Eigen REQUIRED)
+>>>>>>> upstream/indigo-devel
 find_package(octomap REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(urdfdom_headers REQUIRED)
@@ -48,7 +61,10 @@ catkin_package(
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
     ${OCTOMAP_INCLUDE_DIRS}
+<<<<<<< HEAD
     ${EIGEN3_INCLUDE_DIR}
+=======
+>>>>>>> upstream/indigo-devel
   LIBRARIES
     moveit_collision_distance_field
     collision_detector_hybrid_plugin
@@ -56,12 +72,17 @@ catkin_package(
   CATKIN_DEPENDS
     moveit_core
     geometric_shapes
+<<<<<<< HEAD
+=======
+    shape_tools
+>>>>>>> upstream/indigo-devel
     eigen_stl_containers
     eigen_conversions
     moveit_msgs
     kdl_parser
     pluginlib
   DEPENDS
+<<<<<<< HEAD
     EIGEN3
     Boost
     urdfdom
@@ -78,6 +99,24 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${console_bridge_INCLUDE_DIRS}
                     ${urdfdom_INCLUDE_DIRS}
                     ${urdfdom_headers_INCLUDE_DIRS}
+=======
+    Boost
+    Eigen
+    urdfdom
+    urdfdom_headers
+    console_bridge
+    )
+
+include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS}
+                           )
+
+include_directories(${THIS_PACKAGE_INCLUDE_DIRS} 
+                    ${Boost_INCLUDE_DIRS}
+                    ${catkin_INCLUDE_DIRS} 
+                    ${console_bridge_INCLUDE_DIRS} 
+                    ${urdfdom_INCLUDE_DIRS} 
+                    ${urdfdom_headers_INCLUDE_DIRS} 
+>>>>>>> upstream/indigo-devel
                     ${OCTOMAP_INCLUDE_DIRS}
                     )
 

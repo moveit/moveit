@@ -75,7 +75,11 @@ public:
 private:
   rviz::DisplayContext* context_;
 
+<<<<<<< HEAD
   std::vector<std::unique_ptr<rviz::Shape> > scene_shapes_;
+=======
+  std::vector<boost::shared_ptr<rviz::Shape> > scene_shapes_;
+>>>>>>> upstream/indigo-devel
   std::vector<OcTreeRenderPtr> octree_voxel_grids_;
 };
 }

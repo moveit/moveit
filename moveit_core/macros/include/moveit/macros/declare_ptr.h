@@ -35,7 +35,11 @@
 #ifndef MOVEIT_MACROS_DECLARE_PTR_
 #define MOVEIT_MACROS_DECLARE_PTR_
 
+<<<<<<< HEAD
 #include <memory>
+=======
+#include <boost/shared_ptr.hpp>
+>>>>>>> upstream/indigo-devel
 
 /**
  * \def MOVEIT_DELCARE_PTR
@@ -49,8 +53,13 @@
  */
 
 #define MOVEIT_DECLARE_PTR(Name, Type)                                                                                 \
+<<<<<<< HEAD
   typedef std::shared_ptr<Type> Name##Ptr;                                                                             \
   typedef std::shared_ptr<const Type> Name##ConstPtr;
+=======
+  typedef boost::shared_ptr<Type> Name##Ptr;                                                                           \
+  typedef boost::shared_ptr<const Type> Name##ConstPtr;
+>>>>>>> upstream/indigo-devel
 
 /**
  * \def MOVEIT_DELCARE_PTR_MEMBER
@@ -64,7 +73,12 @@
  */
 
 #define MOVEIT_DECLARE_PTR_MEMBER(Type)                                                                                \
+<<<<<<< HEAD
   typedef std::shared_ptr<Type> Ptr;                                                                                   \
   typedef std::shared_ptr<const Type> ConstPtr;
+=======
+  typedef boost::shared_ptr<Type> Ptr;                                                                                 \
+  typedef boost::shared_ptr<const Type> ConstPtr;
+>>>>>>> upstream/indigo-devel
 
 #endif

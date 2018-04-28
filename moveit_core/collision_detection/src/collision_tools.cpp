@@ -37,8 +37,15 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <eigen_conversions/eigen_msg.h>
 
+<<<<<<< HEAD
+namespace collision_detection
+{
+void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                    std::set<CostSource>& cost_sources)
+=======
 void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
                                          std::set<CostSource>& cost_sources)
+>>>>>>> upstream/indigo-devel
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -48,9 +55,14 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, c
   getCostMarkers(arr, frame_id, cost_sources, color, ros::Duration(60.0));
 }
 
+<<<<<<< HEAD
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con)
+=======
 void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                                           const std::string& frame_id,
                                                           const CollisionResult::ContactMap& con)
+>>>>>>> upstream/indigo-devel
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -60,12 +72,20 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   getCollisionMarkersFromContacts(arr, frame_id, con, color, ros::Duration(60.0));
 }
 
+<<<<<<< HEAD
+void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                    std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color, const ros::Duration& lifetime)
+{
+  int id = 0;
+  for (const auto& cost_source : cost_sources)
+=======
 void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
                                          std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color,
                                          const ros::Duration& lifetime)
 {
   int id = 0;
-  for (const auto& cost_source : cost_sources)
+  for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+>>>>>>> upstream/indigo-devel
   {
     visualization_msgs::Marker mk;
     mk.header.stamp = ros::Time::now();
@@ -92,6 +112,17 @@ void collision_detection::getCostMarkers(visualization_msgs::MarkerArray& arr, c
   }
 }
 
+<<<<<<< HEAD
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con, const std_msgs::ColorRGBA& color,
+                                     const ros::Duration& lifetime, double radius)
+
+{
+  std::map<std::string, unsigned> ns_counts;
+  for (const auto& collision : con)
+  {
+    for (const auto& contact : collision.second)
+=======
 void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
                                                           const std::string& frame_id,
                                                           const CollisionResult::ContactMap& con,
@@ -100,9 +131,10 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
 
 {
   std::map<std::string, unsigned> ns_counts;
-  for (const auto& collision : con)
+  for (CollisionResult::ContactMap::const_iterator it = con.begin(); it != con.end(); ++it)
   {
-    for (const auto& contact : collision.second)
+    for (unsigned int i = 0; i < it->second.size(); ++i)
+>>>>>>> upstream/indigo-devel
     {
       std::string ns_name = contact.body_name_1 + "=" + contact.body_name_2;
       if (ns_counts.find(ns_name) == ns_counts.end())
@@ -133,11 +165,19 @@ void collision_detection::getCollisionMarkersFromContacts(visualization_msgs::Ma
   }
 }
 
-bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource>& cost_sources)
+<<<<<<< HEAD
+bool getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource>& cost_sources)
 {
   if (cost_sources.empty())
     return false;
   auto it = cost_sources.begin();
+=======
+bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, const std::set<CostSource>& cost_sources)
+{
+  if (cost_sources.empty())
+    return false;
+  std::set<CostSource>::const_iterator it = cost_sources.begin();
+>>>>>>> upstream/indigo-devel
   for (std::size_t i = 0; i < 4 * cost_sources.size() / 5; ++i)
     ++it;
   point.x = (it->aabb_max[0] + it->aabb_min[0]) / 2.0;
@@ -146,11 +186,29 @@ bool collision_detection::getSensorPositioning(geometry_msgs::Point& point, cons
   return true;
 }
 
-double collision_detection::getTotalCost(const std::set<CostSource>& cost_sources)
+<<<<<<< HEAD
+double getTotalCost(const std::set<CostSource>& cost_sources)
 {
   double cost = 0.0;
   for (const auto& cost_source : cost_sources)
     cost += cost_source.getVolume() * cost_source.cost;
+  return cost;
+}
+
+void intersectCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& a,
+                          const std::set<CostSource>& b)
+{
+  cost_sources.clear();
+  CostSource tmp;
+  for (const auto& source_a : a)
+    for (const auto& source_b : b)
+=======
+double collision_detection::getTotalCost(const std::set<CostSource>& cost_sources)
+{
+  double cost = 0.0;
+  for (std::set<collision_detection::CostSource>::const_iterator it = cost_sources.begin(); it != cost_sources.end();
+       ++it)
+    cost += it->getVolume() * it->cost;
   return cost;
 }
 
@@ -159,8 +217,9 @@ void collision_detection::intersectCostSources(std::set<CostSource>& cost_source
 {
   cost_sources.clear();
   CostSource tmp;
-  for (const auto& source_a : a)
-    for (const auto& source_b : b)
+  for (std::set<CostSource>::const_iterator it = a.begin(); it != a.end(); ++it)
+    for (std::set<CostSource>::const_iterator jt = b.begin(); jt != b.end(); ++jt)
+>>>>>>> upstream/indigo-devel
     {
       tmp.aabb_min[0] = std::max(source_a.aabb_min[0], source_b.aabb_min[0]);
       tmp.aabb_min[1] = std::max(source_a.aabb_min[1], source_b.aabb_min[1]);
@@ -178,7 +237,8 @@ void collision_detection::intersectCostSources(std::set<CostSource>& cost_source
     }
 }
 
-void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction)
+<<<<<<< HEAD
+void removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction)
 {
   double p[3], q[3];
   for (auto it = cost_sources.begin(); it != cost_sources.end(); ++it)
@@ -187,6 +247,17 @@ void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, 
     std::vector<std::set<CostSource>::iterator> remove;
     auto it1 = it;
     for (auto jt = ++it1; jt != cost_sources.end(); ++jt)
+=======
+void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fraction)
+{
+  double p[3], q[3];
+  for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+  {
+    double vol = it->getVolume() * overlap_fraction;
+    std::vector<std::set<CostSource>::iterator> remove;
+    std::set<CostSource>::iterator it1 = it;
+    for (std::set<CostSource>::iterator jt = ++it1; jt != cost_sources.end(); ++jt)
+>>>>>>> upstream/indigo-devel
     {
       p[0] = std::max(it->aabb_min[0], jt->aabb_min[0]);
       p[1] = std::max(it->aabb_min[1], jt->aabb_min[1]);
@@ -203,13 +274,14 @@ void collision_detection::removeOverlapping(std::set<CostSource>& cost_sources, 
       if (intersect_volume >= vol)
         remove.push_back(jt);
     }
+<<<<<<< HEAD
     for (auto& r : remove)
       cost_sources.erase(r);
   }
 }
 
-void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
-                                            const std::set<CostSource>& cost_sources_to_remove, double overlap_fraction)
+void removeCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& cost_sources_to_remove,
+                       double overlap_fraction)
 {
   // remove all the boxes that overlap with the intersection previously computed in \e rem
   double p[3], q[3];
@@ -218,6 +290,24 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
     std::vector<std::set<CostSource>::iterator> remove;
     std::set<CostSource> add;
     for (auto it = cost_sources.begin(); it != cost_sources.end(); ++it)
+=======
+    for (std::size_t i = 0; i < remove.size(); ++i)
+      cost_sources.erase(remove[i]);
+  }
+}
+
+void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
+                                            const std::set<CostSource>& cost_sources_to_remove, double overlap_fraction)
+{
+  // remove all the boxes that overlap with the intersection previously computed in \e rem
+  double p[3], q[3];
+  for (std::set<CostSource>::const_iterator jt = cost_sources_to_remove.begin(); jt != cost_sources_to_remove.end();
+       ++jt)
+  {
+    std::vector<std::set<CostSource>::iterator> remove;
+    std::set<CostSource> add;
+    for (std::set<CostSource>::iterator it = cost_sources.begin(); it != cost_sources.end(); ++it)
+>>>>>>> upstream/indigo-devel
     {
       p[0] = std::max(it->aabb_min[0], source_remove.aabb_min[0]);
       p[1] = std::max(it->aabb_min[1], source_remove.aabb_min[1]);
@@ -255,13 +345,22 @@ void collision_detection::removeCostSources(std::set<CostSource>& cost_sources,
         }
       }
     }
+<<<<<<< HEAD
     for (auto& r : remove)
       cost_sources.erase(r);
+=======
+    for (std::size_t i = 0; i < remove.size(); ++i)
+      cost_sources.erase(remove[i]);
+>>>>>>> upstream/indigo-devel
     cost_sources.insert(add.begin(), add.end());
   }
 }
 
+<<<<<<< HEAD
+void costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg)
+=======
 void collision_detection::costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg)
+>>>>>>> upstream/indigo-devel
 {
   msg.cost_density = cost_source.cost;
   msg.aabb_min.x = cost_source.aabb_min[0];
@@ -272,7 +371,11 @@ void collision_detection::costSourceToMsg(const CostSource& cost_source, moveit_
   msg.aabb_max.z = cost_source.aabb_max[2];
 }
 
+<<<<<<< HEAD
+void contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg)
+=======
 void collision_detection::contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg)
+>>>>>>> upstream/indigo-devel
 {
   tf::pointEigenToMsg(contact.pos, msg.position);
   tf::vectorEigenToMsg(contact.normal, msg.normal);
@@ -292,3 +395,5 @@ void collision_detection::contactToMsg(const Contact& contact, moveit_msgs::Cont
   else
     msg.body_type_2 = moveit_msgs::ContactInformation::WORLD_OBJECT;
 }
+
+}  // end of namespace collision_detection

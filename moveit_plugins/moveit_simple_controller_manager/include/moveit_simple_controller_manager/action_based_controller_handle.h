@@ -69,12 +69,21 @@ class ActionBasedControllerHandle : public ActionBasedControllerHandleBase
 {
 public:
   ActionBasedControllerHandle(const std::string& name, const std::string& ns)
+<<<<<<< HEAD
     : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true), nh_("~")
   {
     controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
     unsigned int attempts = 0;
     double timeout;
     nh_.param("trajectory_execution/controller_connection_timeout", timeout, 15.0);
+=======
+    : ActionBasedControllerHandleBase(name), namespace_(ns), done_(true)
+  {
+    controller_action_client_.reset(new actionlib::SimpleActionClient<T>(getActionName(), true));
+    unsigned int attempts = 0;
+    while (ros::ok() && !controller_action_client_->waitForServer(ros::Duration(5.0)) && ++attempts < 3)
+      ROS_INFO_STREAM("MoveItSimpleControllerManager: Waiting for " << getActionName() << " to come up");
+>>>>>>> upstream/indigo-devel
 
     if (timeout == 0.0)
     {
@@ -94,7 +103,11 @@ public:
     }
     if (!controller_action_client_->isServerConnected())
     {
+<<<<<<< HEAD
       ROS_ERROR_STREAM_NAMED("moveit_simple_controller_manager", "Action client not connected: " << getActionName());
+=======
+      ROS_ERROR_STREAM("MoveItSimpleControllerManager: Action client not connected: " << getActionName());
+>>>>>>> upstream/indigo-devel
       controller_action_client_.reset();
     }
 
@@ -112,7 +125,11 @@ public:
       return false;
     if (!done_)
     {
+<<<<<<< HEAD
       ROS_INFO_STREAM_NAMED("moveit_simple_controller_manager", "Cancelling execution for " << name_);
+=======
+      ROS_INFO_STREAM("MoveItSimpleControllerManager: Cancelling execution for " << name_);
+>>>>>>> upstream/indigo-devel
       controller_action_client_->cancelGoal();
       last_exec_ = moveit_controller_manager::ExecutionStatus::PREEMPTED;
       done_ = true;
@@ -143,7 +160,10 @@ public:
   }
 
 protected:
+<<<<<<< HEAD
   ros::NodeHandle nh_;
+=======
+>>>>>>> upstream/indigo-devel
   std::string getActionName(void) const
   {
     if (namespace_.empty())
@@ -154,9 +174,14 @@ protected:
 
   void finishControllerExecution(const actionlib::SimpleClientGoalState& state)
   {
+<<<<<<< HEAD
     ROS_DEBUG_STREAM_NAMED("moveit_simple_controller_manager", "Controller " << name_ << " is done with state "
                                                                              << state.toString() << ": "
                                                                              << state.getText());
+=======
+    ROS_DEBUG_STREAM("MoveItSimpleControllerManager: Controller " << name_ << " is done with state " << state.toString()
+                                                                  << ": " << state.getText());
+>>>>>>> upstream/indigo-devel
     if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
       last_exec_ = moveit_controller_manager::ExecutionStatus::SUCCEEDED;
     else if (state == actionlib::SimpleClientGoalState::ABORTED)

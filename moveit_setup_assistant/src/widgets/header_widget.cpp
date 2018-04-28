@@ -57,7 +57,11 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
   // Page Title
   QLabel* page_title = new QLabel(this);
   page_title->setText(title.c_str());
+<<<<<<< HEAD
   QFont page_title_font(QFont().defaultFamily(), 18, QFont::Bold);
+=======
+  QFont page_title_font("Arial", 18, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   page_title->setFont(page_title_font);
   page_title->setWordWrap(true);
   layout->addWidget(page_title);
@@ -88,8 +92,13 @@ HeaderWidget::HeaderWidget(const std::string& title, const std::string& instruct
 // ******************************************************************************************
 // Create the widget
 // ******************************************************************************************
+<<<<<<< HEAD
 LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, const bool dir_only,
                                const bool load_only)
+=======
+LoadPathWidget::LoadPathWidget(const std::string& title, const std::string& instructions, const bool dir_only,
+                               const bool load_only, QWidget* parent)
+>>>>>>> upstream/indigo-devel
   : QFrame(parent), dir_only_(dir_only), load_only_(load_only)
 {
   // Set frame graphics
@@ -106,15 +115,24 @@ LoadPathWidget::LoadPathWidget(const QString& title, const QString& instructions
 
   // Widget Title
   QLabel* widget_title = new QLabel(this);
+<<<<<<< HEAD
   widget_title->setText(title);
   QFont widget_title_font(QFont().defaultFamily(), 12, QFont::Bold);
+=======
+  widget_title->setText(title.c_str());
+  QFont widget_title_font("Arial", 12, QFont::Bold);
+>>>>>>> upstream/indigo-devel
   widget_title->setFont(widget_title_font);
   layout->addWidget(widget_title);
   layout->setAlignment(widget_title, Qt::AlignTop);
 
   // Widget Instructions
   QLabel* widget_instructions = new QLabel(this);
+<<<<<<< HEAD
   widget_instructions->setText(instructions);
+=======
+  widget_instructions->setText(instructions.c_str());
+>>>>>>> upstream/indigo-devel
   widget_instructions->setWordWrap(true);
   widget_instructions->setTextFormat(Qt::RichText);
   layout->addWidget(widget_instructions);
@@ -201,6 +219,7 @@ void LoadPathWidget::setPath(const std::string& path)
 {
   path_box_->setText(QString(path.c_str()));
 }
+<<<<<<< HEAD
 
 LoadPathArgsWidget::LoadPathArgsWidget(const QString& title, const QString& instructions,
                                        const QString& arg_instructions, QWidget* parent, const bool dir_only,
@@ -229,4 +248,6 @@ void LoadPathArgsWidget::setArgsEnabled(bool enabled)
 {
   args_->setEnabled(enabled);
 }
+=======
+>>>>>>> upstream/indigo-devel
 }

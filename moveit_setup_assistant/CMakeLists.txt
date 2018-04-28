@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 2.8.11)
 project(moveit_setup_assistant)
 
 add_compile_options(-std=c++11)
@@ -35,6 +35,11 @@ if(rviz_QT_VERSION VERSION_LESS "5")
 else()
   find_package(Qt5 ${rviz_QT_VERSION} REQUIRED Core Widgets)
   set(QT_LIBRARIES Qt5::Widgets)
+
+  # this can be removed once CMAKE 2.8.12 is available (jade)
+  # it is due to a change in Qts use of -fPIE and -fPIC
+  # http://code.qt.io/cgit/qt/qtbase.git/tree/dist/changes-5.4.2
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 endif()
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
@@ -45,6 +50,16 @@ find_package(PkgConfig)
 pkg_check_modules(YAMLCPP REQUIRED yaml-cpp>=0.5)
 include_directories(${YAMLCPP_INCLUDE_DIRS})
 link_directories(${YAMLCPP_LIBRARY_DIRS})
+
+catkin_package(
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    ${PROJECT_NAME}_tools
+  CATKIN_DEPENDS
+    moveit_ros_planning
+    moveit_ros_visualization
+)
 
 catkin_package(
   INCLUDE_DIRS
@@ -80,11 +95,16 @@ set(HEADERS
 add_library(${PROJECT_NAME}_tools
   src/tools/compute_default_collisions.cpp
   src/tools/moveit_config_data.cpp
+<<<<<<< HEAD
   src/tools/collision_linear_model.cpp
   src/tools/collision_matrix_model.cpp
   src/tools/rotated_header_view.cpp
 )
 set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+)
+set_target_properties(${PROJECT_NAME}_tools PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${PROJECT_NAME}_tools
   ${YAMLCPP_LIBRARIES}
   ${catkin_LIBRARIES}
@@ -112,7 +132,11 @@ add_library(${PROJECT_NAME}_widgets
   src/widgets/author_information_widget.cpp
   ${HEADERS}
 )
+<<<<<<< HEAD
 set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${PROJECT_NAME}_widgets PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${PROJECT_NAME}_widgets
   ${PROJECT_NAME}_tools
   ${QT_LIBRARIES}

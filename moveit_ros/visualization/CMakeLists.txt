@@ -34,6 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
   object_recognition_msgs
   rostest
 )
+<<<<<<< HEAD
 
 find_package(Eigen3 REQUIRED)
 
@@ -60,6 +61,9 @@ endif()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 add_definitions(-DQT_NO_KEYWORDS)
+=======
+find_package(Eigen REQUIRED)
+>>>>>>> upstream/indigo-devel
 
 catkin_package(
   LIBRARIES
@@ -84,6 +88,9 @@ catkin_package(
 catkin_install_python(PROGRAMS scripts/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 catkin_python_setup()
 
+catkin_install_python(PROGRAMS scripts/moveit_joy.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_python_setup()
+
 include_directories(rviz_plugin_render_tools/include
                     robot_state_rviz_plugin/include
                     planning_scene_rviz_plugin/include
@@ -93,7 +100,10 @@ include_directories(rviz_plugin_render_tools/include
                     ${catkin_INCLUDE_DIRS})
 
 include_directories(SYSTEM
+<<<<<<< HEAD
                     ${EIGEN3_INCLUDE_DIRS}
+=======
+>>>>>>> upstream/indigo-devel
                     ${QT_INCLUDE_DIR}
                     ${OGRE_INCLUDE_DIRS})
 

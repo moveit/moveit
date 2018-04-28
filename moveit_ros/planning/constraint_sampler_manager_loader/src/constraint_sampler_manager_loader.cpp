@@ -82,7 +82,11 @@ public:
 
 private:
   ros::NodeHandle nh_;
+<<<<<<< HEAD
   std::unique_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> >
+=======
+  boost::scoped_ptr<pluginlib::ClassLoader<constraint_samplers::ConstraintSamplerAllocator> >
+>>>>>>> upstream/indigo-devel
       constraint_sampler_plugin_loader_;
 };
 

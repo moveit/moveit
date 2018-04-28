@@ -132,8 +132,13 @@ bool KDLKinematicsPlugin::initialize(const std::string& robot_description, const
   setValues(robot_description, group_name, base_frame, tip_frame, search_discretization);
 
   rdf_loader::RDFLoader rdf_loader(robot_description_);
+<<<<<<< HEAD:moveit_kinematics/kdl_kinematics_plugin/src/kdl_kinematics_plugin.cpp
   const srdf::ModelSharedPtr& srdf = rdf_loader.getSRDF();
   const urdf::ModelInterfaceSharedPtr& urdf_model = rdf_loader.getURDF();
+=======
+  const boost::shared_ptr<srdf::Model>& srdf = rdf_loader.getSRDF();
+  const boost::shared_ptr<urdf::ModelInterface>& urdf_model = rdf_loader.getURDF();
+>>>>>>> upstream/indigo-devel:moveit_kinematics/kdl_kinematics_plugin/src/kdl_kinematics_plugin.cpp
 
   if (!urdf_model || !srdf)
   {

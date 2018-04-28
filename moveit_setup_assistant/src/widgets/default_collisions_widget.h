@@ -64,8 +64,11 @@
 
 namespace moveit_setup_assistant
 {
+<<<<<<< HEAD
 class MonitorThread;
 
+=======
+>>>>>>> upstream/indigo-devel
 /**
  * \brief User interface for editing the default collision matrix list in an SRDF
  */
@@ -89,7 +92,10 @@ public:
    * \param urdf_file String srdf file location. It will create a new file or will edit an existing one
    */
   DefaultCollisionsWidget(QWidget* parent, moveit_setup_assistant::MoveItConfigDataPtr config_data);
+<<<<<<< HEAD
   ~DefaultCollisionsWidget();
+=======
+>>>>>>> upstream/indigo-devel
 
   /**
    * \brief Output Link Pairs to SRDF Format
@@ -133,6 +139,7 @@ private Q_SLOTS:
   void checkedFilterChanged();
 
   /**
+<<<<<<< HEAD
    * \brief Collision model changed
    */
   void collisionsChanged(const QModelIndex& index);
@@ -147,12 +154,23 @@ private Q_SLOTS:
   */
   void previewSelectedMatrix(const QModelIndex& index);
   void previewSelectedLinear(const QModelIndex& index);
+=======
+   * \brief Called when user changes data in table, really just the checkbox
+   */
+  void toggleCheckBox(int row, int column);
+
+  /**
+  * \brief Called when current row has changed
+  */
+  void previewSelected(int row);
+>>>>>>> upstream/indigo-devel
 
   /**
    * \brief Called when setup assistant navigation switches to this screen
    */
   void focusGiven();
 
+<<<<<<< HEAD
   /**
    * \brief Called when setup assistant navigation switches away from this screen
    */
@@ -163,14 +181,20 @@ private Q_SLOTS:
   void hideOtherSections();
   void showSections();
 
+=======
+>>>>>>> upstream/indigo-devel
 private:
   // ******************************************************************************************
   // Qt Components
   // ******************************************************************************************
   QLabel* page_title_;
+<<<<<<< HEAD
   QTableView* collision_table_;
   QAbstractItemModel* model_;
   QItemSelectionModel* selection_model_;
+=======
+  QTableWidget* collision_table_;
+>>>>>>> upstream/indigo-devel
   QVBoxLayout* layout_;
   QLabel* density_value_label_;
   QSlider* density_slider_;
@@ -178,6 +202,7 @@ private:
   QGroupBox* controls_box_;
   QProgressBar* progress_bar_;
   QLabel* progress_label_;
+<<<<<<< HEAD
   QLineEdit* link_name_filter_;
   QCheckBox* collision_checkbox_;
   QLabel* fraction_label_;
@@ -188,6 +213,13 @@ private:
   QList<QAction*> header_actions_;    // context actions for header sections
   Qt::Orientations clicked_headers_;  // remember which header section activated context actions
   int clicked_section_;               // remember which header section activated context actions
+=======
+  QCheckBox* collision_checkbox_;
+  QGroupBox* controls_box_bottom_;
+  QLabel* fraction_label_;
+  QSpinBox* fraction_spinbox_;
+  QTimer* update_timer_;
+>>>>>>> upstream/indigo-devel
 
   // ******************************************************************************************
   // Variables
@@ -209,13 +241,18 @@ private:
    * \param collision_progress A shared pointer between 3 threads to allow progress bar to update. See declaration
    * location for more details and warning.
    */
+<<<<<<< HEAD
   void generateCollisionTable(unsigned int* collision_progress);
+=======
+  void generateCollisionTableThread(unsigned int* collision_progress);
+>>>>>>> upstream/indigo-devel
 
   /**
    * \brief Helper function to disable parts of GUI during computation
    * \param disable A command
    */
   void disableControls(bool disable);
+<<<<<<< HEAD
 
   /**
    * \brief Allow toggling of all checkboxes in selection by filtering <space> keypresses
@@ -259,6 +296,9 @@ private:
   unsigned int progress_;
   bool canceled_;
 };
+=======
+};
+>>>>>>> upstream/indigo-devel
 }
 
 #endif

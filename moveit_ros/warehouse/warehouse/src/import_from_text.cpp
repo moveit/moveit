@@ -209,7 +209,11 @@ int main(int argc, char** argv)
                                                   "Name of file containing motion planning queries.")(
       "scene", boost::program_options::value<std::string>(), "Name of file containing motion planning scene.")(
       "host", boost::program_options::value<std::string>(),
+<<<<<<< HEAD
       "Host for the DB.")("port", boost::program_options::value<std::size_t>(), "Port for the DB.");
+=======
+      "Host for the MongoDB.")("port", boost::program_options::value<std::size_t>(), "Port for the MongoDB.");
+>>>>>>> upstream/indigo-devel
 
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);

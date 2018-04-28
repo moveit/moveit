@@ -99,9 +99,15 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       error = true;
 
     if (error)
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("The transform for multi-dof joints was specified in frame '%s' "
                              "but it was not possible to transform that to frame '%s'",
                              mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
+=======
+      logWarn("The transform for multi-dof joints was specified in frame '%s' but it was not possible to transform "
+              "that to frame '%s'",
+              mjs.header.frame_id.c_str(), state.getRobotModel()->getModelFrame().c_str());
+>>>>>>> upstream/indigo-devel
   }
 
   for (std::size_t i = 0; i < nj; ++i)
@@ -294,9 +300,14 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           else
           {
             t0.setIdentity();
+<<<<<<< HEAD
             CONSOLE_BRIDGE_logError("Cannot properly transform from frame '%s'. "
                                     "The pose of the attached body may be incorrect",
                                     aco.object.header.frame_id.c_str());
+=======
+            logError("Cannot properly transform from frame '%s'. The pose of the attached body may be incorrect",
+                     aco.object.header.frame_id.c_str());
+>>>>>>> upstream/indigo-devel
           }
           Eigen::Affine3d t = state.getGlobalLinkTransform(lm).inverse() * t0;
           for (std::size_t i = 0; i < poses.size(); ++i)
@@ -304,6 +315,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
         }
 
         if (shapes.empty())
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'",
                                   aco.link_name.c_str(), aco.object.id.c_str());
         else
@@ -312,6 +324,15 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
             CONSOLE_BRIDGE_logDebug("The robot state already had an object named '%s' attached to link '%s'. "
                                     "The object was replaced.",
                                     aco.object.id.c_str(), aco.link_name.c_str());
+=======
+          logError("There is no geometry to attach to link '%s' as part of attached body '%s'", aco.link_name.c_str(),
+                   aco.object.id.c_str());
+        else
+        {
+          if (state.clearAttachedBody(aco.object.id))
+            logDebug("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
+                     aco.object.id.c_str(), aco.link_name.c_str());
+>>>>>>> upstream/indigo-devel
           state.attachBody(aco.object.id, shapes, poses, aco.touch_links, aco.link_name, aco.detach_posture);
           CONSOLE_BRIDGE_logDebug("Attached object '%s' to link '%s'", aco.object.id.c_str(), aco.link_name.c_str());
         }
@@ -326,8 +347,17 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
       CONSOLE_BRIDGE_logError("The attached body '%s' can not be removed because it does not exist",
                               aco.link_name.c_str());
   }
+  else if (aco.object.operation == moveit_msgs::CollisionObject::REMOVE)
+  {
+    if (!state.clearAttachedBody(aco.object.id))
+      logError("The attached body '%s' can not be removed because it does not exist", aco.link_name.c_str());
+  }
   else
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Unknown collision object operation: %d", aco.object.operation);
+=======
+    logError("Unknown collision object operation: %d", aco.object.operation);
+>>>>>>> upstream/indigo-devel
 }
 
 static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_msgs::RobotState& robot_state,
@@ -338,7 +368,11 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
 
   if (!rs.is_diff && rs.joint_state.name.empty() && rs.multi_dof_joint_state.joint_names.empty())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Found empty JointState message");
+=======
+    logError("Found empty JointState message");
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -355,8 +389,11 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
   }
 
   return valid;
+<<<<<<< HEAD
+=======
 }
 }
+>>>>>>> upstream/indigo-devel
 }
 }
 
@@ -366,31 +403,48 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
 // * Exposed functions
 // ********************************************
 
+<<<<<<< HEAD
+bool jointStateToRobotState(const sensor_msgs::JointState& joint_state, RobotState& state)
+=======
 bool moveit::core::jointStateToRobotState(const sensor_msgs::JointState& joint_state, RobotState& state)
+>>>>>>> upstream/indigo-devel
 {
   bool result = _jointStateToRobotState(joint_state, state);
   state.update();
   return result;
 }
 
+<<<<<<< HEAD
+bool robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state, bool copy_attached_bodies)
+=======
 bool moveit::core::robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state,
                                              bool copy_attached_bodies)
+>>>>>>> upstream/indigo-devel
 {
   bool result = _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
+<<<<<<< HEAD
+bool robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state, RobotState& state,
+                               bool copy_attached_bodies)
+=======
 bool moveit::core::robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state,
                                              RobotState& state, bool copy_attached_bodies)
+>>>>>>> upstream/indigo-devel
 {
   bool result = _robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
+<<<<<<< HEAD
+void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state, bool copy_attached_bodies)
+=======
 void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state,
                                              bool copy_attached_bodies)
+>>>>>>> upstream/indigo-devel
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
@@ -399,11 +453,12 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
   {
     std::vector<const AttachedBody*> attached_bodies;
     state.getAttachedBodies(attached_bodies);
+<<<<<<< HEAD
     attachedBodiesToAttachedCollisionObjectMsgs(attached_bodies, robot_state.attached_collision_objects);
   }
 }
 
-void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
+void attachedBodiesToAttachedCollisionObjectMsgs(
     const std::vector<const AttachedBody*>& attached_bodies,
     std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs)
 {
@@ -412,7 +467,16 @@ void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
     _attachedBodyToMsg(*attached_bodies[i], attached_collision_objs[i]);
 }
 
+void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState& joint_state)
+=======
+    robot_state.attached_collision_objects.resize(attached_bodies.size());
+    for (std::size_t i = 0; i < attached_bodies.size(); ++i)
+      _attachedBodyToMsg(*attached_bodies[i], robot_state.attached_collision_objects[i]);
+  }
+}
+
 void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState& joint_state)
+>>>>>>> upstream/indigo-devel
 {
   const std::vector<const JointModel*>& js = state.getRobotModel()->getSingleDOFJointModels();
   joint_state = sensor_msgs::JointState();
@@ -432,17 +496,30 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
+<<<<<<< HEAD
+bool jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajectory, std::size_t point_id,
+                                RobotState& state)
+{
+  if (trajectory.points.empty() || point_id > trajectory.points.size() - 1)
+  {
+    CONSOLE_BRIDGE_logError("Invalid point_id");
+=======
 bool moveit::core::jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajectory, std::size_t point_id,
                                               RobotState& state)
 {
   if (trajectory.points.empty() || point_id > trajectory.points.size() - 1)
   {
-    CONSOLE_BRIDGE_logError("Invalid point_id");
+    logError("Invalid point_id");
+>>>>>>> upstream/indigo-devel
     return false;
   }
   if (trajectory.joint_names.empty())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("No joint names specified");
+=======
+    logError("No joint names specified");
+>>>>>>> upstream/indigo-devel
     return false;
   }
 
@@ -457,8 +534,12 @@ bool moveit::core::jointTrajPointToRobotState(const trajectory_msgs::JointTrajec
   return true;
 }
 
+<<<<<<< HEAD
+void robotStateToStream(const RobotState& state, std::ostream& out, bool include_header, const std::string& separator)
+=======
 void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out, bool include_header,
                                       const std::string& separator)
+>>>>>>> upstream/indigo-devel
 {
   // Output name of variables
   if (include_header)
@@ -486,9 +567,15 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out
   out << std::endl;
 }
 
+<<<<<<< HEAD
+void robotStateToStream(const RobotState& state, std::ostream& out,
+                        const std::vector<std::string>& joint_groups_ordering, bool include_header,
+                        const std::string& separator)
+=======
 void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out,
                                       const std::vector<std::string>& joint_groups_ordering, bool include_header,
                                       const std::string& separator)
+>>>>>>> upstream/indigo-devel
 {
   std::stringstream headers;
   std::stringstream joints;
@@ -523,7 +610,11 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out
   out << joints.str() << std::endl;
 }
 
+<<<<<<< HEAD
+void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+=======
 void moveit::core::streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+>>>>>>> upstream/indigo-devel
 {
   std::stringstream lineStream(line);
   std::string cell;
@@ -533,8 +624,18 @@ void moveit::core::streamToRobotState(RobotState& state, const std::string& line
   {
     // Get a variable
     if (!std::getline(lineStream, cell, separator[0]))
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("Missing variable %i", i);
+=======
+      logError("Missing variable %i", i);
+>>>>>>> upstream/indigo-devel
 
     state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());
   }
 }
+<<<<<<< HEAD
+
+}  // end of namespace core
+}  // end of namespace moveit
+=======
+>>>>>>> upstream/indigo-devel

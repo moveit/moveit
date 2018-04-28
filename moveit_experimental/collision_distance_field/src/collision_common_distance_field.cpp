@@ -38,15 +38,21 @@
 #include <ros/console.h>
 #include <boost/thread/mutex.hpp>
 #include <eigen_conversions/eigen_msg.h>
+<<<<<<< HEAD
 #include <memory>
+=======
+>>>>>>> upstream/indigo-devel
 
 namespace collision_detection
 {
 struct BodyDecompositionCache
 {
+<<<<<<< HEAD
   using Comperator = std::owner_less<std::weak_ptr<const shapes::Shape>>;
   using Map = std::map<std::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr, Comperator>;
 
+=======
+>>>>>>> upstream/indigo-devel
   BodyDecompositionCache() : clean_count_(0)
   {
   }
@@ -69,7 +75,12 @@ BodyDecompositionConstPtr getBodyDecompositionCacheEntry(const shapes::ShapeCons
   std::weak_ptr<const shapes::Shape> wptr(shape);
   {
     boost::mutex::scoped_lock slock(cache.lock_);
+<<<<<<< HEAD
     BodyDecompositionCache::Map::const_iterator cache_it = cache.map_.find(wptr);
+=======
+    std::map<boost::weak_ptr<const shapes::Shape>, BodyDecompositionConstPtr>::const_iterator cache_it =
+        cache.map_.find(wptr);
+>>>>>>> upstream/indigo-devel
     if (cache_it != cache.map_.end())
     {
       return cache_it->second;
@@ -128,8 +139,13 @@ PosedBodyPointDecompositionVectorPtr getAttachedBodyPointDecomposition(const rob
   return ret;
 }
 
+<<<<<<< HEAD
 void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, std::string reference_frame,
                                        visualization_msgs::MarkerArray& body_marker_array)
+=======
+void getBodySphereVisualizationMarkers(boost::shared_ptr<const collision_detection::GroupStateRepresentation>& gsr,
+                                       std::string reference_frame, visualization_msgs::MarkerArray& body_marker_array)
+>>>>>>> upstream/indigo-devel
 {
   // creating namespaces
   std::string robot_ns = gsr->dfce_->group_name_ + "_sphere_decomposition";
@@ -171,6 +187,7 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
     if (gsr->dfce_->link_has_geometry_[i])
     {
       gsr->link_body_decompositions_[i]->updatePose(state.getFrameTransform(ls->getName()));
+<<<<<<< HEAD
 
       collision_detection::PosedBodySphereDecompositionConstPtr sphere_representation =
           gsr->link_body_decompositions_[i];
@@ -201,6 +218,38 @@ void getBodySphereVisualizationMarkers(GroupStateRepresentationConstPtr& gsr, st
       continue;
     }
 
+=======
+
+      collision_detection::PosedBodySphereDecompositionConstPtr sphere_representation =
+          gsr->link_body_decompositions_[i];
+      for (unsigned int j = 0; j < sphere_representation->getCollisionSpheres().size(); j++)
+      {
+        tf::pointEigenToMsg(sphere_representation->getSphereCenters()[j], sphere_marker.pose.position);
+        sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
+            sphere_representation->getCollisionSpheres()[j].radius_;
+        sphere_marker.id = id;
+        id++;
+
+        body_marker_array.markers.push_back(sphere_marker);
+      }
+    }
+  }
+
+  sphere_marker.ns = attached_ns;
+  sphere_marker.color = attached_color;
+  for (unsigned int i = 0; i < gsr->dfce_->attached_body_names_.size(); i++)
+  {
+    int link_index = gsr->dfce_->attached_body_link_state_indices_[i];
+    const moveit::core::AttachedBody* att = state.getAttachedBody(gsr->dfce_->attached_body_names_[i]);
+    if (!att)
+    {
+      ROS_WARN("Attached body '%s' was not found, skipping sphere "
+               "decomposition visualization",
+               gsr->dfce_->attached_body_names_[i].c_str());
+      continue;
+    }
+
+>>>>>>> upstream/indigo-devel
     if (gsr->attached_body_decompositions_[i]->getSize() != att->getShapes().size())
     {
       ROS_WARN("Attached body size discrepancy");

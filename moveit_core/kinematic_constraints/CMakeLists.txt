@@ -3,7 +3,11 @@ set(MOVEIT_LIB_NAME moveit_kinematic_constraints)
 add_library(${MOVEIT_LIB_NAME}
   src/kinematic_constraint.cpp
   src/utils.cpp)
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_model moveit_kinematics_base moveit_robot_state moveit_collision_detection_fcl

@@ -74,16 +74,26 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
 
   if (!joint_model_group_->isChain())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("moveit.dynamics_solver: Group '%s' is not a chain. Will not initialize dynamics solver",
                             group_name.c_str());
+=======
+    logError("moveit.dynamics_solver: Group '%s' is not a chain. Will not initialize dynamics solver",
+             group_name.c_str());
+>>>>>>> upstream/indigo-devel
     joint_model_group_ = NULL;
     return;
   }
 
   if (joint_model_group_->getMimicJointModels().size() > 0)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("moveit.dynamics_solver: Group '%s' has a mimic joint. Will not initialize dynamics solver",
                             group_name.c_str());
+=======
+    logError("moveit.dynamics_solver: Group '%s' has a mimic joint. Will not initialize dynamics solver",
+             group_name.c_str());
+>>>>>>> upstream/indigo-devel
     joint_model_group_ = NULL;
     return;
   }
@@ -137,7 +147,11 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   KDL::Vector gravity(gravity_vector.x, gravity_vector.y,
                       gravity_vector.z);  // \todo Not sure if KDL expects the negative of this (Sachin)
   gravity_ = gravity.Norm();
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Gravity norm set to %f", gravity_);
+=======
+  logDebug("moveit.dynamics_solver: Gravity norm set to %f", gravity_);
+>>>>>>> upstream/indigo-devel
 
   chain_id_solver_.reset(new KDL::ChainIdSolver_RNE(kdl_chain_, gravity));
 }
@@ -251,8 +265,13 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
                           wrenches.back().force.y, wrenches.back().force.z);
+=======
+  logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
+           wrenches.back().force.y, wrenches.back().force.z);
+>>>>>>> upstream/indigo-devel
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, torques))
     return false;
@@ -263,9 +282,15 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
     double payload_joint = std::max<double>((max_torques_[i] - zero_torques[i]) / (torques[i] - zero_torques[i]),
                                             (-max_torques_[i] - zero_torques[i]) /
                                                 (torques[i] - zero_torques[i]));  // because we set the payload to 1.0
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i,
                             torques[i], max_torques_[i], zero_torques[i]);
     CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Joint: %d, Payload Allowed (N): %f", i, payload_joint);
+=======
+    logDebug("moveit.dynamics_solver: Joint: %d, Actual Torque: %f, Max Allowed: %f, Gravity: %f", i, torques[i],
+             max_torques_[i], zero_torques[i]);
+    logDebug("moveit.dynamics_solver: Joint: %d, Payload Allowed (N): %f", i, payload_joint);
+>>>>>>> upstream/indigo-devel
     if (payload_joint < min_payload)
     {
       min_payload = payload_joint;
@@ -273,7 +298,11 @@ bool DynamicsSolver::getMaxPayload(const std::vector<double>& joint_angles, doub
     }
   }
   payload = min_payload / gravity_;
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: Max payload (kg): %f", payload);
+=======
+  logDebug("moveit.dynamics_solver: Max payload (kg): %f", payload);
+>>>>>>> upstream/indigo-devel
   return true;
 }
 
@@ -307,8 +336,13 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
   wrenches.back().force = transformVector(transform, wrenches.back().force);
   wrenches.back().torque = transformVector(transform, wrenches.back().torque);
 
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
                           wrenches.back().force.y, wrenches.back().force.z);
+=======
+  logDebug("moveit.dynamics_solver: New wrench (local frame): %f %f %f", wrenches.back().force.x,
+           wrenches.back().force.y, wrenches.back().force.z);
+>>>>>>> upstream/indigo-devel
 
   if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
     return false;
@@ -319,4 +353,9 @@ const std::vector<double>& DynamicsSolver::getMaxTorques() const
 {
   return max_torques_;
 }
+<<<<<<< HEAD
+
+}  // end of namespace dynamics_solver
+=======
 }
+>>>>>>> upstream/indigo-devel

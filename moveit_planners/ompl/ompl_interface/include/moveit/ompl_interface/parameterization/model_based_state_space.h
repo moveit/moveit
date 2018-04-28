@@ -269,7 +269,11 @@ protected:
   double tag_snap_to_segment_complement_;
 };
 
+<<<<<<< HEAD
 typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
+=======
+typedef boost::shared_ptr<ModelBasedStateSpace> ModelBasedStateSpacePtr;
+>>>>>>> upstream/indigo-devel
 }
 
 #endif

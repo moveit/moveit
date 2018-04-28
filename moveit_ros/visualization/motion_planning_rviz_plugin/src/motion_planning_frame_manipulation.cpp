@@ -128,7 +128,11 @@ void MotionPlanningFrame::triggerObjectDetection()
     {
       waitForAction(object_recognition_client_, nh_, ros::Duration(3.0), OBJECT_RECOGNITION_ACTION);
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
+=======
+    catch (std::runtime_error& ex)
+>>>>>>> upstream/indigo-devel
     {
       ROS_ERROR("Object recognition action: %s", ex.what());
       return;

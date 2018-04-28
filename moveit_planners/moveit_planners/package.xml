@@ -1,6 +1,10 @@
 <package>
   <name>moveit_planners</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>Metapacakge that installs all available planners for MoveIt</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="sachinc@willowgarage.com">Sachin Chitta</author>

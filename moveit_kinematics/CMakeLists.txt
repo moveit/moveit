@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_kinematics)
 
 add_compile_options(-std=c++11)
+=======
+cmake_minimum_required(VERSION 2.8.3)
+project(moveit_kinematics)
+find_package(catkin REQUIRED)
+>>>>>>> upstream/indigo-devel
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -21,6 +27,12 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
+<<<<<<< HEAD
+find_package(trac_ik_kinematics_plugin)
+find_package(ur_kinematics QUIET)
+
+=======
+>>>>>>> upstream/indigo-devel
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
 
@@ -28,7 +40,10 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     kdl_kinematics_plugin/include
     lma_kinematics_plugin/include
     srv_kinematics_plugin/include
+<<<<<<< HEAD
     cached_ik_kinematics_plugin/include
+=======
+>>>>>>> upstream/indigo-devel
 )
 
 catkin_package(
@@ -58,13 +73,19 @@ add_subdirectory(kdl_kinematics_plugin)
 add_subdirectory(lma_kinematics_plugin)
 add_subdirectory(srv_kinematics_plugin)
 add_subdirectory(ikfast_kinematics_plugin)
+<<<<<<< HEAD
 add_subdirectory(cached_ik_kinematics_plugin)
+=======
+>>>>>>> upstream/indigo-devel
 
 install(
   FILES
     kdl_kinematics_plugin_description.xml
     lma_kinematics_plugin_description.xml
     srv_kinematics_plugin_description.xml
+<<<<<<< HEAD
     cached_ik_kinematics_plugin_description.xml
+=======
+>>>>>>> upstream/indigo-devel
   DESTINATION
     ${CATKIN_PACKAGE_SHARE_DESTINATION})

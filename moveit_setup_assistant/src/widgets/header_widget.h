@@ -73,10 +73,13 @@ private:
   bool load_only_;
   // Stores the path qstring
   QLineEdit* path_box_;
+<<<<<<< HEAD
 
 Q_SIGNALS:
   void pathChanged(const QString& path);
   void pathEditingFinished();
+=======
+>>>>>>> upstream/indigo-devel
 
 private Q_SLOTS:
   /// Load the file dialog
@@ -84,8 +87,13 @@ private Q_SLOTS:
 
 public:
   /// Constructor
+<<<<<<< HEAD
   LoadPathWidget(const QString& title, const QString& instructions, QWidget* parent, const bool dir_only = false,
                  const bool load_only = false);
+=======
+  LoadPathWidget(const std::string& title, const std::string& instructions, const bool dir_only = false,
+                 const bool load_only = false, QWidget* parent = 0);
+>>>>>>> upstream/indigo-devel
 
   /// Returns the file path in QString format
   QString getQPath() const;
@@ -99,6 +107,7 @@ public:
   /// Set the path with std string
   void setPath(const std::string& path);
 };
+<<<<<<< HEAD
 
 /// Extend LoadPathWidget with additional line edit for arguments
 class LoadPathArgsWidget : public LoadPathWidget
@@ -118,6 +127,8 @@ public:
   void setArgs(const QString& args);
   void setArgsEnabled(bool enabled = true);
 };
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 #endif

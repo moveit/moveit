@@ -2,15 +2,20 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 0.9.11 (2017-12-25)
 -------------------
 
 0.9.10 (2017-12-09)
+=======
+0.7.13 (2017-12-25)
+>>>>>>> upstream/indigo-devel
 -------------------
 * [fix] Bugs in moveit_commander/robot.py (`#621 <https://github.com/ros-planning/moveit/issues/621>`_)
 * [fix] pyassimp regression workaround  (`#581 <https://github.com/ros-planning/moveit/issues/581>`_)
 * Contributors: Kei Okada, Konstantin Selyunin
 
+<<<<<<< HEAD
 0.9.9 (2017-08-06)
 ------------------
 
@@ -41,6 +46,41 @@ Changelog for package moveit_commander
 * Contributors: Dave Coleman, Ian McMahon
 
 0.9.2 (2016-11-05)
+=======
+0.7.12 (2017-08-06)
+-------------------
+* [fix] numpy.ndarray indices bug (`#563 <https://github.com/ros-planning/moveit/issues/563>`_, from `#86 <https://github.com/ros-planning/moveit/issues/86>`_, `#450 <https://github.com/ros-planning/moveit/issues/450>`_)
+* Contributors: Christopher Schindlbeck
+
+0.7.11 (2017-06-21)
+-------------------
+
+0.7.10 (2017-06-07)
+-------------------
+
+0.7.9 (2017-04-03)
+------------------
+
+0.7.8 (2017-03-08)
+------------------
+* [enhancement] Add set_max_acceleration_scaling_factor to moveit_commander. `#377 <https://github.com/ros-planning/moveit/issues/377>`_, `#437 <https://github.com/ros-planning/moveit/issues/437>`_, `#451 <https://github.com/ros-planning/moveit/issues/451>`_
+* [doc][moveit_commander] added description for set_start_state (`#447 <https://github.com/ros-planning/moveit/issues/447>`_)
+* Contributors: Isaac I.Y. Saito, Ravi Prakash Joshi
+
+0.7.7 (2017-02-06)
+------------------
+
+0.7.6 (2016-12-30)
+------------------
+
+0.7.5 (2016-12-25)
+------------------
+
+0.7.4 (2016-12-22)
+------------------
+
+0.7.3 (2016-12-20)
+>>>>>>> upstream/indigo-devel
 ------------------
 
 0.6.1 (2016-04-28)

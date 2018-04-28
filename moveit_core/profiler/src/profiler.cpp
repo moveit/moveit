@@ -36,12 +36,6 @@
 
 #include "moveit/profiler/profiler.h"
 
-moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
-{
-  static Profiler p(false, false);
-  return p;
-}
-
 #if MOVEIT_ENABLE_PROFILING
 
 #include <console_bridge/console.h>
@@ -49,7 +43,17 @@ moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
 #include <algorithm>
 #include <sstream>
 
-void moveit::tools::Profiler::start(void)
+namespace moveit
+{
+namespace tools
+{
+Profiler& Profiler::Instance(void)
+{
+  static Profiler p(false, false);
+  return p;
+}
+
+void Profiler::start(void)
 {
   lock_.lock();
   if (!running_)
@@ -60,7 +64,7 @@ void moveit::tools::Profiler::start(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::stop(void)
+void Profiler::stop(void)
 {
   lock_.lock();
   if (running_)
@@ -71,7 +75,7 @@ void moveit::tools::Profiler::stop(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::clear(void)
+void Profiler::clear(void)
 {
   lock_.lock();
   data_.clear();
@@ -81,14 +85,22 @@ void moveit::tools::Profiler::clear(void)
   lock_.unlock();
 }
 
+<<<<<<< HEAD
+void Profiler::event(const std::string& name, const unsigned int times)
+=======
 void moveit::tools::Profiler::event(const std::string& name, const unsigned int times)
+>>>>>>> upstream/indigo-devel
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].events[name] += times;
   lock_.unlock();
 }
 
+<<<<<<< HEAD
+void Profiler::average(const std::string& name, const double value)
+=======
 void moveit::tools::Profiler::average(const std::string& name, const double value)
+>>>>>>> upstream/indigo-devel
 {
   lock_.lock();
   AvgInfo& a = data_[boost::this_thread::get_id()].avg[name];
@@ -98,14 +110,22 @@ void moveit::tools::Profiler::average(const std::string& name, const double valu
   lock_.unlock();
 }
 
+<<<<<<< HEAD
+void Profiler::begin(const std::string& name)
+=======
 void moveit::tools::Profiler::begin(const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].set();
   lock_.unlock();
 }
 
+<<<<<<< HEAD
+void Profiler::end(const std::string& name)
+=======
 void moveit::tools::Profiler::end(const std::string& name)
+>>>>>>> upstream/indigo-devel
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].update();
@@ -120,7 +140,11 @@ inline double to_seconds(const boost::posix_time::time_duration& d)
 }
 }
 
+<<<<<<< HEAD
+void Profiler::status(std::ostream& out, bool merge)
+=======
 void moveit::tools::Profiler::status(std::ostream& out, bool merge)
+>>>>>>> upstream/indigo-devel
 {
   stop();
   lock_.lock();
@@ -167,7 +191,7 @@ void moveit::tools::Profiler::status(std::ostream& out, bool merge)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::console(void)
+void Profiler::console(void)
 {
   std::stringstream ss;
   ss << std::endl;
@@ -208,7 +232,11 @@ struct SortDoubleByValue
 }
 /// @endcond
 
+<<<<<<< HEAD
+void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
+=======
 void moveit::tools::Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
+>>>>>>> upstream/indigo-devel
 {
   double total = to_seconds(tinfo_.total);
 
@@ -285,4 +313,6 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream& out, const PerThread
   out << std::endl;
 }
 
+}  // end of namespace tools
+}  // end of namespace moveit
 #endif

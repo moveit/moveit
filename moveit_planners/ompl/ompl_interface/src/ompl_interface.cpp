@@ -171,6 +171,7 @@ void ompl_interface::OMPLInterface::loadConstraintSamplers()
 {
   constraint_sampler_manager_loader_.reset(
       new constraint_sampler_manager_loader::ConstraintSamplerManagerLoader(constraint_sampler_manager_));
+<<<<<<< HEAD
 }
 
 bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
@@ -212,6 +213,8 @@ bool ompl_interface::OMPLInterface::loadPlannerConfiguration(
   }
 
   return true;
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 void ompl_interface::OMPLInterface::loadPlannerConfigurations()
@@ -287,6 +290,7 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
     {
       if (config_names.getType() != XmlRpc::XmlRpcValue::TypeArray)
       {
+<<<<<<< HEAD
         ROS_ERROR("The planner_configs argument of a group configuration "
                   "should be an array of strings (for group '%s')",
                   group_names[i].c_str());
@@ -306,6 +310,49 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         if (loadPlannerConfiguration(group_names[i], planner_id, specific_group_params, pc))
           pconfig[pc.name] = pc;
       }
+=======
+        for (int32_t j = 0; j < config_names.size(); ++j)
+          if (config_names[j].getType() == XmlRpc::XmlRpcValue::TypeString)
+          {
+            std::string planner_config = static_cast<std::string>(config_names[j]);
+            XmlRpc::XmlRpcValue xml_config;
+            if (nh_.getParam("planner_configs/" + planner_config, xml_config))
+            {
+              if (xml_config.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+              {
+                planning_interface::PlannerConfigurationSettings pc;
+                pc.name = group_names[i] + "[" + planner_config + "]";
+                pc.group = group_names[i];
+                // inherit parameters from the group (which can be overriden)
+                pc.config = specific_group_params;
+
+                // read parameters specific for this configuration
+                for (XmlRpc::XmlRpcValue::iterator it = xml_config.begin(); it != xml_config.end(); ++it)
+                  if (it->second.getType() == XmlRpc::XmlRpcValue::TypeString)
+                    pc.config[it->first] = static_cast<std::string>(it->second);
+                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<double>(it->second));
+                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<int>(it->second));
+                  else if (it->second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+                    pc.config[it->first] = boost::lexical_cast<std::string>(static_cast<bool>(it->second));
+                pconfig[pc.name] = pc;
+              }
+              else
+                ROS_ERROR("A planning configuration should be of type XmlRpc Struct type (for configuration '%s')",
+                          planner_config.c_str());
+            }
+            else
+              ROS_ERROR("Could not find the planner configuration '%s' on the param server", planner_config.c_str());
+          }
+          else
+            ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_names[i].c_str());
+      }
+      else
+        ROS_ERROR("The planner_configs argument of a group configuration should be an array of strings (for group "
+                  "'%s')",
+                  group_names[i].c_str());
+>>>>>>> upstream/indigo-devel
     }
   }
 

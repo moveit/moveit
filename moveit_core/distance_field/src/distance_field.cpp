@@ -42,8 +42,15 @@
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
+<<<<<<< HEAD
+namespace distance_field
+{
+DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
+                             double origin_y, double origin_z)
+=======
 distance_field::DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
                                              double origin_x, double origin_y, double origin_z)
+>>>>>>> upstream/indigo-devel
   : size_x_(size_x)
   , size_y_(size_y)
   , size_z_(size_z)
@@ -55,12 +62,17 @@ distance_field::DistanceField::DistanceField(double size_x, double size_y, doubl
 {
 }
 
-distance_field::DistanceField::~DistanceField()
+DistanceField::~DistanceField()
 {
 }
 
+<<<<<<< HEAD
+double DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x, double& gradient_y,
+                                          double& gradient_z, bool& in_bounds) const
+=======
 double distance_field::DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x,
                                                           double& gradient_y, double& gradient_z, bool& in_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   int gx, gy, gz;
 
@@ -85,9 +97,14 @@ double distance_field::DistanceField::getDistanceGradient(double x, double y, do
   return getDistance(gx, gy, gz);
 }
 
+<<<<<<< HEAD
+void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance, const std::string& frame_id,
+                                         const ros::Time stamp, visualization_msgs::Marker& inf_marker) const
+=======
 void distance_field::DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
                                                          const std::string& frame_id, const ros::Time stamp,
                                                          visualization_msgs::Marker& inf_marker) const
+>>>>>>> upstream/indigo-devel
 {
   inf_marker.points.clear();
   inf_marker.header.frame_id = frame_id;
@@ -130,9 +147,14 @@ void distance_field::DistanceField::getIsoSurfaceMarkers(double min_distance, do
   }
 }
 
+<<<<<<< HEAD
+void DistanceField::getGradientMarkers(double min_distance, double max_distance, const std::string& frame_id,
+                                       const ros::Time& stamp, visualization_msgs::MarkerArray& marker_array) const
+=======
 void distance_field::DistanceField::getGradientMarkers(double min_distance, double max_distance,
                                                        const std::string& frame_id, const ros::Time& stamp,
                                                        visualization_msgs::MarkerArray& marker_array) const
+>>>>>>> upstream/indigo-devel
 {
   Eigen::Vector3d unitX(1, 0, 0);
   Eigen::Vector3d unitY(0, 1, 0);
@@ -195,8 +217,13 @@ void distance_field::DistanceField::getGradientMarkers(double min_distance, doub
   }
 }
 
+<<<<<<< HEAD
+bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose,
+                                   EigenSTL::vector_Vector3d* points)
+=======
 bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose,
                                                    EigenSTL::vector_Vector3d* points)
+>>>>>>> upstream/indigo-devel
 {
   if (shape->type == shapes::OCTREE)
   {
@@ -218,7 +245,11 @@ bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, c
   return true;
 }
 
+<<<<<<< HEAD
+void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+=======
 void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+>>>>>>> upstream/indigo-devel
 {
   EigenSTL::vector_Vector3d point_vec;
   getShapePoints(shape, pose, &point_vec);
@@ -226,14 +257,22 @@ void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, 
 }
 
 // DEPRECATED
+<<<<<<< HEAD
+void DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+=======
 void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+>>>>>>> upstream/indigo-devel
 {
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(pose, pose_e);
   addShapeToField(shape, pose_e);
 }
 
+<<<<<<< HEAD
+void DistanceField::getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points)
+=======
 void distance_field::DistanceField::getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points)
+>>>>>>> upstream/indigo-devel
 {
   // lower extent
   double min_x, min_y, min_z;
@@ -279,19 +318,28 @@ void distance_field::DistanceField::getOcTreePoints(const octomap::OcTree* octre
   }
 }
 
-void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
 {
   EigenSTL::vector_Vector3d points;
   getOcTreePoints(octree, &points);
   addPointsToField(points);
 }
 
+<<<<<<< HEAD
+void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose,
+                                     const Eigen::Affine3d& new_pose)
+{
+  if (shape->type == shapes::OCTREE)
+  {
+    CONSOLE_BRIDGE_logWarn("Move shape not supported for Octree");
+=======
 void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose,
                                                      const Eigen::Affine3d& new_pose)
 {
   if (shape->type == shapes::OCTREE)
   {
-    CONSOLE_BRIDGE_logWarn("Move shape not supported for Octree");
+    logWarn("Move shape not supported for Octree");
+>>>>>>> upstream/indigo-devel
     return;
   }
   bodies::Body* body = bodies::createBodyFromShape(shape);
@@ -306,8 +354,13 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
 }
 
 // DEPRECATED
+<<<<<<< HEAD
+void DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
+                                     const geometry_msgs::Pose& new_pose)
+=======
 void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
                                                      const geometry_msgs::Pose& new_pose)
+>>>>>>> upstream/indigo-devel
 {
   Eigen::Affine3d old_pose_e, new_pose_e;
   tf::poseMsgToEigen(old_pose, old_pose_e);
@@ -315,7 +368,11 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
   moveShapeInField(shape, old_pose_e, new_pose_e);
 }
 
+<<<<<<< HEAD
+void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+=======
 void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+>>>>>>> upstream/indigo-devel
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
   body->setPose(pose);
@@ -326,17 +383,27 @@ void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* sh
 }
 
 // DEPRECATED
+<<<<<<< HEAD
+void DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+=======
 void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+>>>>>>> upstream/indigo-devel
 {
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(pose, pose_e);
   removeShapeFromField(shape, pose_e);
 }
 
+<<<<<<< HEAD
+void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length, double width, double height,
+                                    const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time stamp,
+                                    visualization_msgs::Marker& plane_marker) const
+=======
 void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length,
                                                     double width, double height, const Eigen::Vector3d& origin,
                                                     const std::string& frame_id, const ros::Time stamp,
                                                     visualization_msgs::Marker& plane_marker) const
+>>>>>>> upstream/indigo-devel
 {
   plane_marker.header.frame_id = frame_id;
   plane_marker.header.stamp = stamp;
@@ -445,8 +512,13 @@ void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisuali
   }
 }
 
+<<<<<<< HEAD
+void DistanceField::setPoint(int xCell, int yCell, int zCell, double dist, geometry_msgs::Point& point,
+                             std_msgs::ColorRGBA& color, double max_distance) const
+=======
 void distance_field::DistanceField::setPoint(int xCell, int yCell, int zCell, double dist, geometry_msgs::Point& point,
                                              std_msgs::ColorRGBA& color, double max_distance) const
+>>>>>>> upstream/indigo-devel
 {
   double wx, wy, wz;
   gridToWorld(xCell, yCell, zCell, wx, wy, wz);
@@ -460,8 +532,13 @@ void distance_field::DistanceField::setPoint(int xCell, int yCell, int zCell, do
   color.b = dist / max_distance;  // dist/max_distance * 0.1;
 }
 
+<<<<<<< HEAD
+void DistanceField::getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp, double max_dist,
+                                        visualization_msgs::Marker& marker) const
+=======
 void distance_field::DistanceField::getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp,
                                                         double max_dist, visualization_msgs::Marker& marker) const
+>>>>>>> upstream/indigo-devel
 {
   int maxXCell = getXNumCells();
   int maxYCell = getYNumCells();
@@ -559,3 +636,8 @@ void distance_field::DistanceField::getProjectionPlanes(const std::string& frame
   if (z_projection)
     delete[] z_projection;
 }
+<<<<<<< HEAD
+
+}  // end of namespace distance_field
+=======
+>>>>>>> upstream/indigo-devel

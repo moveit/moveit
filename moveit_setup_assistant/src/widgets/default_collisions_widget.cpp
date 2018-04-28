@@ -53,11 +53,40 @@
 
 namespace moveit_setup_assistant
 {
+<<<<<<< HEAD
+=======
+/// Boost mapping of reasons for disabling a link pair to strings
+const boost::unordered_map<moveit_setup_assistant::DisabledReason, const char*> longReasonsToString =
+    boost::assign::map_list_of(moveit_setup_assistant::NEVER, "Never in Collision")(moveit_setup_assistant::DEFAULT,
+                                                                                    "Collision by Default")(
+        moveit_setup_assistant::ADJACENT, "Adjacent Links")(moveit_setup_assistant::ALWAYS, "Always in Collision")(
+        moveit_setup_assistant::USER, "User Disabled")(moveit_setup_assistant::NOT_DISABLED, "");
+
+/**
+ * \brief Subclass QTableWidgetItem for checkboxes to allow custom sorting by implementing the < operator
+ */
+class CheckboxSortWidgetItem : public QTableWidgetItem
+{
+public:
+  /**
+   * \brief Override the standard comparision operator
+   */
+  bool operator<(const QTableWidgetItem& other) const
+  {
+    return checkState() < other.checkState();
+  }
+};
+
+>>>>>>> upstream/indigo-devel
 // ******************************************************************************************
 // User interface for editing the default collision matrix list in an SRDF
 // ******************************************************************************************
 DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDataPtr config_data)
+<<<<<<< HEAD
   : SetupScreenWidget(parent), worker_(NULL), config_data_(config_data), model_(NULL), selection_model_(NULL)
+=======
+  : SetupScreenWidget(parent), config_data_(config_data)
+>>>>>>> upstream/indigo-devel
 {
   // Basic widget container
   layout_ = new QVBoxLayout(this);
@@ -76,11 +105,16 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   // Top Button Area -----------------------------------------------
   controls_box_ = new QGroupBox(this);
   layout_->addWidget(controls_box_);
+<<<<<<< HEAD
   QVBoxLayout* controls_box_layout = new QVBoxLayout(controls_box_);
 
   QHBoxLayout* slider_layout = new QHBoxLayout();
   slider_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   controls_box_layout->addLayout(slider_layout);
+=======
+  QHBoxLayout* controls_box_layout = new QHBoxLayout(controls_box_);
+  controls_box_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+>>>>>>> upstream/indigo-devel
 
   // Slider Label
   QLabel* density_left_label = new QLabel(this);
@@ -97,7 +131,11 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   density_slider_->setSliderPosition(9);  // 10,000 is default
   density_slider_->setTickInterval(10);
   density_slider_->setOrientation(Qt::Horizontal);
+<<<<<<< HEAD
   slider_layout->addWidget(density_slider_);
+=======
+  controls_box_layout->addWidget(density_slider_);
+>>>>>>> upstream/indigo-devel
   connect(density_slider_, SIGNAL(valueChanged(int)), this, SLOT(changeDensityLabel(int)));
 
   // Slider Right Label
@@ -108,6 +146,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   // Slider Value Label
   density_value_label_ = new QLabel(this);
   density_value_label_->setMinimumWidth(50);
+<<<<<<< HEAD
   slider_layout->addWidget(density_value_label_);
   changeDensityLabel(density_slider_->value());  // initialize label with value
 
@@ -125,13 +164,23 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   fraction_spinbox_->setValue(95);
   fraction_spinbox_->setSuffix("%");
   buttons_layout->addWidget(fraction_spinbox_);
+=======
+  controls_box_layout->addWidget(density_value_label_);
+  changeDensityLabel(density_slider_->value());  // initialize label with value
+>>>>>>> upstream/indigo-devel
 
   // Generate Button
   btn_generate_ = new QPushButton(this);
   btn_generate_->setText("&Generate Collision Matrix");
   btn_generate_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+<<<<<<< HEAD
   connect(btn_generate_, SIGNAL(clicked()), this, SLOT(startGeneratingCollisionTable()));
   buttons_layout->addWidget(btn_generate_);
+=======
+  connect(btn_generate_, SIGNAL(clicked()), this, SLOT(generateCollisionTable()));
+  layout_->addWidget(btn_generate_);
+  layout_->setAlignment(btn_generate_, Qt::AlignRight);
+>>>>>>> upstream/indigo-devel
 
   // Progress Bar Area ---------------------------------------------
 
@@ -145,13 +194,28 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   progress_bar_ = new QProgressBar(this);
   progress_bar_->setMaximum(100);
   progress_bar_->setMinimum(0);
+<<<<<<< HEAD
   progress_bar_->hide();  // only show when computation begins
   layout_->addWidget(progress_bar_);
+=======
+  progress_bar_->hide();              // only show when computation begins
+  layout_->addWidget(progress_bar_);  //,Qt::AlignCenter);
+>>>>>>> upstream/indigo-devel
 
   // Table Area --------------------------------------------
 
   // Table
+<<<<<<< HEAD
   collision_table_ = new QTableView(this);
+=======
+  collision_table_ = new QTableWidget(this);
+  collision_table_->setColumnCount(4);
+  collision_table_->setSortingEnabled(true);
+  collision_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  collision_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  connect(collision_table_, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(previewSelected(int)));
+  connect(collision_table_, SIGNAL(cellChanged(int, int)), this, SLOT(toggleCheckBox(int, int)));
+>>>>>>> upstream/indigo-devel
   layout_->addWidget(collision_table_);
 
   QAction* action;
@@ -166,6 +230,7 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   connect(action, SIGNAL(triggered()), this, SLOT(hideOtherSections()));
 
   // Bottom Area ----------------------------------------
+<<<<<<< HEAD
 
   QHBoxLayout* bottom_layout = new QHBoxLayout();
   bottom_layout->setAlignment(Qt::AlignRight);
@@ -203,6 +268,30 @@ DefaultCollisionsWidget::DefaultCollisionsWidget(QWidget* parent, MoveItConfigDa
   btn_revert_->setDisabled(true);
   connect(btn_revert_, SIGNAL(clicked()), this, SLOT(revertChanges()));
   bottom_layout->addWidget(btn_revert_);
+=======
+  controls_box_bottom_ = new QGroupBox(this);
+  layout_->addWidget(controls_box_bottom_);
+  QHBoxLayout* controls_box_bottom_layout = new QHBoxLayout(controls_box_bottom_);
+
+  // Checkbox
+  collision_checkbox_ = new QCheckBox(this);
+  collision_checkbox_->setText("Show Non-Disabled Link Pairs");
+  connect(collision_checkbox_, SIGNAL(toggled(bool)), this, SLOT(collisionCheckboxToggle()));
+  controls_box_bottom_layout->addWidget(collision_checkbox_);
+
+  fraction_label_ = new QLabel(this);
+  fraction_label_->setText("Min. collisions for \"always\"-colliding pairs:");
+
+  controls_box_bottom_layout->addWidget(fraction_label_);
+
+  fraction_spinbox_ = new QSpinBox(this);
+  fraction_spinbox_->setRange(1, 100);
+  fraction_spinbox_->setValue(95);
+  fraction_spinbox_->setSuffix("%");
+  controls_box_bottom_layout->addWidget(fraction_spinbox_);
+
+  controls_box_bottom_layout->setAlignment(collision_checkbox_, Qt::AlignLeft);
+>>>>>>> upstream/indigo-devel
 
   setLayout(layout_);
   setWindowTitle("Default Collision Matrix");
@@ -220,15 +309,63 @@ DefaultCollisionsWidget::~DefaultCollisionsWidget()
 // ******************************************************************************************
 void DefaultCollisionsWidget::startGeneratingCollisionTable()
 {
+<<<<<<< HEAD
+=======
+  // Confirm the user wants to overwrite the current disabled collisions
+  if (!config_data_->srdf_->disabled_collisions_.empty())
+  {
+    if (QMessageBox::question(this, "Confirm Disabled Collision Overwrite", "Are you sure you want to overwrite the "
+                                                                            "current default collisions matrix with a "
+                                                                            "newly generated one?",
+                              QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Cancel)
+    {
+      return;  // abort
+    }
+  }
+  QApplication::processEvents();  // allow the progress bar to be shown
+  progress_label_->setText("Computing default collision matrix for robot model...");
+
+>>>>>>> upstream/indigo-devel
   // Disable controls on form
   disableControls(true);
   btn_revert_->setEnabled(true);  // allow to interrupt and revert
 
+<<<<<<< HEAD
   // create a MonitorThread running generateCollisionTable() in a worker thread and monitoring the progress
   worker_ = new MonitorThread(boost::bind(&DefaultCollisionsWidget::generateCollisionTable, this, _1), progress_bar_);
   connect(worker_, SIGNAL(finished()), this, SLOT(finishGeneratingCollisionTable()));
   worker_->start();  // start after having finished() signal connected
 }
+=======
+  // Create a progress variable that will be shared with the compute_default_collisions tool and its threads
+  // NOTE: be sure not to delete this variable until the subprograms have finished using it. Because of the simple
+  // use case of this variable (1 thread writes to it, the parent process reads it) it was decided a boost shared
+  // pointer is not necessary.
+  unsigned int collision_progress = 0;
+  progress_bar_->setValue(collision_progress);
+
+  QApplication::processEvents();  // allow the progress bar to be shown
+
+  // Create thread to do actual work
+  boost::thread workerThread(
+      boost::bind(&DefaultCollisionsWidget::generateCollisionTableThread, this, &collision_progress));
+  // Check interval
+  boost::posix_time::seconds check_interval(1);
+
+  // Continually loop until threaded computation is finished
+  while (collision_progress < 100)
+  {
+    // Set updated progress value.
+    progress_bar_->setValue(collision_progress);
+
+    // Allow GUI thread to do its stuff
+    QApplication::processEvents();
+
+    // 1 second sleep
+    boost::this_thread::sleep(check_interval);
+    // usleep(1000 * 1000);
+  }
+>>>>>>> upstream/indigo-devel
 
 // ******************************************************************************************
 // cleanup after worker_ thread has finished
@@ -245,14 +382,21 @@ void DefaultCollisionsWidget::finishGeneratingCollisionTable()
   disableControls(false);  // enable everything else
 
   config_data_->changes |= MoveItConfigData::COLLISIONS;
+<<<<<<< HEAD
   worker_->deleteLater();
   worker_ = NULL;
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 // ******************************************************************************************
 // The worker function to compute the collision matrix
 // ******************************************************************************************
+<<<<<<< HEAD
 void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_progress)
+=======
+void DefaultCollisionsWidget::generateCollisionTableThread(unsigned int* collision_progress)
+>>>>>>> upstream/indigo-devel
 {
   unsigned int num_trials = density_slider_->value() * 1000 + 1000;  // scale to trials amount
   double min_frac = (double)fraction_spinbox_->value() / 100.0;
@@ -266,6 +410,12 @@ void DefaultCollisionsWidget::generateCollisionTable(unsigned int* collision_pro
   // Find the default collision matrix - all links that are allowed to collide
   link_pairs_ = moveit_setup_assistant::computeDefaultCollisions(
       config_data_->getPlanningScene(), collision_progress, include_never_colliding, num_trials, min_frac, verbose);
+<<<<<<< HEAD
+=======
+
+  // Copy data changes to srdf_writer object
+  linkPairsToSRDF();
+>>>>>>> upstream/indigo-devel
 
   // End the progress bar loop
   *collision_progress = 100;
@@ -301,6 +451,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
   delete model_;
   model_ = model;
 
+<<<<<<< HEAD
   // delete old and fetch new selection model
   delete selection_model_;
   selection_model_ = collision_table_->selectionModel();
@@ -309,6 +460,18 @@ void DefaultCollisionsWidget::loadCollisionTable()
 
   // activate some model-specific settings
   if (view_mode_buttons_->checkedId() == MatrixMode)
+=======
+  QApplication::processEvents();  // allow the progress bar to be shown
+  progress_label_->setText("Loading table...");
+
+  // Setup Collision Table
+  collision_table_->setUpdatesEnabled(false);  // prevent table from updating until we are completely done
+  collision_table_->setDisabled(true);         // make sure we disable it so that the cellChanged event is not called
+  collision_table_->clearContents();
+
+  // Check if there are no disabled collisions (unprobable?)
+  if (link_pairs_.empty())
+>>>>>>> upstream/indigo-devel
   {
     connect(selection_model_, SIGNAL(currentChanged(QModelIndex, QModelIndex)), this,
             SLOT(previewSelectedMatrix(QModelIndex)));
@@ -358,6 +521,7 @@ void DefaultCollisionsWidget::loadCollisionTable()
 #endif
   }
 
+<<<<<<< HEAD
 // notice changes to the model
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
   connect(model_, SIGNAL(dataChanged(QModelIndex, QModelIndex, QVector<int>)), this,
@@ -444,11 +608,45 @@ void DefaultCollisionsWidget::hideSections()
     list.clear();
     list << clicked_section_;
   }
+=======
+  // Intially set the table to be worst-case scenario of every possible element pair
+  collision_table_->setRowCount(link_pairs_.size());
+
+  for (moveit_setup_assistant::LinkPairMap::const_iterator pair_it = link_pairs_.begin(); pair_it != link_pairs_.end();
+       ++pair_it)
+  {
+    // Add link pair row if 1) it is disabled from collision checking or 2) the SHOW ALL LINK PAIRS checkbox is checked
+    if (pair_it->second.disable_check || collision_checkbox_->isChecked())
+    {
+      // Create row elements
+      QTableWidgetItem* linkA = new QTableWidgetItem(pair_it->first.first.c_str());
+      linkA->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+      QTableWidgetItem* linkB = new QTableWidgetItem(pair_it->first.second.c_str());
+      linkB->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+      CheckboxSortWidgetItem* disable_check = new CheckboxSortWidgetItem();
+      disable_check->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
+      if (pair_it->second.disable_check)  // Checked means no collision checking
+        disable_check->setCheckState(Qt::Checked);
+      else
+        disable_check->setCheckState(Qt::Unchecked);
+
+      QTableWidgetItem* reason = new QTableWidgetItem(longReasonsToString.at(pair_it->second.reason));
+      reason->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+      // Insert row elements into collision table
+      collision_table_->setItem(row, 0, linkA);
+      collision_table_->setItem(row, 1, linkB);
+      collision_table_->setItem(row, 2, disable_check);
+      collision_table_->setItem(row, 3, reason);
+>>>>>>> upstream/indigo-devel
 
   for (auto index : list)
     header->setSectionHidden(index, true);
 }
 
+<<<<<<< HEAD
 void DefaultCollisionsWidget::hideOtherSections()
 {
   QList<int> list;
@@ -546,12 +744,27 @@ void DefaultCollisionsWidget::revertChanges()
   loadCollisionTable();
   btn_revert_->setEnabled(false);  // no changes to revert
 }
+=======
+    ++progress_counter;  // for calculating progress bar
+
+    if (progress_counter % 200 == 0)
+    {
+      // Update Progress Bar
+      progress_bar_->setValue(progress_counter * 100 / link_pairs_.size());
+      QApplication::processEvents();  // allow the progress bar to be shown
+    }
+  }
+
+  // Reduce the table size to only the number of used rows.
+  collision_table_->setRowCount(row);
+>>>>>>> upstream/indigo-devel
 
 bool DefaultCollisionsWidget::eventFilter(QObject* object, QEvent* event)
 {
   if (object != collision_table_)
     return false;  // leave event unhandled
 
+<<<<<<< HEAD
   if (event->type() == QEvent::Enter)
   {
     // grab focus as soon as mouse enters to allow for <space> to work in all cases
@@ -618,6 +831,9 @@ void DefaultCollisionsWidget::toggleSelection(QItemSelection selection)
     SortFilterProxyModel* m = static_cast<SortFilterProxyModel*>(model_);
     m->setEnabled(selection, !current);
   }
+=======
+  collision_table_->setUpdatesEnabled(true);  // prevent table from updating until we are completely done
+>>>>>>> upstream/indigo-devel
 }
 
 // ******************************************************************************************
@@ -635,6 +851,10 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 {
   controls_box_->setDisabled(disable);
   collision_table_->setDisabled(disable);
+<<<<<<< HEAD
+=======
+  collision_checkbox_->setDisabled(disable);
+>>>>>>> upstream/indigo-devel
 
   if (disable)
   {
@@ -655,10 +875,76 @@ void DefaultCollisionsWidget::disableControls(bool disable)
 // ******************************************************************************************
 void DefaultCollisionsWidget::checkedFilterChanged()
 {
+<<<<<<< HEAD
   SortFilterProxyModel* m = qobject_cast<SortFilterProxyModel*>(model_);
   m->setShowAll(collision_checkbox_->checkState() == Qt::Checked);
 }
 
+=======
+  // Show Progress bar
+  disableControls(true);
+
+  // Now update collision table with updates
+  loadCollisionTable();
+
+  // Hide Progress bar
+  disableControls(false);
+}
+
+// ******************************************************************************************
+// Called when user changes data in table, really just the checkbox
+// ******************************************************************************************
+void DefaultCollisionsWidget::toggleCheckBox(int row, int column)
+{
+  // Only accept cell changes if table is enabled, otherwise it is this program making changes
+  // Also make sure the change is in the checkbox column
+  if (!collision_table_->isEnabled() || column != 2)
+    return;
+
+  // Convert row to pair
+  std::pair<std::string, std::string> link_pair;
+  link_pair.first = collision_table_->item(row, 0)->text().toStdString();
+  link_pair.second = collision_table_->item(row, 1)->text().toStdString();
+
+  // Get the state of checkbox
+  bool check_state = collision_table_->item(row, 2)->checkState();
+
+  // Check if the checkbox state has changed from original value
+  if (link_pairs_[link_pair].disable_check != check_state)
+  {
+    // Save the change
+    link_pairs_[link_pair].disable_check = check_state;
+
+    // Handle USER Reasons: 1) pair is disabled by user
+    if (link_pairs_[link_pair].disable_check == true &&
+        link_pairs_[link_pair].reason == moveit_setup_assistant::NOT_DISABLED)
+    {
+      link_pairs_[link_pair].reason = moveit_setup_assistant::USER;
+
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText(longReasonsToString.at(link_pairs_[link_pair].reason));
+    }
+    // Handle USER Reasons: 2) pair was disabled by user and now is enabled (not checked)
+    else if (link_pairs_[link_pair].disable_check == false &&
+             link_pairs_[link_pair].reason == moveit_setup_assistant::USER)
+    {
+      link_pairs_[link_pair].reason = moveit_setup_assistant::NOT_DISABLED;
+
+      // Change Reason in Table
+      collision_table_->item(row, 3)->setText("");
+    }
+
+    config_data_->changes |= MoveItConfigData::COLLISIONS;
+  }
+
+  // Copy data changes to srdf_writer object
+  linkPairsToSRDF();
+
+  previewSelected(row);
+}
+
+// ******************************************************************************************
+>>>>>>> upstream/indigo-devel
 // Output Link Pairs to SRDF Format and update the collision matrix
 // ******************************************************************************************
 void DefaultCollisionsWidget::linkPairsToSRDF()
@@ -728,6 +1014,7 @@ void DefaultCollisionsWidget::linkPairsFromSRDF()
 // ******************************************************************************************
 // Preview whatever element is selected
 // ******************************************************************************************
+<<<<<<< HEAD
 void DefaultCollisionsWidget::previewSelectedMatrix(const QModelIndex& index)
 {
   // Unhighlight all links
@@ -766,6 +1053,21 @@ void DefaultCollisionsWidget::previewSelectedLinear(const QModelIndex& index)
   const QString& first_link = model_->data(model_->index(index.row(), 0), Qt::DisplayRole).toString();
   const QString& second_link = model_->data(model_->index(index.row(), 1), Qt::DisplayRole).toString();
   uint check_state = model_->data(model_->index(index.row(), 2), Qt::CheckStateRole).toUInt();
+=======
+void DefaultCollisionsWidget::previewSelected(int row)
+{
+  // Unhighlight all links
+  Q_EMIT unhighlightAll();
+
+  // Highlight link
+  QTableWidgetItem* first_link_item = collision_table_->item(row, 0);
+  if (!first_link_item)
+    return;  // nothing to highlight
+
+  const QString& first_link = first_link_item->text();
+  const QString& second_link = collision_table_->item(row, 1)->text();
+  Qt::CheckState check_state = collision_table_->item(row, 2)->checkState();
+>>>>>>> upstream/indigo-devel
 
   QColor color = (check_state == Qt::Checked) ? QColor(0, 255, 0) : QColor(255, 0, 0);
   Q_EMIT highlightLink(first_link.toStdString(), color);
@@ -785,6 +1087,7 @@ void DefaultCollisionsWidget::focusGiven()
 
   // Enable the table
   disableControls(false);
+<<<<<<< HEAD
   btn_revert_->setEnabled(false);  // no changes to revert
 }
 
@@ -835,4 +1138,8 @@ void moveit_setup_assistant::MonitorThread::run()
   Q_EMIT progress(progress_);
 }
 
+=======
+}
+
+>>>>>>> upstream/indigo-devel
 }  // namespace

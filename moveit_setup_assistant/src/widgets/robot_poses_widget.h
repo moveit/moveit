@@ -177,7 +177,11 @@ private:
    * @param name - name of data to find in datastructure
    * @return pointer to data in datastructure
    */
+<<<<<<< HEAD
   srdf::Model::GroupState* findPoseByName(const std::string& name, const std::string& group);
+=======
+  srdf::Model::GroupState* findPoseByName(const std::string& name);
+>>>>>>> upstream/indigo-devel
 
   /**
    * Create the main list view of poses for robot
@@ -210,7 +214,11 @@ private:
    *
    * @param name name of pose
    */
+<<<<<<< HEAD
   void edit(int row);
+=======
+  void edit(const std::string& name);
+>>>>>>> upstream/indigo-devel
 
   /**
    * Show the robot in the current pose

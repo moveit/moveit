@@ -1,9 +1,13 @@
 set(MOVEIT_LIB_NAME moveit_kinematics_constraint_aware)
 
 add_library(${MOVEIT_LIB_NAME} src/kinematics_constraint_aware.cpp)
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 # This line is needed to ensure that messages are done being built before this is built
-add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${MOVEIT_LIB_NAME} moveit_msgs_gencpp)
 
 target_link_libraries(${MOVEIT_LIB_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 

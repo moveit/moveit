@@ -41,6 +41,7 @@
 #include <ros/ros.h>
 #endif
 
+<<<<<<< HEAD:moveit_ros/visualization/rviz_plugin_render_tools/include/moveit/rviz_plugin_render_tools/trajectory_panel.h
 #include <rviz/panel.h>
 
 #include <QSlider>
@@ -48,25 +49,43 @@
 #include <QPushButton>
 
 namespace moveit_rviz_plugin
+=======
+namespace benchmark_tool
+{
+class JobProcessing
+>>>>>>> upstream/indigo-devel:moveit_ros/benchmarks_gui/include/job_processing.h
 {
 class TrajectoryPanel : public rviz::Panel
 {
   Q_OBJECT
 
 public:
+<<<<<<< HEAD:moveit_ros/visualization/rviz_plugin_render_tools/include/moveit/rviz_plugin_render_tools/trajectory_panel.h
   TrajectoryPanel(QWidget* parent = 0);
 
   virtual ~TrajectoryPanel();
+=======
+  static std::deque<boost::function<void(void)> > main_loop_jobs_;
+  static boost::mutex main_loop_jobs_lock_;
+>>>>>>> upstream/indigo-devel:moveit_ros/benchmarks_gui/include/job_processing.h
 
   void onInitialize();
   void onEnable();
   void onDisable();
   void update(int way_point_count);
 
+<<<<<<< HEAD:moveit_ros/visualization/rviz_plugin_render_tools/include/moveit/rviz_plugin_render_tools/trajectory_panel.h
   // Switches between pause and play mode
   void pauseButton(bool check);
 
   void setSliderPosition(int position);
+=======
+  // pass the execution of this function call to a separate thread that runs in the background
+  static void addBackgroundJob(const boost::function<void(void)>& job);
+
+  // queue the execution of this function for the next time the main update() loop gets called
+  static void addMainLoopJob(const boost::function<void(void)>& job);
+>>>>>>> upstream/indigo-devel:moveit_ros/benchmarks_gui/include/job_processing.h
 
   int getSliderPosition() const
   {
@@ -82,6 +101,7 @@ private Q_SLOTS:
   void sliderValueChanged(int value);
   void buttonClicked();
 
+<<<<<<< HEAD:moveit_ros/visualization/rviz_plugin_render_tools/include/moveit/rviz_plugin_render_tools/trajectory_panel.h
 protected:
   QSlider* slider_;
   QLabel* maximum_label_;
@@ -93,5 +113,8 @@ protected:
 };
 
 }  // namespace moveit_rviz_plugin
+=======
+}  // namespace
+>>>>>>> upstream/indigo-devel:moveit_ros/benchmarks_gui/include/job_processing.h
 
 #endif

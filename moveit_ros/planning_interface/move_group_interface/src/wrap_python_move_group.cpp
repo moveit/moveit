@@ -56,16 +56,25 @@ namespace moveit
 {
 namespace planning_interface
 {
+<<<<<<< HEAD
 class MoveGroupInterfaceWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroupInterface
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if
   // needed
-  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description,
-                            const std::string& ns = "")
+  MoveGroupInterfaceWrapper(const std::string& group_name, const std::string& robot_description)
     : py_bindings_tools::ROScppInitializer()
-    , MoveGroupInterface(Options(group_name, robot_description, ros::NodeHandle(ns)),
-                         boost::shared_ptr<tf::Transformer>(), ros::WallDuration(5, 0))
+    , MoveGroupInterface(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(),
+                         ros::WallDuration(5, 0))
+=======
+class MoveGroupWrapper : protected py_bindings_tools::ROScppInitializer, public MoveGroup
+{
+public:
+  // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
+  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description)
+    : py_bindings_tools::ROScppInitializer()
+    , MoveGroup(Options(group_name, robot_description), boost::shared_ptr<tf::Transformer>(), ros::WallDuration(5, 0))
+>>>>>>> upstream/indigo-devel
   {
   }
 
@@ -110,30 +119,17 @@ public:
     return setJointValueTarget(js_msg);
   }
 
-  bool setStateValueTarget(const std::string& state_str)
-  {
-    moveit_msgs::RobotState msg;
-    py_bindings_tools::deserializeMsg(state_str, msg);
-    robot_state::RobotState state(moveit::planning_interface::MoveGroupInterface::getJointValueTarget());
-    moveit::core::robotStateMsgToRobotState(msg, state);
-    return moveit::planning_interface::MoveGroupInterface::setJointValueTarget(state);
-  }
-
   bp::list getJointValueTargetPythonList()
   {
+<<<<<<< HEAD
     const robot_state::RobotState& values = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
+=======
+    const robot_state::RobotState& values = moveit::planning_interface::MoveGroup::getJointValueTarget();
+>>>>>>> upstream/indigo-devel
     bp::list l;
     for (const double *it = values.getVariablePositions(), *end = it + getVariableCount(); it != end; ++it)
       l.append(*it);
     return l;
-  }
-
-  std::string getJointValueTarget()
-  {
-    moveit_msgs::RobotState msg;
-    const robot_state::RobotState state = moveit::planning_interface::MoveGroupInterface::getJointValueTarget();
-    moveit::core::robotStateToRobotStateMsg(state, msg);
-    return py_bindings_tools::serializeMsg(msg);
   }
 
   void rememberJointValuesFromPythonList(const std::string& string, bp::list& values)
@@ -144,13 +140,6 @@ public:
   const char* getPlanningFrameCStr() const
   {
     return getPlanningFrame().c_str();
-  }
-
-  std::string getInterfaceDescriptionPython()
-  {
-    moveit_msgs::PlannerInterfaceDescription msg;
-    getInterfaceDescription(msg);
-    return py_bindings_tools::serializeMsg(msg);
   }
 
   bp::list getActiveJointsList() const
@@ -328,11 +317,6 @@ public:
     convertListToArrayOfPoses(poses, msg);
     return setPoseTargets(msg, end_effector_link);
   }
-  std::string getPoseTargetPython(const std::string& end_effector_link)
-  {
-    geometry_msgs::PoseStamped pose = moveit::planning_interface::MoveGroupInterface::getPoseTarget(end_effector_link);
-    return py_bindings_tools::serializeMsg(pose);
-  }
 
   bool setPoseTargetPython(bp::list& pose, const std::string& end_effector_link = "")
   {
@@ -379,7 +363,7 @@ public:
     std::map<std::string, double> positions = getNamedTargetValues(name);
     std::map<std::string, double>::iterator iterator;
 
-    for (iterator = positions.begin(); iterator != positions.end(); ++iterator)
+    for (iterator = positions.begin(); iterator != positions.end(); iterator++)
       output[iterator->first] = iterator->second;
     return output;
   }
@@ -418,6 +402,11 @@ public:
     return asyncExecute(plan) == MoveItErrorCode::SUCCESS;
   }
 
+  const char* getPlannerIdCStr() const
+  {
+    return getPlannerId().c_str();
+  }
+
   std::string getPlanPython()
   {
     MoveGroupInterface::Plan plan;
@@ -428,26 +417,10 @@ public:
   bp::tuple computeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
                                        bool avoid_collisions)
   {
-    moveit_msgs::Constraints path_constraints_tmp;
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints_tmp);
-  }
-
-  bp::tuple computeCartesianPathConstrainedPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                                  bool avoid_collisions, const std::string& path_constraints_str)
-  {
-    moveit_msgs::Constraints path_constraints;
-    py_bindings_tools::deserializeMsg(path_constraints_str, path_constraints);
-    return doComputeCartesianPathPython(waypoints, eef_step, jump_threshold, avoid_collisions, path_constraints);
-  }
-
-  bp::tuple doComputeCartesianPathPython(const bp::list& waypoints, double eef_step, double jump_threshold,
-                                         bool avoid_collisions, const moveit_msgs::Constraints& path_constraints)
-  {
     std::vector<geometry_msgs::Pose> poses;
     convertListToArrayOfPoses(waypoints, poses);
     moveit_msgs::RobotTrajectory trajectory;
-    double fraction =
-        computeCartesianPath(poses, eef_step, jump_threshold, trajectory, path_constraints, avoid_collisions);
+    double fraction = computeCartesianPath(poses, eef_step, jump_threshold, trajectory, avoid_collisions);
     return bp::make_tuple(py_bindings_tools::serializeMsg(trajectory), fraction);
   }
 
@@ -479,8 +452,27 @@ public:
     moveit_msgs::Constraints constraints_msg(getPathConstraints());
     std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
     return constraints_str;
+<<<<<<< HEAD
   }
 
+  void setTrajectoryConstraintsFromMsg(const std::string& constraints_str)
+  {
+    moveit_msgs::TrajectoryConstraints constraints_msg;
+    py_bindings_tools::deserializeMsg(constraints_str, constraints_msg);
+    setTrajectoryConstraints(constraints_msg);
+  }
+
+  std::string getTrajectoryConstraintsPython()
+  {
+    moveit_msgs::TrajectoryConstraints constraints_msg(getTrajectoryConstraints());
+    std::string constraints_str = py_bindings_tools::serializeMsg(constraints_msg);
+    return constraints_str;
+  }
+
+=======
+  }
+
+>>>>>>> upstream/indigo-devel
   std::string retimeTrajectory(const std::string& ref_state_str, const std::string& traj_str,
                                double velocity_scaling_factor)
   {
@@ -515,11 +507,12 @@ public:
   }
 };
 
+<<<<<<< HEAD
 class MoveGroupWrapper : public MoveGroupInterfaceWrapper
 {
 public:
-  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description, const std::string& ns = "")
-    : MoveGroupInterfaceWrapper(group_name, robot_description, ns)
+  MoveGroupWrapper(const std::string& group_name, const std::string& robot_description)
+    : MoveGroupInterfaceWrapper(group_name, robot_description)
   {
     ROS_WARN("The MoveGroup class is deprecated and will be removed in ROS lunar. Please use MoveGroupInterface "
              "instead.");
@@ -529,7 +522,7 @@ public:
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
-      "MoveGroupInterface", bp::init<std::string, std::string, std::string>());
+      "MoveGroupInterface", bp::init<std::string, std::string>());
 
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);
@@ -547,7 +540,6 @@ static void wrap_move_group_interface()
 
   MoveGroupInterfaceClass.def("get_name", &MoveGroupInterfaceWrapper::getNameCStr);
   MoveGroupInterfaceClass.def("get_planning_frame", &MoveGroupInterfaceWrapper::getPlanningFrameCStr);
-  MoveGroupInterfaceClass.def("get_interface_description", &MoveGroupInterfaceWrapper::getInterfaceDescriptionPython);
 
   MoveGroupInterfaceClass.def("get_active_joints", &MoveGroupInterfaceWrapper::getActiveJointsList);
   MoveGroupInterfaceClass.def("get_joints", &MoveGroupInterfaceWrapper::getJointsList);
@@ -586,7 +578,6 @@ static void wrap_move_group_interface()
   bool (MoveGroupInterfaceWrapper::*setJointValueTarget_4)(const std::string&, double) =
       &MoveGroupInterfaceWrapper::setJointValueTarget;
   MoveGroupInterfaceClass.def("set_joint_value_target", setJointValueTarget_4);
-  MoveGroupInterfaceClass.def("set_state_value_target", &MoveGroupInterfaceWrapper::setStateValueTarget);
 
   MoveGroupInterfaceClass.def("set_joint_value_target_from_pose",
                               &MoveGroupInterfaceWrapper::setJointValueTargetFromPosePython);
@@ -635,6 +626,12 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("set_path_constraints_from_msg", &MoveGroupInterfaceWrapper::setPathConstraintsFromMsg);
   MoveGroupInterfaceClass.def("get_path_constraints", &MoveGroupInterfaceWrapper::getPathConstraintsPython);
   MoveGroupInterfaceClass.def("clear_path_constraints", &MoveGroupInterfaceWrapper::clearPathConstraints);
+
+  MoveGroupInterfaceClass.def("set_trajectory_constraints_from_msg",
+                              &MoveGroupInterfaceWrapper::setTrajectoryConstraintsFromMsg);
+  MoveGroupInterfaceClass.def("get_trajectory_constraints", &MoveGroupInterfaceWrapper::getTrajectoryConstraintsPython);
+  MoveGroupInterfaceClass.def("clear_trajectory_constraints", &MoveGroupInterfaceWrapper::clearTrajectoryConstraints);
+
   MoveGroupInterfaceClass.def("get_known_constraints", &MoveGroupInterfaceWrapper::getKnownConstraintsList);
   MoveGroupInterfaceClass.def("set_constraints_database", &MoveGroupInterfaceWrapper::setConstraintsDatabase);
   MoveGroupInterfaceClass.def("set_workspace", &MoveGroupInterfaceWrapper::setWorkspace);
@@ -645,11 +642,10 @@ static void wrap_move_group_interface()
   MoveGroupInterfaceClass.def("set_max_acceleration_scaling_factor",
                               &MoveGroupWrapper::setMaxAccelerationScalingFactor);
   MoveGroupInterfaceClass.def("set_planner_id", &MoveGroupInterfaceWrapper::setPlannerId);
+  MoveGroupInterfaceClass.def("get_planner_id", &MoveGroupInterfaceWrapper::getPlannerIdCStr);
   MoveGroupInterfaceClass.def("set_num_planning_attempts", &MoveGroupInterfaceWrapper::setNumPlanningAttempts);
   MoveGroupInterfaceClass.def("compute_plan", &MoveGroupInterfaceWrapper::getPlanPython);
   MoveGroupInterfaceClass.def("compute_cartesian_path", &MoveGroupInterfaceWrapper::computeCartesianPathPython);
-  MoveGroupInterfaceClass.def("compute_cartesian_path",
-                              &MoveGroupInterfaceWrapper::computeCartesianPathConstrainedPython);
   MoveGroupInterfaceClass.def("set_support_surface_name", &MoveGroupInterfaceWrapper::setSupportSurfaceName);
   MoveGroupInterfaceClass.def("attach_object", &MoveGroupInterfaceWrapper::attachObjectPython);
   MoveGroupInterfaceClass.def("detach_object", &MoveGroupInterfaceWrapper::detachObject);
@@ -660,6 +656,122 @@ static void wrap_move_group_interface()
 
   bp::class_<MoveGroupWrapper, bp::bases<MoveGroupInterfaceWrapper>, boost::noncopyable> MoveGroupClass(
       "MoveGroup", bp::init<std::string, std::string>());
+=======
+static void wrap_move_group_interface()
+{
+  bp::class_<MoveGroupWrapper> MoveGroupClass("MoveGroup", bp::init<std::string, std::string>());
+
+  MoveGroupClass.def("async_move", &MoveGroupWrapper::asyncMovePython);
+  MoveGroupClass.def("move", &MoveGroupWrapper::movePython);
+  MoveGroupClass.def("execute", &MoveGroupWrapper::executePython);
+  MoveGroupClass.def("async_execute", &MoveGroupWrapper::asyncExecutePython);
+  moveit::planning_interface::MoveItErrorCode (MoveGroupWrapper::*pick_1)(const std::string&) = &MoveGroupWrapper::pick;
+  MoveGroupClass.def("pick", pick_1);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasp);
+  MoveGroupClass.def("pick", &MoveGroupWrapper::pickGrasps);
+  MoveGroupClass.def("place", &MoveGroupWrapper::placePose);
+  MoveGroupClass.def("place", &MoveGroupWrapper::placeLocation);
+  MoveGroupClass.def("place", &MoveGroupWrapper::placeAnywhere);
+  MoveGroupClass.def("stop", &MoveGroupWrapper::stop);
+
+  MoveGroupClass.def("get_name", &MoveGroupWrapper::getNameCStr);
+  MoveGroupClass.def("get_planning_frame", &MoveGroupWrapper::getPlanningFrameCStr);
+
+  MoveGroupClass.def("get_active_joints", &MoveGroupWrapper::getActiveJointsList);
+  MoveGroupClass.def("get_joints", &MoveGroupWrapper::getJointsList);
+  MoveGroupClass.def("get_variable_count", &MoveGroupWrapper::getVariableCount);
+  MoveGroupClass.def("allow_looking", &MoveGroupWrapper::allowLooking);
+  MoveGroupClass.def("allow_replanning", &MoveGroupWrapper::allowReplanning);
+
+  MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
+
+  MoveGroupClass.def("set_pose_reference_frame", &MoveGroupWrapper::setPoseReferenceFrame);
+  MoveGroupClass.def("set_end_effector_link", &MoveGroupWrapper::setEndEffectorLink);
+  MoveGroupClass.def("get_end_effector_link", &MoveGroupWrapper::getEndEffectorLinkCStr);
+  MoveGroupClass.def("get_pose_reference_frame", &MoveGroupWrapper::getPoseReferenceFrameCStr);
+
+  MoveGroupClass.def("set_pose_target", &MoveGroupWrapper::setPoseTargetPython);
+
+  MoveGroupClass.def("set_pose_targets", &MoveGroupWrapper::setPoseTargetsPython);
+
+  MoveGroupClass.def("set_position_target", &MoveGroupWrapper::setPositionTarget);
+  MoveGroupClass.def("set_rpy_target", &MoveGroupWrapper::setRPYTarget);
+  MoveGroupClass.def("set_orientation_target", &MoveGroupWrapper::setOrientationTarget);
+
+  MoveGroupClass.def("get_current_pose", &MoveGroupWrapper::getCurrentPosePython);
+  MoveGroupClass.def("get_current_rpy", &MoveGroupWrapper::getCurrentRPYPython);
+
+  MoveGroupClass.def("get_random_pose", &MoveGroupWrapper::getRandomPosePython);
+
+  MoveGroupClass.def("clear_pose_target", &MoveGroupWrapper::clearPoseTarget);
+  MoveGroupClass.def("clear_pose_targets", &MoveGroupWrapper::clearPoseTargets);
+
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonIterable);
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPythonDict);
+
+  MoveGroupClass.def("set_joint_value_target", &MoveGroupWrapper::setJointValueTargetPerJointPythonList);
+  bool (MoveGroupWrapper::*setJointValueTarget_4)(const std::string&, double) = &MoveGroupWrapper::setJointValueTarget;
+  MoveGroupClass.def("set_joint_value_target", setJointValueTarget_4);
+
+  MoveGroupClass.def("set_joint_value_target_from_pose", &MoveGroupWrapper::setJointValueTargetFromPosePython);
+  MoveGroupClass.def("set_joint_value_target_from_pose_stamped",
+                     &MoveGroupWrapper::setJointValueTargetFromPoseStampedPython);
+  MoveGroupClass.def("set_joint_value_target_from_joint_state_message",
+                     &MoveGroupWrapper::setJointValueTargetFromJointStatePython);
+
+  MoveGroupClass.def("get_joint_value_target", &MoveGroupWrapper::getJointValueTargetPythonList);
+
+  MoveGroupClass.def("set_named_target", &MoveGroupWrapper::setNamedTarget);
+  MoveGroupClass.def("set_random_target", &MoveGroupWrapper::setRandomTarget);
+
+  void (MoveGroupWrapper::*rememberJointValues_2)(const std::string&) = &MoveGroupWrapper::rememberJointValues;
+  MoveGroupClass.def("remember_joint_values", rememberJointValues_2);
+
+  MoveGroupClass.def("remember_joint_values", &MoveGroupWrapper::rememberJointValuesFromPythonList);
+
+  MoveGroupClass.def("start_state_monitor", &MoveGroupWrapper::startStateMonitor);
+  MoveGroupClass.def("get_current_joint_values", &MoveGroupWrapper::getCurrentJointValuesList);
+  MoveGroupClass.def("get_random_joint_values", &MoveGroupWrapper::getRandomJointValuesList);
+  MoveGroupClass.def("get_remembered_joint_values", &MoveGroupWrapper::getRememberedJointValuesPython);
+
+  MoveGroupClass.def("forget_joint_values", &MoveGroupWrapper::forgetJointValues);
+
+  MoveGroupClass.def("get_goal_joint_tolerance", &MoveGroupWrapper::getGoalJointTolerance);
+  MoveGroupClass.def("get_goal_position_tolerance", &MoveGroupWrapper::getGoalPositionTolerance);
+  MoveGroupClass.def("get_goal_orientation_tolerance", &MoveGroupWrapper::getGoalOrientationTolerance);
+
+  MoveGroupClass.def("set_goal_joint_tolerance", &MoveGroupWrapper::setGoalJointTolerance);
+  MoveGroupClass.def("set_goal_position_tolerance", &MoveGroupWrapper::setGoalPositionTolerance);
+  MoveGroupClass.def("set_goal_orientation_tolerance", &MoveGroupWrapper::setGoalOrientationTolerance);
+  MoveGroupClass.def("set_goal_tolerance", &MoveGroupWrapper::setGoalTolerance);
+
+  MoveGroupClass.def("set_start_state_to_current_state", &MoveGroupWrapper::setStartStateToCurrentState);
+  MoveGroupClass.def("set_start_state", &MoveGroupWrapper::setStartStatePython);
+
+  bool (MoveGroupWrapper::*setPathConstraints_1)(const std::string&) = &MoveGroupWrapper::setPathConstraints;
+  MoveGroupClass.def("set_path_constraints", setPathConstraints_1);
+  MoveGroupClass.def("set_path_constraints_from_msg", &MoveGroupWrapper::setPathConstraintsFromMsg);
+  MoveGroupClass.def("get_path_constraints", &MoveGroupWrapper::getPathConstraintsPython);
+  MoveGroupClass.def("clear_path_constraints", &MoveGroupWrapper::clearPathConstraints);
+  MoveGroupClass.def("get_known_constraints", &MoveGroupWrapper::getKnownConstraintsList);
+  MoveGroupClass.def("set_constraints_database", &MoveGroupWrapper::setConstraintsDatabase);
+  MoveGroupClass.def("set_workspace", &MoveGroupWrapper::setWorkspace);
+  MoveGroupClass.def("set_planning_time", &MoveGroupWrapper::setPlanningTime);
+  MoveGroupClass.def("get_planning_time", &MoveGroupWrapper::getPlanningTime);
+  MoveGroupClass.def("set_max_acceleration_scaling_factor", &MoveGroupWrapper::setMaxAccelerationScalingFactor);
+  MoveGroupClass.def("set_max_velocity_scaling_factor", &MoveGroupWrapper::setMaxVelocityScalingFactor);
+  MoveGroupClass.def("set_planner_id", &MoveGroupWrapper::setPlannerId);
+  MoveGroupClass.def("set_num_planning_attempts", &MoveGroupWrapper::setNumPlanningAttempts);
+  MoveGroupClass.def("compute_plan", &MoveGroupWrapper::getPlanPython);
+  MoveGroupClass.def("compute_cartesian_path", &MoveGroupWrapper::computeCartesianPathPython);
+  MoveGroupClass.def("set_support_surface_name", &MoveGroupWrapper::setSupportSurfaceName);
+  MoveGroupClass.def("attach_object", &MoveGroupWrapper::attachObjectPython);
+  MoveGroupClass.def("detach_object", &MoveGroupWrapper::detachObject);
+  MoveGroupClass.def("retime_trajectory", &MoveGroupWrapper::retimeTrajectory);
+  MoveGroupClass.def("get_named_targets", &MoveGroupWrapper::getNamedTargetsPython);
+  MoveGroupClass.def("get_named_target_values", &MoveGroupWrapper::getNamedTargetValuesPython);
+  MoveGroupClass.def("get_current_state_bounded", &MoveGroupWrapper::getCurrentStateBoundedPython);
+>>>>>>> upstream/indigo-devel
 }
 }
 }

@@ -247,10 +247,21 @@ void PlanningSceneDisplay::executeMainLoopJobs()
     {
       fn();
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
     {
       ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
     }
+=======
+    catch (std::runtime_error& ex)
+    {
+      ROS_ERROR("Exception caught executing main loop job: %s", ex.what());
+    }
+    catch (...)
+    {
+      ROS_ERROR("Exception caught executing main loop job");
+    }
+>>>>>>> upstream/indigo-devel
     main_loop_jobs_lock_.lock();
   }
   main_loop_jobs_empty_condition_.notify_all();
@@ -342,7 +353,11 @@ void PlanningSceneDisplay::renderPlanningScene()
           static_cast<OctreeVoxelColorMode>(octree_coloring_property_->getOptionInt()),
           scene_alpha_property_->getFloat());
     }
+<<<<<<< HEAD
     catch (std::exception& ex)
+=======
+    catch (...)
+>>>>>>> upstream/indigo-devel
     {
       ROS_ERROR("Caught %s while rendering planning scene", ex.what());
     }

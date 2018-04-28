@@ -39,7 +39,15 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <console_bridge/console.h>
 
+<<<<<<< HEAD
+namespace moveit
+{
+namespace core
+{
+Transforms::Transforms(const std::string& target_frame) : target_frame_(target_frame)
+=======
 moveit::core::Transforms::Transforms(const std::string& target_frame) : target_frame_(target_frame)
+>>>>>>> upstream/indigo-devel
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
@@ -48,15 +56,24 @@ moveit::core::Transforms::Transforms(const std::string& target_frame) : target_f
   {
     if (target_frame_[0] != '/')
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
                              target_frame_.c_str(), target_frame_.c_str());
+=======
+      logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
+              target_frame_.c_str(), target_frame_.c_str());
+>>>>>>> upstream/indigo-devel
       target_frame_ = '/' + target_frame_;
     }
     transforms_[target_frame_] = Eigen::Affine3d::Identity();
   }
 }
 
+<<<<<<< HEAD
+bool Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
+=======
 bool moveit::core::Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
+>>>>>>> upstream/indigo-devel
 {
   if (frame1.empty() || frame2.empty())
     return false;
@@ -67,26 +84,34 @@ bool moveit::core::Transforms::sameFrame(const std::string& frame1, const std::s
   return frame1 == frame2;
 }
 
-moveit::core::Transforms::~Transforms()
+Transforms::~Transforms()
 {
 }
 
-const std::string& moveit::core::Transforms::getTargetFrame() const
+const std::string& Transforms::getTargetFrame() const
 {
   return target_frame_;
 }
 
-const moveit::core::FixedTransformsMap& moveit::core::Transforms::getAllTransforms() const
+const FixedTransformsMap& Transforms::getAllTransforms() const
 {
   return transforms_;
 }
 
+<<<<<<< HEAD
+void Transforms::setAllTransforms(const FixedTransformsMap& transforms)
+=======
 void moveit::core::Transforms::setAllTransforms(const FixedTransformsMap& transforms)
+>>>>>>> upstream/indigo-devel
 {
   transforms_ = transforms;
 }
 
+<<<<<<< HEAD
+bool Transforms::isFixedFrame(const std::string& frame) const
+=======
 bool moveit::core::Transforms::isFixedFrame(const std::string& frame) const
+>>>>>>> upstream/indigo-devel
 {
   if (frame.empty())
     return false;
@@ -94,7 +119,11 @@ bool moveit::core::Transforms::isFixedFrame(const std::string& frame) const
     return (frame[0] == '/' ? transforms_.find(frame) : transforms_.find('/' + frame)) != transforms_.end();
 }
 
+<<<<<<< HEAD
+const Eigen::Affine3d& Transforms::getTransform(const std::string& from_frame) const
+=======
 const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string& from_frame) const
+>>>>>>> upstream/indigo-devel
 {
   if (!from_frame.empty())
   {
@@ -104,15 +133,24 @@ const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string&
       return it->second;
   }
 
+<<<<<<< HEAD
   CONSOLE_BRIDGE_logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(),
                           target_frame_.c_str());
+=======
+  logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(),
+           target_frame_.c_str());
+>>>>>>> upstream/indigo-devel
 
   // return identity
   static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
   return identity;
 }
 
+<<<<<<< HEAD
+bool Transforms::canTransform(const std::string& from_frame) const
+=======
 bool moveit::core::Transforms::canTransform(const std::string& from_frame) const
+>>>>>>> upstream/indigo-devel
 {
   if (from_frame.empty())
     return false;
@@ -121,7 +159,11 @@ bool moveit::core::Transforms::canTransform(const std::string& from_frame) const
            transforms_.end();
 }
 
+<<<<<<< HEAD
+void Transforms::setTransform(const Eigen::Affine3d& t, const std::string& from_frame)
+=======
 void moveit::core::Transforms::setTransform(const Eigen::Affine3d& t, const std::string& from_frame)
+>>>>>>> upstream/indigo-devel
 {
   if (from_frame.empty())
     CONSOLE_BRIDGE_logError("Cannot record transform with empty name");
@@ -138,7 +180,11 @@ void moveit::core::Transforms::setTransform(const Eigen::Affine3d& t, const std:
   }
 }
 
+<<<<<<< HEAD
+void Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
+=======
 void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
+>>>>>>> upstream/indigo-devel
 {
   if (sameFrame(transform.child_frame_id, target_frame_))
   {
@@ -148,18 +194,31 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
   }
   else
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Given transform is to frame '%s', but frame '%s' was expected.",
                             transform.child_frame_id.c_str(), target_frame_.c_str());
   }
 }
 
+void Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
+=======
+    logError("Given transform is to frame '%s', but frame '%s' was expected.", transform.child_frame_id.c_str(),
+             target_frame_.c_str());
+  }
+}
+
 void moveit::core::Transforms::setTransforms(const std::vector<geometry_msgs::TransformStamped>& transforms)
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < transforms.size(); ++i)
     setTransform(transforms[i]);
 }
 
+<<<<<<< HEAD
+void Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const
+=======
 void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::TransformStamped>& transforms) const
+>>>>>>> upstream/indigo-devel
 {
   transforms.resize(transforms_.size());
   std::size_t i = 0;
@@ -170,3 +229,6 @@ void moveit::core::Transforms::copyTransforms(std::vector<geometry_msgs::Transfo
     tf::transformEigenToMsg(it->second, transforms[i].transform);
   }
 }
+
+}  // end of namespace core
+}  // end of namespace moveit

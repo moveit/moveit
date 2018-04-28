@@ -2,6 +2,7 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+<<<<<<< HEAD
 0.9.11 (2017-12-25)
 -------------------
 * [fix] #723; attached bodies are not shown in trajectory visualization anymore `#724 <https://github.com/ros-planning/moveit/issues/724>`_
@@ -9,6 +10,9 @@ Changelog for package moveit_core
 * Contributors: Henning Kayser, Michael Görner, Robert Haschke
 
 0.9.10 (2017-12-09)
+=======
+0.7.13 (2017-12-25)
+>>>>>>> upstream/indigo-devel
 -------------------
 * [fix] Add missing logWarn argument (`#707 <https://github.com/ros-planning/moveit/issues/707>`_)
 * [fix] IKConstraintSampler: Fixed transform from end-effector to ik chain tip. `#582 <https://github.com/ros-planning/moveit/issues/582>`_
@@ -23,6 +27,7 @@ Changelog for package moveit_core
 * [improve] New debug console colors YELLOW PURPLE (`#604 <https://github.com/ros-planning/moveit/issues/604>`_)
 * Contributors: Dave Coleman, Dennis Hartmann, Henning Kayser, Isaac I.Y. Saito, Jorge Nicho, Michael Görner, Phil, Sarah Elliott, Simon Schmeisser, TroyCordie, v4hn
 
+<<<<<<< HEAD
 0.9.9 (2017-08-06)
 ------------------
 * [fix][moveit_core] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
@@ -113,6 +118,108 @@ Changelog for package moveit_core
 * [enhance] Allow a RobotTrajectory to be initialized with a pointer joint model group `#245 <https://github.com/ros-planning/moveit_core/issues/245>`_
 * [doc] Better documentation and formatting `#244 <https://github.com/ros-planning/moveit_core/issues/244>`_
 * Contributors: Alexis Ballier, Bastian Gaspers, Christian Dornhege, Dave Coleman, Gary Servin, Ioan A Sucan, Isaac I.Y. Saito, Jim Mainprice, Levi Armstrong, Michael Ferguson, Mihai Pomarlan, Robert Haschke, Sachin Chitta, Sam Pfeiffer, Steven Peters, Severin Lemaignan, jrgnicho, ros-devel, simonschmeisser
+=======
+0.7.12 (2017-08-06)
+-------------------
+* [fix] segfault due to missing string format parameter. (`#547 <https://github.com/ros-planning/moveit/issues/547>`_)
+* [fix] doc-comment for robot_state::computeAABB (`#516 <https://github.com/ros-planning/moveit/issues/516>`_)
+  The docstring says the format of the vector is `(minx, miny, minz, maxx, maxy, maxz)`, but according to both the method's implementation and use in moveit, the format is rather `(minx, maxx, miny, maxy, minz, maxz)`.
+* Contributors: Martin Pecka, henhenhen
+
+0.7.11 (2017-06-21)
+-------------------
+
+0.7.10 (2017-06-07)
+-------------------
+* [fix] checks for empty name arrays messages before parsing the robot state message data (`#499 <https://github.com/ros-planning/moveit/issues/499>`_) (`#518 <https://github.com/ros-planning/moveit/issues/518>`_)
+* Contributors: Jorge Nicho, Isaac I.Y. Saito
+
+0.7.9 (2017-04-03)
+------------------
+* [fix][moveit_core] PlanarJointModel::getVariableRandomPositionsNearBy (`#464 <https://github.com/ros-planning/moveit/issues/464>`_)
+* Contributors: Tamaki Nishino
+
+0.7.8 (2017-03-08)
+------------------
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
+* Contributors: Dmitry Rozhkov
+
+0.7.7 (2017-02-06)
+------------------
+* [enhancement] Handle multiple shapes in an attached collision object `#421 <https://github.com/ros-planning/moveit/issues/421>`_
+* [enhancement] Improved IPTP by fitting a cubic spline (`#382 <https://github.com/ros-planning/moveit/issues/382>`_)
+* [maintenance] Use static_cast to cast to const. (`#434 <https://github.com/ros-planning/moveit/issues/434>`_)
+* [capability] Handle multiple shapes in an attached collision object (`#421 <https://github.com/ros-planning/moveit/pull/421>`_)
+* [capability] Addition of Set Joint Model Group Velocities and Accelerations Functions (`#402 <https://github.com/ros-planning/moveit/issues/402>`_)
+* Contributors: Dave Coleman, G.A. vd. Hoorn, Isaac I.Y. Saito, Maarten de Vries, Mike Lautman, Ruben Burger, Michael Goerner
+
+0.7.6 (2016-12-30)
+------------------
+
+0.7.5 (2016-12-25)
+------------------
+* [enhancement] update link transforms in UnionConstraintSampler::project (`#384 <https://github.com/ros-planning/moveit/issues/384>`_). This extends `#186 <https://github.com/ros-planning/moveit/issues/186>`_ (0119d584bd77a754ed5108d0b222cbcb76326863).
+* Contributors: Michael Goerner
+
+0.7.4 (2016-12-22)
+------------------
+
+0.7.3 (2016-12-20)
+------------------
+
+0.7.2 (2016-06-17)
+------------------
+* [feat] planning_scene updates: expose success state to caller. This is required to get the information back for the ApplyPlanningSceneService. `#297 <https://github.com/ros-planning/moveit_core/issues/297>`_
+* [fix] RevoluteJointModel::computeVariablePositions
+  correctly consider full joint angle range
+  - 2.*acos(theta/2) only covers half range
+  - need to consider sign of quaternion axis w.r.t. rotation axis
+* [sys] re-use travis config from jade-devel
+* Contributors: Dave Coleman, Robert Haschke, hamalMarino, Michael Goerner
+
+0.7.1 (2016-04-14)
+------------------
+* [fix] getStateAtDurationFromStart would never execute as the check for number of waypoints was inverted `#281 <https://github.com/ros-planning/moveit_core/issues/281>`_
+* [feat] Added maximum acceleration scaling factor `#273 <https://github.com/ros-planning/moveit_core/issues/273>`_
+* Contributors: Dave Coleman, Sam Pfeiffer, hemes
+
+0.7.0 (2016-01-30)
+------------------
+* Remove all trailing whitespace in moveit_core
+* Indigo: setJointVelocity and setJointEffort functions
+* New getOnlyOneEndEffectorTip() function
+* Added file and trajectory_msg to RobotState conversion functions
+* Fix issue #258 
+* Kinematic base updates
+* Indigo devel robot state conversions
+* Switched to boost::lexical_cast for reading in robot states from file
+* API Change of shape_tools
+* Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints.
+* Install static libs
+* Fixed bug in KinematicConstraintSet::decide that makes it evaluate only joint_constraints.
+* Prevent divide by zero
+* Allow a RobotTrajectory to be initialized with a pointer joint model group
+* Better documentation and formatting
+* New text file/stream to robot state conversion
+* added an ik_seed_state argument to the new getPositionIK(...) method
+* removed the 'f' float specifiers and corrected misspelled method name
+* fixed typo MULTIPLE_TIPS_NO_SUPPORTED -> MULTIPLE_TIPS_NOT_SUPPORTED
+* minor corrections in the getPositionIK(...) method description
+* This commit makes the following changes:/
+  - Added doxygen style documentation to new enumerations and KinematicResult struct
+  - Deprecated existing discretization member and it now uses a map that stores discretization values of each redundant joint
+  - Added support for multiple input poses in the getPositionIK(..) method that returns multiple joint solutions.
+* added new interface method for computing multiple ik solutions for a single pose
+* renamed enumeration namespace
+* fix_type_qualifiers_compiler_warnings
+  The gcc-compiler warns that the "const" qualifier is ignored when
+  returning by value. This patch removes unnecessary qualifiers and
+  compiler warnings emerging from them. It does not have any effect on the
+  functionality of the code.
+* Documented ordering of poses passed in
+* Fix build with  -DCATKIN_ENABLE_TESTING=OFF
+* Contributors: Alexis Ballier, Bastian Gaspers, Dave Coleman, Gary Servin, Ioan A Sucan, Levi Armstrong, Michael Ferguson, Mihai Pomarlan, Sachin Chitta, jrgnicho, ros-devel
+>>>>>>> upstream/indigo-devel
 
 0.6.15 (2015-01-20)
 -------------------

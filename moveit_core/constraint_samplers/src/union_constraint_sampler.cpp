@@ -80,9 +80,15 @@ struct OrderSamplers
         }
     if (b_depends_on_a && a_depends_on_b)
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("Circular frame dependency! Sampling will likely produce invalid results "
                              "(sampling for groups '%s' and '%s')",
                              a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
+=======
+      logWarn("Circular frame dependency! Sampling will likely produce invalid results (sampling for groups '%s' and "
+              "'%s')",
+              a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
+>>>>>>> upstream/indigo-devel
       return true;
     }
     if (b_depends_on_a && !a_depends_on_b)
@@ -102,11 +108,16 @@ struct OrderSamplers
     return (a->getJointModelGroup()->getName() < b->getJointModelGroup()->getName());
   }
 };
-}
 
+<<<<<<< HEAD
+UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
+                                               const std::string& group_name,
+                                               const std::vector<ConstraintSamplerPtr>& samplers)
+=======
 constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                                     const std::string& group_name,
                                                                     const std::vector<ConstraintSamplerPtr>& samplers)
+>>>>>>> upstream/indigo-devel
   : ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents
@@ -118,14 +129,24 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
     for (std::size_t j = 0; j < fd.size(); ++j)
       frame_depends_.push_back(fd[j]);
 
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
                             samplers_[i]->getJointModelGroup()->getName().c_str());
+  }
+}
+
+bool UnionConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+                                    unsigned int max_attempts)
+=======
+    logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
+             samplers_[i]->getJointModelGroup()->getName().c_str());
   }
 }
 
 bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState& state,
                                                          const robot_state::RobotState& reference_state,
                                                          unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   state = reference_state;
   state.setToRandomPositions(jmg_);
@@ -148,7 +169,11 @@ bool constraint_samplers::UnionConstraintSampler::sample(robot_state::RobotState
   return true;
 }
 
+<<<<<<< HEAD
+bool UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+=======
 bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotState& state, unsigned int max_attempts)
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < samplers_.size(); ++i)
   {
@@ -161,3 +186,8 @@ bool constraint_samplers::UnionConstraintSampler::project(robot_state::RobotStat
   }
   return true;
 }
+<<<<<<< HEAD
+
+}  // end of namespace constraint_samplers
+=======
+>>>>>>> upstream/indigo-devel

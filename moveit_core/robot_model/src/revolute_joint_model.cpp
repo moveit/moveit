@@ -41,11 +41,15 @@
 #include <limits>
 #include <cmath>
 
+<<<<<<< HEAD
 namespace moveit
 {
 namespace core
 {
 RevoluteJointModel::RevoluteJointModel(const std::string& name)
+=======
+moveit::core::RevoluteJointModel::RevoluteJointModel(const std::string& name)
+>>>>>>> upstream/indigo-devel
   : JointModel(name)
   , axis_(0.0, 0.0, 0.0)
   , continuous_(false)
@@ -71,7 +75,11 @@ unsigned int RevoluteJointModel::getStateSpaceDimension() const
   return 1;
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::setAxis(const Eigen::Vector3d& axis)
+=======
+void moveit::core::RevoluteJointModel::setAxis(const Eigen::Vector3d& axis)
+>>>>>>> upstream/indigo-devel
 {
   axis_ = axis.normalized();
   x2_ = axis_.x() * axis_.x();
@@ -96,12 +104,20 @@ void RevoluteJointModel::setContinuous(bool flag)
   computeVariableBoundsMsg();
 }
 
+<<<<<<< HEAD
 double RevoluteJointModel::getMaximumExtent(const Bounds& other_bounds) const
+=======
+double moveit::core::RevoluteJointModel::getMaximumExtent(const Bounds& other_bounds) const
+>>>>>>> upstream/indigo-devel
 {
   return variable_bounds_[0].max_position_ - variable_bounds_[0].min_position_;
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+=======
+void moveit::core::RevoluteJointModel::getVariableDefaultPositions(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   // if zero is a valid value
   if (bounds[0].min_position_ <= 0.0 && bounds[0].max_position_ >= 0.0)
@@ -110,15 +126,26 @@ void RevoluteJointModel::getVariableDefaultPositions(double* values, const Bound
     values[0] = (bounds[0].min_position_ + bounds[0].max_position_) / 2.0;
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
                                                     const Bounds& bounds) const
+=======
+void moveit::core::RevoluteJointModel::getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng,
+                                                                  double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   values[0] = rng.uniformReal(bounds[0].min_position_, bounds[0].max_position_);
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
                                                           const Bounds& bounds, const double* near,
                                                           const double distance) const
+=======
+void moveit::core::RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng,
+                                                                        double* values, const Bounds& bounds,
+                                                                        const double* near, const double distance) const
+>>>>>>> upstream/indigo-devel
 {
   if (continuous_)
   {
@@ -130,7 +157,12 @@ void RevoluteJointModel::getVariableRandomPositionsNearBy(random_numbers::Random
                                 std::min(bounds[0].max_position_, near[0] + distance));
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::interpolate(const double* from, const double* to, const double t, double* state) const
+=======
+void moveit::core::RevoluteJointModel::interpolate(const double* from, const double* to, const double t,
+                                                   double* state) const
+>>>>>>> upstream/indigo-devel
 {
   if (continuous_)
   {
@@ -155,7 +187,11 @@ void RevoluteJointModel::interpolate(const double* from, const double* to, const
     state[0] = from[0] + (to[0] - from[0]) * t;
 }
 
+<<<<<<< HEAD
 double RevoluteJointModel::distance(const double* values1, const double* values2) const
+=======
+double moveit::core::RevoluteJointModel::distance(const double* values1, const double* values2) const
+>>>>>>> upstream/indigo-devel
 {
   if (continuous_)
   {
@@ -166,14 +202,23 @@ double RevoluteJointModel::distance(const double* values1, const double* values2
     return fabs(values1[0] - values2[0]);
 }
 
+<<<<<<< HEAD
 bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
+=======
+bool moveit::core::RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds,
+                                                               double margin) const
+>>>>>>> upstream/indigo-devel
 {
   if (values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin)
     return false;
   return true;
 }
 
+<<<<<<< HEAD
 bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+=======
+bool moveit::core::RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
+>>>>>>> upstream/indigo-devel
 {
   if (continuous_)
   {
@@ -204,7 +249,11 @@ bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bou
   return false;
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+=======
+void moveit::core::RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Affine3d& transf) const
+>>>>>>> upstream/indigo-devel
 {
   const double c = cos(joint_values[0]);
   const double s = sin(joint_values[0]);
@@ -243,7 +292,12 @@ void RevoluteJointModel::computeTransform(const double* joint_values, Eigen::Aff
   //  transf = Eigen::Affine3d(Eigen::AngleAxisd(joint_values[0], axis_));
 }
 
+<<<<<<< HEAD
 void RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf, double* joint_values) const
+=======
+void moveit::core::RevoluteJointModel::computeVariablePositions(const Eigen::Affine3d& transf,
+                                                                double* joint_values) const
+>>>>>>> upstream/indigo-devel
 {
   Eigen::Quaterniond q(transf.rotation());
   q.normalize();

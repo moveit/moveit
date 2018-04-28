@@ -122,7 +122,11 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& st
       manipulability_index = 1.0;
       for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+=======
+        logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+>>>>>>> upstream/indigo-devel
         manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
@@ -145,7 +149,11 @@ bool KinematicsMetrics::getManipulabilityIndex(const robot_state::RobotState& st
       manipulability_index = 1.0;
       for (unsigned int i = 0; i < singular_values.rows(); ++i)
       {
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+=======
+        logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+>>>>>>> upstream/indigo-devel
         manipulability_index *= singular_values(i, 0);
       }
       // Get manipulability index
@@ -218,7 +226,11 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian.topLeftCorner(3, jacobian.cols()));
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (int i = 0; i < singular_values.rows(); ++i)
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+=======
+      logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+>>>>>>> upstream/indigo-devel
     manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   else
@@ -227,10 +239,18 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
     Eigen::JacobiSVD<Eigen::MatrixXd> svdsolver(jacobian);
     Eigen::MatrixXd singular_values = svdsolver.singularValues();
     for (int i = 0; i < singular_values.rows(); ++i)
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+=======
+      logDebug("moveit.kin_metrics: Singular value: %d %f", i, singular_values(i, 0));
+>>>>>>> upstream/indigo-devel
     manipulability = penalty * singular_values.minCoeff() / singular_values.maxCoeff();
   }
   return true;
 }
 
+<<<<<<< HEAD
+}  // end of namespace kinematics_metrics
+=======
 }  // namespace
+>>>>>>> upstream/indigo-devel

@@ -33,7 +33,7 @@
 *********************************************************************/
 
 /* Author: Ioan Sucan */
-#include <moveit_resources/config.h>
+
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 #include <urdf_parser/urdf_parser.h>
@@ -103,8 +103,13 @@ TEST(Loading, SimpleRobot)
       "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
       "</robot>";
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL0);
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL0);
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   srdfModel->initString(*urdfModel, SMODEL0);
 
   EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
@@ -167,9 +172,15 @@ TEST(LoadingAndFK, SimpleRobot)
       "</group>"
       "</robot>";
 
+<<<<<<< HEAD
   urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL1);
 
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL1);
+
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
   srdfModel->initString(*urdfModel, SMODEL1);
 
   moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
@@ -196,12 +207,19 @@ TEST(LoadingAndFK, SimpleRobot)
   state.setVariablePositions(joint_values, missing_states);
   ASSERT_EQ(missing_states.size(), 0);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
+=======
+  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
 
   state.setVariableAcceleration("base_joint/x", 0.0);
 
   // making sure that values get copied
   moveit::core::RobotState* new_state = new moveit::core::RobotState(state);
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(10, 8, 0));
   delete new_state;
 
@@ -212,200 +230,216 @@ TEST(LoadingAndFK, SimpleRobot)
 
   state.setVariablePositions(jv);
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(5, 4, 0));
+=======
+  EXPECT_NEAR(10.0, new_state->getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, new_state->getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, new_state->getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+  delete new_state;
+
+  std::vector<double> jv(state.getVariableCount(), 0.0);
+  jv[state.getRobotModel()->getVariableIndex("base_joint/x")] = 10.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/y")] = 8.0;
+  jv[state.getRobotModel()->getVariableIndex("base_joint/theta")] = 0.0;
+
+  state.setVariablePositions(jv);
+  EXPECT_NEAR(10.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(8.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
 }
 
-class OneRobot : public testing::Test
+TEST(FK, OneRobot)
 {
-protected:
-  virtual void SetUp()
-  {
-    static const std::string MODEL2 =
-        "<?xml version=\"1.0\" ?>"
-        "<robot name=\"one_robot\">"
-        "<link name=\"base_link\">"
-        "  <inertial>"
-        "    <mass value=\"2.81\"/>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-        "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-        "  </inertial>"
-        "  <collision name=\"my_collision\">"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "<joint name=\"joint_a\" type=\"continuous\">"
-        "   <axis xyz=\"0 0 1\"/>"
-        "   <parent link=\"base_link\"/>"
-        "   <child link=\"link_a\"/>"
-        "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
-        "</joint>"
-        "<link name=\"link_a\">"
-        "  <inertial>"
-        "    <mass value=\"1.0\"/>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-        "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-        "  </inertial>"
-        "  <collision>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "<joint name=\"joint_b\" type=\"fixed\">"
-        "  <parent link=\"link_a\"/>"
-        "  <child link=\"link_b\"/>"
-        "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
-        "</joint>"
-        "<link name=\"link_b\">"
-        "  <inertial>"
-        "    <mass value=\"1.0\"/>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
-        "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-        "  </inertial>"
-        "  <collision>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "  <joint name=\"joint_c\" type=\"prismatic\">"
-        "    <axis xyz=\"1 0 0\"/>"
-        "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.09\" velocity=\"0.2\"/>"
-        "    <safety_controller k_position=\"20.0\" k_velocity=\"500.0\" soft_lower_limit=\"0.0\" "
-        "soft_upper_limit=\"0.089\"/>"
-        "    <parent link=\"link_b\"/>"
-        "    <child link=\"link_c\"/>"
-        "    <origin rpy=\" 0.0 0.42 0.0 \" xyz=\"0.0 -0.1 0 \"/>"
-        "  </joint>"
-        "<link name=\"link_c\">"
-        "  <inertial>"
-        "    <mass value=\"1.0\"/>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 .0\"/>"
-        "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
-        "  </inertial>"
-        "  <collision>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "  <joint name=\"mim_f\" type=\"prismatic\">"
-        "    <axis xyz=\"1 0 0\"/>"
-        "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
-        "    <parent link=\"link_c\"/>"
-        "    <child link=\"link_d\"/>"
-        "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
-        "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
-        "  </joint>"
-        "  <joint name=\"joint_f\" type=\"prismatic\">"
-        "    <axis xyz=\"1 0 0\"/>"
-        "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
-        "    <parent link=\"link_d\"/>"
-        "    <child link=\"link_e\"/>"
-        "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
-        "  </joint>"
-        "<link name=\"link_d\">"
-        "  <collision>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "<link name=\"link_e\">"
-        "  <collision>"
-        "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </collision>"
-        "  <visual>"
-        "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
-        "    <geometry>"
-        "      <box size=\"1 2 1\" />"
-        "    </geometry>"
-        "  </visual>"
-        "</link>"
-        "</robot>";
+  static const std::string MODEL2 =
+      "<?xml version=\"1.0\" ?>"
+      "<robot name=\"one_robot\">"
+      "<link name=\"base_link\">"
+      "  <inertial>"
+      "    <mass value=\"2.81\"/>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+      "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+      "  </inertial>"
+      "  <collision name=\"my_collision\">"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "<joint name=\"joint_a\" type=\"continuous\">"
+      "   <axis xyz=\"0 0 1\"/>"
+      "   <parent link=\"base_link\"/>"
+      "   <child link=\"link_a\"/>"
+      "   <origin rpy=\" 0.0 0 0 \" xyz=\"0.0 0 0 \"/>"
+      "</joint>"
+      "<link name=\"link_a\">"
+      "  <inertial>"
+      "    <mass value=\"1.0\"/>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+      "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+      "  </inertial>"
+      "  <collision>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "<joint name=\"joint_b\" type=\"fixed\">"
+      "  <parent link=\"link_a\"/>"
+      "  <child link=\"link_b\"/>"
+      "  <origin rpy=\" 0.0 -0.42 0 \" xyz=\"0.0 0.5 0 \"/>"
+      "</joint>"
+      "<link name=\"link_b\">"
+      "  <inertial>"
+      "    <mass value=\"1.0\"/>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0.0 .0\"/>"
+      "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+      "  </inertial>"
+      "  <collision>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "  <joint name=\"joint_c\" type=\"prismatic\">"
+      "    <axis xyz=\"1 0 0\"/>"
+      "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.09\" velocity=\"0.2\"/>"
+      "    <safety_controller k_position=\"20.0\" k_velocity=\"500.0\" soft_lower_limit=\"0.0\" "
+      "soft_upper_limit=\"0.089\"/>"
+      "    <parent link=\"link_b\"/>"
+      "    <child link=\"link_c\"/>"
+      "    <origin rpy=\" 0.0 0.42 0.0 \" xyz=\"0.0 -0.1 0 \"/>"
+      "  </joint>"
+      "<link name=\"link_c\">"
+      "  <inertial>"
+      "    <mass value=\"1.0\"/>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 .0\"/>"
+      "    <inertia ixx=\"0.1\" ixy=\"-0.2\" ixz=\"0.5\" iyy=\"-.09\" iyz=\"1\" izz=\"0.101\"/>"
+      "  </inertial>"
+      "  <collision>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0.0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "  <joint name=\"mim_f\" type=\"prismatic\">"
+      "    <axis xyz=\"1 0 0\"/>"
+      "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
+      "    <parent link=\"link_c\"/>"
+      "    <child link=\"link_d\"/>"
+<<<<<<< HEAD
+      "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+=======
+      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+>>>>>>> upstream/indigo-devel
+      "    <mimic joint=\"joint_f\" multiplier=\"1.5\" offset=\"0.1\"/>"
+      "  </joint>"
+      "  <joint name=\"joint_f\" type=\"prismatic\">"
+      "    <axis xyz=\"1 0 0\"/>"
+      "    <limit effort=\"100.0\" lower=\"0.0\" upper=\"0.19\" velocity=\"0.2\"/>"
+      "    <parent link=\"link_d\"/>"
+      "    <child link=\"link_e\"/>"
+<<<<<<< HEAD
+      "    <origin rpy=\" 0.0 0.0 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+=======
+      "    <origin rpy=\" 0.0 0.1 0.0 \" xyz=\"0.1 0.1 0 \"/>"
+>>>>>>> upstream/indigo-devel
+      "  </joint>"
+      "<link name=\"link_d\">"
+      "  <collision>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "<link name=\"link_e\">"
+      "  <collision>"
+      "    <origin rpy=\"0 0 0\" xyz=\"0 0 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </collision>"
+      "  <visual>"
+      "    <origin rpy=\"0 1 0\" xyz=\"0 0.1 0\"/>"
+      "    <geometry>"
+      "      <box size=\"1 2 1\" />"
+      "    </geometry>"
+      "  </visual>"
+      "</link>"
+      "</robot>";
 
-    static const std::string SMODEL2 =
-        "<?xml version=\"1.0\" ?>"
-        "<robot name=\"one_robot\">"
-        "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
-        "<group name=\"base_from_joints\">"
-        "<joint name=\"base_joint\"/>"
-        "<joint name=\"joint_a\"/>"
-        "<joint name=\"joint_c\"/>"
-        "</group>"
-        "<group name=\"mim_joints\">"
-        "<joint name=\"joint_f\"/>"
-        "<joint name=\"mim_f\"/>"
-        "</group>"
-        "<group name=\"base_with_subgroups\">"
-        "<group name=\"base_from_base_to_tip\"/>"
-        "<joint name=\"joint_c\"/>"
-        "</group>"
-        "<group name=\"base_from_base_to_tip\">"
-        "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
-        "<joint name=\"base_joint\"/>"
-        "</group>"
-        "<group name=\"base_with_bad_subgroups\">"
-        "<group name=\"error\"/>"
-        "</group>"
-        "</robot>";
+  static const std::string SMODEL2 =
+      "<?xml version=\"1.0\" ?>"
+      "<robot name=\"one_robot\">"
+      "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"planar\"/>"
+      "<group name=\"base_from_joints\">"
+      "<joint name=\"base_joint\"/>"
+      "<joint name=\"joint_a\"/>"
+      "<joint name=\"joint_c\"/>"
+      "</group>"
+      "<group name=\"mim_joints\">"
+      "<joint name=\"joint_f\"/>"
+      "<joint name=\"mim_f\"/>"
+      "</group>"
+      "<group name=\"base_with_subgroups\">"
+      "<group name=\"base_from_base_to_tip\"/>"
+      "<joint name=\"joint_c\"/>"
+      "</group>"
+      "<group name=\"base_from_base_to_tip\">"
+      "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
+      "<joint name=\"base_joint\"/>"
+      "</group>"
+      "<group name=\"base_with_bad_subgroups\">"
+      "<group name=\"error\"/>"
+      "</group>"
+      "</robot>";
 
-    urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL2);
-    srdf::ModelSharedPtr srdf_model(new srdf::Model());
-    srdf_model->initString(*urdf_model, SMODEL2);
-    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
-  }
+<<<<<<< HEAD
+  urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL2);
 
-  virtual void TearDown()
-  {
-  }
+  srdf::ModelSharedPtr srdfModel(new srdf::Model());
+=======
+  boost::shared_ptr<urdf::ModelInterface> urdfModel = urdf::parseURDF(MODEL2);
 
-protected:
-  moveit::core::RobotModelConstPtr robot_model;
-};
+  boost::shared_ptr<srdf::Model> srdfModel(new srdf::Model());
+>>>>>>> upstream/indigo-devel
+  srdfModel->initString(*urdfModel, SMODEL2);
 
-TEST_F(OneRobot, FK)
-{
-  moveit::core::RobotModelConstPtr model = robot_model;
+  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
 
   // testing that the two planning groups are the same
   const moveit::core::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
@@ -484,25 +518,49 @@ TEST_F(OneRobot, FK)
   joint_values["joint_c"] = 0.08;
   state.setVariablePositions(joint_values);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("base_link").translation(), Eigen::Vector3d(1, 1, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().x(), 1e-5);
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("base_link").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("base_link").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.247404, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.968912, Eigen::Quaterniond(state.getGlobalLinkTransform("base_link").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_a").translation(), Eigen::Vector3d(1, 1, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().x(), 1e-5);
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_a").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_a").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).z(), 1e-5);
   EXPECT_NEAR(1.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_a").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_b").translation(), Eigen::Vector3d(1, 1.5, 0));
+=======
+  EXPECT_NEAR(1.0, state.getGlobalLinkTransform("link_b").translation().x(), 1e-5);
+  EXPECT_NEAR(1.5, state.getGlobalLinkTransform("link_b").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_b").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).x(), 1e-5);
   EXPECT_NEAR(-0.2084598, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).z(), 1e-5);
   EXPECT_NEAR(0.97803091, Eigen::Quaterniond(state.getGlobalLinkTransform("link_b").rotation()).w(), 1e-5);
 
+<<<<<<< HEAD
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(1.08, 1.4, 0));
+=======
+  EXPECT_NEAR(1.08, state.getGlobalLinkTransform("link_c").translation().x(), 1e-5);
+  EXPECT_NEAR(1.4, state.getGlobalLinkTransform("link_c").translation().y(), 1e-5);
+  EXPECT_NEAR(0.0, state.getGlobalLinkTransform("link_c").translation().z(), 1e-5);
+>>>>>>> upstream/indigo-devel
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).x(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).y(), 1e-5);
   EXPECT_NEAR(0.0, Eigen::Quaterniond(state.getGlobalLinkTransform("link_c").rotation()).z(), 1e-5);
@@ -525,6 +583,7 @@ TEST_F(OneRobot, FK)
   state.enforceBounds();
   EXPECT_NEAR(state.getVariablePosition("joint_a"), -3.083185, 1e-3);
   EXPECT_TRUE(state.satisfiesBounds(model->getJointModel("joint_a")));
+<<<<<<< HEAD
 
   // mimic joints
   state.setToDefaultValues();
@@ -565,70 +624,8 @@ TEST_F(OneRobot, FK)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_c").translation(), Eigen::Vector3d(0.0, 0.4, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_d").translation(), Eigen::Vector3d(1.7, 0.5, 0));
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
-}
-
-void generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
-                      const moveit::core::RobotModelConstPtr& robot_model,
-                      const robot_model::JointModelGroup* joint_model_group)
-{
-  traj.clear();
-
-  // 3 waypoints with default joints
-  std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
-  robot_state->setToDefaultValues();
-  for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
-    traj.push_back(robot_state);
-
-  // 4th waypoint with a large jump of 1.01 in first joint
-  robot_state.reset(new robot_state::RobotState(*robot_state));
-  std::vector<double> joint_positions;
-  robot_state->copyJointGroupPositions(joint_model_group, joint_positions);
-  // first joint is planar (3DoF), second joint is revolute
-  joint_positions[3] -= 1.01;
-  robot_state->setJointGroupPositions(joint_model_group, joint_positions);
-  traj.push_back(robot_state);
-}
-
-TEST_F(OneRobot, testAbsoluteJointSpaceJump)
-{
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_tip");
-  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-
-  // direct call of absolute version
-  generateTestTraj(traj, robot_model, joint_model_group);
-  double fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
-
-  // indirect call
-  generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
-
-  // ignore revolute joints
-  generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 1.0));
-  EXPECT_EQ(traj.size(), 4);  // traj should not be cut
-  EXPECT_NEAR(fraction, 4. / 4., 0.01);
-}
-
-TEST_F(OneRobot, testRelativeJointSpaceJump)
-{
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_tip");
-  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
-
-  // direct call of absolute version: factor slightly smaller than 3 (1.01 > 2.99 * 1.01 / 3)
-  generateTestTraj(traj, robot_model, joint_model_group);
-  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 2.99);
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
-
-  // indirect call
-  generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.99));
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+=======
+>>>>>>> upstream/indigo-devel
 }
 
 int main(int argc, char** argv)

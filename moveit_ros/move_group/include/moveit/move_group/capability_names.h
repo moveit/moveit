@@ -64,11 +64,15 @@ static const std::string EXECUTE_SERVICE_NAME =
     "execute_kinematic_path";  // name of the advertised service (within the ~ namespace)
 static const std::string EXECUTE_ACTION_NAME = "execute_trajectory";  // name of 'execute' action
 static const std::string QUERY_PLANNERS_SERVICE_NAME =
+<<<<<<< HEAD
     "query_planner_interface";  // name of the advertised query planners service
 static const std::string GET_PLANNER_PARAMS_SERVICE_NAME =
     "get_planner_params";  // service name to retrieve planner parameters
 static const std::string SET_PLANNER_PARAMS_SERVICE_NAME =
     "set_planner_params";                                 // service name to set planner parameters
+=======
+    "query_planner_interface";                            // name of the advertised query planners service
+>>>>>>> upstream/indigo-devel
 static const std::string MOVE_ACTION = "move_group";      // name of 'move' action
 static const std::string IK_SERVICE_NAME = "compute_ik";  // name of ik service
 static const std::string FK_SERVICE_NAME = "compute_fk";  // name of fk service

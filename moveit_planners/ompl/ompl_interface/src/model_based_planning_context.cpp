@@ -243,7 +243,11 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   if (it == cfg.end())
   {
     optimizer = "PathLengthOptimizationObjective";
+<<<<<<< HEAD
     logDebug("No optimization objective specified, defaulting to %s", optimizer.c_str());
+=======
+    logInform("No optimization objective specified, defaulting to %s", optimizer.c_str());
+>>>>>>> upstream/indigo-devel
   }
   else
   {

@@ -1,6 +1,10 @@
 <package>
   <name>moveit_planners_ompl</name>
+<<<<<<< HEAD
   <version>0.9.11</version>
+=======
+  <version>0.7.13</version>
+>>>>>>> upstream/indigo-devel
   <description>MoveIt interface to OMPL</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>

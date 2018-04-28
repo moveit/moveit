@@ -4,7 +4,11 @@ add_library(${MOVEIT_LIB_NAME}
   src/planning_scene_monitor.cpp
   src/current_state_monitor.cpp
   src/trajectory_monitor.cpp)
+<<<<<<< HEAD
 set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION ${${PROJECT_NAME}_VERSION})
+=======
+set_target_properties(${MOVEIT_LIB_NAME} PROPERTIES VERSION 0.7.3)
+>>>>>>> upstream/indigo-devel
 target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_robot_model_loader
   moveit_collision_plugin_loader

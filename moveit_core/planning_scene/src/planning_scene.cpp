@@ -95,15 +95,24 @@ private:
 
   const PlanningScene* scene_;
 };
+<<<<<<< HEAD
+
+bool PlanningScene::isEmpty(const moveit_msgs::PlanningScene& msg)
+=======
 }
 
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningScene& msg)
+>>>>>>> upstream/indigo-devel
 {
   return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
          msg.link_padding.empty() && msg.link_scale.empty() && isEmpty(msg.robot_state) && isEmpty(msg.world);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
+=======
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
+>>>>>>> upstream/indigo-devel
 {
   /* a state is empty if it includes no information and it is a diff; if the state is not a diff, then the implicit
      information is
@@ -115,21 +124,34 @@ bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
          msg.multi_dof_joint_state.wrench.empty();
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld& msg)
+=======
 bool planning_scene::PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld& msg)
+>>>>>>> upstream/indigo-devel
 {
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
 
+<<<<<<< HEAD
+PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model, collision_detection::WorldPtr world)
+=======
 planning_scene::PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
                                              collision_detection::WorldPtr world)
+>>>>>>> upstream/indigo-devel
   : kmodel_(robot_model), world_(world), world_const_(world)
 {
   initialize();
 }
 
-planning_scene::PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model,
-                                             const srdf::ModelConstSharedPtr& srdf_model,
+<<<<<<< HEAD
+PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model,
+                             const srdf::ModelConstSharedPtr& srdf_model, collision_detection::WorldPtr world)
+=======
+planning_scene::PlanningScene::PlanningScene(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+                                             const boost::shared_ptr<const srdf::Model>& srdf_model,
                                              collision_detection::WorldPtr world)
+>>>>>>> upstream/indigo-devel
   : world_(world), world_const_(world)
 {
   if (!urdf_model)
@@ -145,13 +167,13 @@ planning_scene::PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr
   initialize();
 }
 
-planning_scene::PlanningScene::~PlanningScene()
+PlanningScene::~PlanningScene()
 {
   if (current_world_object_update_callback_)
     world_->removeObserver(current_world_object_update_observer_handle_);
 }
 
-void planning_scene::PlanningScene::initialize()
+void PlanningScene::initialize()
 {
   name_ = DEFAULT_SCENE_NAME;
 
@@ -174,8 +196,14 @@ void planning_scene::PlanningScene::initialize()
 }
 
 /* return NULL on failure */
-robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
-    const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
+<<<<<<< HEAD
+robot_model::RobotModelPtr PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
+                                                           const srdf::ModelConstSharedPtr& srdf_model)
+=======
+robot_model::RobotModelPtr
+planning_scene::PlanningScene::createRobotModel(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+                                                const boost::shared_ptr<const srdf::Model>& srdf_model)
+>>>>>>> upstream/indigo-devel
 {
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
   if (!robot_model || !robot_model->getRootJoint())
@@ -184,7 +212,11 @@ robot_model::RobotModelPtr planning_scene::PlanningScene::createRobotModel(
   return robot_model;
 }
 
+<<<<<<< HEAD
+PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(parent)
+=======
 planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(parent)
+>>>>>>> upstream/indigo-devel
 {
   if (!parent_)
     throw moveit::ConstructException("NULL parent pointer for planning scene");
@@ -224,8 +256,12 @@ planning_scene::PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent
   setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
 }
 
+<<<<<<< HEAD
+PlanningScenePtr PlanningScene::clone(const PlanningSceneConstPtr& scene)
+=======
 planning_scene::PlanningScenePtr
 planning_scene::PlanningScene::clone(const planning_scene::PlanningSceneConstPtr& scene)
+>>>>>>> upstream/indigo-devel
 {
   PlanningScenePtr result = scene->diff();
   result->decoupleParent();
@@ -233,20 +269,28 @@ planning_scene::PlanningScene::clone(const planning_scene::PlanningSceneConstPtr
   return result;
 }
 
-planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff() const
+PlanningScenePtr PlanningScene::diff() const
 {
   return PlanningScenePtr(new PlanningScene(shared_from_this()));
 }
 
+<<<<<<< HEAD
+PlanningScenePtr PlanningScene::diff(const moveit_msgs::PlanningScene& msg) const
+=======
 planning_scene::PlanningScenePtr planning_scene::PlanningScene::diff(const moveit_msgs::PlanningScene& msg) const
+>>>>>>> upstream/indigo-devel
 {
-  planning_scene::PlanningScenePtr result = diff();
+  PlanningScenePtr result = diff();
   result->setPlanningSceneDiffMsg(msg);
   return result;
 }
 
+<<<<<<< HEAD
+void PlanningScene::CollisionDetector::copyPadding(const PlanningScene::CollisionDetector& src)
+=======
 void planning_scene::PlanningScene::CollisionDetector::copyPadding(
     const planning_scene::PlanningScene::CollisionDetector& src)
+>>>>>>> upstream/indigo-devel
 {
   if (!crobot_)
   {
@@ -258,7 +302,7 @@ void planning_scene::PlanningScene::CollisionDetector::copyPadding(
   crobot_->setLinkScale(src.getCollisionRobot()->getLinkScale());
 }
 
-void planning_scene::PlanningScene::propogateRobotPadding()
+void PlanningScene::propogateRobotPadding()
 {
   if (!active_collision_->crobot_)
     return;
@@ -270,7 +314,7 @@ void planning_scene::PlanningScene::propogateRobotPadding()
   }
 }
 
-void planning_scene::PlanningScene::CollisionDetector::findParent(const PlanningScene& scene)
+void PlanningScene::CollisionDetector::findParent(const PlanningScene& scene)
 {
   if (parent_ || !scene.parent_)
     return;
@@ -280,8 +324,12 @@ void planning_scene::PlanningScene::CollisionDetector::findParent(const Planning
     parent_ = it->second->parent_;
 }
 
+<<<<<<< HEAD
+void PlanningScene::addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator)
+=======
 void planning_scene::PlanningScene::addCollisionDetector(
     const collision_detection::CollisionDetectorAllocatorPtr& allocator)
+>>>>>>> upstream/indigo-devel
 {
   const std::string& name = allocator->getName();
   CollisionDetectorPtr& detector = collision_[name];
@@ -320,8 +368,13 @@ void planning_scene::PlanningScene::addCollisionDetector(
   }
 }
 
+<<<<<<< HEAD
+void PlanningScene::setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
+                                               bool exclusive)
+=======
 void planning_scene::PlanningScene::setActiveCollisionDetector(
     const collision_detection::CollisionDetectorAllocatorPtr& allocator, bool exclusive)
+>>>>>>> upstream/indigo-devel
 {
   if (exclusive)
   {
@@ -345,7 +398,11 @@ void planning_scene::PlanningScene::setActiveCollisionDetector(
   setActiveCollisionDetector(allocator->getName());
 }
 
+<<<<<<< HEAD
+bool PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
+=======
 bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
+>>>>>>> upstream/indigo-devel
 {
   CollisionDetectorIterator it = collision_.find(collision_detector_name);
   if (it != collision_.end())
@@ -355,14 +412,20 @@ bool planning_scene::PlanningScene::setActiveCollisionDetector(const std::string
   }
   else
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene. "
                             "Keeping existing active collision detector '%s'",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+=======
+    logError("Cannot setActiveCollisionDetector to '%s' -- it has been added to PlanningScene.  Keeping existing "
+             "active collision detector '%s'",
+             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+>>>>>>> upstream/indigo-devel
     return false;
   }
 }
 
-void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
+void PlanningScene::getCollisionDetectorNames(std::vector<std::string>& names) const
 {
   names.clear();
   names.reserve(collision_.size());
@@ -371,13 +434,22 @@ void planning_scene::PlanningScene::getCollisionDetectorNames(std::vector<std::s
 }
 
 const collision_detection::CollisionWorldConstPtr&
+<<<<<<< HEAD
+PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
+=======
 planning_scene::PlanningScene::getCollisionWorld(const std::string& collision_detector_name) const
+>>>>>>> upstream/indigo-devel
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+=======
+    logError("Could not get CollisionWorld named '%s'.  Returning active CollisionWorld '%s' instead",
+             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+>>>>>>> upstream/indigo-devel
     return active_collision_->cworld_const_;
   }
 
@@ -385,13 +457,22 @@ planning_scene::PlanningScene::getCollisionWorld(const std::string& collision_de
 }
 
 const collision_detection::CollisionRobotConstPtr&
+<<<<<<< HEAD
+PlanningScene::getCollisionRobot(const std::string& collision_detector_name) const
+=======
 planning_scene::PlanningScene::getCollisionRobot(const std::string& collision_detector_name) const
+>>>>>>> upstream/indigo-devel
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+=======
+    logError("Could not get CollisionRobot named '%s'.  Returning active CollisionRobot '%s' instead",
+             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+>>>>>>> upstream/indigo-devel
     return active_collision_->getCollisionRobot();
   }
 
@@ -399,21 +480,34 @@ planning_scene::PlanningScene::getCollisionRobot(const std::string& collision_de
 }
 
 const collision_detection::CollisionRobotConstPtr&
+<<<<<<< HEAD
+PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_name) const
+=======
 planning_scene::PlanningScene::getCollisionRobotUnpadded(const std::string& collision_detector_name) const
+>>>>>>> upstream/indigo-devel
 {
   CollisionDetectorConstIterator it = collision_.find(collision_detector_name);
   if (it == collision_.end())
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Could not get CollisionRobotUnpadded named '%s'. "
                             "Returning active CollisionRobotUnpadded '%s' instead",
                             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+=======
+    logError("Could not get CollisionRobotUnpadded named '%s'.  Returning active CollisionRobotUnpadded '%s' instead",
+             collision_detector_name.c_str(), active_collision_->alloc_->getName().c_str());
+>>>>>>> upstream/indigo-devel
     return active_collision_->getCollisionRobotUnpadded();
   }
 
   return it->second->getCollisionRobotUnpadded();
 }
 
+<<<<<<< HEAD
+void PlanningScene::clearDiffs()
+=======
 void planning_scene::PlanningScene::clearDiffs()
+>>>>>>> upstream/indigo-devel
 {
   if (!parent_)
     return;
@@ -457,7 +551,11 @@ void planning_scene::PlanningScene::clearDiffs()
   object_types_.reset();
 }
 
+<<<<<<< HEAD
+void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
+=======
 void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr& scene)
+>>>>>>> upstream/indigo-devel
 {
   if (!parent_)
     return;
@@ -516,8 +614,13 @@ void planning_scene::PlanningScene::pushDiffs(const PlanningScenePtr& scene)
   }
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
+                                   collision_detection::CollisionResult& res)
+=======
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                                    collision_detection::CollisionResult& res)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkCollision(req, res, getCurrentStateNonConst());
@@ -525,9 +628,15 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
     checkCollision(req, res, getCurrentState());
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
+                                   collision_detection::CollisionResult& res,
+                                   const robot_state::RobotState& kstate) const
+=======
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                                    collision_detection::CollisionResult& res,
                                                    const robot_state::RobotState& kstate) const
+>>>>>>> upstream/indigo-devel
 {
   // check collision with the world using the padded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
@@ -539,8 +648,13 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
   }
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
+                                       collision_detection::CollisionResult& res)
+=======
 void planning_scene::PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
                                                        collision_detection::CollisionResult& res)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkSelfCollision(req, res, getCurrentStateNonConst());
@@ -548,10 +662,16 @@ void planning_scene::PlanningScene::checkSelfCollision(const collision_detection
     checkSelfCollision(req, res, getCurrentState());
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
+                                   collision_detection::CollisionResult& res, const robot_state::RobotState& kstate,
+                                   const collision_detection::AllowedCollisionMatrix& acm) const
+=======
 void planning_scene::PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
                                                    collision_detection::CollisionResult& res,
                                                    const robot_state::RobotState& kstate,
                                                    const collision_detection::AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   // check collision with the world using the padded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
@@ -561,8 +681,13 @@ void planning_scene::PlanningScene::checkCollision(const collision_detection::Co
     getCollisionRobotUnpadded()->checkSelfCollision(req, res, kstate, acm);
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                                           collision_detection::CollisionResult& res)
+=======
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult& res)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkCollisionUnpadded(req, res, getCurrentStateNonConst(), getAllowedCollisionMatrix());
@@ -570,10 +695,17 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
     checkCollisionUnpadded(req, res, getCurrentState(), getAllowedCollisionMatrix());
 }
 
+<<<<<<< HEAD
+void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
+                                           collision_detection::CollisionResult& res,
+                                           const robot_state::RobotState& kstate,
+                                           const collision_detection::AllowedCollisionMatrix& acm) const
+=======
 void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
                                                            collision_detection::CollisionResult& res,
                                                            const robot_state::RobotState& kstate,
                                                            const collision_detection::AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   // check collision with the world using the unpadded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
@@ -585,7 +717,11 @@ void planning_scene::PlanningScene::checkCollisionUnpadded(const collision_detec
   }
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts)
+=======
 void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     getCollidingPairs(contacts, getCurrentStateNonConst(), getAllowedCollisionMatrix());
@@ -593,9 +729,15 @@ void planning_scene::PlanningScene::getCollidingPairs(collision_detection::Colli
     getCollidingPairs(contacts, getCurrentState(), getAllowedCollisionMatrix());
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
+                                      const robot_state::RobotState& kstate,
+                                      const collision_detection::AllowedCollisionMatrix& acm) const
+=======
 void planning_scene::PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
                                                       const robot_state::RobotState& kstate,
                                                       const collision_detection::AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
@@ -606,7 +748,11 @@ void planning_scene::PlanningScene::getCollidingPairs(collision_detection::Colli
   res.contacts.swap(contacts);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCollidingLinks(std::vector<std::string>& links)
+=======
 void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string>& links)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     getCollidingLinks(links, getCurrentStateNonConst(), getAllowedCollisionMatrix());
@@ -614,9 +760,14 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string>& 
     getCollidingLinks(links, getCurrentState(), getAllowedCollisionMatrix());
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const robot_state::RobotState& kstate,
+                                      const collision_detection::AllowedCollisionMatrix& acm) const
+=======
 void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string>& links,
                                                       const robot_state::RobotState& kstate,
                                                       const collision_detection::AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionResult::ContactMap contacts;
   getCollidingPairs(contacts, kstate, acm);
@@ -632,7 +783,7 @@ void planning_scene::PlanningScene::getCollidingLinks(std::vector<std::string>& 
     }
 }
 
-const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::getCollisionRobotNonConst()
+const collision_detection::CollisionRobotPtr& PlanningScene::getCollisionRobotNonConst()
 {
   if (!active_collision_->crobot_)
   {
@@ -643,7 +794,7 @@ const collision_detection::CollisionRobotPtr& planning_scene::PlanningScene::get
   return active_collision_->crobot_;
 }
 
-robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst()
+robot_state::RobotState& PlanningScene::getCurrentStateNonConst()
 {
   if (!kstate_)
   {
@@ -654,23 +805,35 @@ robot_state::RobotState& planning_scene::PlanningScene::getCurrentStateNonConst(
   return *kstate_;
 }
 
+<<<<<<< HEAD
+robot_state::RobotStatePtr PlanningScene::getCurrentStateUpdated(const moveit_msgs::RobotState& update) const
+=======
 robot_state::RobotStatePtr
 planning_scene::PlanningScene::getCurrentStateUpdated(const moveit_msgs::RobotState& update) const
+>>>>>>> upstream/indigo-devel
 {
   robot_state::RobotStatePtr state(new robot_state::RobotState(getCurrentState()));
   robot_state::robotStateMsgToRobotState(getTransforms(), update, *state);
   return state;
 }
 
+<<<<<<< HEAD
+void PlanningScene::setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback& callback)
+=======
 void planning_scene::PlanningScene::setAttachedBodyUpdateCallback(const robot_state::AttachedBodyCallback& callback)
+>>>>>>> upstream/indigo-devel
 {
   current_state_attached_body_callback_ = callback;
   if (kstate_)
     kstate_->setAttachedBodyUpdateCallback(callback);
 }
 
+<<<<<<< HEAD
+void PlanningScene::setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn& callback)
+=======
 void planning_scene::PlanningScene::setCollisionObjectUpdateCallback(
     const collision_detection::World::ObserverCallbackFn& callback)
+>>>>>>> upstream/indigo-devel
 {
   if (current_world_object_update_callback_)
     world_->removeObserver(current_world_object_update_observer_handle_);
@@ -679,20 +842,20 @@ void planning_scene::PlanningScene::setCollisionObjectUpdateCallback(
   current_world_object_update_callback_ = callback;
 }
 
-collision_detection::AllowedCollisionMatrix& planning_scene::PlanningScene::getAllowedCollisionMatrixNonConst()
+collision_detection::AllowedCollisionMatrix& PlanningScene::getAllowedCollisionMatrixNonConst()
 {
   if (!acm_)
     acm_.reset(new collision_detection::AllowedCollisionMatrix(parent_->getAllowedCollisionMatrix()));
   return *acm_;
 }
 
-const robot_state::Transforms& planning_scene::PlanningScene::getTransforms()
+const robot_state::Transforms& PlanningScene::getTransforms()
 {
   getCurrentStateNonConst().update();
   return static_cast<const PlanningScene*>(this)->getTransforms();
 }
 
-robot_state::Transforms& planning_scene::PlanningScene::getTransformsNonConst()
+robot_state::Transforms& PlanningScene::getTransformsNonConst()
 {
   getCurrentStateNonConst().update();
   if (!ftf_)
@@ -703,7 +866,11 @@ robot_state::Transforms& planning_scene::PlanningScene::getTransformsNonConst()
   return *ftf_;
 }
 
+<<<<<<< HEAD
+void PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const
+=======
 void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const
+>>>>>>> upstream/indigo-devel
 {
   scene_msg.name = name_;
   scene_msg.robot_model_name = getRobotModel()->getName();
@@ -776,8 +943,6 @@ void planning_scene::PlanningScene::getPlanningSceneDiffMsg(moveit_msgs::Plannin
   }
 }
 
-namespace planning_scene
-{
 namespace
 {
 class ShapeVisitorAddToCollisionObject : public boost::static_visitor<void>
@@ -815,18 +980,26 @@ private:
   const geometry_msgs::Pose* pose_;
 };
 }
-}
 
-bool planning_scene::PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj,
-                                                          const std::string& ns) const
+<<<<<<< HEAD
+bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
+=======
+void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene& scene_msg,
+                                                                       const std::string& ns) const
+>>>>>>> upstream/indigo-devel
 {
   collision_obj.header.frame_id = getPlanningFrame();
   collision_obj.id = ns;
   collision_obj.operation = moveit_msgs::CollisionObject::ADD;
   collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(ns);
   if (!obj)
+<<<<<<< HEAD
     return false;
   ShapeVisitorAddToCollisionObject sv(&collision_obj);
+=======
+    return;
+  ShapeVisitorAddToCollisionObject sv(&co);
+>>>>>>> upstream/indigo-devel
   for (std::size_t j = 0; j < obj->shapes_.size(); ++j)
   {
     shapes::ShapeMsg sm;
@@ -840,7 +1013,11 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(moveit_msgs::Collision
     }
   }
 
+<<<<<<< HEAD
   if (!collision_obj.primitives.empty() || !collision_obj.meshes.empty() || !collision_obj.planes.empty())
+=======
+  if (!co.primitives.empty() || !co.meshes.empty() || !co.planes.empty())
+>>>>>>> upstream/indigo-devel
   {
     if (hasObjectType(collision_obj.id))
       collision_obj.type = getObjectType(collision_obj.id);
@@ -848,10 +1025,15 @@ bool planning_scene::PlanningScene::getCollisionObjectMsg(moveit_msgs::Collision
   return true;
 }
 
-void planning_scene::PlanningScene::getCollisionObjectMsgs(
-    std::vector<moveit_msgs::CollisionObject>& collision_objs) const
+<<<<<<< HEAD
+void PlanningScene::getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const
 {
   collision_objs.clear();
+=======
+void planning_scene::PlanningScene::getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene& scene_msg) const
+{
+  scene_msg.world.collision_objects.clear();
+>>>>>>> upstream/indigo-devel
   const std::vector<std::string>& ns = world_->getObjectIds();
   for (std::size_t i = 0; i < ns.size(); ++i)
     if (ns[i] != OCTOMAP_NS)
@@ -861,8 +1043,12 @@ void planning_scene::PlanningScene::getCollisionObjectMsgs(
     }
 }
 
-bool planning_scene::PlanningScene::getAttachedCollisionObjectMsg(
-    moveit_msgs::AttachedCollisionObject& attached_collision_obj, const std::string& ns) const
+<<<<<<< HEAD
+bool PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
+                                                  const std::string& ns) const
+=======
+void planning_scene::PlanningScene::getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene& scene_msg) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs;
   getAttachedCollisionObjectMsgs(attached_collision_objs);
@@ -877,7 +1063,7 @@ bool planning_scene::PlanningScene::getAttachedCollisionObjectMsg(
   return false;
 }
 
-void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(
+void PlanningScene::getAttachedCollisionObjectMsgs(
     std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs) const
 {
   std::vector<const moveit::core::AttachedBody*> attached_bodies;
@@ -885,7 +1071,7 @@ void planning_scene::PlanningScene::getAttachedCollisionObjectMsgs(
   attachedBodiesToAttachedCollisionObjectMsgs(attached_bodies, attached_collision_objs);
 }
 
-bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
+bool PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose& octomap) const
 {
   octomap.header.frame_id = getPlanningFrame();
   octomap.octomap = octomap_msgs::Octomap();
@@ -896,6 +1082,7 @@ bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose&
     if (map->shapes_.size() == 1)
     {
       const shapes::OcTree* o = static_cast<const shapes::OcTree*>(map->shapes_[0].get());
+<<<<<<< HEAD
       octomap_msgs::fullMapToMsg(*o->octree, octomap.octomap);
       tf::poseEigenToMsg(map->shape_poses_[0], octomap.origin);
       return true;
@@ -906,7 +1093,7 @@ bool planning_scene::PlanningScene::getOctomapMsg(octomap_msgs::OctomapWithPose&
   return false;
 }
 
-void planning_scene::PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const
+void PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const
 {
   object_colors.clear();
 
@@ -921,7 +1108,19 @@ void planning_scene::PlanningScene::getObjectColorMsgs(std::vector<moveit_msgs::
   }
 }
 
+void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const
+=======
+      octomap_msgs::fullMapToMsg(*o->octree, scene_msg.world.octomap.octomap);
+      tf::poseEigenToMsg(map->shape_poses_[0], scene_msg.world.octomap.origin);
+    }
+    else
+      logError("Unexpected number of shapes in octomap collision object. Not including '%s' object",
+               OCTOMAP_NS.c_str());
+  }
+}
+
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const
+>>>>>>> upstream/indigo-devel
 {
   scene_msg.name = name_;
   scene_msg.is_diff = false;
@@ -942,8 +1141,28 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
   getOctomapMsg(scene_msg.world.octomap);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
+                                        const moveit_msgs::PlanningSceneComponents& comp) const
+=======
+void planning_scene::PlanningScene::getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene& scene_msg) const
+{
+  scene_msg.object_colors.clear();
+
+  unsigned int i = 0;
+  ObjectColorMap cmap;
+  getKnownObjectColors(cmap);
+  scene_msg.object_colors.resize(cmap.size());
+  for (ObjectColorMap::const_iterator it = cmap.begin(); it != cmap.end(); ++it, ++i)
+  {
+    scene_msg.object_colors[i].id = it->first;
+    scene_msg.object_colors[i].color = it->second;
+  }
+}
+
 void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
                                                         const moveit_msgs::PlanningSceneComponents& comp) const
+>>>>>>> upstream/indigo-devel
 {
   scene_msg.is_diff = false;
   if (comp.components & moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS)
@@ -987,7 +1206,11 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
 
   // add collision objects
   if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY)
+<<<<<<< HEAD
     getCollisionObjectMsgs(scene_msg.world.collision_objects);
+=======
+    getPlanningSceneMsgCollisionObjects(scene_msg);
+>>>>>>> upstream/indigo-devel
   else if (comp.components & moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES)
   {
     const std::vector<std::string>& ns = world_->getObjectIds();
@@ -1009,7 +1232,11 @@ void planning_scene::PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningSce
     getOctomapMsg(scene_msg.world.octomap);
 }
 
+<<<<<<< HEAD
+void PlanningScene::saveGeometryToStream(std::ostream& out) const
+=======
 void planning_scene::PlanningScene::saveGeometryToStream(std::ostream& out) const
+>>>>>>> upstream/indigo-devel
 {
   out << name_ << std::endl;
   const std::vector<std::string>& ns = world_->getObjectIds();
@@ -1041,12 +1268,20 @@ void planning_scene::PlanningScene::saveGeometryToStream(std::ostream& out) cons
   out << "." << std::endl;
 }
 
+<<<<<<< HEAD
+void PlanningScene::loadGeometryFromStream(std::istream& in)
+=======
 void planning_scene::PlanningScene::loadGeometryFromStream(std::istream& in)
+>>>>>>> upstream/indigo-devel
 {
   loadGeometryFromStream(in, Eigen::Affine3d::Identity());  // Use no offset
 }
 
+<<<<<<< HEAD
+void PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset)
+=======
 void planning_scene::PlanningScene::loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset)
+>>>>>>> upstream/indigo-devel
 {
   if (!in.good() || in.eof())
     return;
@@ -1097,7 +1332,11 @@ void planning_scene::PlanningScene::loadGeometryFromStream(std::istream& in, con
   } while (true);
 }
 
+<<<<<<< HEAD
+void PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
+=======
 void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotState& state)
+>>>>>>> upstream/indigo-devel
 {
   // The attached bodies will be processed separately by processAttachedCollisionObjectMsgs
   // after kstate_ has been updated
@@ -1120,21 +1359,31 @@ void planning_scene::PlanningScene::setCurrentState(const moveit_msgs::RobotStat
   {
     if (!state.is_diff && state.attached_collision_objects[i].object.operation != moveit_msgs::CollisionObject::ADD)
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logError("The specified RobotState is not marked as is_diff. "
                               "The request to modify the object '%s' is not supported. Object is ignored.",
                               state.attached_collision_objects[i].object.id.c_str());
+=======
+      logError("The specified RobotState is not marked as is_diff. The request to modify the object '%s' is not "
+               "supported. Object is ignored.",
+               state.attached_collision_objects[i].object.id.c_str());
+>>>>>>> upstream/indigo-devel
       continue;
     }
     processAttachedCollisionObjectMsg(state.attached_collision_objects[i]);
   }
 }
 
+<<<<<<< HEAD
+void PlanningScene::setCurrentState(const robot_state::RobotState& state)
+=======
 void planning_scene::PlanningScene::setCurrentState(const robot_state::RobotState& state)
+>>>>>>> upstream/indigo-devel
 {
   getCurrentStateNonConst() = state;
 }
 
-void planning_scene::PlanningScene::decoupleParent()
+void PlanningScene::decoupleParent()
 {
   if (!parent_)
     return;
@@ -1204,17 +1453,30 @@ void planning_scene::PlanningScene::decoupleParent()
   parent_.reset();
 }
 
-bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg)
+<<<<<<< HEAD
+bool PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg)
 {
   bool result = true;
 
   CONSOLE_BRIDGE_logDebug("moveit.planning_scene: Adding planning scene diff");
+=======
+bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg)
+{
+  bool result = true;
+
+  logDebug("moveit.planning_scene: Adding planning scene diff");
+>>>>>>> upstream/indigo-devel
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.",
                            scene_msg.robot_model_name.c_str(), getRobotModel()->getName().c_str());
+=======
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene_msg.robot_model_name.c_str(),
+            getRobotModel()->getName().c_str());
+>>>>>>> upstream/indigo-devel
 
   // there is at least one transform in the list of fixed transform: from model frame to itself;
   // if the list is empty, then nothing has been set
@@ -1249,8 +1511,17 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   }
 
   // if any colors have been specified, replace the ones we have with the specified ones
+<<<<<<< HEAD
   for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
     setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
+=======
+  if (!scene_msg.object_colors.empty())
+  {
+    object_colors_.reset();
+    for (std::size_t i = 0; i < scene_msg.object_colors.size(); ++i)
+      setObjectColor(scene_msg.object_colors[i].id, scene_msg.object_colors[i].color);
+  }
+>>>>>>> upstream/indigo-devel
 
   // process collision object updates
   for (std::size_t i = 0; i < scene_msg.world.collision_objects.size(); ++i)
@@ -1263,14 +1534,23 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
   return result;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
+=======
 bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logDebug("moveit.planning_scene: Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logWarn("Setting the scene for model '%s' but model '%s' is loaded.",
                            scene_msg.robot_model_name.c_str(), getRobotModel()->getName().c_str());
+=======
+    logWarn("Setting the scene for model '%s' but model '%s' is loaded.", scene_msg.robot_model_name.c_str(),
+            getRobotModel()->getName().c_str());
+>>>>>>> upstream/indigo-devel
 
   if (parent_)
     decoupleParent();
@@ -1296,7 +1576,11 @@ bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::Plann
   return processPlanningSceneWorldMsg(scene_msg.world);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld& world)
+=======
 bool planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_msgs::PlanningSceneWorld& world)
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   for (std::size_t i = 0; i < world.collision_objects.size(); ++i)
@@ -1305,7 +1589,11 @@ bool planning_scene::PlanningScene::processPlanningSceneWorldMsg(const moveit_ms
   return result;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
+=======
 bool planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
+>>>>>>> upstream/indigo-devel
 {
   if (scene_msg.is_diff)
     return setPlanningSceneDiffMsg(scene_msg);
@@ -1313,7 +1601,11 @@ bool planning_scene::PlanningScene::usePlanningSceneMsg(const moveit_msgs::Plann
     return setPlanningSceneMsg(scene_msg);
 }
 
+<<<<<<< HEAD
+void PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
+=======
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octomap& map)
+>>>>>>> upstream/indigo-devel
 {
   // each octomap replaces any previous one
   world_->removeObject(OCTOMAP_NS);
@@ -1323,7 +1615,11 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.id != "OcTree")
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
+=======
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.id.c_str());
+>>>>>>> upstream/indigo-devel
     return;
   }
 
@@ -1339,7 +1635,7 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   }
 }
 
-void planning_scene::PlanningScene::removeAllCollisionObjects()
+void PlanningScene::removeAllCollisionObjects()
 {
   const std::vector<std::string>& object_ids = world_->getObjectIds();
   for (std::size_t i = 0; i < object_ids.size(); ++i)
@@ -1351,7 +1647,11 @@ void planning_scene::PlanningScene::removeAllCollisionObjects()
     }
 }
 
+<<<<<<< HEAD
+void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
+=======
 void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
+>>>>>>> upstream/indigo-devel
 {
   // each octomap replaces any previous one
   world_->removeObject(OCTOMAP_NS);
@@ -1361,11 +1661,19 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
 
   if (map.octomap.id != "OcTree")
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
     return;
   }
 
   std::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
+=======
+    logError("Received octomap is of type '%s' but type 'OcTree' is expected.", map.octomap.id.c_str());
+    return;
+  }
+
+  boost::shared_ptr<octomap::OcTree> om(static_cast<octomap::OcTree*>(octomap_msgs::msgToMap(map.octomap)));
+>>>>>>> upstream/indigo-devel
   const Eigen::Affine3d& t = getTransforms().getTransform(map.header.frame_id);
   Eigen::Affine3d p;
   tf::poseMsgToEigen(map.origin, p);
@@ -1373,8 +1681,12 @@ void planning_scene::PlanningScene::processOctomapMsg(const octomap_msgs::Octoma
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
 }
 
-void planning_scene::PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree,
+<<<<<<< HEAD
+void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Affine3d& t)
+=======
+void planning_scene::PlanningScene::processOctomapPtr(const boost::shared_ptr<const octomap::OcTree>& octree,
                                                       const Eigen::Affine3d& t)
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
   if (map)
@@ -1407,8 +1719,12 @@ void planning_scene::PlanningScene::processOctomapPtr(const std::shared_ptr<cons
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(octree)), t);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object)
+=======
 bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
     const moveit_msgs::AttachedCollisionObject& object)
+>>>>>>> upstream/indigo-devel
 {
   if (object.object.operation == moveit_msgs::CollisionObject::ADD && !getRobotModel()->hasLinkModel(object.link_name))
   {
@@ -1480,9 +1796,15 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         }
         else
         {
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logError("Attempting to attach object '%s' to link '%s' but no geometry specified "
                                   "and such an object does not exist in the collision world",
                                   object.object.id.c_str(), object.link_name.c_str());
+=======
+          logError("Attempting to attach object '%s' to link '%s' but no geometry specified and such an object does "
+                   "not exist in the collision world",
+                   object.object.id.c_str(), object.link_name.c_str());
+>>>>>>> upstream/indigo-devel
           return false;
         }
       }
@@ -1492,12 +1814,21 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         if (world_->removeObject(object.object.id))
         {
           if (object.object.operation == moveit_msgs::CollisionObject::ADD)
+<<<<<<< HEAD
             CONSOLE_BRIDGE_logInform("Removing world object with the same name as newly attached object: '%s'",
                                      object.object.id.c_str());
           else
             CONSOLE_BRIDGE_logWarn("You tried to append geometry to an attached object "
                                    "that is actually a world object ('%s'). World geometry is ignored.",
                                    object.object.id.c_str());
+=======
+            logInform("Removing world object with the same name as newly attached object: '%s'",
+                      object.object.id.c_str());
+          else
+            logWarn("You tried to append geometry to an attached object that is actually a world object ('%s'). World "
+                    "geometry is ignored.",
+                    object.object.id.c_str());
+>>>>>>> upstream/indigo-devel
         }
 
         for (std::size_t i = 0; i < object.object.primitives.size(); ++i)
@@ -1546,8 +1877,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
 
       if (shapes.empty())
       {
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logError("There is no geometry to attach to link '%s' as part of attached body '%s'",
                                 object.link_name.c_str(), object.object.id.c_str());
+=======
+        logError("There is no geometry to attach to link '%s' as part of attached body '%s'", object.link_name.c_str(),
+                 object.object.id.c_str());
+>>>>>>> upstream/indigo-devel
         return false;
       }
 
@@ -1558,6 +1894,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
       {
         // there should not exist an attached object with this name
         if (kstate_->clearAttachedBody(object.object.id))
+<<<<<<< HEAD
           CONSOLE_BRIDGE_logInform("The robot state already had an object named '%s' attached to link '%s'. "
                                    "The object was replaced.",
                                    object.object.id.c_str(), object.link_name.c_str());
@@ -1565,6 +1902,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
                             object.detach_posture);
         CONSOLE_BRIDGE_logInform("Attached object '%s' to link '%s'", object.object.id.c_str(),
                                  object.link_name.c_str());
+=======
+          logInform("The robot state already had an object named '%s' attached to link '%s'. The object was replaced.",
+                    object.object.id.c_str(), object.link_name.c_str());
+        kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
+                            object.detach_posture);
+        logInform("Attached object '%s' to link '%s'", object.object.id.c_str(), object.link_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
       else
       {
@@ -1579,8 +1923,13 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
           kstate_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);
         else
           kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, detach_posture);
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logInform("Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(),
                                  object.link_name.c_str());
+=======
+        logInform("Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(),
+                  object.link_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
 
       return true;
@@ -1630,6 +1979,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
       kstate_->clearAttachedBody(name);
 
       if (world_->hasObject(name))
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logWarn("The collision world already has an object with the same name as the body about to be "
                                "detached. NOT adding the detached body '%s' to the collision world.",
                                object.object.id.c_str());
@@ -1638,6 +1988,16 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
         world_->addToObject(name, shapes, poses);
         CONSOLE_BRIDGE_logInform("Detached object '%s' from link '%s' and added it back in the collision world",
                                  name.c_str(), object.link_name.c_str());
+=======
+        logWarn("The collision world already has an object with the same name as the body about to be detached. NOT "
+                "adding the detached body '%s' to the collision world.",
+                object.object.id.c_str());
+      else
+      {
+        world_->addToObject(name, shapes, poses);
+        logInform("Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(),
+                  object.link_name.c_str());
+>>>>>>> upstream/indigo-devel
       }
     }
     if (!attached_bodies.empty() || object.object.id.empty())
@@ -1655,7 +2015,11 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
   return false;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject& object)
+=======
 bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs::CollisionObject& object)
+>>>>>>> upstream/indigo-devel
 {
   if (object.id == OCTOMAP_NS)
   {
@@ -1748,8 +2112,12 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
     if (world_->hasObject(object.id))
     {
       if (!object.primitives.empty() || !object.meshes.empty() || !object.planes.empty())
+<<<<<<< HEAD
         CONSOLE_BRIDGE_logWarn("Move operation for object '%s' ignores the geometry specified in the message.",
                                object.id.c_str());
+=======
+        logWarn("Move operation for object '%s' ignores the geometry specified in the message.", object.id.c_str());
+>>>>>>> upstream/indigo-devel
 
       const Eigen::Affine3d& t = getTransforms().getTransform(object.header.frame_id);
       EigenSTL::vector_Affine3d new_poses;
@@ -1797,12 +2165,20 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
   return false;
 }
 
+<<<<<<< HEAD
+const Eigen::Affine3d& PlanningScene::getFrameTransform(const std::string& id) const
+=======
 const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   return getFrameTransform(getCurrentState(), id);
 }
 
+<<<<<<< HEAD
+const Eigen::Affine3d& PlanningScene::getFrameTransform(const std::string& id)
+=======
 const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const std::string& id)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyLinkTransforms())
     return getFrameTransform(getCurrentStateNonConst(), id);
@@ -1810,8 +2186,13 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const st
     return getFrameTransform(getCurrentState(), id);
 }
 
+<<<<<<< HEAD
+const Eigen::Affine3d& PlanningScene::getFrameTransform(const robot_state::RobotState& state,
+                                                        const std::string& id) const
+=======
 const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const robot_state::RobotState& state,
                                                                         const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (!id.empty() && id[0] == '/')
     return getFrameTransform(id.substr(1));
@@ -1822,7 +2203,11 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const ro
     collision_detection::World::ObjectConstPtr obj = getWorld()->getObject(id);
     if (obj->shape_poses_.size() > 1)
     {
+<<<<<<< HEAD
       CONSOLE_BRIDGE_logWarn("More than one shapes in object '%s'. Using first one to decide transform", id.c_str());
+=======
+      logWarn("More than one shapes in object '%s'. Using first one to decide transform", id.c_str());
+>>>>>>> upstream/indigo-devel
       return obj->shape_poses_[0];
     }
     else if (obj->shape_poses_.size() == 1)
@@ -1831,13 +2216,21 @@ const Eigen::Affine3d& planning_scene::PlanningScene::getFrameTransform(const ro
   return getTransforms().Transforms::getTransform(id);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::knowsFrameTransform(const std::string& id) const
+=======
 bool planning_scene::PlanningScene::knowsFrameTransform(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   return knowsFrameTransform(getCurrentState(), id);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::knowsFrameTransform(const robot_state::RobotState& state, const std::string& id) const
+=======
 bool planning_scene::PlanningScene::knowsFrameTransform(const robot_state::RobotState& state,
                                                         const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (!id.empty() && id[0] == '/')
     return knowsFrameTransform(id.substr(1));
@@ -1851,7 +2244,11 @@ bool planning_scene::PlanningScene::knowsFrameTransform(const robot_state::Robot
   return getTransforms().Transforms::canTransform(id);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::hasObjectType(const std::string& id) const
+=======
 bool planning_scene::PlanningScene::hasObjectType(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (object_types_)
     if (object_types_->find(id) != object_types_->end())
@@ -1861,7 +2258,11 @@ bool planning_scene::PlanningScene::hasObjectType(const std::string& id) const
   return false;
 }
 
+<<<<<<< HEAD
+const object_recognition_msgs::ObjectType& PlanningScene::getObjectType(const std::string& id) const
+=======
 const object_recognition_msgs::ObjectType& planning_scene::PlanningScene::getObjectType(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (object_types_)
   {
@@ -1875,21 +2276,33 @@ const object_recognition_msgs::ObjectType& planning_scene::PlanningScene::getObj
   return empty;
 }
 
+<<<<<<< HEAD
+void PlanningScene::setObjectType(const std::string& id, const object_recognition_msgs::ObjectType& type)
+=======
 void planning_scene::PlanningScene::setObjectType(const std::string& id,
                                                   const object_recognition_msgs::ObjectType& type)
+>>>>>>> upstream/indigo-devel
 {
   if (!object_types_)
     object_types_.reset(new ObjectTypeMap());
   (*object_types_)[id] = type;
 }
 
+<<<<<<< HEAD
+void PlanningScene::removeObjectType(const std::string& id)
+=======
 void planning_scene::PlanningScene::removeObjectType(const std::string& id)
+>>>>>>> upstream/indigo-devel
 {
   if (object_types_)
     object_types_->erase(id);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getKnownObjectTypes(ObjectTypeMap& kc) const
+=======
 void planning_scene::PlanningScene::getKnownObjectTypes(ObjectTypeMap& kc) const
+>>>>>>> upstream/indigo-devel
 {
   kc.clear();
   if (parent_)
@@ -1899,7 +2312,11 @@ void planning_scene::PlanningScene::getKnownObjectTypes(ObjectTypeMap& kc) const
       kc[it->first] = it->second;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::hasObjectColor(const std::string& id) const
+=======
 bool planning_scene::PlanningScene::hasObjectColor(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (object_colors_)
     if (object_colors_->find(id) != object_colors_->end())
@@ -1909,7 +2326,11 @@ bool planning_scene::PlanningScene::hasObjectColor(const std::string& id) const
   return false;
 }
 
+<<<<<<< HEAD
+const std_msgs::ColorRGBA& PlanningScene::getObjectColor(const std::string& id) const
+=======
 const std_msgs::ColorRGBA& planning_scene::PlanningScene::getObjectColor(const std::string& id) const
+>>>>>>> upstream/indigo-devel
 {
   if (object_colors_)
   {
@@ -1923,7 +2344,11 @@ const std_msgs::ColorRGBA& planning_scene::PlanningScene::getObjectColor(const s
   return empty;
 }
 
+<<<<<<< HEAD
+void PlanningScene::getKnownObjectColors(ObjectColorMap& kc) const
+=======
 void planning_scene::PlanningScene::getKnownObjectColors(ObjectColorMap& kc) const
+>>>>>>> upstream/indigo-devel
 {
   kc.clear();
   if (parent_)
@@ -1933,33 +2358,44 @@ void planning_scene::PlanningScene::getKnownObjectColors(ObjectColorMap& kc) con
       kc[it->first] = it->second;
 }
 
+<<<<<<< HEAD
+void PlanningScene::setObjectColor(const std::string& id, const std_msgs::ColorRGBA& color)
+=======
 void planning_scene::PlanningScene::setObjectColor(const std::string& id, const std_msgs::ColorRGBA& color)
+>>>>>>> upstream/indigo-devel
 {
-  if (id.empty())
-  {
-    CONSOLE_BRIDGE_logError("Cannot set color of object with empty id.");
-    return;
-  }
   if (!object_colors_)
     object_colors_.reset(new ObjectColorMap());
   (*object_colors_)[id] = color;
 }
 
+<<<<<<< HEAD
+void PlanningScene::removeObjectColor(const std::string& id)
+=======
 void planning_scene::PlanningScene::removeObjectColor(const std::string& id)
+>>>>>>> upstream/indigo-devel
 {
   if (object_colors_)
     object_colors_->erase(id);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateColliding(const moveit_msgs::RobotState& state, const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateColliding(const moveit_msgs::RobotState& state, const std::string& group,
                                                      bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateColliding(s, group, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateColliding(const std::string& group, bool verbose)
+=======
 bool planning_scene::PlanningScene::isStateColliding(const std::string& group, bool verbose)
+>>>>>>> upstream/indigo-devel
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     return isStateColliding(getCurrentStateNonConst(), group, verbose);
@@ -1967,8 +2403,12 @@ bool planning_scene::PlanningScene::isStateColliding(const std::string& group, b
     return isStateColliding(getCurrentState(), group, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateColliding(const robot_state::RobotState& state, const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotState& state, const std::string& group,
                                                      bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
@@ -1978,7 +2418,11 @@ bool planning_scene::PlanningScene::isStateColliding(const robot_state::RobotSta
   return res.collision;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateFeasible(const moveit_msgs::RobotState& state, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (state_feasibility_)
   {
@@ -1989,23 +2433,37 @@ bool planning_scene::PlanningScene::isStateFeasible(const moveit_msgs::RobotStat
   return true;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateFeasible(const robot_state::RobotState& state, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateFeasible(const robot_state::RobotState& state, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (state_feasibility_)
     return state_feasibility_(state, verbose);
   return true;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state, const moveit_msgs::Constraints& constr,
+                                       bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
                                                        const moveit_msgs::Constraints& constr, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateConstrained(const robot_state::RobotState& state, const moveit_msgs::Constraints& constr,
+                                       bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotState& state,
                                                        const moveit_msgs::Constraints& constr, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   kinematic_constraints::KinematicConstraintSetPtr ks(
       new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
@@ -2016,48 +2474,76 @@ bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotS
     return isStateConstrained(state, *ks, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
+                                       const kinematic_constraints::KinematicConstraintSet& constr, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
                                                        const kinematic_constraints::KinematicConstraintSet& constr,
                                                        bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateConstrained(const robot_state::RobotState& state,
+                                       const kinematic_constraints::KinematicConstraintSet& constr, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateConstrained(const robot_state::RobotState& state,
                                                        const kinematic_constraints::KinematicConstraintSet& constr,
                                                        bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   return constr.decide(state, verbose).satisfied;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateValid(const robot_state::RobotState& state, const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState& state, const std::string& group,
                                                  bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, group, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const std::string& group,
                                                  bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, group, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const moveit_msgs::Constraints& constr,
+                                 const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateValid(const moveit_msgs::RobotState& state,
                                                  const moveit_msgs::Constraints& constr, const std::string& group,
                                                  bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateValid(s, constr, group, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateValid(const robot_state::RobotState& state, const moveit_msgs::Constraints& constr,
+                                 const std::string& group, bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState& state,
                                                  const moveit_msgs::Constraints& constr, const std::string& group,
                                                  bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -2066,9 +2552,15 @@ bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState& 
   return isStateConstrained(state, constr, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isStateValid(const robot_state::RobotState& state,
+                                 const kinematic_constraints::KinematicConstraintSet& constr, const std::string& group,
+                                 bool verbose) const
+=======
 bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState& state,
                                                  const kinematic_constraints::KinematicConstraintSet& constr,
                                                  const std::string& group, bool verbose) const
+>>>>>>> upstream/indigo-devel
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -2077,43 +2569,72 @@ bool planning_scene::PlanningScene::isStateValid(const robot_state::RobotState& 
   return isStateConstrained(state, constr, verbose);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
+                                const moveit_msgs::RobotTrajectory& trajectory, const std::string& group, bool verbose,
+                                std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                                 const moveit_msgs::RobotTrajectory& trajectory,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   static const moveit_msgs::Constraints emp_constraints;
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(start_state, trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                                 const moveit_msgs::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(start_state, trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const moveit_msgs::Constraints& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                                 const moveit_msgs::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const moveit_msgs::Constraints& goal_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<moveit_msgs::Constraints> goal_constraints_vector(1, goal_constraints);
   return isPathValid(start_state, trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                                 const moveit_msgs::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::vector<moveit_msgs::Constraints>& goal_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   robot_trajectory::RobotTrajectory t(getRobotModel(), group);
   robot_state::RobotState start(getCurrentState());
@@ -2122,11 +2643,18 @@ bool planning_scene::PlanningScene::isPathValid(const moveit_msgs::RobotState& s
   return isPathValid(t, path_constraints, goal_constraints, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::vector<moveit_msgs::Constraints>& goal_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   bool result = true;
   if (invalid_index)
@@ -2180,46 +2708,75 @@ bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTra
   return result;
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const moveit_msgs::Constraints& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const moveit_msgs::Constraints& goal_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   std::vector<moveit_msgs::Constraints> goal_constraints_vector(1, goal_constraints);
   return isPathValid(trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                                                 const moveit_msgs::Constraints& path_constraints,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
+=======
 bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
                                                 const std::string& group, bool verbose,
                                                 std::vector<std::size_t>* invalid_index) const
+>>>>>>> upstream/indigo-devel
 {
   static const moveit_msgs::Constraints emp_constraints;
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory, std::size_t max_costs,
+                                   std::set<collision_detection::CostSource>& costs, double overlap_fraction) const
+=======
 void planning_scene::PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory,
                                                    std::size_t max_costs,
                                                    std::set<collision_detection::CostSource>& costs,
                                                    double overlap_fraction) const
+>>>>>>> upstream/indigo-devel
 {
   getCostSources(trajectory, max_costs, std::string(), costs, overlap_fraction);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory, std::size_t max_costs,
+                                   const std::string& group_name, std::set<collision_detection::CostSource>& costs,
+                                   double overlap_fraction) const
+=======
 void planning_scene::PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory,
                                                    std::size_t max_costs, const std::string& group_name,
                                                    std::set<collision_detection::CostSource>& costs,
                                                    double overlap_fraction) const
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
@@ -2251,15 +2808,26 @@ void planning_scene::PlanningScene::getCostSources(const robot_trajectory::Robot
   collision_detection::removeOverlapping(costs, overlap_fraction);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
+                                   std::set<collision_detection::CostSource>& costs) const
+=======
 void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
                                                    std::set<collision_detection::CostSource>& costs) const
+>>>>>>> upstream/indigo-devel
 {
   getCostSources(state, max_costs, std::string(), costs);
 }
 
+<<<<<<< HEAD
+void PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
+                                   const std::string& group_name,
+                                   std::set<collision_detection::CostSource>& costs) const
+=======
 void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
                                                    const std::string& group_name,
                                                    std::set<collision_detection::CostSource>& costs) const
+>>>>>>> upstream/indigo-devel
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
@@ -2270,7 +2838,7 @@ void planning_scene::PlanningScene::getCostSources(const robot_state::RobotState
   cres.cost_sources.swap(costs);
 }
 
-void planning_scene::PlanningScene::printKnownObjects(std::ostream& out) const
+void PlanningScene::printKnownObjects(std::ostream& out) const
 {
   const std::vector<std::string>& objects = getWorld()->getObjectIds();
 
@@ -2286,3 +2854,5 @@ void planning_scene::PlanningScene::printKnownObjects(std::ostream& out) const
     out << "\t " << attached_bodies[i]->getName() << "\n";
   }
 }
+
+}  // end of namespace planning_scene

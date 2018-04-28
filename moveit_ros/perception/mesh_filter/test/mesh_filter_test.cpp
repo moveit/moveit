@@ -65,7 +65,11 @@ class FilterTraits<unsigned short>
 {
 public:
   static const GLushort FILTER_GL_TYPE = GL_UNSIGNED_SHORT;
+<<<<<<< HEAD
   static constexpr double ToMetricScale = 0.001;
+=======
+  static const double ToMetricScale = 0.001;
+>>>>>>> upstream/indigo-devel
 };
 
 template <>
@@ -73,7 +77,11 @@ class FilterTraits<float>
 {
 public:
   static const GLushort FILTER_GL_TYPE = GL_FLOAT;
+<<<<<<< HEAD
   static constexpr double ToMetricScale = 1.0f;
+=======
+  static const double ToMetricScale = 1.0f;
+>>>>>>> upstream/indigo-devel
 };
 
 template <typename Type>

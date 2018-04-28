@@ -149,25 +149,6 @@ struct CollisionData
   bool done_;
 };
 
-struct DistanceData
-{
-  DistanceData(const DistanceRequest* req, DistanceResult* res) : req(req), res(res), done(false)
-  {
-  }
-  ~DistanceData()
-  {
-  }
-
-  /// Distance query request information
-  const DistanceRequest* req;
-
-  /// Distance query results information
-  DistanceResult* res;
-
-  /// Indicates if distance query is finished.
-  bool done;
-};
-
 MOVEIT_CLASS_FORWARD(FCLGeometry);
 
 struct FCLGeometry
@@ -204,12 +185,21 @@ struct FCLGeometry
     collision_geometry_->setUserData(collision_geometry_data_.get());
   }
 
+<<<<<<< HEAD
   std::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
   CollisionGeometryDataPtr collision_geometry_data_;
 };
 
 typedef std::shared_ptr<fcl::CollisionObject> FCLCollisionObjectPtr;
 typedef std::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
+=======
+  boost::shared_ptr<fcl::CollisionGeometry> collision_geometry_;
+  boost::shared_ptr<CollisionGeometryData> collision_geometry_data_;
+};
+
+typedef boost::shared_ptr<fcl::CollisionObject> FCLCollisionObjectPtr;
+typedef boost::shared_ptr<const fcl::CollisionObject> FCLCollisionObjectConstPtr;
+>>>>>>> upstream/indigo-devel
 
 struct FCLObject
 {
@@ -224,7 +214,11 @@ struct FCLObject
 struct FCLManager
 {
   FCLObject object_;
+<<<<<<< HEAD
   std::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
+=======
+  boost::shared_ptr<fcl::BroadPhaseCollisionManager> manager_;
+>>>>>>> upstream/indigo-devel
 };
 
 bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data);

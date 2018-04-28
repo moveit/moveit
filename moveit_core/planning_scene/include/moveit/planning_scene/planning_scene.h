@@ -84,7 +84,11 @@ typedef std::map<std::string, object_recognition_msgs::ObjectType> ObjectTypeMap
 /** \brief This class maintains the representation of the
     environment as seen by a planning instance. The environment
     geometry, the robot geometry and state are maintained. */
+<<<<<<< HEAD
 class PlanningScene : private boost::noncopyable, public std::enable_shared_from_this<PlanningScene>
+=======
+class PlanningScene : private boost::noncopyable, public boost::enable_shared_from_this<PlanningScene>
+>>>>>>> upstream/indigo-devel
 {
 public:
   /** \brief construct using an existing RobotModel */
@@ -93,7 +97,12 @@ public:
 
   /** \brief construct using a urdf and srdf.
    * A RobotModel for the PlanningScene will be created using the urdf and srdf. */
+<<<<<<< HEAD
   PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model,
+=======
+  PlanningScene(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+                const boost::shared_ptr<const srdf::Model>& srdf_model,
+>>>>>>> upstream/indigo-devel
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   static const std::string OCTOMAP_NS;
@@ -689,6 +698,7 @@ public:
   /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
       this will be a complete planning scene message */
   void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene, const moveit_msgs::PlanningSceneComponents& comp) const;
+<<<<<<< HEAD
 
   /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
    * requested object*/
@@ -713,6 +723,9 @@ public:
   /** \brief Construct a vector of messages (\e object_colors) with the colors of the objects from the planning_scene */
   void getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
 
+=======
+
+>>>>>>> upstream/indigo-devel
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff
      (is_diff
       member). A parent is not required to exist. However, the existing data in the planning instance is not cleared.
@@ -735,7 +748,11 @@ public:
 
   void processOctomapMsg(const octomap_msgs::OctomapWithPose& map);
   void processOctomapMsg(const octomap_msgs::Octomap& map);
+<<<<<<< HEAD
   void processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Affine3d& t);
+=======
+  void processOctomapPtr(const boost::shared_ptr<const octomap::OcTree>& octree, const Eigen::Affine3d& t);
+>>>>>>> upstream/indigo-devel
 
   /**
    * \brief Clear all collision objects in planning scene
@@ -958,8 +975,18 @@ private:
   void initialize();
 
   /* helper function to create a RobotModel from a urdf/srdf. */
+<<<<<<< HEAD
   static robot_model::RobotModelPtr createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
                                                      const srdf::ModelConstSharedPtr& srdf_model);
+=======
+  static robot_model::RobotModelPtr createRobotModel(const boost::shared_ptr<const urdf::ModelInterface>& urdf_model,
+                                                     const boost::shared_ptr<const srdf::Model>& srdf_model);
+
+  void getPlanningSceneMsgCollisionObject(moveit_msgs::PlanningScene& scene, const std::string& ns) const;
+  void getPlanningSceneMsgCollisionObjects(moveit_msgs::PlanningScene& scene) const;
+  void getPlanningSceneMsgOctomap(moveit_msgs::PlanningScene& scene) const;
+  void getPlanningSceneMsgObjectColors(moveit_msgs::PlanningScene& scene_msg) const;
+>>>>>>> upstream/indigo-devel
 
   MOVEIT_CLASS_FORWARD(CollisionDetector);
 
@@ -1001,6 +1028,7 @@ private:
   PlanningSceneConstPtr parent_;  // Null unless this is a diff scene
 
   robot_model::RobotModelConstPtr kmodel_;  // Never null (may point to same model as parent)
+<<<<<<< HEAD
 
   robot_state::RobotStatePtr kstate_;                                       // if NULL use parent's
   robot_state::AttachedBodyCallback current_state_attached_body_callback_;  // called when changes are made to attached
@@ -1008,6 +1036,15 @@ private:
 
   robot_state::TransformsPtr ftf_;  // if NULL use parent's
 
+=======
+
+  robot_state::RobotStatePtr kstate_;                                       // if NULL use parent's
+  robot_state::AttachedBodyCallback current_state_attached_body_callback_;  // called when changes are made to attached
+                                                                            // bodies
+
+  robot_state::TransformsPtr ftf_;  // if NULL use parent's
+
+>>>>>>> upstream/indigo-devel
   collision_detection::WorldPtr world_;             // never NULL, never shared with parent/child
   collision_detection::WorldConstPtr world_const_;  // copy of world_
   collision_detection::WorldDiffPtr world_diff_;    // NULL unless this is a diff scene
@@ -1022,10 +1059,17 @@ private:
   StateFeasibilityFn state_feasibility_;
   MotionFeasibilityFn motion_feasibility_;
 
+<<<<<<< HEAD
   std::unique_ptr<ObjectColorMap> object_colors_;
 
   // a map of object types
   std::unique_ptr<ObjectTypeMap> object_types_;
+=======
+  boost::scoped_ptr<ObjectColorMap> object_colors_;
+
+  // a map of object types
+  boost::scoped_ptr<ObjectTypeMap> object_types_;
+>>>>>>> upstream/indigo-devel
 };
 }
 

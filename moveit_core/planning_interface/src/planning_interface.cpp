@@ -38,13 +38,15 @@
 #include <boost/thread/mutex.hpp>
 #include <set>
 
+namespace planning_interface
+{
 namespace
 {
 // keep track of currently active contexts
 struct ActiveContexts
 {
   boost::mutex mutex_;
-  std::set<planning_interface::PlanningContext*> contexts_;
+  std::set<PlanningContext*> contexts_;
 };
 
 static ActiveContexts& getActiveContexts()
@@ -54,33 +56,50 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
+<<<<<<< HEAD
+PlanningContext::PlanningContext(const std::string& name, const std::string& group) : name_(name), group_(group)
+=======
 planning_interface::PlanningContext::PlanningContext(const std::string& name, const std::string& group)
   : name_(name), group_(group)
+>>>>>>> upstream/indigo-devel
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
   ac.contexts_.insert(this);
 }
 
-planning_interface::PlanningContext::~PlanningContext()
+PlanningContext::~PlanningContext()
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
   ac.contexts_.erase(this);
 }
 
+<<<<<<< HEAD
+void PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+=======
 void planning_interface::PlanningContext::setPlanningScene(const planning_scene::PlanningSceneConstPtr& planning_scene)
+>>>>>>> upstream/indigo-devel
 {
   planning_scene_ = planning_scene;
 }
 
+<<<<<<< HEAD
+void PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
+=======
 void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanRequest& request)
+>>>>>>> upstream/indigo-devel
 {
   request_ = request;
   if (request_.allowed_planning_time <= 0.0)
   {
+<<<<<<< HEAD
     CONSOLE_BRIDGE_logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
                              request_.allowed_planning_time);
+=======
+    logInform("The timeout for planning must be positive (%lf specified). Assuming one second instead.",
+              request_.allowed_planning_time);
+>>>>>>> upstream/indigo-devel
     request_.allowed_planning_time = 1.0;
   }
   if (request_.num_planning_attempts < 0)
@@ -88,38 +107,57 @@ void planning_interface::PlanningContext::setMotionPlanRequest(const MotionPlanR
   request_.num_planning_attempts = std::max(1, request_.num_planning_attempts);
 }
 
+<<<<<<< HEAD
+bool PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
+=======
 bool planning_interface::PlannerManager::initialize(const robot_model::RobotModelConstPtr&, const std::string&)
+>>>>>>> upstream/indigo-devel
 {
   return true;
 }
 
-std::string planning_interface::PlannerManager::getDescription() const
+std::string PlannerManager::getDescription() const
 {
   return "";
 }
 
+<<<<<<< HEAD
+PlanningContextPtr PlannerManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                      const MotionPlanRequest& req) const
+=======
 planning_interface::PlanningContextPtr planning_interface::PlannerManager::getPlanningContext(
     const planning_scene::PlanningSceneConstPtr& planning_scene, const MotionPlanRequest& req) const
+>>>>>>> upstream/indigo-devel
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);
 }
 
+<<<<<<< HEAD
+void PlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
+=======
 void planning_interface::PlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
+>>>>>>> upstream/indigo-devel
 {
   // nothing by default
   algs.clear();
 }
 
+<<<<<<< HEAD
+void PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap& pcs)
+=======
 void planning_interface::PlannerManager::setPlannerConfigurations(const PlannerConfigurationMap& pcs)
+>>>>>>> upstream/indigo-devel
 {
   config_settings_ = pcs;
 }
 
-void planning_interface::PlannerManager::terminate() const
+void PlannerManager::terminate() const
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
   for (std::set<PlanningContext*>::iterator it = ac.contexts_.begin(); it != ac.contexts_.end(); ++it)
     (*it)->terminate();
 }
+
+}  // end of namespace planning_interface

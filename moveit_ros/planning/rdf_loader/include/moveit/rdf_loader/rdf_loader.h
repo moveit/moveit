@@ -40,6 +40,10 @@
 #include <moveit/macros/class_forward.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
+<<<<<<< HEAD
+=======
+#include <boost/shared_ptr.hpp>
+>>>>>>> upstream/indigo-devel
 
 class TiXmlDocument;
 
@@ -82,6 +86,7 @@ public:
     return srdf_;
   }
 
+<<<<<<< HEAD
   /** @brief determine if given path points to a xacro file */
   static bool isXacroFile(const std::string& path);
 
@@ -105,6 +110,12 @@ private:
   std::string robot_description_;
   srdf::ModelSharedPtr srdf_;
   urdf::ModelInterfaceSharedPtr urdf_;
+=======
+private:
+  std::string robot_description_;
+  boost::shared_ptr<srdf::Model> srdf_;
+  boost::shared_ptr<urdf::ModelInterface> urdf_;
+>>>>>>> upstream/indigo-devel
 };
 }
 #endif

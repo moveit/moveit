@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   eigen_conversions
 )
+<<<<<<< HEAD
 
 find_package(Eigen3 REQUIRED)
 
@@ -30,6 +31,9 @@ find_package(Eigen3 REQUIRED)
 if(NOT EIGEN3_INCLUDE_DIRS)
   set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
+=======
+find_package(Eigen REQUIRED)
+>>>>>>> upstream/indigo-devel
 
 generate_dynamic_reconfigure_options(
   "planning_scene_monitor/cfg/PlanningSceneMonitorDynamicReconfigure.cfg"
@@ -75,8 +79,14 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${Boost_INCLUDE_DIRS}
 )
 include_directories(SYSTEM
+<<<<<<< HEAD
                     ${EIGEN3_INCLUDE_DIRS}
 )
+=======
+                    ${EIGEN_INCLUDE_DIRS}
+)
+
+>>>>>>> upstream/indigo-devel
 
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})

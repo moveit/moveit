@@ -174,6 +174,7 @@ void planning_scene_monitor::PlanningSceneMonitor::initialize(const planning_sce
 {
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("PlanningSceneMonitor::initialize");
+  enforce_next_state_update_ = false;
 
   if (monitor_name_.empty())
     monitor_name_ = "planning_scene_monitor";
@@ -387,7 +388,12 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
             scene_->getPlanningSceneMsg(msg);
           }
           // also publish timestamp of this robot_state
+<<<<<<< HEAD
           msg.robot_state.joint_state.header.stamp = last_robot_motion_time_;
+=======
+          if (current_state_monitor_)
+            msg.robot_state.joint_state.header.stamp = current_state_monitor_->getCurrentStateTime();
+>>>>>>> upstream/indigo-devel
           publish_msg = true;
         }
         new_scene_update_ = UPDATE_NONE;
@@ -516,10 +522,13 @@ bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
     boost::recursive_mutex::scoped_lock prevent_shape_cache_updates(shape_handles_lock_);
 
     last_update_time_ = ros::Time::now();
+<<<<<<< HEAD
     last_robot_motion_time_ = scene.robot_state.joint_state.header.stamp;
     ROS_DEBUG_STREAM_NAMED("planning_scene_monitor",
                            "scene update " << fmod(last_update_time_.toSec(), 10.)
                                            << " robot stamp: " << fmod(last_robot_motion_time_.toSec(), 10.));
+=======
+>>>>>>> upstream/indigo-devel
     old_scene_name = scene_->getName();
     result = scene_->usePlanningSceneMsg(scene);
     if (octomap_monitor_)
@@ -546,12 +555,21 @@ bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
           boost::bind(&PlanningSceneMonitor::currentStateAttachedBodyUpdateCallback, this, _1, _2));
       scene_->setCollisionObjectUpdateCallback(
           boost::bind(&PlanningSceneMonitor::currentWorldObjectUpdateCallback, this, _1, _2));
+<<<<<<< HEAD
     }
     if (octomap_monitor_)
     {
       excludeAttachedBodiesFromOctree();  // in case updates have happened to the attached bodies, put them in
       excludeWorldObjectsFromOctree();    // in case updates have happened to the attached bodies, put them in
     }
+=======
+    }
+    if (octomap_monitor_)
+    {
+      excludeAttachedBodiesFromOctree();  // in case updates have happened to the attached bodies, put them in
+      excludeWorldObjectsFromOctree();    // in case updates have happened to the attached bodies, put them in
+    }
+>>>>>>> upstream/indigo-devel
   }
 
   // if we have a diff, try to more accuratelly determine the update type
@@ -863,10 +881,26 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
 {
   if (t.isZero())
     return false;
+<<<<<<< HEAD
   ros::WallTime start = ros::WallTime::now();
   ros::WallDuration timeout(wait_time);
 
   ROS_DEBUG_NAMED(LOGNAME, "sync robot state to: %.3fs", fmod(t.toSec(), 10.));
+
+  if (current_state_monitor_)
+  {
+    // Wait for next robot update in state monitor. Those updates are only passed to PSM when robot actually moved!
+    enforce_next_state_update_ = true;  // enforce potential updates to be directly applied
+    bool success = current_state_monitor_->waitForCurrentState(t, wait_time);
+    enforce_next_state_update_ =
+        false;  // back to normal throttling behavior, not applying incoming updates immediately
+
+    /* If the robot doesn't move, we will never receive an update from CSM in planning scene.
+       As we ensured that an update, if it is triggered by CSM, is directly passed to the scene,
+       we can early return true here (if we successfully received a CSM update). Otherwise return false. */
+    if (success)
+      return true;
+=======
 
   if (current_state_monitor_)
   {
@@ -882,12 +916,12 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
       if (state_update_pending_)  // enforce state update
       {
         state_update_pending_ = false;
-        last_robot_state_update_wall_time_ = ros::WallTime::now();
         lock.unlock();
         updateSceneWithCurrentState();
       }
       return true;
     }
+>>>>>>> upstream/indigo-devel
 
     ROS_WARN_NAMED(LOGNAME, "Failed to fetch current robot state.");
     return false;
@@ -896,6 +930,7 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
   // Sometimes there is no state monitor. In this case state updates are received as part of scene updates only.
   // However, scene updates are only published if the robot actually moves. Hence we need a timeout!
   // As publishing planning scene updates is throttled (2Hz by default), a 1s timeout is a suitable default.
+<<<<<<< HEAD
   boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
   ros::Time prev_robot_motion_time = last_robot_motion_time_;
   while (last_robot_motion_time_ < t &&  // Wait until the state update actually reaches the scene.
@@ -913,6 +948,24 @@ bool planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState(cons
 
   ROS_DEBUG_STREAM_NAMED(LOGNAME, "sync done: robot motion: " << (t - last_robot_motion_time_).toSec()
                                                               << " scene update: " << (t - last_update_time_).toSec());
+=======
+  ros::WallTime timeout = ros::WallTime::now() + ros::WallDuration(wait_time);
+  ros::WallDuration busywait(0.1);
+  boost::shared_lock<boost::shared_mutex> lock(scene_update_mutex_);
+  ros::Time prev_update_time = last_update_time_;
+  while (last_update_time_ < t &&  // Wait until the state update actually reaches the scene.
+         ros::WallTime::now() < timeout)
+  {
+    lock.unlock();
+    busywait.sleep();
+    lock.lock();
+  }
+  bool success = last_update_time_ >= t;
+  // suppress warning if we received an update at all
+  if (!success && prev_update_time != last_update_time_)
+    ROS_WARN_NAMED(LOGNAME, "Maybe failed to update robot state, time diff: %.3fs", (t - last_update_time_).toSec());
+
+>>>>>>> upstream/indigo-devel
   return success;
 }
 
@@ -1144,13 +1197,17 @@ void planning_scene_monitor::PlanningSceneMonitor::onStateUpdate(
     const sensor_msgs::JointStateConstPtr& /* joint_state */)
 {
   const ros::WallTime& n = ros::WallTime::now();
+<<<<<<< HEAD
   ros::WallDuration dt = n - last_robot_state_update_wall_time_;
+=======
+  ros::WallDuration dt = n - last_state_update_;
+>>>>>>> upstream/indigo-devel
 
-  bool update = false;
+  bool update = enforce_next_state_update_;
   {
     boost::mutex::scoped_lock lock(state_pending_mutex_);
 
-    if (dt < dt_state_update_)
+    if (dt < dt_state_update_ && !update)
     {
       state_update_pending_ = true;
     }
@@ -1173,7 +1230,11 @@ void planning_scene_monitor::PlanningSceneMonitor::stateUpdateTimerCallback(cons
     bool update = false;
 
     const ros::WallTime& n = ros::WallTime::now();
+<<<<<<< HEAD
     ros::WallDuration dt = n - last_robot_state_update_wall_time_;
+=======
+    ros::WallDuration dt = n - last_state_update_;
+>>>>>>> upstream/indigo-devel
 
     {
       // lock for access to dt_state_update_ and state_update_pending_
@@ -1264,6 +1325,10 @@ void planning_scene_monitor::PlanningSceneMonitor::updateSceneWithCurrentState()
       last_update_time_ = last_robot_motion_time_ = current_state_monitor_->getCurrentStateTime();
       ROS_DEBUG_STREAM_NAMED(LOGNAME, "robot state update " << fmod(last_robot_motion_time_.toSec(), 10.));
       current_state_monitor_->setToCurrentState(scene_->getCurrentStateNonConst());
+<<<<<<< HEAD
+=======
+      last_update_time_ = current_state_monitor_->getCurrentStateTime();
+>>>>>>> upstream/indigo-devel
       scene_->getCurrentStateNonConst().update();  // compute all transforms
     }
     triggerSceneUpdateEvent(UPDATE_STATE);

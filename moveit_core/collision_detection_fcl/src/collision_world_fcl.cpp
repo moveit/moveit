@@ -35,13 +35,23 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
+#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
 #include <fcl/shape/geometric_shape_to_BVH_model.h>
 #include <fcl/traversal/traversal_node_bvhs.h>
 #include <fcl/traversal/traversal_node_setup.h>
 #include <fcl/collision_node.h>
 #include <boost/bind.hpp>
+<<<<<<< HEAD
+
+namespace collision_detection
+{
+const std::string CollisionDetectorAllocatorFCL::NAME_("FCL");
+
+CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
+=======
 
 collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
+>>>>>>> upstream/indigo-devel
 {
   auto m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -51,7 +61,11 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL() : CollisionWorld()
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
+<<<<<<< HEAD
+CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) : CollisionWorld(world)
+=======
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world) : CollisionWorld(world)
+>>>>>>> upstream/indigo-devel
 {
   auto m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -62,7 +76,11 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const WorldPtr& world)
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
+<<<<<<< HEAD
+CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL& other, const WorldPtr& world)
+=======
 collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFCL& other, const WorldPtr& world)
+>>>>>>> upstream/indigo-devel
   : CollisionWorld(other, world)
 {
   auto m = new fcl::DynamicAABBTreeCollisionManager();
@@ -70,56 +88,91 @@ collision_detection::CollisionWorldFCL::CollisionWorldFCL(const CollisionWorldFC
   manager_.reset(m);
 
   fcl_objs_ = other.fcl_objs_;
+<<<<<<< HEAD
   for (auto& fcl_obj : fcl_objs_)
     fcl_obj.second.registerTo(manager_.get());
+=======
+  for (std::map<std::string, FCLObject>::iterator it = fcl_objs_.begin(); it != fcl_objs_.end(); ++it)
+    it->second.registerTo(manager_.get());
+>>>>>>> upstream/indigo-devel
   // manager_->update();
 
   // request notifications about changes to new world
   observer_handle_ = getWorld()->addObserver(boost::bind(&CollisionWorldFCL::notifyObjectChange, this, _1, _2));
 }
 
-collision_detection::CollisionWorldFCL::~CollisionWorldFCL()
+CollisionWorldFCL::~CollisionWorldFCL()
 {
   getWorld()->removeObserver(observer_handle_);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionRobot& robot, const robot_state::RobotState& state) const
+=======
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionRobot& robot,
                                                                  const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
   checkRobotCollisionHelper(req, res, robot, state, nullptr);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionRobot& robot, const robot_state::RobotState& state,
+                                            const AllowedCollisionMatrix& acm) const
+=======
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionRobot& robot,
                                                                  const robot_state::RobotState& state,
                                                                  const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2) const
+=======
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionRobot& robot,
                                                                  const robot_state::RobotState& state1,
                                                                  const robot_state::RobotState& state2) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2,
+                                            const AllowedCollisionMatrix& acm) const
+=======
 void collision_detection::CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionRobot& robot,
                                                                  const robot_state::RobotState& state1,
                                                                  const robot_state::RobotState& state2,
                                                                  const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   CONSOLE_BRIDGE_logError("FCL continuous collision checking not yet implemented");
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                  const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                  const AllowedCollisionMatrix* acm) const
+=======
 void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req,
                                                                        CollisionResult& res,
                                                                        const CollisionRobot& robot,
                                                                        const robot_state::RobotState& state,
                                                                        const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -131,67 +184,78 @@ void collision_detection::CollisionWorldFCL::checkRobotCollisionHelper(const Col
     manager_->collide(fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 
   if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    dreq.enableGroup(robot.getRobotModel());
-    distanceRobot(dreq, dres, robot, state);
-    res.distance = dres.minimum_distance.distance;
-  }
+    res.distance = distanceRobotHelper(robot, state, acm, req.verbose);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionWorld& other_world) const
+=======
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionWorld& other_world) const
+>>>>>>> upstream/indigo-devel
 {
   checkWorldCollisionHelper(req, res, other_world, nullptr);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const CollisionWorld& other_world, const AllowedCollisionMatrix& acm) const
+=======
 void collision_detection::CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
                                                                  const CollisionWorld& other_world,
                                                                  const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
 {
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                  const CollisionWorld& other_world,
+                                                  const AllowedCollisionMatrix* acm) const
+=======
 void collision_detection::CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req,
                                                                        CollisionResult& res,
                                                                        const CollisionWorld& other_world,
                                                                        const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
   CollisionData cd(&req, &res, acm);
   manager_->collide(other_fcl_world.manager_.get(), &cd, &collisionCallback);
 
   if (req.distance)
-  {
-    DistanceRequest dreq;
-    DistanceResult dres;
-
-    dreq.group_name = req.group_name;
-    dreq.acm = acm;
-    distanceWorld(dreq, dres, other_world);
-    res.distance = dres.minimum_distance.distance;
-  }
+    res.distance = distanceWorldHelper(other_world, acm);
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
+=======
 void collision_detection::CollisionWorldFCL::constructFCLObject(const World::Object* obj, FCLObject& fcl_obj) const
+>>>>>>> upstream/indigo-devel
 {
   for (std::size_t i = 0; i < obj->shapes_.size(); ++i)
   {
     FCLGeometryConstPtr g = createCollisionGeometry(obj->shapes_[i], obj);
     if (g)
     {
+<<<<<<< HEAD
       auto co = new fcl::CollisionObject(g->collision_geometry_, transform2fcl(obj->shape_poses_[i]));
+=======
+      fcl::CollisionObject* co = new fcl::CollisionObject(g->collision_geometry_, transform2fcl(obj->shape_poses_[i]));
+>>>>>>> upstream/indigo-devel
       fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(co));
       fcl_obj.collision_geometry_.push_back(g);
     }
   }
 }
 
+<<<<<<< HEAD
+void CollisionWorldFCL::updateFCLObject(const std::string& id)
+=======
 void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string& id)
+>>>>>>> upstream/indigo-devel
 {
   // remove FCL objects that correspond to this object
   auto jt = fcl_objs_.find(id);
@@ -226,7 +290,7 @@ void collision_detection::CollisionWorldFCL::updateFCLObject(const std::string& 
   // manager_->update();
 }
 
-void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
+void CollisionWorldFCL::setWorld(const WorldPtr& world)
 {
   if (world == getWorld())
     return;
@@ -248,7 +312,7 @@ void collision_detection::CollisionWorldFCL::setWorld(const WorldPtr& world)
   getWorld()->notifyObserverAllObjects(observer_handle_, World::CREATE);
 }
 
-void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
+void CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Action action)
 {
   if (action == World::DESTROY)
   {
@@ -269,26 +333,90 @@ void collision_detection::CollisionWorldFCL::notifyObjectChange(const ObjectCons
   }
 }
 
-void collision_detection::CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                                           const CollisionRobot& robot,
-                                                           const robot_state::RobotState& state) const
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceRobotHelper(const CollisionRobot& robot, const robot_state::RobotState& state,
+                                              const AllowedCollisionMatrix* acm, bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceRobotHelper(const CollisionRobot& robot,
+                                                                   const robot_state::RobotState& state,
+                                                                   const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
 {
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
   robot_fcl.constructFCLObject(state, fcl_obj);
 
-  DistanceData drd(&req, &res);
-  for (std::size_t i = 0; !drd.done && i < fcl_obj.collision_objects_.size(); ++i)
-    manager_->distance(fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
+  CollisionRequest req;
+  req.verbose = verbose;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  cd.enableGroup(robot.getRobotModel());
+
+  for (std::size_t i = 0; !cd.done_ && i < fcl_obj.collision_objects_.size(); ++i)
+    manager_->distance(fcl_obj.collision_objects_[i].get(), &cd, &distanceCallback);
+
+  return res.distance;
 }
 
-void collision_detection::CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res,
-                                                           const CollisionWorld& world) const
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                                        bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
+                                                             const robot_state::RobotState& state) const
+>>>>>>> upstream/indigo-devel
 {
-  const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
-  DistanceData drd(&req, &res);
-  manager_->distance(other_fcl_world.manager_.get(), &drd, &distanceCallback);
+  return distanceRobotHelper(robot, state, nullptr, verbose);
 }
 
-#include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
-const std::string collision_detection::CollisionDetectorAllocatorFCL::NAME_("FCL");
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceRobot(const CollisionRobot& robot, const robot_state::RobotState& state,
+                                        const AllowedCollisionMatrix& acm, bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceRobot(const CollisionRobot& robot,
+                                                             const robot_state::RobotState& state,
+                                                             const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
+{
+  return distanceRobotHelper(robot, state, &acm, verbose);
+}
+
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceWorld(const CollisionWorld& world, bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world) const
+>>>>>>> upstream/indigo-devel
+{
+  return distanceWorldHelper(world, nullptr, verbose);
+}
+
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceWorld(const CollisionWorld& world, const AllowedCollisionMatrix& acm,
+                                        bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceWorld(const CollisionWorld& world,
+                                                             const AllowedCollisionMatrix& acm) const
+>>>>>>> upstream/indigo-devel
+{
+  return distanceWorldHelper(world, &acm, verbose);
+}
+
+<<<<<<< HEAD
+double CollisionWorldFCL::distanceWorldHelper(const CollisionWorld& other_world, const AllowedCollisionMatrix* acm,
+                                              bool verbose) const
+=======
+double collision_detection::CollisionWorldFCL::distanceWorldHelper(const CollisionWorld& other_world,
+                                                                   const AllowedCollisionMatrix* acm) const
+>>>>>>> upstream/indigo-devel
+{
+  const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
+  CollisionRequest req;
+  req.verbose = verbose;
+  CollisionResult res;
+  CollisionData cd(&req, &res, acm);
+  manager_->distance(other_fcl_world.manager_.get(), &cd, &distanceCallback);
+
+  return res.distance;
+}
+
+}  // end of namespace collision_detection

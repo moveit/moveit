@@ -1,18 +1,31 @@
+<<<<<<< HEAD
 # This file is intended for users who want to build MoveIt! from source.
+=======
+# This file is primarilly intended for the users who want to build MoveIt! from source.
+>>>>>>> upstream/indigo-devel
 # Used with wstool, users can download source of all packages of MoveIt!.
 - git:
     local-name: moveit
     uri: https://github.com/ros-planning/moveit.git
+<<<<<<< HEAD
     version: kinetic-devel
 - git:
     local-name: moveit_msgs
     uri: https://github.com/ros-planning/moveit_msgs.git
     version: jade-devel
+=======
+    version: indigo-devel
+- git:
+    local-name: moveit_msgs
+    uri: https://github.com/ros-planning/moveit_msgs.git
+    version: indigo-devel
+>>>>>>> upstream/indigo-devel
 - git:
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git
     version: master
 - git:
+<<<<<<< HEAD
     local-name: moveit_visual_tools
     uri: https://github.com/ros-planning/moveit_visual_tools.git
     version: kinetic-devel
@@ -24,3 +37,8 @@
     local-name: srdfdom
     uri: https://github.com/ros-planning/srdfdom.git
     version: kinetic-devel
+=======
+    local-name: srdfdom
+    uri: https://github.com/ros-planning/srdfdom.git
+    version: indigo-devel
+>>>>>>> upstream/indigo-devel
