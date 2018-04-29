@@ -57,9 +57,9 @@ except:
 class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
-    def __init__(self):
+    def __init__(self, ns=''):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
-        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface()
+        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
