@@ -481,8 +481,8 @@ public:
         }
         else
         {
-          logError("Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
-                   getRobotModel()->getModelFrame().c_str());
+          ROS_ERROR_NAMED("Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
+                          getRobotModel()->getModelFrame().c_str());
           return false;
         }
       }

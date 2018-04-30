@@ -154,7 +154,7 @@ ompl_interface::PlanningContextManager::plannerSelector(const std::string& plann
     return it->second;
   else
   {
-    logError("Unknown planner: '%s'", planner.c_str());
+    ROS_ERROR_NAMED("ompl_interface", "Unknown planner: '%s'", planner.c_str());
     return ConfiguredPlannerAllocator();
   }
 }
@@ -217,7 +217,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   }
   else
   {
-    logError("Planning configuration '%s' was not found", config.c_str());
+    ROS_ERROR_NAMED("ompl_interface", "Planning configuration '%s' was not found", config.c_str());
     return ModelBasedPlanningContextPtr();
   }
 }
@@ -240,7 +240,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       for (std::size_t i = 0; i < cc->second.size(); ++i)
         if (cc->second[i].unique())
         {
-          logDebug("Reusing cached planning context");
+          ROS_DEBUG_NAMED("ompl_interface", "Reusing cached planning context");
           context = cc->second[i];
           break;
         }
@@ -279,7 +279,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       }
     }
 
-    logDebug("Creating new planning context");
+    ROS_DEBUG_NAMED("ompl_interface", "Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     context->useStateValidityCache(state_validity_cache);
     {
@@ -314,7 +314,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
     return f->second;
   else
   {
-    logError("Factory of type '%s' was not found", factory_type.c_str());
+    ROS_ERROR_NAMED("ompl_interface", "Factory of type '%s' was not found", factory_type.c_str());
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
@@ -340,13 +340,13 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
 
   if (best == state_space_factories_.end())
   {
-    logError("There are no known state spaces that can represent the given planning problem");
+    ROS_ERROR_NAMED("ompl_interface", "There are no known state spaces that can represent the given planning problem");
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
   else
   {
-    logDebug("Using '%s' parameterization for solving problem", best->first.c_str());
+    ROS_DEBUG_NAMED("ompl_interface", "Using '%s' parameterization for solving problem", best->first.c_str());
     return best->second;
   }
 }
@@ -357,7 +357,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 {
   if (req.group_name.empty())
   {
-    logError("No group specified to plan for");
+    ROS_ERROR_NAMED("ompl_interface", "No group specified to plan for");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
     return ModelBasedPlanningContextPtr();
   }
@@ -366,7 +366,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   if (!planning_scene)
   {
-    logError("No planning scene supplied as input");
+    ROS_ERROR_NAMED("ompl_interface", "No planning scene supplied as input");
     return ModelBasedPlanningContextPtr();
   }
 
@@ -378,8 +378,9 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
                                    req.group_name + "[" + req.planner_id + "]" :
                                    req.planner_id);
     if (pc == planner_configs_.end())
-      logWarn("Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.",
-              req.group_name.c_str(), req.planner_id.c_str());
+      ROS_WARN_NAMED("ompl_interface",
+                     "Cannot find planning configuration for group '%s' using planner '%s'. Will use defaults instead.",
+                     req.group_name.c_str(), req.planner_id.c_str());
   }
 
   if (pc == planner_configs_.end())
@@ -387,7 +388,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     pc = planner_configs_.find(req.group_name);
     if (pc == planner_configs_.end())
     {
-      logError("Cannot find planning configuration for group '%s'", req.group_name.c_str());
+      ROS_ERROR_NAMED("ompl_interface", "Cannot find planning configuration for group '%s'", req.group_name.c_str());
       return ModelBasedPlanningContextPtr();
     }
   }
@@ -431,12 +432,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     try
     {
       context->configure();
-      logDebug("%s: New planning context is set.", context->getName().c_str());
+      ROS_DEBUG_NAMED("ompl_interface", "%s: New planning context is set.", context->getName().c_str());
       error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }
     catch (ompl::Exception& ex)
     {
-      logError("OMPL encountered an error: %s", ex.what());
+      ROS_ERROR_NAMED("ompl_interface", "OMPL encountered an error: %s", ex.what());
       context.reset();
     }
   }

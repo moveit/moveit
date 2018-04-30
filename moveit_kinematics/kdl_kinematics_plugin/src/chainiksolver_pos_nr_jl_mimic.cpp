@@ -52,19 +52,19 @@ ChainIkSolverPos_NR_JL_Mimic::ChainIkSolverPos_NR_JL_Mimic(const Chain& _chain, 
   {
     mimic_joints[i].reset(i);
   }
-  ROS_DEBUG_NAMED("kdl", "Limits");
+  ROS_DEBUG_NAMED("kdl_kinematics_plugin", "Limits");
   for (std::size_t i = 0; i < q_min.rows(); ++i)
   {
-    ROS_DEBUG_NAMED("kdl", "%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
+    ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
   }
-  ROS_DEBUG_NAMED("kdl", " ");
+  ROS_DEBUG_NAMED("kdl_kinematics_plugin", " ");
 }
 
 bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinematics_plugin::JointMimic>& _mimic_joints)
 {
   if (_mimic_joints.size() != chain.getNrOfJoints())
   {
-    ROS_ERROR_NAMED("kdl", "Mimic Joint info should be same size as number of joints in chain: %d",
+    ROS_ERROR_NAMED("kdl_kinematics_plugin", "Mimic Joint info should be same size as number of joints in chain: %d",
                     chain.getNrOfJoints());
     return false;
   }
@@ -73,7 +73,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   {
     if (_mimic_joints[i].map_index >= chain.getNrOfJoints())
     {
-      ROS_ERROR_NAMED("kdl", "Mimic Joint index should be less than number of joints in chain: %d",
+      ROS_ERROR_NAMED("kdl_kinematics_plugin", "Mimic Joint index should be less than number of joints in chain: %d",
                       chain.getNrOfJoints());
       return false;
     }
@@ -84,7 +84,7 @@ bool ChainIkSolverPos_NR_JL_Mimic::setMimicJoints(const std::vector<kdl_kinemati
   //  qToqMimic(q_min,q_min_mimic);
   //  qToqMimic(q_max,q_max_mimic);
 
-  ROS_DEBUG_NAMED("kdl", "Set mimic joints");
+  ROS_DEBUG_NAMED("kdl_kinematics_plugin", "Set mimic joints");
   return true;
 }
 
@@ -119,9 +119,9 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
   //  qToqMimic(q_init,q_temp);
 
   q_temp = q_init;
-  ROS_DEBUG_STREAM_NAMED("kdl", "Input:");
+  ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "Input:");
   for (std::size_t i = 0; i < q_out.rows(); ++i)
-    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_out(i));
+    ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, q_out(i));
 
   unsigned int i;
   for (i = 0; i < maxiter; ++i)
@@ -140,21 +140,21 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
         break;
     }
 
-    ROS_DEBUG_STREAM_NAMED("kdl", "delta_twist");
+    ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "delta_twist");
     for (std::size_t i = 0; i < 6; ++i)
-      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_twist(i));
+      ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, delta_twist(i));
 
     iksolver.CartToJnt(q_temp, delta_twist, delta_q);
 
     Add(q_temp, delta_q, q_temp);
 
-    ROS_DEBUG_STREAM_NAMED("kdl", "delta_q");
+    ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "delta_q");
     for (std::size_t i = 0; i < delta_q.rows(); ++i)
-      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, delta_q(i));
+      ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, delta_q(i));
 
-    ROS_DEBUG_STREAM_NAMED("kdl", "q_temp");
+    ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "q_temp");
     for (std::size_t i = 0; i < q_temp.rows(); ++i)
-      ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_temp(i));
+      ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, q_temp(i));
 
     for (std::size_t j = 0; j < q_min.rows(); ++j)
     {
@@ -177,13 +177,13 @@ int ChainIkSolverPos_NR_JL_Mimic::CartToJntAdvanced(const JntArray& q_init, cons
 
   //  qMimicToq(q_temp, q_out);
   q_out = q_temp;
-  ROS_DEBUG_STREAM_NAMED("kdl", "Full Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "Full Solution:");
   for (std::size_t i = 0; i < q_temp.rows(); ++i)
-    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_temp(i));
+    ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, q_temp(i));
 
-  ROS_DEBUG_STREAM_NAMED("kdl", "Actual Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "Actual Solution:");
   for (std::size_t i = 0; i < q_out.rows(); ++i)
-    ROS_DEBUG_NAMED("kdl", "%d: %f", (int)i, q_out(i));
+    ROS_DEBUG_NAMED("kdl_kinematics_plugin", "%d: %f", (int)i, q_out(i));
 
   if (i != maxiter)
     return 0;

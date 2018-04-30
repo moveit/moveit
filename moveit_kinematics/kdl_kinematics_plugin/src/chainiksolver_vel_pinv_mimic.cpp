@@ -210,7 +210,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJntRedundant(const JntArray& q_in, const 
     else
       qdot_out_locked(i) = sum;
   }
-  ROS_DEBUG_STREAM_NAMED("kdl", "Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "Solution:");
 
   if (num_mimic_joints > 0)
   {
@@ -312,7 +312,7 @@ int ChainIkSolverVel_pinv_mimic::CartToJnt(const JntArray& q_in, const Twist& v_
     else
       qdot_out(i) = sum;
   }
-  ROS_DEBUG_STREAM_NAMED("kdl", "Solution:");
+  ROS_DEBUG_STREAM_NAMED("kdl_kinematics_plugin", "Solution:");
   if (num_mimic_joints > 0)
   {
     for (i = 0; i < chain.getNrOfJoints(); ++i)

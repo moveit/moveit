@@ -458,7 +458,8 @@ bool robot_trajectory::RobotTrajectory::getStateAtDurationFromStart(const double
   int before = 0, after = 0;
   double blend = 1.0;
   findWayPointIndicesForDurationAfterStart(request_duration, before, after, blend);
-  // CONSOLE_BRIDGE_logDebug("Interpolating %.3f of the way between index %d and %d.", blend, before, after);
+  // ROS_DEBUG_NAMED("robot_trajectory", "Interpolating %.3f of the way between index %d and %d.", blend, before,
+  // after);
   waypoints_[before]->interpolate(*waypoints_[after], blend, *output_state);
   return true;
 }

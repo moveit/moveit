@@ -12,8 +12,6 @@ endif()
 
 find_package(Boost REQUIRED system filesystem date_time thread iostreams)
 
-find_package(console_bridge REQUIRED)
-
 find_package(Eigen3 REQUIRED)
 
 # Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
@@ -130,7 +128,6 @@ catkin_package(
     EIGEN3
     LIBFCL
     OCTOMAP
-    console_bridge
     urdfdom
     urdfdom_headers
     )
@@ -143,7 +140,6 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
                     ${VERSION_FILE_PATH}
                     ${Boost_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${console_bridge_INCLUDE_DIRS}
                     ${urdfdom_INCLUDE_DIRS}
                     ${urdfdom_headers_INCLUDE_DIRS}
                     ${OCTOMAP_INCLUDE_DIRS}

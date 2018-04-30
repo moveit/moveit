@@ -88,16 +88,17 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          CONSOLE_BRIDGE_logDebug(
-              "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. No contacts are computed.",
-              cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+          ROS_DEBUG_NAMED("collision_detection_fcl", "Collision between '%s' (type '%s') and '%s' (type '%s') is "
+                                                     "always allowed. No contacts are computed.",
+                          cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                          cd2->getTypeString().c_str());
       }
       else if (type == AllowedCollision::CONDITIONAL)
       {
         cdata->acm_->getAllowedCollision(cd1->getID(), cd2->getID(), dcf);
         if (cdata->req_->verbose)
-          CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is conditionally allowed", cd1->getID().c_str(),
-                                  cd2->getID().c_str());
+          ROS_DEBUG_NAMED("collision_detection_fcl", "Collision between '%s' and '%s' is conditionally allowed",
+                          cd1->getID().c_str(), cd2->getID().c_str());
       }
     }
   }
@@ -110,8 +111,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
-        CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
-                                cd1->getID().c_str(), cd2->getID().c_str());
+        ROS_DEBUG_NAMED("collision_detection_fcl",
+                        "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                        cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
   else if (cd2->type == BodyTypes::ROBOT_LINK && cd1->type == BodyTypes::ROBOT_ATTACHED)
@@ -121,8 +123,9 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     {
       always_allow_collision = true;
       if (cdata->req_->verbose)
-        CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
-                                cd2->getID().c_str(), cd1->getID().c_str());
+        ROS_DEBUG_NAMED("collision_detection_fcl",
+                        "Robot link '%s' is allowed to touch attached object '%s'. No contacts are computed.",
+                        cd2->getID().c_str(), cd1->getID().c_str());
     }
   }
   // bodies attached to the same link should not collide
@@ -137,8 +140,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     return false;
 
   if (cdata->req_->verbose)
-    CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(),
-                            cd2->getID().c_str());
+    ROS_DEBUG_NAMED("collision_detection_fcl", "Actually checking collisions between %s and %s", cd1->getID().c_str(),
+                    cd2->getID().c_str());
 
   // see if we need to compute a contact
   std::size_t want_contact_count = 0;
@@ -174,9 +177,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     if (num_contacts > 0)
     {
       if (cdata->req_->verbose)
-        CONSOLE_BRIDGE_logInform("Found %d contacts between '%s' and '%s'. These contacts will be evaluated to check "
-                                 "if they are accepted or not",
-                                 num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
+        ROS_INFO_NAMED("collision_detection_fcl",
+                       "Found %d contacts between '%s' and '%s'. These contacts will be evaluated to "
+                       "check if they are accepted or not",
+                       num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
       Contact c;
       const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
                                                           std::make_pair(cd1->getID(), cd2->getID()) :
@@ -194,13 +198,15 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
             cdata->res_->contacts[pc].push_back(c);
             cdata->res_->contact_count++;
             if (cdata->req_->verbose)
-              CONSOLE_BRIDGE_logInform("Found unacceptable contact between '%s' and '%s'. Contact was stored.",
-                                       cd1->getID().c_str(), cd2->getID().c_str());
+              ROS_INFO_NAMED("collision_detection_fcl",
+                             "Found unacceptable contact between '%s' and '%s'. Contact was stored.",
+                             cd1->getID().c_str(), cd2->getID().c_str());
           }
           else if (cdata->req_->verbose)
-            CONSOLE_BRIDGE_logInform(
-                "Found unacceptable contact between '%s' (type '%s') and '%s' (type '%s'). Contact was stored.",
-                cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+            ROS_INFO_NAMED("collision_detection_fcl", "Found unacceptable contact between '%s' (type '%s') and '%s' "
+                                                      "(type '%s'). Contact was stored.",
+                           cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                           cd2->getTypeString().c_str());
           cdata->res_->collision = true;
           if (want_contact_count == 0)
             break;
@@ -250,10 +256,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
         }
 
         if (cdata->req_->verbose)
-          CONSOLE_BRIDGE_logInform("Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), which constitute "
-                                   "a collision. %d contacts will be stored",
-                                   num_contacts_initial, cd1->getID().c_str(), cd1->getTypeString().c_str(),
-                                   cd2->getID().c_str(), cd2->getTypeString().c_str(), num_contacts);
+          ROS_INFO_NAMED("collision_detection_fcl", "Found %d contacts between '%s' (type '%s') and '%s' (type '%s'), "
+                                                    "which constitute a collision. %d contacts will be stored",
+                         num_contacts_initial, cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                         cd2->getTypeString().c_str(), num_contacts);
 
         const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
                                                             std::make_pair(cd1->getID(), cd2->getID()) :
@@ -295,10 +301,11 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         cdata->res_->collision = true;
         if (cdata->req_->verbose)
-          CONSOLE_BRIDGE_logInform(
-              "Found a contact between '%s' (type '%s') and '%s' (type '%s'), which constitutes a collision. "
-              "Contact information is not stored.",
-              cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
+          ROS_INFO_NAMED("collision_detection_fcl", "Found a contact between '%s' (type '%s') and '%s' (type '%s'), "
+                                                    "which constitutes a collision. "
+                                                    "Contact information is not stored.",
+                         cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
+                         cd2->getTypeString().c_str());
       }
 
       if (enable_cost)
@@ -324,19 +331,20 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       if (!cdata->req_->cost)
         cdata->done_ = true;
       if (cdata->req_->verbose)
-        CONSOLE_BRIDGE_logInform("Collision checking is considered complete (collision was found and %u contacts are "
-                                 "stored)",
-                                 (unsigned int)cdata->res_->contact_count);
+        ROS_INFO_NAMED("collision_detection_fcl",
+                       "Collision checking is considered complete (collision was found and %u "
+                       "contacts are stored)",
+                       (unsigned int)cdata->res_->contact_count);
     }
 
   if (!cdata->done_ && cdata->req_->is_done)
   {
     cdata->done_ = cdata->req_->is_done(*cdata->res_);
     if (cdata->done_ && cdata->req_->verbose)
-      CONSOLE_BRIDGE_logInform(
-          "Collision checking is considered complete due to external callback. %s was found. %u contacts are "
-          "stored.",
-          cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
+      ROS_INFO_NAMED("collision_detection_fcl", "Collision checking is considered complete due to external callback. "
+                                                "%s was found. %u contacts are "
+                                                "stored.",
+                     cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
   }
 
   return cdata->done_;
@@ -368,7 +376,8 @@ struct FCLShapeCache
           map_.erase(it);
         it = nit;
       }
-      //      CONSOLE_BRIDGE_logDebug("Cleaning up cache for FCL objects that correspond to static shapes. Cache size
+      //      ROS_DEBUG_NAMED("collision_detection_fcl", "Cleaning up cache for FCL objects that correspond to static
+      //      shapes. Cache size
       //      reduced from %u
       //      to %u", from, (unsigned int)map_.size());
     }
@@ -426,8 +435,9 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (cdata->req->verbose)
-          CONSOLE_BRIDGE_logDebug("Collision between '%s' and '%s' is always allowed. No distances are computed.",
-                                  cd1->getID().c_str(), cd2->getID().c_str());
+          ROS_DEBUG_NAMED("collision_detection_fcl",
+                          "Collision between '%s' and '%s' is always allowed. No distances are computed.",
+                          cd1->getID().c_str(), cd2->getID().c_str());
       }
     }
   }
@@ -440,8 +450,9 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     {
       always_allow_collision = true;
       if (cdata->req->verbose)
-        CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
-                                cd1->getID().c_str(), cd2->getID().c_str());
+        ROS_DEBUG_NAMED("collision_detection_fcl",
+                        "Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
+                        cd1->getID().c_str(), cd2->getID().c_str());
     }
   }
   else
@@ -453,9 +464,10 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         always_allow_collision = true;
         if (cdata->req->verbose)
-          CONSOLE_BRIDGE_logDebug("Robot link '%s' is allowed to touch attached object '%s'. No distances are "
-                                  "computed.",
-                                  cd2->getID().c_str(), cd1->getID().c_str());
+          ROS_DEBUG_NAMED("collision_detection_fcl",
+                          "Robot link '%s' is allowed to touch attached object '%s'. No distances are "
+                          "computed.",
+                          cd2->getID().c_str(), cd1->getID().c_str());
       }
     }
   }
@@ -465,8 +477,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     return false;
   }
   if (cdata->req->verbose)
-    CONSOLE_BRIDGE_logDebug("Actually checking collisions between %s and %s", cd1->getID().c_str(),
-                            cd2->getID().c_str());
+    ROS_DEBUG_NAMED("collision_detection_fcl", "Actually checking collisions between %s and %s", cd1->getID().c_str(),
+                    cd2->getID().c_str());
 
   fcl::DistanceResult fcl_result;
   DistanceResultsData dist_result;
@@ -640,14 +652,16 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     {
       if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
       {
-        //        CONSOLE_BRIDGE_logDebug("Collision data structures for object %s retrieved from cache.",
+        //        ROS_DEBUG_NAMED("collision_detection_fcl", "Collision data structures for object %s retrieved from
+        //        cache.",
         //        cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
       }
       else if (cache_it->second.unique())
       {
         const_cast<FCLGeometry*>(cache_it->second.get())->updateCollisionGeometryData(data, shape_index, false);
-        //          CONSOLE_BRIDGE_logDebug("Collision data structures for object %s retrieved from cache after updating
+        //          ROS_DEBUG_NAMED("collision_detection_fcl", "Collision data structures for object %s retrieved from
+        //          cache after updating
         //          the source
         //          object.", cache_it->second->collision_geometry_data_->getID().c_str());
         return cache_it->second;
@@ -678,7 +692,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
-        //        CONSOLE_BRIDGE_logDebug("Collision data structures for attached body %s retrieved from the cache for
+        //        ROS_DEBUG_NAMED("collision_detection_fcl", "Collision data structures for attached body %s retrieved
+        //        from the cache for
         //        world objects.",
         //        obj_cache->collision_geometry_data_->getID().c_str());
 
@@ -715,7 +730,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
         // update the CollisionGeometryData; nobody has a pointer to this, so we can safely modify it
         const_cast<FCLGeometry*>(obj_cache.get())->updateCollisionGeometryData(data, shape_index, true);
 
-        //          CONSOLE_BRIDGE_logDebug("Collision data structures for world object %s retrieved from the cache for
+        //          ROS_DEBUG_NAMED("collision_detection_fcl", "Collision data structures for world object %s retrieved
+        //          from the cache for
         //          attached
         //          bodies.",
         //                   obj_cache->collision_geometry_data_->getID().c_str());
@@ -804,7 +820,8 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
       }
       break;
       default:
-        CONSOLE_BRIDGE_logError("This shape type (%d) is not supported using FCL yet", (int)shape->type);
+        ROS_ERROR_NAMED("collision_detection_fcl", "This shape type (%d) is not supported using FCL yet",
+                        (int)shape->type);
         cg_g = nullptr;
     }
   }

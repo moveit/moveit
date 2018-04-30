@@ -139,13 +139,13 @@ int main(int argc, char* argv[])
         num_failed_calls++;
       ++i;
       if (i % 100 == 0)
-        ROS_INFO_NAMED("measure_ik_call_cost",
+        ROS_INFO_NAMED("cached_ik_kinematics_plugin",
                        "Avg. time per IK solver call is %g after %d calls. %g%% of calls failed to return a solution. "
                        "%g%% of random joint configurations were ignored due to self-collisions.",
                        ik_time.count() / (double)i, i, 100. * num_failed_calls / i,
                        100. * num_self_collisions / (num_self_collisions + i));
     }
-    ROS_INFO_NAMED("measure_ik_call_cost", "Summary for group %s: %g %g %g", group->getName().c_str(),
+    ROS_INFO_NAMED("cached_ik_kinematics_plugin", "Summary for group %s: %g %g %g", group->getName().c_str(),
                    ik_time.count() / (double)i, 100. * num_failed_calls / i,
                    100. * num_self_collisions / (num_self_collisions + i));
   }
