@@ -226,8 +226,34 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     return;
   std::map<std::string, std::string> cfg = config;
 
+  // set the distance between waypoints when interpolating and collision checking.
+  std::map<std::string, std::string>::iterator it = cfg.find("longest_valid_segment_fraction");
+  // If one of the two variables is set.
+  if (it != cfg.end() || max_solution_segment_length_ != 0.0)
+  {
+    double longest_valid_segment_fraction_config =
+        (it != cfg.end()) ? boost::lexical_cast<double>(it->second) : // value from config file if there
+        0.01; // default value in OMPL.
+    double longest_valid_segment_fraction_final;
+    if (max_solution_segment_length_ > 0.0)
+    {
+      // Take the most conservative of the two variables, the one that uses the shorter valid segment
+      // lengths.
+      longest_valid_segment_fraction_final = std::min(
+          longest_valid_segment_fraction_config,
+          max_solution_segment_length_ / spec_.state_space_->getMaximumExtent()
+      );
+    }
+    else
+    {
+      // max_solution_segment_length_ is 0 or less and is meaningless, so ignore it.
+      longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
+    }
+    cfg["longest_valid_segment_fraction"] = boost::lexical_cast<std::string>(longest_valid_segment_fraction_final);
+  }
+
   // set the projection evaluator
-  std::map<std::string, std::string>::iterator it = cfg.find("projection_evaluator");
+  it = cfg.find("projection_evaluator");
   if (it != cfg.end())
   {
     setProjectionEvaluator(boost::trim_copy(it->second));
