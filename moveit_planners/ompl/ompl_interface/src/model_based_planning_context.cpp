@@ -74,6 +74,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , max_state_sampling_attempts_(0)
   , max_goal_sampling_attempts_(0)
   , max_planning_threads_(0)
+  , max_solution_segment_length_(0.0)
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
   , simplify_solutions_(true)
