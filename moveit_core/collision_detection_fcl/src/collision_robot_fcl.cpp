@@ -169,16 +169,14 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getRobotModel());
   manager.manager_->collide(&cd, &collisionCallback);
   if (req.distance)
   {
     DistanceRequest dreq;
     DistanceResult dres;
 
-    dreq.group_name = req.group_name;
+    dreq.active_components_only = req.active_components_only;
     dreq.acm = acm;
-    dreq.enableGroup(getRobotModel());
     distanceSelf(dreq, dres, state);
     res.distance = dres.minimum_distance.distance;
   }
@@ -237,7 +235,6 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   fcl_rob.constructFCLObject(other_state, other_fcl_obj);
 
   CollisionData cd(&req, &res, acm);
-  cd.enableGroup(getRobotModel());
   for (std::size_t i = 0; !cd.done_ && i < other_fcl_obj.collision_objects_.size(); ++i)
     manager.manager_->collide(other_fcl_obj.collision_objects_[i].get(), &cd, &collisionCallback);
 
@@ -246,9 +243,8 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
     DistanceRequest dreq;
     DistanceResult dres;
 
-    dreq.group_name = req.group_name;
+    dreq.active_components_only = req.active_components_only;
     dreq.acm = acm;
-    dreq.enableGroup(getRobotModel());
     distanceOther(dreq, dres, state, other_robot, other_state);
     res.distance = dres.minimum_distance.distance;
   }

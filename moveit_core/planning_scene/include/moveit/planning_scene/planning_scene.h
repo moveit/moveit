@@ -381,6 +381,17 @@ public:
   bool isStateColliding(const moveit_msgs::RobotState& state, const std::string& group = "",
                         bool verbose = false) const;
 
+  /** \brief Place link at given pose and subsequently check for collisions.
+   *
+   * Place link (together with all rigidly connected parent links and their descendants) at the given pose.
+   * Subsequently the warped links will be checked for collisions with any links and collision objects
+   * that are not parent links of link.
+   * If a robot_state is provided, the updated link transforms will be a available from it afterwards.
+   * If a collision_result is provided, any collisions will be reported there. */
+  bool isPoseColliding(Eigen::Affine3d pose, const robot_model::LinkModel* link,
+                       robot_state::RobotState* robot_state = nullptr,
+                       collision_detection::CollisionResult* collision_result = nullptr) const;
+
   /** \brief Check whether the current state is in collision, and if needed, updates the collision transforms of the
    * current state before the computation. */
   void checkCollision(const collision_detection::CollisionRequest& req, collision_detection::CollisionResult& res);

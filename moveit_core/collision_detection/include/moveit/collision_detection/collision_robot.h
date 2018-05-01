@@ -168,7 +168,6 @@ public:
     DistanceRequest req;
     DistanceResult res;
 
-    req.enableGroup(getRobotModel());
     distanceSelf(req, res, state);
     return res.minimum_distance.distance;
   }
@@ -180,7 +179,6 @@ public:
     DistanceRequest req;
     DistanceResult res;
 
-    req.enableGroup(getRobotModel());
     req.acm = &acm;
     distanceSelf(req, res, state);
     return res.minimum_distance.distance;
@@ -205,7 +203,6 @@ public:
     DistanceRequest req;
     DistanceResult res;
 
-    req.enableGroup(getRobotModel());
     distanceOther(req, res, state, other_robot, other_state);
     return res.minimum_distance.distance;
   }
@@ -224,7 +221,6 @@ public:
     DistanceRequest req;
     DistanceResult res;
 
-    req.enableGroup(getRobotModel());
     req.acm = &acm;
     distanceOther(req, res, state, other_robot, other_state);
     return res.minimum_distance.distance;

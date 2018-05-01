@@ -45,11 +45,21 @@
 #include <set>
 #include <Eigen/Core>
 #include <console_bridge/console.h>
-#include <moveit/robot_model/robot_model.h>
+#include <moveit/macros/class_forward.h>
+
+namespace moveit
+{
+namespace core
+{
+MOVEIT_CLASS_FORWARD(RobotModel)
+MOVEIT_CLASS_FORWARD(LinkModel)
+MOVEIT_CLASS_FORWARD(JointModelGroup)
+}
+}
 
 namespace collision_detection
 {
-MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix);
+MOVEIT_CLASS_FORWARD(AllowedCollisionMatrix)
 
 /** \brief The types of bodies that are considered for collision */
 namespace BodyTypes
@@ -189,8 +199,11 @@ struct CollisionRequest
   {
   }
 
-  /** \brief The group name to check collisions for (optional; if empty, assume the complete robot) */
-  std::string group_name;
+  /// enable links actuated by group_name for collision checking
+  void enableGroup(const std::string& group_name, const moveit::core::RobotModelConstPtr& model);
+
+  /// Restrict collision checks to these LinkModels. If NULL, all link models are considered.
+  const std::set<const moveit::core::LinkModel*>* active_components_only;
 
   /** \brief If true, compute proximity distance */
   bool distance;
@@ -249,13 +262,7 @@ struct DistanceRequest
   }
 
   /// Compute \e active_components_only_ based on \e req_
-  void enableGroup(const robot_model::RobotModelConstPtr& kmodel)
-  {
-    if (kmodel->hasJointModelGroup(group_name))
-      active_components_only = &kmodel->getJointModelGroup(group_name)->getUpdatedLinkModelsSet();
-    else
-      active_components_only = nullptr;
-  }
+  void enableGroup(const std::string& group_name, const moveit::core::RobotModelConstPtr& model);
 
   /// Indicate if nearest point information should be calculated
   bool enable_nearest_points;
@@ -271,11 +278,8 @@ struct DistanceRequest
   /// Maximum number of contacts to store for bodies (multiple bodies may be within distance threshold)
   std::size_t max_contacts_per_body;
 
-  /// The group name
-  std::string group_name;
-
   /// The set of active components to check
-  const std::set<const robot_model::LinkModel*>* active_components_only;
+  const std::set<const moveit::core::LinkModel*>* active_components_only;
 
   /// The allowed collision matrix used to filter checks
   const AllowedCollisionMatrix* acm;

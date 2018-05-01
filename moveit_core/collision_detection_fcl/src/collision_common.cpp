@@ -57,7 +57,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     return false;
 
   // If active components are specified
-  if (cdata->active_components_only_)
+  if (cdata->req_->active_components_only)
   {
     const robot_model::LinkModel* l1 =
         cd1->type == BodyTypes::ROBOT_LINK ?
@@ -69,8 +69,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
             (cd2->type == BodyTypes::ROBOT_ATTACHED ? cd2->ptr.ab->getAttachedLink() : nullptr);
 
     // If neither of the involved components is active
-    if ((!l1 || cdata->active_components_only_->find(l1) == cdata->active_components_only_->end()) &&
-        (!l2 || cdata->active_components_only_->find(l2) == cdata->active_components_only_->end()))
+    if ((!l1 || cdata->req_->active_components_only->find(l1) == cdata->req_->active_components_only->end()) &&
+        (!l2 || cdata->req_->active_components_only->find(l2) == cdata->req_->active_components_only->end()))
       return false;
   }
 
@@ -884,14 +884,6 @@ void cleanCollisionGeometryCache()
     cache2.bumpUseCount(true);
   }
 }
-}
-
-void collision_detection::CollisionData::enableGroup(const robot_model::RobotModelConstPtr& kmodel)
-{
-  if (kmodel->hasJointModelGroup(req_->group_name))
-    active_components_only_ = &kmodel->getJointModelGroup(req_->group_name)->getUpdatedLinkModelsSet();
-  else
-    active_components_only_ = nullptr;
 }
 
 void collision_detection::FCLObject::registerTo(fcl::BroadPhaseCollisionManager* manager)
