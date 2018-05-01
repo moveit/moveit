@@ -231,9 +231,10 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   // If one of the two variables is set.
   if (it != cfg.end() || max_solution_segment_length_ != 0.0)
   {
-    double longest_valid_segment_fraction_config =
-        (it != cfg.end()) ? boost::lexical_cast<double>(it->second) : // value from config file if there
-        0.01; // default value in OMPL.
+    // clang-format off
+    double longest_valid_segment_fraction_config = (it != cfg.end())
+      ? boost::lexical_cast<double>(it->second)  // value from config file if there
+      : 0.01;  // default value in OMPL.
     double longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
     if (max_solution_segment_length_ > 0.0)
     {
@@ -244,6 +245,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
           max_solution_segment_length_ / spec_.state_space_->getMaximumExtent()
       );
     }
+    // clang-format on
     cfg["longest_valid_segment_fraction"] = boost::lexical_cast<std::string>(longest_valid_segment_fraction_final);
   }
 
