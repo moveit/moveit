@@ -226,8 +226,31 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     return;
   std::map<std::string, std::string> cfg = config;
 
+  // set the distance between waypoints when interpolating and collision checking.
+  std::map<std::string, std::string>::iterator it = cfg.find("longest_valid_segment_fraction");
+  // If one of the two variables is set.
+  if (it != cfg.end() || max_solution_segment_length_ != 0.0)
+  {
+    // clang-format off
+    double longest_valid_segment_fraction_config = (it != cfg.end())
+      ? boost::lexical_cast<double>(it->second)  // value from config file if there
+      : 0.01;  // default value in OMPL.
+    double longest_valid_segment_fraction_final = longest_valid_segment_fraction_config;
+    if (max_solution_segment_length_ > 0.0)
+    {
+      // If this parameter is specified too, take the most conservative of the two variables,
+      // i.e. the one that uses the shorter segment length.
+      longest_valid_segment_fraction_final = std::min(
+          longest_valid_segment_fraction_config,
+          max_solution_segment_length_ / spec_.state_space_->getMaximumExtent()
+      );
+    }
+    // clang-format on
+    cfg["longest_valid_segment_fraction"] = boost::lexical_cast<std::string>(longest_valid_segment_fraction_final);
+  }
+
   // set the projection evaluator
-  std::map<std::string, std::string>::iterator it = cfg.find("projection_evaluator");
+  it = cfg.find("projection_evaluator");
   if (it != cfg.end())
   {
     setProjectionEvaluator(boost::trim_copy(it->second));
@@ -329,8 +352,26 @@ void ompl_interface::ModelBasedPlanningContext::interpolateSolution()
   if (ompl_simple_setup_->haveSolutionPath())
   {
     og::PathGeometric& pg = ompl_simple_setup_->getSolutionPath();
-    pg.interpolate(
-        std::max((unsigned int)floor(0.5 + pg.length() / max_solution_segment_length_), minimum_waypoint_count_));
+
+    // Find the number of states that will be in the interpolated solution.
+    // This is what interpolate() does internally.
+    int eventual_states = 1;
+    std::vector<ompl::base::State*> states = pg.getStates();
+    for (size_t i = 0; i < states.size() - 1; i++)
+    {
+      eventual_states += ompl_simple_setup_->getStateSpace()->validSegmentCount(states[i], states[i + 1]);
+    }
+
+    if (eventual_states < minimum_waypoint_count_)
+    {
+      // If that's not enough states, use the minimum amount instead.
+      pg.interpolate(minimum_waypoint_count_);
+    }
+    else
+    {
+      // Interpolate the path to have as the exact states that are checked when validating motions.
+      pg.interpolate();
+    }
   }
 }
 
@@ -512,7 +553,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   if (solve(request_.allowed_planning_time, request_.num_planning_attempts))
   {
     double ptime = getLastPlanTime();
-    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    if (simplify_solutions_)
     {
       simplifySolution(request_.allowed_planning_time - ptime);
       ptime += getLastSimplifyTime();
@@ -551,7 +592,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     getSolutionPath(*res.trajectory_.back());
 
     // simplify solution if time remains
-    if (simplify_solutions_ && ptime < request_.allowed_planning_time)
+    if (simplify_solutions_)
     {
       simplifySolution(request_.allowed_planning_time - ptime);
       res.processing_time_.push_back(getLastSimplifyTime());
