@@ -308,7 +308,8 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
       {
         ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
         redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
-        ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint", redundant_joints.back().c_str());
+        ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint",
+    redundant_joints.back().c_str());
       }
     }
   */

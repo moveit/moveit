@@ -14,7 +14,7 @@ target_link_libraries(${MOVEIT_LIB_NAME}
   moveit_kinematic_constraints
   moveit_kinematics_base
   moveit_planning_scene
-  ${catkin_LIBRARIES} ${console_bridge_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
+  ${catkin_LIBRARIES} ${urdfdom_LIBRARIES} ${urdfdom_headers_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(${MOVEIT_LIB_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS ${MOVEIT_LIB_NAME}
@@ -40,7 +40,6 @@ if(CATKIN_ENABLE_TESTING)
     ${MOVEIT_LIB_NAME}
     ${catkin_LIBRARIES}
     ${angles_LIBRARIES}
-    ${console_bridge_LIBRARIES}
     ${orocos_kdl_LIBRARIES}
     ${tf_conversions_LIBRARIES}
     ${urdfdom_LIBRARIES}
