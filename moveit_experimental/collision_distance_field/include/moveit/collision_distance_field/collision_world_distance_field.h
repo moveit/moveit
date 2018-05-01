@@ -143,12 +143,12 @@ public:
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                              const robot_state::RobotState& state) const
   {
-    logError("Not implemented");
+    CONSOLE_BRIDGE_logError("Not implemented");
   }
 
   virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
   {
-    logError("Not implemented");
+    CONSOLE_BRIDGE_logError("Not implemented");
   }
 
   virtual void setWorld(const WorldPtr& world);

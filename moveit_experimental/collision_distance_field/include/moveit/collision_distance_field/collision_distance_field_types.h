@@ -406,7 +406,7 @@ public:
   {
     if (i >= decomp_vector_.size())
     {
-      logInform("No body decomposition");
+      CONSOLE_BRIDGE_logInform("No body decomposition");
       return empty_ptr_;
     }
     return decomp_vector_[i];
@@ -416,7 +416,7 @@ public:
   {
     if (ind >= decomp_vector_.size())
     {
-      logWarn("Can't update pose");
+      CONSOLE_BRIDGE_logWarn("Can't update pose");
       return;
     }
     decomp_vector_[ind]->updatePose(pose);
@@ -469,7 +469,7 @@ public:
   {
     if (i >= decomp_vector_.size())
     {
-      logInform("No body decomposition");
+      CONSOLE_BRIDGE_logInform("No body decomposition");
       return empty_ptr_;
     }
     return decomp_vector_[i];
@@ -483,7 +483,7 @@ public:
     }
     else
     {
-      logWarn("Can't update pose");
+      CONSOLE_BRIDGE_logWarn("Can't update pose");
       return;
     }
   }

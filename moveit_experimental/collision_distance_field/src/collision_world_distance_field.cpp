@@ -491,7 +491,7 @@ void CollisionWorldDistanceField::notifyObjectChange(CollisionWorldDistanceField
     self->distance_field_cache_entry_->distance_field_->addPointsToField(add_points);
   }
 
-  logDebug("Modifying object %s took %lf s", obj->id_.c_str(), (ros::WallTime::now() - n).toSec());
+  CONSOLE_BRIDGE_logDebug("Modifying object %s took %lf s", obj->id_.c_str(), (ros::WallTime::now() - n).toSec());
 }
 
 void CollisionWorldDistanceField::updateDistanceObject(const std::string& id, DistanceFieldCacheEntryPtr& dfce,

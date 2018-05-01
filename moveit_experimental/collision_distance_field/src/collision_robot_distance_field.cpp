@@ -1087,7 +1087,7 @@ CollisionRobotDistanceField::getPosedLinkBodyPointDecomposition(const moveit::co
   std::map<std::string, unsigned int>::const_iterator it = link_body_decomposition_index_map_.find(ls->getName());
   if (it == link_body_decomposition_index_map_.end())
   {
-    logError("No link body decomposition for link %s.", ls->getName().c_str());
+    CONSOLE_BRIDGE_logError("No link body decomposition for link %s.", ls->getName().c_str());
     return ret;
   }
   ret.reset(new PosedBodyPointDecomposition(link_body_decomposition_vector_[it->second]));

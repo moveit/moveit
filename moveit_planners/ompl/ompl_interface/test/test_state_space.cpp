@@ -99,7 +99,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
   }
   catch (ompl::Exception& ex)
   {
-    logError("Sanity checks did not pass: %s", ex.what());
+    CONSOLE_BRIDGE_logError("Sanity checks did not pass: %s", ex.what());
   }
   EXPECT_TRUE(passed);
 }
@@ -142,7 +142,7 @@ TEST_F(LoadPlanningModelsPr2, StateSpaceCopy)
   }
   catch (ompl::Exception& ex)
   {
-    logError("Sanity checks did not pass: %s", ex.what());
+    CONSOLE_BRIDGE_logError("Sanity checks did not pass: %s", ex.what());
   }
   EXPECT_TRUE(passed);
 

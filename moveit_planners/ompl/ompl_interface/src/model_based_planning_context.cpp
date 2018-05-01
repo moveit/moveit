@@ -89,7 +89,7 @@ void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std
 {
   if (!spec_.state_space_)
   {
-    logError("No state space is configured yet");
+    CONSOLE_BRIDGE_logError("No state space is configured yet");
     return;
   }
   ob::ProjectionEvaluatorPtr pe = getProjectionEvaluator(peval);
@@ -106,7 +106,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
     if (getRobotModel()->hasLinkModel(link_name))
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorLinkPose(this, link_name));
     else
-      logError("Attempted to set projection evaluator with respect to position of link '%s', but that link is not "
+      CONSOLE_BRIDGE_logError("Attempted to set projection evaluator with respect to position of link '%s', but that link is not "
                "known to the kinematic model.",
                link_name.c_str());
   }
@@ -130,20 +130,20 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
             j.push_back(idx + q);
         }
         else
-          logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
+          CONSOLE_BRIDGE_logWarn("%s: Ignoring joint '%s' in projection since it has 0 DOF", name_.c_str(), v.c_str());
       }
       else
-        logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not "
+        CONSOLE_BRIDGE_logError("%s: Attempted to set projection evaluator with respect to value of joint '%s', but that joint is not "
                  "known to the group '%s'.",
                  name_.c_str(), v.c_str(), getGroupName().c_str());
     }
     if (j.empty())
-      logError("%s: No valid joints specified for joint projection", name_.c_str());
+      CONSOLE_BRIDGE_logError("%s: No valid joints specified for joint projection", name_.c_str());
     else
       return ob::ProjectionEvaluatorPtr(new ProjectionEvaluatorJointValue(this, j));
   }
   else
-    logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
+    CONSOLE_BRIDGE_logError("Unable to allocate projection evaluator based on description: '%s'", peval.c_str());
   return ob::ProjectionEvaluatorPtr();
 }
 
@@ -152,11 +152,11 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 {
   if (spec_.state_space_.get() != ss)
   {
-    logError("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
+    CONSOLE_BRIDGE_logError("%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
     return ompl::base::StateSamplerPtr();
   }
 
-  logDebug("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
+  CONSOLE_BRIDGE_logDebug("%s: Allocating a new state sampler (attempts to use path constraints)", name_.c_str());
 
   if (path_constraints_)
   {
@@ -172,7 +172,7 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
           ompl::base::StateSamplerPtr res = c_ssa(ss);
           if (res)
           {
-            logInform("%s: Using precomputed state sampler (approximated constraint space) for constraint '%s'",
+            CONSOLE_BRIDGE_logInform("%s: Using precomputed state sampler (approximated constraint space) for constraint '%s'",
                       name_.c_str(), path_constraints_msg_.name.c_str());
             return res;
           }
@@ -187,11 +187,11 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 
     if (cs)
     {
-      logInform("%s: Allocating specialized state sampler for state space", name_.c_str());
+      CONSOLE_BRIDGE_logInform("%s: Allocating specialized state sampler for state space", name_.c_str());
       return ob::StateSamplerPtr(new ConstrainedSampler(this, cs));
     }
   }
-  logDebug("%s: Allocating default state sampler for state space", name_.c_str());
+  CONSOLE_BRIDGE_logDebug("%s: Allocating default state sampler for state space", name_.c_str());
   return ss->allocDefaultStateSampler();
 }
 
@@ -210,7 +210,7 @@ void ompl_interface::ModelBasedPlanningContext::configure()
     if (ca)
     {
       getOMPLStateSpace()->setInterpolationFunction(ca->getInterpolationFunction());
-      logInform("Using precomputed interpolation states");
+      CONSOLE_BRIDGE_logInform("Using precomputed interpolation states");
     }
   }
 
@@ -243,7 +243,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   if (it == cfg.end())
   {
     optimizer = "PathLengthOptimizationObjective";
-    logDebug("No optimization objective specified, defaulting to %s", optimizer.c_str());
+    CONSOLE_BRIDGE_logDebug("No optimization objective specified, defaulting to %s", optimizer.c_str());
   }
   else
   {
@@ -283,7 +283,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
   if (it == cfg.end())
   {
     if (name_ != getGroupName())
-      logWarn("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
+      CONSOLE_BRIDGE_logWarn("%s: Attribute 'type' not specified in planner configuration", name_.c_str());
   }
   else
   {
@@ -291,7 +291,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     cfg.erase(it);
     ompl_simple_setup_->setPlannerAllocator(
         boost::bind(spec_.planner_selector_(type), _1, name_ != getGroupName() ? name_ : "", spec_));
-    logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when "
+    CONSOLE_BRIDGE_logInform("Planner configuration '%s' will use planner '%s'. Additional configuration parameters will be set when "
               "the planner is constructed.",
               name_.c_str(), type.c_str());
   }
@@ -308,9 +308,9 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
   if (wparams.min_corner.x == wparams.max_corner.x && wparams.min_corner.x == 0.0 &&
       wparams.min_corner.y == wparams.max_corner.y && wparams.min_corner.y == 0.0 &&
       wparams.min_corner.z == wparams.max_corner.z && wparams.min_corner.z == 0.0)
-    logWarn("It looks like the planning volume was not specified.");
+    CONSOLE_BRIDGE_logWarn("It looks like the planning volume was not specified.");
 
-  logDebug("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]",
+  CONSOLE_BRIDGE_logDebug("%s: Setting planning volume (affects SE2 & SE3 joints only) to x = [%f, %f], y = [%f, %f], z = [%f, %f]",
            name_.c_str(), wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y,
            wparams.min_corner.z, wparams.max_corner.z);
 
@@ -381,7 +381,7 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   if (!goals.empty())
     return goals.size() == 1 ? goals[0] : ompl::base::GoalPtr(new GoalSampleableRegionMux(goals));
   else
-    logError("Unable to construct goal representation");
+    CONSOLE_BRIDGE_logError("Unable to construct goal representation");
 
   return ob::GoalPtr();
 }
@@ -433,7 +433,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 
   if (goal_constraints_.empty())
   {
-    logWarn("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
+    CONSOLE_BRIDGE_logWarn("%s: No goal constraints specified. There is no problem to solve.", name_.c_str());
     if (error)
       error->val = moveit_msgs::MoveItErrorCodes::INVALID_GOAL_CONSTRAINTS;
     return false;
@@ -501,10 +501,10 @@ void ompl_interface::ModelBasedPlanningContext::postSolve()
   stopSampling();
   int v = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getValidMotionCount();
   int iv = ompl_simple_setup_->getSpaceInformation()->getMotionValidator()->getInvalidMotionCount();
-  logDebug("There were %d valid motions and %d invalid motions.", v, iv);
+  CONSOLE_BRIDGE_logDebug("There were %d valid motions and %d invalid motions.", v, iv);
 
   if (ompl_simple_setup_->getProblemDefinition()->hasApproximateSolution())
-    logWarn("Computed solution is approximate");
+    CONSOLE_BRIDGE_logWarn("Computed solution is approximate");
 }
 
 bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::MotionPlanResponse& res)
@@ -520,7 +520,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     interpolateSolution();
 
     // fill the response
-    logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
+    CONSOLE_BRIDGE_logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
              getOMPLSimpleSetup()->getSolutionPath().getStateCount());
 
     res.trajectory_.reset(new robot_trajectory::RobotTrajectory(getRobotModel(), getGroupName()));
@@ -530,7 +530,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
   }
   else
   {
-    logInform("Unable to solve the planning problem");
+    CONSOLE_BRIDGE_logInform("Unable to solve the planning problem");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -570,13 +570,13 @@ bool ompl_interface::ModelBasedPlanningContext::solve(planning_interface::Motion
     getSolutionPath(*res.trajectory_.back());
 
     // fill the response
-    logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
+    CONSOLE_BRIDGE_logDebug("%s: Returning successful solution with %lu states", getName().c_str(),
              getOMPLSimpleSetup()->getSolutionPath().getStateCount());
     return true;
   }
   else
   {
-    logInform("Unable to solve the planning problem");
+    CONSOLE_BRIDGE_logInform("Unable to solve the planning problem");
     res.error_code_.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
     return false;
   }
@@ -591,7 +591,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   bool result = false;
   if (count <= 1)
   {
-    logDebug("%s: Solving the planning problem once...", name_.c_str());
+    CONSOLE_BRIDGE_logDebug("%s: Solving the planning problem once...", name_.c_str());
     ob::PlannerTerminationCondition ptc =
         ob::timedPlannerTerminationCondition(timeout - ompl::time::seconds(ompl::time::now() - start));
     registerTerminationCondition(ptc);
@@ -601,7 +601,7 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   }
   else
   {
-    logDebug("%s: Solving the planning problem %u times...", name_.c_str(), count);
+    CONSOLE_BRIDGE_logDebug("%s: Solving the planning problem %u times...", name_.c_str(), count);
     ompl_parallel_plan_.clearHybridizationPaths();
     if (count <= max_planning_threads_)
     {
