@@ -73,9 +73,9 @@ void moveit::tools::BackgroundProcessing::processingThread()
       action_lock_.unlock();
       try
       {
-        ROS_DEBUG_NAMED("background_processing", "moveit.background: Begin executing '%s'", action_name.c_str());
+        ROS_DEBUG_NAMED("background_processing", "Begin executing '%s'", action_name.c_str());
         fn();
-        ROS_DEBUG_NAMED("background_processing", "moveit.background: Done executing '%s'", action_name.c_str());
+        ROS_DEBUG_NAMED("background_processing", "Done executing '%s'", action_name.c_str());
       }
       catch (std::exception& ex)
       {

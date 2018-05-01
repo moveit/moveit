@@ -42,6 +42,7 @@
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
+#include <ros/console.h>
 
 #include <memory>
 

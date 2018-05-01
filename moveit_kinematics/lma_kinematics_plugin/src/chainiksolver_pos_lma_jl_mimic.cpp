@@ -61,19 +61,19 @@ ChainIkSolverPos_LMA_JL_Mimic::ChainIkSolverPos_LMA_JL_Mimic(const Chain& _chain
   {
     mimic_joints[i].reset(i);
   }
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", "Limits");
+  ROS_DEBUG_NAMED("lma", "Limits");
   for (std::size_t i = 0; i < q_min.rows(); ++i)
   {
-    ROS_DEBUG_NAMED("lma_kinematics_plugin", "%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
+    ROS_DEBUG_NAMED("lma", "%ld: Min: %f, Max: %f", long(i), q_min(i), q_max(i));
   }
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", " ");
+  ROS_DEBUG_NAMED("lma", " ");
 }
 
 bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& _mimic_joints)
 {
   if (_mimic_joints.size() != chain.getNrOfJoints())
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Mimic Joint info should be same size as number of joints in chain: %d",
+    ROS_ERROR_NAMED("lma", "Mimic Joint info should be same size as number of joints in chain: %d",
                     chain.getNrOfJoints());
     return false;
   }
@@ -82,7 +82,7 @@ bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinemat
   {
     if (_mimic_joints[i].map_index >= chain.getNrOfJoints())
     {
-      ROS_ERROR_NAMED("lma_kinematics_plugin", "Mimic Joint index should be less than number of joints in chain: %d",
+      ROS_ERROR_NAMED("lma", "Mimic Joint index should be less than number of joints in chain: %d",
                       chain.getNrOfJoints());
       return false;
     }
@@ -93,7 +93,7 @@ bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinemat
   //  qToqMimic(q_min,q_min_mimic);
   //  qToqMimic(q_max,q_max_mimic);
 
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", "Set mimic joints");
+  ROS_DEBUG_NAMED("lma", "Set mimic joints");
   return true;
 }
 
@@ -143,9 +143,8 @@ bool ChainIkSolverPos_LMA_JL_Mimic::obeysLimits(const KDL::JntArray& q_out)
     {
       // One element of solution is not within limits
       obeys_limits = false;
-      ROS_DEBUG_STREAM_NAMED("lma_kinematics_plugin", "Not in limits! " << i << " value " << q_out(i)
-                                                                        << " has limit being  " << q_min(i) << " to "
-                                                                        << q_max(i));
+      ROS_DEBUG_STREAM_NAMED("lma", "Not in limits! " << i << " value " << q_out(i) << " has limit being  " << q_min(i)
+                                                      << " to " << q_max(i));
       break;
     }
   }

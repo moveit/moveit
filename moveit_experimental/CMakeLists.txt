@@ -21,6 +21,7 @@ COMPONENTS
   visualization_msgs
   roslib
   rostime
+  rosconsole
   pluginlib
   cmake_modules
 )

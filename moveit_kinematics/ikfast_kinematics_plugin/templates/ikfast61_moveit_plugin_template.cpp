@@ -161,7 +161,7 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   const size_t num_joints_;
   std::vector<int> free_params_;
   bool active_;  // Internal variable that indicates whether solvers are configured and ready
-  const std::string name_{ "ikfast_kinematics_plugin" };
+  const std::string name_{ "ikfast" };
 
   const std::vector<std::string>& getJointNames() const
   {

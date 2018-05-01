@@ -136,7 +136,7 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   if (!urdf_model || !srdf)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
+    ROS_ERROR_NAMED("lma", "URDF and SRDF must be loaded for KDL kinematics solver to work.");
     return false;
   }
 
@@ -148,13 +148,12 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   if (!joint_model_group->isChain())
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Group '%s' is not a chain", group_name.c_str());
+    ROS_ERROR_NAMED("lma", "Group '%s' is not a chain", group_name.c_str());
     return false;
   }
   if (!joint_model_group->isSingleDOFJoints())
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Group '%s' includes joints that have more than 1 DOF",
-                    group_name.c_str());
+    ROS_ERROR_NAMED("lma", "Group '%s' includes joints that have more than 1 DOF", group_name.c_str());
     return false;
   }
 
@@ -162,12 +161,12 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, kdl_tree))
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Could not initialize tree object");
+    ROS_ERROR_NAMED("lma", "Could not initialize tree object");
     return false;
   }
   if (!kdl_tree.getChain(base_frame_, getTipFrame(), kdl_chain_))
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Could not initialize chain object");
+    ROS_ERROR_NAMED("lma", "Could not initialize chain object");
     return false;
   }
 
@@ -189,7 +188,7 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
 
   if (!joint_model_group->hasLinkModel(getTipFrame()))
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Could not find tip name in joint group '%s'", group_name.c_str());
+    ROS_ERROR_NAMED("lma", "Could not find tip name in joint group '%s'", group_name.c_str());
     return false;
   }
   ik_chain_info_.link_names.push_back(getTipFrame());
@@ -212,10 +211,10 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
   lookupParam("max_solver_iterations", max_solver_iterations, 500);
   lookupParam("epsilon", epsilon, 1e-5);
   lookupParam("position_only_ik", position_ik, false);
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", "Looking for param name: position_only_ik");
+  ROS_DEBUG_NAMED("lma", "Looking for param name: position_only_ik");
 
   if (position_ik)
-    ROS_INFO_NAMED("lma_kinematics_plugin", "Using position only ik");
+    ROS_INFO_NAMED("lma", "Using position only ik");
 
   num_possible_redundant_joints_ =
       kdl_chain_.getNrOfJoints() - joint_model_group->getMimicJointModels().size() - (position_ik ? 3 : 6);
@@ -283,7 +282,7 @@ bool LMAKinematicsPlugin::initialize(const std::string& robot_description, const
   epsilon_ = epsilon;
 
   active_ = true;
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", "KDL solver initialized");
+  ROS_DEBUG_NAMED("lma", "KDL solver initialized");
   return true;
 }
 
@@ -291,13 +290,12 @@ bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
 {
   if (num_possible_redundant_joints_ < 0)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "This group cannot have redundant joints");
+    ROS_ERROR_NAMED("lma", "This group cannot have redundant joints");
     return false;
   }
   if (redundant_joints.size() > num_possible_redundant_joints_)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "This group can only have %d redundant joints",
-                    num_possible_redundant_joints_);
+    ROS_ERROR_NAMED("lma", "This group can only have %d redundant joints", num_possible_redundant_joints_);
     return false;
   }
   /*
@@ -310,7 +308,7 @@ bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
       {
         ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
         redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
-        ROS_INFO_NAMED("lma_kinematics_plugin","Designated joint: %s as redundant joint",
+        ROS_INFO_NAMED("lma","Designated joint: %s as redundant joint",
     redundant_joints.back().c_str());
       }
     }
@@ -340,8 +338,7 @@ bool LMAKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
     }
   }
   for (std::size_t i = 0; i < redundant_joints_map_index.size(); ++i)
-    ROS_DEBUG_NAMED("lma_kinematics_plugin", "Redundant joint map index: %d %d", (int)i,
-                    (int)redundant_joints_map_index[i]);
+    ROS_DEBUG_NAMED("lma", "Redundant joint map index: %d %d", (int)i, (int)redundant_joints_map_index[i]);
 
   redundant_joints_map_index_ = redundant_joints_map_index;
   redundant_joint_indices_ = redundant_joints;
@@ -441,24 +438,23 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "kinematics not active");
+    ROS_ERROR_NAMED("lma", "kinematics not active");
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
   if (ik_seed_state.size() != dimension_)
   {
-    ROS_ERROR_STREAM_NAMED("lma_kinematics_plugin", "Seed state must have size " << dimension_ << " instead of size "
-                                                                                 << ik_seed_state.size());
+    ROS_ERROR_STREAM_NAMED("lma", "Seed state must have size " << dimension_ << " instead of size "
+                                                               << ik_seed_state.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
 
   if (!consistency_limits.empty() && consistency_limits.size() != dimension_)
   {
-    ROS_ERROR_STREAM_NAMED("lma_kinematics_plugin", "Consistency limits be empty or must have size "
-                                                        << dimension_ << " instead of size "
-                                                        << consistency_limits.size());
+    ROS_ERROR_STREAM_NAMED("lma", "Consistency limits be empty or must have size " << dimension_ << " instead of size "
+                                                                                   << consistency_limits.size());
     error_code.val = error_code.NO_IK_SOLUTION;
     return false;
   }
@@ -487,7 +483,7 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
   if ((redundant_joint_indices_.size() > 0) && !ik_solver_vel.setRedundantJointsMapIndex(redundant_joints_map_index_))
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Could not set redundant joints");
+    ROS_ERROR_NAMED("lma", "Could not set redundant joints");
     return false;
   }
 
@@ -501,11 +497,10 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   KDL::Frame pose_desired;
   tf::poseMsgToKDL(ik_pose, pose_desired);
 
-  ROS_DEBUG_STREAM_NAMED("lma_kinematics_plugin", "searchPositionIK2: Position request pose is "
-                                                      << ik_pose.position.x << " " << ik_pose.position.y << " "
-                                                      << ik_pose.position.z << " " << ik_pose.orientation.x << " "
-                                                      << ik_pose.orientation.y << " " << ik_pose.orientation.z << " "
-                                                      << ik_pose.orientation.w);
+  ROS_DEBUG_STREAM_NAMED("lma", "searchPositionIK2: Position request pose is "
+                                    << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
+                                    << " " << ik_pose.orientation.x << " " << ik_pose.orientation.y << " "
+                                    << ik_pose.orientation.z << " " << ik_pose.orientation.w);
   // Do the IK
   for (unsigned int i = 0; i < dimension_; i++)
     jnt_seed_state(i) = ik_seed_state[i];
@@ -514,42 +509,42 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   unsigned int counter(0);
   while (1)
   {
-    //    ROS_DEBUG_NAMED("lma_kinematics_plugin","Iteration: %d, time: %f, Timeout:
+    //    ROS_DEBUG_NAMED("lma","Iteration: %d, time: %f, Timeout:
     //    %f",counter,(ros::WallTime::now()-n1).toSec(),timeout);
     counter++;
     if (timedOut(n1, timeout))
     {
-      ROS_DEBUG_NAMED("lma_kinematics_plugin", "IK timed out");
+      ROS_DEBUG_NAMED("lma", "IK timed out");
       error_code.val = error_code.TIMED_OUT;
       ik_solver_vel.unlockRedundantJoints();
       return false;
     }
     int ik_valid = ik_solver_pos.CartToJnt(jnt_pos_in, pose_desired, jnt_pos_out);
-    ROS_DEBUG_NAMED("lma_kinematics_plugin", "IK valid: %d", ik_valid);
+    ROS_DEBUG_NAMED("lma", "IK valid: %d", ik_valid);
     if (!consistency_limits.empty())
     {
       getRandomConfiguration(jnt_seed_state, consistency_limits, jnt_pos_in, options.lock_redundant_joints);
       if ((ik_valid < 0 && !options.return_approximate_solution) ||
           !checkConsistency(jnt_seed_state, consistency_limits, jnt_pos_out))
       {
-        ROS_DEBUG_NAMED("lma_kinematics_plugin", "Could not find IK solution: does not match consistency limits");
+        ROS_DEBUG_NAMED("lma", "Could not find IK solution: does not match consistency limits");
         continue;
       }
     }
     else
     {
       getRandomConfiguration(jnt_pos_in, options.lock_redundant_joints);
-      ROS_DEBUG_NAMED("lma_kinematics_plugin", "New random configuration");
+      ROS_DEBUG_NAMED("lma", "New random configuration");
       for (unsigned int j = 0; j < dimension_; j++)
-        ROS_DEBUG_NAMED("lma_kinematics_plugin", "%d %f", j, jnt_pos_in(j));
+        ROS_DEBUG_NAMED("lma", "%d %f", j, jnt_pos_in(j));
 
       if (ik_valid < 0 && !options.return_approximate_solution)
       {
-        ROS_DEBUG_NAMED("lma_kinematics_plugin", "Could not find IK solution");
+        ROS_DEBUG_NAMED("lma", "Could not find IK solution");
         continue;
       }
     }
-    ROS_DEBUG_NAMED("lma_kinematics_plugin", "Found IK solution");
+    ROS_DEBUG_NAMED("lma", "Found IK solution");
     for (unsigned int j = 0; j < dimension_; j++)
       solution[j] = jnt_pos_out(j);
     if (!solution_callback.empty())
@@ -559,13 +554,13 @@ bool LMAKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
 
     if (error_code.val == error_code.SUCCESS)
     {
-      ROS_DEBUG_STREAM_NAMED("lma_kinematics_plugin", "Solved after " << counter << " iterations");
+      ROS_DEBUG_STREAM_NAMED("lma", "Solved after " << counter << " iterations");
       ik_solver_vel.unlockRedundantJoints();
       return true;
     }
   }
-  ROS_DEBUG_NAMED("lma_kinematics_plugin", "An IK that satisifes the constraints and is collision free could not be "
-                                           "found");
+  ROS_DEBUG_NAMED("lma", "An IK that satisifes the constraints and is collision free could not be "
+                         "found");
   error_code.val = error_code.NO_IK_SOLUTION;
   ik_solver_vel.unlockRedundantJoints();
   return false;
@@ -578,13 +573,13 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   ros::WallTime n1 = ros::WallTime::now();
   if (!active_)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "kinematics not active");
+    ROS_ERROR_NAMED("lma", "kinematics not active");
     return false;
   }
   poses.resize(link_names.size());
   if (joint_angles.size() != dimension_)
   {
-    ROS_ERROR_NAMED("lma_kinematics_plugin", "Joint angles vector must have size: %d", dimension_);
+    ROS_ERROR_NAMED("lma", "Joint angles vector must have size: %d", dimension_);
     return false;
   }
 
@@ -603,14 +598,14 @@ bool LMAKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   bool valid = true;
   for (unsigned int i = 0; i < poses.size(); i++)
   {
-    ROS_DEBUG_NAMED("lma_kinematics_plugin", "End effector index: %d", getKDLSegmentIndex(link_names[i]));
+    ROS_DEBUG_NAMED("lma", "End effector index: %d", getKDLSegmentIndex(link_names[i]));
     if (fk_solver.JntToCart(jnt_pos_in, p_out, getKDLSegmentIndex(link_names[i])) >= 0)
     {
       tf::poseKDLToMsg(p_out, poses[i]);
     }
     else
     {
-      ROS_ERROR_NAMED("lma_kinematics_plugin", "Could not compute FK for %s", link_names[i].c_str());
+      ROS_ERROR_NAMED("lma", "Could not compute FK for %s", link_names[i].c_str());
       valid = false;
     }
   }
