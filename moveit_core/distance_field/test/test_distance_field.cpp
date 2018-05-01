@@ -353,7 +353,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   EigenSTL::vector_Vector3d points;
   points.push_back(point1);
   points.push_back(point2);
-  ROS_INFO_NAMED("distance_field", "Adding %u points", points.size());
+  ROS_INFO_NAMED("distance_field", "Adding %lu points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
 
@@ -469,7 +469,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   }
 
   df.reset();
-  ROS_INFO_NAMED("distance_field", "Adding %u points", points.size());
+  ROS_INFO_NAMED("distance_field", "Adding %lu points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
   // printNeg(df, numX, numY, numZ);
