@@ -76,7 +76,7 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
   // testing tolerances first
   if (jc.tolerance_above < 0.0 || jc.tolerance_below < 0.0)
   {
-    CONSOLE_BRIDGE_logWarn("JointConstraint tolerance values must be positive.");
+    ROS_WARN_NAMED("kinematic_constraints", "JointConstraint tolerance values must be positive.");
     joint_model_ = NULL;
     return false;
   }
@@ -105,14 +105,14 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       // check if the joint has 1 DOF (the only kind we can handle)
       if (joint_model_->getVariableCount() == 0)
       {
-        CONSOLE_BRIDGE_logError("Joint '%s' has no parameters to constrain", jc.joint_name.c_str());
+        ROS_ERROR_NAMED("kinematic_constraints", "Joint '%s' has no parameters to constrain", jc.joint_name.c_str());
         joint_model_ = NULL;
       }
       else if (joint_model_->getVariableCount() > 1)
       {
-        CONSOLE_BRIDGE_logError("Joint '%s' has more than one parameter to constrain. "
-                                "This type of constraint is not supported.",
-                                jc.joint_name.c_str());
+        ROS_ERROR_NAMED("kinematic_constraints", "Joint '%s' has more than one parameter to constrain. "
+                                                 "This type of constraint is not supported.",
+                        jc.joint_name.c_str());
         joint_model_ = NULL;
       }
     }
@@ -128,8 +128,8 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
         }
       if (found < 0)
       {
-        CONSOLE_BRIDGE_logError("Local variable name '%s' is not known to joint '%s'", local_variable_name_.c_str(),
-                                joint_model_->getName().c_str());
+        ROS_ERROR_NAMED("kinematic_constraints", "Local variable name '%s' is not known to joint '%s'",
+                        local_variable_name_.c_str(), joint_model_->getName().c_str());
         joint_model_ = NULL;
       }
     }
@@ -169,24 +169,25 @@ bool kinematic_constraints::JointConstraint::configure(const moveit_msgs::JointC
       {
         joint_position_ = bounds.min_position_;
         joint_tolerance_above_ = std::numeric_limits<double>::epsilon();
-        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be below the minimum bounds. "
-                               "Assuming minimum bounds instead.",
-                               jc.joint_name.c_str());
+        ROS_WARN_NAMED("kinematic_constraints", "Joint %s is constrained to be below the minimum bounds. "
+                                                "Assuming minimum bounds instead.",
+                       jc.joint_name.c_str());
       }
       else if (bounds.max_position_ < joint_position_ - joint_tolerance_below_)
       {
         joint_position_ = bounds.max_position_;
         joint_tolerance_below_ = std::numeric_limits<double>::epsilon();
-        CONSOLE_BRIDGE_logWarn("Joint %s is constrained to be above the maximum bounds. "
-                               "Assuming maximum bounds instead.",
-                               jc.joint_name.c_str());
+        ROS_WARN_NAMED("kinematic_constraints", "Joint %s is constrained to be above the maximum bounds. "
+                                                "Assuming maximum bounds instead.",
+                       jc.joint_name.c_str());
       }
     }
 
     if (jc.weight <= std::numeric_limits<double>::epsilon())
     {
-      CONSOLE_BRIDGE_logWarn("The weight on constraint for joint '%s' is very near zero.  Setting to 1.0.",
-                             jc.joint_name.c_str());
+      ROS_WARN_NAMED("kinematic_constraints",
+                     "The weight on constraint for joint '%s' is very near zero.  Setting to 1.0.",
+                     jc.joint_name.c_str());
       constraint_weight_ = 1.0;
     }
     else
@@ -233,10 +234,10 @@ kinematic_constraints::JointConstraint::decide(const robot_state::RobotState& st
   bool result = dif <= (joint_tolerance_above_ + 2.0 * std::numeric_limits<double>::epsilon()) &&
                 dif >= (-joint_tolerance_below_ - 2.0 * std::numeric_limits<double>::epsilon());
   if (verbose)
-    CONSOLE_BRIDGE_logInform("Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
-                             "tolerance_above: %f, tolerance_below: %f",
-                             result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
-                             joint_position_, joint_tolerance_above_, joint_tolerance_below_);
+    ROS_INFO_NAMED("kinematic_constraints", "Constraint %s:: Joint name: '%s', actual value: %f, desired value: %f, "
+                                            "tolerance_above: %f, tolerance_below: %f",
+                   result ? "satisfied" : "violated", joint_variable_name_.c_str(), current_joint_position,
+                   joint_position_, joint_tolerance_above_, joint_tolerance_below_);
   return ConstraintEvaluationResult(result, constraint_weight_ * fabs(dif));
 }
 
@@ -281,14 +282,16 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
   link_model_ = robot_model_->getLinkModel(pc.link_name);
   if (link_model_ == NULL)
   {
-    CONSOLE_BRIDGE_logWarn("Position constraint link model %s not found in kinematic model. Constraint invalid.",
-                           pc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "Position constraint link model %s not found in kinematic model. Constraint invalid.",
+                   pc.link_name.c_str());
     return false;
   }
 
   if (pc.header.frame_id.empty())
   {
-    CONSOLE_BRIDGE_logWarn("No frame specified for position constraint on link '%s'!", pc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints", "No frame specified for position constraint on link '%s'!",
+                   pc.link_name.c_str());
     return false;
   }
 
@@ -314,7 +317,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     {
       if (pc.constraint_region.primitive_poses.size() <= i)
       {
-        CONSOLE_BRIDGE_logWarn("Constraint region message does not contain enough primitive poses");
+        ROS_WARN_NAMED("kinematic_constraints", "Constraint region message does not contain enough primitive poses");
         continue;
       }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
@@ -330,7 +333,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
       }
     }
     else
-      CONSOLE_BRIDGE_logWarn("Could not construct primitive shape %d", i);
+      ROS_WARN_NAMED("kinematic_constraints", "Could not construct primitive shape %d", i);
   }
 
   // load meshes
@@ -341,7 +344,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     {
       if (pc.constraint_region.mesh_poses.size() <= i)
       {
-        CONSOLE_BRIDGE_logWarn("Constraint region message does not contain enough primitive poses");
+        ROS_WARN_NAMED("kinematic_constraints", "Constraint region message does not contain enough primitive poses");
         continue;
       }
       constraint_region_.push_back(bodies::BodyPtr(bodies::createBodyFromShape(shape.get())));
@@ -358,14 +361,15 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     }
     else
     {
-      CONSOLE_BRIDGE_logWarn("Could not construct mesh shape %d", i);
+      ROS_WARN_NAMED("kinematic_constraints", "Could not construct mesh shape %d", i);
     }
   }
 
   if (pc.weight <= std::numeric_limits<double>::epsilon())
   {
-    CONSOLE_BRIDGE_logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.",
-                           pc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "The weight on position constraint for link '%s' is near zero.  Setting to 1.0.",
+                   pc.link_name.c_str());
     constraint_weight_ = 1.0;
   }
   else
@@ -424,10 +428,10 @@ finishPositionConstraintDecision(const Eigen::Vector3d& pt, const Eigen::Vector3
   double dz = desired.z() - pt.z();
   if (verbose)
   {
-    CONSOLE_BRIDGE_logInform("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
-                             result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(),
-                             pt.x(), pt.y(), pt.z());
-    CONSOLE_BRIDGE_logInform("Differences %g %g %g", dx, dy, dz);
+    ROS_INFO_NAMED(
+        "kinematic_constraints", "Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
+        result ? "satisfied" : "violated", name.c_str(), desired.x(), desired.y(), desired.z(), pt.x(), pt.y(), pt.z());
+    ROS_INFO_NAMED("kinematic_constraints", "Differences %g %g %g", dx, dy, dz);
   }
   return ConstraintEvaluationResult(result, weight * sqrt(dx * dx + dy * dy + dz * dz));
 }
@@ -503,21 +507,22 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   link_model_ = robot_model_->getLinkModel(oc.link_name);
   if (!link_model_)
   {
-    CONSOLE_BRIDGE_logWarn("Could not find link model for link name %s", oc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints", "Could not find link model for link name %s", oc.link_name.c_str());
     return false;
   }
   Eigen::Quaterniond q;
   tf::quaternionMsgToEigen(oc.orientation, q);
   if (fabs(q.norm() - 1.0) > 1e-3)
   {
-    CONSOLE_BRIDGE_logWarn(
-        "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, %f. Assuming identity instead.",
-        oc.link_name.c_str(), oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
+    ROS_WARN_NAMED("kinematic_constraints", "Orientation constraint for link '%s' is probably incorrect: %f, %f, %f, "
+                                            "%f. Assuming identity instead.",
+                   oc.link_name.c_str(), oc.orientation.x, oc.orientation.y, oc.orientation.z, oc.orientation.w);
     q = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
   }
 
   if (oc.header.frame_id.empty())
-    CONSOLE_BRIDGE_logWarn("No frame specified for position constraint on link '%s'!", oc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints", "No frame specified for position constraint on link '%s'!",
+                   oc.link_name.c_str());
 
   if (tf.isFixedFrame(oc.header.frame_id))
   {
@@ -535,26 +540,27 @@ bool kinematic_constraints::OrientationConstraint::configure(const moveit_msgs::
   }
   std::stringstream matrix_str;
   matrix_str << desired_rotation_matrix_;
-  CONSOLE_BRIDGE_logDebug("The desired rotation matrix for link '%s' in frame %s is:\n%s", oc.link_name.c_str(),
-                          desired_rotation_frame_id_.c_str(), matrix_str.str().c_str());
+  ROS_DEBUG_NAMED("kinematic_constraints", "The desired rotation matrix for link '%s' in frame %s is:\n%s",
+                  oc.link_name.c_str(), desired_rotation_frame_id_.c_str(), matrix_str.str().c_str());
 
   if (oc.weight <= std::numeric_limits<double>::epsilon())
   {
-    CONSOLE_BRIDGE_logWarn("The weight on position constraint for link '%s' is near zero.  Setting to 1.0.",
-                           oc.link_name.c_str());
+    ROS_WARN_NAMED("kinematic_constraints",
+                   "The weight on position constraint for link '%s' is near zero.  Setting to 1.0.",
+                   oc.link_name.c_str());
     constraint_weight_ = 1.0;
   }
   else
     constraint_weight_ = oc.weight;
   absolute_x_axis_tolerance_ = fabs(oc.absolute_x_axis_tolerance);
   if (absolute_x_axis_tolerance_ < std::numeric_limits<double>::epsilon())
-    CONSOLE_BRIDGE_logWarn("Near-zero value for absolute_x_axis_tolerance");
+    ROS_WARN_NAMED("kinematic_constraints", "Near-zero value for absolute_x_axis_tolerance");
   absolute_y_axis_tolerance_ = fabs(oc.absolute_y_axis_tolerance);
   if (absolute_y_axis_tolerance_ < std::numeric_limits<double>::epsilon())
-    CONSOLE_BRIDGE_logWarn("Near-zero value for absolute_y_axis_tolerance");
+    ROS_WARN_NAMED("kinematic_constraints", "Near-zero value for absolute_y_axis_tolerance");
   absolute_z_axis_tolerance_ = fabs(oc.absolute_z_axis_tolerance);
   if (absolute_z_axis_tolerance_ < std::numeric_limits<double>::epsilon())
-    CONSOLE_BRIDGE_logWarn("Near-zero value for absolute_z_axis_tolerance");
+    ROS_WARN_NAMED("kinematic_constraints", "Near-zero value for absolute_z_axis_tolerance");
 
   return link_model_ != NULL;
 }
@@ -625,11 +631,12 @@ kinematic_constraints::OrientationConstraint::decide(const robot_state::RobotSta
   {
     Eigen::Quaterniond q_act(state.getGlobalLinkTransform(link_model_).rotation());
     Eigen::Quaterniond q_des(desired_rotation_matrix_);
-    CONSOLE_BRIDGE_logInform("Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
-                             "actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
-                             result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(),
-                             q_des.z(), q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2),
-                             absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
+    ROS_INFO_NAMED("kinematic_constraints",
+                   "Orientation constraint %s for link '%s'. Quaternion desired: %f %f %f %f, quaternion "
+                   "actual: %f %f %f %f, error: x=%f, y=%f, z=%f, tolerance: x=%f, y=%f, z=%f",
+                   result ? "satisfied" : "violated", link_model_->getName().c_str(), q_des.x(), q_des.y(), q_des.z(),
+                   q_des.w(), q_act.x(), q_act.y(), q_act.z(), q_act.w(), xyz(0), xyz(1), xyz(2),
+                   absolute_x_axis_tolerance_, absolute_y_axis_tolerance_, absolute_z_axis_tolerance_);
   }
 
   return ConstraintEvaluationResult(result, constraint_weight_ * (xyz(0) + xyz(1) + xyz(2)));
@@ -676,13 +683,14 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
   target_radius_ = fabs(vc.target_radius);
 
   if (vc.target_radius <= std::numeric_limits<double>::epsilon())
-    CONSOLE_BRIDGE_logWarn("The radius of the target disc that must be visible should be strictly positive");
+    ROS_WARN_NAMED("kinematic_constraints", "The radius of the target disc that must be visible should be strictly "
+                                            "positive");
 
   if (vc.cone_sides < 3)
   {
-    CONSOLE_BRIDGE_logWarn("The number of sides for the visibility region must be 3 or more. "
-                           "Assuming 3 sides instead of the specified %d",
-                           vc.cone_sides);
+    ROS_WARN_NAMED("kinematic_constraints", "The number of sides for the visibility region must be 3 or more. "
+                                            "Assuming 3 sides instead of the specified %d",
+                   vc.cone_sides);
     cone_sides_ = 3;
   }
   else
@@ -732,7 +740,7 @@ bool kinematic_constraints::VisibilityConstraint::configure(const moveit_msgs::V
 
   if (vc.weight <= std::numeric_limits<double>::epsilon())
   {
-    CONSOLE_BRIDGE_logWarn("The weight of visibility constraint is near zero.  Setting to 1.0.");
+    ROS_WARN_NAMED("kinematic_constraints", "The weight of visibility constraint is near zero.  Setting to 1.0.");
     constraint_weight_ = 1.0;
   }
   else
@@ -947,15 +955,16 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       if (dp < 0.0)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the sensor is looking at the wrong side");
+          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the sensor is looking at "
+                                                  "the wrong side");
         return ConstraintEvaluationResult(false, 0.0);
       }
       if (max_view_angle_ < ang)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the view angle is %lf "
-                                   "(above the maximum allowed of %lf)",
-                                   ang, max_view_angle_);
+          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the view angle is %lf "
+                                                  "(above the maximum allowed of %lf)",
+                         ang, max_view_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
     }
@@ -966,7 +975,8 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       if (dp < 0.0)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the sensor is looking at the wrong side");
+          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the sensor is looking at "
+                                                  "the wrong side");
         return ConstraintEvaluationResult(false, 0.0);
       }
 
@@ -974,9 +984,9 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
       if (max_range_angle_ < ang)
       {
         if (verbose)
-          CONSOLE_BRIDGE_logInform("Visibility constraint is violated because the range angle is %lf "
-                                   "(above the maximum allowed of %lf)",
-                                   ang, max_range_angle_);
+          ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint is violated because the range angle is %lf "
+                                                  "(above the maximum allowed of %lf)",
+                         ang, max_range_angle_);
         return ConstraintEvaluationResult(false, 0.0);
       }
     }
@@ -1004,8 +1014,8 @@ kinematic_constraints::VisibilityConstraint::decide(const robot_state::RobotStat
   {
     std::stringstream ss;
     m->print(ss);
-    CONSOLE_BRIDGE_logInform("Visibility constraint %ssatisfied. Visibility cone approximation:\n %s",
-                             res.collision ? "not " : "", ss.str().c_str());
+    ROS_INFO_NAMED("kinematic_constraints", "Visibility constraint %ssatisfied. Visibility cone approximation:\n %s",
+                   res.collision ? "not " : "", ss.str().c_str());
   }
 
   return ConstraintEvaluationResult(!res.collision, res.collision ? res.contacts.begin()->second.front().depth : 0.0);
@@ -1021,7 +1031,7 @@ bool kinematic_constraints::VisibilityConstraint::decideContact(const collision_
       (robot_state::Transforms::sameFrame(contact.body_name_1, sensor_frame_id_) ||
        robot_state::Transforms::sameFrame(contact.body_name_1, target_frame_id_)))
   {
-    CONSOLE_BRIDGE_logDebug("Accepted collision with either sensor or target");
+    ROS_DEBUG_NAMED("kinematic_constraints", "Accepted collision with either sensor or target");
     return true;
   }
   if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK &&
@@ -1029,7 +1039,7 @@ bool kinematic_constraints::VisibilityConstraint::decideContact(const collision_
       (robot_state::Transforms::sameFrame(contact.body_name_2, sensor_frame_id_) ||
        robot_state::Transforms::sameFrame(contact.body_name_2, target_frame_id_)))
   {
-    CONSOLE_BRIDGE_logDebug("Accepted collision with either sensor or target");
+    ROS_DEBUG_NAMED("kinematic_constraints", "Accepted collision with either sensor or target");
     return true;
   }
   return false;

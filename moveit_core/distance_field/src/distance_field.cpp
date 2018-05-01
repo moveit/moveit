@@ -38,7 +38,7 @@
 #include <moveit/distance_field/find_internal_points.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <console_bridge/console.h>
+#include <ros/console.h>
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
@@ -203,7 +203,7 @@ bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, c
     const shapes::OcTree* oc = dynamic_cast<const shapes::OcTree*>(shape);
     if (!oc)
     {
-      CONSOLE_BRIDGE_logError("Problem dynamic casting shape that claims to be OcTree");
+      ROS_ERROR_NAMED("distance_field", "Problem dynamic casting shape that claims to be OcTree");
       return false;
     }
     getOcTreePoints(oc->octree.get(), points);
@@ -291,7 +291,7 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
 {
   if (shape->type == shapes::OCTREE)
   {
-    CONSOLE_BRIDGE_logWarn("Move shape not supported for Octree");
+    ROS_WARN_NAMED("distance_field", "Move shape not supported for Octree");
     return;
   }
   bodies::Body* body = bodies::createBodyFromShape(shape);

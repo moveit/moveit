@@ -44,7 +44,7 @@ moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
 
 #if MOVEIT_ENABLE_PROFILING
 
-#include <console_bridge/console.h>
+#include <ros/console.h>
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -172,7 +172,7 @@ void moveit::tools::Profiler::console(void)
   std::stringstream ss;
   ss << std::endl;
   status(ss, true);
-  CONSOLE_BRIDGE_logInform(ss.str().c_str());
+  ROS_INFO_NAMED("profiler", ss.str().c_str());
 }
 
 /// @cond IGNORE
