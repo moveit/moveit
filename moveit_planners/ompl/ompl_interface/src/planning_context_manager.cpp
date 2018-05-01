@@ -292,10 +292,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   context->setMaximumGoalSamples(max_goal_samples_);
   context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
   context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
-  if (max_solution_segment_length_ <= std::numeric_limits<double>::epsilon())
-    context->setMaximumSolutionSegmentLength(context->getOMPLSimpleSetup()->getStateSpace()->getMaximumExtent() /
-                                             100.0);
-  else
+  if (max_solution_segment_length_ > std::numeric_limits<double>::epsilon())
     context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
   context->setMinimumWaypointCount(minimum_waypoint_count_);
 
