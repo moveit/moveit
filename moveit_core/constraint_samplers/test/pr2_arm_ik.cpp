@@ -66,9 +66,9 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
     if (!joint)
     {
       if (link->parent_joint)
-        ROS_ERROR_NAMED("constraint_samplers", "Could not find joint: %s", link->parent_joint->name.c_str());
+        ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "Could not find joint: %s", link->parent_joint->name.c_str());
       else
-        ROS_ERROR_NAMED("constraint_samplers", "Link %s has no parent joint", link->name.c_str());
+        ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "Link %s has no parent joint", link->name.c_str());
       return false;
     }
     if (joint->type != urdf::Joint::UNKNOWN && joint->type != urdf::Joint::FIXED)
@@ -76,8 +76,8 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
       link_offset.push_back(link->parent_joint->parent_to_joint_origin_transform);
       angle_multipliers_.push_back(joint->axis.x * fabs(joint->axis.x) + joint->axis.y * fabs(joint->axis.y) +
                                    joint->axis.z * fabs(joint->axis.z));
-      ROS_DEBUG_NAMED("constraint_samplers", "Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x, joint->axis.y,
-                      joint->axis.z);
+      ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "Joint axis: %d, %f, %f, %f", 6 - num_joints, joint->axis.x,
+                      joint->axis.y, joint->axis.z);
       if (joint->type != urdf::Joint::CONTINUOUS)
       {
         if (joint->safety)
@@ -96,7 +96,7 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
           {
             min_angles_.push_back(0.0);
             max_angles_.push_back(0.0);
-            ROS_WARN_NAMED("constraint_samplers", "No joint limits or joint '%s'", joint->name.c_str());
+            ROS_WARN_NAMED("pr2_arm_kinematics_plugin", "No joint limits or joint '%s'", joint->name.c_str());
           }
         }
         continuous_joint_.push_back(false);
@@ -128,8 +128,8 @@ bool PR2ArmIK::init(const urdf::ModelInterface& robot_model, const std::string& 
 
   if (num_joints != 7)
   {
-    ROS_ERROR_NAMED("constraint_samplers", "PR2ArmIK:: Chain from %s to %s does not have 7 joints", root_name.c_str(),
-                    tip_name.c_str());
+    ROS_ERROR_NAMED("pr2_arm_kinematics_plugin", "PR2ArmIK:: Chain from %s to %s does not have 7 joints",
+                    root_name.c_str(), tip_name.c_str());
     return false;
   }
 
