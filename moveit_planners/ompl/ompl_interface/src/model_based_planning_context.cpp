@@ -108,8 +108,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
     else
       ROS_ERROR_NAMED("model_based_planning_context",
                       "Attempted to set projection evaluator with respect to position of link '%s', "
-                      "but that link is not "
-                      "known to the kinematic model.",
+                      "but that link is not known to the kinematic model.",
                       link_name.c_str());
   }
   else if (peval.find_first_of("joints(") == 0 && peval[peval.length() - 1] == ')')
@@ -138,8 +137,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
       else
         ROS_ERROR_NAMED("model_based_planning_context",
                         "%s: Attempted to set projection evaluator with respect to value of joint "
-                        "'%s', but that joint is not "
-                        "known to the group '%s'.",
+                        "'%s', but that joint is not known to the group '%s'.",
                         name_.c_str(), v.c_str(), getGroupName().c_str());
     }
     if (j.empty())
@@ -306,9 +304,8 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
     ompl_simple_setup_->setPlannerAllocator(
         boost::bind(spec_.planner_selector_(type), _1, name_ != getGroupName() ? name_ : "", spec_));
     ROS_INFO_NAMED("model_based_planning_context",
-                   "Planner configuration '%s' will use planner '%s'. Additional configuration "
-                   "parameters will be set when "
-                   "the planner is constructed.",
+                   "Planner configuration '%s' will use planner '%s'. "
+                   "Additional configuration parameters will be set when the planner is constructed.",
                    name_.c_str(), type.c_str());
   }
 

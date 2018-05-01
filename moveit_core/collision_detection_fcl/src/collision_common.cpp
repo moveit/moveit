@@ -88,10 +88,10 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         always_allow_collision = true;
         if (cdata->req_->verbose)
-          ROS_DEBUG_NAMED("collision_detection.fcl", "Collision between '%s' (type '%s') and '%s' (type '%s') is "
-                                                     "always allowed. No contacts are computed.",
-                          cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(),
-                          cd2->getTypeString().c_str());
+          ROS_DEBUG_NAMED(
+              "collision_detection.fcl", "Collision between '%s' (type '%s') and '%s' (type '%s') is always allowed. "
+                                         "No contacts are computed.",
+              cd1->getID().c_str(), cd1->getTypeString().c_str(), cd2->getID().c_str(), cd2->getTypeString().c_str());
       }
       else if (type == AllowedCollision::CONDITIONAL)
       {
@@ -178,8 +178,8 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     {
       if (cdata->req_->verbose)
         ROS_INFO_NAMED("collision_detection.fcl",
-                       "Found %d contacts between '%s' and '%s'. These contacts will be evaluated to "
-                       "check if they are accepted or not",
+                       "Found %d contacts between '%s' and '%s'. "
+                       "These contacts will be evaluated to check if they are accepted or not",
                        num_contacts, cd1->getID().c_str(), cd2->getID().c_str());
       Contact c;
       const std::pair<std::string, std::string>& pc = cd1->getID() < cd2->getID() ?
@@ -332,8 +332,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
         cdata->done_ = true;
       if (cdata->req_->verbose)
         ROS_INFO_NAMED("collision_detection.fcl",
-                       "Collision checking is considered complete (collision was found and %u "
-                       "contacts are stored)",
+                       "Collision checking is considered complete (collision was found and %u contacts are stored)",
                        (unsigned int)cdata->res_->contact_count);
     }
 
@@ -342,8 +341,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
     cdata->done_ = cdata->req_->is_done(*cdata->res_);
     if (cdata->done_ && cdata->req_->verbose)
       ROS_INFO_NAMED("collision_detection.fcl", "Collision checking is considered complete due to external callback. "
-                                                "%s was found. %u contacts are "
-                                                "stored.",
+                                                "%s was found. %u contacts are stored.",
                      cdata->res_->collision ? "Collision" : "No collision", (unsigned int)cdata->res_->contact_count);
   }
 
@@ -465,8 +463,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
         always_allow_collision = true;
         if (cdata->req->verbose)
           ROS_DEBUG_NAMED("collision_detection.fcl",
-                          "Robot link '%s' is allowed to touch attached object '%s'. No distances are "
-                          "computed.",
+                          "Robot link '%s' is allowed to touch attached object '%s'. No distances are computed.",
                           cd2->getID().c_str(), cd1->getID().c_str());
       }
     }

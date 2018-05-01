@@ -68,9 +68,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
   // if there are joint constraints, we could possibly get a sampler from those
   if (!constr.joint_constraints.empty())
   {
-    ROS_DEBUG_NAMED("constraint_samplers",
-                    "There are joint constraints specified. Attempting to construct a JointConstraintSampler "
-                    "for group '%s'",
+    ROS_DEBUG_NAMED("constraint_samplers", "There are joint constraints specified. "
+                                           "Attempting to construct a JointConstraintSampler for group '%s'",
                     jmg->getName().c_str());
 
     std::map<std::string, bool> joint_coverage;

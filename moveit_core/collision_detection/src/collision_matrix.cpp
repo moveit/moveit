@@ -53,9 +53,8 @@ collision_detection::AllowedCollisionMatrix::AllowedCollisionMatrix(const moveit
 {
   if (msg.entry_names.size() != msg.entry_values.size() ||
       msg.default_entry_names.size() != msg.default_entry_values.size())
-    ROS_ERROR_NAMED("collision_detection",
-                    "The number of links does not match the number of entries in AllowedCollisionMatrix "
-                    "message");
+    ROS_ERROR_NAMED("collision_detection", "The number of links does not match the number of entries "
+                                           "in AllowedCollisionMatrix message");
   else
   {
     for (std::size_t i = 0; i < msg.entry_names.size(); ++i)

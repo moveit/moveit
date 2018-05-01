@@ -1129,8 +1129,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
       succ++;
   }
   ROS_INFO_NAMED("pr2_arm_kinematics_plugin",
-                 "Success rate for IK Constraint Sampler with position & orientation constraints for both "
-                 "arms: %lf",
+                 "Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf",
                  (double)succ / (double)NT);
 }
 

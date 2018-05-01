@@ -469,9 +469,8 @@ bool IterativeParabolicTimeParameterization::computeTimeStamps(robot_trajectory:
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    ROS_ERROR_NAMED("trajectory_processing.iterative_time_parameterization",
-                    "It looks like the planner did not set the group the plan was computed "
-                    "for");
+    ROS_ERROR_NAMED("trajectory_processing.iterative_time_parameterization", "It looks like the planner did not set "
+                                                                             "the group the plan was computed for");
     return false;
   }
 

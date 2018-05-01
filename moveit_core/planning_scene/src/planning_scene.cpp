@@ -1442,22 +1442,22 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
   {
     if (object.object.primitives.size() != object.object.primitive_poses.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of primitive shapes does not match "
-                                        "number of poses in attached collision object message");
+      ROS_ERROR_NAMED("planning_scene", "Number of primitive shapes does not match number of poses "
+                                        "in attached collision object message");
       return false;
     }
 
     if (object.object.meshes.size() != object.object.mesh_poses.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of meshes does not match number of poses in attached collision object "
-                                        "message");
+      ROS_ERROR_NAMED("planning_scene", "Number of meshes does not match number of poses "
+                                        "in attached collision object message");
       return false;
     }
 
     if (object.object.planes.size() != object.object.plane_poses.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of planes does not match number of poses in attached collision object "
-                                        "message");
+      ROS_ERROR_NAMED("planning_scene", "Number of planes does not match number of poses "
+                                        "in attached collision object message");
       return false;
     }
 
@@ -1505,8 +1505,9 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
             ROS_INFO_NAMED("planning_scene", "Removing world object with the same name as newly attached object: '%s'",
                            object.object.id.c_str());
           else
-            ROS_WARN_NAMED("planning_scene", "You tried to append geometry to an attached object "
-                                             "that is actually a world object ('%s'). World geometry is ignored.",
+            ROS_WARN_NAMED("planning_scene",
+                           "You tried to append geometry to an attached object that is actually a world object ('%s'). "
+                           "World geometry is ignored.",
                            object.object.id.c_str());
         }
 
@@ -1641,8 +1642,8 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
 
       if (world_->hasObject(name))
         ROS_WARN_NAMED("planning_scene",
-                       "The collision world already has an object with the same name as the body about to be "
-                       "detached. NOT adding the detached body '%s' to the collision world.",
+                       "The collision world already has an object with the same name as the body about to be detached. "
+                       "NOT adding the detached body '%s' to the collision world.",
                        object.object.id.c_str());
       else
       {
@@ -1685,8 +1686,8 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
 
     if (object.primitives.size() != object.primitive_poses.size())
     {
-      ROS_ERROR_NAMED("planning_scene", "Number of primitive shapes does not match number of poses in collision object "
-                                        "message");
+      ROS_ERROR_NAMED("planning_scene", "Number of primitive shapes does not match number of poses "
+                                        "in collision object message");
       return false;
     }
 
@@ -1796,8 +1797,9 @@ bool planning_scene::PlanningScene::processCollisionObjectMsg(const moveit_msgs:
       }
       else
       {
-        ROS_ERROR_NAMED("planning_scene", "Number of supplied poses (%zu) for object '%s' "
-                                          "does not match number of shapes (%zu). Not moving.",
+        ROS_ERROR_NAMED("planning_scene",
+                        "Number of supplied poses (%zu) for object '%s' does not match number of shapes (%zu). "
+                        "Not moving.",
                         new_poses.size(), object.id.c_str(), obj->shapes_.size());
         return false;
       }

@@ -327,8 +327,7 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
     error_code.val = ik_srv.response.error_code.val;
     if (error_code.val != error_code.SUCCESS)
     {
-      ROS_DEBUG_NAMED("srv", "An IK that satisifes the constraints and is collision free could not "
-                             "be found.");
+      ROS_DEBUG_NAMED("srv", "An IK that satisifes the constraints and is collision free could not be found.");
       switch (error_code.val)
       {
         // Debug mode for failure:
@@ -382,8 +381,8 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
           ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: FAILURE");
           break;
         case moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION:
-          ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: NO IK "
-                                        "SOLUTION");
+          ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: "
+                                        "NO IK SOLUTION");
           break;
         default:
           ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: " << error_code.val);

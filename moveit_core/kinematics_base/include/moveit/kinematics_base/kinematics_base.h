@@ -314,8 +314,7 @@ public:
     }
 
     // Otherwise throw error because this function should have been implemented
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver "
-                                       "does not support searchPositionIK with multiple poses");
+    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support searchPositionIK with multiple poses");
     return false;
   }
 
@@ -392,8 +391,8 @@ public:
       return initialize(robot_description, group_name, base_frame, tip_frames[0], search_discretization);
     }
 
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver "
-                                       "does not support initialization with more than one tip frames");
+    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support initialization "
+                                       "with more than one tip frames");
     return false;
   }
 

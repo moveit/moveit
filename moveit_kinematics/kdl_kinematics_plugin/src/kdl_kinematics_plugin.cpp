@@ -549,8 +549,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
       return true;
     }
   }
-  ROS_DEBUG_NAMED("kdl", "An IK that satisifes the constraints and is collision free could not be "
-                         "found");
+  ROS_DEBUG_NAMED("kdl", "An IK that satisifes the constraints and is collision free could not be found");
   error_code.val = error_code.NO_IK_SOLUTION;
   ik_solver_vel.unlockRedundantJoints();
   return false;

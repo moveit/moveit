@@ -143,8 +143,7 @@ bool kinematics::KinematicsBase::getPositionIK(const std::vector<geometry_msgs::
 
   if (ik_poses.size() != 1)
   {
-    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver "
-                                       "does not support getPositionIK for multiple poses");
+    ROS_ERROR_NAMED("kinematics_base", "This kinematic solver does not support getPositionIK for multiple poses");
     result.kinematic_error = kinematics::KinematicErrors::MULTIPLE_TIPS_NOT_SUPPORTED;
     return false;
   }

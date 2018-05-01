@@ -1450,8 +1450,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED("robot_state", "Invalid number (%d) of sets of consistency limits "
-                                   "for a setFromIK request that is being solved by a single IK solver",
+    ROS_ERROR_NAMED("robot_state", "Invalid number (%d) of sets of consistency limits for a setFromIK request "
+                                   "that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
   }

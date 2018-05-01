@@ -89,8 +89,7 @@ void ompl_interface::ModelBasedStateSpace::setTagSnapToSegment(double snap)
   if (snap < 0.0 || snap > 1.0)
     ROS_WARN_NAMED("model_based_state_space",
                    "Snap to segment for tags is a ratio. It's value must be between 0.0 and 1.0. "
-                   "Value remains as previously "
-                   "set (%lf)",
+                   "Value remains as previously set (%lf)",
                    tag_snap_to_segment_);
   else
   {

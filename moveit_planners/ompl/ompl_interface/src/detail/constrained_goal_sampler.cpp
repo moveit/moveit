@@ -134,9 +134,9 @@ bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const 
           if (!warned_invalid_samples_ && invalid_sampled_constraints_ >= (attempts_so_far * 8) / 10)
           {
             warned_invalid_samples_ = true;
-            ROS_WARN_NAMED("constrained_goal_sampler", "More than 80%% of the sampled goal states fail to satisfy the "
-                                                       "constraints imposed on the goal "
-                                                       "sampler. Is the constrained sampler working correctly?");
+            ROS_WARN_NAMED("constrained_goal_sampler", "More than 80%% of the sampled goal states "
+                                                       "fail to satisfy the constraints imposed on the goal sampler. "
+                                                       "Is the constrained sampler working correctly?");
           }
         }
       }

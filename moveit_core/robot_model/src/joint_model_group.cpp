@@ -529,9 +529,8 @@ const LinkModel* JointModelGroup::getOnlyOneEndEffectorTip() const
   if (tips.size() == 1)
     return tips.front();
   else if (tips.size() > 1)
-    ROS_ERROR_NAMED("robot_model.jmg",
-                    "More than one end effector tip found for joint model group, so cannot return only "
-                    "one");
+    ROS_ERROR_NAMED("robot_model.jmg", "More than one end effector tip found for joint model group, "
+                                       "so cannot return only one");
   else
     ROS_ERROR_NAMED("robot_model.jmg", "No end effector tips found in joint model group");
   return NULL;

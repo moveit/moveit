@@ -99,8 +99,8 @@ bool constraint_samplers::JointConstraintSampler::configure(
       std::stringstream cs;
       jc[i].print(cs);
       ROS_ERROR_NAMED("constraint_samplers",
-                      "The constraints for joint '%s' are such that there are no possible values for the "
-                      "joint: min_bound: %g, max_bound: %g. Failing.\n",
+                      "The constraints for joint '%s' are such that "
+                      "there are no possible values for the joint: min_bound: %g, max_bound: %g. Failing.\n",
                       jm->getName().c_str(), ji.min_bound_, ji.max_bound_);
       clear();
       return false;
@@ -258,8 +258,8 @@ bool constraint_samplers::IKConstraintSampler::configure(const IKSamplingPose& s
         sampling_pose_.orientation_constraint_->getLinkModel()->getName())
     {
       ROS_ERROR_NAMED("constraint_samplers",
-                      "Position and orientation constraints need to be specified for the same link in "
-                      "order to use IK-based sampling");
+                      "Position and orientation constraints need to be specified for the same link "
+                      "in order to use IK-based sampling");
       return false;
     }
 
@@ -355,8 +355,8 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     if (!jmg_->getParentModel().hasLinkModel(ik_frame_))
     {
       ROS_ERROR_NAMED("constraint_samplers",
-                      "The IK solver expects requests in frame '%s' but this frame is not known to the "
-                      "sampler. Ignoring transformation (IK may fail)",
+                      "The IK solver expects requests in frame '%s' but this frame is not known to the sampler. "
+                      "Ignoring transformation (IK may fail)",
                       ik_frame_.c_str());
       transform_ik_ = false;
     }

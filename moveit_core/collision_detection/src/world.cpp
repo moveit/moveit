@@ -64,9 +64,8 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
 {
   if (shapes.size() != poses.size())
   {
-    ROS_ERROR_NAMED("collision_detection",
-                    "Number of shapes and number of poses do not match. Not adding this object to collision "
-                    "world.");
+    ROS_ERROR_NAMED("collision_detection", "Number of shapes and number of poses do not match. "
+                                           "Not adding this object to collision world.");
     return;
   }
 

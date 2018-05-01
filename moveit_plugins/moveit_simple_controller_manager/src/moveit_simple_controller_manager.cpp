@@ -69,8 +69,7 @@ public:
     {
       if (!controller_list[i].hasMember("name") || !controller_list[i].hasMember("joints"))
       {
-        ROS_ERROR_STREAM_NAMED("manager", "Name and joints must be specifed for each "
-                                          "controller");
+        ROS_ERROR_STREAM_NAMED("manager", "Name and joints must be specifed for each controller");
         continue;
       }
 
@@ -88,8 +87,7 @@ public:
         else if (controller_list[i].hasMember("action_ns"))
           action_ns = std::string(controller_list[i]["action_ns"]);
         else
-          ROS_WARN_NAMED("manager", "Please note that 'action_ns' no longer has a default "
-                                    "value.");
+          ROS_WARN_NAMED("manager", "Please note that 'action_ns' no longer has a default value.");
 
         if (controller_list[i]["joints"].getType() != XmlRpc::XmlRpcValue::TypeArray)
         {
@@ -166,8 +164,7 @@ public:
       }
       catch (...)
       {
-        ROS_ERROR_STREAM_NAMED("manager", "Caught unknown exception while parsing controller "
-                                          "information");
+        ROS_ERROR_STREAM_NAMED("manager", "Caught unknown exception while parsing controller information");
       }
     }
   }

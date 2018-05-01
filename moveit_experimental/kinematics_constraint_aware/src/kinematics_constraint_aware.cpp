@@ -303,8 +303,9 @@ bool KinematicsConstraintAware::convertServiceRequest(
 
   if (!request.ik_request.ik_link_names.empty() && request.ik_request.ik_link_names.size() != sub_groups_names_.size())
   {
-    ROS_ERROR_NAMED("kinematics_constraint_aware", "Number of ik_link_names in request: %d must match number of sub "
-                                                   "groups %d in this group or must be zero",
+    ROS_ERROR_NAMED("kinematics_constraint_aware",
+                    "Number of ik_link_names in request: "
+                    "%d must match number of sub groups %d in this group or must be zero",
                     request.ik_request.ik_link_names.size(), sub_groups_names_.size());
     kinematics_response.error_code_.val = kinematics_response.error_code_.INVALID_GROUP_NAME;
     return false;

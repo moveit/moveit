@@ -92,9 +92,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
   const robot_model::JointModelGroup* group = trajectory.getGroup();
   if (!group)
   {
-    ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
-                    "It looks like the planner did not set the group the plan was computed "
-                    "for");
+    ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization", "It looks like the planner did not set "
+                                                                               "the group the plan was computed for");
     return false;
   }
   const robot_model::RobotModel& rmodel = group->getParentModel();
@@ -229,8 +228,8 @@ bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotT
     if (t2[j].max_velocity <= 0.0 || t2[j].max_acceleration <= 0.0)
     {
       ROS_ERROR_NAMED("trajectory_processing.iterative_spline_parameterization",
-                      "Joint %d max velocity %f and max acceleration %f must be greater than zero or a "
-                      "solution won't be found.\n",
+                      "Joint %d max velocity %f and max acceleration %f must be greater than zero "
+                      "or a solution won't be found.\n",
                       j, t2[j].max_velocity, t2[j].max_acceleration);
       return false;
     }
