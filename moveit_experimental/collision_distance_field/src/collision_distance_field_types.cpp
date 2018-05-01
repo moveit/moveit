@@ -552,9 +552,8 @@ void collision_detection::getCollisionMarkers(
 {
   if (gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size())
   {
-    ROS_WARN_NAMED("collision_distance_field", "Size mismatch between gradients %u and decompositions %u",
-                   (unsigned int)gradients.size(),
-                   (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
+    ROS_WARN_NAMED("collision_distance_field", "Size mismatch between gradients %zu and decompositions %zu",
+                   gradients.size(), posed_decompositions.size() + posed_vector_decompositions.size());
     return;
   }
   for (unsigned int i = 0; i < gradients.size(); i++)

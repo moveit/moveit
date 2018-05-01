@@ -1450,7 +1450,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED("robot_state", "Invalid number (%lu) of sets of consistency limits for a setFromIK request "
+    ROS_ERROR_NAMED("robot_state", "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
                                    "that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
@@ -1543,7 +1543,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      ROS_ERROR_NAMED("robot_state", "Cannot compute IK for query %lu pose reference frame '%s'", i,
+      ROS_ERROR_NAMED("robot_state", "Cannot compute IK for query %zu pose reference frame '%s'", i,
                       pose_frame.c_str());
       // Debug available tip frames
       std::stringstream ss;
@@ -1679,14 +1679,14 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   // Error check
   if (poses_in.size() != sub_groups.size())
   {
-    ROS_ERROR_NAMED("robot_state", "Number of poses (%lu) must be the same as number of sub-groups (%lu)",
+    ROS_ERROR_NAMED("robot_state", "Number of poses (%zu) must be the same as number of sub-groups (%zu)",
                     poses_in.size(), sub_groups.size());
     return false;
   }
 
   if (tips_in.size() != sub_groups.size())
   {
-    ROS_ERROR_NAMED("robot_state", "Number of tip names (%lu) must be same as number of sub-groups (%lu)",
+    ROS_ERROR_NAMED("robot_state", "Number of tip names (%zu) must be same as number of sub-groups (%zu)",
                     tips_in.size(), sub_groups.size());
     return false;
   }

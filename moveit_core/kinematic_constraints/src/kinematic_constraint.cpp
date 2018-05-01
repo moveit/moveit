@@ -333,7 +333,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
       }
     }
     else
-      ROS_WARN_NAMED("kinematic_constraints", "Could not construct primitive shape %lu", i);
+      ROS_WARN_NAMED("kinematic_constraints", "Could not construct primitive shape %zu", i);
   }
 
   // load meshes
@@ -361,7 +361,7 @@ bool kinematic_constraints::PositionConstraint::configure(const moveit_msgs::Pos
     }
     else
     {
-      ROS_WARN_NAMED("kinematic_constraints", "Could not construct mesh shape %lu", i);
+      ROS_WARN_NAMED("kinematic_constraints", "Could not construct mesh shape %zu", i);
     }
   }
 

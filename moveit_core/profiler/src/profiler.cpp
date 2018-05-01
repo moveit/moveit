@@ -172,7 +172,7 @@ void moveit::tools::Profiler::console(void)
   std::stringstream ss;
   ss << std::endl;
   status(ss, true);
-  ROS_INFO_NAMED("profiler", "%s", ss.str().c_str());
+  ROS_INFO_STREAM_NAMED("profiler", ss.str());
 }
 
 /// @cond IGNORE

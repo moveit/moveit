@@ -58,23 +58,23 @@ namespace
 {
 void printPoint(const trajectory_msgs::JointTrajectoryPoint& point, std::size_t i)
 {
-  ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", " time   [%lu]= %f", i,
+  ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", " time   [%zu]= %f", i,
                   point.time_from_start.toSec());
   if (point.positions.size() >= 7)
   {
-    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", " pos_   [%lu]= %f %f %f %f %f %f %f", i,
+    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", " pos_   [%zu]= %f %f %f %f %f %f %f", i,
                     point.positions[0], point.positions[1], point.positions[2], point.positions[3], point.positions[4],
                     point.positions[5], point.positions[6]);
   }
   if (point.velocities.size() >= 7)
   {
-    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", "  vel_  [%lu]= %f %f %f %f %f %f %f", i,
+    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", "  vel_  [%zu]= %f %f %f %f %f %f %f", i,
                     point.velocities[0], point.velocities[1], point.velocities[2], point.velocities[3],
                     point.velocities[4], point.velocities[5], point.velocities[6]);
   }
   if (point.accelerations.size() >= 7)
   {
-    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", "   acc_ [%lu]= %f %f %f %f %f %f %f", i,
+    ROS_DEBUG_NAMED("trajectory_processing.iterative_time_parameterization", "   acc_ [%zu]= %f %f %f %f %f %f %f", i,
                     point.accelerations[0], point.accelerations[1], point.accelerations[2], point.accelerations[3],
                     point.accelerations[4], point.accelerations[5], point.accelerations[6]);
   }
