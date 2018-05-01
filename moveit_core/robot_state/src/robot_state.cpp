@@ -1406,7 +1406,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   // Error check
   if (poses_in.size() != tips_in.size())
   {
-    ROS_ERROR_NAMED("robot_state", "moveit.robot_state: Number of poses must be the same as number of tips");
+    ROS_ERROR_NAMED("robot_state", "Number of poses must be the same as number of tips");
     return false;
   }
 
@@ -1425,8 +1425,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     std::string error_msg;
     if (!solver->supportsGroup(jmg, &error_msg))
     {
-      ROS_ERROR_NAMED("robot_state",
-                      "moveit.robot_state: Kinematics solver %s does not support joint group %s.  Error: %s",
+      ROS_ERROR_NAMED("robot_state", "Kinematics solver %s does not support joint group %s.  Error: %s",
                       typeid(*solver).name(), jmg->getName().c_str(), error_msg.c_str());
       valid_solver = false;
     }
@@ -1442,8 +1441,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     }
     else
     {
-      ROS_ERROR_NAMED("robot_state", "moveit.robot_state: No kinematics solver instantiated for group '%s'",
-                      jmg->getName().c_str());
+      ROS_ERROR_NAMED("robot_state", "No kinematics solver instantiated for group '%s'", jmg->getName().c_str());
       return false;
     }
   }
@@ -1452,7 +1450,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED("robot_state", "moveit.robot_state: Invalid number (%d) of sets of consistency limits "
+    ROS_ERROR_NAMED("robot_state", "Invalid number (%d) of sets of consistency limits "
                                    "for a setFromIK request that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
@@ -1509,7 +1507,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
           const EigenSTL::vector_Affine3d& ab_trans = ab->getFixedTransforms();
           if (ab_trans.size() != 1)
           {
-            ROS_ERROR_NAMED("robot_state", "moveit.robot_state: Cannot use an attached body "
+            ROS_ERROR_NAMED("robot_state", "Cannot use an attached body "
                                            "with multiple geometries as a reference frame.");
             return false;
           }
@@ -1545,8 +1543,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      ROS_ERROR_NAMED("robot_state", "moveit.robot_state: Cannot compute IK for query %u pose reference frame '%s'", i,
-                      pose_frame.c_str());
+      ROS_ERROR_NAMED("robot_state", "Cannot compute IK for query %u pose reference frame '%s'", i, pose_frame.c_str());
       // Debug available tip frames
       std::stringstream ss;
       for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
@@ -1630,7 +1627,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     }
     else
     {
-      ROS_DEBUG_NAMED("robot_state", "moveit.robot_state: Rerunning IK solver with random joint positions");
+      ROS_DEBUG_NAMED("robot_state", "Rerunning IK solver with random joint positions");
 
       // sample a random seed
       random_numbers::RandomNumberGenerator& rng = getRandomNumberGenerator();

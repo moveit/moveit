@@ -61,31 +61,31 @@ public:
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory)
   {
-    ROS_DEBUG_STREAM("GripperController: Received new trajectory for " << name_);
+    ROS_DEBUG_STREAM_NAMED("GripperController", "Received new trajectory for " << name_);
 
     if (!controller_action_client_)
       return false;
 
     if (!trajectory.multi_dof_joint_trajectory.points.empty())
     {
-      ROS_ERROR("GripperController: Gripper cannot execute multi-dof trajectories.");
+      ROS_ERROR_NAMED("GripperController", "Gripper cannot execute multi-dof trajectories.");
       return false;
     }
 
     if (trajectory.joint_trajectory.points.empty())
     {
-      ROS_ERROR("GripperController: GripperController requires at least one joint trajectory point.");
+      ROS_ERROR_NAMED("GripperController", "GripperController requires at least one joint trajectory point.");
       return false;
     }
 
     if (trajectory.joint_trajectory.points.size() > 1)
     {
-      ROS_DEBUG_STREAM("GripperController: Trajectory: " << trajectory.joint_trajectory);
+      ROS_DEBUG_STREAM_NAMED("GripperController", "Trajectory: " << trajectory.joint_trajectory);
     }
 
     if (trajectory.joint_trajectory.joint_names.empty())
     {
-      ROS_ERROR("GripperController: No joint names specified");
+      ROS_ERROR_NAMED("GripperController", "No joint names specified");
       return false;
     }
 
@@ -102,7 +102,7 @@ public:
 
     if (gripper_joint_indexes.empty())
     {
-      ROS_WARN("GripperController: No command_joint was specified for the MoveIt controller gripper handle. \
+      ROS_WARN_NAMED("GripperController", "No command_joint was specified for the MoveIt controller gripper handle. \
                       Please see GripperControllerHandle::addCommandJoint() and \
                       GripperControllerHandle::setCommandJoint(). Assuming index 0.");
       gripper_joint_indexes.push_back(0);
@@ -115,7 +115,7 @@ public:
 
     // send last point
     int tpoint = trajectory.joint_trajectory.points.size() - 1;
-    ROS_DEBUG("GripperController: Sending command from trajectory point %d", tpoint);
+    ROS_DEBUG_NAMED("GripperController", "Sending command from trajectory point %d", tpoint);
 
     // fill in goal from last point
     for (std::size_t i = 0; i < gripper_joint_indexes.size(); ++i)
@@ -124,10 +124,10 @@ public:
 
       if (trajectory.joint_trajectory.points[tpoint].positions.size() <= idx)
       {
-        ROS_ERROR("GripperController: GripperController expects a joint trajectory with one \
+        ROS_ERROR_NAMED("GripperController", "GripperController expects a joint trajectory with one \
                          point that specifies at least the position of joint \
                          '%s', but insufficient positions provided",
-                  trajectory.joint_trajectory.joint_names[idx].c_str());
+                        trajectory.joint_trajectory.joint_names[idx].c_str());
         return false;
       }
       goal.command.position += trajectory.joint_trajectory.points[tpoint].positions[idx];
@@ -181,7 +181,7 @@ private:
 
   void controllerActiveCallback()
   {
-    ROS_DEBUG_STREAM("GripperController: " << name_ << " started execution");
+    ROS_DEBUG_STREAM_NAMED("GripperController", name_ << " started execution");
   }
 
   void controllerFeedbackCallback(const control_msgs::GripperCommandFeedbackConstPtr& feedback)

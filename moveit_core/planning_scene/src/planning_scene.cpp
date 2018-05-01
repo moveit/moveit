@@ -1212,7 +1212,7 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 {
   bool result = true;
 
-  ROS_DEBUG_NAMED("planning_scene", "moveit.planning_scene: Adding planning scene diff");
+  ROS_DEBUG_NAMED("planning_scene", "Adding planning scene diff");
   if (!scene_msg.name.empty())
     name_ = scene_msg.name;
 
@@ -1269,7 +1269,7 @@ bool planning_scene::PlanningScene::setPlanningSceneDiffMsg(const moveit_msgs::P
 
 bool planning_scene::PlanningScene::setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg)
 {
-  ROS_DEBUG_NAMED("planning_scene", "moveit.planning_scene: Setting new planning scene: '%s'", scene_msg.name.c_str());
+  ROS_DEBUG_NAMED("planning_scene", "Setting new planning scene: '%s'", scene_msg.name.c_str());
   name_ = scene_msg.name;
 
   if (!scene_msg.robot_model_name.empty() && scene_msg.robot_model_name != getRobotModel()->getName())
