@@ -88,7 +88,7 @@ class PlanningScene : private boost::noncopyable, public std::enable_shared_from
 {
 public:
   /** \brief construct using an existing RobotModel */
-  PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
+  PlanningScene(robot_model::RobotModelConstPtr robot_model,
                 collision_detection::WorldPtr world = collision_detection::WorldPtr(new collision_detection::World()));
 
   /** \brief construct using a urdf and srdf.
@@ -675,20 +675,19 @@ public:
   /** \brief Load the geometry of the planning scene from a stream at a certain location using offset*/
   void loadGeometryFromStream(std::istream& in, const Eigen::Affine3d& offset);
 
-  /** \brief Fill the message \e scene with the differences between this instance of PlanningScene with respect to the
-     parent.
-      If there is no parent, everything is considered to be a diff and the function behaves like getPlanningSceneMsg()
-     */
-  void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene) const;
+  /** \brief Fill the message (\e scene_msg) with the differences between this instance of PlanningScene with respect
+   * to the parent. If there is no parent, everything is considered to be a diff and the function behaves like
+   * getPlanningSceneMsg() */
+  void getPlanningSceneDiffMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
-  /** \brief Construct a message (\e scene) with all the necessary data so that the scene can be later reconstructed to
-     be
-      exactly the same using setPlanningSceneMsg() */
-  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene) const;
+  /** \brief Construct a message (\e scene_msg) with all the necessary data so that the scene can be later
+   * reconstructed to be exactly the same using setPlanningSceneMsg() */
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) const;
 
-  /** \brief Construct a message (\e scene) with the data requested in \e comp. If all options in \e comp are filled,
-      this will be a complete planning scene message */
-  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene, const moveit_msgs::PlanningSceneComponents& comp) const;
+  /** \brief Construct a message (\e scene_msg) with the data requested in \e comp. If all options in \e comp are
+   * filled, this will be a complete planning scene message */
+  void getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
+                           const moveit_msgs::PlanningSceneComponents& comp) const;
 
   /** \brief Construct a message (\e collision_object) with the collision object data from the planning_scene for the
    * requested object*/
@@ -714,19 +713,17 @@ public:
   void getObjectColorMsgs(std::vector<moveit_msgs::ObjectColor>& object_colors) const;
 
   /** \brief Apply changes to this planning scene as diffs, even if the message itself is not marked as being a diff
-     (is_diff
-      member). A parent is not required to exist. However, the existing data in the planning instance is not cleared.
-     Data from
-      the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
-  bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene);
+   * (is_diff member). A parent is not required to exist. However, the existing data in the planning instance is not
+   * cleared. Data from the message is only appended (and in cases such as e.g., the robot state, is overwritten). */
+  bool setPlanningSceneDiffMsg(const moveit_msgs::PlanningScene& scene_msg);
 
-  /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene message, even if
-   * the message itself is marked as being a diff (is_diff member) */
-  bool setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene);
+  /** \brief Set this instance of a planning scene to be the same as the one serialized in the \e scene_msg message,
+   * even if the message itself is marked as being a diff (is_diff member) */
+  bool setPlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   /** \brief Call setPlanningSceneMsg() or setPlanningSceneDiffMsg() depending on how the is_diff member of the message
    * is set */
-  bool usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene);
+  bool usePlanningSceneMsg(const moveit_msgs::PlanningScene& scene_msg);
 
   bool processCollisionObjectMsg(const moveit_msgs::CollisionObject& object);
   bool processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object);
@@ -951,7 +948,7 @@ public:
 
 private:
   /* Private constructor used by the diff() methods. */
-  PlanningScene(const PlanningSceneConstPtr& parent);
+  PlanningScene(PlanningSceneConstPtr parent);
 
   /* Initialize the scene.  This should only be called by the constructors.
    * Requires a valid robot_model_ */

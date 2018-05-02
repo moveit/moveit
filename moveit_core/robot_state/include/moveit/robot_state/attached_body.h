@@ -56,13 +56,13 @@ typedef boost::function<void(AttachedBody* body, bool attached)> AttachedBodyCal
 class AttachedBody
 {
 public:
-  /** \brief Construct an attached body for a specified \e link. The name of this body is \e id and it consists of \e
-     shapes that
-      attach to the link by the transforms \e attach_trans. The set of links that are allowed to be touched by this
-     object is specified by \e touch_links. */
-  AttachedBody(const LinkModel* link, const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-               const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-               const trajectory_msgs::JointTrajectory& attach_posture);
+  /** \brief Construct an attached body for a specified \e parent_link_model. The name of this body is \e id and it
+   * consists of \e shapes that attach to the link by the transforms \e attach_trans. The set of links that are
+   * allowed to be touched by this object is specified by \e touch_links. The posture of links for releasing the
+   * object is specified by \e detach_posture. */
+  AttachedBody(const LinkModel* parent_link_model, std::string id, std::vector<shapes::ShapeConstPtr> shapes,
+               const EigenSTL::vector_Affine3d& attach_trans, std::set<std::string> touch_links,
+               trajectory_msgs::JointTrajectory detach_posture);
 
   ~AttachedBody();
 
@@ -97,8 +97,7 @@ public:
   }
 
   /** \brief Return the posture that is necessary for the object to be released, (if any). This is useful for example
-     when storing
-      the configuration of a gripper holding an object */
+   * when storing the configuration of a gripper holding an object */
   const trajectory_msgs::JointTrajectory& getDetachPosture() const
   {
     return detach_posture_;

@@ -194,7 +194,7 @@ void PR2ArmIK::getSolverInfo(moveit_msgs::KinematicSolverInfo& info)
   info = solver_info_;
 }
 
-void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t1_in,
+void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& shoulder_pan_initial_guess,
                                     std::vector<std::vector<double> >& solution) const
 {
   // t1 = shoulder/turret pan is specified
@@ -208,7 +208,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   g(1, 3) = g_in(1, 3) - torso_shoulder_offset_y_;
   g(2, 3) = g_in(2, 3) - torso_shoulder_offset_z_;
 
-  double t1 = angles::normalize_angle(t1_in);
+  double t1 = angles::normalize_angle(shoulder_pan_initial_guess);
   if (!checkJointLimits(t1, 0))
     return;
 
@@ -261,9 +261,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   std::cout << "ComputeIK::theta3:" << numerator << "," << denominator << "," << std::endl << theta4[0] << std::endl;
 #endif
 
-  for (int jj = 0; jj < 2; jj++)
+  for (double t4_val : theta4)
   {
-    t4 = theta4[jj];
+    t4 = t4_val;
     cost4 = cos(t4);
     sint4 = sin(t4);
 
@@ -284,9 +284,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
     if (!solveCosineEqn(at, bt, ct, theta2[0], theta2[1]))
       continue;
 
-    for (int ii = 0; ii < 2; ii++)
+    for (double t2_val : theta2)
     {
-      t2 = theta2[ii];
+      t2 = t2_val;
       if (!checkJointLimits(t2, 1))
         continue;
 
@@ -306,9 +306,9 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
       if (!solveCosineEqn(at, bt, ct, theta3[0], theta3[1]))
         continue;
 
-      for (int kk = 0; kk < 2; kk++)
+      for (double t3_val : theta3)
       {
-        t3 = theta3[kk];
+        t3 = t3_val;
 
         if (!checkJointLimits(angles::normalize_angle(t3), 2))
           continue;
@@ -461,7 +461,7 @@ void PR2ArmIK::computeIKShoulderPan(const Eigen::Matrix4f& g_in, const double& t
   }
 }
 
-void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& t3,
+void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& shoulder_roll_initial_guess,
                                      std::vector<std::vector<double> >& solution) const
 {
   std::vector<double> solution_ik(NUM_JOINTS_ARM7DOF, 0.0);
@@ -475,6 +475,7 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
   //  if(!solution_ik_.empty())
   //    solution_ik_.resize(0);
   // t3 = shoulder/turret roll is specified
+  const double t3 = shoulder_roll_initial_guess;
   Eigen::Matrix4f g = g_in;
   Eigen::Matrix4f gf_local = home_inv_;
   Eigen::Matrix4f grhs_local = home_inv_;
@@ -529,9 +530,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
   theta4[1] = -theta4[0];
   theta4[3] = -theta4[2];
 
-  for (int jj = 0; jj < 4; jj++)
+  for (double t4_val : theta4)
   {
-    t4 = theta4[jj];
+    t4 = t4_val;
 
     if (!checkJointLimits(t4, 3))
     {
@@ -552,9 +553,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
     if (!solveCosineEqn(at, bt, ct, theta2[0], theta2[1]))
       continue;
 
-    for (int ii = 0; ii < 2; ii++)
+    for (double t2_val : theta2)
     {
-      t2 = theta2[ii];
+      t2 = t2_val;
 #ifdef DEBUG
       std::cout << "t2 " << t2 << std::endl;
 #endif
@@ -577,9 +578,9 @@ void PR2ArmIK::computeIKShoulderRoll(const Eigen::Matrix4f& g_in, const double& 
         continue;
       }
 
-      for (int kk = 0; kk < 2; kk++)
+      for (double t1_val : theta1)
       {
-        t1 = theta1[kk];
+        t1 = t1_val;
 #ifdef DEBUG
         std::cout << "t1 " << t1 << std::endl;
 #endif

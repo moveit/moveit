@@ -44,10 +44,10 @@ bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::C
 {
   // construct the constraints
   std::vector<kinematic_constraints::JointConstraint> jc;
-  for (std::size_t i = 0; i < constr.joint_constraints.size(); ++i)
+  for (const auto& joint_constraint : constr.joint_constraints)
   {
     kinematic_constraints::JointConstraint j(scene_->getRobotModel());
-    if (j.configure(constr.joint_constraints[i]))
+    if (j.configure(joint_constraint))
       jc.push_back(j);
   }
 
@@ -69,35 +69,36 @@ bool constraint_samplers::JointConstraintSampler::configure(
   // also keep bounds for joints as convenient
   std::map<std::string, JointInfo> bound_data;
   bool some_valid_constraint = false;
-  for (std::size_t i = 0; i < jc.size(); ++i)
+  for (const auto& constraint : jc)
   {
-    if (!jc[i].enabled())
+    if (!constraint.enabled())
       continue;
 
-    const robot_model::JointModel* jm = jc[i].getJointModel();
+    const robot_model::JointModel* jm = constraint.getJointModel();
     if (!jmg_->hasJointModel(jm->getName()))
       continue;
 
     some_valid_constraint = true;
 
-    const robot_model::VariableBounds& joint_bounds = jm->getVariableBounds(jc[i].getJointVariableName());
+    const robot_model::VariableBounds& joint_bounds = jm->getVariableBounds(constraint.getJointVariableName());
     JointInfo ji;
-    std::map<std::string, JointInfo>::iterator it = bound_data.find(jc[i].getJointVariableName());
+    auto it = bound_data.find(constraint.getJointVariableName());
     if (it != bound_data.end())
       ji = it->second;
     else
-      ji.index_ = jmg_->getVariableGroupIndex(jc[i].getJointVariableName());
-    ji.potentiallyAdjustMinMaxBounds(
-        std::max(joint_bounds.min_position_, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
-        std::min(joint_bounds.max_position_, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
+      ji.index_ = jmg_->getVariableGroupIndex(constraint.getJointVariableName());
+    ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.min_position_, constraint.getDesiredJointPosition() -
+                                                                              constraint.getJointToleranceBelow()),
+                                     std::min(joint_bounds.max_position_, constraint.getDesiredJointPosition() +
+                                                                              constraint.getJointToleranceAbove()));
 
     ROS_DEBUG_NAMED("constraint_samplers", "Bounds for %s JointConstraint are %g %g",
-                    jc[i].getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
+                    constraint.getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
 
     if (ji.min_bound_ > ji.max_bound_ + std::numeric_limits<double>::epsilon())
     {
       std::stringstream cs;
-      jc[i].print(cs);
+      constraint.print(cs);
       ROS_ERROR_NAMED("constraint_samplers",
                       "The constraints for joint '%s' are such that "
                       "there are no possible values for the joint: min_bound: %g, max_bound: %g. Failing.\n",
@@ -105,7 +106,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
       clear();
       return false;
     }
-    bound_data[jc[i].getJointVariableName()] = ji;
+    bound_data[constraint.getJointVariableName()] = ji;
   }
 
   if (!some_valid_constraint)
@@ -114,22 +115,22 @@ bool constraint_samplers::JointConstraintSampler::configure(
     return false;
   }
 
-  for (std::map<std::string, JointInfo>::iterator it = bound_data.begin(); it != bound_data.end(); ++it)
-    bounds_.push_back(it->second);
+  for (auto& constraint_joint_pair : bound_data)
+    bounds_.push_back(constraint_joint_pair.second);
 
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const robot_model::JointModel*>& joints = jmg_->getJointModels();
-  for (std::size_t i = 0; i < joints.size(); ++i)
-    if (bound_data.find(joints[i]->getName()) == bound_data.end() && joints[i]->getVariableCount() > 0 &&
-        joints[i]->getMimic() == NULL)
+  for (auto joint : joints)
+    if (bound_data.find(joint->getName()) == bound_data.end() && joint->getVariableCount() > 0 &&
+        joint->getMimic() == nullptr)
     {
       // check if all the vars of the joint are found in bound_data instead
-      const std::vector<std::string>& vars = joints[i]->getVariableNames();
+      const std::vector<std::string>& vars = joint->getVariableNames();
       if (vars.size() > 1)
       {
         bool all_found = true;
-        for (std::size_t j = 0; j < vars.size(); ++j)
-          if (bound_data.find(vars[j]) == bound_data.end())
+        for (const auto& var : vars)
+          if (bound_data.find(var) == bound_data.end())
           {
             all_found = false;
             break;
@@ -137,7 +138,7 @@ bool constraint_samplers::JointConstraintSampler::configure(
         if (all_found)
           continue;
       }
-      unbounded_.push_back(joints[i]);
+      unbounded_.push_back(joint);
       // Get the first variable name of this joint and find its index position in the planning group
       uindex_.push_back(jmg_->getVariableGroupIndex(vars[0]));
     }
@@ -167,8 +168,8 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState
   }
 
   // enforce the constraints for the constrained components (could be all of them)
-  for (std::size_t i = 0; i < bounds_.size(); ++i)
-    values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
+  for (auto& bound : bounds_)
+    values_[bound.index_] = random_number_generator_.uniformReal(bound.min_bound_, bound.max_bound_);
 
   state.setJointGroupPositions(jmg_, values_);
 
@@ -211,19 +212,19 @@ constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints:
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc)
-  : position_constraint_(pc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc)
+  : position_constraint_(std::move(pc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc)
-  : orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::OrientationConstraintPtr oc)
+  : orientation_constraint_(std::move(oc))
 {
 }
 
-constraint_samplers::IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
-                                                    const kinematic_constraints::OrientationConstraintPtr& oc)
-  : position_constraint_(pc), orientation_constraint_(oc)
+constraint_samplers::IKSamplingPose::IKSamplingPose(kinematic_constraints::PositionConstraintPtr pc,
+                                                    kinematic_constraints::OrientationConstraintPtr oc)
+  : position_constraint_(std::move(pc)), orientation_constraint_(std::move(oc))
 {
 }
 
@@ -293,19 +294,19 @@ bool constraint_samplers::IKConstraintSampler::configure(const moveit_msgs::Cons
           return configure(IKSamplingPose(pc, oc));
       }
 
-  for (std::size_t p = 0; p < constr.position_constraints.size(); ++p)
+  for (const auto& position_constraint : constr.position_constraints)
   {
     kinematic_constraints::PositionConstraintPtr pc(
         new kinematic_constraints::PositionConstraint(scene_->getRobotModel()));
-    if (pc->configure(constr.position_constraints[p], scene_->getTransforms()))
+    if (pc->configure(position_constraint, scene_->getTransforms()))
       return configure(IKSamplingPose(pc));
   }
 
-  for (std::size_t o = 0; o < constr.orientation_constraints.size(); ++o)
+  for (const auto& orientation_constraint : constr.orientation_constraints)
   {
     kinematic_constraints::OrientationConstraintPtr oc(
         new kinematic_constraints::OrientationConstraint(scene_->getRobotModel()));
-    if (oc->configure(constr.orientation_constraints[o], scene_->getTransforms()))
+    if (oc->configure(orientation_constraint, scene_->getTransforms()))
       return configure(IKSamplingPose(oc));
   }
   return false;
@@ -316,11 +317,11 @@ double constraint_samplers::IKConstraintSampler::getSamplingVolume() const
   double v = 1.0;
   if (sampling_pose_.position_constraint_)
   {
-    const std::vector<bodies::BodyPtr>& b = sampling_pose_.position_constraint_->getConstraintRegions();
+    const std::vector<bodies::BodyPtr>& bodies = sampling_pose_.position_constraint_->getConstraintRegions();
     double vol = 0;
-    for (std::size_t i = 0; i < b.size(); ++i)
-      vol += b[i]->computeVolume();
-    if (!b.empty())
+    for (const auto& body : bodies)
+      vol += body->computeVolume();
+    if (!bodies.empty())
       v *= vol;
   }
 
@@ -370,10 +371,10 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-      for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+      for (const auto& fixed_link : fixed_links)
+        if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
-          eef_to_ik_tip_transform_ = it->second;
+          eef_to_ik_tip_transform_ = fixed_link.second;
           need_eef_to_ik_tip_transform_ = true;
           wrong_link = false;
           break;
@@ -388,10 +389,10 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
-      for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+      for (const auto& fixed_link : fixed_links)
+        if (moveit::core::Transforms::sameFrame(fixed_link.first->getName(), kb_->getTipFrame()))
         {
-          eef_to_ik_tip_transform_ = it->second;
+          eef_to_ik_tip_transform_ = fixed_link.second;
           need_eef_to_ik_tip_transform_ = true;
           wrong_link = false;
           break;
@@ -512,7 +513,7 @@ namespace
 {
 void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_model::JointModelGroup* jmg,
                                  const robot_state::GroupStateValidityCallbackFn& constraint,
-                                 const geometry_msgs::Pose&, const std::vector<double>& ik_sol,
+                                 const geometry_msgs::Pose& /*unused*/, const std::vector<double>& ik_sol,
                                  moveit_msgs::MoveItErrorCodes& error_code)
 {
   const std::vector<unsigned int>& bij = jmg->getKinematicsSolverJointBijection();

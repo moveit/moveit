@@ -43,9 +43,9 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
     const moveit_msgs::Constraints& constr) const
 {
-  for (std::size_t i = 0; i < sampler_alloc_.size(); ++i)
-    if (sampler_alloc_[i]->canService(scene, group_name, constr))
-      return sampler_alloc_[i]->alloc(scene, group_name, constr);
+  for (const auto& sampler : sampler_alloc_)
+    if (sampler->canService(scene, group_name, constr))
+      return sampler->alloc(scene, group_name, constr);
 
   // if no default sampler was used, try a default one
   return selectDefaultSampler(scene, group_name, constr);
@@ -73,15 +73,15 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
                     jmg->getName().c_str());
 
     std::map<std::string, bool> joint_coverage;
-    for (std::size_t i = 0; i < jmg->getVariableNames().size(); ++i)
-      joint_coverage[jmg->getVariableNames()[i]] = false;
+    for (const auto& name : jmg->getVariableNames())
+      joint_coverage[name] = false;
 
     // construct the constraints
     std::vector<kinematic_constraints::JointConstraint> jc;
-    for (std::size_t i = 0; i < constr.joint_constraints.size(); ++i)
+    for (const auto& joint_constraint : constr.joint_constraints)
     {
       kinematic_constraints::JointConstraint j(scene->getRobotModel());
-      if (j.configure(constr.joint_constraints[i]))
+      if (j.configure(joint_constraint))
       {
         if (joint_coverage.find(j.getJointVariableName()) != joint_coverage.end())
         {
@@ -93,8 +93,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
 
     // check if every joint is covered (constrained) by just joint samplers
     bool full_coverage = true;
-    for (std::map<std::string, bool>::iterator it = joint_coverage.begin(); it != joint_coverage.end(); ++it)
-      if (!it->second)
+    for (auto& coverage_pair : joint_coverage)
+      if (!coverage_pair.second)
       {
         full_coverage = false;
         break;
@@ -186,59 +186,59 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     // keep track of links constrained with a full pose
     std::map<std::string, IKConstraintSamplerPtr> usedL_fullPose = usedL;
 
-    for (std::size_t p = 0; p < constr.position_constraints.size(); ++p)
+    for (const auto& position_constraint : constr.position_constraints)
     {
       // if we are constraining this link with a full pose, we do not attempt to constrain it with a position constraint
       // only
-      if (usedL_fullPose.find(constr.position_constraints[p].link_name) != usedL_fullPose.end())
+      if (usedL_fullPose.find(position_constraint.link_name) != usedL_fullPose.end())
         continue;
 
       kinematic_constraints::PositionConstraintPtr pc(
           new kinematic_constraints::PositionConstraint(scene->getRobotModel()));
-      if (pc->configure(constr.position_constraints[p], scene->getTransforms()))
+      if (pc->configure(position_constraint, scene->getTransforms()))
       {
         IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
         if (iks->configure(IKSamplingPose(pc)))
         {
           bool use = true;
-          if (usedL.find(constr.position_constraints[p].link_name) != usedL.end())
-            if (usedL[constr.position_constraints[p].link_name]->getSamplingVolume() < iks->getSamplingVolume())
+          if (usedL.find(position_constraint.link_name) != usedL.end())
+            if (usedL[position_constraint.link_name]->getSamplingVolume() < iks->getSamplingVolume())
               use = false;
           if (use)
           {
-            usedL[constr.position_constraints[p].link_name] = iks;
+            usedL[position_constraint.link_name] = iks;
             ROS_DEBUG_NAMED("constraint_samplers", "Allocated an IK-based sampler for group '%s' "
                                                    "satisfying position constraints on link '%s'",
-                            jmg->getName().c_str(), constr.position_constraints[p].link_name.c_str());
+                            jmg->getName().c_str(), position_constraint.link_name.c_str());
           }
         }
       }
     }
 
-    for (std::size_t o = 0; o < constr.orientation_constraints.size(); ++o)
+    for (const auto& orientation_constraint : constr.orientation_constraints)
     {
       // if we are constraining this link with a full pose, we do not attempt to constrain it with an orientation
       // constraint only
-      if (usedL_fullPose.find(constr.orientation_constraints[o].link_name) != usedL_fullPose.end())
+      if (usedL_fullPose.find(orientation_constraint.link_name) != usedL_fullPose.end())
         continue;
 
       kinematic_constraints::OrientationConstraintPtr oc(
           new kinematic_constraints::OrientationConstraint(scene->getRobotModel()));
-      if (oc->configure(constr.orientation_constraints[o], scene->getTransforms()))
+      if (oc->configure(orientation_constraint, scene->getTransforms()))
       {
         IKConstraintSamplerPtr iks(new IKConstraintSampler(scene, jmg->getName()));
         if (iks->configure(IKSamplingPose(oc)))
         {
           bool use = true;
-          if (usedL.find(constr.orientation_constraints[o].link_name) != usedL.end())
-            if (usedL[constr.orientation_constraints[o].link_name]->getSamplingVolume() < iks->getSamplingVolume())
+          if (usedL.find(orientation_constraint.link_name) != usedL.end())
+            if (usedL[orientation_constraint.link_name]->getSamplingVolume() < iks->getSamplingVolume())
               use = false;
           if (use)
           {
-            usedL[constr.orientation_constraints[o].link_name] = iks;
+            usedL[orientation_constraint.link_name] = iks;
             ROS_DEBUG_NAMED("constraint_samplers", "Allocated an IK-based sampler for group '%s' "
                                                    "satisfying orientation constraints on link '%s'",
-                            jmg->getName().c_str(), constr.orientation_constraints[o].link_name.c_str());
+                            jmg->getName().c_str(), orientation_constraint.link_name.c_str());
           }
         }
       }
@@ -294,8 +294,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
     bool some_sampler_valid = false;
 
     std::set<std::size_t> usedP, usedO;
-    for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator it = ik_subgroup_alloc.begin();
-         it != ik_subgroup_alloc.end(); ++it)
+    for (auto it = ik_subgroup_alloc.begin(); it != ik_subgroup_alloc.end(); ++it)
     {
       // construct a sub-set of constraints that operate on the sub-group for which we have an IK allocator
       moveit_msgs::Constraints sub_constr;

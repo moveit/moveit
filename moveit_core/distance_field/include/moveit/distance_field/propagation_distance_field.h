@@ -151,7 +151,7 @@ public:
    * propagate distance values.  Cells that are greater than this
    * distance will be assigned the maximum distance value.
    *
-   * @param [in] propagate_negative_distances Whether or not to
+   * @param [in] propagate_negative Whether or not to
    * propagate negative distances.  If false, no propagation occurs,
    * and all obstacle cells will be assigned zero distance.  See the
    * \ref PropagationDistanceField description for more information on
@@ -159,8 +159,7 @@ public:
    *
    */
   PropagationDistanceField(double size_x, double size_y, double size_z, double resolution, double origin_x,
-                           double origin_y, double origin_z, double max_distance,
-                           bool propagate_negative_distances = false);
+                           double origin_y, double origin_z, double max_distance, bool propagate_negative = false);
 
   /**
    * \brief Constructor based on an OcTree and bounding box
@@ -195,7 +194,7 @@ public:
    * propagate_negative_distances. Calls the function
    * \ref readFromStream.
    *
-   * @param [in] stream The stream from which to read the data
+   * @param [in] is The stream from which to read the data
    *
    * @param [in] max_distance The maximum distance to which to
    * propagate distance values.  Cells that are greater than this
@@ -209,7 +208,7 @@ public:
    *
    * @return
    */
-  PropagationDistanceField(std::istream& stream, double max_distance, bool propagate_negative_distances = false);
+  PropagationDistanceField(std::istream& is, double max_distance, bool propagate_negative_distances = false);
   /**
    * \brief Empty destructor
    *
@@ -340,11 +339,11 @@ public:
    * written to file, and the distances themselves will need to be
    * recreated on load.
    *
-   * @param [out] stream The stream to which to write the distance field contents.
+   * @param [out] os The stream to which to write the distance field contents.
    *
    * @return True
    */
-  virtual bool writeToStream(std::ostream& stream) const;
+  virtual bool writeToStream(std::ostream& os) const;
 
   /**
    * \brief Reads, parameterizes, and populates the distance field
@@ -357,12 +356,12 @@ public:
    * max_distance_ and propagate_negative_distances_.  All occupied
    * cells will be added to the distance field.
    *
-   * @param [in] stream The stream from which to read
+   * @param [in] is The stream from which to read
    *
    * @return True if reading, parameterizing, and populating the
    * distance field is successful; otherwise False.
    */
-  virtual bool readFromStream(std::istream& stream);
+  virtual bool readFromStream(std::istream& is);
 
   // passthrough docs to DistanceField
   virtual double getUninitializedDistance() const

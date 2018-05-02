@@ -55,9 +55,7 @@ distance_field::DistanceField::DistanceField(double size_x, double size_y, doubl
 {
 }
 
-distance_field::DistanceField::~DistanceField()
-{
-}
+distance_field::DistanceField::~DistanceField() = default;
 
 double distance_field::DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x,
                                                           double& gradient_y, double& gradient_z, bool& in_bounds) const
@@ -467,9 +465,9 @@ void distance_field::DistanceField::getProjectionPlanes(const std::string& frame
   int maxYCell = getYNumCells();
   int maxZCell = getZNumCells();
 
-  double* x_projection = new double[maxYCell * maxZCell];
-  double* y_projection = new double[maxZCell * maxXCell];
-  double* z_projection = new double[maxXCell * maxYCell];
+  auto x_projection = new double[maxYCell * maxZCell];
+  auto y_projection = new double[maxZCell * maxXCell];
+  auto z_projection = new double[maxXCell * maxYCell];
   double initial_val = sqrt(INT_MAX);
 
   // Initialize

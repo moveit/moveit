@@ -112,7 +112,7 @@ class RobotState
 public:
   /** \brief A state can be constructed from a specified robot model. No values are initialized.
       Call setToDefaultValues() if a state needs to provide valid information. */
-  RobotState(const RobotModelConstPtr& robot_model);
+  RobotState(RobotModelConstPtr robot_model);
   ~RobotState();
 
   /** \brief Copy constructor. */
@@ -472,8 +472,7 @@ public:
                          std::vector<std::string>& missing_variables);
 
   /** \brief Set the effort of a set of variables. If unknown variable names are specified, an exception is thrown. */
-  void setVariableEffort(const std::vector<std::string>& variable_names,
-                         const std::vector<double>& variable_acceleration);
+  void setVariableEffort(const std::vector<std::string>& variable_names, const std::vector<double>& variable_effort);
 
   /** \brief Set the effort of a variable. If an unknown variable name is specified, an exception is thrown. */
   void setVariableEffort(const std::string& variable, double value)
@@ -947,7 +946,7 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose, unsigned int attempts = 0,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -959,7 +958,7 @@ as the new values that correspond to the group */
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const geometry_msgs::Pose& pose, const std::string& tip,
+  bool setFromIK(const JointModelGroup* jmg, const geometry_msgs::Pose& pose, const std::string& tip,
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -971,18 +970,19 @@ as the new values that correspond to the group */
       @param tip The name of the link the pose is specified for
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, unsigned int attempts = 0,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose, unsigned int attempts = 0,
                  double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
-      @param pose The pose the last link in the chain needs to achieve
+      @param pose_in The pose the last link in the chain needs to achieve
+      @param tip_in The name of the frame for which IK is attempted.
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, const std::string& tip,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose_in, const std::string& tip_in,
                  unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
@@ -990,14 +990,14 @@ as the new values that correspond to the group */
   /** \brief If the group this state corresponds to is a chain and a solver is available, then the joint values can be
      set by computing inverse kinematics.
       The pose is assumed to be in the reference frame of the kinematic model. Returns true on success.
-      @param pose The pose the last link in the chain needs to achieve
-      @param tip The name of the frame for which IK is attempted.
-      @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param pose_in The pose the last link in the chain needs to achieve
+      @param tip_in The name of the frame for which IK is attempted.
+      @param consistency_limits_in This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const Eigen::Affine3d& pose, const std::string& tip,
-                 const std::vector<double>& consistency_limits, unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* jmg, const Eigen::Affine3d& pose_in, const std::string& tip_in,
+                 const std::vector<double>& consistency_limits_in, unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1006,13 +1006,13 @@ as the new values that correspond to the group */
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
-      @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
+      @param poses_in The poses the last link in each chain needs to achieve
+      @param tips_in The names of the frames for which IK is attempted.
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                 const std::vector<std::string>& tips, unsigned int attempts = 0, double timeout = 0.0,
+  bool setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                 const std::vector<std::string>& tips_in, unsigned int attempts = 0, double timeout = 0.0,
                  const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
@@ -1021,29 +1021,29 @@ as the new values that correspond to the group */
       is available for each sub-group, then the joint values can be set by computing inverse kinematics.
       The poses are assumed to be in the reference frame of the kinematic model. The poses are assumed
       to be in the same order as the order of the sub-groups in this group. Returns true on success.
-      @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
-      @param consistency_limits This specifies the desired distance between the solution and the seed state
+      @param poses_in The poses the last link in each chain needs to achieve
+      @param tips_in The names of the frames for which IK is attempted.
+      @param consistency_limits_sets This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIK(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                 const std::vector<std::string>& tips, const std::vector<std::vector<double> >& consistency_limits,
-                 unsigned int attempts = 0, double timeout = 0.0,
-                 const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
+  bool setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                 const std::vector<std::string>& tips_in,
+                 const std::vector<std::vector<double> >& consistency_limit_sets, unsigned int attempts = 0,
+                 double timeout = 0.0, const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
                  const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions());
 
   /**
       \brief setFromIK for multiple poses and tips (end effectors) when no solver exists for the jmg that can solver for
       non-chain kinematics. In this case, we divide the group into subgroups and do IK solving individually
       @param poses The poses the last link in each chain needs to achieve
-      @param tips The names of the frames for which IK is attempted.
+      @param tips_in The names of the frames for which IK is attempted.
       @param consistency_limits This specifies the desired distance between the solution and the seed state
       @param attempts The number of times IK is attempted
       @param timeout The timeout passed to the kinematics solver on each attempt
       @param constraint A state validity constraint to be required for IK solutions */
-  bool setFromIKSubgroups(const JointModelGroup* group, const EigenSTL::vector_Affine3d& poses,
-                          const std::vector<std::string>& tips,
+  bool setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::vector_Affine3d& poses_in,
+                          const std::vector<std::string>& tips_in,
                           const std::vector<std::vector<double> >& consistency_limits, unsigned int attempts = 0,
                           double timeout = 0.0,
                           const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn(),
@@ -1056,7 +1056,7 @@ as the new values that correspond to the group */
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const JointModelGroup* group, const Eigen::VectorXd& twist, const std::string& tip, double dt,
+  bool setFromDiffIK(const JointModelGroup* jmg, const Eigen::VectorXd& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
 
   /** \brief Set the joint values from a cartesian velocity applied during a time dt
@@ -1066,7 +1066,7 @@ as the new values that correspond to the group */
    * @param dt a time interval (seconds)
    * @param st a secondary task computation function
    */
-  bool setFromDiffIK(const JointModelGroup* group, const geometry_msgs::Twist& twist, const std::string& tip, double dt,
+  bool setFromDiffIK(const JointModelGroup* jmg, const geometry_msgs::Twist& twist, const std::string& tip, double dt,
                      const GroupStateValidityCallbackFn& constraint = GroupStateValidityCallbackFn());
 
   /** \brief Compute the sequence of joint values that correspond to a straight Cartesian path for a particular group.
@@ -1196,7 +1196,7 @@ as the new values that correspond to the group */
      @return The fraction of the trajectory that passed.
   */
   static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
-                                           double revolute_jump_threshold, double prismatic_jump_threshold);
+                                           double revolute_threshold, double prismatic_threshold);
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.
    * \param group The group to compute the Jacobian for
@@ -1506,7 +1506,7 @@ as the new values that correspond to the group */
   }
 
   bool satisfiesBounds(double margin = 0.0) const;
-  bool satisfiesBounds(const JointModelGroup* joint_group, double margin = 0.0) const;
+  bool satisfiesBounds(const JointModelGroup* group, double margin = 0.0) const;
   bool satisfiesBounds(const JointModel* joint, double margin = 0.0) const
   {
     return satisfiesPositionBounds(joint, margin) && (!has_velocity_ || satisfiesVelocityBounds(joint, margin));
@@ -1573,7 +1573,7 @@ as the new values that correspond to the group */
    * @param shapes The shapes that make up the attached body
    * @param attach_trans The desired transform between this link and the attached body
    * @param touch_links The set of links that the attached body is allowed to touch
-   * @param link_name The link to attach to
+   * @param link The link to attach to
    *
    * This only adds the given body to this RobotState
    * instance.  It does not change anything about other
@@ -1584,7 +1584,7 @@ as the new values that correspond to the group */
    * detected against it. */
   void attachBody(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
                   const EigenSTL::vector_Affine3d& attach_trans, const std::set<std::string>& touch_links,
-                  const std::string& link_name,
+                  const std::string& link,
                   const trajectory_msgs::JointTrajectory& detach_posture = trajectory_msgs::JointTrajectory());
 
   /** @brief Add an attached body to a link
@@ -1614,7 +1614,7 @@ as the new values that correspond to the group */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies) const;
 
   /** \brief Get all bodies attached to a particular group the model corresponding to this state */
-  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* lm) const;
+  void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const JointModelGroup* group) const;
 
   /** \brief Get all bodies attached to a particular link in the model corresponding to this state */
   void getAttachedBodies(std::vector<const AttachedBody*>& attached_bodies, const LinkModel* lm) const;
@@ -1632,8 +1632,8 @@ as the new values that correspond to the group */
   /** \brief Clear all attached bodies. This calls delete on the AttachedBody instances, if needed. */
   void clearAttachedBodies();
 
-  /** \brief Get the attached body named \e name. Return NULL if not found. */
-  const AttachedBody* getAttachedBody(const std::string& name) const;
+  /** \brief Get the attached body named \e id. Return NULL if not found. */
+  const AttachedBody* getAttachedBody(const std::string& id) const;
 
   /** \brief Check if an attached body named \e id exists in this state */
   bool hasAttachedBody(const std::string& id) const;

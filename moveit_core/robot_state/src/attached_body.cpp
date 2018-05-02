@@ -37,57 +37,55 @@
 #include <moveit/robot_state/attached_body.h>
 #include <geometric_shapes/shapes.h>
 
-moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, const std::string& id,
-                                         const std::vector<shapes::ShapeConstPtr>& shapes,
+moveit::core::AttachedBody::AttachedBody(const LinkModel* parent_link_model, std::string id,
+                                         std::vector<shapes::ShapeConstPtr> shapes,
                                          const EigenSTL::vector_Affine3d& attach_trans,
-                                         const std::set<std::string>& touch_links,
-                                         const trajectory_msgs::JointTrajectory& detach_posture)
+                                         std::set<std::string> touch_links,
+                                         trajectory_msgs::JointTrajectory detach_posture)
   : parent_link_model_(parent_link_model)
-  , id_(id)
-  , shapes_(shapes)
+  , id_(std::move(id))
+  , shapes_(std::move(shapes))
   , attach_trans_(attach_trans)
-  , touch_links_(touch_links)
-  , detach_posture_(detach_posture)
+  , touch_links_(std::move(touch_links))
+  , detach_posture_(std::move(detach_posture))
 {
   global_collision_body_transforms_.resize(attach_trans.size());
-  for (std::size_t i = 0; i < global_collision_body_transforms_.size(); ++i)
-    global_collision_body_transforms_[i].setIdentity();
+  for (auto& global_collision_body_transform : global_collision_body_transforms_)
+    global_collision_body_transform.setIdentity();
 }
 
-moveit::core::AttachedBody::~AttachedBody()
-{
-}
+moveit::core::AttachedBody::~AttachedBody() = default;
 
 void moveit::core::AttachedBody::setScale(double scale)
 {
-  for (std::size_t i = 0; i < shapes_.size(); ++i)
+  for (auto& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
-    if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->scale(scale);
+    if (shape.unique())
+      const_cast<shapes::Shape*>(shape.get())->scale(scale);
     else
     {
       // if the shape is owned elsewhere, we make a copy:
-      shapes::Shape* copy = shapes_[i]->clone();
+      shapes::Shape* copy = shape->clone();
       copy->scale(scale);
-      shapes_[i].reset(copy);
+      shape.reset(copy);
     }
   }
 }
 
 void moveit::core::AttachedBody::setPadding(double padding)
 {
-  for (std::size_t i = 0; i < shapes_.size(); ++i)
+  for (auto& shape : shapes_)
   {
     // if this shape is only owned here (and because this is a non-const function), we can safely const-cast:
-    if (shapes_[i].unique())
-      const_cast<shapes::Shape*>(shapes_[i].get())->padd(padding);
+    if (shape.unique())
+      const_cast<shapes::Shape*>(shape.get())->padd(padding);
     else
     {
       // if the shape is owned elsewhere, we make a copy:
-      shapes::Shape* copy = shapes_[i]->clone();
+      shapes::Shape* copy = shape->clone();
       copy->padd(padding);
-      shapes_[i].reset(copy);
+      shape.reset(copy);
     }
   }
 }

@@ -49,14 +49,13 @@ class FloatingJointModel : public JointModel
 public:
   FloatingJointModel(const std::string& name);
 
-  virtual void getVariableDefaultPositions(double* values, const Bounds& other_bounds) const;
+  virtual void getVariableDefaultPositions(double* values, const Bounds& bounds) const;
   virtual void getVariableRandomPositions(random_numbers::RandomNumberGenerator& rng, double* values,
-                                          const Bounds& other_bounds) const;
+                                          const Bounds& bounds) const;
   virtual void getVariableRandomPositionsNearBy(random_numbers::RandomNumberGenerator& rng, double* values,
-                                                const Bounds& other_bounds, const double* near,
-                                                const double distance) const;
-  virtual bool enforcePositionBounds(double* values, const Bounds& other_bounds) const;
-  virtual bool satisfiesPositionBounds(const double* values, const Bounds& other_bounds, double margin) const;
+                                                const Bounds& bounds, const double* near, const double distance) const;
+  virtual bool enforcePositionBounds(double* values, const Bounds& bounds) const;
+  virtual bool satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const;
 
   virtual void interpolate(const double* from, const double* to, const double t, double* state) const;
   virtual unsigned int getStateSpaceDimension() const;

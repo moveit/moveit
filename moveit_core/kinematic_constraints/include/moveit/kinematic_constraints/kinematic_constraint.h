@@ -93,7 +93,7 @@ public:
    *
    * @param [in] model The kinematic model used for constraint evaluation
    */
-  KinematicConstraint(const robot_model::RobotModelConstPtr& model);
+  KinematicConstraint(robot_model::RobotModelConstPtr model);
   virtual ~KinematicConstraint();
 
   /** \brief Clear the stored constraint */

@@ -78,9 +78,7 @@ IterativeSplineParameterization::IterativeSplineParameterization(bool add_points
 {
 }
 
-IterativeSplineParameterization::~IterativeSplineParameterization()
-{
-}
+IterativeSplineParameterization::~IterativeSplineParameterization() = default;
 
 bool IterativeSplineParameterization::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,

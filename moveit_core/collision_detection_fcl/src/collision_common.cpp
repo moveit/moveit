@@ -189,7 +189,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         fcl2contact(col_result.getContact(i), c);
         // if the contact is  not allowed, we have a collision
-        if (dcf(c) == false)
+        if (!dcf(c))
         {
           // store the contact, if it is needed
           if (want_contact_count > 0)
@@ -485,7 +485,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
                                                       std::make_pair(cd1->getID(), cd2->getID()) :
                                                       std::make_pair(cd2->getID(), cd1->getID());
 
-  DistanceMap::iterator it = cdata->res->distances.find(pc);
+  auto it = cdata->res->distances.find(pc);
 
   if (it != cdata->res->distances.end())
   {
