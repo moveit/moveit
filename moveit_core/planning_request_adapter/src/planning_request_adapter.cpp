@@ -92,8 +92,8 @@ bool callAdapter1(const PlanningRequestAdapter* adapter, const planning_interfac
   }
   catch (std::exception& ex)
   {
-    CONSOLE_BRIDGE_logError("Exception caught executing *final* adapter '%s': %s", adapter->getDescription().c_str(),
-                            ex.what());
+    ROS_ERROR_NAMED("planning_request_adapter", "Exception caught executing *final* adapter '%s': %s",
+                    adapter->getDescription().c_str(), ex.what());
     added_path_index.clear();
     return callPlannerInterfaceSolve(planner.get(), planning_scene, req, res);
   }
@@ -110,8 +110,8 @@ bool callAdapter2(const PlanningRequestAdapter* adapter, const PlanningRequestAd
   }
   catch (std::exception& ex)
   {
-    CONSOLE_BRIDGE_logError("Exception caught executing *next* adapter '%s': %s", adapter->getDescription().c_str(),
-                            ex.what());
+    ROS_ERROR_NAMED("planning_request_adapter", "Exception caught executing *next* adapter '%s': %s",
+                    adapter->getDescription().c_str(), ex.what());
     added_path_index.clear();
     return planner(planning_scene, req, res);
   }

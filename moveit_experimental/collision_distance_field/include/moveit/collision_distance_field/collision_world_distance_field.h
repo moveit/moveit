@@ -143,12 +143,12 @@ public:
   virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
                              const robot_state::RobotState& state) const
   {
-    logError("Not implemented");
+    ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
   }
 
   virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
   {
-    logError("Not implemented");
+    ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
   }
 
   virtual void setWorld(const WorldPtr& world);

@@ -551,7 +551,7 @@ public:
   {
     if (has_acceleration_)
     {
-      CONSOLE_BRIDGE_logError("Unable to set joint efforts because array is being used for accelerations");
+      ROS_ERROR_NAMED("robot_state", "Unable to set joint efforts because array is being used for accelerations");
       return;
     }
     has_effort_ = true;

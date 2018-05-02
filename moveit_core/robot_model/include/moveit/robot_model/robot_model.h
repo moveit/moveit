@@ -40,7 +40,6 @@
 
 #include <moveit/macros/class_forward.h>
 #include <moveit/exceptions/exceptions.h>
-#include <console_bridge/console.h>
 #include <urdf/model.h>
 #include <srdfdom/model.h>
 

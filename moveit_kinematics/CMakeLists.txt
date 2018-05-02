@@ -21,9 +21,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
 )
 
-find_package(trac_ik_kinematics_plugin)
-find_package(ur_kinematics QUIET)
-
 find_package(PkgConfig REQUIRED)
 pkg_search_module(EIGEN3 REQUIRED eigen3)
 

@@ -80,9 +80,10 @@ struct OrderSamplers
         }
     if (b_depends_on_a && a_depends_on_b)
     {
-      CONSOLE_BRIDGE_logWarn("Circular frame dependency! Sampling will likely produce invalid results "
-                             "(sampling for groups '%s' and '%s')",
-                             a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
+      ROS_WARN_NAMED("constraint_samplers",
+                     "Circular frame dependency! "
+                     "Sampling will likely produce invalid results (sampling for groups '%s' and '%s')",
+                     a->getJointModelGroup()->getName().c_str(), b->getJointModelGroup()->getName().c_str());
       return true;
     }
     if (b_depends_on_a && !a_depends_on_b)
@@ -118,8 +119,8 @@ constraint_samplers::UnionConstraintSampler::UnionConstraintSampler(const planni
     for (const auto& dependency : fd)
       frame_depends_.push_back(dependency);
 
-    CONSOLE_BRIDGE_logDebug("Union sampler for group '%s' includes sampler for group '%s'", jmg_->getName().c_str(),
-                            sampler->getJointModelGroup()->getName().c_str());
+    ROS_DEBUG_NAMED("constraint_samplers", "Union sampler for group '%s' includes sampler for group '%s'",
+                    jmg_->getName().c_str(), sampler->getJointModelGroup()->getName().c_str());
   }
 }
 

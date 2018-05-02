@@ -37,19 +37,20 @@
 #include <moveit/transforms/transforms.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/algorithm/string/trim.hpp>
-#include <console_bridge/console.h>
+#include <ros/console.h>
 
 moveit::core::Transforms::Transforms(std::string target_frame) : target_frame_(std::move(target_frame))
 {
   boost::trim(target_frame_);
   if (target_frame_.empty())
-    CONSOLE_BRIDGE_logError("The target frame for MoveIt Transforms cannot be empty.");
+    ROS_ERROR_NAMED("transforms", "The target frame for MoveIt Transforms cannot be empty.");
   else
   {
     if (target_frame_[0] != '/')
     {
-      CONSOLE_BRIDGE_logWarn("Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
-                             target_frame_.c_str(), target_frame_.c_str());
+      ROS_WARN_NAMED("transforms",
+                     "Frame '%s' specified as target frame for MoveIt Transforms. Assuming '/%s' instead.",
+                     target_frame_.c_str(), target_frame_.c_str());
       target_frame_ = '/' + target_frame_;
     }
     transforms_[target_frame_] = Eigen::Affine3d::Identity();
@@ -101,8 +102,8 @@ const Eigen::Affine3d& moveit::core::Transforms::getTransform(const std::string&
       return it->second;
   }
 
-  CONSOLE_BRIDGE_logError("Unable to transform from frame '%s' to frame '%s'. Returning identity.", from_frame.c_str(),
-                          target_frame_.c_str());
+  ROS_ERROR_NAMED("transforms", "Unable to transform from frame '%s' to frame '%s'. Returning identity.",
+                  from_frame.c_str(), target_frame_.c_str());
 
   // return identity
   static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
@@ -121,13 +122,13 @@ bool moveit::core::Transforms::canTransform(const std::string& from_frame) const
 void moveit::core::Transforms::setTransform(const Eigen::Affine3d& t, const std::string& from_frame)
 {
   if (from_frame.empty())
-    CONSOLE_BRIDGE_logError("Cannot record transform with empty name");
+    ROS_ERROR_NAMED("transforms", "Cannot record transform with empty name");
   else
   {
     if (from_frame[0] != '/')
     {
-      CONSOLE_BRIDGE_logWarn("Transform specified for frame '%s'. Assuming '/%s' instead", from_frame.c_str(),
-                             from_frame.c_str());
+      ROS_WARN_NAMED("transforms", "Transform specified for frame '%s'. Assuming '/%s' instead", from_frame.c_str(),
+                     from_frame.c_str());
       transforms_['/' + from_frame] = t;
     }
     else
@@ -145,8 +146,8 @@ void moveit::core::Transforms::setTransform(const geometry_msgs::TransformStampe
   }
   else
   {
-    CONSOLE_BRIDGE_logError("Given transform is to frame '%s', but frame '%s' was expected.",
-                            transform.child_frame_id.c_str(), target_frame_.c_str());
+    ROS_ERROR_NAMED("transforms", "Given transform is to frame '%s', but frame '%s' was expected.",
+                    transform.child_frame_id.c_str(), target_frame_.c_str());
   }
 }
 

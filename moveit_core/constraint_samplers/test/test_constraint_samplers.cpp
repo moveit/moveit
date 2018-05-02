@@ -1128,9 +1128,9 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
     if (s->sample(ks, ks_const, 1))
       succ++;
   }
-  CONSOLE_BRIDGE_logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both "
-                           "arms: %lf",
-                           (double)succ / (double)NT);
+  ROS_INFO_NAMED("pr2_arm_kinematics_plugin",
+                 "Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf",
+                 (double)succ / (double)NT);
 }
 
 int main(int argc, char** argv)

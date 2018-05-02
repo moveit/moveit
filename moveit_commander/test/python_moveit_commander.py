@@ -40,7 +40,7 @@ import rospy
 import rostest
 import os
 
-from moveit_commander import RobotCommander
+from moveit_commander import RobotCommander, PlanningSceneInterface
 
 
 class PythonMoveitCommanderTest(unittest.TestCase):
@@ -91,6 +91,8 @@ class PythonMoveitCommanderTest(unittest.TestCase):
         plan3 = self.plan(current)
         self.assertTrue(self.group.execute(plan3))
 
+    def test_planning_scene_interface(self):
+        planning_scene = PlanningSceneInterface()
 
 if __name__ == '__main__':
     PKGNAME = 'moveit_ros_planning_interface'

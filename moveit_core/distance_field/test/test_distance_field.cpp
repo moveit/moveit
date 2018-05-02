@@ -39,10 +39,10 @@
 #include <moveit/distance_field/voxel_grid.h>
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/distance_field/find_internal_points.h>
-#include <console_bridge/console.h>
 #include <geometric_shapes/body_operations.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <octomap/octomap.h>
+#include <ros/console.h>
 
 #include <memory>
 
@@ -91,7 +91,7 @@ void print(PropagationDistanceField& pdf, int numX, int numY, int numZ)
       {
         if (pdf.getCell(x, y, z).distance_square_ == 0)
         {
-          // CONSOLE_BRIDGE_logInform("Obstacle cell %d %d %d", x, y, z);
+          // ROS_INFO_NAMED("distance_field", "Obstacle cell %d %d %d", x, y, z);
         }
       }
     }
@@ -353,7 +353,7 @@ TEST(TestPropagationDistanceField, TestAddRemovePoints)
   EigenSTL::vector_Vector3d points;
   points.push_back(point1);
   points.push_back(point2);
-  CONSOLE_BRIDGE_logInform("Adding %u points", points.size());
+  ROS_INFO_NAMED("distance_field", "Adding %u points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
 
@@ -469,7 +469,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   }
 
   df.reset();
-  CONSOLE_BRIDGE_logInform("Adding %u points", points.size());
+  ROS_INFO_NAMED("distance_field", "Adding %u points", points.size());
   df.addPointsToField(points);
   // print(df, numX, numY, numZ);
   // printNeg(df, numX, numY, numZ);
@@ -767,7 +767,7 @@ TEST(TestSignedPropagationDistanceField, TestPerformance)
 
         if (!valid)
         {
-          CONSOLE_BRIDGE_logWarn("Something wrong");
+          ROS_WARN_NAMED("distance_field", "Something wrong");
           continue;
         }
         bad_vec.push_back(loc);

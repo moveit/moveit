@@ -114,7 +114,8 @@ public:
             {
               if (controller_list[i]["joints"].size() != 2)
               {
-                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two joints");
+                ROS_ERROR_STREAM_NAMED("manager", "Parallel Gripper requires exactly two "
+                                                  "joints");
                 continue;
               }
               static_cast<GripperControllerHandle*>(new_handle.get())

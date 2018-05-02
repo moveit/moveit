@@ -39,7 +39,6 @@
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/robot_model/revolute_joint_model.h>
 #include <moveit/exceptions/exceptions.h>
-#include <console_bridge/console.h>
 #include <boost/lexical_cast.hpp>
 #include <algorithm>
 #include "order_robot_model_items.inc"
@@ -292,7 +291,7 @@ const LinkModel* JointModelGroup::getLinkModel(const std::string& name) const
   auto it = link_model_map_.find(name);
   if (it == link_model_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED("robot_model.jmg", "Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;
@@ -303,7 +302,7 @@ const JointModel* JointModelGroup::getJointModel(const std::string& name) const
   auto it = joint_model_map_.find(name);
   if (it == joint_model_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
+    ROS_ERROR_NAMED("robot_model.jmg", "Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
     return nullptr;
   }
   return it->second;
@@ -344,7 +343,8 @@ void JointModelGroup::getVariableRandomPositionsNearBy(
     if (iter != distance_map.end())
       distance = iter->second;
     else
-      CONSOLE_BRIDGE_logWarn("Did not pass in distance for '%s'", active_joint_model_vector_[i]->getName().c_str());
+      ROS_WARN_NAMED("robot_model.jmg", "Did not pass in distance for '%s'",
+                     active_joint_model_vector_[i]->getName().c_str());
     active_joint_model_vector_[i]->getVariableRandomPositionsNearBy(
         rng, values + active_joint_model_start_index_[i], *active_joint_bounds[i],
         near + active_joint_model_start_index_[i], distance);
@@ -500,7 +500,7 @@ bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) co
     const JointModelGroup* eef = parent_model_->getEndEffector(ee_name);
     if (!eef)
     {
-      CONSOLE_BRIDGE_logError("Unable to find joint model group for eef");
+      ROS_ERROR_NAMED("robot_model.jmg", "Unable to find joint model group for eef");
       return false;
     }
     const std::string& eef_parent = eef->getEndEffectorParentGroup().second;
@@ -508,7 +508,7 @@ bool JointModelGroup::getEndEffectorTips(std::vector<const LinkModel*>& tips) co
     const LinkModel* eef_link = parent_model_->getLinkModel(eef_parent);
     if (!eef_link)
     {
-      CONSOLE_BRIDGE_logError("Unable to find end effector link for eef");
+      ROS_ERROR_NAMED("robot_model.jmg", "Unable to find end effector link for eef");
       return false;
     }
 
@@ -524,9 +524,10 @@ const LinkModel* JointModelGroup::getOnlyOneEndEffectorTip() const
   if (tips.size() == 1)
     return tips.front();
   else if (tips.size() > 1)
-    CONSOLE_BRIDGE_logError("More than one end effector tip found for joint model group, so cannot return only one");
+    ROS_ERROR_NAMED("robot_model.jmg", "More than one end effector tip found for joint model group, "
+                                       "so cannot return only one");
   else
-    CONSOLE_BRIDGE_logError("No end effector tips found in joint model group");
+    ROS_ERROR_NAMED("robot_model.jmg", "No end effector tips found in joint model group");
   return nullptr;
 }
 
@@ -535,7 +536,7 @@ int JointModelGroup::getVariableGroupIndex(const std::string& variable) const
   auto it = joint_variables_index_map_.find(variable);
   if (it == joint_variables_index_map_.end())
   {
-    CONSOLE_BRIDGE_logError("Variable '%s' is not part of group '%s'", variable.c_str(), name_.c_str());
+    ROS_ERROR_NAMED("robot_model.jmg", "Variable '%s' is not part of group '%s'", variable.c_str(), name_.c_str());
     return -1;
   }
   return it->second;
@@ -569,9 +570,9 @@ bool JointModelGroup::computeIKIndexBijection(const std::vector<std::string>& ik
       // skip reported fixed joints
       if (hasJointModel(ik_jname) && getJointModel(ik_jname)->getType() == JointModel::FIXED)
         continue;
-      CONSOLE_BRIDGE_logError("IK solver computes joint values for joint '%s' but group '%s' does not contain such a "
-                              "joint.",
-                              ik_jname.c_str(), getName().c_str());
+      ROS_ERROR_NAMED("robot_model.jmg", "IK solver computes joint values for joint '%s' "
+                                         "but group '%s' does not contain such a joint.",
+                      ik_jname.c_str(), getName().c_str());
       return false;
     }
     const JointModel* jm = getJointModel(ik_jname);
@@ -625,7 +626,7 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
 
   if (tip_frames.empty())
   {
-    CONSOLE_BRIDGE_logDebug("Group %s has no tip frame(s)", name_.c_str());
+    ROS_DEBUG_NAMED("robot_model.jmg", "Group %s has no tip frame(s)", name_.c_str());
     return false;
   }
 
@@ -635,8 +636,8 @@ bool JointModelGroup::canSetStateFromIK(const std::string& tip) const
     // remove frame reference, if specified
     const std::string& tip_local = tip[0] == '/' ? tip.substr(1) : tip;
     const std::string& tip_frame_local = tip_frame[0] == '/' ? tip_frame.substr(1) : tip_frame;
-    CONSOLE_BRIDGE_logDebug("joint_model_group.canSetStateFromIK: comparing input tip: %s to this groups tip: %s ",
-                            tip_local.c_str(), tip_frame_local.c_str());
+    ROS_DEBUG_NAMED("robot_model.jmg", "comparing input tip: %s to this groups tip: %s ", tip_local.c_str(),
+                    tip_frame_local.c_str());
 
     // Check if the IK solver's tip is the same as the frame of inquiry
     if (tip_local != tip_frame_local)
