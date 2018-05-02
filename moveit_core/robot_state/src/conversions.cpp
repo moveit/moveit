@@ -534,7 +534,7 @@ void moveit::core::streamToRobotState(RobotState& state, const std::string& line
   {
     // Get a variable
     if (!std::getline(lineStream, cell, separator[0]))
-      ROS_ERROR_NAMED("robot_state", "Missing variable %s", state.getVariableNames()[i]);
+      ROS_ERROR_STREAM_NAMED("robot_state", "Missing variable " << state.getVariableNames()[i]);
 
     state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());
   }
