@@ -1574,7 +1574,7 @@ bool planning_scene::PlanningScene::processAttachedCollisionObjectMsg(
                          object.object.id.c_str(), object.link_name.c_str());
         kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                             object.detach_posture);
-        ROS_INFO_NAMED("planning_scene", "Attached object '%s' to link '%s'", object.object.id.c_str(),
+        ROS_DEBUG_NAMED("planning_scene", "Attached object '%s' to link '%s'", object.object.id.c_str(),
                        object.link_name.c_str());
       }
       else
