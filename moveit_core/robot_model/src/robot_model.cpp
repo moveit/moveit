@@ -368,8 +368,8 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
                             joint_model->getName().c_str(), jm->mimic->joint_name.c_str());
         }
         else
-          ROS_ERROR_NAMED("robot_model", "Joint '%s' cannot mimic unknown joint '%s'",
-                          joint_model->getName().c_str(), jm->mimic->joint_name.c_str());
+          ROS_ERROR_NAMED("robot_model", "Joint '%s' cannot mimic unknown joint '%s'", joint_model->getName().c_str(),
+                          jm->mimic->joint_name.c_str());
       }
   }
 
