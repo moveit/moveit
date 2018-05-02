@@ -1450,7 +1450,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
   std::vector<double> consistency_limits;
   if (consistency_limit_sets.size() > 1)
   {
-    ROS_ERROR_NAMED("robot_state", "Invalid number (%d) of sets of consistency limits for a setFromIK request "
+    ROS_ERROR_NAMED("robot_state", "Invalid number (%zu) of sets of consistency limits for a setFromIK request "
                                    "that is being solved by a single IK solver",
                     consistency_limit_sets.size());
     return false;
@@ -1543,7 +1543,8 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     // Make sure one of the tip frames worked
     if (!found_valid_frame)
     {
-      ROS_ERROR_NAMED("robot_state", "Cannot compute IK for query %u pose reference frame '%s'", i, pose_frame.c_str());
+      ROS_ERROR_NAMED("robot_state", "Cannot compute IK for query %zu pose reference frame '%s'", i,
+                      pose_frame.c_str());
       // Debug available tip frames
       std::stringstream ss;
       for (solver_tip_id = 0; solver_tip_id < solver_tip_frames.size(); ++solver_tip_id)
@@ -1678,15 +1679,15 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
   // Error check
   if (poses_in.size() != sub_groups.size())
   {
-    ROS_ERROR_NAMED("robot_state", "Number of poses (%u) must be the same as number of sub-groups (%u)",
+    ROS_ERROR_NAMED("robot_state", "Number of poses (%zu) must be the same as number of sub-groups (%zu)",
                     poses_in.size(), sub_groups.size());
     return false;
   }
 
   if (tips_in.size() != sub_groups.size())
   {
-    ROS_ERROR_NAMED("robot_state", "Number of tip names (%u) must be same as number of sub-groups (%u)", tips_in.size(),
-                    sub_groups.size());
+    ROS_ERROR_NAMED("robot_state", "Number of tip names (%zu) must be same as number of sub-groups (%zu)",
+                    tips_in.size(), sub_groups.size());
     return false;
   }
 
