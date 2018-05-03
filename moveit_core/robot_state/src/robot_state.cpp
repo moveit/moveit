@@ -1151,21 +1151,6 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
   Eigen::Vector3d joint_axis;
   Eigen::Affine3d joint_transform;
 
-  // Travel up the chain to ensure link is a part of group.
-  const LinkModel* given_link = link;
-  while (not group->hasLinkModel(link->getName()))
-  {
-    link = link->getParentLinkModel();
-    if (not link)
-    {
-      ROS_ERROR_NAMED("robot_state",
-                      "Given link '%s' is a child of the chain, but the chain is never reach when going up.",
-                      given_link->getName().c_str());
-      return false;
-    }
-  }
-  // Link is now guaranteed to be a part of group.
-
   while (link)
   {
     /*
@@ -1180,8 +1165,8 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     {
       if (not group->hasJointModel(pjm->getName()))
       {
-        ROS_ERROR_NAMED("robot_state", "Joint %s is not in the current group.", pjm->getName().c_str());
-        return false;
+        link = pjm->getPalentLinkModel();
+        continue;
       }
       unsigned int joint_index = group->getVariableGroupIndex(pjm->getName());
       if (pjm->getType() == robot_model::JointModel::REVOLUTE)
