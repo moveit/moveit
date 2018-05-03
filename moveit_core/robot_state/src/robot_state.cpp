@@ -2039,28 +2039,42 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
 double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                               double revolute_threshold, double prismatic_threshold)
 {
-  bool test_revolute = revolute_threshold > 0;
-  bool test_prismatic = revolute_threshold > 0;
+  struct LimitData
+  {
+    double limit;
+    bool check;
+  };
+  LimitData data[2] = { { revolute_threshold, revolute_threshold > 0.0 },
+                        { prismatic_threshold, prismatic_threshold > 0.0 } };
   bool still_valid = true;
   const std::vector<const JointModel*>& joints = group->getActiveJointModels();
   for (std::size_t traj_ix = 0, ix_end = traj.size() - 1; traj_ix != ix_end; ++traj_ix)
   {
     for (auto& joint : joints)
     {
-      if (!joint->getType() == JointModel::PRISMATIC && !joint->getType() == JointModel::REVOLUTE)
+      unsigned int type_index;
+      switch (joint->getType())
       {
-        ROS_WARN_NAMED("robot_state", "Joint %s is of unsupported type %s. \n"
-                                      "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
-                       joint->getName().c_str(), joint->getTypeName().c_str());
+        case JointModel::REVOLUTE:
+          type_index = 0;
+          break;
+        case JointModel::PRISMATIC:
+          type_index = 1;
+          break;
+        default:
+          ROS_WARN_NAMED("robot_state", "Joint %s has not supported type %s. \n"
+                                        "testAbsoluteJointSpaceJump only supports prismatic and revolute joints.",
+                         joint->getName().c_str(), joint->getTypeName().c_str());
+          continue;
       }
+      if (!data[type_index].check)
+        continue;
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if ((test_revolute && joint->getType() == JointModel::REVOLUTE && distance > revolute_threshold) ||
-          (test_prismatic && joint->getType() == JointModel::PRISMATIC && distance > prismatic_threshold))
+      if (distance > data[type_index].limit)
       {
-        double limit = joint->getType() == JointModel::REVOLUTE ? revolute_threshold : prismatic_threshold;
         ROS_DEBUG_NAMED("robot_state", "Truncating Cartesian path due to detected jump of %.4f > %.4f in joint %s",
-                        distance, limit, joint->getName().c_str());
+                        distance, data[type_index].limit, joint->getName().c_str());
         still_valid = false;
         break;
       }
