@@ -37,20 +37,22 @@
 #include <moveit/collision_detection/collision_world.h>
 #include <geometric_shapes/shape_operations.h>
 
-collision_detection::CollisionWorld::CollisionWorld() : world_(new World()), world_const_(world_)
+namespace collision_detection
+{
+CollisionWorld::CollisionWorld() : world_(new World()), world_const_(world_)
 {
 }
 
-collision_detection::CollisionWorld::CollisionWorld(const WorldPtr& world) : world_(world), world_const_(world)
+CollisionWorld::CollisionWorld(const WorldPtr& world) : world_(world), world_const_(world)
 {
 }
 
-collision_detection::CollisionWorld::CollisionWorld(const CollisionWorld& other, const WorldPtr& world)
+CollisionWorld::CollisionWorld(const CollisionWorld& other, const WorldPtr& world)
   : world_(world), world_const_(world)
 {
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                                          const CollisionRobot& robot,
                                                          const robot_state::RobotState& state) const
 {
@@ -59,7 +61,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest&
     checkRobotCollision(req, res, robot, state);
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                                          const CollisionRobot& robot,
                                                          const robot_state::RobotState& state,
                                                          const AllowedCollisionMatrix& acm) const
@@ -69,7 +71,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest&
     checkRobotCollision(req, res, robot, state, acm);
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                                          const CollisionRobot& robot,
                                                          const robot_state::RobotState& state1,
                                                          const robot_state::RobotState& state2) const
@@ -79,7 +81,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest&
     checkRobotCollision(req, res, robot, state1, state2);
 }
 
-void collision_detection::CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
                                                          const CollisionRobot& robot,
                                                          const robot_state::RobotState& state1,
                                                          const robot_state::RobotState& state2,
@@ -90,7 +92,7 @@ void collision_detection::CollisionWorld::checkCollision(const CollisionRequest&
     checkRobotCollision(req, res, robot, state1, state2, acm);
 }
 
-void collision_detection::CollisionWorld::setWorld(const WorldPtr& world)
+void CollisionWorld::setWorld(const WorldPtr& world)
 {
   world_ = world;
   if (!world_)
@@ -98,3 +100,5 @@ void collision_detection::CollisionWorld::setWorld(const WorldPtr& world)
 
   world_const_ = world;
 }
+
+}  // end of namespace collision_detection

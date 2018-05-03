@@ -233,4 +233,4 @@ bool KinematicsMetrics::getManipulability(const robot_state::RobotState& state,
   return true;
 }
 
-}  // namespace
+} // end of namespace kinematics_metrics

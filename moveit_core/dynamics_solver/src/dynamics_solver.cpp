@@ -318,4 +318,5 @@ const std::vector<double>& DynamicsSolver::getMaxTorques() const
 {
   return max_torques_;
 }
-}
+
+} // end of namespace dynamics_solver

@@ -56,9 +56,8 @@ bool callPlannerInterfaceSolve(const planning_interface::PlannerManager* planner
     return false;
 }
 }
-}
 
-bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(
+bool PlanningRequestAdapter::adaptAndPlan(
     const planning_interface::PlannerManagerPtr& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
     std::vector<std::size_t>& added_path_index) const
@@ -67,7 +66,7 @@ bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(
                       added_path_index);
 }
 
-bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(
+bool PlanningRequestAdapter::adaptAndPlan(
     const planning_interface::PlannerManagerPtr& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res) const
 {
@@ -75,8 +74,6 @@ bool planning_request_adapter::PlanningRequestAdapter::adaptAndPlan(
   return adaptAndPlan(planner, planning_scene, req, res, dummy);
 }
 
-namespace planning_request_adapter
-{
 namespace
 {
 // boost bind is not happy with overloading, so we add intermediate function objects
@@ -117,9 +114,8 @@ bool callAdapter2(const PlanningRequestAdapter* adapter, const PlanningRequestAd
   }
 }
 }
-}
 
-bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
+bool PlanningRequestAdapterChain::adaptAndPlan(
     const planning_interface::PlannerManagerPtr& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res) const
 {
@@ -127,7 +123,7 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
   return adaptAndPlan(planner, planning_scene, req, res, dummy);
 }
 
-bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
+bool PlanningRequestAdapterChain::adaptAndPlan(
     const planning_interface::PlannerManagerPtr& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
     const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
     std::vector<std::size_t>& added_path_index) const
@@ -165,3 +161,5 @@ bool planning_request_adapter::PlanningRequestAdapterChain::adaptAndPlan(
     return result;
   }
 }
+
+}  // end of namespace planning_request_adapter

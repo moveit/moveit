@@ -42,7 +42,9 @@
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
-distance_field::DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
+namespace distance_field
+{
+DistanceField::DistanceField(double size_x, double size_y, double size_z, double resolution,
                                              double origin_x, double origin_y, double origin_z)
   : size_x_(size_x)
   , size_y_(size_y)
@@ -55,11 +57,11 @@ distance_field::DistanceField::DistanceField(double size_x, double size_y, doubl
 {
 }
 
-distance_field::DistanceField::~DistanceField()
+DistanceField::~DistanceField()
 {
 }
 
-double distance_field::DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x,
+double DistanceField::getDistanceGradient(double x, double y, double z, double& gradient_x,
                                                           double& gradient_y, double& gradient_z, bool& in_bounds) const
 {
   int gx, gy, gz;
@@ -85,7 +87,7 @@ double distance_field::DistanceField::getDistanceGradient(double x, double y, do
   return getDistance(gx, gy, gz);
 }
 
-void distance_field::DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
+void DistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance,
                                                          const std::string& frame_id, const ros::Time stamp,
                                                          visualization_msgs::Marker& inf_marker) const
 {
@@ -130,7 +132,7 @@ void distance_field::DistanceField::getIsoSurfaceMarkers(double min_distance, do
   }
 }
 
-void distance_field::DistanceField::getGradientMarkers(double min_distance, double max_distance,
+void DistanceField::getGradientMarkers(double min_distance, double max_distance,
                                                        const std::string& frame_id, const ros::Time& stamp,
                                                        visualization_msgs::MarkerArray& marker_array) const
 {
@@ -195,7 +197,7 @@ void distance_field::DistanceField::getGradientMarkers(double min_distance, doub
   }
 }
 
-bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose,
+bool DistanceField::getShapePoints(const shapes::Shape* shape, const Eigen::Affine3d& pose,
                                                    EigenSTL::vector_Vector3d* points)
 {
   if (shape->type == shapes::OCTREE)
@@ -218,7 +220,7 @@ bool distance_field::DistanceField::getShapePoints(const shapes::Shape* shape, c
   return true;
 }
 
-void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
 {
   EigenSTL::vector_Vector3d point_vec;
   getShapePoints(shape, pose, &point_vec);
@@ -226,14 +228,14 @@ void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, 
 }
 
 // DEPRECATED
-void distance_field::DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+void DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(pose, pose_e);
   addShapeToField(shape, pose_e);
 }
 
-void distance_field::DistanceField::getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points)
+void DistanceField::getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points)
 {
   // lower extent
   double min_x, min_y, min_z;
@@ -279,14 +281,14 @@ void distance_field::DistanceField::getOcTreePoints(const octomap::OcTree* octre
   }
 }
 
-void distance_field::DistanceField::addOcTreeToField(const octomap::OcTree* octree)
+void DistanceField::addOcTreeToField(const octomap::OcTree* octree)
 {
   EigenSTL::vector_Vector3d points;
   getOcTreePoints(octree, &points);
   addPointsToField(points);
 }
 
-void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose,
+void DistanceField::moveShapeInField(const shapes::Shape* shape, const Eigen::Affine3d& old_pose,
                                                      const Eigen::Affine3d& new_pose)
 {
   if (shape->type == shapes::OCTREE)
@@ -306,7 +308,7 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
 }
 
 // DEPRECATED
-void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
+void DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_msgs::Pose& old_pose,
                                                      const geometry_msgs::Pose& new_pose)
 {
   Eigen::Affine3d old_pose_e, new_pose_e;
@@ -315,7 +317,7 @@ void distance_field::DistanceField::moveShapeInField(const shapes::Shape* shape,
   moveShapeInField(shape, old_pose_e, new_pose_e);
 }
 
-void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
+void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen::Affine3d& pose)
 {
   bodies::Body* body = bodies::createBodyFromShape(shape);
   body->setPose(pose);
@@ -326,14 +328,14 @@ void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* sh
 }
 
 // DEPRECATED
-void distance_field::DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
+void DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
   Eigen::Affine3d pose_e;
   tf::poseMsgToEigen(pose, pose_e);
   removeShapeFromField(shape, pose_e);
 }
 
-void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length,
+void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length,
                                                     double width, double height, const Eigen::Vector3d& origin,
                                                     const std::string& frame_id, const ros::Time stamp,
                                                     visualization_msgs::Marker& plane_marker) const
@@ -445,7 +447,7 @@ void distance_field::DistanceField::getPlaneMarkers(distance_field::PlaneVisuali
   }
 }
 
-void distance_field::DistanceField::setPoint(int xCell, int yCell, int zCell, double dist, geometry_msgs::Point& point,
+void DistanceField::setPoint(int xCell, int yCell, int zCell, double dist, geometry_msgs::Point& point,
                                              std_msgs::ColorRGBA& color, double max_distance) const
 {
   double wx, wy, wz;
@@ -460,7 +462,7 @@ void distance_field::DistanceField::setPoint(int xCell, int yCell, int zCell, do
   color.b = dist / max_distance;  // dist/max_distance * 0.1;
 }
 
-void distance_field::DistanceField::getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp,
+void DistanceField::getProjectionPlanes(const std::string& frame_id, const ros::Time& stamp,
                                                         double max_dist, visualization_msgs::Marker& marker) const
 {
   int maxXCell = getXNumCells();
@@ -559,3 +561,5 @@ void distance_field::DistanceField::getProjectionPlanes(const std::string& frame
   if (z_projection)
     delete[] z_projection;
 }
+
+}  // end of namespace distance_field
