@@ -1165,7 +1165,7 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     {
       if (not group->hasJointModel(pjm->getName()))
       {
-        link = pjm->getPalentLinkModel();
+        link = pjm->getParentLinkModel();
         continue;
       }
       unsigned int joint_index = group->getVariableGroupIndex(pjm->getName());
