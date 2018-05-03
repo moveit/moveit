@@ -36,8 +36,9 @@
 
 #include <moveit/collision_detection_fcl/collision_robot_fcl.h>
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& model, double padding,
-                                                          double scale)
+namespace collision_detection
+{
+CollisionRobotFCL::CollisionRobotFCL(const robot_model::RobotModelConstPtr& model, double padding, double scale)
   : CollisionRobot(model, padding, scale)
 {
   const std::vector<const robot_model::LinkModel*>& links = robot_model_->getLinkModelsWithCollisionGeometry();
@@ -67,14 +68,14 @@ collision_detection::CollisionRobotFCL::CollisionRobotFCL(const robot_model::Rob
     }
 }
 
-collision_detection::CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL& other) : CollisionRobot(other)
+CollisionRobotFCL::CollisionRobotFCL(const CollisionRobotFCL& other) : CollisionRobot(other)
 {
   geoms_ = other.geoms_;
   fcl_objs_ = other.fcl_objs_;
 }
 
-void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
-                                                                    std::vector<FCLGeometryConstPtr>& geoms) const
+void CollisionRobotFCL::getAttachedBodyObjects(const robot_state::AttachedBody* ab,
+                                               std::vector<FCLGeometryConstPtr>& geoms) const
 {
   const std::vector<shapes::ShapeConstPtr>& shapes = ab->getShapes();
   for (std::size_t i = 0; i < shapes.size(); ++i)
@@ -85,8 +86,7 @@ void collision_detection::CollisionRobotFCL::getAttachedBodyObjects(const robot_
   }
 }
 
-void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
-                                                                FCLObject& fcl_obj) const
+void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state, FCLObject& fcl_obj) const
 {
   fcl_obj.collision_objects_.reserve(geoms_.size());
   fcl::Transform3f fcl_tf;
@@ -124,8 +124,7 @@ void collision_detection::CollisionRobotFCL::constructFCLObject(const robot_stat
   }
 }
 
-void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state,
-                                                                          FCLManager& manager) const
+void CollisionRobotFCL::allocSelfCollisionBroadPhase(const robot_state::RobotState& state, FCLManager& manager) const
 {
   auto m = new fcl::DynamicAABBTreeCollisionManager();
   // m->tree_init_level = 2;
@@ -135,37 +134,36 @@ void collision_detection::CollisionRobotFCL::allocSelfCollisionBroadPhase(const 
   // manager.manager_->update();
 }
 
-void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                const robot_state::RobotState& state) const
+void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                           const robot_state::RobotState& state) const
 {
   checkSelfCollisionHelper(req, res, state, nullptr);
 }
 
-void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                const robot_state::RobotState& state,
-                                                                const AllowedCollisionMatrix& acm) const
+void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                           const robot_state::RobotState& state,
+                                           const AllowedCollisionMatrix& acm) const
 {
   checkSelfCollisionHelper(req, res, state, &acm);
 }
 
-void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                const robot_state::RobotState& state1,
-                                                                const robot_state::RobotState& state2) const
+void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                           const robot_state::RobotState& state1,
+                                           const robot_state::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                const robot_state::RobotState& state1,
-                                                                const robot_state::RobotState& state2,
-                                                                const AllowedCollisionMatrix& acm) const
+void CollisionRobotFCL::checkSelfCollision(const CollisionRequest& req, CollisionResult& res,
+                                           const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                           const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
-                                                                      const robot_state::RobotState& state,
-                                                                      const AllowedCollisionMatrix* acm) const
+void CollisionRobotFCL::checkSelfCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                 const robot_state::RobotState& state,
+                                                 const AllowedCollisionMatrix* acm) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -185,50 +183,45 @@ void collision_detection::CollisionRobotFCL::checkSelfCollisionHelper(const Coll
   }
 }
 
-void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const robot_state::RobotState& state,
-                                                                 const CollisionRobot& other_robot,
-                                                                 const robot_state::RobotState& other_state) const
+void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                            const robot_state::RobotState& other_state) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, nullptr);
 }
 
-void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const robot_state::RobotState& state,
-                                                                 const CollisionRobot& other_robot,
-                                                                 const robot_state::RobotState& other_state,
-                                                                 const AllowedCollisionMatrix& acm) const
+void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                            const robot_state::RobotState& other_state,
+                                            const AllowedCollisionMatrix& acm) const
 {
   checkOtherCollisionHelper(req, res, state, other_robot, other_state, &acm);
 }
 
-void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const robot_state::RobotState& state1,
-                                                                 const robot_state::RobotState& state2,
-                                                                 const CollisionRobot& other_robot,
-                                                                 const robot_state::RobotState& other_state1,
-                                                                 const robot_state::RobotState& other_state2) const
+void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2, const CollisionRobot& other_robot,
+                                            const robot_state::RobotState& other_state1,
+                                            const robot_state::RobotState& other_state2) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const robot_state::RobotState& state1,
-                                                                 const robot_state::RobotState& state2,
-                                                                 const CollisionRobot& other_robot,
-                                                                 const robot_state::RobotState& other_state1,
-                                                                 const robot_state::RobotState& other_state2,
-                                                                 const AllowedCollisionMatrix& acm) const
+void CollisionRobotFCL::checkOtherCollision(const CollisionRequest& req, CollisionResult& res,
+                                            const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2, const CollisionRobot& other_robot,
+                                            const robot_state::RobotState& other_state1,
+                                            const robot_state::RobotState& other_state2,
+                                            const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req,
-                                                                       CollisionResult& res,
-                                                                       const robot_state::RobotState& state,
-                                                                       const CollisionRobot& other_robot,
-                                                                       const robot_state::RobotState& other_state,
-                                                                       const AllowedCollisionMatrix* acm) const
+void CollisionRobotFCL::checkOtherCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                  const robot_state::RobotState& state,
+                                                  const CollisionRobot& other_robot,
+                                                  const robot_state::RobotState& other_state,
+                                                  const AllowedCollisionMatrix* acm) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -255,7 +248,7 @@ void collision_detection::CollisionRobotFCL::checkOtherCollisionHelper(const Col
   }
 }
 
-void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& links)
+void CollisionRobotFCL::updatedPaddingOrScaling(const std::vector<std::string>& links)
 {
   std::size_t index;
   for (const auto& link : links)
@@ -280,8 +273,8 @@ void collision_detection::CollisionRobotFCL::updatedPaddingOrScaling(const std::
   }
 }
 
-void collision_detection::CollisionRobotFCL::distanceSelf(const DistanceRequest& req, DistanceResult& res,
-                                                          const robot_state::RobotState& state) const
+void CollisionRobotFCL::distanceSelf(const DistanceRequest& req, DistanceResult& res,
+                                     const robot_state::RobotState& state) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -290,10 +283,9 @@ void collision_detection::CollisionRobotFCL::distanceSelf(const DistanceRequest&
   manager.manager_->distance(&drd, &distanceCallback);
 }
 
-void collision_detection::CollisionRobotFCL::distanceOther(const DistanceRequest& req, DistanceResult& res,
-                                                           const robot_state::RobotState& state,
-                                                           const CollisionRobot& other_robot,
-                                                           const robot_state::RobotState& other_state) const
+void CollisionRobotFCL::distanceOther(const DistanceRequest& req, DistanceResult& res,
+                                      const robot_state::RobotState& state, const CollisionRobot& other_robot,
+                                      const robot_state::RobotState& other_state) const
 {
   FCLManager manager;
   allocSelfCollisionBroadPhase(state, manager);
@@ -306,3 +298,5 @@ void collision_detection::CollisionRobotFCL::distanceOther(const DistanceRequest
   for (std::size_t i = 0; !drd.done && i < other_fcl_obj.collision_objects_.size(); ++i)
     manager.manager_->distance(other_fcl_obj.collision_objects_[i].get(), &drd, &distanceCallback);
 }
+
+}  // end of namespace collision_detection
