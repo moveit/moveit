@@ -37,30 +37,32 @@
 #include <moveit/collision_detection/world.h>
 #include <ros/console.h>
 
-collision_detection::World::World()
+namespace collision_detection
+{
+World::World()
 {
 }
 
-collision_detection::World::World(const World& other)
+World::World(const World& other)
 {
   objects_ = other.objects_;
 }
 
-collision_detection::World::~World()
+World::~World()
 {
   while (!observers_.empty())
     removeObserver(observers_.front());
 }
 
-inline void collision_detection::World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
-                                                            const Eigen::Affine3d& pose)
+inline void World::addToObjectInternal(const ObjectPtr& obj, const shapes::ShapeConstPtr& shape,
+                                       const Eigen::Affine3d& pose)
 {
   obj->shapes_.push_back(shape);
   obj->shape_poses_.push_back(pose);
 }
 
-void collision_detection::World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
-                                             const EigenSTL::vector_Affine3d& poses)
+void World::addToObject(const std::string& id, const std::vector<shapes::ShapeConstPtr>& shapes,
+                        const EigenSTL::vector_Affine3d& poses)
 {
   if (shapes.size() != poses.size())
   {
@@ -89,8 +91,7 @@ void collision_detection::World::addToObject(const std::string& id, const std::v
   notify(obj, Action(action));
 }
 
-void collision_detection::World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape,
-                                             const Eigen::Affine3d& pose)
+void World::addToObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
 {
   int action = ADD_SHAPE;
 
@@ -107,7 +108,7 @@ void collision_detection::World::addToObject(const std::string& id, const shapes
   notify(obj, Action(action));
 }
 
-std::vector<std::string> collision_detection::World::getObjectIds() const
+std::vector<std::string> World::getObjectIds() const
 {
   std::vector<std::string> id;
   for (const auto& object : objects_)
@@ -115,7 +116,7 @@ std::vector<std::string> collision_detection::World::getObjectIds() const
   return id;
 }
 
-collision_detection::World::ObjectConstPtr collision_detection::World::getObject(const std::string& id) const
+World::ObjectConstPtr World::getObject(const std::string& id) const
 {
   auto it = objects_.find(id);
   if (it == objects_.end())
@@ -124,19 +125,18 @@ collision_detection::World::ObjectConstPtr collision_detection::World::getObject
     return it->second;
 }
 
-void collision_detection::World::ensureUnique(ObjectPtr& obj)
+void World::ensureUnique(ObjectPtr& obj)
 {
   if (obj && !obj.unique())
     obj.reset(new Object(*obj));
 }
 
-bool collision_detection::World::hasObject(const std::string& id) const
+bool World::hasObject(const std::string& id) const
 {
   return objects_.find(id) != objects_.end();
 }
 
-bool collision_detection::World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape,
-                                                   const Eigen::Affine3d& pose)
+bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose)
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -155,7 +155,7 @@ bool collision_detection::World::moveShapeInObject(const std::string& id, const 
   return false;
 }
 
-bool collision_detection::World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
+bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -183,7 +183,7 @@ bool collision_detection::World::removeShapeFromObject(const std::string& id, co
   return false;
 }
 
-bool collision_detection::World::removeObject(const std::string& id)
+bool World::removeObject(const std::string& id)
 {
   auto it = objects_.find(id);
   if (it != objects_.end())
@@ -195,20 +195,20 @@ bool collision_detection::World::removeObject(const std::string& id)
   return false;
 }
 
-void collision_detection::World::clearObjects()
+void World::clearObjects()
 {
   notifyAll(DESTROY);
   objects_.clear();
 }
 
-collision_detection::World::ObserverHandle collision_detection::World::addObserver(const ObserverCallbackFn& callback)
+World::ObserverHandle World::addObserver(const ObserverCallbackFn& callback)
 {
   auto o = new Observer(callback);
   observers_.push_back(o);
   return ObserverHandle(o);
 }
 
-void collision_detection::World::removeObserver(ObserverHandle observer_handle)
+void World::removeObserver(ObserverHandle observer_handle)
 {
   for (auto obs = observers_.begin(); obs != observers_.end(); ++obs)
   {
@@ -221,19 +221,19 @@ void collision_detection::World::removeObserver(ObserverHandle observer_handle)
   }
 }
 
-void collision_detection::World::notifyAll(Action action)
+void World::notifyAll(Action action)
 {
   for (std::map<std::string, ObjectPtr>::const_iterator it = objects_.begin(); it != objects_.end(); ++it)
     notify(it->second, action);
 }
 
-void collision_detection::World::notify(const ObjectConstPtr& obj, Action action)
+void World::notify(const ObjectConstPtr& obj, Action action)
 {
   for (std::vector<Observer*>::const_iterator obs = observers_.begin(); obs != observers_.end(); ++obs)
     (*obs)->callback_(obj, action);
 }
 
-void collision_detection::World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
+void World::notifyObserverAllObjects(const ObserverHandle observer_handle, Action action) const
 {
   for (auto observer : observers_)
   {
@@ -246,3 +246,5 @@ void collision_detection::World::notifyObserverAllObjects(const ObserverHandle o
     }
   }
 }
+
+}  // end of namespace collision_detection

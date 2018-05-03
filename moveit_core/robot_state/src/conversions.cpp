@@ -358,8 +358,6 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
   return valid;
 }
 }
-}
-}
 
 // ********************************************
 
@@ -367,31 +365,29 @@ static bool _robotStateMsgToRobotStateHelper(const Transforms* tf, const moveit_
 // * Exposed functions
 // ********************************************
 
-bool moveit::core::jointStateToRobotState(const sensor_msgs::JointState& joint_state, RobotState& state)
+bool jointStateToRobotState(const sensor_msgs::JointState& joint_state, RobotState& state)
 {
   bool result = _jointStateToRobotState(joint_state, state);
   state.update();
   return result;
 }
 
-bool moveit::core::robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state,
-                                             bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state, bool copy_attached_bodies)
 {
   bool result = _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
-bool moveit::core::robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state,
-                                             RobotState& state, bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state, RobotState& state,
+                               bool copy_attached_bodies)
 {
   bool result = _robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
-void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state,
-                                             bool copy_attached_bodies)
+void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state, bool copy_attached_bodies)
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
@@ -404,7 +400,7 @@ void moveit::core::robotStateToRobotStateMsg(const RobotState& state, moveit_msg
   }
 }
 
-void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
+void attachedBodiesToAttachedCollisionObjectMsgs(
     const std::vector<const AttachedBody*>& attached_bodies,
     std::vector<moveit_msgs::AttachedCollisionObject>& attached_collision_objs)
 {
@@ -413,7 +409,7 @@ void moveit::core::attachedBodiesToAttachedCollisionObjectMsgs(
     _attachedBodyToMsg(*attached_bodies[i], attached_collision_objs[i]);
 }
 
-void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState& joint_state)
+void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState& joint_state)
 {
   const std::vector<const JointModel*>& js = state.getRobotModel()->getSingleDOFJointModels();
   joint_state = sensor_msgs::JointState();
@@ -433,8 +429,8 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
   joint_state.header.frame_id = state.getRobotModel()->getModelFrame();
 }
 
-bool moveit::core::jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajectory, std::size_t point_id,
-                                              RobotState& state)
+bool jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajectory, std::size_t point_id,
+                                RobotState& state)
 {
   if (trajectory.points.empty() || point_id > trajectory.points.size() - 1)
   {
@@ -458,8 +454,7 @@ bool moveit::core::jointTrajPointToRobotState(const trajectory_msgs::JointTrajec
   return true;
 }
 
-void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out, bool include_header,
-                                      const std::string& separator)
+void robotStateToStream(const RobotState& state, std::ostream& out, bool include_header, const std::string& separator)
 {
   // Output name of variables
   if (include_header)
@@ -487,9 +482,9 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out
   out << std::endl;
 }
 
-void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out,
-                                      const std::vector<std::string>& joint_groups_ordering, bool include_header,
-                                      const std::string& separator)
+void robotStateToStream(const RobotState& state, std::ostream& out,
+                        const std::vector<std::string>& joint_groups_ordering, bool include_header,
+                        const std::string& separator)
 {
   std::stringstream headers;
   std::stringstream joints;
@@ -524,7 +519,7 @@ void moveit::core::robotStateToStream(const RobotState& state, std::ostream& out
   out << joints.str() << std::endl;
 }
 
-void moveit::core::streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
+void streamToRobotState(RobotState& state, const std::string& line, const std::string& separator)
 {
   std::stringstream lineStream(line);
   std::string cell;
@@ -539,3 +534,6 @@ void moveit::core::streamToRobotState(RobotState& state, const std::string& line
     state.getVariablePositions()[i] = boost::lexical_cast<double>(cell.c_str());
   }
 }
+
+}  // end of namespace core
+}  // end of namespace moveit
