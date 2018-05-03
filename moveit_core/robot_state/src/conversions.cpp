@@ -372,24 +372,22 @@ bool jointStateToRobotState(const sensor_msgs::JointState& joint_state, RobotSta
   return result;
 }
 
-bool robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state,
-                                             bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const moveit_msgs::RobotState& robot_state, RobotState& state, bool copy_attached_bodies)
 {
   bool result = _robotStateMsgToRobotStateHelper(NULL, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
-bool robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state,
-                                             RobotState& state, bool copy_attached_bodies)
+bool robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotState& robot_state, RobotState& state,
+                               bool copy_attached_bodies)
 {
   bool result = _robotStateMsgToRobotStateHelper(&tf, robot_state, state, copy_attached_bodies);
   state.update();
   return result;
 }
 
-void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state,
-                                             bool copy_attached_bodies)
+void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state, bool copy_attached_bodies)
 {
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
@@ -432,7 +430,7 @@ void robotStateToJointStateMsg(const RobotState& state, sensor_msgs::JointState&
 }
 
 bool jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajectory, std::size_t point_id,
-                                              RobotState& state)
+                                RobotState& state)
 {
   if (trajectory.points.empty() || point_id > trajectory.points.size() - 1)
   {
@@ -456,8 +454,7 @@ bool jointTrajPointToRobotState(const trajectory_msgs::JointTrajectory& trajecto
   return true;
 }
 
-void robotStateToStream(const RobotState& state, std::ostream& out, bool include_header,
-                                      const std::string& separator)
+void robotStateToStream(const RobotState& state, std::ostream& out, bool include_header, const std::string& separator)
 {
   // Output name of variables
   if (include_header)
@@ -486,8 +483,8 @@ void robotStateToStream(const RobotState& state, std::ostream& out, bool include
 }
 
 void robotStateToStream(const RobotState& state, std::ostream& out,
-                                      const std::vector<std::string>& joint_groups_ordering, bool include_header,
-                                      const std::string& separator)
+                        const std::vector<std::string>& joint_groups_ordering, bool include_header,
+                        const std::string& separator)
 {
   std::stringstream headers;
   std::stringstream joints;

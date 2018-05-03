@@ -56,8 +56,7 @@ bool JointConstraintSampler::configure(const moveit_msgs::Constraints& constr)
   return jc.empty() ? false : configure(jc);
 }
 
-bool JointConstraintSampler::configure(
-    const std::vector<kinematic_constraints::JointConstraint>& jc)
+bool JointConstraintSampler::configure(const std::vector<kinematic_constraints::JointConstraint>& jc)
 {
   clear();
 
@@ -149,8 +148,8 @@ bool JointConstraintSampler::configure(
 }
 
 bool JointConstraintSampler::sample(robot_state::RobotState& state,
-                                                         const robot_state::RobotState& /* reference_state */,
-                                                         unsigned int /* max_attempts */)
+                                    const robot_state::RobotState& /* reference_state */,
+                                    unsigned int /* max_attempts */)
 {
   if (!is_valid_)
   {
@@ -207,24 +206,22 @@ IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstrain
 }
 
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraint& pc,
-                                                    const kinematic_constraints::OrientationConstraint& oc)
+                               const kinematic_constraints::OrientationConstraint& oc)
   : position_constraint_(new kinematic_constraints::PositionConstraint(pc))
   , orientation_constraint_(new kinematic_constraints::OrientationConstraint(oc))
 {
 }
 
-IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc)
-  : position_constraint_(pc)
+IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc) : position_constraint_(pc)
 {
 }
 
-IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc)
-  : orientation_constraint_(oc)
+IKSamplingPose::IKSamplingPose(const kinematic_constraints::OrientationConstraintPtr& oc) : orientation_constraint_(oc)
 {
 }
 
 IKSamplingPose::IKSamplingPose(const kinematic_constraints::PositionConstraintPtr& pc,
-                                                    const kinematic_constraints::OrientationConstraintPtr& oc)
+                               const kinematic_constraints::OrientationConstraintPtr& oc)
   : position_constraint_(pc), orientation_constraint_(oc)
 {
 }
@@ -414,8 +411,8 @@ bool IKConstraintSampler::loadIKSolver()
   return true;
 }
 
-bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat,
-                                                          const robot_state::RobotState& ks, unsigned int max_attempts)
+bool IKConstraintSampler::samplePose(Eigen::Vector3d& pos, Eigen::Quaterniond& quat, const robot_state::RobotState& ks,
+                                     unsigned int max_attempts)
 {
   if (ks.dirtyLinkTransforms())
   {
@@ -526,16 +523,14 @@ void samplingIkCallbackFnAdapter(robot_state::RobotState* state, const robot_mod
 }
 }
 
-bool IKConstraintSampler::sample(robot_state::RobotState& state,
-                                                      const robot_state::RobotState& reference_state,
-                                                      unsigned int max_attempts)
+bool IKConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+                                 unsigned int max_attempts)
 {
   return sampleHelper(state, reference_state, max_attempts, false);
 }
 
-bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state,
-                                                            const robot_state::RobotState& reference_state,
-                                                            unsigned int max_attempts, bool project)
+bool IKConstraintSampler::sampleHelper(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+                                       unsigned int max_attempts, bool project)
 {
   if (!is_valid_)
   {
@@ -609,9 +604,9 @@ bool IKConstraintSampler::validate(robot_state::RobotState& state) const
           sampling_pose_.position_constraint_->decide(state, verbose_).satisfied);
 }
 
-bool IKConstraintSampler::callIK(
-    const geometry_msgs::Pose& ik_query, const kinematics::KinematicsBase::IKCallbackFn& adapted_ik_validity_callback,
-    double timeout, robot_state::RobotState& state, bool use_as_seed)
+bool IKConstraintSampler::callIK(const geometry_msgs::Pose& ik_query,
+                                 const kinematics::KinematicsBase::IKCallbackFn& adapted_ik_validity_callback,
+                                 double timeout, robot_state::RobotState& state, bool use_as_seed)
 {
   const std::vector<unsigned int>& ik_joint_bijection = jmg_->getKinematicsSolverJointBijection();
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);

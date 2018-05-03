@@ -81,8 +81,7 @@ AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix& acm
   default_allowed_contacts_ = acm.default_allowed_contacts_;
 }
 
-bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
-                                                           DecideContactFn& fn) const
+bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2, DecideContactFn& fn) const
 {
   auto it1 = allowed_contacts_.find(name1);
   if (it1 == allowed_contacts_.end())
@@ -95,7 +94,7 @@ bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::strin
 }
 
 bool AllowedCollisionMatrix::getEntry(const std::string& name1, const std::string& name2,
-                                                           AllowedCollision::Type& allowed_collision) const
+                                      AllowedCollision::Type& allowed_collision) const
 {
   auto it1 = entries_.find(name1);
   if (it1 == entries_.end())
@@ -123,8 +122,7 @@ bool AllowedCollisionMatrix::hasEntry(const std::string& name1, const std::strin
   return true;
 }
 
-void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2,
-                                                           bool allowed)
+void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2, bool allowed)
 {
   const AllowedCollision::Type v = allowed ? AllowedCollision::ALWAYS : AllowedCollision::NEVER;
   entries_[name1][name2] = entries_[name2][name1] = v;
@@ -146,8 +144,7 @@ void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::strin
   }
 }
 
-void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2,
-                                                           const DecideContactFn& fn)
+void AllowedCollisionMatrix::setEntry(const std::string& name1, const std::string& name2, const DecideContactFn& fn)
 {
   entries_[name1][name2] = entries_[name2][name1] = AllowedCollision::CONDITIONAL;
   allowed_contacts_[name1][name2] = allowed_contacts_[name2][name1] = fn;
@@ -196,16 +193,16 @@ void AllowedCollisionMatrix::removeEntry(const std::string& name1, const std::st
   }
 }
 
-void AllowedCollisionMatrix::setEntry(const std::string& name,
-                                                           const std::vector<std::string>& other_names, bool allowed)
+void AllowedCollisionMatrix::setEntry(const std::string& name, const std::vector<std::string>& other_names,
+                                      bool allowed)
 {
   for (const auto& other_name : other_names)
     if (other_name != name)
       setEntry(other_name, name, allowed);
 }
 
-void AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1,
-                                                           const std::vector<std::string>& names2, bool allowed)
+void AllowedCollisionMatrix::setEntry(const std::vector<std::string>& names1, const std::vector<std::string>& names2,
+                                      bool allowed)
 {
   for (const auto& name1 : names1)
     setEntry(name1, names2, allowed);
@@ -243,8 +240,7 @@ void AllowedCollisionMatrix::setDefaultEntry(const std::string& name, const Deci
   default_allowed_contacts_[name] = fn;
 }
 
-bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name,
-                                                                  AllowedCollision::Type& allowed_collision) const
+bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name, AllowedCollision::Type& allowed_collision) const
 {
   auto it = default_entries_.find(name);
   if (it == default_entries_.end())
@@ -262,15 +258,13 @@ bool AllowedCollisionMatrix::getDefaultEntry(const std::string& name, DecideCont
   return true;
 }
 
-static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f2,
-                             Contact& contact)
+static bool andDecideContact(const DecideContactFn& f1, const DecideContactFn& f2, Contact& contact)
 {
   return f1(contact) && f2(contact);
 }
 
-bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1,
-                                                                      const std::string& name2,
-                                                                      DecideContactFn& fn) const
+bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
+                                                 DecideContactFn& fn) const
 {
   DecideContactFn fn1, fn2;
   bool found1 = getDefaultEntry(name1, fn1);
@@ -292,9 +286,8 @@ bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1,
   }
 }
 
-bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1,
-                                                                      const std::string& name2,
-                                                                      AllowedCollision::Type& allowed_collision) const
+bool AllowedCollisionMatrix::getAllowedCollision(const std::string& name1, const std::string& name2,
+                                                 AllowedCollision::Type& allowed_collision) const
 {
   AllowedCollision::Type t1, t2;
   bool found1 = getDefaultEntry(name1, t1);

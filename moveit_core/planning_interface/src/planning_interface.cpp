@@ -56,8 +56,7 @@ static ActiveContexts& getActiveContexts()
 }
 }
 
-PlanningContext::PlanningContext(const std::string& name, const std::string& group)
-  : name_(name), group_(group)
+PlanningContext::PlanningContext(const std::string& name, const std::string& group) : name_(name), group_(group)
 {
   ActiveContexts& ac = getActiveContexts();
   boost::mutex::scoped_lock _(ac.mutex_);
@@ -102,8 +101,8 @@ std::string PlannerManager::getDescription() const
   return "";
 }
 
-PlanningContextPtr PlannerManager::getPlanningContext(
-    const planning_scene::PlanningSceneConstPtr& planning_scene, const MotionPlanRequest& req) const
+PlanningContextPtr PlannerManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                      const MotionPlanRequest& req) const
 {
   moveit_msgs::MoveItErrorCodes dummy;
   return getPlanningContext(planning_scene, req, dummy);

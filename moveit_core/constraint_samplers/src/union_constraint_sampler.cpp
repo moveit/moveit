@@ -105,8 +105,8 @@ struct OrderSamplers
 };
 
 UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSceneConstPtr& scene,
-                                                                    const std::string& group_name,
-                                                                    const std::vector<ConstraintSamplerPtr>& samplers)
+                                               const std::string& group_name,
+                                               const std::vector<ConstraintSamplerPtr>& samplers)
   : ConstraintSampler(scene, group_name), samplers_(samplers)
 {
   // using stable sort to preserve order of equivalents
@@ -123,9 +123,8 @@ UnionConstraintSampler::UnionConstraintSampler(const planning_scene::PlanningSce
   }
 }
 
-bool UnionConstraintSampler::sample(robot_state::RobotState& state,
-                                                         const robot_state::RobotState& reference_state,
-                                                         unsigned int max_attempts)
+bool UnionConstraintSampler::sample(robot_state::RobotState& state, const robot_state::RobotState& reference_state,
+                                    unsigned int max_attempts)
 {
   state = reference_state;
   state.setToRandomPositions(jmg_);

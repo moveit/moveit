@@ -42,14 +42,13 @@
 
 namespace robot_trajectory
 {
-RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model,
-                                                   const std::string& group)
+RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const std::string& group)
   : robot_model_(robot_model), group_(group.empty() ? NULL : robot_model->getJointModelGroup(group))
 {
 }
 
 RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model,
-                                                   const robot_model::JointModelGroup* group)
+                                 const robot_model::JointModelGroup* group)
   : robot_model_(robot_model), group_(group)
 {
 }
@@ -318,7 +317,7 @@ void RobotTrajectory::getRobotTrajectoryMsg(moveit_msgs::RobotTrajectory& trajec
 }
 
 void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& reference_state,
-                                                              const trajectory_msgs::JointTrajectory& trajectory)
+                                            const trajectory_msgs::JointTrajectory& trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
@@ -344,7 +343,7 @@ void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& refer
 }
 
 void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& reference_state,
-                                                              const moveit_msgs::RobotTrajectory& trajectory)
+                                            const moveit_msgs::RobotTrajectory& trajectory)
 {
   // make a copy just in case the next clear() removes the memory for the reference passed in
   robot_state::RobotState copy = reference_state;
@@ -393,16 +392,16 @@ void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& refer
 }
 
 void RobotTrajectory::setRobotTrajectoryMsg(const robot_state::RobotState& reference_state,
-                                                              const moveit_msgs::RobotState& state,
-                                                              const moveit_msgs::RobotTrajectory& trajectory)
+                                            const moveit_msgs::RobotState& state,
+                                            const moveit_msgs::RobotTrajectory& trajectory)
 {
   robot_state::RobotState st(reference_state);
   robot_state::robotStateMsgToRobotState(state, st);
   setRobotTrajectoryMsg(st, trajectory);
 }
 
-void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double& duration, int& before,
-                                                                                 int& after, double& blend) const
+void RobotTrajectory::findWayPointIndicesForDurationAfterStart(const double& duration, int& before, int& after,
+                                                               double& blend) const
 {
   if (duration < 0.0)
   {
@@ -451,7 +450,7 @@ double RobotTrajectory::getWaypointDurationFromStart(std::size_t index) const
 }
 
 bool RobotTrajectory::getStateAtDurationFromStart(const double request_duration,
-                                                                    robot_state::RobotStatePtr& output_state) const
+                                                  robot_state::RobotStatePtr& output_state) const
 {
   // If there are no waypoints we can't do anything
   if (getWayPointCount() == 0)

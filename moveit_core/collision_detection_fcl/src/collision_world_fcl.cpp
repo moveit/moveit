@@ -89,42 +89,36 @@ CollisionWorldFCL::~CollisionWorldFCL()
 }
 
 void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionRobot& robot,
-                                                                 const robot_state::RobotState& state) const
+                                            const CollisionRobot& robot, const robot_state::RobotState& state) const
 {
   checkRobotCollisionHelper(req, res, robot, state, nullptr);
 }
 
 void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionRobot& robot,
-                                                                 const robot_state::RobotState& state,
-                                                                 const AllowedCollisionMatrix& acm) const
+                                            const CollisionRobot& robot, const robot_state::RobotState& state,
+                                            const AllowedCollisionMatrix& acm) const
 {
   checkRobotCollisionHelper(req, res, robot, state, &acm);
 }
 
 void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionRobot& robot,
-                                                                 const robot_state::RobotState& state1,
-                                                                 const robot_state::RobotState& state2) const
+                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
 void CollisionWorldFCL::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionRobot& robot,
-                                                                 const robot_state::RobotState& state1,
-                                                                 const robot_state::RobotState& state2,
-                                                                 const AllowedCollisionMatrix& acm) const
+                                            const CollisionRobot& robot, const robot_state::RobotState& state1,
+                                            const robot_state::RobotState& state2,
+                                            const AllowedCollisionMatrix& acm) const
 {
   ROS_ERROR_NAMED("collision_detection.fcl", "FCL continuous collision checking not yet implemented");
 }
 
-void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req,
-                                                                       CollisionResult& res,
-                                                                       const CollisionRobot& robot,
-                                                                       const robot_state::RobotState& state,
-                                                                       const AllowedCollisionMatrix* acm) const
+void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                  const CollisionRobot& robot, const robot_state::RobotState& state,
+                                                  const AllowedCollisionMatrix* acm) const
 {
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -149,22 +143,20 @@ void CollisionWorldFCL::checkRobotCollisionHelper(const CollisionRequest& req,
 }
 
 void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionWorld& other_world) const
+                                            const CollisionWorld& other_world) const
 {
   checkWorldCollisionHelper(req, res, other_world, nullptr);
 }
 
 void CollisionWorldFCL::checkWorldCollision(const CollisionRequest& req, CollisionResult& res,
-                                                                 const CollisionWorld& other_world,
-                                                                 const AllowedCollisionMatrix& acm) const
+                                            const CollisionWorld& other_world, const AllowedCollisionMatrix& acm) const
 {
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
-void CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req,
-                                                                       CollisionResult& res,
-                                                                       const CollisionWorld& other_world,
-                                                                       const AllowedCollisionMatrix* acm) const
+void CollisionWorldFCL::checkWorldCollisionHelper(const CollisionRequest& req, CollisionResult& res,
+                                                  const CollisionWorld& other_world,
+                                                  const AllowedCollisionMatrix* acm) const
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(other_world);
   CollisionData cd(&req, &res, acm);
@@ -274,9 +266,8 @@ void CollisionWorldFCL::notifyObjectChange(const ObjectConstPtr& obj, World::Act
   }
 }
 
-void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res,
-                                                           const CollisionRobot& robot,
-                                                           const robot_state::RobotState& state) const
+void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+                                      const robot_state::RobotState& state) const
 {
   const CollisionRobotFCL& robot_fcl = dynamic_cast<const CollisionRobotFCL&>(robot);
   FCLObject fcl_obj;
@@ -288,7 +279,7 @@ void CollisionWorldFCL::distanceRobot(const DistanceRequest& req, DistanceResult
 }
 
 void CollisionWorldFCL::distanceWorld(const DistanceRequest& req, DistanceResult& res,
-                                                           const CollisionWorld& world) const
+                                      const CollisionWorld& world) const
 {
   const CollisionWorldFCL& other_fcl_world = dynamic_cast<const CollisionWorldFCL&>(world);
   DistanceData drd(&req, &res);

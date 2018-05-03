@@ -138,6 +138,5 @@ void BackgroundProcessing::clearJobUpdateEvent()
   setJobUpdateEvent(JobUpdateCallback());
 }
 
-
 }  // end of namespace tools
 }  // end of namespace moveit

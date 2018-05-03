@@ -40,7 +40,7 @@
 namespace collision_detection
 {
 void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
-                                         std::set<CostSource>& cost_sources)
+                    std::set<CostSource>& cost_sources)
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -50,9 +50,8 @@ void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& fra
   getCostMarkers(arr, frame_id, cost_sources, color, ros::Duration(60.0));
 }
 
-void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
-                                                          const std::string& frame_id,
-                                                          const CollisionResult::ContactMap& con)
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con)
 {
   std_msgs::ColorRGBA color;
   color.r = 1.0f;
@@ -63,8 +62,7 @@ void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
 }
 
 void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
-                                         std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color,
-                                         const ros::Duration& lifetime)
+                    std::set<CostSource>& cost_sources, const std_msgs::ColorRGBA& color, const ros::Duration& lifetime)
 {
   int id = 0;
   for (const auto& cost_source : cost_sources)
@@ -94,11 +92,9 @@ void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& fra
   }
 }
 
-void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr,
-                                                          const std::string& frame_id,
-                                                          const CollisionResult::ContactMap& con,
-                                                          const std_msgs::ColorRGBA& color,
-                                                          const ros::Duration& lifetime, double radius)
+void getCollisionMarkersFromContacts(visualization_msgs::MarkerArray& arr, const std::string& frame_id,
+                                     const CollisionResult::ContactMap& con, const std_msgs::ColorRGBA& color,
+                                     const ros::Duration& lifetime, double radius)
 
 {
   std::map<std::string, unsigned> ns_counts;
@@ -157,7 +153,7 @@ double getTotalCost(const std::set<CostSource>& cost_sources)
 }
 
 void intersectCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& a,
-                                               const std::set<CostSource>& b)
+                          const std::set<CostSource>& b)
 {
   cost_sources.clear();
   CostSource tmp;
@@ -210,8 +206,8 @@ void removeOverlapping(std::set<CostSource>& cost_sources, double overlap_fracti
   }
 }
 
-void removeCostSources(std::set<CostSource>& cost_sources,
-                                            const std::set<CostSource>& cost_sources_to_remove, double overlap_fraction)
+void removeCostSources(std::set<CostSource>& cost_sources, const std::set<CostSource>& cost_sources_to_remove,
+                       double overlap_fraction)
 {
   // remove all the boxes that overlap with the intersection previously computed in \e rem
   double p[3], q[3];

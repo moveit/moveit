@@ -47,45 +47,37 @@ CollisionWorld::CollisionWorld(const WorldPtr& world) : world_(world), world_con
 {
 }
 
-CollisionWorld::CollisionWorld(const CollisionWorld& other, const WorldPtr& world)
-  : world_(world), world_const_(world)
+CollisionWorld::CollisionWorld(const CollisionWorld& other, const WorldPtr& world) : world_(world), world_const_(world)
 {
 }
 
-void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
-                                                         const CollisionRobot& robot,
-                                                         const robot_state::RobotState& state) const
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                    const robot_state::RobotState& state) const
 {
   robot.checkSelfCollision(req, res, state);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, robot, state);
 }
 
-void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
-                                                         const CollisionRobot& robot,
-                                                         const robot_state::RobotState& state,
-                                                         const AllowedCollisionMatrix& acm) const
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                    const robot_state::RobotState& state, const AllowedCollisionMatrix& acm) const
 {
   robot.checkSelfCollision(req, res, state, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, robot, state, acm);
 }
 
-void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
-                                                         const CollisionRobot& robot,
-                                                         const robot_state::RobotState& state1,
-                                                         const robot_state::RobotState& state2) const
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2) const
 {
   robot.checkSelfCollision(req, res, state1, state2);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
     checkRobotCollision(req, res, robot, state1, state2);
 }
 
-void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res,
-                                                         const CollisionRobot& robot,
-                                                         const robot_state::RobotState& state1,
-                                                         const robot_state::RobotState& state2,
-                                                         const AllowedCollisionMatrix& acm) const
+void CollisionWorld::checkCollision(const CollisionRequest& req, CollisionResult& res, const CollisionRobot& robot,
+                                    const robot_state::RobotState& state1, const robot_state::RobotState& state2,
+                                    const AllowedCollisionMatrix& acm) const
 {
   robot.checkSelfCollision(req, res, state1, state2, acm);
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))

@@ -43,8 +43,8 @@ const double KinematicsBase::DEFAULT_SEARCH_DISCRETIZATION = 0.1;
 const double KinematicsBase::DEFAULT_TIMEOUT = 1.0;
 
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
-                                           const std::string& base_frame, const std::string& tip_frame,
-                                           double search_discretization)
+                               const std::string& base_frame, const std::string& tip_frame,
+                               double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -56,8 +56,8 @@ void KinematicsBase::setValues(const std::string& robot_description, const std::
 }
 
 void KinematicsBase::setValues(const std::string& robot_description, const std::string& group_name,
-                                           const std::string& base_frame, const std::vector<std::string>& tip_frames,
-                                           double search_discretization)
+                               const std::string& base_frame, const std::vector<std::string>& tip_frames,
+                               double search_discretization)
 {
   robot_description_ = robot_description;
   group_name_ = group_name;
@@ -110,8 +110,7 @@ std::string KinematicsBase::removeSlash(const std::string& str) const
   return (!str.empty() && str[0] == '/') ? removeSlash(str.substr(1)) : str;
 }
 
-bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg,
-                                               std::string* error_text_out) const
+bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg, std::string* error_text_out) const
 {
   // Default implementation for legacy solvers:
   if (!jmg->isChain())
@@ -127,10 +126,9 @@ bool KinematicsBase::supportsGroup(const moveit::core::JointModelGroup* jmg,
 }
 
 bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_poses,
-                                               const std::vector<double>& ik_seed_state,
-                                               std::vector<std::vector<double> >& solutions,
-                                               KinematicsResult& result,
-                                               const KinematicsQueryOptions& options) const
+                                   const std::vector<double>& ik_seed_state,
+                                   std::vector<std::vector<double> >& solutions, KinematicsResult& result,
+                                   const KinematicsQueryOptions& options) const
 {
   std::vector<double> solution;
   result.solution_percentage = 0.0;

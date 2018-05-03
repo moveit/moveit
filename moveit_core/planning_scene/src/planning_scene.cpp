@@ -119,16 +119,14 @@ bool PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld& msg)
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
 
-PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model,
-                                             collision_detection::WorldPtr world)
+PlanningScene::PlanningScene(const robot_model::RobotModelConstPtr& robot_model, collision_detection::WorldPtr world)
   : kmodel_(robot_model), world_(world), world_const_(world)
 {
   initialize();
 }
 
 PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model,
-                                             const srdf::ModelConstSharedPtr& srdf_model,
-                                             collision_detection::WorldPtr world)
+                             const srdf::ModelConstSharedPtr& srdf_model, collision_detection::WorldPtr world)
   : world_(world), world_const_(world)
 {
   if (!urdf_model)
@@ -173,8 +171,8 @@ void PlanningScene::initialize()
 }
 
 /* return NULL on failure */
-robot_model::RobotModelPtr PlanningScene::createRobotModel(
-    const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
+robot_model::RobotModelPtr PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
+                                                           const srdf::ModelConstSharedPtr& srdf_model)
 {
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
   if (!robot_model || !robot_model->getRootJoint())
@@ -223,8 +221,7 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
   setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
 }
 
-PlanningScenePtr
-PlanningScene::clone(const PlanningSceneConstPtr& scene)
+PlanningScenePtr PlanningScene::clone(const PlanningSceneConstPtr& scene)
 {
   PlanningScenePtr result = scene->diff();
   result->decoupleParent();
@@ -244,8 +241,7 @@ PlanningScenePtr PlanningScene::diff(const moveit_msgs::PlanningScene& msg) cons
   return result;
 }
 
-void PlanningScene::CollisionDetector::copyPadding(
-    const PlanningScene::CollisionDetector& src)
+void PlanningScene::CollisionDetector::copyPadding(const PlanningScene::CollisionDetector& src)
 {
   if (!crobot_)
   {
@@ -279,8 +275,7 @@ void PlanningScene::CollisionDetector::findParent(const PlanningScene& scene)
     parent_ = it->second->parent_;
 }
 
-void PlanningScene::addCollisionDetector(
-    const collision_detection::CollisionDetectorAllocatorPtr& allocator)
+void PlanningScene::addCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator)
 {
   const std::string& name = allocator->getName();
   CollisionDetectorPtr& detector = collision_[name];
@@ -319,8 +314,8 @@ void PlanningScene::addCollisionDetector(
   }
 }
 
-void PlanningScene::setActiveCollisionDetector(
-    const collision_detection::CollisionDetectorAllocatorPtr& allocator, bool exclusive)
+void PlanningScene::setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
+                                               bool exclusive)
 {
   if (exclusive)
   {
@@ -519,7 +514,7 @@ void PlanningScene::pushDiffs(const PlanningScenePtr& scene)
 }
 
 void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
-                                                   collision_detection::CollisionResult& res)
+                                   collision_detection::CollisionResult& res)
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkCollision(req, res, getCurrentStateNonConst());
@@ -528,8 +523,8 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 }
 
 void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
-                                                   collision_detection::CollisionResult& res,
-                                                   const robot_state::RobotState& kstate) const
+                                   collision_detection::CollisionResult& res,
+                                   const robot_state::RobotState& kstate) const
 {
   // check collision with the world using the padded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, getAllowedCollisionMatrix());
@@ -542,7 +537,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 }
 
 void PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
-                                                       collision_detection::CollisionResult& res)
+                                       collision_detection::CollisionResult& res)
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkSelfCollision(req, res, getCurrentStateNonConst());
@@ -551,9 +546,8 @@ void PlanningScene::checkSelfCollision(const collision_detection::CollisionReque
 }
 
 void PlanningScene::checkCollision(const collision_detection::CollisionRequest& req,
-                                                   collision_detection::CollisionResult& res,
-                                                   const robot_state::RobotState& kstate,
-                                                   const collision_detection::AllowedCollisionMatrix& acm) const
+                                   collision_detection::CollisionResult& res, const robot_state::RobotState& kstate,
+                                   const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the padded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobot(), kstate, acm);
@@ -564,7 +558,7 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 }
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-                                                           collision_detection::CollisionResult& res)
+                                           collision_detection::CollisionResult& res)
 {
   if (getCurrentState().dirtyCollisionBodyTransforms())
     checkCollisionUnpadded(req, res, getCurrentStateNonConst(), getAllowedCollisionMatrix());
@@ -573,9 +567,9 @@ void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionR
 }
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,
-                                                           collision_detection::CollisionResult& res,
-                                                           const robot_state::RobotState& kstate,
-                                                           const collision_detection::AllowedCollisionMatrix& acm) const
+                                           collision_detection::CollisionResult& res,
+                                           const robot_state::RobotState& kstate,
+                                           const collision_detection::AllowedCollisionMatrix& acm) const
 {
   // check collision with the world using the unpadded version
   getCollisionWorld()->checkRobotCollision(req, res, *getCollisionRobotUnpadded(), kstate, acm);
@@ -596,8 +590,8 @@ void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::Cont
 }
 
 void PlanningScene::getCollidingPairs(collision_detection::CollisionResult::ContactMap& contacts,
-                                                      const robot_state::RobotState& kstate,
-                                                      const collision_detection::AllowedCollisionMatrix& acm) const
+                                      const robot_state::RobotState& kstate,
+                                      const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionRequest req;
   req.contacts = true;
@@ -616,9 +610,8 @@ void PlanningScene::getCollidingLinks(std::vector<std::string>& links)
     getCollidingLinks(links, getCurrentState(), getAllowedCollisionMatrix());
 }
 
-void PlanningScene::getCollidingLinks(std::vector<std::string>& links,
-                                                      const robot_state::RobotState& kstate,
-                                                      const collision_detection::AllowedCollisionMatrix& acm) const
+void PlanningScene::getCollidingLinks(std::vector<std::string>& links, const robot_state::RobotState& kstate,
+                                      const collision_detection::AllowedCollisionMatrix& acm) const
 {
   collision_detection::CollisionResult::ContactMap contacts;
   getCollidingPairs(contacts, kstate, acm);
@@ -656,8 +649,7 @@ robot_state::RobotState& PlanningScene::getCurrentStateNonConst()
   return *kstate_;
 }
 
-robot_state::RobotStatePtr
-PlanningScene::getCurrentStateUpdated(const moveit_msgs::RobotState& update) const
+robot_state::RobotStatePtr PlanningScene::getCurrentStateUpdated(const moveit_msgs::RobotState& update) const
 {
   robot_state::RobotStatePtr state(new robot_state::RobotState(getCurrentState()));
   robot_state::robotStateMsgToRobotState(getTransforms(), update, *state);
@@ -671,8 +663,7 @@ void PlanningScene::setAttachedBodyUpdateCallback(const robot_state::AttachedBod
     kstate_->setAttachedBodyUpdateCallback(callback);
 }
 
-void PlanningScene::setCollisionObjectUpdateCallback(
-    const collision_detection::World::ObserverCallbackFn& callback)
+void PlanningScene::setCollisionObjectUpdateCallback(const collision_detection::World::ObserverCallbackFn& callback)
 {
   if (current_world_object_update_callback_)
     world_->removeObserver(current_world_object_update_observer_handle_);
@@ -816,8 +807,7 @@ private:
 };
 }
 
-bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj,
-                                                          const std::string& ns) const
+bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collision_obj, const std::string& ns) const
 {
   collision_obj.header.frame_id = getPlanningFrame();
   collision_obj.id = ns;
@@ -847,8 +837,7 @@ bool PlanningScene::getCollisionObjectMsg(moveit_msgs::CollisionObject& collisio
   return true;
 }
 
-void PlanningScene::getCollisionObjectMsgs(
-    std::vector<moveit_msgs::CollisionObject>& collision_objs) const
+void PlanningScene::getCollisionObjectMsgs(std::vector<moveit_msgs::CollisionObject>& collision_objs) const
 {
   collision_objs.clear();
   const std::vector<std::string>& ns = world_->getObjectIds();
@@ -860,8 +849,8 @@ void PlanningScene::getCollisionObjectMsgs(
     }
 }
 
-bool PlanningScene::getAttachedCollisionObjectMsg(
-    moveit_msgs::AttachedCollisionObject& attached_collision_obj, const std::string& ns) const
+bool PlanningScene::getAttachedCollisionObjectMsg(moveit_msgs::AttachedCollisionObject& attached_collision_obj,
+                                                  const std::string& ns) const
 {
   std::vector<moveit_msgs::AttachedCollisionObject> attached_collision_objs;
   getAttachedCollisionObjectMsgs(attached_collision_objs);
@@ -943,7 +932,7 @@ void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg) c
 }
 
 void PlanningScene::getPlanningSceneMsg(moveit_msgs::PlanningScene& scene_msg,
-                                                        const moveit_msgs::PlanningSceneComponents& comp) const
+                                        const moveit_msgs::PlanningSceneComponents& comp) const
 {
   scene_msg.is_diff = false;
   if (comp.components & moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS)
@@ -1375,8 +1364,7 @@ void PlanningScene::processOctomapMsg(const octomap_msgs::OctomapWithPose& map)
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(om)), p);
 }
 
-void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree,
-                                                      const Eigen::Affine3d& t)
+void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTree>& octree, const Eigen::Affine3d& t)
 {
   collision_detection::CollisionWorld::ObjectConstPtr map = world_->getObject(OCTOMAP_NS);
   if (map)
@@ -1409,8 +1397,7 @@ void PlanningScene::processOctomapPtr(const std::shared_ptr<const octomap::OcTre
   world_->addToObject(OCTOMAP_NS, shapes::ShapeConstPtr(new shapes::OcTree(octree)), t);
 }
 
-bool PlanningScene::processAttachedCollisionObjectMsg(
-    const moveit_msgs::AttachedCollisionObject& object)
+bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::AttachedCollisionObject& object)
 {
   if (object.object.operation == moveit_msgs::CollisionObject::ADD && !getRobotModel()->hasLinkModel(object.link_name))
   {
@@ -1823,7 +1810,7 @@ const Eigen::Affine3d& PlanningScene::getFrameTransform(const std::string& id)
 }
 
 const Eigen::Affine3d& PlanningScene::getFrameTransform(const robot_state::RobotState& state,
-                                                                        const std::string& id) const
+                                                        const std::string& id) const
 {
   if (!id.empty() && id[0] == '/')
     return getFrameTransform(id.substr(1));
@@ -1849,8 +1836,7 @@ bool PlanningScene::knowsFrameTransform(const std::string& id) const
   return knowsFrameTransform(getCurrentState(), id);
 }
 
-bool PlanningScene::knowsFrameTransform(const robot_state::RobotState& state,
-                                                        const std::string& id) const
+bool PlanningScene::knowsFrameTransform(const robot_state::RobotState& state, const std::string& id) const
 {
   if (!id.empty() && id[0] == '/')
     return knowsFrameTransform(id.substr(1));
@@ -1888,8 +1874,7 @@ const object_recognition_msgs::ObjectType& PlanningScene::getObjectType(const st
   return empty;
 }
 
-void PlanningScene::setObjectType(const std::string& id,
-                                                  const object_recognition_msgs::ObjectType& type)
+void PlanningScene::setObjectType(const std::string& id, const object_recognition_msgs::ObjectType& type)
 {
   if (!object_types_)
     object_types_.reset(new ObjectTypeMap());
@@ -1964,8 +1949,7 @@ void PlanningScene::removeObjectColor(const std::string& id)
     object_colors_->erase(id);
 }
 
-bool PlanningScene::isStateColliding(const moveit_msgs::RobotState& state, const std::string& group,
-                                                     bool verbose) const
+bool PlanningScene::isStateColliding(const moveit_msgs::RobotState& state, const std::string& group, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
@@ -1980,8 +1964,7 @@ bool PlanningScene::isStateColliding(const std::string& group, bool verbose)
     return isStateColliding(getCurrentState(), group, verbose);
 }
 
-bool PlanningScene::isStateColliding(const robot_state::RobotState& state, const std::string& group,
-                                                     bool verbose) const
+bool PlanningScene::isStateColliding(const robot_state::RobotState& state, const std::string& group, bool verbose) const
 {
   collision_detection::CollisionRequest req;
   req.verbose = verbose;
@@ -2009,16 +1992,16 @@ bool PlanningScene::isStateFeasible(const robot_state::RobotState& state, bool v
   return true;
 }
 
-bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
-                                                       const moveit_msgs::Constraints& constr, bool verbose) const
+bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state, const moveit_msgs::Constraints& constr,
+                                       bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateConstrained(s, constr, verbose);
 }
 
-bool PlanningScene::isStateConstrained(const robot_state::RobotState& state,
-                                                       const moveit_msgs::Constraints& constr, bool verbose) const
+bool PlanningScene::isStateConstrained(const robot_state::RobotState& state, const moveit_msgs::Constraints& constr,
+                                       bool verbose) const
 {
   kinematic_constraints::KinematicConstraintSetPtr ks(
       new kinematic_constraints::KinematicConstraintSet(getRobotModel()));
@@ -2030,8 +2013,7 @@ bool PlanningScene::isStateConstrained(const robot_state::RobotState& state,
 }
 
 bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
-                                                       const kinematic_constraints::KinematicConstraintSet& constr,
-                                                       bool verbose) const
+                                       const kinematic_constraints::KinematicConstraintSet& constr, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
@@ -2039,38 +2021,33 @@ bool PlanningScene::isStateConstrained(const moveit_msgs::RobotState& state,
 }
 
 bool PlanningScene::isStateConstrained(const robot_state::RobotState& state,
-                                                       const kinematic_constraints::KinematicConstraintSet& constr,
-                                                       bool verbose) const
+                                       const kinematic_constraints::KinematicConstraintSet& constr, bool verbose) const
 {
   return constr.decide(state, verbose).satisfied;
 }
 
-bool PlanningScene::isStateValid(const robot_state::RobotState& state, const std::string& group,
-                                                 bool verbose) const
+bool PlanningScene::isStateValid(const robot_state::RobotState& state, const std::string& group, bool verbose) const
 {
   static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, group, verbose);
 }
 
-bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const std::string& group,
-                                                 bool verbose) const
+bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const std::string& group, bool verbose) const
 {
   static const moveit_msgs::Constraints emp_constraints;
   return isStateValid(state, emp_constraints, group, verbose);
 }
 
-bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state,
-                                                 const moveit_msgs::Constraints& constr, const std::string& group,
-                                                 bool verbose) const
+bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const moveit_msgs::Constraints& constr,
+                                 const std::string& group, bool verbose) const
 {
   robot_state::RobotState s(getCurrentState());
   robot_state::robotStateMsgToRobotState(getTransforms(), state, s);
   return isStateValid(s, constr, group, verbose);
 }
 
-bool PlanningScene::isStateValid(const robot_state::RobotState& state,
-                                                 const moveit_msgs::Constraints& constr, const std::string& group,
-                                                 bool verbose) const
+bool PlanningScene::isStateValid(const robot_state::RobotState& state, const moveit_msgs::Constraints& constr,
+                                 const std::string& group, bool verbose) const
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -2080,8 +2057,8 @@ bool PlanningScene::isStateValid(const robot_state::RobotState& state,
 }
 
 bool PlanningScene::isStateValid(const robot_state::RobotState& state,
-                                                 const kinematic_constraints::KinematicConstraintSet& constr,
-                                                 const std::string& group, bool verbose) const
+                                 const kinematic_constraints::KinematicConstraintSet& constr, const std::string& group,
+                                 bool verbose) const
 {
   if (isStateColliding(state, group, verbose))
     return false;
@@ -2091,9 +2068,8 @@ bool PlanningScene::isStateValid(const robot_state::RobotState& state,
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
-                                                const moveit_msgs::RobotTrajectory& trajectory,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::RobotTrajectory& trajectory, const std::string& group, bool verbose,
+                                std::vector<std::size_t>* invalid_index) const
 {
   static const moveit_msgs::Constraints emp_constraints;
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
@@ -2101,32 +2077,29 @@ bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
-                                                const moveit_msgs::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(start_state, trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
-                                                const moveit_msgs::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const moveit_msgs::Constraints& goal_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const moveit_msgs::Constraints& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   std::vector<moveit_msgs::Constraints> goal_constraints_vector(1, goal_constraints);
   return isPathValid(start_state, trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
-                                                const moveit_msgs::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::vector<moveit_msgs::Constraints>& goal_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::RobotTrajectory& trajectory,
+                                const moveit_msgs::Constraints& path_constraints,
+                                const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   robot_trajectory::RobotTrajectory t(getRobotModel(), group);
   robot_state::RobotState start(getCurrentState());
@@ -2136,10 +2109,9 @@ bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
 }
 
 bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::vector<moveit_msgs::Constraints>& goal_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::Constraints& path_constraints,
+                                const std::vector<moveit_msgs::Constraints>& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   bool result = true;
   if (invalid_index)
@@ -2194,45 +2166,39 @@ bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& traject
 }
 
 bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const moveit_msgs::Constraints& goal_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::Constraints& path_constraints,
+                                const moveit_msgs::Constraints& goal_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   std::vector<moveit_msgs::Constraints> goal_constraints_vector(1, goal_constraints);
   return isPathValid(trajectory, path_constraints, goal_constraints_vector, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
-                                                const moveit_msgs::Constraints& path_constraints,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+                                const moveit_msgs::Constraints& path_constraints, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
-bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory,
-                                                const std::string& group, bool verbose,
-                                                std::vector<std::size_t>* invalid_index) const
+bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory, const std::string& group,
+                                bool verbose, std::vector<std::size_t>* invalid_index) const
 {
   static const moveit_msgs::Constraints emp_constraints;
   static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
   return isPathValid(trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
 }
 
-void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory,
-                                                   std::size_t max_costs,
-                                                   std::set<collision_detection::CostSource>& costs,
-                                                   double overlap_fraction) const
+void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory, std::size_t max_costs,
+                                   std::set<collision_detection::CostSource>& costs, double overlap_fraction) const
 {
   getCostSources(trajectory, max_costs, std::string(), costs, overlap_fraction);
 }
 
-void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory,
-                                                   std::size_t max_costs, const std::string& group_name,
-                                                   std::set<collision_detection::CostSource>& costs,
-                                                   double overlap_fraction) const
+void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory, std::size_t max_costs,
+                                   const std::string& group_name, std::set<collision_detection::CostSource>& costs,
+                                   double overlap_fraction) const
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
@@ -2265,14 +2231,14 @@ void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& traj
 }
 
 void PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
-                                                   std::set<collision_detection::CostSource>& costs) const
+                                   std::set<collision_detection::CostSource>& costs) const
 {
   getCostSources(state, max_costs, std::string(), costs);
 }
 
 void PlanningScene::getCostSources(const robot_state::RobotState& state, std::size_t max_costs,
-                                                   const std::string& group_name,
-                                                   std::set<collision_detection::CostSource>& costs) const
+                                   const std::string& group_name,
+                                   std::set<collision_detection::CostSource>& costs) const
 {
   collision_detection::CollisionRequest creq;
   creq.max_cost_sources = max_costs;
