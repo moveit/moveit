@@ -384,6 +384,10 @@ protected:
         "<chain base_link=\"base_link\" tip_link=\"link_b\"/>"
         "<joint name=\"base_joint\"/>"
         "</group>"
+        "<group name=\"base_from_base_to_e\">"
+        "<chain base_link=\"base_link\" tip_link=\"link_e\"/>"
+        "<joint name=\"base_joint\"/>"
+        "</group>"
         "<group name=\"base_with_bad_subgroups\">"
         "<group name=\"error\"/>"
         "</group>"
@@ -567,68 +571,145 @@ TEST_F(OneRobot, FK)
   EXPECT_NEAR_TRACED(state.getGlobalLinkTransform("link_e").translation(), Eigen::Vector3d(2.8, 0.6, 0));
 }
 
-void generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
-                      const moveit::core::RobotModelConstPtr& robot_model,
-                      const robot_model::JointModelGroup* joint_model_group)
+std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState>>& traj,
+                             const moveit::core::RobotModelConstPtr& robot_model,
+                             const robot_model::JointModelGroup* joint_model_group)
 {
   traj.clear();
 
-  // 3 waypoints with default joints
   std::shared_ptr<robot_state::RobotState> robot_state(new robot_state::RobotState(robot_model));
   robot_state->setToDefaultValues();
+  double ja, jc;
+
+  // 3 waypoints with default joints
   for (std::size_t traj_ix = 0; traj_ix < 3; ++traj_ix)
     traj.push_back(robot_state);
 
-  // 4th waypoint with a large jump of 1.01 in first joint
+  // 4th waypoint with a small jump of 0.01 in revolute joint and prismatic joint. This should not be considered a jump
   robot_state.reset(new robot_state::RobotState(*robot_state));
-  std::vector<double> joint_positions;
-  robot_state->copyJointGroupPositions(joint_model_group, joint_positions);
-  // first joint is planar (3DoF), second joint is revolute
-  joint_positions[3] -= 1.01;
-  robot_state->setJointGroupPositions(joint_model_group, joint_positions);
+  robot_state->setToDefaultValues();
+  ja = robot_state->getVariablePosition("joint_a");
+  robot_state->setVariablePosition("joint_a", ja - 0.01);
+  jc = robot_state->getVariablePosition("joint_c");
+  robot_state->setVariablePosition("joint_c", jc - 0.01);
   traj.push_back(robot_state);
+
+  // 5th waypoint with a large jump of 1.01 in first revolute joint
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  robot_state->setToDefaultValues();
+  ja = robot_state->getVariablePosition("joint_a");
+  robot_state->setVariablePosition("joint_a", ja + 1.0);
+  jc = robot_state->getVariablePosition("joint_c");
+  robot_state->setVariablePosition("joint_c", jc - 0.01);
+  traj.push_back(robot_state);
+
+  // 6th waypoint with a large jump of 1.01 in first prismatic joint
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  robot_state->setToDefaultValues();
+  ja = robot_state->getVariablePosition("joint_a");
+  robot_state->setVariablePosition("joint_a", ja + 1.0);
+  jc = robot_state->getVariablePosition("joint_c");
+  robot_state->setVariablePosition("joint_c", jc + 1.0);
+  traj.push_back(robot_state);
+
+  // 7th waypoint with no jump
+  robot_state.reset(new robot_state::RobotState(*robot_state));
+  robot_state->setToDefaultValues();
+  ja = robot_state->getVariablePosition("joint_a");
+  robot_state->setVariablePosition("joint_a", ja + 1.0);
+  jc = robot_state->getVariablePosition("joint_c");
+  robot_state->setVariablePosition("joint_c", jc + 1.0);
+  traj.push_back(robot_state);
+
+  return traj.size();
 }
 
 TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 {
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_tip");
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+  // generate a test trajectory of len 4 with all zeros except one large jump at the last waypoint
+  std::size_t traj_len = generateTestTraj(traj, robot_model, joint_model_group);
 
-  // direct call of absolute version
-  generateTestTraj(traj, robot_model, joint_model_group);
-  double fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+  // The absolute jump of -1.01 occurs at the 4th waypoint for a revolute joint and at the 5th waypoint for in a
+  // prismatic joint
+  std::size_t expected_absolute_revolute_jump_traj_len = 4;
+  std::size_t expected_absolute_prismatic_jump_traj_len = 5;
+  std::size_t expected_full_traj_len = 7;
 
-  // indirect call
-  generateTestTraj(traj, robot_model, joint_model_group);
+  // Containers for results
+  std::size_t full_traj_len;
+  double fraction;
+
+  // Direct call of absolute version
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testAbsoluteJointSpaceJump(joint_model_group, traj, 1.0, 1.0);
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);                  // full traj should be 7 waypoints long
+  EXPECT_EQ(traj.size(), expected_absolute_revolute_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_absolute_revolute_jump_traj_len / (double)full_traj_len, 0.01);
+
+  // Indirect call using testJointSpaceJumps
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);                  // full traj should be 7 waypoints long
+  EXPECT_EQ(traj.size(), expected_absolute_revolute_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_absolute_revolute_jump_traj_len / (double)full_traj_len, 0.01);
 
-  // ignore revolute joints
-  generateTestTraj(traj, robot_model, joint_model_group);
+  // Ignore prismatic joints
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 0.0));
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);                  // full traj should be 7 waypoints long
+  EXPECT_EQ(traj.size(), expected_absolute_revolute_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_absolute_revolute_jump_traj_len / (double)expected_full_traj_len, 0.01);
+
+  // Ignore revolute joints
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 1.0));
-  EXPECT_EQ(traj.size(), 4);  // traj should not be cut
-  EXPECT_NEAR(fraction, 4. / 4., 0.01);
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);                   // full traj should be 7 waypoints long
+  EXPECT_EQ(traj.size(), expected_absolute_prismatic_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_absolute_prismatic_jump_traj_len / (double)expected_full_traj_len, 0.01);
+
+  // Ignore all joints
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 0.0));
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);  // full traj should be 7 waypoints long
+  EXPECT_EQ(traj.size(), expected_full_traj_len);    // traj should be cut
+  EXPECT_NEAR(fraction, 1.0, 0.01);
 }
 
 TEST_F(OneRobot, testRelativeJointSpaceJump)
 {
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_tip");
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
-  // direct call of absolute version: factor slightly smaller than 3 (1.01 > 2.99 * 1.01 / 3)
-  generateTestTraj(traj, robot_model, joint_model_group);
-  double fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 2.99);
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+  // The first large jump of -1.00 occurs at the 5th waypoint so the test should trim the trajectory to lenght 4
+  std::size_t expected_relative_jump_traj_len = 4;
+  std::size_t expected_full_traj_len = 7;
 
-  // indirect call
-  generateTestTraj(traj, robot_model, joint_model_group);
-  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.99));
-  EXPECT_EQ(traj.size(), 3);  // traj should be cut
-  EXPECT_NEAR(fraction, 3. / 4., 0.01);
+  // Containers for results
+  std::size_t full_traj_len;
+  double fraction;
+
+  // Direct call of relative version
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 1.0);
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);         // full traj should be 6 waypoints long
+  EXPECT_EQ(traj.size(), expected_relative_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_relative_jump_traj_len / (double)full_traj_len, 0.01);
+
+  // Indirect call of relative version using testJointSpaceJumps
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0));
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);         // full traj should be 6 waypoints long
+  EXPECT_EQ(traj.size(), expected_relative_jump_traj_len);  // traj should be cut
+  EXPECT_NEAR(fraction, (double)expected_relative_jump_traj_len / (double)full_traj_len, 0.01);
+
+  // An absurdly high jump threshold factor. Trajectory should not be cut
+  full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+  fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(100.0));
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);  // full traj should be 6 waypoints long
+  EXPECT_EQ(traj.size(), expected_full_traj_len);    // traj should not be cut
+  EXPECT_NEAR(fraction, 1.0, 0.01);
 }
 
 int main(int argc, char** argv)
