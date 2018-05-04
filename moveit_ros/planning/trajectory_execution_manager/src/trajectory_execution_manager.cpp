@@ -71,7 +71,7 @@ private:
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
-    owner_->enableValidateTrajectory(config.validate_trajectory_complete);
+    owner_->enableValidateTrajectoryExecution(config.validate_trajectory_complete);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -215,7 +215,7 @@ void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
   allowed_start_tolerance_ = tolerance;
 }
 
-void TrajectoryExecutionManager::enableValidateTrajectory(bool flag)
+void TrajectoryExecutionManager::enableValidateTrajectoryExecution(bool flag)
 {
   validate_trajectory_complete_ = flag;
 }
@@ -946,7 +946,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
 {
   // skip validation
   if (not validate_trajectory_complete_) {
-    ROS_DEBUG_NAMED(name_, "Not validating trajectory ");
+    ROS_DEBUG_NAMED(name_, "Not validating if trajectory execution is complete");
     return true;
   }
 
@@ -1539,7 +1539,7 @@ bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionCon
 {
   // skip validation
   if (not validate_trajectory_complete_) {
-    ROS_DEBUG_NAMED(name_, "Not validating trajectory ");
+    ROS_DEBUG_NAMED(name_, "Not validating if trajectory execution is complete");
     return true;
   }
 
