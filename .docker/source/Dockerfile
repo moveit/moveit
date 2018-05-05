@@ -1,8 +1,8 @@
-# moveit/moveit:kinetic-source
+# moveit/moveit:melodic-source
 # Downloads the moveit source code, install remaining debian dependencies, and builds workspace
 
-FROM moveit/moveit:kinetic-ci-shadow-fixed
-MAINTAINER Dave Coleman dave@dav.ee
+FROM moveit/moveit:melodic-ci-shadow-fixed
+MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV CATKIN_WS=/root/ws_moveit
 RUN mkdir -p $CATKIN_WS/src
@@ -14,7 +14,7 @@ RUN wstool init . && \
     wstool update
 
 # Update apt-get because osrf image clears this cache. download deps
-# Note that because we're building on top of kinetic-ci, there should not be any deps installed
+# Note that because we're building on top of melodic-ci, there should not be any deps installed
 # unless something has changed in the source code since the other container was made
 # (they are triggered together so should only be one-build out of sync)
 RUN apt-get -qq update && \

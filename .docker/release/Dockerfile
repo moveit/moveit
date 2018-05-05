@@ -1,8 +1,8 @@
-# moveit/moveit:kinetic-release
+# moveit/moveit:melodic-release
 # Full debian-based install of MoveIt! using apt-get
 
-FROM moveit/moveit:kinetic-ci
-MAINTAINER Dave Coleman dave@dav.ee
+FROM moveit/moveit:melodic-ci
+MAINTAINER Dave Coleman dave@picknik.ai
 
 # Commands are combined in single RUN statement with "lists" folder removal to reduce image size
 RUN apt-get update && \
