@@ -288,14 +288,14 @@ public:
     {
       if (execute_service_.exists())
       {
-        ROS_WARN_NAMED("planning_interface",
+        ROS_WARN_NAMED("move_group_interface",
                        "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
                        "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in "
                        "move_group.launch");
       }
       else
       {
-        ROS_ERROR_STREAM_NAMED("planning_interface",
+        ROS_ERROR_STREAM_NAMED("move_group_interface",
                                "Unable to find execution action on topic: "
                                    << node_handle_.getNamespace() + move_group::EXECUTE_ACTION_NAME << " or service: "
                                    << node_handle_.getNamespace() + move_group::EXECUTE_SERVICE_NAME);
@@ -481,8 +481,8 @@ public:
         }
         else
         {
-          logError("Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
-                   getRobotModel()->getModelFrame().c_str());
+          ROS_ERROR_NAMED("move_group_interface", "Unable to transform from frame '%s' to frame '%s'", frame.c_str(),
+                          getRobotModel()->getModelFrame().c_str());
           return false;
         }
       }

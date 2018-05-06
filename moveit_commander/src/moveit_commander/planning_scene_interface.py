@@ -57,9 +57,9 @@ except:
 class PlanningSceneInterface(object):
     """ Simple interface to making updates to a planning scene """
 
-    def __init__(self):
+    def __init__(self, ns=''):
         """ Create a planning scene interface; it uses both C++ wrapped methods and scene manipulation topics. """
-        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface()
+        self._psi = _moveit_planning_scene_interface.PlanningSceneInterface(ns)
 
         self._pub_co = rospy.Publisher('/collision_object', CollisionObject, queue_size=100)
         self._pub_aco = rospy.Publisher('/attached_collision_object', AttachedCollisionObject, queue_size=100)
@@ -78,7 +78,7 @@ class PlanningSceneInterface(object):
 
     def add_sphere(self, name, pose, radius = 1):
         """
-        Add a sphere to the planning scene 
+        Add a sphere to the planning scene
         """
         self._pub_co.publish(self.__make_sphere(name, pose, radius))
 
@@ -93,7 +93,7 @@ class PlanningSceneInterface(object):
         co.primitives = [box]
         co.primitive_poses = [pose.pose]
         return co
-    
+
     def __make_mesh(self, name, pose, filename, scale = (1, 1, 1)):
         co = CollisionObject()
         if pyassimp is False:
@@ -106,7 +106,7 @@ class PlanningSceneInterface(object):
         co.operation = CollisionObject.ADD
         co.id = name
         co.header = pose.header
-        
+
         mesh = Mesh()
         first_face = scene.meshes[0].faces[0]
         if hasattr(first_face, '__len__'):
@@ -135,10 +135,10 @@ class PlanningSceneInterface(object):
         co.mesh_poses = [pose.pose]
         pyassimp.release(scene)
         return co
-    
+
     def __make_existing(self, name):
         """
-        Create an empty Collision Object, used when the object already exists 
+        Create an empty Collision Object, used when the object already exists
         """
         co = CollisionObject()
         co.id = name
@@ -152,7 +152,7 @@ class PlanningSceneInterface(object):
 
     def add_box(self, name, pose, size = (1, 1, 1)):
         """
-        Add a box to the planning scene 
+        Add a box to the planning scene
         """
         self._pub_co.publish(self.__make_box(name, pose, size))
 
@@ -168,7 +168,7 @@ class PlanningSceneInterface(object):
         co.planes = [p]
         co.plane_poses = [pose.pose]
         self._pub_co.publish(co)
-        
+
     def attach_mesh(self, link, name, pose = None, filename = '', size = (1, 1, 1), touch_links = []):
         aco = AttachedCollisionObject()
         if pose!=None and filename:
@@ -196,7 +196,7 @@ class PlanningSceneInterface(object):
 
     def remove_world_object(self, name = None):
         """
-        Remove an object from planning scene, or all if no name is provided         
+        Remove an object from planning scene, or all if no name is provided
         """
         co = CollisionObject()
         co.operation = CollisionObject.REMOVE
@@ -206,7 +206,7 @@ class PlanningSceneInterface(object):
 
     def remove_attached_object(self, link, name = None):
         """
-        Remove an attached object from planning scene, or all objects attached to this link if no name is provided             
+        Remove an attached object from planning scene, or all objects attached to this link if no name is provided
         """
         aco = AttachedCollisionObject()
         aco.object.operation = CollisionObject.REMOVE
@@ -238,7 +238,7 @@ class PlanningSceneInterface(object):
             msg = Pose()
             conversions.msg_from_string(msg, ser_ops[key])
             ops[key] = msg
-        return ops 
+        return ops
 
     def get_objects(self, object_ids = []):
         """
@@ -250,7 +250,7 @@ class PlanningSceneInterface(object):
             msg = CollisionObject()
             conversions.msg_from_string(msg, ser_objs[key])
             objs[key] = msg
-        return objs 
+        return objs
 
     def get_attached_objects(self, object_ids = []):
         """
@@ -262,4 +262,4 @@ class PlanningSceneInterface(object):
             msg = AttachedCollisionObject()
             conversions.msg_from_string(msg, ser_aobjs[key])
             aobjs[key] = msg
-        return aobjs 
+        return aobjs

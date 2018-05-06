@@ -449,8 +449,9 @@ void collision_detection::getProximityGradientMarkers(
 {
   if (gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size())
   {
-    logWarn("Size mismatch between gradients %u and decompositions %u", (unsigned int)gradients.size(),
-            (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
+    ROS_WARN_NAMED("collision_distance_field", "Size mismatch between gradients %u and decompositions %u",
+                   (unsigned int)gradients.size(),
+                   (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
     return;
   }
   for (unsigned int i = 0; i < gradients.size(); i++)
@@ -482,12 +483,14 @@ void collision_detection::getProximityGradientMarkers(
         }
         else
         {
-          logDebug("Negative length for %u %d %lf", i, arrow_mark.id, gradients[i].gradients[j].norm());
+          ROS_DEBUG_NAMED("collision_distance_field", "Negative length for %u %d %lf", i, arrow_mark.id,
+                          gradients[i].gradients[j].norm());
         }
       }
       else
       {
-        logDebug("Negative dist %lf for %u %d", gradients[i].distances[j], i, arrow_mark.id);
+        ROS_DEBUG_NAMED("collision_distance_field", "Negative dist %lf for %u %d", gradients[i].distances[j], i,
+                        arrow_mark.id);
       }
       arrow_mark.points.resize(2);
       if (i < posed_decompositions.size())
@@ -549,8 +552,8 @@ void collision_detection::getCollisionMarkers(
 {
   if (gradients.size() != posed_decompositions.size() + posed_vector_decompositions.size())
   {
-    logWarn("Size mismatch between gradients %u and decompositions ", (unsigned int)gradients.size(),
-            (unsigned int)(posed_decompositions.size() + posed_vector_decompositions.size()));
+    ROS_WARN_NAMED("collision_distance_field", "Size mismatch between gradients %zu and decompositions %zu",
+                   gradients.size(), posed_decompositions.size() + posed_vector_decompositions.size());
     return;
   }
   for (unsigned int i = 0; i < gradients.size(); i++)

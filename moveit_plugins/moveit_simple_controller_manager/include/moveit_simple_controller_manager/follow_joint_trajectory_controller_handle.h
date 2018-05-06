@@ -58,21 +58,21 @@ public:
 
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory& trajectory)
   {
-    ROS_DEBUG_STREAM("FollowJointTrajectoryController: new trajectory to " << name_);
+    ROS_DEBUG_STREAM_NAMED("FollowJointTrajectoryController", "new trajectory to " << name_);
 
     if (!controller_action_client_)
       return false;
 
     if (!trajectory.multi_dof_joint_trajectory.points.empty())
     {
-      ROS_WARN("FollowJointTrajectoryController: %s cannot execute multi-dof trajectories.", name_.c_str());
+      ROS_WARN_NAMED("FollowJointTrajectoryController", "%s cannot execute multi-dof trajectories.", name_.c_str());
     }
 
     if (done_)
-      ROS_DEBUG_STREAM("FollowJointTrajectoryController: sending trajectory to " << name_);
+      ROS_DEBUG_STREAM_NAMED("FollowJointTrajectoryController", "sending trajectory to " << name_);
     else
-      ROS_DEBUG_STREAM("FollowJointTrajectoryController: sending continuation for the currently executed trajectory to "
-                       << name_);
+      ROS_DEBUG_STREAM_NAMED("FollowJointTrajectoryController",
+                             "sending continuation for the currently executed trajectory to " << name_);
 
     control_msgs::FollowJointTrajectoryGoal goal;
     goal.trajectory = trajectory.joint_trajectory;
@@ -121,7 +121,7 @@ protected:
 
   void controllerActiveCallback()
   {
-    ROS_DEBUG_STREAM("FollowJointTrajectoryController: " << name_ << " started execution");
+    ROS_DEBUG_STREAM_NAMED("FollowJointTrajectoryController", name_ << " started execution");
   }
 
   void controllerFeedbackCallback(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)

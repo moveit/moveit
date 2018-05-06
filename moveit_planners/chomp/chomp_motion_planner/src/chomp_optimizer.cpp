@@ -201,10 +201,12 @@ void ChompOptimizer::initialize()
     fixed_link_resolution_map[joint_names_[i]] = joint_names_[i];
   }
 
-  for (size_t i = 0; i < joint_model_group_->getFixedJointModels().size(); i++)
+  for (const moveit::core::JointModel* jm : joint_model_group_->getFixedJointModels())
   {
-    const moveit::core::JointModel* model = joint_model_group_->getFixedJointModels()[i];
-    fixed_link_resolution_map[model->getName()] = model->getParentLinkModel()->getParentJointModel()->getName();
+    if (!jm->getParentLinkModel())  // root joint doesn't have a parent
+      continue;
+
+    fixed_link_resolution_map[jm->getName()] = jm->getParentLinkModel()->getParentJointModel()->getName();
   }
 
   // TODO - is this just the joint_roots_?

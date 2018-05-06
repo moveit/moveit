@@ -140,6 +140,17 @@ public:
     return 0.0;
   }
 
+  virtual void distanceRobot(const DistanceRequest& req, DistanceResult& res, const CollisionRobot& robot,
+                             const robot_state::RobotState& state) const
+  {
+    ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
+  }
+
+  virtual void distanceWorld(const DistanceRequest& req, DistanceResult& res, const CollisionWorld& world) const
+  {
+    ROS_ERROR_NAMED("collision_distance_field", "Not implemented");
+  }
+
   virtual void setWorld(const WorldPtr& world);
 
   void generateEnvironmentDistanceField(bool redo = true);

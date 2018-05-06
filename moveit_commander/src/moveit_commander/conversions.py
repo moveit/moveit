@@ -50,7 +50,7 @@ def pose_to_list(pose_msg):
     pose = []
     pose.append(pose_msg.position.x)
     pose.append(pose_msg.position.y)
-    pose.append(pose_msg.position.z) 
+    pose.append(pose_msg.position.z)
     pose.append(pose_msg.orientation.x)
     pose.append(pose_msg.orientation.y)
     pose.append(pose_msg.orientation.z)
@@ -67,7 +67,7 @@ def list_to_pose(pose_list):
         pose_msg.orientation.y = pose_list[4]
         pose_msg.orientation.z = pose_list[5]
         pose_msg.orientation.w = pose_list[6]
-    elif len(pose_list) == 6: 
+    elif len(pose_list) == 6:
         pose_msg.position.x = pose_list[0]
         pose_msg.position.y = pose_list[1]
         pose_msg.position.z = pose_list[2]
@@ -91,7 +91,7 @@ def transform_to_list(trf_msg):
     trf = []
     trf.append(trf_msg.translation.x)
     trf.append(trf_msg.translation.y)
-    trf.append(trf_msg.translation.z) 
+    trf.append(trf_msg.translation.z)
     trf.append(trf_msg.rotation.x)
     trf.append(trf_msg.rotation.y)
     trf.append(trf_msg.rotation.z)

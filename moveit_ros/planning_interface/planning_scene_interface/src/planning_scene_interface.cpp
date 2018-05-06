@@ -48,8 +48,9 @@ namespace planning_interface
 class PlanningSceneInterface::PlanningSceneInterfaceImpl
 {
 public:
-  PlanningSceneInterfaceImpl()
+  explicit PlanningSceneInterfaceImpl(const std::string& ns = "")
   {
+    node_handle_ = ros::NodeHandle(ns);
     planning_scene_service_ =
         node_handle_.serviceClient<moveit_msgs::GetPlanningScene>(move_group::GET_PLANNING_SCENE_SERVICE_NAME);
     apply_planning_scene_service_ =
@@ -268,9 +269,9 @@ private:
   robot_model::RobotModelConstPtr robot_model_;
 };
 
-PlanningSceneInterface::PlanningSceneInterface()
+PlanningSceneInterface::PlanningSceneInterface(const std::string& ns)
 {
-  impl_ = new PlanningSceneInterfaceImpl();
+  impl_ = new PlanningSceneInterfaceImpl(ns);
 }
 
 PlanningSceneInterface::~PlanningSceneInterface()

@@ -214,9 +214,8 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
   // This is needed to prevent UI event (resuming the options) triggered
   // before getRobotInteraction() is loaded and ready
   if (first_time_)
-  {
     return;
-  }
+
   planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
   planning_display_->toggleSelectPlanningGroupSubscription(enable);
   if (enable)
@@ -343,12 +342,11 @@ void MotionPlanningFrame::changePlanningGroupHelper()
           planning_display_->setQueryStartState(ps->getCurrentState());
           planning_display_->setQueryGoalState(ps->getCurrentState());
         }
-        // This ensures subscribers enabled after getRobotInteraction() is loaded and ready
+        // This ensures saved UI settings applied after planning_display_ is ready
+        planning_display_->useApproximateIK(ui_->approximate_ik->isChecked());
         if (ui_->allow_external_program->isChecked())
-        {
           planning_display_->addMainLoopJob(
               boost::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
-        }
       }
     }
   }
