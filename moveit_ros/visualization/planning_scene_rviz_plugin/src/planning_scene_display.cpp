@@ -487,7 +487,7 @@ void PlanningSceneDisplay::unsetLinkColor(rviz::Robot* robot, const std::string&
 planning_scene_monitor::PlanningSceneMonitorPtr PlanningSceneDisplay::createPlanningSceneMonitor()
 {
   return planning_scene_monitor::PlanningSceneMonitorPtr(new planning_scene_monitor::PlanningSceneMonitor(
-      robot_description_property_->getStdString(), context_->getFrameManager()->getTFClientPtr()->getTF2BufferPtr(),
+      robot_description_property_->getStdString(), context_->getFrameManager()->getTF2BufferPtr(),
       getNameStd() + "_planning_scene_monitor"));
 }
 
