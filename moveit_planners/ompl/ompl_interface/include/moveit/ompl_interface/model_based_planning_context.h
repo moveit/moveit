@@ -67,7 +67,6 @@ typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_ty
 struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
-  ConfiguredPlannerSelector planner_selector_;
   ConstraintsLibraryConstPtr constraints_library_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
@@ -308,6 +307,16 @@ public:
 
   virtual void configure();
 
+  void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
+  {
+    known_planners_[planner_id] = pa;
+  }
+
+  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators() const
+  {
+    return known_planners_;
+  }
+
 protected:
   void preSolve();
   void postSolve();
@@ -322,6 +331,10 @@ protected:
 
   void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
+
+  ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
+
+  void registerDefaultPlanners();
 
   ModelBasedPlanningContextSpecification spec_;
 
@@ -376,6 +389,8 @@ protected:
   bool use_state_validity_cache_;
 
   bool simplify_solutions_;
+
+  std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
 };
 }
 

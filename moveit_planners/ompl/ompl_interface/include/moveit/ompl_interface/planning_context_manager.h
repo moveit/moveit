@@ -150,19 +150,9 @@ public:
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
-  {
-    known_planners_[planner_id] = pa;
-  }
-
   void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr& factory)
   {
     state_space_factories_[factory->getType()] = factory;
-  }
-
-  const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators() const
-  {
-    return known_planners_;
   }
 
   const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories() const
@@ -170,14 +160,10 @@ public:
     return state_space_factories_;
   }
 
-  ConfiguredPlannerSelector getPlannerSelector() const;
 
 protected:
   typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
 
-  ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
-
-  void registerDefaultPlanners();
   void registerDefaultStateSpaces();
 
   /** \brief This is the function that constructs new planning contexts if no previous ones exist that are suitable */
@@ -195,7 +181,6 @@ protected:
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
-  std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
 
   /** \brief All the existing planning configurations. The name
