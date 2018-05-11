@@ -65,77 +65,6 @@ public:
     return planner_configs_;
   }
 
-  /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
-  unsigned int getMaximumStateSamplingAttempts() const
-  {
-    return max_state_sampling_attempts_;
-  }
-
-  /* \brief Set the maximum number of sampling attempts allowed when sampling states is needed */
-  void setMaximumStateSamplingAttempts(unsigned int max_state_sampling_attempts)
-  {
-    max_state_sampling_attempts_ = max_state_sampling_attempts;
-  }
-
-  /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
-  unsigned int getMaximumGoalSamplingAttempts() const
-  {
-    return max_goal_sampling_attempts_;
-  }
-
-  /* \brief Set the maximum number of sampling attempts allowed when sampling goals is needed */
-  void setMaximumGoalSamplingAttempts(unsigned int max_goal_sampling_attempts)
-  {
-    max_goal_sampling_attempts_ = max_goal_sampling_attempts;
-  }
-
-  /* \brief Get the maximum number of goal samples */
-  unsigned int getMaximumGoalSamples() const
-  {
-    return max_goal_samples_;
-  }
-
-  /* \brief Set the maximum number of goal samples */
-  void setMaximumGoalSamples(unsigned int max_goal_samples)
-  {
-    max_goal_samples_ = max_goal_samples;
-  }
-
-  /* \brief Get the maximum number of planning threads allowed */
-  unsigned int getMaximumPlanningThreads() const
-  {
-    return max_planning_threads_;
-  }
-
-  /* \brief Set the maximum number of planning threads */
-  void setMaximumPlanningThreads(unsigned int max_planning_threads)
-  {
-    max_planning_threads_ = max_planning_threads;
-  }
-
-  /* \brief Get the maximum solution segment length */
-  double getMaximumSolutionSegmentLength() const
-  {
-    return max_solution_segment_length_;
-  }
-
-  /* \brief Set the maximum solution segment length */
-  void setMaximumSolutionSegmentLength(double mssl)
-  {
-    max_solution_segment_length_ = mssl;
-  }
-
-  unsigned int getMinimumWaypointCount() const
-  {
-    return minimum_waypoint_count_;
-  }
-
-  /** \brief Get the minimum number of waypoints along the solution path */
-  void setMinimumWaypointCount(unsigned int mwc)
-  {
-    minimum_waypoint_count_ = mwc;
-  }
-
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return kmodel_;
@@ -159,7 +88,6 @@ public:
   {
     return state_space_factories_;
   }
-
 
 protected:
   typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
@@ -189,27 +117,6 @@ protected:
       particular configurations specified for a group, or of the
       form "group_name" if default settings are to be used. */
   planning_interface::PlannerConfigurationMap planner_configs_;
-
-  /// maximum number of states to sample in the goal region for any planning request (when such sampling is possible)
-  unsigned int max_goal_samples_;
-
-  /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some
-  /// set of constraints
-  unsigned int max_state_sampling_attempts_;
-
-  /// maximum number of attempts to be made at sampling goals
-  unsigned int max_goal_sampling_attempts_;
-
-  /// when planning in parallel, this is the maximum number of threads to use at one time
-  unsigned int max_planning_threads_;
-
-  /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the
-  /// extent of the space
-  double max_solution_segment_length_;
-
-  /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
-  /// needed)
-  unsigned int minimum_waypoint_count_;
 
 private:
   MOVEIT_CLASS_FORWARD(LastPlanningContext);

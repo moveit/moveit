@@ -122,6 +122,14 @@ void ompl_interface::ModelBasedPlanningContext::configureContext(const ros::Node
 
   if (!config.use_constraints_approximations)
     setConstraintsApproximations(ConstraintsLibraryPtr());
+
+  setMaximumPlanningThreads(config.max_planning_threads);
+  setMaximumGoalSamples(config.max_goal_samples);
+  setMaximumStateSamplingAttempts(config.max_state_sampling_attempts);
+  setMaximumGoalSamplingAttempts(config.max_goal_sampling_attempts);
+  if (config.max_solution_segment_length > std::numeric_limits<double>::epsilon())
+    setMaximumSolutionSegmentLength(config.max_solution_segment_length);
+  setMinimumWaypointCount(config.minimum_waypoint_count);
 }
 
 namespace

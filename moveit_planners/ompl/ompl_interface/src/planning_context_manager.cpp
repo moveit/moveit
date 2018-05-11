@@ -83,14 +83,7 @@ struct PlanningContextManager::CachedContexts
 
 ompl_interface::PlanningContextManager::PlanningContextManager(
     const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  : kmodel_(kmodel)
-  , constraint_sampler_manager_(csm)
-  , max_goal_samples_(10)
-  , max_state_sampling_attempts_(4)
-  , max_goal_sampling_attempts_(1000)
-  , max_planning_threads_(4)
-  , max_solution_segment_length_(0.0)
-  , minimum_waypoint_count_(2)
+  : kmodel_(kmodel), constraint_sampler_manager_(csm)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -100,7 +93,6 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
 ompl_interface::PlanningContextManager::~PlanningContextManager()
 {
 }
-
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
 {
@@ -178,14 +170,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
       cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
     }
   }
-
-  context->setMaximumPlanningThreads(max_planning_threads_);
-  context->setMaximumGoalSamples(max_goal_samples_);
-  context->setMaximumStateSamplingAttempts(max_state_sampling_attempts_);
-  context->setMaximumGoalSamplingAttempts(max_goal_sampling_attempts_);
-  if (max_solution_segment_length_ > std::numeric_limits<double>::epsilon())
-    context->setMaximumSolutionSegmentLength(max_solution_segment_length_);
-  context->setMinimumWaypointCount(minimum_waypoint_count_);
 
   context->setSpecificationConfig(config.config);
 
