@@ -200,6 +200,8 @@ public:
 
   virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
 
+  virtual const std::string& getParameterizationType() const = 0;
+
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
     return spec_.robot_model_;

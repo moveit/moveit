@@ -111,6 +111,11 @@ public:
   virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
   virtual void sanityChecks() const;
 
+  virtual const std::string& getParameterizationType() const
+  {
+    return PARAMETERIZATION_TYPE;
+  }
+
 private:
   struct PoseComponent
   {
