@@ -59,7 +59,7 @@ MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
 MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
-typedef boost::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
+typedef boost::function<ob::PlannerPtr(const ob::SpaceInformationPtr& si, const std::string& name,
                                        const ModelBasedPlanningContextSpecification& spec)>
     ConfiguredPlannerAllocator;
 typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
@@ -325,7 +325,7 @@ protected:
   void stopSampling();
 
   virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string& peval) const;
-  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const;
+  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ob::StateSpace* ss) const;
   virtual void useConfig();
   virtual ob::GoalPtr constructGoal();
 

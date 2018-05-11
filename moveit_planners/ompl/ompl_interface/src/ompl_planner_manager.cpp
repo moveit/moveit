@@ -181,7 +181,14 @@ planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPl
 {
   ModelBasedPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req, error_code);
   if (ctx)
-    configureContext(ctx);
+  {
+    if (use_constraints_approximations_)
+      ctx->setConstraintsApproximations(constraints_library_);
+    else
+      ctx->setConstraintsApproximations(ConstraintsLibraryPtr());
+    ctx->simplifySolutions(simplify_solutions_);
+  }
+
   return ctx;
 }
 
@@ -199,34 +206,12 @@ void ompl_interface::OMPLPlannerManager::dynamicReconfigureCallback(OMPLDynamicR
   }
 }
 
-void ompl_interface::OMPLPlannerManager::configureContext(const ModelBasedPlanningContextPtr& context) const
-{
-  if (use_constraints_approximations_)
-    context->setConstraintsApproximations(constraints_library_);
-  else
-    context->setConstraintsApproximations(ConstraintsLibraryPtr());
-  context->simplifySolutions(simplify_solutions_);
-}
-
-void ompl_interface::OMPLPlannerManager::loadConstraintApproximations(const std::string& path)
-{
-  constraints_library_->loadConstraintApproximations(path);
-  std::stringstream ss;
-  constraints_library_->printConstraintApproximations(ss);
-  ROS_INFO_STREAM(ss.str());
-}
-
-void ompl_interface::OMPLPlannerManager::saveConstraintApproximations(const std::string& path)
-{
-  constraints_library_->saveConstraintApproximations(path);
-}
-
 bool ompl_interface::OMPLPlannerManager::saveConstraintApproximations()
 {
   std::string cpath;
   if (nh_.getParam("constraint_approximations_path", cpath))
   {
-    saveConstraintApproximations(cpath);
+    constraints_library_->saveConstraintApproximations(cpath);
     return true;
   }
   ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
@@ -238,7 +223,10 @@ bool ompl_interface::OMPLPlannerManager::loadConstraintApproximations()
   std::string cpath;
   if (nh_.getParam("constraint_approximations_path", cpath))
   {
-    loadConstraintApproximations(cpath);
+    constraints_library_->loadConstraintApproximations(cpath);
+    std::stringstream ss;
+    constraints_library_->printConstraintApproximations(ss);
+    ROS_INFO_STREAM(ss.str());
     return true;
   }
   return false;
@@ -393,12 +381,8 @@ void ompl_interface::OMPLPlannerManager::loadPlannerConfigurations()
          config_it != it->second.config.end(); ++config_it)
       ROS_DEBUG_STREAM_NAMED("parameters", " - " << config_it->first << " = " << config_it->second);
   }
-  setPlannerConfigurations(pconfig);
-}
 
-void ompl_interface::OMPLPlannerManager::printStatus()
-{
-  ROS_INFO("OMPL ROS interface is running.");
+  setPlannerConfigurations(pconfig);
 }
 
 CLASS_LOADER_REGISTER_CLASS(ompl_interface::OMPLPlannerManager, planning_interface::PlannerManager);

@@ -48,7 +48,7 @@ namespace ompl_interface
 {
 typedef std::pair<std::vector<std::size_t>, std::map<std::size_t, std::pair<std::size_t, std::size_t> > >
     ConstrainedStateMetadata;
-typedef ompl::base::StateStorageWithMetadata<ConstrainedStateMetadata> ConstraintApproximationStateStorage;
+typedef ob::StateStorageWithMetadata<ConstrainedStateMetadata> ConstraintApproximationStateStorage;
 
 MOVEIT_CLASS_FORWARD(ConstraintApproximation)
 
@@ -57,7 +57,7 @@ class ConstraintApproximation
 public:
   ConstraintApproximation(const std::string& group, const std::string& state_space_parameterization,
                           bool explicit_motions, const moveit_msgs::Constraints& msg, const std::string& filename,
-                          const ompl::base::StateStoragePtr& storage, std::size_t milestones = 0);
+                          const ob::StateStoragePtr& storage, std::size_t milestones = 0);
 
   virtual ~ConstraintApproximation()
   {
@@ -68,7 +68,7 @@ public:
     return constraint_msg_.name;
   }
 
-  ompl::base::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const;
+  ob::StateSamplerAllocator getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const;
 
   InterpolationFunction getInterpolationFunction() const;
 
@@ -102,7 +102,7 @@ public:
     return constraint_msg_;
   }
 
-  const ompl::base::StateStoragePtr& getStateStorage() const
+  const ob::StateStoragePtr& getStateStorage() const
   {
     return state_storage_ptr_;
   }
@@ -122,7 +122,7 @@ protected:
   std::vector<int> space_signature_;
 
   std::string ompldb_filename_;
-  ompl::base::StateStoragePtr state_storage_ptr_;
+  ob::StateStoragePtr state_storage_ptr_;
   ConstraintApproximationStateStorage* state_storage_;
   std::size_t milestones_;
 };
@@ -190,10 +190,11 @@ public:
   const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
 
 private:
-  ompl::base::StateStoragePtr constructConstraintApproximation(
-      const ModelBasedPlanningContextPtr& pcontext, const moveit_msgs::Constraints& constr_sampling,
-      const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
-      ConstraintApproximationConstructionResults& result);
+  ob::StateStoragePtr constructConstraintApproximation(const ModelBasedPlanningContextPtr& pcontext,
+                                                       const moveit_msgs::Constraints& constr_sampling,
+                                                       const moveit_msgs::Constraints& constr_hard,
+                                                       const ConstraintApproximationConstructionOptions& options,
+                                                       ConstraintApproximationConstructionResults& result);
 
   const PlanningContextManager& context_manager_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;

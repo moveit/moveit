@@ -112,10 +112,6 @@ public:
     return use_constraints_approximations_;
   }
 
-  void loadConstraintApproximations(const std::string& path);
-
-  void saveConstraintApproximations(const std::string& path);
-
   bool simplifySolutions() const
   {
     return simplify_solutions_;
@@ -134,9 +130,6 @@ public:
    * approximations to */
   bool loadConstraintApproximations();
 
-  /** @brief Print the status of this node*/
-  void printStatus();
-
 private:
   void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level);
 
@@ -150,14 +143,6 @@ private:
 
   /** @brief Load the additional plugins for sampling constraints */
   void loadConstraintSamplers();
-
-  void configureContext(const ModelBasedPlanningContextPtr& context) const;
-
-  /** \brief Configure the OMPL planning context for a new planning request */
-  ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest& req,
-                                               const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                               moveit_msgs::MoveItErrorCodes* error_code, unsigned int* attempts,
-                                               double* timeout) const;
 
   ros::NodeHandle nh_;
   std::unique_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
