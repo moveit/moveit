@@ -1,0 +1,5 @@
+- Add an OMPLPlanningContext which implements common methods of future dynamically loaded libraries
+  - Have ModelBasedPlanningContext inherit from OMPLPlanningContext
+  - Make all classes above ModelBasedPlanningContext use OMPLPlanningContext instead
+- Move StateSpaceFactory stuff from PlanningContextManager to ModelBasedPlanningContext
+- Comment files
