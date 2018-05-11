@@ -67,11 +67,6 @@ public:
     return context_manager_->getPlannerConfigurations();
   }
 
-  ModelBasedPlanningContextPtr getLastPlanningContext() const
-  {
-    return context_manager_->getLastPlanningContext();
-  }
-
   const std::unique_ptr<PlanningContextManager>& getPlanningContextManager() const
   {
     return context_manager_;
@@ -102,26 +97,6 @@ public:
     return *constraint_sampler_manager_;
   }
 
-  void useConstraintsApproximations(bool flag)
-  {
-    use_constraints_approximations_ = flag;
-  }
-
-  bool isUsingConstraintsApproximations() const
-  {
-    return use_constraints_approximations_;
-  }
-
-  bool simplifySolutions() const
-  {
-    return simplify_solutions_;
-  }
-
-  void simplifySolutions(bool flag)
-  {
-    simplify_solutions_ = flag;
-  }
-
   /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
    * approximations to */
   bool saveConstraintApproximations();
@@ -131,7 +106,10 @@ public:
   bool loadConstraintApproximations();
 
 private:
-  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level);
+  void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level)
+  {
+    config_ = config;
+  }
 
   /** @brief Load planner configurations for specified group into planner_config */
   bool loadPlannerConfiguration(const std::string& group_name, const std::string& planner_id,
@@ -151,9 +129,6 @@ private:
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
   ConstraintsLibraryPtr constraints_library_;
-
-  bool use_constraints_approximations_;
-  bool simplify_solutions_;
 
   std::unique_ptr<PlanningContextManager> context_manager_;
   OMPLDynamicReconfigureConfig config_;

@@ -71,7 +71,7 @@
   }
 
 ompl_interface::OMPLPlannerManager::OMPLPlannerManager()
-  : planning_interface::PlannerManager(), nh_("~"), use_constraints_approximations_(true), simplify_solutions_(true)
+  : planning_interface::PlannerManager(), nh_("~")
 {
   constraint_sampler_manager_.reset(new constraint_samplers::ConstraintSamplerManager());
   constraint_sampler_manager_loader_.reset(
@@ -123,7 +123,6 @@ bool ompl_interface::OMPLPlannerManager::initialize(const robot_model::RobotMode
   dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlannerManager::dynamicReconfigureCallback, this, _1, _2));
 
   context_manager_.reset(new PlanningContextManager(kmodel_, constraint_sampler_manager_));
-  dynamicReconfigureCallback(config_, 0);
 
   loadPlannerConfigurations();
   loadConstraintApproximations();
@@ -182,28 +181,14 @@ planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPl
   ModelBasedPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req, error_code);
   if (ctx)
   {
-    if (use_constraints_approximations_)
+    if (config_.use_constraints_approximations)
       ctx->setConstraintsApproximations(constraints_library_);
     else
       ctx->setConstraintsApproximations(ConstraintsLibraryPtr());
-    ctx->simplifySolutions(simplify_solutions_);
+    ctx->simplifySolutions(config_.simplify_solutions);
   }
 
   return ctx;
-}
-
-void ompl_interface::OMPLPlannerManager::dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config,
-                                                                    uint32_t level)
-{
-  config_ = config;
-
-  simplifySolutions(config.simplify_solutions);
-
-  if (context_manager_)
-  {
-    context_manager_->setMaximumSolutionSegmentLength(config.maximum_waypoint_distance);
-    context_manager_->setMinimumWaypointCount(config.minimum_waypoint_count);
-  }
 }
 
 bool ompl_interface::OMPLPlannerManager::saveConstraintApproximations()
