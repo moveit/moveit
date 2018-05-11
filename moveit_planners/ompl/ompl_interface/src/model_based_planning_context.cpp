@@ -113,8 +113,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
       boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
-void ompl_interface::ModelBasedPlanningContext::intializeContext(const ros::NodeHandle& nh,
-                                                                 const OMPLDynamicReconfigureConfig& config)
+void ompl_interface::ModelBasedPlanningContext::initializeContext(const ros::NodeHandle& nh,
+                                                                  const OMPLDynamicReconfigureConfig& config)
 {
   loadConstraintApproximations(nh);
 
