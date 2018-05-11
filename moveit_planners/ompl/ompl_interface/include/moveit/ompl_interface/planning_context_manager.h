@@ -53,7 +53,6 @@ class PlanningContextManager
 public:
   PlanningContextManager(const robot_model::RobotModelConstPtr& kmodel,
                          const constraint_samplers::ConstraintSamplerManagerPtr& csm);
-  ~PlanningContextManager();
 
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
@@ -85,7 +84,6 @@ public:
   {
     return state_space_factories_;
   }
-
 
 protected:
   typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;

@@ -83,16 +83,11 @@ struct PlanningContextManager::CachedContexts
 
 ompl_interface::PlanningContextManager::PlanningContextManager(
     const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  : kmodel_(kmodel)
-  , constraint_sampler_manager_(csm)
+  : kmodel_(kmodel), constraint_sampler_manager_(csm)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
   registerDefaultStateSpaces();
-}
-
-ompl_interface::PlanningContextManager::~PlanningContextManager()
-{
 }
 
 void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
