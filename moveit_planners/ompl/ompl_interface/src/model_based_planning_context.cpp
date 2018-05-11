@@ -90,7 +90,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   : planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName())
   , spec_(spec)
   , complete_initial_robot_state_(spec.state_space_->getRobotModel())
-  , ompl_simple_setup_(spec.ompl_simple_setup_)
+  , ompl_simple_setup_(new ompl::geometric::SimpleSetup(spec.state_space_))
   , ompl_benchmark_(*ompl_simple_setup_)
   , ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition())
   , ptc_(NULL)
@@ -113,7 +113,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
       boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
-void ompl_interface::ModelBasedPlanningContext::configureContext(const ros::NodeHandle& nh,
+void ompl_interface::ModelBasedPlanningContext::intializeContext(const ros::NodeHandle& nh,
                                                                  const OMPLDynamicReconfigureConfig& config)
 {
   loadConstraintApproximations(nh);

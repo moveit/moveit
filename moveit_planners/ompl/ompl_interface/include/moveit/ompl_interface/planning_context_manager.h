@@ -72,9 +72,6 @@ public:
 
   ModelBasedPlanningContextPtr getLastPlanningContext() const;
 
-  ModelBasedPlanningContextPtr getPlanningContext(const std::string& config,
-                                                  const std::string& factory_type = "") const;
-
   ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const;
@@ -88,6 +85,7 @@ public:
   {
     return state_space_factories_;
   }
+
 
 protected:
   typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;

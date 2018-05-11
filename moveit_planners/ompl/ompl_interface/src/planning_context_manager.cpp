@@ -83,7 +83,8 @@ struct PlanningContextManager::CachedContexts
 
 ompl_interface::PlanningContextManager::PlanningContextManager(
     const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  : kmodel_(kmodel), constraint_sampler_manager_(csm)
+  : kmodel_(kmodel)
+  , constraint_sampler_manager_(csm)
 {
   last_planning_context_.reset(new LastPlanningContext());
   cached_contexts_.reset(new CachedContexts());
@@ -104,24 +105,6 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
     const planning_interface::PlannerConfigurationMap& pconfig)
 {
   planner_configs_ = pconfig;
-}
-
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const std::string& config, const std::string& factory_type) const
-{
-  planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.find(config);
-
-  if (pc != planner_configs_.end())
-  {
-    moveit_msgs::MotionPlanRequest req;  // dummy request with default values
-    return getPlanningContext(pc->second,
-                              boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1, factory_type), req);
-  }
-  else
-  {
-    ROS_ERROR_NAMED("planning_context_manager", "Planning configuration '%s' was not found", config.c_str());
-    return ModelBasedPlanningContextPtr();
-  }
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
@@ -157,9 +140,6 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context_spec.config_ = config.config;
     context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
     context_spec.state_space_ = factory->getNewStateSpace(space_spec);
-
-    // Choose the correct simple setup type to load
-    context_spec.ompl_simple_setup_.reset(new ompl::geometric::SimpleSetup(context_spec.state_space_));
 
     bool state_validity_cache = true;
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");

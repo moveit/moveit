@@ -73,7 +73,6 @@ struct ModelBasedPlanningContextSpecification
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   ModelBasedStateSpacePtr state_space_;
-  og::SimpleSetupPtr ompl_simple_setup_;  // pass in the correct simple setup type
 };
 
 class ModelBasedPlanningContext : public planning_interface::PlanningContext
@@ -85,7 +84,7 @@ public:
   {
   }
 
-  void configureContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
+  void initializeContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
   bool loadConstraintApproximations(const ros::NodeHandle& nh);
 
