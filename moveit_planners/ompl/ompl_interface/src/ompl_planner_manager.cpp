@@ -42,7 +42,6 @@
 #include <class_loader/class_loader.h>
 
 #include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_interface/planning_interface.h>
@@ -125,7 +124,7 @@ bool ompl_interface::OMPLPlannerManager::initialize(const robot_model::RobotMode
   context_manager_.reset(new PlanningContextManager(kmodel_, constraint_sampler_manager_));
 
   loadPlannerConfigurations();
-  loadConstraintApproximations();
+  // loadConstraintApproximations();
   loadConstraintSamplers();
 
   return true;
@@ -181,41 +180,37 @@ planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPl
   ModelBasedPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req, error_code);
   if (ctx)
   {
-    if (config_.use_constraints_approximations)
-      ctx->setConstraintsApproximations(constraints_library_);
-    else
-      ctx->setConstraintsApproximations(ConstraintsLibraryPtr());
     ctx->simplifySolutions(config_.simplify_solutions);
   }
 
   return ctx;
 }
 
-bool ompl_interface::OMPLPlannerManager::saveConstraintApproximations()
-{
-  std::string cpath;
-  if (nh_.getParam("constraint_approximations_path", cpath))
-  {
-    constraints_library_->saveConstraintApproximations(cpath);
-    return true;
-  }
-  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
-  return false;
-}
+// bool ompl_interface::OMPLPlannerManager::saveConstraintApproximations()
+// {
+//   std::string cpath;
+//   if (nh_.getParam("constraint_approximations_path", cpath))
+//   {
+//     constraints_library_->saveConstraintApproximations(cpath);
+//     return true;
+//   }
+//   ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+//   return false;
+// }
 
-bool ompl_interface::OMPLPlannerManager::loadConstraintApproximations()
-{
-  std::string cpath;
-  if (nh_.getParam("constraint_approximations_path", cpath))
-  {
-    constraints_library_->loadConstraintApproximations(cpath);
-    std::stringstream ss;
-    constraints_library_->printConstraintApproximations(ss);
-    ROS_INFO_STREAM(ss.str());
-    return true;
-  }
-  return false;
-}
+// bool ompl_interface::OMPLPlannerManager::loadConstraintApproximations()
+// {
+//   std::string cpath;
+//   if (nh_.getParam("constraint_approximations_path", cpath))
+//   {
+//     constraints_library_->loadConstraintApproximations(cpath);
+//     std::stringstream ss;
+//     constraints_library_->printConstraintApproximations(ss);
+//     ROS_INFO_STREAM(ss.str());
+//     return true;
+//   }
+//   return false;
+// }
 
 void ompl_interface::OMPLPlannerManager::loadConstraintSamplers()
 {

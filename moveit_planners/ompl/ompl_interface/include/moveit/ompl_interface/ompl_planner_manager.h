@@ -77,16 +77,6 @@ public:
     return context_manager_;
   }
 
-  ConstraintsLibrary& getConstraintsLibrary()
-  {
-    return *constraints_library_;
-  }
-
-  const ConstraintsLibrary& getConstraintsLibrary() const
-  {
-    return *constraints_library_;
-  }
-
   constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager()
   {
     return *constraint_sampler_manager_;
@@ -97,13 +87,8 @@ public:
     return *constraint_sampler_manager_;
   }
 
-  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
-   * approximations to */
-  bool saveConstraintApproximations();
-
-  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint
-   * approximations to */
-  bool loadConstraintApproximations();
+  // bool saveConstraintApproximations();
+  // bool loadConstraintApproximations();
 
 private:
   void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level)
@@ -128,7 +113,6 @@ private:
   robot_model::RobotModelConstPtr kmodel_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
   constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
-  ConstraintsLibraryPtr constraints_library_;
 
   std::unique_ptr<PlanningContextManager> context_manager_;
   OMPLDynamicReconfigureConfig config_;

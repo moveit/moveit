@@ -104,6 +104,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
   , simplify_solutions_(true)
+  , constraints_library_(new ConstraintsLibrary(this))
 {
   registerDefaultPlanners();
   complete_initial_robot_state_.update();
@@ -117,7 +118,7 @@ namespace
 using namespace ompl_interface;
 template <typename T>
 static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
-                                              const ModelBasedPlanningContextSpecification& spec)
+                                      const ModelBasedPlanningContextSpecification& spec)
 {
   ob::PlannerPtr planner(new T(si));
   if (!new_name.empty())
@@ -251,10 +252,9 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ob:
 
   if (path_constraints_)
   {
-    if (spec_.constraints_library_)
+    if (constraints_library_)
     {
-      const ConstraintApproximationPtr& ca =
-          spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
+      const ConstraintApproximationPtr& ca = constraints_library_->getConstraintApproximation(path_constraints_msg_);
       if (ca)
       {
         ob::StateSamplerAllocator c_ssa = ca->getStateSamplerAllocator(path_constraints_msg_);
@@ -297,10 +297,9 @@ void ompl_interface::ModelBasedPlanningContext::configure()
   ompl_simple_setup_->setStartState(ompl_start_state);
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
 
-  if (path_constraints_ && spec_.constraints_library_)
+  if (path_constraints_ && constraints_library_)
   {
-    const ConstraintApproximationPtr& ca =
-        spec_.constraints_library_->getConstraintApproximation(path_constraints_msg_);
+    const ConstraintApproximationPtr& ca = constraints_library_->getConstraintApproximation(path_constraints_msg_);
     if (ca)
     {
       getOMPLStateSpace()->setInterpolationFunction(ca->getInterpolationFunction());
@@ -823,3 +822,8 @@ bool ompl_interface::ModelBasedPlanningContext::terminate()
     ptc_->terminate();
   return true;
 }
+
+// if (config_.use_constraints_approximations)
+//     ctx->setConstraintsApproximations(constraints_library_);
+// else
+//     ctx->setConstraintsApproximations(ConstraintsLibraryPtr());

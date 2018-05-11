@@ -162,7 +162,7 @@ MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 class ConstraintsLibrary
 {
 public:
-  ConstraintsLibrary(const PlanningContextManager& pcontext) : context_manager_(pcontext)
+  ConstraintsLibrary(ModelBasedPlanningContext* pcontext) : context_(pcontext)
   {
   }
 
@@ -190,13 +190,13 @@ public:
   const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
 
 private:
-  ob::StateStoragePtr constructConstraintApproximation(const ModelBasedPlanningContextPtr& pcontext,
+  ob::StateStoragePtr constructConstraintApproximation(ModelBasedPlanningContext* pcontext,
                                                        const moveit_msgs::Constraints& constr_sampling,
                                                        const moveit_msgs::Constraints& constr_hard,
                                                        const ConstraintApproximationConstructionOptions& options,
                                                        ConstraintApproximationConstructionResults& result);
 
-  const PlanningContextManager& context_manager_;
+  ModelBasedPlanningContext* context_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;
 };
 }

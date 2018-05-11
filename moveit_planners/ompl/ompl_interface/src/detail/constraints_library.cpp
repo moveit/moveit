@@ -112,30 +112,36 @@ void ConstraintsLibrary::loadConstraintApproximations(const std::string& path)
     if (fin.eof())
       break;
     fin >> filename;
+
+    if (context_->getGroupName() != group &&
+        context_->getOMPLStateSpace()->getParameterizationType() != state_space_parameterization)
+    {
+      ROS_INFO_NAMED("constraints_library",
+                     "Ignoring constraint approximation of type '%s' for group '%s' from '%s'...",
+                     state_space_parameterization.c_str(), group.c_str(), filename.c_str());
+      continue;
+    }
+
     ROS_INFO_NAMED("constraints_library", "Loading constraint approximation of type '%s' for group '%s' from '%s'...",
                    state_space_parameterization.c_str(), group.c_str(), filename.c_str());
-    const ModelBasedPlanningContextPtr& pc = context_manager_.getPlanningContext(group, state_space_parameterization);
-    if (pc)
-    {
-      moveit_msgs::Constraints msg;
-      hexToMsg(serialization, msg);
-      ConstraintApproximationStateStorage* cass =
-          new ConstraintApproximationStateStorage(pc->getOMPLSimpleSetup()->getStateSpace());
-      cass->load((path + "/" + filename).c_str());
-      ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions,
-                                                                 msg, filename, ob::StateStoragePtr(cass), milestones));
-      if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
-        ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'",
-                       cap->getName().c_str());
-      constraint_approximations_[cap->getName()] = cap;
-      std::size_t sum = 0;
-      for (std::size_t i = 0; i < cass->size(); ++i)
-        sum += cass->getMetadata(i).first.size();
-      ROS_INFO_NAMED("constraints_library", "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
-                                            "for constraint named '%s'%s",
-                     cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
-                     msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
-    }
+
+    moveit_msgs::Constraints msg;
+    hexToMsg(serialization, msg);
+    ConstraintApproximationStateStorage* cass =
+        new ConstraintApproximationStateStorage(context_->getOMPLSimpleSetup()->getStateSpace());
+    cass->load((path + "/" + filename).c_str());
+    ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions,
+                                                               msg, filename, ob::StateStoragePtr(cass), milestones));
+    if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
+      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", cap->getName().c_str());
+    constraint_approximations_[cap->getName()] = cap;
+    std::size_t sum = 0;
+    for (std::size_t i = 0; i < cass->size(); ++i)
+      sum += cass->getMetadata(i).first.size();
+    ROS_INFO_NAMED("constraints_library", "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
+                                          "for constraint named '%s'%s",
+                   cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
+                   msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
   }
   ROS_INFO_NAMED("constraints_library", "Done loading constrained space approximations.");
 }
@@ -216,38 +222,43 @@ ConstraintApproximationConstructionResults ConstraintsLibrary::addConstraintAppr
     const ConstraintApproximationConstructionOptions& options)
 {
   ConstraintApproximationConstructionResults res;
-  ModelBasedPlanningContextPtr pc = context_manager_.getPlanningContext(group, options.state_space_parameterization);
-  if (pc)
-  {
-    pc->clear();
-    pc->setPlanningScene(scene);
-    pc->setCompleteInitialState(scene->getCurrentState());
 
-    ros::WallTime start = ros::WallTime::now();
-    ob::StateStoragePtr ss = constructConstraintApproximation(pc, constr_sampling, constr_hard, options, res);
-    ROS_INFO_NAMED("constraints_library", "Spent %lf seconds constructing the database",
-                   (ros::WallTime::now() - start).toSec());
-    if (ss)
-    {
-      ConstraintApproximationPtr ca(new ConstraintApproximation(
-          group, options.state_space_parameterization, options.explicit_motions, constr_hard,
-          group + "_" + boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) +
-              ".ompldb",
-          ss, res.milestones));
-      if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
-        ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", ca->getName().c_str());
-      constraint_approximations_[ca->getName()] = ca;
-      res.approx = ca;
-    }
-    else
-      ROS_ERROR_NAMED("constraints_library", "Unable to construct constraint approximation for group '%s'",
-                      group.c_str());
+  if (context_->getGroupName() != group &&
+      context_->getOMPLStateSpace()->getParameterizationType() != options.state_space_parameterization)
+  {
+    ROS_INFO_NAMED("constraints_library", "Ignoring constraint approximation of type '%s' for group '%s'...",
+                   options.state_space_parameterization.c_str(), group.c_str());
+    return res;
   }
+
+  context_->clear();
+  context_->setPlanningScene(scene);
+  context_->setCompleteInitialState(scene->getCurrentState());
+
+  ros::WallTime start = ros::WallTime::now();
+  ob::StateStoragePtr ss = constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
+  ROS_INFO_NAMED("constraints_library", "Spent %lf seconds constructing the database",
+                 (ros::WallTime::now() - start).toSec());
+  if (ss)
+  {
+    ConstraintApproximationPtr ca(new ConstraintApproximation(
+        group, options.state_space_parameterization, options.explicit_motions, constr_hard,
+        group + "_" + boost::posix_time::to_iso_extended_string(boost::posix_time::microsec_clock::universal_time()) +
+            ".ompldb",
+        ss, res.milestones));
+    if (constraint_approximations_.find(ca->getName()) != constraint_approximations_.end())
+      ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", ca->getName().c_str());
+    constraint_approximations_[ca->getName()] = ca;
+    res.approx = ca;
+  }
+  else
+    ROS_ERROR_NAMED("constraints_library", "Unable to construct constraint approximation for group '%s'",
+                    group.c_str());
   return res;
 }
 
 ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
-    const ModelBasedPlanningContextPtr& pcontext, const moveit_msgs::Constraints& constr_sampling,
+    ModelBasedPlanningContext* pcontext, const moveit_msgs::Constraints& constr_sampling,
     const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
     ConstraintApproximationConstructionResults& result)
 {
@@ -279,7 +290,7 @@ ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
     constraint_samplers::ConstraintSamplerPtr cs =
         csmng->selectSampler(pcontext->getPlanningScene(), pcontext->getJointModelGroup()->getName(), constr_sampling);
     if (cs)
-      csmp = new ConstrainedSampler(pcontext.get(), cs);
+      csmp = new ConstrainedSampler(pcontext, cs);
   }
 
   ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());

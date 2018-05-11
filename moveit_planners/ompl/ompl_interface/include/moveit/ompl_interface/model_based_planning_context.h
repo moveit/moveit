@@ -67,7 +67,6 @@ typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_ty
 struct ModelBasedPlanningContextSpecification
 {
   std::map<std::string, std::string> config_;
-  ConstraintsLibraryConstPtr constraints_library_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
 
   ModelBasedStateSpacePtr state_space_;
@@ -242,11 +241,6 @@ public:
                           const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
   bool setPathConstraints(const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
 
-  void setConstraintsApproximations(const ConstraintsLibraryConstPtr& constraints_library)
-  {
-    spec_.constraints_library_ = constraints_library;
-  }
-
   bool useStateValidityCache() const
   {
     return use_state_validity_cache_;
@@ -315,6 +309,21 @@ public:
   const std::map<std::string, ConfiguredPlannerAllocator>& getRegisteredPlannerAllocators() const
   {
     return known_planners_;
+  }
+
+  void setConstraintsApproximations(const ConstraintsLibraryPtr& constraints_library)
+  {
+    constraints_library_ = constraints_library;
+  }
+
+  ConstraintsLibraryPtr getConstraintsLibrary()
+  {
+    return constraints_library_;
+  }
+
+  const ConstraintsLibraryPtr& getConstraintsLibrary() const
+  {
+    return constraints_library_;
   }
 
 protected:
@@ -391,6 +400,8 @@ protected:
   bool simplify_solutions_;
 
   std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
+
+  ConstraintsLibraryPtr constraints_library_;
 };
 }
 
