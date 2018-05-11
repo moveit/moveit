@@ -38,7 +38,7 @@
 #define MOVEIT_OMPL_INTERFACE_OMPL_INTERFACE_
 
 #include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
 #include <moveit/planning_interface/planning_interface.h>

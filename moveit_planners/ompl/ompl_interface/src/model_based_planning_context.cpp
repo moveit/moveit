@@ -42,7 +42,7 @@
 #include <moveit/ompl_interface/detail/constrained_goal_sampler.h>
 #include <moveit/ompl_interface/detail/goal_union.h>
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
-#include <moveit/ompl_interface/constraints_library.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
 
