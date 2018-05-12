@@ -37,11 +37,11 @@
 #ifndef MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
-#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/planning_interface/planning_interface.h>
+#include <moveit/ompl_interface/ompl_planning_context.h>
 
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
 #include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
@@ -67,34 +67,14 @@ MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
 typedef boost::function<ob::PlannerPtr(const ob::SpaceInformationPtr& si, const std::string& name,
-                                       const ModelBasedPlanningContextSpecification& spec)>
+                                       const OMPLPlanningContextSpecification& spec)>
     ConfiguredPlannerAllocator;
 typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
 
-struct ModelBasedPlanningContextSpecification
-{
-  ModelBasedPlanningContextSpecification(const robot_model::RobotModelConstPtr& robot_model,
-                                         const std::string& group_name)
-    : space_spec_(robot_model, group_name)
-  {
-  }
-
-  std::string name_;
-  std::string group_;
-  std::map<std::string, std::string> config_;
-  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
-  moveit_msgs::MotionPlanRequest req_;
-  ModelBasedStateSpaceSpecification space_spec_;
-};
-
-class ModelBasedPlanningContext : public planning_interface::PlanningContext
+class ModelBasedPlanningContext : public OMPLPlanningContext
 {
 public:
-  ModelBasedPlanningContext(const ModelBasedPlanningContextSpecification& spec);
-
-  virtual ~ModelBasedPlanningContext()
-  {
-  }
+  ModelBasedPlanningContext(const OMPLPlanningContextSpecification& spec);
 
   void initializeContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
   bool saveConstraintApproximations(const ros::NodeHandle& nh);
@@ -105,21 +85,6 @@ public:
 
   virtual void clear();
   virtual bool terminate();
-
-  const ModelBasedPlanningContextSpecification& getSpecification() const
-  {
-    return spec_;
-  }
-
-  const std::map<std::string, std::string>& getSpecificationConfig() const
-  {
-    return spec_.config_;
-  }
-
-  void setSpecificationConfig(const std::map<std::string, std::string>& config)
-  {
-    spec_.config_ = config;
-  }
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
@@ -166,87 +131,6 @@ public:
     return path_constraints_;
   }
 
-  /* \brief Get the maximum number of sampling attempts allowed when sampling states is needed */
-  unsigned int getMaximumStateSamplingAttempts() const
-  {
-    return max_state_sampling_attempts_;
-  }
-
-  /* \brief Set the maximum number of sampling attempts allowed when sampling states is needed */
-  void setMaximumStateSamplingAttempts(unsigned int max_state_sampling_attempts)
-  {
-    max_state_sampling_attempts_ = max_state_sampling_attempts;
-  }
-
-  /* \brief Get the maximum number of sampling attempts allowed when sampling goals is needed */
-  unsigned int getMaximumGoalSamplingAttempts() const
-  {
-    return max_goal_sampling_attempts_;
-  }
-
-  /* \brief Set the maximum number of sampling attempts allowed when sampling goals is needed */
-  void setMaximumGoalSamplingAttempts(unsigned int max_goal_sampling_attempts)
-  {
-    max_goal_sampling_attempts_ = max_goal_sampling_attempts;
-  }
-
-  /* \brief Get the maximum number of valid goal samples to store */
-  unsigned int getMaximumGoalSamples() const
-  {
-    return max_goal_samples_;
-  }
-
-  /* \brief Set the maximum number of valid goal samples to store */
-  void setMaximumGoalSamples(unsigned int max_goal_samples)
-  {
-    max_goal_samples_ = max_goal_samples;
-  }
-
-  /* \brief Get the maximum number of planning threads allowed */
-  unsigned int getMaximumPlanningThreads() const
-  {
-    return max_planning_threads_;
-  }
-
-  /* \brief Set the maximum number of planning threads */
-  void setMaximumPlanningThreads(unsigned int max_planning_threads)
-  {
-    max_planning_threads_ = max_planning_threads;
-  }
-
-  /* \brief Get the maximum solution segment length */
-  double getMaximumSolutionSegmentLength() const
-  {
-    return max_solution_segment_length_;
-  }
-
-  /* \brief Set the maximum solution segment length */
-  void setMaximumSolutionSegmentLength(double mssl)
-  {
-    max_solution_segment_length_ = mssl;
-  }
-
-  unsigned int getMinimumWaypointCount() const
-  {
-    return minimum_waypoint_count_;
-  }
-
-  /** \brief Get the minimum number of waypoints along the solution path */
-  void setMinimumWaypointCount(unsigned int mwc)
-  {
-    minimum_waypoint_count_ = mwc;
-  }
-
-  const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
-  {
-    return spec_.constraint_sampler_manager_;
-  }
-
-  void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  {
-    spec_.constraint_sampler_manager_ = csm;
-  }
-
   void setVerboseStateValidityChecks(bool flag);
 
   void setProjectionEvaluator(const std::string& peval);
@@ -267,16 +151,6 @@ public:
   void useStateValidityCache(bool flag)
   {
     use_state_validity_cache_ = flag;
-  }
-
-  bool simplifySolutions() const
-  {
-    return simplify_solutions_;
-  }
-
-  void simplifySolutions(bool flag)
-  {
-    simplify_solutions_ = flag;
   }
 
   /* @brief Solve the planning problem. Return true if the problem is solved
@@ -397,22 +271,23 @@ protected:
     // flipped, leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection
     // sampling in JointModelStateSpace.
     registerDefaultStateSpaces();
+    const std::map<std::string, std::string>& config = getSpecificationConfig();
 
     StateSpaceFactoryTypeSelector factory_selector;
-    std::map<std::string, std::string>::const_iterator it = spec_.config_.find("enforce_joint_model_state_space");
+    std::map<std::string, std::string>::const_iterator it = config.find("enforce_joint_model_state_space");
 
-    if (it != spec_.config_.end() && boost::lexical_cast<bool>(it->second))
+    if (it != config.end() && boost::lexical_cast<bool>(it->second))
       factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory1, this, _1,
                                      JointModelStateSpace::PARAMETERIZATION_TYPE);
     else
       factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory2, this, _1, spec_.req_);
 
-    const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(spec_.group_);
-    return factory->getNewStateSpace(spec_.space_spec_);
-  }
+    const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(getGroupName());
+    ModelBasedStateSpaceSpecification space_spec(spec_.robot_model_, spec_.jmg_);
+    space_spec.joint_bounds_ = spec_.joint_bounds_;
 
-  /// Vars
-  ModelBasedPlanningContextSpecification spec_;
+    return factory->getNewStateSpace(space_spec);
+  }
 
   std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
@@ -445,31 +320,8 @@ protected:
   /// the time spent simplifying the last plan
   double last_simplify_time_;
 
-  /// maximum number of valid states to store in the goal region for any planning request (when such sampling is
-  /// possible)
-  unsigned int max_goal_samples_;
-
-  /// maximum number of attempts to be made at sampling a state when attempting to find valid states that satisfy some
-  /// set of constraints
-  unsigned int max_state_sampling_attempts_;
-
-  /// maximum number of attempts to be made at sampling a goal states
-  unsigned int max_goal_sampling_attempts_;
-
-  /// when planning in parallel, this is the maximum number of threads to use at one time
-  unsigned int max_planning_threads_;
-
-  /// the maximum length that is allowed for segments that make up the motion plan; by default this is 1% from the
-  /// extent of the space
-  double max_solution_segment_length_;
-
-  /// the minimum number of points to include on the solution path (interpolation is used to reach this number, if
-  /// needed)
-  unsigned int minimum_waypoint_count_;
-
+  /// use the state validity cache for collision checking.
   bool use_state_validity_cache_;
-
-  bool simplify_solutions_;
 
   ConstraintsLibraryPtr constraints_library_;
 };

@@ -158,12 +158,12 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // Create a new planning context
   if (!context)
   {
-    ModelBasedPlanningContextSpecification context_spec(kmodel_, config.group);
-    context_spec.name_ = config.name;
-    context_spec.group_ = config.group;
-    context_spec.config_ = config.config;
-    context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
+    OMPLPlanningContextSpecification context_spec;
+    context_spec.config_ = config;
+    context_spec.csm_ = constraint_sampler_manager_;
     context_spec.req_ = req;
+    context_spec.robot_model_ = kmodel_;
+    context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
     context.reset(new ModelBasedPlanningContext(context_spec));

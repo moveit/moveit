@@ -86,9 +86,8 @@
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 
-ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const ModelBasedPlanningContextSpecification& spec)
-  : planning_interface::PlanningContext(spec.name_, spec.group_)
-  , spec_(spec)
+ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const OMPLPlanningContextSpecification& spec)
+  : OMPLPlanningContext(spec)
   , ompl_state_space_(getStateSpace())
   , complete_initial_robot_state_(ompl_state_space_->getRobotModel())
   , ompl_simple_setup_(new ompl::geometric::SimpleSetup(ompl_state_space_))
@@ -97,14 +96,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const Model
   , ptc_(NULL)
   , last_plan_time_(0.0)
   , last_simplify_time_(0.0)
-  , max_goal_samples_(0)
-  , max_state_sampling_attempts_(0)
-  , max_goal_sampling_attempts_(0)
-  , max_planning_threads_(0)
-  , max_solution_segment_length_(0.0)
-  , minimum_waypoint_count_(0)
   , use_state_validity_cache_(true)
-  , simplify_solutions_(true)
   , constraints_library_(new ConstraintsLibrary(this))
 {
   registerDefaultPlanners();
@@ -118,22 +110,12 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const Model
 void ompl_interface::ModelBasedPlanningContext::initializeContext(const ros::NodeHandle& nh,
                                                                   const OMPLDynamicReconfigureConfig& config)
 {
-
-
   loadConstraintApproximations(nh);
-
-  simplifySolutions(config.simplify_solutions);
 
   if (!config.use_constraints_approximations)
     setConstraintsApproximations(ConstraintsLibraryPtr());
 
-  setMaximumPlanningThreads(config.max_planning_threads);
-  setMaximumGoalSamples(config.max_goal_samples);
-  setMaximumStateSamplingAttempts(config.max_state_sampling_attempts);
-  setMaximumGoalSamplingAttempts(config.max_goal_sampling_attempts);
-  if (config.max_solution_segment_length > std::numeric_limits<double>::epsilon())
-    setMaximumSolutionSegmentLength(config.max_solution_segment_length);
-  setMinimumWaypointCount(config.minimum_waypoint_count);
+  OMPLPlanningContext::initializeContext(nh, config);
 }
 
 namespace
@@ -141,12 +123,12 @@ namespace
 using namespace ompl_interface;
 template <typename T>
 static ob::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si, const std::string& new_name,
-                                      const ModelBasedPlanningContextSpecification& spec)
+                                      const OMPLPlanningContextSpecification& spec)
 {
   ob::PlannerPtr planner(new T(si));
   if (!new_name.empty())
     planner->setName(new_name);
-  planner->params().setParams(spec.config_, true);
+  planner->params().setParams(spec.config_.config, true);
   planner->setup();
   return planner;
 }
@@ -296,9 +278,8 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ob:
     }
 
     constraint_samplers::ConstraintSamplerPtr cs;
-    if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(),
-                                                            path_constraints_->getAllConstraints());
+    if (spec_.csm_)
+      cs = spec_.csm_->selectSampler(getPlanningScene(), getGroupName(), path_constraints_->getAllConstraints());
 
     if (cs)
     {
@@ -337,7 +318,7 @@ void ompl_interface::ModelBasedPlanningContext::configure()
 
 void ompl_interface::ModelBasedPlanningContext::useConfig()
 {
-  const std::map<std::string, std::string>& config = spec_.config_;
+  const std::map<std::string, std::string>& config = getSpecificationConfig();
   if (config.empty())
     return;
   std::map<std::string, std::string> cfg = config;
@@ -530,8 +511,8 @@ ob::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   for (std::size_t i = 0; i < goal_constraints_.size(); ++i)
   {
     constraint_samplers::ConstraintSamplerPtr cs;
-    if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(),
+    if (spec_.csm_)
+      cs = spec_.csm_->selectSampler(getPlanningScene(), getGroupName(),
                                                             goal_constraints_[i]->getAllConstraints());
     if (cs)
     {
@@ -896,7 +877,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBased
   for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
        it != state_space_factories_.end(); ++it)
   {
-    int priority = it->second->canRepresentProblem(group, req, spec_.space_spec_.robot_model_);
+    int priority = it->second->canRepresentProblem(group, req, spec_.robot_model_);
     if (priority > 0)
       if (best == state_space_factories_.end() || priority > prev_priority)
       {
