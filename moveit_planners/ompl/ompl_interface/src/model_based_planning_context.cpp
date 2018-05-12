@@ -512,8 +512,7 @@ ob::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   {
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.csm_)
-      cs = spec_.csm_->selectSampler(getPlanningScene(), getGroupName(),
-                                                            goal_constraints_[i]->getAllConstraints());
+      cs = spec_.csm_->selectSampler(getPlanningScene(), getGroupName(), goal_constraints_[i]->getAllConstraints());
     if (cs)
     {
       ob::GoalPtr g = ob::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));
@@ -898,4 +897,32 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBased
     ROS_DEBUG_NAMED("planning_context_manager", "Using '%s' parameterization for solving problem", best->first.c_str());
     return best->second;
   }
+}
+
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::ModelBasedPlanningContext::getStateSpace()
+{
+  // Check if sampling in JointModelStateSpace is enforced for this group by user. This is done by setting
+  // 'enforce_joint_model_state_space' to 'true' for the desired group in ompl_planning.yaml.
+  //
+  // Some planning problems like orientation path constraints are represented in PoseModelStateSpace and sampled via
+  // IK. However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be
+  // flipped, leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection
+  // sampling in JointModelStateSpace.
+  registerDefaultStateSpaces();
+  const std::map<std::string, std::string>& config = getSpecificationConfig();
+
+  StateSpaceFactoryTypeSelector factory_selector;
+  std::map<std::string, std::string>::const_iterator it = config.find("enforce_joint_model_state_space");
+
+  if (it != config.end() && boost::lexical_cast<bool>(it->second))
+    factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory1, this, _1,
+                                   JointModelStateSpace::PARAMETERIZATION_TYPE);
+  else
+    factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory2, this, _1, spec_.req_);
+
+  const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(getGroupName());
+  ModelBasedStateSpaceSpecification space_spec(spec_.robot_model_, spec_.jmg_);
+  space_spec.joint_bounds_ = spec_.joint_bounds_;
+
+  return factory->getNewStateSpace(space_spec);
 }
