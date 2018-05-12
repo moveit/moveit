@@ -75,37 +75,11 @@ public:
                                                   const planning_interface::MotionPlanRequest& req,
                                                   moveit_msgs::MoveItErrorCodes& error_code) const;
 
-  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr& factory)
-  {
-    state_space_factories_[factory->getType()] = factory;
-  }
-
-  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories() const
-  {
-    return state_space_factories_;
-  }
-
 protected:
-  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
-
-  void registerDefaultStateSpaces();
-
-  /** \brief This is the function that constructs new planning contexts if no previous ones exist that are suitable */
-  ModelBasedPlanningContextPtr getPlanningContext(const planning_interface::PlannerConfigurationSettings& config,
-                                                  const StateSpaceFactoryTypeSelector& factory_selector,
-                                                  const moveit_msgs::MotionPlanRequest& req) const;
-
-  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string& group_name,
-                                                              const std::string& factory_type) const;
-  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
-                                                              const moveit_msgs::MotionPlanRequest& req) const;
-
   /** \brief The kinematic model for which motion plans are computed */
   robot_model::RobotModelConstPtr kmodel_;
 
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
-
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
 
   /** \brief All the existing planning configurations. The name
       of the configuration is the key of the map. This name can

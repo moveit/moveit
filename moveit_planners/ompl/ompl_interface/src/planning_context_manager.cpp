@@ -40,10 +40,6 @@
 #include <algorithm>
 #include <set>
 
-#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
-#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
-#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
-
 namespace ompl_interface
 {
 // class PlanningContextManager::LastPlanningContext
@@ -87,117 +83,12 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
 {
   // last_planning_context_.reset(new LastPlanningContext());
   // cached_contexts_.reset(new CachedContexts());
-  registerDefaultStateSpaces();
-}
-
-void ompl_interface::PlanningContextManager::registerDefaultStateSpaces()
-{
-  registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointModelStateSpaceFactory()));
-  registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new PoseModelStateSpaceFactory()));
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(
     const planning_interface::PlannerConfigurationMap& pconfig)
 {
   planner_configs_ = pconfig;
-}
-
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
-    const planning_interface::PlannerConfigurationSettings& config,
-    const StateSpaceFactoryTypeSelector& factory_selector, const moveit_msgs::MotionPlanRequest& req) const
-{
-  const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(config.group);
-
-  // Check for a cached planning context
-  ModelBasedPlanningContextPtr context;
-
-  // {
-  //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-  //   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
-  //       cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
-  //   if (cc != cached_contexts_->contexts_.end())
-  //   {
-  //     for (std::size_t i = 0; i < cc->second.size(); ++i)
-  //       if (cc->second[i].unique())
-  //       {
-  //         ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
-  //         context = cc->second[i];
-  //         break;
-  //       }
-  //   }
-  // }
-
-  // Create a new planning context
-  if (!context)
-  {
-    ModelBasedStateSpaceSpecification space_spec(kmodel_, config.group);
-    ModelBasedPlanningContextSpecification context_spec;
-    context_spec.config_ = config.config;
-    context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
-    context_spec.state_space_ = factory->getNewStateSpace(space_spec);
-
-    bool state_validity_cache = true;
-    ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
-    context.reset(new ModelBasedPlanningContext(config.name, context_spec));
-    context->useStateValidityCache(state_validity_cache);
-
-    // {
-    //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-    //   cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
-    // }
-  }
-
-  context->setSpecificationConfig(config.config);
-
-  // last_planning_context_->setContext(context);
-  return context;
-}
-
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(
-    const std::string& /* dummy */, const std::string& factory_type) const
-{
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
-      factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
-  if (f != state_space_factories_.end())
-    return f->second;
-  else
-  {
-    ROS_ERROR_NAMED("planning_context_manager", "Factory of type '%s' was not found", factory_type.c_str());
-    static const ModelBasedStateSpaceFactoryPtr empty;
-    return empty;
-  }
-}
-
-const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory2(
-    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
-{
-  // find the problem representation to use
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
-  int prev_priority = -1;
-  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
-       it != state_space_factories_.end(); ++it)
-  {
-    int priority = it->second->canRepresentProblem(group, req, kmodel_);
-    if (priority > 0)
-      if (best == state_space_factories_.end() || priority > prev_priority)
-      {
-        best = it;
-        prev_priority = priority;
-      }
-  }
-
-  if (best == state_space_factories_.end())
-  {
-    ROS_ERROR_NAMED("planning_context_manager", "There are no known state spaces that can represent the given planning "
-                                                "problem");
-    static const ModelBasedStateSpaceFactoryPtr empty;
-    return empty;
-  }
-  else
-  {
-    ROS_DEBUG_NAMED("planning_context_manager", "Using '%s' parameterization for solving problem", best->first.c_str());
-    return best->second;
-  }
 }
 
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
@@ -243,23 +134,49 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     }
   }
 
-  // Check if sampling in JointModelStateSpace is enforced for this group by user.
-  // This is done by setting 'enforce_joint_model_state_space' to 'true' for the desired group in ompl_planning.yaml.
-  //
-  // Some planning problems like orientation path constraints are represented in PoseModelStateSpace and sampled via IK.
-  // However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be flipped,
-  // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
-  // in JointModelStateSpace.
-  StateSpaceFactoryTypeSelector factory_selector;
-  std::map<std::string, std::string>::const_iterator it = pc->second.config.find("enforce_joint_model_state_space");
+  // Check for a cached planning context
+  ModelBasedPlanningContextPtr context;
 
-  if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
-    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1,
-                                   JointModelStateSpace::PARAMETERIZATION_TYPE);
-  else
-    factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory2, this, _1, req);
+  // {
+  //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+  //   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
+  //       cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
+  //   if (cc != cached_contexts_->contexts_.end())
+  //   {
+  //     for (std::size_t i = 0; i < cc->second.size(); ++i)
+  //       if (cc->second[i].unique())
+  //       {
+  //         ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
+  //         context = cc->second[i];
+  //         break;
+  //       }
+  //   }
+  // }
 
-  ModelBasedPlanningContextPtr context = getPlanningContext(pc->second, factory_selector, req);
+  const planning_interface::PlannerConfigurationSettings& config = pc->second;
+
+  // Create a new planning context
+  if (!context)
+  {
+    ModelBasedPlanningContextSpecification context_spec(kmodel_, config.group);
+    context_spec.name_ = config.name;
+    context_spec.group_ = config.group;
+    context_spec.config_ = config.config;
+    context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
+    context_spec.req_ = req;
+
+    ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
+    context.reset(new ModelBasedPlanningContext(context_spec));
+
+    // {
+    //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+    //   cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
+    // }
+  }
+
+  context->setSpecificationConfig(config.config);
+
+  // last_planning_context_->setContext(context);
 
   if (context)
   {

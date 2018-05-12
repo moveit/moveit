@@ -43,6 +43,10 @@
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
 #include <moveit/planning_interface/planning_interface.h>
 
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space_factory.h>
+#include <moveit/ompl_interface/parameterization/joint_space/joint_model_state_space.h>
+#include <moveit/ompl_interface/parameterization/work_space/pose_model_state_space_factory.h>
+
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/tools/multiplan/ParallelPlan.h>
@@ -69,16 +73,24 @@ typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_ty
 
 struct ModelBasedPlanningContextSpecification
 {
+  ModelBasedPlanningContextSpecification(const robot_model::RobotModelConstPtr& robot_model,
+                                         const std::string& group_name)
+    : space_spec_(robot_model, group_name)
+  {
+  }
+
+  std::string name_;
+  std::string group_;
   std::map<std::string, std::string> config_;
   constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
-
-  ModelBasedStateSpacePtr state_space_;
+  moveit_msgs::MotionPlanRequest req_;
+  ModelBasedStateSpaceSpecification space_spec_;
 };
 
 class ModelBasedPlanningContext : public planning_interface::PlanningContext
 {
 public:
-  ModelBasedPlanningContext(const std::string& name, const ModelBasedPlanningContextSpecification& spec);
+  ModelBasedPlanningContext(const ModelBasedPlanningContextSpecification& spec);
 
   virtual ~ModelBasedPlanningContext()
   {
@@ -111,12 +123,12 @@ public:
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {
-    return spec_.state_space_->getRobotModel();
+    return ompl_state_space_->getRobotModel();
   }
 
   const robot_model::JointModelGroup* getJointModelGroup() const
   {
-    return spec_.state_space_->getJointModelGroup();
+    return ompl_state_space_->getJointModelGroup();
   }
 
   const robot_state::RobotState& getCompleteInitialRobotState() const
@@ -126,7 +138,7 @@ public:
 
   const ModelBasedStateSpacePtr& getOMPLStateSpace() const
   {
-    return spec_.state_space_;
+    return ompl_state_space_;
   }
 
   const og::SimpleSetupPtr& getOMPLSimpleSetup() const
@@ -351,11 +363,63 @@ protected:
 
   void registerDefaultPlanners();
 
+  /// State space factories
+  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
+
+  void registerDefaultStateSpaces()
+  {
+    registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new JointModelStateSpaceFactory()));
+    registerStateSpaceFactory(ModelBasedStateSpaceFactoryPtr(new PoseModelStateSpaceFactory()));
+  }
+
+  void registerStateSpaceFactory(const ModelBasedStateSpaceFactoryPtr& factory)
+  {
+    state_space_factories_[factory->getType()] = factory;
+  }
+
+  const std::map<std::string, ModelBasedStateSpaceFactoryPtr>& getRegisteredStateSpaceFactories() const
+  {
+    return state_space_factories_;
+  }
+
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory1(const std::string& group_name,
+                                                              const std::string& factory_type) const;
+  const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
+                                                              const moveit_msgs::MotionPlanRequest& req) const;
+
+  ModelBasedStateSpacePtr getStateSpace()
+  {
+    // Check if sampling in JointModelStateSpace is enforced for this group by user. This is done by setting
+    // 'enforce_joint_model_state_space' to 'true' for the desired group in ompl_planning.yaml.
+    //
+    // Some planning problems like orientation path constraints are represented in PoseModelStateSpace and sampled via
+    // IK. However consecutive IK solutions are not checked for proximity at the moment and sometimes happen to be
+    // flipped, leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection
+    // sampling in JointModelStateSpace.
+    registerDefaultStateSpaces();
+
+    StateSpaceFactoryTypeSelector factory_selector;
+    std::map<std::string, std::string>::const_iterator it = spec_.config_.find("enforce_joint_model_state_space");
+
+    if (it != spec_.config_.end() && boost::lexical_cast<bool>(it->second))
+      factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory1, this, _1,
+                                     JointModelStateSpace::PARAMETERIZATION_TYPE);
+    else
+      factory_selector = boost::bind(&ModelBasedPlanningContext::getStateSpaceFactory2, this, _1, spec_.req_);
+
+    const ompl_interface::ModelBasedStateSpaceFactoryPtr& factory = factory_selector(spec_.group_);
+    return factory->getNewStateSpace(spec_.space_spec_);
+  }
+
+  /// Vars
   ModelBasedPlanningContextSpecification spec_;
 
-  robot_state::RobotState complete_initial_robot_state_;
+  std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
 
   ModelBasedStateSpacePtr ompl_state_space_;
+
+  robot_state::RobotState complete_initial_robot_state_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
   og::SimpleSetupPtr ompl_simple_setup_;
@@ -406,8 +470,6 @@ protected:
   bool use_state_validity_cache_;
 
   bool simplify_solutions_;
-
-  std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
 
   ConstraintsLibraryPtr constraints_library_;
 };

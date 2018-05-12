@@ -43,6 +43,7 @@
 #include <moveit/ompl_interface/detail/goal_union.h>
 #include <moveit/ompl_interface/detail/projection_evaluators.h>
 #include <moveit/ompl_interface/detail/constraints_library.h>
+
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
 
@@ -85,12 +86,11 @@
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 
-ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::string& name,
-                                                                     const ModelBasedPlanningContextSpecification& spec)
-  : planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName())
+ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const ModelBasedPlanningContextSpecification& spec)
+  : planning_interface::PlanningContext(spec.name_, spec.group_)
   , spec_(spec)
-  , complete_initial_robot_state_(spec.state_space_->getRobotModel())
-  , ompl_state_space_(spec.state_space_)
+  , ompl_state_space_(getStateSpace())
+  , complete_initial_robot_state_(ompl_state_space_->getRobotModel())
   , ompl_simple_setup_(new ompl::geometric::SimpleSetup(ompl_state_space_))
   , ompl_benchmark_(*ompl_simple_setup_)
   , ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition())
@@ -108,6 +108,7 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   , constraints_library_(new ConstraintsLibrary(this))
 {
   registerDefaultPlanners();
+
   complete_initial_robot_state_.update();
   ompl_simple_setup_->getStateSpace()->computeSignature(space_signature_);
   ompl_simple_setup_->getStateSpace()->setStateSamplerAllocator(
@@ -117,6 +118,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
 void ompl_interface::ModelBasedPlanningContext::initializeContext(const ros::NodeHandle& nh,
                                                                   const OMPLDynamicReconfigureConfig& config)
 {
+
+
   loadConstraintApproximations(nh);
 
   simplifySolutions(config.simplify_solutions);
@@ -456,7 +459,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
                   wparams.min_corner.z, wparams.max_corner.z);
 
   ompl_state_space_->setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y,
-                                        wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
+                                       wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
 }
 
 void ompl_interface::ModelBasedPlanningContext::simplifySolution(double timeout)
@@ -867,4 +870,51 @@ bool ompl_interface::ModelBasedPlanningContext::loadConstraintApproximations(con
     return true;
   }
   return false;
+}
+
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBasedPlanningContext::getStateSpaceFactory1(
+    const std::string& /* dummy */, const std::string& factory_type) const
+{
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
+      factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
+  if (f != state_space_factories_.end())
+    return f->second;
+  else
+  {
+    ROS_ERROR_NAMED("planning_context_manager", "Factory of type '%s' was not found", factory_type.c_str());
+    static const ModelBasedStateSpaceFactoryPtr empty;
+    return empty;
+  }
+}
+
+const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBasedPlanningContext::getStateSpaceFactory2(
+    const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
+{
+  // find the problem representation to use
+  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
+  int prev_priority = -1;
+  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
+       it != state_space_factories_.end(); ++it)
+  {
+    int priority = it->second->canRepresentProblem(group, req, spec_.space_spec_.robot_model_);
+    if (priority > 0)
+      if (best == state_space_factories_.end() || priority > prev_priority)
+      {
+        best = it;
+        prev_priority = priority;
+      }
+  }
+
+  if (best == state_space_factories_.end())
+  {
+    ROS_ERROR_NAMED("planning_context_manager", "There are no known state spaces that can represent the given planning "
+                                                "problem");
+    static const ModelBasedStateSpaceFactoryPtr empty;
+    return empty;
+  }
+  else
+  {
+    ROS_DEBUG_NAMED("planning_context_manager", "Using '%s' parameterization for solving problem", best->first.c_str());
+    return best->second;
+  }
 }
