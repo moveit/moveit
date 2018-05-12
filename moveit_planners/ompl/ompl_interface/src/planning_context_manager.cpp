@@ -73,11 +73,11 @@ private:
   boost::mutex lock_;
 };
 
-struct PlanningContextManager::CachedContexts
-{
-  std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
-  boost::mutex lock_;
-};
+// struct PlanningContextManager::CachedContexts
+// {
+//   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
+//   boost::mutex lock_;
+// };
 
 }  // namespace ompl_interface
 
@@ -86,7 +86,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
   : kmodel_(kmodel), constraint_sampler_manager_(csm)
 {
   last_planning_context_.reset(new LastPlanningContext());
-  cached_contexts_.reset(new CachedContexts());
+  // cached_contexts_.reset(new CachedContexts());
   registerDefaultStateSpaces();
 }
 
@@ -111,21 +111,21 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // Check for a cached planning context
   ModelBasedPlanningContextPtr context;
 
-  {
-    boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-    std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
-        cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
-    if (cc != cached_contexts_->contexts_.end())
-    {
-      for (std::size_t i = 0; i < cc->second.size(); ++i)
-        if (cc->second[i].unique())
-        {
-          ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
-          context = cc->second[i];
-          break;
-        }
-    }
-  }
+  // {
+  //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+  //   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
+  //       cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
+  //   if (cc != cached_contexts_->contexts_.end())
+  //   {
+  //     for (std::size_t i = 0; i < cc->second.size(); ++i)
+  //       if (cc->second[i].unique())
+  //       {
+  //         ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
+  //         context = cc->second[i];
+  //         break;
+  //       }
+  //   }
+  // }
 
   // Create a new planning context
   if (!context)
@@ -140,10 +140,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     context->useStateValidityCache(state_validity_cache);
-    {
-      boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-      cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
-    }
+
+    // {
+    //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+    //   cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
+    // }
   }
 
   context->setSpecificationConfig(config.config);

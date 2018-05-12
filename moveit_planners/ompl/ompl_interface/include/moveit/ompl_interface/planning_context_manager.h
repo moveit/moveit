@@ -118,8 +118,8 @@ private:
   MOVEIT_CLASS_FORWARD(LastPlanningContext);
   LastPlanningContextPtr last_planning_context_;
 
-  MOVEIT_CLASS_FORWARD(CachedContexts);
-  CachedContextsPtr cached_contexts_;
+  // MOVEIT_CLASS_FORWARD(CachedContexts);
+  // CachedContextsPtr cached_contexts_;
 };
 }
 
