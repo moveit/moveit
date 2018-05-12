@@ -355,6 +355,8 @@ protected:
 
   robot_state::RobotState complete_initial_robot_state_;
 
+  ModelBasedStateSpacePtr ompl_state_space_;
+
   /// the OMPL planning context; this contains the problem definition and the planner used
   og::SimpleSetupPtr ompl_simple_setup_;
 

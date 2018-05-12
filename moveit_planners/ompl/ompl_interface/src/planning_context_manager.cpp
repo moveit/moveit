@@ -46,32 +46,32 @@
 
 namespace ompl_interface
 {
-class PlanningContextManager::LastPlanningContext
-{
-public:
-  ModelBasedPlanningContextPtr getContext()
-  {
-    boost::mutex::scoped_lock slock(lock_);
-    return last_planning_context_solve_;
-  }
+// class PlanningContextManager::LastPlanningContext
+// {
+// public:
+//   ModelBasedPlanningContextPtr getContext()
+//   {
+//     boost::mutex::scoped_lock slock(lock_);
+//     return last_planning_context_solve_;
+//   }
 
-  void setContext(const ModelBasedPlanningContextPtr& context)
-  {
-    boost::mutex::scoped_lock slock(lock_);
-    last_planning_context_solve_ = context;
-  }
+//   void setContext(const ModelBasedPlanningContextPtr& context)
+//   {
+//     boost::mutex::scoped_lock slock(lock_);
+//     last_planning_context_solve_ = context;
+//   }
 
-  void clear()
-  {
-    boost::mutex::scoped_lock slock(lock_);
-    last_planning_context_solve_.reset();
-  }
+//   void clear()
+//   {
+//     boost::mutex::scoped_lock slock(lock_);
+//     last_planning_context_solve_.reset();
+//   }
 
-private:
-  /* The planning group for which solve() was called last */
-  ModelBasedPlanningContextPtr last_planning_context_solve_;
-  boost::mutex lock_;
-};
+// private:
+//   /* The planning group for which solve() was called last */
+//   ModelBasedPlanningContextPtr last_planning_context_solve_;
+//   boost::mutex lock_;
+// };
 
 // struct PlanningContextManager::CachedContexts
 // {
@@ -85,7 +85,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
     const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   : kmodel_(kmodel), constraint_sampler_manager_(csm)
 {
-  last_planning_context_.reset(new LastPlanningContext());
+  // last_planning_context_.reset(new LastPlanningContext());
   // cached_contexts_.reset(new CachedContexts());
   registerDefaultStateSpaces();
 }
@@ -149,7 +149,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   context->setSpecificationConfig(config.config);
 
-  last_planning_context_->setContext(context);
+  // last_planning_context_->setContext(context);
   return context;
 }
 
@@ -295,7 +295,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   return context;
 }
 
-ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
-{
-  return last_planning_context_->getContext();
-}
+// ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
+// {
+//   return last_planning_context_->getContext();
+// }

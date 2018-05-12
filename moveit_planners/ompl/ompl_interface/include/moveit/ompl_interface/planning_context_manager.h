@@ -69,7 +69,7 @@ public:
     return kmodel_;
   }
 
-  ModelBasedPlanningContextPtr getLastPlanningContext() const;
+  // ModelBasedPlanningContextPtr getLastPlanningContext() const;
 
   ModelBasedPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                   const planning_interface::MotionPlanRequest& req,
@@ -115,8 +115,8 @@ protected:
   planning_interface::PlannerConfigurationMap planner_configs_;
 
 private:
-  MOVEIT_CLASS_FORWARD(LastPlanningContext);
-  LastPlanningContextPtr last_planning_context_;
+  // MOVEIT_CLASS_FORWARD(LastPlanningContext);
+  // LastPlanningContextPtr last_planning_context_;
 
   // MOVEIT_CLASS_FORWARD(CachedContexts);
   // CachedContextsPtr cached_contexts_;

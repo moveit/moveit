@@ -90,7 +90,8 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
   : planning_interface::PlanningContext(name, spec.state_space_->getJointModelGroup()->getName())
   , spec_(spec)
   , complete_initial_robot_state_(spec.state_space_->getRobotModel())
-  , ompl_simple_setup_(new ompl::geometric::SimpleSetup(spec.state_space_))
+  , ompl_state_space_(spec.state_space_)
+  , ompl_simple_setup_(new ompl::geometric::SimpleSetup(ompl_state_space_))
   , ompl_benchmark_(*ompl_simple_setup_)
   , ompl_parallel_plan_(ompl_simple_setup_->getProblemDefinition())
   , ptc_(NULL)
@@ -191,14 +192,14 @@ void ompl_interface::ModelBasedPlanningContext::registerDefaultPlanners()
 
 void ompl_interface::ModelBasedPlanningContext::setProjectionEvaluator(const std::string& peval)
 {
-  if (!spec_.state_space_)
+  if (!ompl_state_space_)
   {
     ROS_ERROR_NAMED("model_based_planning_context", "No state space is configured yet");
     return;
   }
   ob::ProjectionEvaluatorPtr pe = getProjectionEvaluator(peval);
   if (pe)
-    spec_.state_space_->registerDefaultProjection(pe);
+    ompl_state_space_->registerDefaultProjection(pe);
 }
 
 ob::ProjectionEvaluatorPtr
@@ -259,7 +260,7 @@ ompl_interface::ModelBasedPlanningContext::getProjectionEvaluator(const std::str
 ob::StateSamplerPtr
 ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ob::StateSpace* ss) const
 {
-  if (spec_.state_space_.get() != ss)
+  if (ompl_state_space_.get() != ss)
   {
     ROS_ERROR_NAMED("model_based_planning_context",
                     "%s: Attempted to allocate a state sampler for an unknown state space", name_.c_str());
@@ -311,8 +312,8 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const ob:
 void ompl_interface::ModelBasedPlanningContext::configure()
 {
   // convert the input state to the corresponding OMPL state
-  ob::ScopedState<> ompl_start_state(spec_.state_space_);
-  spec_.state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
+  ob::ScopedState<> ompl_start_state(ompl_state_space_);
+  ompl_state_space_->copyToOMPLState(ompl_start_state.get(), getCompleteInitialRobotState());
   ompl_simple_setup_->setStartState(ompl_start_state);
   ompl_simple_setup_->setStateValidityChecker(ob::StateValidityCheckerPtr(new StateValidityChecker(this)));
 
@@ -354,7 +355,7 @@ void ompl_interface::ModelBasedPlanningContext::useConfig()
       // i.e. the one that uses the shorter segment length.
       longest_valid_segment_fraction_final = std::min(
           longest_valid_segment_fraction_config,
-          max_solution_segment_length_ / spec_.state_space_->getMaximumExtent()
+          max_solution_segment_length_ / ompl_state_space_->getMaximumExtent()
       );
     }
     // clang-format on
@@ -454,7 +455,7 @@ void ompl_interface::ModelBasedPlanningContext::setPlanningVolume(const moveit_m
                   name_.c_str(), wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y, wparams.max_corner.y,
                   wparams.min_corner.z, wparams.max_corner.z);
 
-  spec_.state_space_->setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y,
+  ompl_state_space_->setPlanningVolume(wparams.min_corner.x, wparams.max_corner.x, wparams.min_corner.y,
                                         wparams.max_corner.y, wparams.min_corner.z, wparams.max_corner.z);
 }
 
@@ -498,7 +499,7 @@ void ompl_interface::ModelBasedPlanningContext::convertPath(const ompl::geometri
   robot_state::RobotState ks = complete_initial_robot_state_;
   for (std::size_t i = 0; i < pg.getStateCount(); ++i)
   {
-    spec_.state_space_->copyToRobotState(ks, pg.getState(i));
+    ompl_state_space_->copyToRobotState(ks, pg.getState(i));
     traj.addSuffixWayPoint(ks, 0.0);
   }
 }
