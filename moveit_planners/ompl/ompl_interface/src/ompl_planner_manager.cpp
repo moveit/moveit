@@ -174,7 +174,7 @@ planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPl
     const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
     moveit_msgs::MoveItErrorCodes& error_code) const
 {
-  ModelBasedPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req, error_code);
+  OMPLPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req, error_code);
   ctx->initializeContext(nh_, config_);
 
   return ctx;
