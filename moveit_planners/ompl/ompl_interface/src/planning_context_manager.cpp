@@ -161,7 +161,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   auto config_it = config.config.find("plugin");
   if (config_it != config.config.end())
   {
-    std::string plugin = config_it->second;
+    plugin = config_it->second;
     if (!ompl_context_loader_->isClassAvailable(plugin))
     {
       ROS_ERROR("Plugin '%s' does not exist. Assuming default plugin.", plugin.c_str());
