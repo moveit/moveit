@@ -120,11 +120,13 @@ bool ompl_interface::OMPLPlannerManager::initialize(const robot_model::RobotMode
   dynamic_reconfigure_server_->setCallback(boost::bind(&OMPLPlannerManager::dynamicReconfigureCallback, this, _1, _2));
 
   context_manager_.reset(new PlanningContextManager(kmodel_, constraint_sampler_manager_));
+  if (!context_manager_->initialize())
+    return false;
 
   loadPlannerConfigurations();
   loadConstraintSamplers();
 
-  return true;
+  return planning_interface::PlannerManager::initialize(model, ns);
 }
 >>>>>>> c0eb73821... Cleaned up and split ompl_planner_manager into header and source file
 
@@ -288,7 +290,8 @@ void ompl_interface::OMPLPlannerManager::loadPlannerConfigurations()
     {
       default_pc.group = group_names[i];
       default_pc.config = specific_group_params;
-      default_pc.config["type"] = "geometric::RRTConnect";
+      default_pc.config["type"] = DEFAULT_OMPL_PLANNER;
+      default_pc.config["plugin"] = DEFAULT_OMPL_PLUGIN;
     }
     default_pc.name = group_names[i];  // this is the name of the default config
     pconfig[default_pc.name] = default_pc;

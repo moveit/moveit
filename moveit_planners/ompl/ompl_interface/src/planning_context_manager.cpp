@@ -34,6 +34,7 @@
 
 /* Author: Ioan Sucan */
 
+#include <pluginlib/class_loader.h>
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/profiler/profiler.h>
@@ -81,8 +82,26 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
     const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   : kmodel_(kmodel), constraint_sampler_manager_(csm)
 {
+}
+
+bool ompl_interface::PlanningContextManager::initialize()
+{
   // last_planning_context_.reset(new LastPlanningContext());
   // cached_contexts_.reset(new CachedContexts());
+
+  // Initialize planning context plugin loader
+  try
+  {
+    ompl_context_loader_.reset(
+        new pluginlib::ClassLoader<OMPLPlanningContext>("moveit_planners_ompl", "ompl_interface::OMPLPlanningContext"));
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning context plugin loader " << ex.what());
+    return false;
+  }
+
+  return true;
 }
 
 void ompl_interface::PlanningContextManager::setPlannerConfigurations(
@@ -165,7 +184,28 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
-    context.reset(new ModelBasedPlanningContext());
+
+    auto config_it = config.config.find("plugin");
+
+    boost::shared_ptr<OMPLPlanningContext> ptr;
+    if (config_it != config.config.end())
+    {
+      std::string plugin = config_it->second;
+      if (!ompl_context_loader_->isClassAvailable(plugin))
+      {
+        ROS_ERROR("Plugin '%s' does not exist. Assuming default plugin.", plugin.c_str());
+        plugin = DEFAULT_OMPL_PLUGIN;
+      }
+
+      ptr = ompl_context_loader_->createInstance(plugin);
+    }
+    else
+    {
+      ROS_WARN("No plugin specified for planner configuration '%s'.  Assuming default plugin.", config.name.c_str());
+      ptr = ompl_context_loader_->createInstance(DEFAULT_OMPL_PLUGIN);
+    }
+
+    context = std::shared_ptr<OMPLPlanningContext>(ptr.get(), [ptr](OMPLPlanningContext*) mutable { ptr.reset(); });
 
     context->initialize(context_spec);
     // {

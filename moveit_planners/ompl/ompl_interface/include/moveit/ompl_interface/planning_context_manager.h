@@ -37,6 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 #define MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 
+#include <pluginlib/class_loader.h>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
@@ -48,11 +49,16 @@
 
 namespace ompl_interface
 {
+const static std::string DEFAULT_OMPL_PLANNER = "geometric::RRTConnect";
+const static std::string DEFAULT_OMPL_PLUGIN = "ompl_interface/ModelBasedPlanningContext";
+
 class PlanningContextManager
 {
 public:
   PlanningContextManager(const robot_model::RobotModelConstPtr& kmodel,
                          const constraint_samplers::ConstraintSamplerManagerPtr& csm);
+
+  bool initialize();
 
   /** @brief Specify configurations for the planners.
       @param pconfig Configurations for the different planners */
@@ -87,6 +93,8 @@ protected:
       particular configurations specified for a group, or of the
       form "group_name" if default settings are to be used. */
   planning_interface::PlannerConfigurationMap planner_configs_;
+
+  std::shared_ptr<pluginlib::ClassLoader<OMPLPlanningContext>> ompl_context_loader_;
 
 private:
   // MOVEIT_CLASS_FORWARD(LastPlanningContext);
