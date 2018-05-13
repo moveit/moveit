@@ -1,0 +1,7 @@
+<library path="libmoveit_ompl_planner_plugin">
+  <class name="ompl_interface/ModelBasedPlanningContext" type="ompl_interface::ModelBasedPlanningContext" base_class_type="ompl_interface::OMPLPlanningContext">
+    <description>
+      A planning context for computing kinematic paths in joint and Cartesian space.
+    </description>
+  </class>
+</library>

@@ -38,7 +38,7 @@
 #include <boost/bind.hpp>
 
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedStateSpaceSpecification& spec)
-  : ompl::base::StateSpace(), spec_(spec)
+  : ob::RealVectorStateSpace(spec.joint_model_group_->getVariableCount()), spec_(spec)
 {
   // set the state space name
   setName(spec_.joint_model_group_->getName());
@@ -66,6 +66,19 @@ ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(const ModelBasedState
     joint_bounds_storage_[i] = *spec_.joint_bounds_[i];
     spec_.joint_bounds_[i] = &joint_bounds_storage_[i];
   }
+
+  ob::RealVectorBounds bounds(variable_count_);
+  int i = 0;
+  for (auto rob_bounds : spec_.joint_bounds_)
+  {
+    for (auto var_bounds : *rob_bounds)
+    {
+      bounds.setLow(i, var_bounds.min_position_);
+      bounds.setHigh(i, var_bounds.max_position_);
+      i++;
+    }
+  }
+  setBounds(bounds);
 
   // default settings
   setTagSnapToSegment(0.95);
@@ -105,14 +118,14 @@ ompl::base::State* ompl_interface::ModelBasedStateSpace::allocState() const
   return state;
 }
 
-void ompl_interface::ModelBasedStateSpace::freeState(ompl::base::State* state) const
+void ompl_interface::ModelBasedStateSpace::freeState(ob::State* state) const
 {
   delete[] state->as<StateType>()->values;
   delete state->as<StateType>();
 }
 
-void ompl_interface::ModelBasedStateSpace::copyState(ompl::base::State* destination,
-                                                     const ompl::base::State* source) const
+void ompl_interface::ModelBasedStateSpace::copyState(ob::State* destination,
+                                                     const ob::State* source) const
 {
   memcpy(destination->as<StateType>()->values, source->as<StateType>()->values, state_values_size_);
   destination->as<StateType>()->tag = source->as<StateType>()->tag;
@@ -125,13 +138,13 @@ unsigned int ompl_interface::ModelBasedStateSpace::getSerializationLength() cons
   return state_values_size_ + sizeof(int);
 }
 
-void ompl_interface::ModelBasedStateSpace::serialize(void* serialization, const ompl::base::State* state) const
+void ompl_interface::ModelBasedStateSpace::serialize(void* serialization, const ob::State* state) const
 {
   *reinterpret_cast<int*>(serialization) = state->as<StateType>()->tag;
   memcpy(reinterpret_cast<char*>(serialization) + sizeof(int), state->as<StateType>()->values, state_values_size_);
 }
 
-void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State* state, const void* serialization) const
+void ompl_interface::ModelBasedStateSpace::deserialize(ob::State* state, const void* serialization) const
 {
   state->as<StateType>()->tag = *reinterpret_cast<const int*>(serialization);
   memcpy(state->as<StateType>()->values, reinterpret_cast<const char*>(serialization) + sizeof(int),
@@ -165,8 +178,8 @@ double ompl_interface::ModelBasedStateSpace::getMeasure() const
   return m;
 }
 
-double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State* state1,
-                                                      const ompl::base::State* state2) const
+double ompl_interface::ModelBasedStateSpace::distance(const ob::State* state1,
+                                                      const ob::State* state2) const
 {
   if (distance_function_)
     return distance_function_(state1, state2);
@@ -174,8 +187,8 @@ double ompl_interface::ModelBasedStateSpace::distance(const ompl::base::State* s
     return spec_.joint_model_group_->distance(state1->as<StateType>()->values, state2->as<StateType>()->values);
 }
 
-bool ompl_interface::ModelBasedStateSpace::equalStates(const ompl::base::State* state1,
-                                                       const ompl::base::State* state2) const
+bool ompl_interface::ModelBasedStateSpace::equalStates(const ob::State* state1,
+                                                       const ob::State* state2) const
 {
   for (unsigned int i = 0; i < variable_count_; ++i)
     if (fabs(state1->as<StateType>()->values[i] - state2->as<StateType>()->values[i]) >
@@ -184,19 +197,19 @@ bool ompl_interface::ModelBasedStateSpace::equalStates(const ompl::base::State* 
   return true;
 }
 
-void ompl_interface::ModelBasedStateSpace::enforceBounds(ompl::base::State* state) const
+void ompl_interface::ModelBasedStateSpace::enforceBounds(ob::State* state) const
 {
   spec_.joint_model_group_->enforcePositionBounds(state->as<StateType>()->values, spec_.joint_bounds_);
 }
 
-bool ompl_interface::ModelBasedStateSpace::satisfiesBounds(const ompl::base::State* state) const
+bool ompl_interface::ModelBasedStateSpace::satisfiesBounds(const ob::State* state) const
 {
   return spec_.joint_model_group_->satisfiesPositionBounds(state->as<StateType>()->values, spec_.joint_bounds_,
                                                            std::numeric_limits<double>::epsilon());
 }
 
-void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State* from, const ompl::base::State* to,
-                                                       const double t, ompl::base::State* state) const
+void ompl_interface::ModelBasedStateSpace::interpolate(const ob::State* from, const ob::State* to,
+                                                       const double t, ob::State* state) const
 {
   // clear any cached info (such as validity known or not)
   state->as<StateType>()->clearKnownInformation();
@@ -217,7 +230,7 @@ void ompl_interface::ModelBasedStateSpace::interpolate(const ompl::base::State* 
   }
 }
 
-double* ompl_interface::ModelBasedStateSpace::getValueAddressAtIndex(ompl::base::State* state,
+double* ompl_interface::ModelBasedStateSpace::getValueAddressAtIndex(ob::State* state,
                                                                      const unsigned int index) const
 {
   if (index >= variable_count_)
@@ -249,29 +262,29 @@ void ompl_interface::ModelBasedStateSpace::setPlanningVolume(double minX, double
 
 ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultStateSampler() const
 {
-  class DefaultStateSampler : public ompl::base::StateSampler
+  class DefaultStateSampler : public ob::StateSampler
   {
   public:
-    DefaultStateSampler(const ompl::base::StateSpace* space, const robot_model::JointModelGroup* group,
+    DefaultStateSampler(const ob::StateSpace* space, const robot_model::JointModelGroup* group,
                         const robot_model::JointBoundsVector* joint_bounds)
-      : ompl::base::StateSampler(space), joint_model_group_(group), joint_bounds_(joint_bounds)
+      : ob::StateSampler(space), joint_model_group_(group), joint_bounds_(joint_bounds)
     {
     }
 
-    virtual void sampleUniform(ompl::base::State* state)
+    virtual void sampleUniform(ob::State* state)
     {
       joint_model_group_->getVariableRandomPositions(moveit_rng_, state->as<StateType>()->values, *joint_bounds_);
       state->as<StateType>()->clearKnownInformation();
     }
 
-    virtual void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance)
+    virtual void sampleUniformNear(ob::State* state, const ob::State* near, const double distance)
     {
       joint_model_group_->getVariableRandomPositionsNearBy(moveit_rng_, state->as<StateType>()->values, *joint_bounds_,
                                                            near->as<StateType>()->values, distance);
       state->as<StateType>()->clearKnownInformation();
     }
 
-    virtual void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev)
+    virtual void sampleGaussian(ob::State* state, const ob::State* mean, const double stdDev)
     {
       sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
     }
@@ -282,7 +295,7 @@ ompl::base::StateSamplerPtr ompl_interface::ModelBasedStateSpace::allocDefaultSt
     const robot_model::JointBoundsVector* joint_bounds_;
   };
 
-  return ompl::base::StateSamplerPtr(static_cast<ompl::base::StateSampler*>(
+  return ob::StateSamplerPtr(static_cast<ob::StateSampler*>(
       new DefaultStateSampler(this, spec_.joint_model_group_, &spec_.joint_bounds_)));
 }
 
@@ -291,7 +304,7 @@ void ompl_interface::ModelBasedStateSpace::printSettings(std::ostream& out) cons
   out << "ModelBasedStateSpace '" << getName() << "' at " << this << std::endl;
 }
 
-void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State* state, std::ostream& out) const
+void ompl_interface::ModelBasedStateSpace::printState(const ob::State* state, std::ostream& out) const
 {
   for (std::size_t j = 0; j < joint_model_vector_.size(); ++j)
   {
@@ -318,13 +331,13 @@ void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State* s
 }
 
 void ompl_interface::ModelBasedStateSpace::copyToRobotState(robot_state::RobotState& rstate,
-                                                            const ompl::base::State* state) const
+                                                            const ob::State* state) const
 {
   rstate.setJointGroupPositions(spec_.joint_model_group_, state->as<StateType>()->values);
   rstate.update();
 }
 
-void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State* state,
+void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ob::State* state,
                                                            const robot_state::RobotState& rstate) const
 {
   rstate.copyJointGroupPositions(spec_.joint_model_group_, state->as<StateType>()->values);
@@ -332,7 +345,7 @@ void ompl_interface::ModelBasedStateSpace::copyToOMPLState(ompl::base::State* st
   state->as<StateType>()->clearKnownInformation();
 }
 
-void ompl_interface::ModelBasedStateSpace::copyJointToOMPLState(ompl::base::State* state,
+void ompl_interface::ModelBasedStateSpace::copyJointToOMPLState(ob::State* state,
                                                                 const robot_state::RobotState& robot_state,
                                                                 const moveit::core::JointModel* joint_model,
                                                                 int ompl_state_joint_index) const

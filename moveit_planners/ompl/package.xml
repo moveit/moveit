@@ -36,6 +36,7 @@
 
   <export>
     <moveit_core plugin="${prefix}/ompl_interface_plugin_description.xml"/>
+    <moveit_planners_ompl plugin="${prefix}/ompl_model_based_planning_plugin_description.xml"/>
   </export>
 
 </package>
