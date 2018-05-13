@@ -79,6 +79,13 @@ public:
   virtual void initialize(const OMPLPlanningContextSpecification& spec);
   virtual void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
 
+  virtual void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams);
+  virtual bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
+                                  const moveit_msgs::Constraints& path_constraints,
+                                  moveit_msgs::MoveItErrorCodes* error);
+  virtual bool setPathConstraints(const moveit_msgs::Constraints& path_constraints,
+                                  moveit_msgs::MoveItErrorCodes* error);
+
   virtual bool solve(planning_interface::MotionPlanResponse& res);
   virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);
 
@@ -128,12 +135,6 @@ public:
   void setVerboseStateValidityChecks(bool flag);
 
   void setProjectionEvaluator(const std::string& peval);
-
-  void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams);
-
-  bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
-                          const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
-  bool setPathConstraints(const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
 
   bool useStateValidityCache() const
   {

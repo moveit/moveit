@@ -153,10 +153,10 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     }
   }
 
-  // Check for a cached planning context
   OMPLPlanningContextPtr context;
   const planning_interface::PlannerConfigurationSettings& config = pc->second;
 
+  // Find name of plugin to load
   std::string plugin = DEFAULT_OMPL_PLUGIN;
   auto config_it = config.config.find("plugin");
   if (config_it != config.config.end())
@@ -171,6 +171,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
 
   ROS_INFO("Using Plugin '%s' for planning context.", plugin.c_str());
 
+  // Check for a cached planning context
   {
     boost::mutex::scoped_lock slock(cached_contexts_->lock_);
     auto cc = cached_contexts_->contexts_.find(std::make_tuple(config.name, config.group, plugin));
@@ -209,34 +210,31 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
 
   last_planning_context_->setContext(context);
 
-  if (context)
+  context->clear();
+
+  robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
+
+  // Setup the context
+  context->setPlanningScene(planning_scene);
+  context->setMotionPlanRequest(req);
+  context->setCompleteInitialState(*start_state);
+
+  context->setPlanningVolume(req.workspace_parameters);
+  if (!context->setPathConstraints(req.path_constraints, &error_code))
+    return OMPLPlanningContextPtr();
+
+  if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, &error_code))
+    return OMPLPlanningContextPtr();
+
+  try
   {
-    context->clear();
-
-    robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
-
-    // Setup the context
-    context->setPlanningScene(planning_scene);
-    context->setMotionPlanRequest(req);
-    context->setCompleteInitialState(*start_state);
-
-    context->setPlanningVolume(req.workspace_parameters);
-    if (!context->setPathConstraints(req.path_constraints, &error_code))
-      return OMPLPlanningContextPtr();
-
-    if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, &error_code))
-      return OMPLPlanningContextPtr();
-
-    try
-    {
-      ROS_DEBUG_NAMED("planning_context_manager", "%s: New planning context is set.", context->getName().c_str());
-      error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
-    }
-    catch (ompl::Exception& ex)
-    {
-      ROS_ERROR_NAMED("planning_context_manager", "OMPL encountered an error: %s", ex.what());
-      context.reset();
-    }
+    ROS_DEBUG_NAMED("planning_context_manager", "%s: New planning context is set.", context->getName().c_str());
+    error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  }
+  catch (ompl::Exception& ex)
+  {
+    ROS_ERROR_NAMED("planning_context_manager", "OMPL encountered an error: %s", ex.what());
+    context.reset();
   }
 
   return context;

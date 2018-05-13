@@ -519,8 +519,6 @@ void ompl_interface::ModelBasedPlanningContext::setVerboseStateValidityChecks(bo
 
 ob::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
 {
-  // ******************* set up the goal representation, based on goal constraints
-
   std::vector<ob::GoalPtr> goals;
   for (std::size_t i = 0; i < goal_constraints_.size(); ++i)
   {
