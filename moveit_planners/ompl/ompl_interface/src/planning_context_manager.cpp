@@ -45,13 +45,13 @@ namespace ompl_interface
 // class PlanningContextManager::LastPlanningContext
 // {
 // public:
-//   ModelBasedPlanningContextPtr getContext()
+//   OMPLPlanningContextPtr getContext()
 //   {
 //     boost::mutex::scoped_lock slock(lock_);
 //     return last_planning_context_solve_;
 //   }
 
-//   void setContext(const ModelBasedPlanningContextPtr& context)
+//   void setContext(const OMPLPlanningContextPtr& context)
 //   {
 //     boost::mutex::scoped_lock slock(lock_);
 //     last_planning_context_solve_ = context;
@@ -65,13 +65,13 @@ namespace ompl_interface
 
 // private:
 //   /* The planning group for which solve() was called last */
-//   ModelBasedPlanningContextPtr last_planning_context_solve_;
+//   OMPLPlanningContextPtr last_planning_context_solve_;
 //   boost::mutex lock_;
 // };
 
 // struct PlanningContextManager::CachedContexts
 // {
-//   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
+//   std::map<std::pair<std::string, std::string>, std::vector<OMPLPlanningContextPtr> > contexts_;
 //   boost::mutex lock_;
 // };
 
@@ -99,7 +99,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   {
     ROS_ERROR_NAMED("planning_context_manager", "No group specified to plan for");
     error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_GROUP_NAME;
-    return ModelBasedPlanningContextPtr();
+    return OMPLPlanningContextPtr();
   }
 
   error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
@@ -107,7 +107,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   if (!planning_scene)
   {
     ROS_ERROR_NAMED("planning_context_manager", "No planning scene supplied as input");
-    return ModelBasedPlanningContextPtr();
+    return OMPLPlanningContextPtr();
   }
 
   // identify the correct planning configuration
@@ -130,16 +130,17 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     {
       ROS_ERROR_NAMED("planning_context_manager", "Cannot find planning configuration for group '%s'",
                       req.group_name.c_str());
-      return ModelBasedPlanningContextPtr();
+      return OMPLPlanningContextPtr();
     }
   }
 
   // Check for a cached planning context
-  ModelBasedPlanningContextPtr context;
+  OMPLPlanningContextPtr context;
+  const planning_interface::PlannerConfigurationSettings& config = pc->second;
 
   // {
   //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-  //   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
+  //   std::map<std::pair<std::string, std::string>, std::vector<OMPLPlanningContextPtr> >::const_iterator cc =
   //       cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
   //   if (cc != cached_contexts_->contexts_.end())
   //   {
@@ -157,11 +158,11 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   if (!context)
   {
     OMPLPlanningContextSpecification context_spec;
-    context_spec.config_ = pc->second;
+    context_spec.config_ = config;
     context_spec.csm_ = constraint_sampler_manager_;
     context_spec.req_ = req;
     context_spec.robot_model_ = kmodel_;
-    context_spec.jmg_ = kmodel_->getJointModelGroup(context_spec.config_.group);
+    context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
     context.reset(new ModelBasedPlanningContext());
@@ -188,10 +189,10 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
 
     context->setPlanningVolume(req.workspace_parameters);
     if (!context->setPathConstraints(req.path_constraints, &error_code))
-      return ModelBasedPlanningContextPtr();
+      return OMPLPlanningContextPtr();
 
     if (!context->setGoalConstraints(req.goal_constraints, req.path_constraints, &error_code))
-      return ModelBasedPlanningContextPtr();
+      return OMPLPlanningContextPtr();
 
     try
     {
@@ -208,7 +209,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   return context;
 }
 
-// ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
+// ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
 // {
 //   return last_planning_context_->getContext();
 // }

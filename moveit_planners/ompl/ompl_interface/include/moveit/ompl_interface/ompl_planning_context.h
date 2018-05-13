@@ -93,6 +93,24 @@ public:
     setMinimumWaypointCount(config.minimum_waypoint_count);
   }
 
+  void setCompleteInitialState(const robot_state::RobotState& complete_initial_robot_state)
+  {
+    *complete_initial_robot_state_ = complete_initial_robot_state;
+    complete_initial_robot_state_->update();
+  }
+
+  const robot_state::RobotState& getCompleteInitialRobotState() const
+  {
+    return *complete_initial_robot_state_;
+  }
+
+  virtual void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams) = 0;
+  virtual bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
+                                  const moveit_msgs::Constraints& path_constraints,
+                                  moveit_msgs::MoveItErrorCodes* error) = 0;
+  virtual bool setPathConstraints(const moveit_msgs::Constraints& path_constraints,
+                                  moveit_msgs::MoveItErrorCodes* error) = 0;
+
   const OMPLPlanningContextSpecification& getSpecification() const
   {
     return spec_;
@@ -200,7 +218,11 @@ public:
   }
 
 protected:
+  /// specification for the plannning context
   OMPLPlanningContextSpecification spec_;
+
+  /// the complete initial state of the robot
+  robot_state::RobotStatePtr complete_initial_robot_state_;
 
   /// maximum number of valid states to store in the goal region for any planning request (when such sampling is
   /// possible)

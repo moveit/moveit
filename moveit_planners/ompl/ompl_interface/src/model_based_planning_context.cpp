@@ -542,13 +542,6 @@ ob::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   return ob::GoalPtr();
 }
 
-void ompl_interface::ModelBasedPlanningContext::setCompleteInitialState(
-    const robot_state::RobotState& complete_initial_robot_state)
-{
-  *complete_initial_robot_state_ = complete_initial_robot_state;
-  complete_initial_robot_state_->update();
-}
-
 void ompl_interface::ModelBasedPlanningContext::clear()
 {
   ompl_simple_setup_->clear();
@@ -941,4 +934,4 @@ ompl_interface::ModelBasedStateSpacePtr ompl_interface::ModelBasedPlanningContex
   return factory->getNewStateSpace(space_spec);
 }
 
-// PLUGINLIB_EXPORT_CLASS(ompl_interface::ModelBasedPlanningContext, ompl_interface::OMPLPlanningContext)
+PLUGINLIB_EXPORT_CLASS(ompl_interface::ModelBasedPlanningContext, ompl_interface::OMPLPlanningContext)

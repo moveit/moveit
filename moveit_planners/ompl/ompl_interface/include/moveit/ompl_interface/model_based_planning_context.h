@@ -95,11 +95,6 @@ public:
     return ompl_state_space_->getJointModelGroup();
   }
 
-  const robot_state::RobotState& getCompleteInitialRobotState() const
-  {
-    return *complete_initial_robot_state_;
-  }
-
   const ModelBasedStateSpacePtr& getOMPLStateSpace() const
   {
     return ompl_state_space_;
@@ -135,8 +130,6 @@ public:
   void setProjectionEvaluator(const std::string& peval);
 
   void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams);
-
-  void setCompleteInitialState(const robot_state::RobotState& complete_initial_robot_state);
 
   bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
                           const moveit_msgs::Constraints& path_constraints, moveit_msgs::MoveItErrorCodes* error);
@@ -267,8 +260,6 @@ protected:
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
 
   ModelBasedStateSpacePtr ompl_state_space_;
-
-  robot_state::RobotStatePtr complete_initial_robot_state_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
   og::SimpleSetupPtr ompl_simple_setup_;
