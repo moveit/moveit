@@ -4,4 +4,16 @@
       A planning context for computing kinematic paths in joint and Cartesian space.
     </description>
   </class>
+
+  <class name="ompl_interface/JointModelBasedPlanningContext" type="ompl_interface::JointModelBasedPlanningContext" base_class_type="ompl_interface::OMPLPlanningContext">
+    <description>
+      A planning context for computing kinematic paths in joint space.
+    </description>
+  </class>
+
+  <class name="ompl_interface/PoseModelBasedPlanningContext" type="ompl_interface::PoseModelBasedPlanningContext" base_class_type="ompl_interface::OMPLPlanningContext">
+    <description>
+      A planning context for computing kinematic paths in Cartesian space.
+    </description>
+  </class>
 </library>

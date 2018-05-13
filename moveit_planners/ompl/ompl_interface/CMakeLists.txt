@@ -3,6 +3,8 @@ set(MOVEIT_LIB_NAME moveit_ompl_interface)
 add_library(${MOVEIT_LIB_NAME}
   src/planning_context_manager.cpp
   src/model_based_planning_context.cpp
+  src/joint_model_based_planning_context.cpp
+  src/pose_model_based_planning_context.cpp
   src/parameterization/model_based_state_space.cpp
   src/parameterization/model_based_state_space_factory.cpp
   src/parameterization/joint_space/joint_model_state_space.cpp

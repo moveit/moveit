@@ -254,7 +254,7 @@ protected:
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
                                                               const moveit_msgs::MotionPlanRequest& req) const;
 
-  ModelBasedStateSpacePtr getStateSpace();
+  virtual ModelBasedStateSpacePtr getStateSpace();
 
   std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;

@@ -169,6 +169,8 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     }
   }
 
+  ROS_INFO("Using Plugin '%s' for planning context.", plugin.c_str());
+
   {
     boost::mutex::scoped_lock slock(cached_contexts_->lock_);
     auto cc = cached_contexts_->contexts_.find(std::make_tuple(config.name, config.group, plugin));
