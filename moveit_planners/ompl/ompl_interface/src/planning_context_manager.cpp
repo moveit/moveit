@@ -43,38 +43,38 @@
 
 namespace ompl_interface
 {
-// class PlanningContextManager::LastPlanningContext
-// {
-// public:
-//   OMPLPlanningContextPtr getContext()
-//   {
-//     boost::mutex::scoped_lock slock(lock_);
-//     return last_planning_context_solve_;
-//   }
+class PlanningContextManager::LastPlanningContext
+{
+public:
+  OMPLPlanningContextPtr getContext()
+  {
+    boost::mutex::scoped_lock slock(lock_);
+    return last_planning_context_solve_;
+  }
 
-//   void setContext(const OMPLPlanningContextPtr& context)
-//   {
-//     boost::mutex::scoped_lock slock(lock_);
-//     last_planning_context_solve_ = context;
-//   }
+  void setContext(const OMPLPlanningContextPtr& context)
+  {
+    boost::mutex::scoped_lock slock(lock_);
+    last_planning_context_solve_ = context;
+  }
 
-//   void clear()
-//   {
-//     boost::mutex::scoped_lock slock(lock_);
-//     last_planning_context_solve_.reset();
-//   }
+  void clear()
+  {
+    boost::mutex::scoped_lock slock(lock_);
+    last_planning_context_solve_.reset();
+  }
 
-// private:
-//   /* The planning group for which solve() was called last */
-//   OMPLPlanningContextPtr last_planning_context_solve_;
-//   boost::mutex lock_;
-// };
+private:
+  /* The planning group for which solve() was called last */
+  OMPLPlanningContextPtr last_planning_context_solve_;
+  boost::mutex lock_;
+};
 
-// struct PlanningContextManager::CachedContexts
-// {
-//   std::map<std::pair<std::string, std::string>, std::vector<OMPLPlanningContextPtr> > contexts_;
-//   boost::mutex lock_;
-// };
+struct PlanningContextManager::CachedContexts
+{
+  std::map<std::tuple<std::string, std::string, std::string>, std::vector<OMPLPlanningContextPtr> > contexts_;
+  boost::mutex lock_;
+};
 
 }  // namespace ompl_interface
 
@@ -86,8 +86,8 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
 
 bool ompl_interface::PlanningContextManager::initialize()
 {
-  // last_planning_context_.reset(new LastPlanningContext());
-  // cached_contexts_.reset(new CachedContexts());
+  last_planning_context_.reset(new LastPlanningContext());
+  cached_contexts_.reset(new CachedContexts());
 
   // Initialize planning context plugin loader
   try
@@ -157,21 +157,32 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   OMPLPlanningContextPtr context;
   const planning_interface::PlannerConfigurationSettings& config = pc->second;
 
-  // {
-  //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-  //   std::map<std::pair<std::string, std::string>, std::vector<OMPLPlanningContextPtr> >::const_iterator cc =
-  //       cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
-  //   if (cc != cached_contexts_->contexts_.end())
-  //   {
-  //     for (std::size_t i = 0; i < cc->second.size(); ++i)
-  //       if (cc->second[i].unique())
-  //       {
-  //         ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
-  //         context = cc->second[i];
-  //         break;
-  //       }
-  //   }
-  // }
+  std::string plugin = DEFAULT_OMPL_PLUGIN;
+  auto config_it = config.config.find("plugin");
+  if (config_it != config.config.end())
+  {
+    std::string plugin = config_it->second;
+    if (!ompl_context_loader_->isClassAvailable(plugin))
+    {
+      ROS_ERROR("Plugin '%s' does not exist. Assuming default plugin.", plugin.c_str());
+      plugin = DEFAULT_OMPL_PLUGIN;
+    }
+  }
+
+  {
+    boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+    auto cc = cached_contexts_->contexts_.find(std::make_tuple(config.name, config.group, plugin));
+    if (cc != cached_contexts_->contexts_.end())
+    {
+      for (std::size_t i = 0; i < cc->second.size(); ++i)
+        if (cc->second[i].unique())
+        {
+          ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
+          context = cc->second[i];
+          break;
+        }
+    }
+  }
 
   // Create a new planning context
   if (!context)
@@ -184,37 +195,17 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
-
-    auto config_it = config.config.find("plugin");
-
-    boost::shared_ptr<OMPLPlanningContext> ptr;
-    if (config_it != config.config.end())
-    {
-      std::string plugin = config_it->second;
-      if (!ompl_context_loader_->isClassAvailable(plugin))
-      {
-        ROS_ERROR("Plugin '%s' does not exist. Assuming default plugin.", plugin.c_str());
-        plugin = DEFAULT_OMPL_PLUGIN;
-      }
-
-      ptr = ompl_context_loader_->createInstance(plugin);
-    }
-    else
-    {
-      ROS_WARN("No plugin specified for planner configuration '%s'.  Assuming default plugin.", config.name.c_str());
-      ptr = ompl_context_loader_->createInstance(DEFAULT_OMPL_PLUGIN);
-    }
-
+    boost::shared_ptr<OMPLPlanningContext> ptr = ompl_context_loader_->createInstance(plugin);
     context = std::shared_ptr<OMPLPlanningContext>(ptr.get(), [ptr](OMPLPlanningContext*) mutable { ptr.reset(); });
 
     context->initialize(context_spec);
-    // {
-    //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
-    //   cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
-    // }
+    {
+      boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+      cached_contexts_->contexts_[std::make_tuple(config.name, config.group, plugin)].push_back(context);
+    }
   }
 
-  // last_planning_context_->setContext(context);
+  last_planning_context_->setContext(context);
 
   if (context)
   {
@@ -249,7 +240,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   return context;
 }
 
-// ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
-// {
-//   return last_planning_context_->getContext();
-// }
+ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::getLastPlanningContext() const
+{
+  return last_planning_context_->getContext();
+}

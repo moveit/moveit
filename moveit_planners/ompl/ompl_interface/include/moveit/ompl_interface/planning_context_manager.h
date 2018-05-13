@@ -75,7 +75,7 @@ public:
     return kmodel_;
   }
 
-  // ModelBasedPlanningContextPtr getLastPlanningContext() const;
+  OMPLPlanningContextPtr getLastPlanningContext() const;
 
   OMPLPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                             const planning_interface::MotionPlanRequest& req,
@@ -97,11 +97,11 @@ protected:
   std::shared_ptr<pluginlib::ClassLoader<OMPLPlanningContext>> ompl_context_loader_;
 
 private:
-  // MOVEIT_CLASS_FORWARD(LastPlanningContext);
-  // LastPlanningContextPtr last_planning_context_;
+  MOVEIT_CLASS_FORWARD(LastPlanningContext);
+  LastPlanningContextPtr last_planning_context_;
 
-  // MOVEIT_CLASS_FORWARD(CachedContexts);
-  // CachedContextsPtr cached_contexts_;
+  MOVEIT_CLASS_FORWARD(CachedContexts);
+  CachedContextsPtr cached_contexts_;
 };
 }
 
