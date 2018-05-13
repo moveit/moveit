@@ -62,9 +62,8 @@ MOVEIT_CLASS_FORWARD(OMPLPlanningContext);
 class OMPLPlanningContext : public planning_interface::PlanningContext
 {
 public:
-  OMPLPlanningContext(const OMPLPlanningContextSpecification& spec)
-    : planning_interface::PlanningContext(spec.config_.name, spec.config_.group)
-    , spec_(spec)
+  OMPLPlanningContext()
+    : planning_interface::PlanningContext("UNINITIALIZED", "NO_GROUP")
     , max_goal_samples_(0)
     , max_state_sampling_attempts_(0)
     , max_goal_sampling_attempts_(0)
@@ -75,7 +74,14 @@ public:
   {
   }
 
-  virtual void initializeContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config)
+  virtual void initialize(const OMPLPlanningContextSpecification& spec)
+  {
+    name_ = spec.config_.name;
+    group_ = spec.config_.group;
+    spec_ = spec;
+  }
+
+  virtual void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config)
   {
     simplifySolutions(config.simplify_solutions);
     setMaximumPlanningThreads(config.max_planning_threads);

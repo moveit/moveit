@@ -153,28 +153,25 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   //   }
   // }
 
-  const planning_interface::PlannerConfigurationSettings& config = pc->second;
-
   // Create a new planning context
   if (!context)
   {
     OMPLPlanningContextSpecification context_spec;
-    context_spec.config_ = config;
+    context_spec.config_ = pc->second;
     context_spec.csm_ = constraint_sampler_manager_;
     context_spec.req_ = req;
     context_spec.robot_model_ = kmodel_;
-    context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
+    context_spec.jmg_ = kmodel_->getJointModelGroup(context_spec.config_.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
-    context.reset(new ModelBasedPlanningContext(context_spec));
+    context.reset(new ModelBasedPlanningContext());
 
+    context->initialize(context_spec);
     // {
     //   boost::mutex::scoped_lock slock(cached_contexts_->lock_);
     //   cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
     // }
   }
-
-  context->setSpecificationConfig(config.config);
 
   // last_planning_context_->setContext(context);
 
@@ -198,7 +195,6 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
 
     try
     {
-      context->configure();
       ROS_DEBUG_NAMED("planning_context_manager", "%s: New planning context is set.", context->getName().c_str());
       error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
     }

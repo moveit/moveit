@@ -74,11 +74,10 @@ typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_ty
 class ModelBasedPlanningContext : public OMPLPlanningContext
 {
 public:
-  ModelBasedPlanningContext(const OMPLPlanningContextSpecification& spec);
+  ModelBasedPlanningContext();
 
-  void initializeContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
-  bool saveConstraintApproximations(const ros::NodeHandle& nh);
-  bool loadConstraintApproximations(const ros::NodeHandle& nh);
+  virtual void initialize(const OMPLPlanningContextSpecification& spec);
+  virtual void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
 
   virtual bool solve(planning_interface::MotionPlanResponse& res);
   virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);
@@ -98,7 +97,7 @@ public:
 
   const robot_state::RobotState& getCompleteInitialRobotState() const
   {
-    return complete_initial_robot_state_;
+    return *complete_initial_robot_state_;
   }
 
   const ModelBasedStateSpacePtr& getOMPLStateSpace() const
@@ -118,12 +117,12 @@ public:
 
   const ot::Benchmark& getOMPLBenchmark() const
   {
-    return ompl_benchmark_;
+    return *ompl_benchmark_;
   }
 
   ot::Benchmark& getOMPLBenchmark()
   {
-    return ompl_benchmark_;
+    return *ompl_benchmark_;
   }
 
   const kinematic_constraints::KinematicConstraintSetPtr& getPathConstraints() const
@@ -191,8 +190,6 @@ public:
 
   void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
-  virtual void configure();
-
   void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
   {
     known_planners_[planner_id] = pa;
@@ -202,6 +199,9 @@ public:
   {
     return known_planners_;
   }
+
+  bool saveConstraintApproximations(const ros::NodeHandle& nh);
+  bool loadConstraintApproximations(const ros::NodeHandle& nh);
 
   void setConstraintsApproximations(const ConstraintsLibraryPtr& constraints_library)
   {
@@ -268,16 +268,16 @@ protected:
 
   ModelBasedStateSpacePtr ompl_state_space_;
 
-  robot_state::RobotState complete_initial_robot_state_;
+  robot_state::RobotStatePtr complete_initial_robot_state_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
   og::SimpleSetupPtr ompl_simple_setup_;
 
   /// the OMPL tool for benchmarking planners
-  ot::Benchmark ompl_benchmark_;
+  std::shared_ptr<ot::Benchmark> ompl_benchmark_;
 
   /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
-  ot::ParallelPlan ompl_parallel_plan_;
+  std::shared_ptr<ot::ParallelPlan> ompl_parallel_plan_;
 
   std::vector<int> space_signature_;
 
