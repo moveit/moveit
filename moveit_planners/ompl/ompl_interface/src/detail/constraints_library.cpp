@@ -131,7 +131,7 @@ void ConstraintsLibrary::loadConstraintApproximations(const std::string& path)
         new ConstraintApproximationStateStorage(context_->getOMPLSimpleSetup()->getStateSpace());
     cass->load((path + "/" + filename).c_str());
     ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions,
-                                                               msg, filename, ob::StateStoragePtr(cass), milestones));
+                                                               msg, filename, ompl::base::StateStoragePtr(cass), milestones));
     if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
       ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", cap->getName().c_str());
     constraint_approximations_[cap->getName()] = cap;
@@ -236,7 +236,7 @@ ConstraintApproximationConstructionResults ConstraintsLibrary::addConstraintAppr
   context_->setCompleteInitialState(scene->getCurrentState());
 
   ros::WallTime start = ros::WallTime::now();
-  ob::StateStoragePtr ss = constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
+  ompl::base::StateStoragePtr ss = constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
   ROS_INFO_NAMED("constraints_library", "Spent %lf seconds constructing the database",
                  (ros::WallTime::now() - start).toSec());
   if (ss)
@@ -257,14 +257,14 @@ ConstraintApproximationConstructionResults ConstraintsLibrary::addConstraintAppr
   return res;
 }
 
-ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
+ompl::base::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
     ModelBasedPlanningContext* pcontext, const moveit_msgs::Constraints& constr_sampling,
     const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
     ConstraintApproximationConstructionResults& result)
 {
   // state storage structure
   ConstraintApproximationStateStorage* cass = new ConstraintApproximationStateStorage(pcontext->getOMPLStateSpace());
-  ob::StateStoragePtr sstor(cass);
+  ompl::base::StateStoragePtr sstor(cass);
 
   // construct a sampler for the sampling constraints
   kinematic_constraints::KinematicConstraintSet kset(pcontext->getRobotModel());
@@ -293,9 +293,9 @@ ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
       csmp = new ConstrainedSampler(pcontext, cs);
   }
 
-  ob::StateSamplerPtr ss(csmp ? ob::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
+  ompl::base::StateSamplerPtr ss(csmp ? ompl::base::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
 
-  ob::ScopedState<> temp(pcontext->getOMPLStateSpace());
+  ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
   int done = -1;
   bool slow_warn = false;
   ompl::time::point start = ompl::time::now();
@@ -350,9 +350,9 @@ ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
                    options.edges_per_sample);
 
     // construct connexions
-    const ob::StateSpacePtr& space = pcontext->getOMPLSimpleSetup()->getStateSpace();
+    const ompl::base::StateSpacePtr& space = pcontext->getOMPLSimpleSetup()->getStateSpace();
     unsigned int milestones = sstor->size();
-    std::vector<ob::State*> int_states(options.max_explicit_points, NULL);
+    std::vector<ompl::base::State*> int_states(options.max_explicit_points, NULL);
     pcontext->getOMPLSimpleSetup()->getSpaceInformation()->allocStates(int_states);
 
     ompl::time::point start = ompl::time::now();
@@ -370,7 +370,7 @@ ob::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation(
       if (cass->getMetadata(j).first.size() >= options.edges_per_sample)
         continue;
 
-      const ob::State* sj = sstor->getState(j);
+      const ompl::base::State* sj = sstor->getState(j);
 
       for (std::size_t i = j + 1; i < milestones; ++i)
       {

@@ -42,7 +42,7 @@
 ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
     const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
     const constraint_samplers::ConstraintSamplerPtr& cs)
-  : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
+  : ompl::base::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
                         boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)
@@ -58,7 +58,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
   startSampling();
 }
 
-bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* new_goal,
+bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ompl::base::State* new_goal,
                                                                 const robot_state::RobotState& state,
                                                                 bool verbose) const
 {
@@ -66,7 +66,7 @@ bool ompl_interface::ConstrainedGoalSampler::checkStateValidity(ob::State* new_g
   return static_cast<const StateValidityChecker*>(si_->getStateValidityChecker().get())->isValid(new_goal, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* new_goal,
+bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ompl::base::State* new_goal,
                                                                    robot_state::RobotState const* state,
                                                                    const robot_model::JointModelGroup* jmg,
                                                                    const double* jpos, bool verbose) const
@@ -78,8 +78,8 @@ bool ompl_interface::ConstrainedGoalSampler::stateValidityCallback(ob::State* ne
   return checkStateValidity(new_goal, solution_state, verbose);
 }
 
-bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ob::GoalLazySamples* gls,
-                                                                          ob::State* new_goal)
+bool ompl_interface::ConstrainedGoalSampler::sampleUsingConstraintSampler(const ompl::base::GoalLazySamples* gls,
+                                                                          ompl::base::State* new_goal)
 {
   //  moveit::Profiler::ScopedBlock sblock("ConstrainedGoalSampler::sampleUsingConstraintSampler");
 

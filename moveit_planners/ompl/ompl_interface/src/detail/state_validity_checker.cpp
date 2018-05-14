@@ -189,7 +189,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   {
     if (verbose)
       ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
@@ -200,14 +200,14 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   const kinematic_constraints::KinematicConstraintSetPtr& kset = planning_context_->getPathConstraints();
   if (kset && !kset->decide(*kstate, verbose).satisfied)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
   // check feasibility
   if (!planning_context_->getPlanningScene()->isStateFeasible(*kstate, verbose))
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 
@@ -217,12 +217,12 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
       verbose ? collision_request_simple_verbose_ : collision_request_simple_, res, *kstate);
   if (res.collision == false)
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markValid();
     return true;
   }
   else
   {
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid();
     return false;
   }
 }
@@ -241,7 +241,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
   {
     if (verbose)
       ROS_INFO_NAMED("state_validity_checker", "State outside bounds");
-    const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
+    const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(0.0);
     return false;
   }
 
@@ -256,7 +256,7 @@ bool ompl_interface::StateValidityChecker::isValidWithCache(const ompl::base::St
     if (!cer.satisfied)
     {
       dist = cer.distance;
-      const_cast<ob::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
+      const_cast<ompl::base::State*>(state)->as<ModelBasedStateSpace::StateType>()->markInvalid(dist);
       return false;
     }
   }

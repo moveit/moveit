@@ -46,11 +46,9 @@
 
 namespace ompl_interface
 {
-namespace ob = ompl::base;
-
-typedef boost::function<bool(const ob::State* from, const ob::State* to, const double t, ob::State* state)>
+typedef boost::function<bool(const ompl::base::State* from, const ompl::base::State* to, const double t, ompl::base::State* state)>
     InterpolationFunction;
-typedef boost::function<double(const ob::State* state1, const ob::State* state2)> DistanceFunction;
+typedef boost::function<double(const ompl::base::State* state1, const ompl::base::State* state2)> DistanceFunction;
 
 struct ModelBasedStateSpaceSpecification
 {
@@ -72,10 +70,10 @@ struct ModelBasedStateSpaceSpecification
   robot_model::JointBoundsVector joint_bounds_;
 };
 
-class ModelBasedStateSpace : public ob::RealVectorStateSpace
+class ModelBasedStateSpace : public ompl::base::RealVectorStateSpace
 {
 public:
-  class StateType : public ob::RealVectorStateSpace::StateType
+  class StateType : public ompl::base::RealVectorStateSpace::StateType
   {
   public:
     enum
@@ -87,7 +85,7 @@ public:
       IS_GOAL_STATE = 16
     };
 
-    StateType() : ob::RealVectorStateSpace::StateType(), tag(-1), flags(0), distance(0.0)
+    StateType() : ompl::base::RealVectorStateSpace::StateType(), tag(-1), flags(0), distance(0.0)
     {
     }
 
@@ -179,25 +177,25 @@ public:
     distance_function_ = fun;
   }
 
-  virtual ob::State* allocState() const;
-  virtual void freeState(ob::State* state) const;
+  virtual ompl::base::State* allocState() const;
+  virtual void freeState(ompl::base::State* state) const;
   virtual unsigned int getDimension() const;
-  virtual void enforceBounds(ob::State* state) const;
-  virtual bool satisfiesBounds(const ob::State* state) const;
+  virtual void enforceBounds(ompl::base::State* state) const;
+  virtual bool satisfiesBounds(const ompl::base::State* state) const;
 
-  virtual void copyState(ob::State* destination, const ob::State* source) const;
-  virtual void interpolate(const ob::State* from, const ob::State* to, const double t, ob::State* state) const;
-  virtual double distance(const ob::State* state1, const ob::State* state2) const;
-  virtual bool equalStates(const ob::State* state1, const ob::State* state2) const;
+  virtual void copyState(ompl::base::State* destination, const ompl::base::State* source) const;
+  virtual void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t, ompl::base::State* state) const;
+  virtual double distance(const ompl::base::State* state1, const ompl::base::State* state2) const;
+  virtual bool equalStates(const ompl::base::State* state1, const ompl::base::State* state2) const;
   virtual double getMaximumExtent() const;
   virtual double getMeasure() const;
 
   virtual unsigned int getSerializationLength() const;
-  virtual void serialize(void* serialization, const ob::State* state) const;
-  virtual void deserialize(ob::State* state, const void* serialization) const;
-  virtual double* getValueAddressAtIndex(ob::State* state, const unsigned int index) const;
+  virtual void serialize(void* serialization, const ompl::base::State* state) const;
+  virtual void deserialize(ompl::base::State* state, const void* serialization) const;
+  virtual double* getValueAddressAtIndex(ompl::base::State* state, const unsigned int index) const;
 
-  virtual ob::StateSamplerPtr allocDefaultStateSampler() const;
+  virtual ompl::base::StateSamplerPtr allocDefaultStateSampler() const;
 
   virtual const std::string& getParameterizationType() const = 0;
 
@@ -221,7 +219,7 @@ public:
     return spec_;
   }
 
-  virtual void printState(const ob::State* state, std::ostream& out) const;
+  virtual void printState(const ompl::base::State* state, std::ostream& out) const;
   virtual void printSettings(std::ostream& out) const;
 
   /// Set the planning volume for the possible SE2 and/or SE3 components of the state space
@@ -234,11 +232,11 @@ public:
 
   /// Copy the data from an OMPL state to a set of joint states.
   // The joint states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToRobotState(robot_state::RobotState& rstate, const ob::State* state) const;
+  virtual void copyToRobotState(robot_state::RobotState& rstate, const ompl::base::State* state) const;
 
   /// Copy the data from a set of joint states to an OMPL state.
   //  The joint states \b must be specified in the same order as the joint models in the constructor
-  virtual void copyToOMPLState(ob::State* state, const robot_state::RobotState& rstate) const;
+  virtual void copyToOMPLState(ompl::base::State* state, const robot_state::RobotState& rstate) const;
 
   /**
    * \brief Copy a single joint's values (which might have multiple variables) from a MoveIt! robot_state to an OMPL
@@ -250,7 +248,7 @@ public:
    * cache this index)
    *        e.g. ompl_state_joint_index = joint_model_group_->getVariableGroupIndex("virtual_joint");
    */
-  virtual void copyJointToOMPLState(ob::State* state, const robot_state::RobotState& robot_state,
+  virtual void copyJointToOMPLState(ompl::base::State* state, const robot_state::RobotState& robot_state,
                                     const moveit::core::JointModel* joint_model, int ompl_state_joint_index) const;
 
   double getTagSnapToSegment() const;
@@ -270,7 +268,7 @@ protected:
   double tag_snap_to_segment_complement_;
 };
 
-typedef same_shared_ptr<ModelBasedStateSpace, ob::StateSpacePtr>::type ModelBasedStateSpacePtr;
+typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
 }
 
 #endif

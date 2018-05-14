@@ -41,7 +41,7 @@
 ompl_interface::ValidConstrainedSampler::ValidConstrainedSampler(
     const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
     const constraint_samplers::ConstraintSamplerPtr& cs)
-  : ob::ValidStateSampler(pc->getOMPLSimpleSetup()->getSpaceInformation().get())
+  : ompl::base::ValidStateSampler(pc->getOMPLSimpleSetup()->getSpaceInformation().get())
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)
   , constraint_sampler_(cs)
@@ -71,7 +71,7 @@ bool ompl_interface::ValidConstrainedSampler::project(ompl::base::State* state)
   return false;
 }
 
-bool ompl_interface::ValidConstrainedSampler::sample(ob::State* state)
+bool ompl_interface::ValidConstrainedSampler::sample(ompl::base::State* state)
 {
   //  moveit::Profiler::ScopedBlock pblock("ValidConstrainedSampler::sample");
   if (constraint_sampler_)

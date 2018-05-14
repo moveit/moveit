@@ -41,23 +41,23 @@
 
 namespace ompl_interface
 {
-class ConstraintApproximationStateSampler : public ob::StateSampler
+class ConstraintApproximationStateSampler : public ompl::base::StateSampler
 {
 public:
-  ConstraintApproximationStateSampler(const ob::StateSpace* space,
+  ConstraintApproximationStateSampler(const ompl::base::StateSpace* space,
                                       const ConstraintApproximationStateStorage* state_storage, std::size_t milestones)
-    : ob::StateSampler(space), state_storage_(state_storage)
+    : ompl::base::StateSampler(space), state_storage_(state_storage)
   {
     max_index_ = milestones - 1;
     inv_dim_ = space->getDimension() > 0 ? 1.0 / (double)space->getDimension() : 1.0;
   }
 
-  virtual void sampleUniform(ob::State* state)
+  virtual void sampleUniform(ompl::base::State* state)
   {
     space_->copyState(state, state_storage_->getState(rng_.uniformInt(0, max_index_)));
   }
 
-  virtual void sampleUniformNear(ob::State* state, const ob::State* near, const double distance)
+  virtual void sampleUniformNear(ompl::base::State* state, const ompl::base::State* near, const double distance)
   {
     int index = -1;
     int tag = near->as<ModelBasedStateSpace::StateType>()->tag;
@@ -93,7 +93,7 @@ public:
       space_->copyState(state, state_storage_->getState(index));
   }
 
-  virtual void sampleGaussian(ob::State* state, const ob::State* mean, const double stdDev)
+  virtual void sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev)
   {
     sampleUniformNear(state, mean, rng_.gaussian(0.0, stdDev));
   }
@@ -106,8 +106,8 @@ protected:
   double inv_dim_;
 };
 
-bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* state_storage, const ob::State* from,
-                                  const ob::State* to, const double t, ob::State* state)
+bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* state_storage, const ompl::base::State* from,
+                                  const ompl::base::State* to, const double t, ompl::base::State* state)
 {
   int tag_from = from->as<ModelBasedStateSpace::StateType>()->tag;
   int tag_to = to->as<ModelBasedStateSpace::StateType>()->tag;
@@ -148,7 +148,7 @@ InterpolationFunction ConstraintApproximation::getInterpolationFunction() const
   return InterpolationFunction();
 }
 
-ob::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpace* space,
+ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(const ompl::base::StateSpace* space,
                                                              const std::vector<int>& expected_signature,
                                                              const ConstraintApproximationStateStorage* state_storage,
                                                              std::size_t milestones)
@@ -156,15 +156,15 @@ ob::StateSamplerPtr allocConstraintApproximationStateSampler(const ob::StateSpac
   std::vector<int> sig;
   space->computeSignature(sig);
   if (sig != expected_signature)
-    return ob::StateSamplerPtr();
+    return ompl::base::StateSamplerPtr();
   else
-    return ob::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
+    return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
 }
 
 ConstraintApproximation::ConstraintApproximation(const std::string& group,
                                                  const std::string& state_space_parameterization, bool explicit_motions,
                                                  const moveit_msgs::Constraints& msg, const std::string& filename,
-                                                 const ob::StateStoragePtr& storage, std::size_t milestones)
+                                                 const ompl::base::StateStoragePtr& storage, std::size_t milestones)
   : group_(group)
   , state_space_parameterization_(state_space_parameterization)
   , explicit_motions_(explicit_motions)
@@ -179,10 +179,10 @@ ConstraintApproximation::ConstraintApproximation(const std::string& group,
     milestones_ = state_storage_->size();
 }
 
-ob::StateSamplerAllocator ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const
+ompl::base::StateSamplerAllocator ConstraintApproximation::getStateSamplerAllocator(const moveit_msgs::Constraints& msg) const
 {
   if (state_storage_->size() == 0)
-    return ob::StateSamplerAllocator();
+    return ompl::base::StateSamplerAllocator();
   return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, milestones_);
 }
 }  // ompl_interface

@@ -58,15 +58,11 @@ namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
 
-namespace ob = ompl::base;
-namespace og = ompl::geometric;
-namespace ot = ompl::tools;
-
 MOVEIT_CLASS_FORWARD(ModelBasedPlanningContext);
 MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
-typedef boost::function<ob::PlannerPtr(const ob::SpaceInformationPtr& si, const std::string& name,
+typedef boost::function<ompl::base::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
                                        const OMPLPlanningContextSpecification& spec)>
     ConfiguredPlannerAllocator;
 typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
@@ -107,22 +103,22 @@ public:
     return ompl_state_space_;
   }
 
-  const og::SimpleSetupPtr& getOMPLSimpleSetup() const
+  const ompl::geometric::SimpleSetupPtr& getOMPLSimpleSetup() const
   {
     return ompl_simple_setup_;
   }
 
-  og::SimpleSetupPtr& getOMPLSimpleSetup()
+  ompl::geometric::SimpleSetupPtr& getOMPLSimpleSetup()
   {
     return ompl_simple_setup_;
   }
 
-  const ot::Benchmark& getOMPLBenchmark() const
+  const ompl::tools::Benchmark& getOMPLBenchmark() const
   {
     return *ompl_benchmark_;
   }
 
-  ot::Benchmark& getOMPLBenchmark()
+  ompl::tools::Benchmark& getOMPLBenchmark()
   {
     return *ompl_benchmark_;
   }
@@ -182,7 +178,7 @@ public:
   /* @brief Get the solution as a RobotTrajectory object*/
   bool getSolutionPath(robot_trajectory::RobotTrajectory& traj) const;
 
-  void convertPath(const og::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
+  void convertPath(const ompl::geometric::PathGeometric& pg, robot_trajectory::RobotTrajectory& traj) const;
 
   void registerPlannerAllocator(const std::string& planner_id, const ConfiguredPlannerAllocator& pa)
   {
@@ -219,12 +215,12 @@ protected:
   void startSampling();
   void stopSampling();
 
-  virtual ob::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string& peval) const;
-  virtual ob::StateSamplerPtr allocPathConstrainedSampler(const ob::StateSpace* ss) const;
+  virtual ompl::base::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string& peval) const;
+  virtual ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const;
   virtual void useConfig();
-  virtual ob::GoalPtr constructGoal();
+  virtual ompl::base::GoalPtr constructGoal();
 
-  void registerTerminationCondition(const ob::PlannerTerminationCondition& ptc);
+  void registerTerminationCondition(const ompl::base::PlannerTerminationCondition& ptc);
   void unregisterTerminationCondition();
 
   ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
@@ -263,13 +259,13 @@ protected:
   ModelBasedStateSpacePtr ompl_state_space_;
 
   /// the OMPL planning context; this contains the problem definition and the planner used
-  og::SimpleSetupPtr ompl_simple_setup_;
+  ompl::geometric::SimpleSetupPtr ompl_simple_setup_;
 
   /// the OMPL tool for benchmarking planners
-  std::shared_ptr<ot::Benchmark> ompl_benchmark_;
+  std::shared_ptr<ompl::tools::Benchmark> ompl_benchmark_;
 
   /// tool used to compute multiple plans in parallel; this uses the problem definition maintained by ompl_simple_setup_
-  std::shared_ptr<ot::ParallelPlan> ompl_parallel_plan_;
+  std::shared_ptr<ompl::tools::ParallelPlan> ompl_parallel_plan_;
 
   std::vector<int> space_signature_;
 
@@ -277,7 +273,7 @@ protected:
   moveit_msgs::Constraints path_constraints_msg_;
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
 
-  const ob::PlannerTerminationCondition* ptc_;
+  const ompl::base::PlannerTerminationCondition* ptc_;
   boost::mutex ptc_lock_;
 
   /// the time spent computing the last plan
