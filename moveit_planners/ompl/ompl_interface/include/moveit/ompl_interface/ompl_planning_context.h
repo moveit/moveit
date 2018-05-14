@@ -101,7 +101,7 @@ public:
    * @param [in] nh ROS node handle to use for parameter initialization.
    * @param [in] config The dynamic reconfigure config.
    */
-  virtual void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config)
+  virtual void configure(const ros::NodeHandle& /* dummy */, const OMPLDynamicReconfigureConfig& config)
   {
     simplifySolutions(config.simplify_solutions);
     setMaximumPlanningThreads(config.max_planning_threads);
