@@ -331,7 +331,8 @@ ompl_interface::ModelBasedPlanningContext::allocPathConstrainedSampler(const omp
 
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(), path_constraints_->getAllConstraints());
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(),
+                                                            path_constraints_->getAllConstraints());
 
     if (cs)
     {
@@ -539,7 +540,8 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   {
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
-      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(), goal_constraints_[i]->getAllConstraints());
+      cs = spec_.constraint_sampler_manager_->selectSampler(getPlanningScene(), getGroupName(),
+                                                            goal_constraints_[i]->getAllConstraints());
     if (cs)
     {
       ompl::base::GoalPtr g = ompl::base::GoalPtr(new ConstrainedGoalSampler(this, goal_constraints_[i], cs));

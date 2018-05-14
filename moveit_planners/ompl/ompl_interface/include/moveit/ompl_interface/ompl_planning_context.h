@@ -53,11 +53,12 @@ using namespace moveit_planners_ompl;
 struct OMPLPlanningContextSpecification
 {
   planning_interface::PlannerConfigurationSettings config_; /**< \brief Planner configuration for context */
-  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;    /**< \brief Constraint sampler manager */
-  moveit_msgs::MotionPlanRequest req_;                      /**< \brief Motion planning request */
-  robot_model::RobotModelConstPtr robot_model_;             /**< \brief Robot model */
-  const robot_model::JointModelGroup* jmg_;                 /**< \brief Joint model group to plan for */
-  robot_model::JointBoundsVector joint_bounds_;             /**< \brief Additional bounds on joints */
+  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_; /**< \brief Constraint sampler manager
+                                                                                   */
+  moveit_msgs::MotionPlanRequest req_;                                          /**< \brief Motion planning request */
+  robot_model::RobotModelConstPtr robot_model_;                                 /**< \brief Robot model */
+  const robot_model::JointModelGroup* jmg_;     /**< \brief Joint model group to plan for */
+  robot_model::JointBoundsVector joint_bounds_; /**< \brief Additional bounds on joints */
 };
 
 MOVEIT_CLASS_FORWARD(OMPLPlanningContext);
