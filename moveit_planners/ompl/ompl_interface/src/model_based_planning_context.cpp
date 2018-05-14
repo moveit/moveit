@@ -59,9 +59,6 @@
 #include <ompl/geometric/planners/rrt/LazyRRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
-#include <ompl/geometric/planners/rrt/SORRTstar.h>
-#include <ompl/geometric/planners/rrt/RRTXstatic.h>
-#include <ompl/geometric/planners/rrt/RRTsharp.h>
 #include <ompl/geometric/planners/rrt/TRRT.h>
 #include <ompl/geometric/planners/rrt/BiTRRT.h>
 #include <ompl/geometric/planners/rrt/LBTRRT.h>
@@ -192,10 +189,6 @@ void ompl_interface::ModelBasedPlanningContext::registerDefaultPlanners()
   registerPlannerAllocator("geometric::RRTstar", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::InformedRRTstar",
                            boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
-  registerPlannerAllocator("geometric::SORRTstar", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
-  registerPlannerAllocator("geometric::RRTXstatic",
-                           boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
-  registerPlannerAllocator("geometric::RRTsharp", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::TRRT", boost::bind(&allocatePlanner<ompl::geometric::TRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::BiTRRT", boost::bind(&allocatePlanner<ompl::geometric::BiTRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::LBTRRT", boost::bind(&allocatePlanner<ompl::geometric::LBTRRT>, _1, _2, _3));

@@ -268,9 +268,9 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   TRRT.addParameter("temp_change_factor", "2.0", "how much to increase or decrease temp. default: 2.0");
   TRRT.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   TRRT.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
-  TRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
+  TRRT.addParameter("frontier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
                                                   "default: 0.0 set in setup() ");
-  TRRT.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  TRRT.addParameter("frontierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   TRRT.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(TRRT);
 
@@ -332,9 +332,9 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
                                       "setup()");
   BiTRRT.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   BiTRRT.addParameter("init_temperature", "100", "initial temperature. default: 100");
-  BiTRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
+  BiTRRT.addParameter("frontier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
                                                     "default: 0.0 set in setup() ");
-  BiTRRT.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
+  BiTRRT.addParameter("frontier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   BiTRRT.addParameter("cost_threshold", "1e300", "the cost threshold. Any motion cost that is not better will not be "
                                                  "expanded. default: inf");
   planner_des.push_back(BiTRRT);
@@ -386,6 +386,27 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(SPARStwo);
 
+  OMPLPlannerDescription BITstar("BITstar", "geometric");
+  BITstar.addParameter("rewire_factor", "0.01", "the rewiring factor, s, so that r_rrg = s \times r_rrg* > r_rrg*. default: 0.01");
+  BITstar.addParameter("samples_per_batch", "100", "the number of samples per batch. default: 100");
+  BITstar.addParameter("prune_threshold_as_fractional_cost_change", "0.01", "the fractional decrease in solution cost required to trigger pruning. default: 0.01");
+  planner_des.push_back(BITstar);
+
+  OMPLPlannerDescription InformedRRTstar("InformedRRTstar", "geometric");
+  InformedRRTstar.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                       "setup()");
+  InformedRRTstar.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability? default: 0.05");
+  InformedRRTstar.addParameter("delay_collision_checking", "1", "Stop collision checking as soon as C-free parent found. "
+                       "default 1");
+  planner_des.push_back(InformedRRTstar);
+
+  OMPLPlannerDescription LazyLBTRRT("LazyLBTRRT", "geometric");
+  LazyLBTRRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
+                      "setup()");
+  LazyLBTRRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  LazyLBTRRT.addParameter("epsilon", "0.4", "optimality approximation factor. default: 0.4");
+  planner_des.push_back(LazyLBTRRT);
+
   // Add Planners with parameter values
   std::vector<std::string> pconfigs;
   for (std::size_t i = 0; i < planner_des.size(); ++i)
@@ -393,6 +414,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
     std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
     emitter << YAML::Key << defaultconfig;
     emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "plugin" << YAML::Value << "ompl_interface/ModelBasedPlanningContext";
     emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
     for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
     {
