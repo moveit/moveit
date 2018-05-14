@@ -192,7 +192,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   {
     OMPLPlanningContextSpecification context_spec;
     context_spec.config_ = config;
-    context_spec.csm_ = constraint_sampler_manager_;
+    context_spec.constraint_sampler_manager_ = constraint_sampler_manager_;
     context_spec.req_ = req;
     context_spec.robot_model_ = kmodel_;
     context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);

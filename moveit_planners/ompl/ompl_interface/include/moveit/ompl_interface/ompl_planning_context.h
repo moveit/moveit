@@ -53,7 +53,7 @@ using namespace moveit_planners_ompl;
 struct OMPLPlanningContextSpecification
 {
   planning_interface::PlannerConfigurationSettings config_; /**< \brief Planner configuration for context */
-  constraint_samplers::ConstraintSamplerManagerPtr csm_;    /**< \brief Constraint sampler manager */
+  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;    /**< \brief Constraint sampler manager */
   moveit_msgs::MotionPlanRequest req_;                      /**< \brief Motion planning request */
   robot_model::RobotModelConstPtr robot_model_;             /**< \brief Robot model */
   const robot_model::JointModelGroup* jmg_;                 /**< \brief Joint model group to plan for */
@@ -172,7 +172,7 @@ public:
    */
   const constraint_samplers::ConstraintSamplerManagerPtr& getConstraintSamplerManager()
   {
-    return spec_.csm_;
+    return spec_.constraint_sampler_manager_;
   }
 
   /** \brief Sets the constraint sampler manager from the planning context specification.
@@ -181,7 +181,7 @@ public:
    */
   void setConstraintSamplerManager(const constraint_samplers::ConstraintSamplerManagerPtr& csm)
   {
-    spec_.csm_ = csm;
+    spec_.constraint_sampler_manager_ = csm;
   }
 
   /** \brief Get the maximum number of sampling attempts allowed when sampling states is needed.
