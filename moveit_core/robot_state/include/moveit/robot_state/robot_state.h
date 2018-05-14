@@ -102,9 +102,8 @@ struct MaxEEFStep
   {
   }
 
-  explicit MaxEEFStep(double max_translation) : MaxEEFStep()
+  explicit MaxEEFStep(double max_translation) : translation(max_translation), rotation(0.0)
   {
-    translation = max_translation;
   }
 
   explicit MaxEEFStep(double max_translation, double max_rotation)
