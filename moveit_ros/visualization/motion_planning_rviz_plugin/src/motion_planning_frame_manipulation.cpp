@@ -343,7 +343,7 @@ void MotionPlanningFrame::pickObject()
   {
     move_group_->setSupportSurfaceName(support_surface_name_);
   }
-  if (move_group_->pick(pick_object_name_[group_name], false))
+  if (move_group_->pick(pick_object_name_[group_name]))
   {
     ui_->place_button->setEnabled(true);
   }
