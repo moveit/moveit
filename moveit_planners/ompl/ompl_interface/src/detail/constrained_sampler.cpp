@@ -99,7 +99,8 @@ void ompl_interface::ConstrainedSampler::sampleUniformNear(ompl::base::State* st
     default_->sampleUniformNear(state, near, distance);
 }
 
-void ompl_interface::ConstrainedSampler::sampleGaussian(ompl::base::State* state, const ompl::base::State* mean, const double stdDev)
+void ompl_interface::ConstrainedSampler::sampleGaussian(ompl::base::State* state, const ompl::base::State* mean,
+                                                        const double stdDev)
 {
   if (sampleC(state) || sampleC(state) || sampleC(state))
   {

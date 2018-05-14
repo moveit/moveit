@@ -43,7 +43,7 @@ ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
     const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
     const constraint_samplers::ConstraintSamplerPtr& cs)
   : ompl::base::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
-                        boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
+                                boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
   , kinematic_constraint_set_(ks)
   , constraint_sampler_(cs)

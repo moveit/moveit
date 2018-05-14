@@ -131,7 +131,8 @@ void ConstraintsLibrary::loadConstraintApproximations(const std::string& path)
         new ConstraintApproximationStateStorage(context_->getOMPLSimpleSetup()->getStateSpace());
     cass->load((path + "/" + filename).c_str());
     ConstraintApproximationPtr cap(new ConstraintApproximation(group, state_space_parameterization, explicit_motions,
-                                                               msg, filename, ompl::base::StateStoragePtr(cass), milestones));
+                                                               msg, filename, ompl::base::StateStoragePtr(cass),
+                                                               milestones));
     if (constraint_approximations_.find(cap->getName()) != constraint_approximations_.end())
       ROS_WARN_NAMED("constraints_library", "Overwriting constraint approximation named '%s'", cap->getName().c_str());
     constraint_approximations_[cap->getName()] = cap;
@@ -236,7 +237,8 @@ ConstraintApproximationConstructionResults ConstraintsLibrary::addConstraintAppr
   context_->setCompleteInitialState(scene->getCurrentState());
 
   ros::WallTime start = ros::WallTime::now();
-  ompl::base::StateStoragePtr ss = constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
+  ompl::base::StateStoragePtr ss =
+      constructConstraintApproximation(context_, constr_sampling, constr_hard, options, res);
   ROS_INFO_NAMED("constraints_library", "Spent %lf seconds constructing the database",
                  (ros::WallTime::now() - start).toSec());
   if (ss)
@@ -293,7 +295,8 @@ ompl::base::StateStoragePtr ConstraintsLibrary::constructConstraintApproximation
       csmp = new ConstrainedSampler(pcontext, cs);
   }
 
-  ompl::base::StateSamplerPtr ss(csmp ? ompl::base::StateSamplerPtr(csmp) : pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
+  ompl::base::StateSamplerPtr ss(csmp ? ompl::base::StateSamplerPtr(csmp) :
+                                        pcontext->getOMPLStateSpace()->allocDefaultStateSampler());
 
   ompl::base::ScopedState<> temp(pcontext->getOMPLStateSpace());
   int done = -1;

@@ -159,7 +159,7 @@ namespace
 using namespace ompl_interface;
 template <typename T>
 static ompl::base::PlannerPtr allocatePlanner(const ompl::base::SpaceInformationPtr& si, const std::string& new_name,
-                                      const OMPLPlanningContextSpecification& spec)
+                                              const OMPLPlanningContextSpecification& spec)
 {
   ompl::base::PlannerPtr planner(new T(si));
   if (!new_name.empty())
@@ -186,12 +186,15 @@ ompl_interface::ModelBasedPlanningContext::plannerSelector(const std::string& pl
 void ompl_interface::ModelBasedPlanningContext::registerDefaultPlanners()
 {
   registerPlannerAllocator("geometric::RRT", boost::bind(&allocatePlanner<ompl::geometric::RRT>, _1, _2, _3));
-  registerPlannerAllocator("geometric::RRTConnect", boost::bind(&allocatePlanner<ompl::geometric::RRTConnect>, _1, _2, _3));
+  registerPlannerAllocator("geometric::RRTConnect",
+                           boost::bind(&allocatePlanner<ompl::geometric::RRTConnect>, _1, _2, _3));
   registerPlannerAllocator("geometric::LazyRRT", boost::bind(&allocatePlanner<ompl::geometric::LazyRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::RRTstar", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
-  registerPlannerAllocator("geometric::InformedRRTstar", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
+  registerPlannerAllocator("geometric::InformedRRTstar",
+                           boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::SORRTstar", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
-  registerPlannerAllocator("geometric::RRTXstatic", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
+  registerPlannerAllocator("geometric::RRTXstatic",
+                           boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::RRTsharp", boost::bind(&allocatePlanner<ompl::geometric::RRTstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::TRRT", boost::bind(&allocatePlanner<ompl::geometric::TRRT>, _1, _2, _3));
   registerPlannerAllocator("geometric::BiTRRT", boost::bind(&allocatePlanner<ompl::geometric::BiTRRT>, _1, _2, _3));
@@ -205,12 +208,14 @@ void ompl_interface::ModelBasedPlanningContext::registerDefaultPlanners()
 
   registerPlannerAllocator("geometric::KPIECE", boost::bind(&allocatePlanner<ompl::geometric::KPIECE1>, _1, _2, _3));
   registerPlannerAllocator("geometric::BKPIECE", boost::bind(&allocatePlanner<ompl::geometric::BKPIECE1>, _1, _2, _3));
-  registerPlannerAllocator("geometric::LBKPIECE", boost::bind(&allocatePlanner<ompl::geometric::LBKPIECE1>, _1, _2, _3));
+  registerPlannerAllocator("geometric::LBKPIECE",
+                           boost::bind(&allocatePlanner<ompl::geometric::LBKPIECE1>, _1, _2, _3));
 
   registerPlannerAllocator("geometric::PRM", boost::bind(&allocatePlanner<ompl::geometric::PRM>, _1, _2, _3));
   registerPlannerAllocator("geometric::PRMstar", boost::bind(&allocatePlanner<ompl::geometric::PRMstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::LazyPRM", boost::bind(&allocatePlanner<ompl::geometric::LazyPRM>, _1, _2, _3));
-  registerPlannerAllocator("geometric::LazyPRMstar", boost::bind(&allocatePlanner<ompl::geometric::LazyPRMstar>, _1, _2, _3));
+  registerPlannerAllocator("geometric::LazyPRMstar",
+                           boost::bind(&allocatePlanner<ompl::geometric::LazyPRMstar>, _1, _2, _3));
   registerPlannerAllocator("geometric::SPARS", boost::bind(&allocatePlanner<ompl::geometric::SPARS>, _1, _2, _3));
   registerPlannerAllocator("geometric::SPARStwo", boost::bind(&allocatePlanner<ompl::geometric::SPARStwo>, _1, _2, _3));
 
@@ -821,7 +826,8 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
   return result;
 }
 
-void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ompl::base::PlannerTerminationCondition& ptc)
+void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(
+    const ompl::base::PlannerTerminationCondition& ptc)
 {
   boost::mutex::scoped_lock slock(ptc_lock_);
   ptc_ = &ptc;

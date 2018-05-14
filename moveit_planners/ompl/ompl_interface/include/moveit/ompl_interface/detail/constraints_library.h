@@ -190,11 +190,10 @@ public:
   const ConstraintApproximationPtr& getConstraintApproximation(const moveit_msgs::Constraints& msg) const;
 
 private:
-  ompl::base::StateStoragePtr constructConstraintApproximation(ModelBasedPlanningContext* pcontext,
-                                                       const moveit_msgs::Constraints& constr_sampling,
-                                                       const moveit_msgs::Constraints& constr_hard,
-                                                       const ConstraintApproximationConstructionOptions& options,
-                                                       ConstraintApproximationConstructionResults& result);
+  ompl::base::StateStoragePtr constructConstraintApproximation(
+      ModelBasedPlanningContext* pcontext, const moveit_msgs::Constraints& constr_sampling,
+      const moveit_msgs::Constraints& constr_hard, const ConstraintApproximationConstructionOptions& options,
+      ConstraintApproximationConstructionResults& result);
 
   ModelBasedPlanningContext* context_;
   std::map<std::string, ConstraintApproximationPtr> constraint_approximations_;

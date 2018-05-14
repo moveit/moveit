@@ -46,7 +46,8 @@
 
 namespace ompl_interface
 {
-typedef boost::function<bool(const ompl::base::State* from, const ompl::base::State* to, const double t, ompl::base::State* state)>
+typedef boost::function<bool(const ompl::base::State* from, const ompl::base::State* to, const double t,
+                             ompl::base::State* state)>
     InterpolationFunction;
 typedef boost::function<double(const ompl::base::State* state1, const ompl::base::State* state2)> DistanceFunction;
 
@@ -184,7 +185,8 @@ public:
   virtual bool satisfiesBounds(const ompl::base::State* state) const;
 
   virtual void copyState(ompl::base::State* destination, const ompl::base::State* source) const;
-  virtual void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t, ompl::base::State* state) const;
+  virtual void interpolate(const ompl::base::State* from, const ompl::base::State* to, const double t,
+                           ompl::base::State* state) const;
   virtual double distance(const ompl::base::State* state1, const ompl::base::State* state2) const;
   virtual bool equalStates(const ompl::base::State* state1, const ompl::base::State* state2) const;
   virtual double getMaximumExtent() const;
