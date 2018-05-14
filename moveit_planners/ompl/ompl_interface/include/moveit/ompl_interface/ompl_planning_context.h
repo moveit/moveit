@@ -293,9 +293,9 @@ public:
   }
 
   /**
-   * \brief Returns whether or not the context is set to simplify solutions.
+   * \brief Returns whether or not the context will simplify solutions.
    *
-   * @return Whether or not the context is set to simplify solutions.
+   * @return Whether or not the context will simplify solutions.
    */
   bool simplifySolutions() const
   {
@@ -303,9 +303,9 @@ public:
   }
 
   /**
-   * \brief Sets whether or not the context is set to simplify solutions.
+   * \brief Sets whether or not the context will simplify solutions.
    *
-   * @param [in] flag Whether or not the context is set to simplify solutions.
+   * @param [in] flag Whether or not the context will simplify solutions.
    */
   void simplifySolutions(bool flag)
   {
