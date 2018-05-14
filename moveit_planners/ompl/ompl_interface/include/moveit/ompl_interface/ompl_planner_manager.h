@@ -56,9 +56,9 @@ public:
 
   void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig) override;
 
-  planning_interface::PlanningContextPtr
-  getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const override;
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                            const planning_interface::MotionPlanRequest& req,
+                                                            moveit_msgs::MoveItErrorCodes& error_code) const override;
 
   /** @brief Get the configurations for the planners that are already loaded
       @param pconfig Configurations for the different planners */

@@ -47,7 +47,7 @@ public:
   PoseModelStateSpaceFactory();
 
   int canRepresentProblem(const std::string& group, const moveit_msgs::MotionPlanRequest& req,
-                                  const robot_model::RobotModelConstPtr& robot_model) const override;
+                          const robot_model::RobotModelConstPtr& robot_model) const override;
 
 protected:
   ModelBasedStateSpacePtr allocStateSpace(const ModelBasedStateSpaceSpecification& space_spec) const override;
