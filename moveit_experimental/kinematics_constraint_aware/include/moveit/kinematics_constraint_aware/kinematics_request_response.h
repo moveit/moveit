@@ -38,9 +38,6 @@
 #ifndef MOVEIT_KINEMATICS_CONSTRAINT_AWARE_KINEMATICS_REQUEST_RESPONSE_
 #define MOVEIT_KINEMATICS_CONSTRAINT_AWARE_KINEMATICS_REQUEST_RESPONSE_
 
-// System
-#include <boost/shared_ptr.hpp>
-
 // ROS msgs
 #include <geometry_msgs/PoseStamped.h>
 

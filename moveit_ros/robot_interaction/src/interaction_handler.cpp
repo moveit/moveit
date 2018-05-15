@@ -471,7 +471,7 @@ void InteractionHandler::setRobotInteraction(RobotInteraction* robot_interaction
 
   // from now on the InteractionHandler shares the same KinematicOptionsMap
   // with RobotInteraction.
-  // The old *kinematic_options_map_ is automatically deleted by boost::shared_ptr.
+  // The old *kinematic_options_map_ is automatically deleted by std::shared_ptr.
   //
   // This is a nop if a constructor with a robot_interaction parameter is used.
   kinematic_options_map_ = shared_kinematic_options_map;

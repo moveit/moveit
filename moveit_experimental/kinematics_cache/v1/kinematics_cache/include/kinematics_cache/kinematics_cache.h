@@ -42,7 +42,7 @@
 #include <planning_models/robot_model.h>
 #include <planning_models/kinematic_state.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace kinematics_cache
 {
@@ -174,7 +174,7 @@ private:
 
   const planning_models::RobotModel::JointModelGroup* joint_model_group_; /** Joint model group associated with this
                                                                              cache */
-  boost::shared_ptr<planning_models::RobotState* ::JointStateGroup> joint_state_group_; /** Joint state corresponding
+  std::shared_ptr<planning_models::RobotState* ::JointStateGroup> joint_state_group_; /** Joint state corresponding
                                                                                            to cache */
 
   //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
@@ -182,7 +182,7 @@ private:
   double min_squared_distance_, max_squared_distance_;
 };
 
-typedef boost::shared_ptr<KinematicsCache> KinematicsCachePtr;
+typedef std::shared_ptr<KinematicsCache> KinematicsCachePtr;
 }
 
 #endif
