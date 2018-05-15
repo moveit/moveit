@@ -134,10 +134,10 @@ private:
       try
       {
         printf(MOVEIT_CONSOLE_COLOR_CYAN "Loading '%s'...\n" MOVEIT_CONSOLE_COLOR_RESET, plugin->c_str());
-        MoveGroupCapability* cap = capability_plugin_loader_->createUnmanagedInstance(*plugin);
+        MoveGroupCapabilityPtr cap = capability_plugin_loader_->createUniqueInstance(*plugin);
         cap->setContext(context_);
         cap->initialize();
-        capabilities_.push_back(MoveGroupCapabilityPtr(cap));
+        capabilities_.push_back(cap);
       }
       catch (pluginlib::PluginlibException& ex)
       {

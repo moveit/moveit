@@ -58,7 +58,7 @@ public:
     CollisionPluginPtr plugin;
     try
     {
-      plugin.reset(loader_->createUnmanagedInstance(name));
+      plugin = loader_->createUniqueInstance(name);
       plugins_[name] = plugin;
     }
     catch (pluginlib::PluginlibException& ex)

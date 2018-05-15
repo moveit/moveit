@@ -113,7 +113,7 @@ void planning_pipeline::PlanningPipeline::configure()
   }
   try
   {
-    planner_instance_.reset(planner_plugin_loader_->createUnmanagedInstance(planner_plugin_name_));
+    planner_instance_ = planner_plugin_loader_->createUniqueInstance(planner_plugin_name_);
     if (!planner_instance_->initialize(kmodel_, nh_.getNamespace()))
       throw std::runtime_error("Unable to initialize planning plugin");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance_->getDescription() << "'");
@@ -145,7 +145,7 @@ void planning_pipeline::PlanningPipeline::configure()
         planning_request_adapter::PlanningRequestAdapterConstPtr ad;
         try
         {
-          ad.reset(adapter_plugin_loader_->createUnmanagedInstance(adapter_plugin_names_[i]));
+          ad = adapter_plugin_loader_->createUniqueInstance(adapter_plugin_names_[i]);
         }
         catch (pluginlib::PluginlibException& ex)
         {
