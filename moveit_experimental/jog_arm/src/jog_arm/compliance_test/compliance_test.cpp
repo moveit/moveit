@@ -40,7 +40,7 @@
 // spring
 // when pushed.
 
-#include "jog_arm/compliance_test/compliance_test.h"
+#include "jog_arm/compliance_test.h"
 
 int main(int argc, char** argv)
 {

@@ -43,7 +43,7 @@
 
 #include <Eigen/Eigenvalues>
 #include <geometry_msgs/Twist.h>
-#include <jog_arm/support/get_ros_params.h>
+#include <jog_arm/get_ros_params.h>
 #include <math.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -68,8 +68,8 @@ void* joggingPipeline(void* threadid);
 void* collisionCheck(void* threadid);
 
 // Shared variables
-geometry_msgs::TwistStamped g_cmd_deltas;
-pthread_mutex_t g_cmd_deltas_mutex;
+geometry_msgs::TwistStamped g_command_deltas;
+pthread_mutex_t g_command_deltas_mutex;
 
 sensor_msgs::JointState g_joints;
 pthread_mutex_t g_joints_mutex;
@@ -89,8 +89,8 @@ void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
 // ROS params to be read
 int readParams(ros::NodeHandle& n);
-std::string g_move_group_name, g_joint_topic, g_command_in_topic, g_command_frame, g_command_out_topic, g_planning_frame,
-    g_warning_topic;
+std::string g_move_group_name, g_joint_topic, g_command_in_topic, g_command_frame, g_command_out_topic,
+    g_planning_frame, g_warning_topic;
 double g_linear_scale, g_rot_scale, g_singularity_threshold, g_hard_stop_sing_thresh, g_low_pass_filter_coeff,
     g_publish_period, g_incoming_cmd_timeout;
 bool g_simulation, g_collision_check;

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <jog_arm/compliant_control/compliant_control.h>
+#include <jog_arm/compliant_control.h>
 
 using testing::Types;
 

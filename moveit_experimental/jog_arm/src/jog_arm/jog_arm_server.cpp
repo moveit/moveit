@@ -256,9 +256,9 @@ JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), 
   while (cmd_deltas_.header.stamp == ros::Time(0.))
   {
     ros::Duration(0.05).sleep();
-    pthread_mutex_lock(&g_cmd_deltas_mutex);
-    cmd_deltas_ = jog_arm::g_cmd_deltas;
-    pthread_mutex_unlock(&g_cmd_deltas_mutex);
+    pthread_mutex_lock(&g_command_deltas_mutex);
+    cmd_deltas_ = jog_arm::g_command_deltas;
+    pthread_mutex_unlock(&g_command_deltas_mutex);
   }
 
   // Now do jogging calcs
@@ -274,9 +274,9 @@ JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), 
       resetVelocityFilters();
 
     // Pull data from the shared variables.
-    pthread_mutex_lock(&g_cmd_deltas_mutex);
-    cmd_deltas_ = jog_arm::g_cmd_deltas;
-    pthread_mutex_unlock(&g_cmd_deltas_mutex);
+    pthread_mutex_lock(&g_command_deltas_mutex);
+    cmd_deltas_ = jog_arm::g_command_deltas;
+    pthread_mutex_unlock(&g_command_deltas_mutex);
 
     pthread_mutex_lock(&g_joints_mutex);
     incoming_jts_ = jog_arm::g_joints;
@@ -608,17 +608,17 @@ double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 // Store them in a shared variable.
 void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  pthread_mutex_lock(&g_cmd_deltas_mutex);
-  jog_arm::g_cmd_deltas = *msg;
+  pthread_mutex_lock(&g_command_deltas_mutex);
+  jog_arm::g_command_deltas = *msg;
   // Input frame determined by YAML file:
-  jog_arm::g_cmd_deltas.header.frame_id = jog_arm::g_command_frame;
-  pthread_mutex_unlock(&g_cmd_deltas_mutex);
+  jog_arm::g_command_deltas.header.frame_id = jog_arm::g_command_frame;
+  pthread_mutex_unlock(&g_command_deltas_mutex);
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
   pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-  if (jog_arm::g_cmd_deltas.twist.linear.x == 0 && jog_arm::g_cmd_deltas.twist.linear.y == 0 &&
-      jog_arm::g_cmd_deltas.twist.linear.z == 0 && jog_arm::g_cmd_deltas.twist.angular.x == 0 &&
-      jog_arm::g_cmd_deltas.twist.linear.y == 0 && jog_arm::g_cmd_deltas.twist.linear.z == 0)
+  if (jog_arm::g_command_deltas.twist.linear.x == 0 && jog_arm::g_command_deltas.twist.linear.y == 0 &&
+      jog_arm::g_command_deltas.twist.linear.z == 0 && jog_arm::g_command_deltas.twist.angular.x == 0 &&
+      jog_arm::g_command_deltas.twist.linear.y == 0 && jog_arm::g_command_deltas.twist.linear.z == 0)
     jog_arm::g_zero_trajectory_flag = true;
   else
     jog_arm::g_zero_trajectory_flag = false;
