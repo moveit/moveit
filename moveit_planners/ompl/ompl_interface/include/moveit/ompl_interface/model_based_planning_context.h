@@ -67,6 +67,9 @@ typedef boost::function<ompl::base::PlannerPtr(const ompl::base::SpaceInformatio
     ConfiguredPlannerAllocator;
 typedef boost::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
 
+/// State space factories
+typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
+
 class ModelBasedPlanningContext : public OMPLPlanningContext
 {
 public:
@@ -209,12 +212,12 @@ public:
   }
 
 protected:
-  void preSolve();
-  void postSolve();
-
   void startSampling();
   void stopSampling();
 
+  virtual void preSolve();
+  virtual void postSolve();
+  virtual ModelBasedStateSpacePtr getStateSpace();
   virtual ompl::base::ProjectionEvaluatorPtr getProjectionEvaluator(const std::string& peval) const;
   virtual ompl::base::StateSamplerPtr allocPathConstrainedSampler(const ompl::base::StateSpace* ss) const;
   virtual void useConfig();
@@ -226,9 +229,6 @@ protected:
   ConfiguredPlannerAllocator plannerSelector(const std::string& planner) const;
 
   void registerDefaultPlanners();
-
-  /// State space factories
-  typedef boost::function<const ModelBasedStateSpaceFactoryPtr&(const std::string&)> StateSpaceFactoryTypeSelector;
 
   void registerDefaultStateSpaces()
   {
@@ -250,8 +250,6 @@ protected:
                                                               const std::string& factory_type) const;
   const ModelBasedStateSpaceFactoryPtr& getStateSpaceFactory2(const std::string& group_name,
                                                               const moveit_msgs::MotionPlanRequest& req) const;
-
-  virtual ModelBasedStateSpacePtr getStateSpace();
 
   std::map<std::string, ConfiguredPlannerAllocator> known_planners_;
   std::map<std::string, ModelBasedStateSpaceFactoryPtr> state_space_factories_;
