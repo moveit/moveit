@@ -3,32 +3,36 @@
 //      Project   : jog_arm
 //      Created   : 3/9/2017
 //      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
-//      Platforms : Ubuntu 64-bit
-//      Copyright : Copyright© The University of Texas at Austin, 2014-2017. All
-//      rights reserved.
 //
-//          All files within this directory are subject to the following, unless
-//          an alternative
-//          license is explicitly included within the text of each file.
+// BSD 3-Clause License
 //
-//          This software and documentation constitute an unpublished work
-//          and contain valuable trade secrets and proprietary information
-//          belonging to the University. None of the foregoing material may be
-//          copied or duplicated or disclosed without the express, written
-//          permission of the University. THE UNIVERSITY EXPRESSLY DISCLAIMS ANY
-//          AND ALL WARRANTIES CONCERNING THIS SOFTWARE AND DOCUMENTATION,
-//          INCLUDING ANY WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-//          PARTICULAR PURPOSE, AND WARRANTIES OF PERFORMANCE, AND ANY WARRANTY
-//          THAT MIGHT OTHERWISE ARISE FROM COURSE OF DEALING OR USAGE OF TRADE.
-//          NO WARRANTY IS EITHER EXPRESS OR IMPLIED WITH RESPECT TO THE USE OF
-//          THE SOFTWARE OR DOCUMENTATION. Under no circumstances shall the
-//          University be liable for incidental, special, indirect, direct or
-//          consequential damages or loss of profits, interruption of business,
-//          or related expenses which may arise from use of software or
-//          documentation,
-//          including but not limited to those resulting from defects in
-//          software
-//          and/or documentation, or loss or inaccuracy of data of any kind.
+// Copyright (c) 2018, Los Alamos National Security, LLC
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// * Neither the name of the copyright holder nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -61,19 +65,19 @@ int main(int argc, char** argv)
   rc = pthread_create(&collisionThread, NULL, jog_arm::collisionCheck, 0);
 
   // ROS subscriptions. Share the data with the worker thread
-  ros::Subscriber cmd_sub = n.subscribe(jog_arm::g_cmd_in_topic, 1, jog_arm::deltaCmdCB);
+  ros::Subscriber cmd_sub = n.subscribe(jog_arm::g_command_in_topic, 1, jog_arm::deltaCmdCB);
   ros::Subscriber joints_sub = n.subscribe(jog_arm::g_joint_topic, 1, jog_arm::jointsCB);
 
   // Publish freshly-calculated joints to the robot
-  ros::Publisher joint_trajectory_pub = n.advertise<trajectory_msgs::JointTrajectory>(jog_arm::g_cmd_out_topic, 1);
+  ros::Publisher joint_trajectory_pub = n.advertise<trajectory_msgs::JointTrajectory>(jog_arm::g_command_out_topic, 1);
 
   ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_joint_topic);
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_cmd_in_topic);
+  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_command_in_topic);
 
   // Wait for jog filters to stablize
-  ros::Duration(10 * jog_arm::g_pub_period).sleep();
+  ros::Duration(10 * jog_arm::g_publish_period).sleep();
 
-  ros::Rate main_rate(1. / jog_arm::g_pub_period);
+  ros::Rate main_rate(1. / jog_arm::g_publish_period);
 
   while (ros::ok())
   {
@@ -133,7 +137,7 @@ void* collisionCheck(void*)
 CollisionCheck::CollisionCheck(const std::string& move_group_name)
 {
   // If user specified true in yaml file
-  if (jog_arm::g_coll_check)
+  if (jog_arm::g_collision_check)
   {
     // Publish collision status
     warning_pub_ = nh_.advertise<std_msgs::Bool>(jog_arm::g_warning_topic, 1);
@@ -151,7 +155,7 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
     // Wait for initial joint message
     ROS_INFO_NAMED("jog_arm_server", "Waiting for first joint msg.");
     ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_joint_topic);
-    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_cmd_in_topic);
+    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_command_in_topic);
     ROS_INFO_NAMED("jog_arm_server", "Received first joint msg.");
 
     pthread_mutex_lock(&g_joints_mutex);
@@ -223,7 +227,7 @@ JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), 
   // Wait for initial messages
   ROS_INFO_NAMED("jog_arm_server", "Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_joint_topic);
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_cmd_in_topic);
+  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_command_in_topic);
   ROS_INFO_NAMED("jog_arm_server", "Received first joint msg.");
 
   jt_state_.name = arm_.getJointNames();
@@ -353,12 +357,12 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   // expectations.
   delta_t_ = (ros::Time::now() - prev_time_).toSec();
   prev_time_ = ros::Time::now();
-  delta_theta(0) *= jog_arm::g_pub_period / delta_t_;
-  delta_theta(1) *= jog_arm::g_pub_period / delta_t_;
-  delta_theta(2) *= jog_arm::g_pub_period / delta_t_;
-  delta_theta(3) *= jog_arm::g_pub_period / delta_t_;
-  delta_theta(4) *= jog_arm::g_pub_period / delta_t_;
-  delta_theta(5) *= jog_arm::g_pub_period / delta_t_;
+  delta_theta(0) *= jog_arm::g_publish_period / delta_t_;
+  delta_theta(1) *= jog_arm::g_publish_period / delta_t_;
+  delta_theta(2) *= jog_arm::g_publish_period / delta_t_;
+  delta_theta(3) *= jog_arm::g_publish_period / delta_t_;
+  delta_theta(4) *= jog_arm::g_publish_period / delta_t_;
+  delta_theta(5) *= jog_arm::g_publish_period / delta_t_;
 
   if (!addJointIncrements(jt_state_, delta_theta))
     return;
@@ -398,7 +402,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   new_jt_traj.joint_names = jt_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
   point.positions = jt_state_.position;
-  point.time_from_start = ros::Duration(jog_arm::g_pub_period);
+  point.time_from_start = ros::Duration(jog_arm::g_publish_period);
   point.velocities = jt_state_.velocity;
 
   new_jt_traj.points.push_back(point);
@@ -457,17 +461,17 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
     warning_pub_.publish(limit_status);
   }
 
-  if (jog_arm::g_simu)
+  if (jog_arm::g_simulation)
     // Spam several redundant points into the trajectory. The first few may be
     // skipped if the
     // time stamp is in the past when it reaches the client. Needed for gazebo
     // simulation.
     // Start from 2 because the first point's timestamp is already
-    // 1*jog_arm::g_pub_period
+    // 1*jog_arm::g_publish_period
     point = new_jt_traj.points[0];
   for (int i = 2; i < 30; i++)
   {
-    point.time_from_start = ros::Duration(i * jog_arm::g_pub_period);
+    point.time_from_start = ros::Duration(i * jog_arm::g_publish_period);
     new_jt_traj.points.push_back(point);
   }
 
@@ -607,7 +611,7 @@ void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
   pthread_mutex_lock(&g_cmd_deltas_mutex);
   jog_arm::g_cmd_deltas = *msg;
   // Input frame determined by YAML file:
-  jog_arm::g_cmd_deltas.header.frame_id = jog_arm::g_cmd_frame;
+  jog_arm::g_cmd_deltas.header.frame_id = jog_arm::g_command_frame;
   pthread_mutex_unlock(&g_cmd_deltas_mutex);
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
@@ -654,15 +658,15 @@ int readParams(ros::NodeHandle& n)
   ROS_INFO_STREAM_NAMED("jog_arm_server", "low_pass_filter_coeff: " << jog_arm::g_low_pass_filter_coeff);
   jog_arm::g_joint_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/joint_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "joint_topic: " << jog_arm::g_joint_topic);
-  jog_arm::g_cmd_in_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/cmd_in_topic", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "cmd_in_topic: " << jog_arm::g_cmd_in_topic);
-  jog_arm::g_cmd_frame = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/cmd_frame", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "cmd_frame: " << jog_arm::g_cmd_frame);
+  jog_arm::g_command_in_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_in_topic", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "command_in_topic: " << jog_arm::g_command_in_topic);
+  jog_arm::g_command_frame = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_frame", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "command_frame: " << jog_arm::g_command_frame);
   jog_arm::g_incoming_cmd_timeout =
       get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/incoming_cmd_timeout", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "incoming_cmd_timeout: " << jog_arm::g_incoming_cmd_timeout);
-  jog_arm::g_cmd_out_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/cmd_out_topic", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "cmd_out_topic: " << jog_arm::g_cmd_out_topic);
+  jog_arm::g_command_out_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_out_topic", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "command_out_topic: " << jog_arm::g_command_out_topic);
   jog_arm::g_singularity_threshold =
       get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/singularity_threshold", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "singularity_threshold: " << jog_arm::g_singularity_threshold);
@@ -671,12 +675,12 @@ int readParams(ros::NodeHandle& n)
   ROS_INFO_STREAM_NAMED("jog_arm_server", "hard_stop_singularity_threshold: " << jog_arm::g_hard_stop_sing_thresh);
   jog_arm::g_planning_frame = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/planning_frame", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "planning_frame: " << jog_arm::g_planning_frame);
-  jog_arm::g_pub_period = get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/pub_period", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "pub_period: " << jog_arm::g_pub_period);
-  jog_arm::g_simu = get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/simu", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "simu: " << jog_arm::g_simu);
-  jog_arm::g_coll_check = get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/coll_check", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "coll_check: " << jog_arm::g_coll_check);
+  jog_arm::g_publish_period = get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/publish_period", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "publish_period: " << jog_arm::g_publish_period);
+  jog_arm::g_simulation = get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/simulation", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "simulation: " << jog_arm::g_simulation);
+  jog_arm::g_collision_check = get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/collision_check", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "collision_check: " << jog_arm::g_collision_check);
   jog_arm::g_warning_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/warning_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "warning_topic: " << jog_arm::g_warning_topic);
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");

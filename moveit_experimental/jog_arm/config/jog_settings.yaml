@@ -1,19 +1,19 @@
 jog_arm_server:
-  simu: false # Whether the robot is started in simulation environment
-  coll_check: false # Check collisions?
-  cmd_in_topic:  jog_arm_server/delta_jog_cmds
-  cmd_frame:  base_link  # TF frame that incoming cmds are given in
+  simulation: false # Whether the robot is started in simulation environment
+  collision_check: false # Check collisions?
+  command_in_topic:  jog_arm_server/delta_jog_cmds
+  command_frame:  base_link  # TF frame that incoming cmds are given in
   incoming_cmd_timeout:  5  # Stop jogging if X seconds elapse without a new cmd
   joint_topic:  joint_states
   move_group_name:  right_ur5
   singularity_threshold:  5.5  # Slow down when the condition number hits this (close to singularity)
   hard_stop_singularity_threshold: 12. # Stop when the condition number hits this
-  cmd_out_topic:  right_ur5_controller/right_ur5_joint_speed
+  command_out_topic:  right_ur5_controller/right_ur5_joint_speed
   planning_frame:  right_ur5_base_link
   low_pass_filter_coeff:  2.  # Larger --> trust the filtered data more, trust the measurements less.
-  pub_period:  0.01  # 1/Nominal publish rate [seconds]
+  publish_period:  0.01  # 1/Nominal publish rate [seconds]
   scale:
-    linear:  0.0004  # Max linear velocity. Meters per pub_period. Units is [m/s]
-    rotational:  0.0008  # Max angular velocity. Rads per pub_period. Units is [rad/s]
+    linear:  0.0004  # Max linear velocity. Meters per publish_period. Units is [m/s]
+    rotational:  0.0008  # Max angular velocity. Rads per publish_period. Units is [rad/s]
   # Publish boolean warnings to this topic
   warning_topic:  jog_arm_server/warning

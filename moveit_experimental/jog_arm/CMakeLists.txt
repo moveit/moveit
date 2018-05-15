@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_manipulation
   moveit_ros_move_group
   moveit_ros_planning_interface
-  cmake_modules
   std_msgs
   tf
   tf2_geometry_msgs
@@ -39,6 +38,7 @@ include_directories(
 
 add_library(compliant_control src/jog_arm/compliant_control/compliant_control.cpp)
 
+# Test compliance on a manipulator. It should act like a spring. Requires force & torque data.
 add_executable(compliance_test src/jog_arm/compliance_test/compliance_test.cpp)
 add_dependencies(compliance_test ${catkin_EXPORTED_TARGETS})
 target_link_libraries(compliance_test ${catkin_LIBRARIES} compliant_control)
