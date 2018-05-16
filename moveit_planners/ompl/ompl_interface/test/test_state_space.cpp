@@ -107,19 +107,19 @@ TEST_F(LoadPlanningModelsPr2, StateSpace)
 TEST_F(LoadPlanningModelsPr2, StateSpaces)
 {
   ompl_interface::ModelBasedStateSpaceSpecification spec1(robot_model_, "right_arm");
-  ompl_interface::ModelBasedStateSpace ss1(spec1);
+  ompl_interface::JointModelBasedStateSpace ss1(spec1);
   ss1.setup();
 
   ompl_interface::ModelBasedStateSpaceSpecification spec2(robot_model_, "left_arm");
-  ompl_interface::ModelBasedStateSpace ss2(spec2);
+  ompl_interface::JointModelBasedStateSpace ss2(spec2);
   ss2.setup();
 
   ompl_interface::ModelBasedStateSpaceSpecification spec3(robot_model_, "whole_body");
-  ompl_interface::ModelBasedStateSpace ss3(spec3);
+  ompl_interface::JointModelBasedStateSpace ss3(spec3);
   ss3.setup();
 
   ompl_interface::ModelBasedStateSpaceSpecification spec4(robot_model_, "arms");
-  ompl_interface::ModelBasedStateSpace ss4(spec4);
+  ompl_interface::JointModelBasedStateSpace ss4(spec4);
   ss4.setup();
 
   std::ofstream fout("ompl_interface_test_state_space_diagram2.dot");
