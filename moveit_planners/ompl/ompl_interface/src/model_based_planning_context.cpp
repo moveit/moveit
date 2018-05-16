@@ -175,7 +175,7 @@ ompl_interface::ModelBasedPlanningContext::plannerSelector(const std::string& pl
     return it->second;
   else
   {
-    ROS_ERROR_NAMED("planning_context_manager", "Unknown planner: '%s'", planner.c_str());
+    ROS_ERROR_NAMED("model_based_planning_context", "Unknown planner: '%s'", planner.c_str());
     return ConfiguredPlannerAllocator();
   }
 }
@@ -877,7 +877,7 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBased
     return f->second;
   else
   {
-    ROS_ERROR_NAMED("planning_context_manager", "Factory of type '%s' was not found", factory_type.c_str());
+    ROS_ERROR_NAMED("model_based_planning_context", "Factory of type '%s' was not found", factory_type.c_str());
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
@@ -903,14 +903,16 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::ModelBased
 
   if (best == state_space_factories_.end())
   {
-    ROS_ERROR_NAMED("planning_context_manager", "There are no known state spaces that can represent the given planning "
-                                                "problem");
+    ROS_ERROR_NAMED("model_based_planning_context",
+                    "There are no known state spaces that can represent the given planning "
+                    "problem");
     static const ModelBasedStateSpaceFactoryPtr empty;
     return empty;
   }
   else
   {
-    ROS_DEBUG_NAMED("planning_context_manager", "Using '%s' parameterization for solving problem", best->first.c_str());
+    ROS_DEBUG_NAMED("model_based_planning_context", "Using '%s' parameterization for solving problem",
+                    best->first.c_str());
     return best->second;
   }
 }
