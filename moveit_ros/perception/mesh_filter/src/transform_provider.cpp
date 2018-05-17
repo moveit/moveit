@@ -131,11 +131,18 @@ void TransformProvider::updateTransforms()
   static tf2::Stamped<Affine3d> input_transform, output_transform;
   static robot_state::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
-
-  static string error;
-  tf_buffer_->_getLatestCommonTime( tf_buffer_->_lookupFrameNumber(frame_id_),
-                tf_buffer_->_lookupFrameNumber(psm_->getPlanningScene()->getPlanningFrame()),
-                input_transform.stamp_, &error);
+  try
+  {
+    geometry_msgs::TransformStamped common_tf = tf_buffer_->lookupTransform(frame_id_,
+                                                            psm_->getPlanningScene()->getPlanningFrame(),
+                                                            ros::Time(0.0));
+  }
+  catch (tf2::TransformException& ex)
+  {
+    ROS_ERROR("TF Problem: %s", ex.what());
+    return;
+  }
+  input_transform.stamp_ = common_tf.header.stamp;
   input_transform.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
   for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin();

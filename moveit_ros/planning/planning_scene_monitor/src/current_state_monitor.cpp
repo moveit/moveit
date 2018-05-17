@@ -37,7 +37,6 @@
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 
 #include <tf2_eigen/tf2_eigen.h>
-#include <tf2_msgs/TF2Error.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <limits>
@@ -417,32 +416,24 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
 
       ros::Time latest_common_time;
-      std::string err;
-      if (tf_buffer_->_getLatestCommonTime(tf_buffer_->_lookupFrameNumber(parent_frame),
-                                           tf_buffer_->_lookupFrameNumber(child_frame), latest_common_time,
-                                           &err) != tf2_msgs::TF2Error::NO_ERROR)
+      geometry_msgs::TransformStamped transf;
+      try
+      {
+        transf = tf_buffer_->lookupTransform(parent_frame, child_frame, ros::Time(0.0));
+        latest_common_time = transf.header.stamp;
+      }
+      catch (tf2::TransformException& ex)
       {
         ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                        << joint->getName() << "': TF has no common time between '"
-                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+                                    << joint->getName() << "': Failure to lookup transform between '"
+                                    << parent_frame.c_str() << "' and '"
+                                    << child_frame.c_str() << "' with TF exception: " << ex.what());
         continue;
       }
 
       // allow update if time is more recent or if it is a static transform (time = 0)
       if (latest_common_time <= joint_time_[joint] && latest_common_time > ros::Time(0))
         continue;
-
-      geometry_msgs::TransformStamped transf;
-      try
-      {
-        transf = tf_buffer_->lookupTransform(parent_frame, child_frame, latest_common_time);
-      }
-      catch (tf2::TransformException& ex)
-      {
-        ROS_ERROR_STREAM_THROTTLE(1, "Unable to update multi-dof joint '" << joint->getName()
-                                                                          << "'. TF exception: " << ex.what());
-        continue;
-      }
       joint_time_[joint] = latest_common_time;
 
       Eigen::Affine3d eigen_transf = tf2::transformToEigen(transf);

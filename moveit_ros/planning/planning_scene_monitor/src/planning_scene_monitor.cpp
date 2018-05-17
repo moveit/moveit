@@ -45,7 +45,6 @@
 #include <tf2/LinearMath/Transform.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_msgs/TF2Error.h>
 #include <moveit/profiler/profiler.h>
 
 #include <memory>
@@ -1303,22 +1302,10 @@ void planning_scene_monitor::PlanningSceneMonitor::getUpdatedFrameTransforms(
     if (all_frame_names[i] == target || getRobotModel()->hasLinkModel(all_frame_names[i]))
       continue;
 
-    ros::Time stamp(0);
-    std::string err_string;
-    if (tf_buffer_->_getLatestCommonTime(tf_buffer_->_lookupFrameNumber(target),
-                                         tf_buffer_->_lookupFrameNumber(all_frame_names[i]), stamp,
-                                         &err_string) != tf2_msgs::TF2Error::NO_ERROR)
-    {
-      ROS_WARN_STREAM_NAMED(LOGNAME, "No transform available between frame '"
-                                         << all_frame_names[i] << "' and planning frame '" << target << "' ("
-                                         << err_string << ")");
-      continue;
-    }
-
     geometry_msgs::TransformStamped f;
     try
     {
-      f = tf_buffer_->lookupTransform(target, all_frame_names[i], stamp);
+      f = tf_buffer_->lookupTransform(target, all_frame_names[i], ros::Time(0));
     }
     catch (tf2::TransformException& ex)
     {
