@@ -124,9 +124,12 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     }
   }
 
+  const std::vector<std::string>& active_joint_names = model_group->getActiveJointModelNames();
   const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
-
-  if (not planning_scene->getRobotModel()->satisfiesPositionBounds(goal_state.data()))
+  moveit::core::RobotState goal_robot_state = planning_scene->getCurrentState();
+  goal_robot_state.setVariablePositions(
+      active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
+  if (not goal_robot_state.satisfiesBounds())
   {
     ROS_ERROR_STREAM("Goal state violates joint limits");
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE;
@@ -159,10 +162,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   res.trajectory.resize(1);
 
-  for (size_t i = 0; i < model_group->getActiveJointModels().size(); i++)
-  {
-    res.trajectory[0].joint_trajectory.joint_names.push_back(model_group->getActiveJointModels()[i]->getName());
-  }
+  res.trajectory[0].joint_trajectory.joint_names = active_joint_names;
 
   res.trajectory[0].joint_trajectory.header = req.start_state.joint_state.header;  // @TODO this is probably a hack
 
