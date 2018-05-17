@@ -22,6 +22,9 @@
 
   <build_depend>roscpp</build_depend>
   <build_depend>rviz</build_depend>
+  <build_depend>libogre-dev</build_depend>
+  <build_depend>qtbase5-dev</build_depend>
+  <build_depend>libqt5-opengl-dev</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>moveit_ros_warehouse</build_depend>
   <build_depend>moveit_ros_robot_interaction</build_depend>
