@@ -40,7 +40,7 @@
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <moveit/distance_field/find_internal_points.h>
 #include <geometric_shapes/body_operations.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <octomap/octomap.h>
 #include <ros/console.h>
 
@@ -511,7 +511,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
   p.position.z = .5;
 
   Eigen::Affine3d p_eigen;
-  tf::poseMsgToEigen(p, p_eigen);
+  tf2::fromMsg(p, p_eigen);
 
   gradient_df.addShapeToField(&sphere, p_eigen);
   // printBoth(gradient_df, numX, numY, numZ);

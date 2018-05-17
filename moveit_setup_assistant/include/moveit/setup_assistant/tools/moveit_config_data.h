@@ -37,7 +37,6 @@
 #ifndef MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 #define MOVEIT_MOVEIT_SETUP_ASSISTANT_TOOLS_MOVEIT_CONFIG_DATA_
 
-#include <boost/shared_ptr.hpp>
 #include <srdfdom/model.h>        // use their struct datastructures
 #include <srdfdom/srdf_writer.h>  // for writing srdf data
 #include <urdf/model.h>           // to share throughout app

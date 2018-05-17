@@ -39,6 +39,7 @@
 
 #include <moveit/move_group/move_group_capability.h>
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
+#include <ros/callback_queue.h>
 
 namespace move_group
 {

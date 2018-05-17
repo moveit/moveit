@@ -51,7 +51,7 @@
 #include <boost/progress.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -374,7 +374,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
             wMc_msg.position = constr->position_constraints[0].constraint_region.primitive_poses[0].position;
             wMc_msg.orientation = constr->orientation_constraints[0].orientation;
             Eigen::Affine3d wMc;
-            tf::poseMsgToEigen(wMc_msg, wMc);
+            tf2::fromMsg(wMc_msg, wMc);
 
             Eigen::Affine3d offset_tf(Eigen::AngleAxis<double>(options_.offsets[3], Eigen::Vector3d::UnitX()) *
                                       Eigen::AngleAxis<double>(options_.offsets[4], Eigen::Vector3d::UnitY()) *
@@ -383,7 +383,7 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
 
             Eigen::Affine3d wMnc = wMc * offset_tf;
             geometry_msgs::Pose wMnc_msg;
-            tf::poseEigenToMsg(wMnc, wMnc_msg);
+            wMnc_msg = tf2::toMsg(wMnc);
 
             req.motion_plan_request.goal_constraints[0]
                 .position_constraints[0]
@@ -465,11 +465,10 @@ void moveit_benchmarks::BenchmarkExecution::runAllBenchmarks(BenchmarkType type)
               wMc_msg.orientation =
                   req.motion_plan_request.trajectory_constraints.constraints[tc].orientation_constraints[0].orientation;
               Eigen::Affine3d wMc;
-              tf::poseMsgToEigen(wMc_msg, wMc);
+              tf2::fromMsg(wMc_msg, wMc);
 
               Eigen::Affine3d wMnc = wMc * offset_tf;
-              geometry_msgs::Pose wMnc_msg;
-              tf::poseEigenToMsg(wMnc, wMnc_msg);
+              geometry_msgs::Pose wMnc_msg = tf2::toMsg(wMnc);
 
               req.motion_plan_request.trajectory_constraints.constraints[tc]
                   .position_constraints[0]

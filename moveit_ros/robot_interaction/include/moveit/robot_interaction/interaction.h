@@ -43,7 +43,6 @@
 #include <moveit/robot_state/robot_state.h>
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
-#include <tf/tf.h>
 
 namespace moveit
 {

@@ -93,7 +93,7 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
   if (urdf_model.getRoot())
   {
     const urdf::Link* root_link_ptr = urdf_model.getRoot().get();
-    model_frame_ = '/' + root_link_ptr->name;
+    model_frame_ = root_link_ptr->name;
 
     ROS_DEBUG_NAMED("robot_model", "... building kinematic chain");
     root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
@@ -920,8 +920,6 @@ JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const
           if (vjoints[i].type_ != "fixed")
           {
             model_frame_ = vjoints[i].parent_frame_;
-            if (model_frame_[0] != '/')
-              model_frame_ = '/' + model_frame_;
           }
           break;
         }

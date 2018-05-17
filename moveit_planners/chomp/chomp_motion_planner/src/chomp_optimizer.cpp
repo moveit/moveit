@@ -791,7 +791,6 @@ double ChompOptimizer::getCollisionCost()
 
 void ChompOptimizer::computeJointProperties(int trajectory_point)
 {
-  // tf::Transform inverseWorldTransform = collision_space_->getInverseWorldTransform(*state_);
   for (int j = 0; j < num_joints_; j++)
   {
     const moveit::core::JointModel* joint_model = state_.getJointModel(joint_names_[j]);

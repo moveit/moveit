@@ -26,7 +26,7 @@
   <build_depend>moveit_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
-  <build_depend>tf</build_depend>
+  <build_depend>tf2_eigen</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>eigen</build_depend>
 
@@ -38,7 +38,7 @@
   <run_depend>moveit_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
-  <run_depend>tf</run_depend>
+  <run_depend>tf2_eigen</run_depend>
   <run_depend>pluginlib</run_depend>
 
   <export>

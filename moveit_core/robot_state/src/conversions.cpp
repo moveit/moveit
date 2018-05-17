@@ -37,7 +37,7 @@
 
 #include <moveit/robot_state/conversions.h>
 #include <geometric_shapes/shape_operations.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <boost/lexical_cast.hpp>
 
 namespace moveit
@@ -113,8 +113,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
       error = true;
       continue;
     }
-    Eigen::Affine3d transf;
-    tf::transformMsgToEigen(mjs.transforms[i], transf);
+    Eigen::Affine3d transf = tf2::transformToEigen(mjs.transforms[i]);
     // if frames do not mach, attempt to transform
     if (use_inv_t)
       transf = transf * inv_t;
@@ -132,18 +131,18 @@ static inline void _robotStateToMultiDOFJointState(const RobotState& state, sens
   mjs.transforms.clear();
   for (std::size_t i = 0; i < js.size(); ++i)
   {
-    geometry_msgs::Transform p;
+    geometry_msgs::TransformStamped p;
     if (state.dirtyJointTransform(js[i]))
     {
       Eigen::Affine3d t;
       t.setIdentity();
       js[i]->computeTransform(state.getJointPositions(js[i]), t);
-      tf::transformEigenToMsg(t, p);
+      p = tf2::eigenToTransform(t);
     }
     else
-      tf::transformEigenToMsg(state.getJointTransform(js[i]), p);
+      p = tf2::eigenToTransform(state.getJointTransform(js[i]));
     mjs.joint_names.push_back(js[i]->getName());
-    mjs.transforms.push_back(p);
+    mjs.transforms.push_back(p.transform);
   }
   mjs.header.frame_id = state.getRobotModel()->getModelFrame();
 }
@@ -211,7 +210,7 @@ static void _attachedBodyToMsg(const AttachedBody& attached_body, moveit_msgs::A
     if (shapes::constructMsgFromShape(ab_shapes[j].get(), sm))
     {
       geometry_msgs::Pose p;
-      tf::poseEigenToMsg(ab_tf[j], p);
+      p = tf2::toMsg(ab_tf[j]);
       sv.addToObject(sm, p);
     }
   }
@@ -254,7 +253,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Affine3d p;
-            tf::poseMsgToEigen(aco.object.primitive_poses[i], p);
+            tf2::fromMsg(aco.object.primitive_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -265,7 +264,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Affine3d p;
-            tf::poseMsgToEigen(aco.object.mesh_poses[i], p);
+            tf2::fromMsg(aco.object.mesh_poses[i], p);
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);
           }
@@ -276,7 +275,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
           if (s)
           {
             Eigen::Affine3d p;
-            tf::poseMsgToEigen(aco.object.plane_poses[i], p);
+            tf2::fromMsg(aco.object.plane_poses[i], p);
 
             shapes.push_back(shapes::ShapeConstPtr(s));
             poses.push_back(p);

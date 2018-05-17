@@ -40,7 +40,6 @@
 #include <moveit/macros/class_forward.h>
 #include <moveit/occupancy_map_monitor/occupancy_map.h>
 #include <geometric_shapes/shapes.h>
-#include <boost/shared_ptr.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 

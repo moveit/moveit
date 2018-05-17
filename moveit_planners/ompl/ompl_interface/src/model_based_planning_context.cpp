@@ -45,7 +45,6 @@
 #include <moveit/ompl_interface/constraints_library.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/profiler/profiler.h>
-#include <eigen_conversions/eigen_msg.h>
 
 #include <ompl/base/samplers/UniformValidStateSampler.h>
 #include <ompl/base/goals/GoalLazySamples.h>

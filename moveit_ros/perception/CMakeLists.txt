@@ -32,8 +32,9 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   urdf
   message_filters
-  tf
-  tf_conversions
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
   pluginlib
   image_transport
   object_recognition_msgs

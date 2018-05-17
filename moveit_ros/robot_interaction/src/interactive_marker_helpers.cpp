@@ -35,7 +35,8 @@
 /* Author: Ioan Sucan, Acorn Pooley, Adam Leeper */
 
 #include <moveit/robot_interaction/interactive_marker_helpers.h>
-#include <tf/transform_datatypes.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <boost/math/constants/constants.hpp>
 
@@ -67,10 +68,11 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker& im)
   m.header = im.header;
   m.pose = im.pose;
   // Arrow points along Z
-  tf::Quaternion imq;
-  tf::quaternionMsgToTF(m.pose.orientation, imq);
-  imq = imq * tf::createQuaternionFromRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
-  tf::quaternionTFToMsg(imq, m.pose.orientation);
+  tf2::Quaternion imq, tmq;
+  tf2::fromMsg(m.pose.orientation, imq);
+  tmq.setRPY(0, -boost::math::constants::pi<double>() / 2.0, 0);
+  imq = imq * tmq;
+  m.pose.orientation = tf2::toMsg(imq);
   m.color.r = 0.0f;
   m.color.g = 1.0f;
   m.color.b = 0.0f;
@@ -87,9 +89,10 @@ void addTArrowMarker(visualization_msgs::InteractiveMarker& im)
   mc.header = im.header;
   mc.pose = im.pose;
   // Cylinder points along Y
-  tf::quaternionMsgToTF(mc.pose.orientation, imq);
-  imq = imq * tf::createQuaternionFromRPY(boost::math::constants::pi<double>() / 2.0, 0, 0);
-  tf::quaternionTFToMsg(imq, mc.pose.orientation);
+  tf2::fromMsg(mc.pose.orientation, imq);
+  tmq.setRPY(boost::math::constants::pi<double>() / 2.0, 0, 0);
+  imq = imq * tmq;
+  mc.pose.orientation = tf2::toMsg(imq);
   mc.pose.position.x -= 0.04;
   mc.pose.position.z += 0.01;
   mc.color.r = 0.0f;

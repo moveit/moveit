@@ -38,7 +38,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit_ros_planning/TrajectoryExecutionDynamicReconfigureConfig.h>
 #include <dynamic_reconfigure/server.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace trajectory_execution_manager
 {
@@ -1010,7 +1010,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
         // and start transform in trajectory
         Eigen::Affine3d cur_transform, start_transform;
         jm->computeTransform(current_state->getJointPositions(jm), cur_transform);
-        tf::transformMsgToEigen(transforms[i], start_transform);
+        start_transform = tf2::transformToEigen(transforms[i]);
         Eigen::Vector3d offset = cur_transform.translation() - start_transform.translation();
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(cur_transform.rotation().inverse() * start_transform.rotation());

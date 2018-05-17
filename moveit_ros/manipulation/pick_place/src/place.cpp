@@ -39,7 +39,7 @@
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/pick_place/plan_stage.h>
 #include <moveit/robot_state/conversions.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -58,10 +58,10 @@ bool transformToEndEffectorGoal(const geometry_msgs::PoseStamped& goal_pose,
     return false;
 
   Eigen::Affine3d end_effector_transform;
-  tf::poseMsgToEigen(goal_pose.pose, end_effector_transform);
+  tf2::fromMsg(goal_pose.pose, end_effector_transform);
   end_effector_transform = end_effector_transform * fixed_transforms[0].inverse();
   place_pose.header = goal_pose.header;
-  tf::poseEigenToMsg(end_effector_transform, place_pose.pose);
+  place_pose.pose = tf2::toMsg(end_effector_transform);
   return true;
 }
 }

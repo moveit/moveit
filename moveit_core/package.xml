@@ -22,7 +22,6 @@
   <build_depend>assimp</build_depend>
   <build_depend>boost</build_depend>
   <build_depend>eigen</build_depend>
-  <build_depend>eigen_conversions</build_depend>
   <build_depend>eigen_stl_containers</build_depend>
   <build_depend>libfcl-dev</build_depend>
   <build_depend version_gte="0.5.2">geometric_shapes</build_depend>
@@ -43,13 +42,14 @@
   <build_depend>shape_msgs</build_depend>
   <build_depend>srdfdom</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>tf2_kdl</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
 
   <run_depend>assimp</run_depend>
   <run_depend>boost</run_depend>
   <run_depend>eigen</run_depend>
-  <run_depend>eigen_conversions</run_depend>
   <run_depend>eigen_stl_containers</run_depend>
   <run_depend>libfcl-dev</run_depend>
   <run_depend version_gte="0.5.2">geometric_shapes</run_depend>
@@ -68,6 +68,8 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>srdfdom</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>tf2_eigen</run_depend>
+  <run_depend>tf2_kdl</run_depend>
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
 
@@ -75,5 +77,4 @@
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>rosunit</test_depend>
-  <test_depend>tf_conversions</test_depend>
 </package>
