@@ -83,14 +83,8 @@ std::shared_ptr<tf2_ros::Buffer> getSharedTF()
 {
   SharedStorage& s = getSharedStorage();
   boost::mutex::scoped_lock slock(s.lock_);
-  if (!s.tf_buffer_ || !s.tf_listener_)
+  if (!s.tf_listener_)
   {
-    if(s.tf_listener_)
-    {
-      // First release the current TF Listener to ensure
-      // the deleted Buffer is not accessed
-      s.tf_listener_.reset();
-    }
     s.tf_buffer_.reset(new tf2_ros::Buffer());
     s.tf_listener_.reset(new tf2_ros::TransformListener(*s.tf_buffer_));
   }
