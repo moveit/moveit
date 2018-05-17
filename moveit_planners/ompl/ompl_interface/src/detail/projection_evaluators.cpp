@@ -61,7 +61,7 @@ void ompl_interface::ProjectionEvaluatorLinkPose::defaultCellSizes()
 }
 
 void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::State* state,
-                                                          ompl::base::EuclideanProjection& projection) const
+                                                          OMPLProjection projection) const
 {
   robot_state::RobotState* s = tss_.getStateStorage();
   planning_context_->getOMPLStateSpace()->copyToRobotState(*s, state);
@@ -90,7 +90,7 @@ void ompl_interface::ProjectionEvaluatorJointValue::defaultCellSizes()
 }
 
 void ompl_interface::ProjectionEvaluatorJointValue::project(const ompl::base::State* state,
-                                                            ompl::base::EuclideanProjection& projection) const
+                                                            OMPLProjection projection) const
 {
   for (std::size_t i = 0; i < variables_.size(); ++i)
     projection(i) = state->as<ModelBasedStateSpace::StateType>()->values[variables_[i]];
