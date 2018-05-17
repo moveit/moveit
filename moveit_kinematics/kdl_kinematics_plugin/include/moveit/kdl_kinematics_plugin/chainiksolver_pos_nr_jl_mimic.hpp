@@ -67,6 +67,8 @@ public:
                                ChainFkSolverPos& fksolver, ChainIkSolverVel& iksolver, unsigned int maxiter = 100,
                                double eps = 1e-6, bool position_ik = false);
 
+  virtual void updateInternalDataStructures();
+
   ~ChainIkSolverPos_NR_JL_Mimic();
 
   virtual int CartToJnt(const JntArray& q_init, const Frame& p_in, JntArray& q_out);
