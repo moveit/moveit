@@ -142,7 +142,8 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>();
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener =
+      std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
   planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf_buffer);
   if (!psm.getPlanningScene())
   {

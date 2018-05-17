@@ -133,9 +133,8 @@ void TransformProvider::updateTransforms()
   robot_state = psm_->getStateMonitor()->getCurrentState();
   try
   {
-    geometry_msgs::TransformStamped common_tf = tf_buffer_->lookupTransform(frame_id_,
-                                                            psm_->getPlanningScene()->getPlanningFrame(),
-                                                            ros::Time(0.0));
+    geometry_msgs::TransformStamped common_tf =
+        tf_buffer_->lookupTransform(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), ros::Time(0.0));
   }
   catch (tf2::TransformException& ex)
   {
@@ -151,7 +150,8 @@ void TransformProvider::updateTransforms()
     try
     {
       // TODO: check logic here - which global collision body's transform should be used?
-      input_transform.setData(robot_state->getAttachedBody(contextIt->second->frame_id_)->getGlobalCollisionBodyTransforms()[0]);
+      input_transform.setData(
+          robot_state->getAttachedBody(contextIt->second->frame_id_)->getGlobalCollisionBodyTransforms()[0]);
       tf_buffer_->transform(input_transform, output_transform, frame_id_);
     }
     catch (const tf2::TransformException& ex)

@@ -619,7 +619,7 @@ void RobotInteraction::computeMarkerPose(const ::robot_interaction::InteractionH
     control_to_eef_tf.orientation.w = 1.0;
   }
 
-   tf2::toMsg(tf_root_to_control, pose);
+  tf2::toMsg(tf_root_to_control, pose);
 }
 
 void RobotInteraction::updateInteractiveMarkers(const ::robot_interaction::InteractionHandlerPtr& handler)

@@ -1383,8 +1383,8 @@ moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const Options
 }
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(
-    const moveit::planning_interface::MoveGroupInterface::Options& opt, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-    const ros::Duration& wait_for_servers)
+    const moveit::planning_interface::MoveGroupInterface::Options& opt,
+    const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const ros::Duration& wait_for_servers)
   : MoveGroupInterface(opt, tf_buffer, ros::WallDuration(wait_for_servers.toSec()))
 {
 }
@@ -1905,7 +1905,7 @@ inline void transformPose(const tf2_ros::Buffer& tf_buffer, const std::string& d
     geometry_msgs::PoseStamped target_in(target);
     tf_buffer.transform(target_in, target, desired_frame);
     // we leave the stamp to ros::Time(0) on purpose
-    target.header.stamp =  ros::Time(0);
+    target.header.stamp = ros::Time(0);
   }
 }
 }

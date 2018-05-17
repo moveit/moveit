@@ -425,9 +425,9 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       catch (tf2::TransformException& ex)
       {
         ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                    << joint->getName() << "': Failure to lookup transform between '"
-                                    << parent_frame.c_str() << "' and '"
-                                    << child_frame.c_str() << "' with TF exception: " << ex.what());
+                                        << joint->getName() << "': Failure to lookup transform between '"
+                                        << parent_frame.c_str() << "' and '" << child_frame.c_str()
+                                        << "' with TF exception: " << ex.what());
         continue;
       }
 

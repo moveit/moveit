@@ -37,7 +37,6 @@
 #include <moveit/collision_detection/collision_tools.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-
 namespace collision_detection
 {
 void getCostMarkers(visualization_msgs::MarkerArray& arr, const std::string& frame_id,

@@ -64,15 +64,16 @@ public:
    * @param robot_model The current kinematic model to build on
    * @param tf_buffer A pointer to the tf2_ros Buffer to use
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer);
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer);
 
   /** @brief Constructor.
    *  @param robot_model The current kinematic model to build on
    *  @param tf_buffer A pointer to the tf2_ros Buffer to use
    *  @param nh A ros::NodeHandle to pass node specific options
    */
-  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
-                      ros::NodeHandle nh);
+  CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
+                      const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, ros::NodeHandle nh);
 
   ~CurrentStateMonitor();
 

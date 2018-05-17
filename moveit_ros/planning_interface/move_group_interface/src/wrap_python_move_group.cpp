@@ -46,7 +46,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 
-
 #include <boost/python.hpp>
 #include <memory>
 #include <Python.h>
@@ -342,7 +341,8 @@ public:
   {
     std::vector<double> v = py_bindings_tools::doubleFromList(pose);
     geometry_msgs::Pose msg;
-    if (v.size() == 6){
+    if (v.size() == 6)
+    {
       tf2::Quaternion q;
       q.setRPY(v[3], v[4], v[5]);
       tf2::convert(q, msg.orientation);

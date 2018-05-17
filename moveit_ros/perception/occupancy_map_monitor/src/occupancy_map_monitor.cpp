@@ -49,16 +49,26 @@ OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution)
   initialize();
 }
 
-OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& map_frame,
-                                         double map_resolution)
-  : tf_buffer_(tf_buffer), map_frame_(map_frame), map_resolution_(map_resolution), debug_info_(false), mesh_handle_count_(0), nh_("~")
+OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+                                         const std::string& map_frame, double map_resolution)
+  : tf_buffer_(tf_buffer)
+  , map_frame_(map_frame)
+  , map_resolution_(map_resolution)
+  , debug_info_(false)
+  , mesh_handle_count_(0)
+  , nh_("~")
 {
   initialize();
 }
 
 OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, ros::NodeHandle& nh,
                                          const std::string& map_frame, double map_resolution)
-  : tf_buffer_(tf_buffer), map_frame_(map_frame), map_resolution_(map_resolution), debug_info_(false), mesh_handle_count_(0), nh_(nh)
+  : tf_buffer_(tf_buffer)
+  , map_frame_(map_frame)
+  , map_resolution_(map_resolution)
+  , debug_info_(false)
+  , mesh_handle_count_(0)
+  , nh_(nh)
 {
   initialize();
 }
