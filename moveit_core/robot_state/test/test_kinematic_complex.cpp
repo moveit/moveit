@@ -103,7 +103,7 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
 
   moveit::core::RobotModel robot_model1(urdf_model, srdfModel);
   ASSERT_TRUE(robot_model1.getRootJoint() != NULL);
-  EXPECT_EQ(robot_model1.getModelFrame(), "/base_footprint");
+  EXPECT_EQ(robot_model1.getModelFrame(), "base_footprint");
 
   static const std::string SMODEL2 = "<?xml version=\"1.0\" ?>"
                                      "<robot name=\"pr2\">"
@@ -114,7 +114,7 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
 
   moveit::core::RobotModel robot_model2(urdf_model, srdfModel);
   ASSERT_TRUE(robot_model2.getRootJoint() != NULL);
-  EXPECT_EQ(robot_model2.getModelFrame(), "/odom_combined");
+  EXPECT_EQ(robot_model2.getModelFrame(), "odom_combined");
 }
 
 TEST_F(LoadPlanningModelsPr2, GroupInit)
