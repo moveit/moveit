@@ -25,7 +25,11 @@
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>angles</build_depend>
   <build_depend>eigen</build_depend>
-  <build_depend>eigen_conversions</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>tf2_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
 
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_perception</run_depend>
@@ -33,7 +37,11 @@
   <run_depend>actionlib</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>angles</run_depend>
-  <run_depend>eigen_conversions</run_depend>
+  <run_depend>tf2</run_depend>
+  <run_depend>tf2_eigen</run_depend>
+  <run_depend>tf2_geometry_msgs</run_depend>
+  <run_depend>tf2_msgs</run_depend>
+  <run_depend>tf2_ros</run_depend>
 
   <export>
     <moveit_core plugin="${prefix}/planning_request_adapters_plugin_description.xml"/>

@@ -26,9 +26,11 @@
   <build_depend>rospy</build_depend>
   <build_depend>rosconsole</build_depend>
   <build_depend>actionlib</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend>tf_conversions</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>tf2_ros</build_depend>
   <build_depend>python</build_depend>
   <build_depend>eigen</build_depend>
 
@@ -40,9 +42,11 @@
   <run_depend>rospy</run_depend>
   <run_depend>rosconsole</run_depend>
   <run_depend>actionlib</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>eigen_conversions</run_depend>
-  <run_depend>tf_conversions</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>tf2</run_depend>
+  <run_depend>tf2_eigen</run_depend>
+  <run_depend>tf2_geometry_msgs</run_depend>
+  <run_depend>tf2_ros</run_depend>
   <run_depend>python</run_depend>
 
   <test_depend>moveit_resources</test_depend>

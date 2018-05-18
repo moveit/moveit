@@ -43,8 +43,6 @@
 #include <moveit/collision_distance_field/collision_detector_allocator_hybrid.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
-#include <tf/transform_listener.h>
-
 #include <moveit/robot_state/conversions.h>
 
 namespace chomp_interface
@@ -69,8 +67,6 @@ public:
 private:
   CHOMPInterfacePtr chomp_interface_;
   moveit::core::RobotModelConstPtr robot_model_;
-
-  boost::shared_ptr<tf::TransformListener> tf_;
 };
 
 } /* namespace chomp_interface */

@@ -39,7 +39,6 @@
 
 #include <moveit/pick_place/manipulation_stage.h>
 #include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <vector>
 #include <deque>

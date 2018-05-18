@@ -38,7 +38,7 @@
 #include <gtest/gtest.h>
 #include <urdf_parser/urdf_parser.h>
 #include <fstream>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <boost/filesystem/path.hpp>
 #include <moveit_resources/config.h>
 
@@ -659,9 +659,7 @@ TEST_F(LoadPlanningModelsPr2, OrientationConstraintsSimple)
 
   ASSERT_TRUE(oc.getLinkModel());
 
-  geometry_msgs::Pose p;
-
-  tf::poseEigenToMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()), p);
+  geometry_msgs::Pose p = tf2::toMsg(ks.getGlobalLinkTransform(oc.getLinkModel()->getName()));
 
   ocm.orientation = p.orientation;
   ocm.header.frame_id = kmodel->getModelFrame();

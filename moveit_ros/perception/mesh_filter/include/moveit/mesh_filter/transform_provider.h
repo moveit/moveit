@@ -46,9 +46,10 @@
 #include <moveit/mesh_filter/mesh_filter_base.h>
 #include <map>
 
-namespace tf
+namespace tf2_ros
 {
 class TransformListener;
+class Buffer;
 }
 
 /**
@@ -148,7 +149,8 @@ private:
   std::map<mesh_filter::MeshHandle, TransformContextPtr> handle2context_;
 
   /** \brief TransformListener used to listen and update transformations*/
-  boost::shared_ptr<tf::TransformListener> tf_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   /** \brief SceneMonitor used to get current states*/
   planning_scene_monitor::PlanningSceneMonitorPtr psm_;

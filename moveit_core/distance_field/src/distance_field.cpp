@@ -37,7 +37,7 @@
 #include <moveit/distance_field/distance_field.h>
 #include <moveit/distance_field/find_internal_points.h>
 #include <geometric_shapes/body_operations.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <ros/console.h>
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
@@ -229,7 +229,7 @@ void DistanceField::addShapeToField(const shapes::Shape* shape, const Eigen::Aff
 void DistanceField::addShapeToField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
   Eigen::Affine3d pose_e;
-  tf::poseMsgToEigen(pose, pose_e);
+  tf2::fromMsg(pose, pose_e);
   addShapeToField(shape, pose_e);
 }
 
@@ -310,8 +310,8 @@ void DistanceField::moveShapeInField(const shapes::Shape* shape, const geometry_
                                      const geometry_msgs::Pose& new_pose)
 {
   Eigen::Affine3d old_pose_e, new_pose_e;
-  tf::poseMsgToEigen(old_pose, old_pose_e);
-  tf::poseMsgToEigen(new_pose, new_pose_e);
+  tf2::fromMsg(old_pose, old_pose_e);
+  tf2::fromMsg(new_pose, new_pose_e);
   moveShapeInField(shape, old_pose_e, new_pose_e);
 }
 
@@ -329,7 +329,7 @@ void DistanceField::removeShapeFromField(const shapes::Shape* shape, const Eigen
 void DistanceField::removeShapeFromField(const shapes::Shape* shape, const geometry_msgs::Pose& pose)
 {
   Eigen::Affine3d pose_e;
-  tf::poseMsgToEigen(pose, pose_e);
+  tf2::fromMsg(pose, pose_e);
   removeShapeFromField(shape, pose_e);
 }
 

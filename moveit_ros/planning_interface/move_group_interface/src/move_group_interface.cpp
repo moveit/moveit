@@ -62,11 +62,11 @@
 #include <moveit_msgs/SetPlannerParams.h>
 
 #include <actionlib/client/simple_action_client.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <std_msgs/String.h>
-#include <tf/transform_listener.h>
-#include <tf/transform_datatypes.h>
-#include <tf_conversions/tf_eigen.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2/utils.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_ros/transform_listener.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 
@@ -93,9 +93,9 @@ enum ActiveTargetType
 class MoveGroupInterface::MoveGroupInterfaceImpl
 {
 public:
-  MoveGroupInterfaceImpl(const Options& opt, const boost::shared_ptr<tf::Transformer>& tf,
+  MoveGroupInterfaceImpl(const Options& opt, const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                          const ros::WallDuration& wait_for_servers)
-    : opt_(opt), node_handle_(opt.node_handle_), tf_(tf)
+    : opt_(opt), node_handle_(opt.node_handle_), tf_buffer_(tf_buffer)
   {
     robot_model_ = opt.robot_model_ ? opt.robot_model_ : getSharedRobotModel(opt.robot_description_);
     if (!getRobotModel())
@@ -139,7 +139,7 @@ public:
     attached_object_publisher_ = node_handle_.advertise<moveit_msgs::AttachedCollisionObject>(
         planning_scene_monitor::PlanningSceneMonitor::DEFAULT_ATTACHED_COLLISION_OBJECT_TOPIC, 1, false);
 
-    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_, node_handle_);
+    current_state_monitor_ = getSharedStateMonitor(robot_model_, tf_buffer_, node_handle_);
 
     ros::WallTime timeout_for_servers = ros::WallTime::now() + wait_for_servers;
     if (wait_for_servers == ros::WallDuration())
@@ -311,9 +311,9 @@ public:
       constraints_init_thread_->join();
   }
 
-  const boost::shared_ptr<tf::Transformer>& getTF() const
+  const std::shared_ptr<tf2_ros::Buffer>& getTF() const
   {
-    return tf_;
+    return tf_buffer_;
   }
 
   const Options& getOptions() const
@@ -475,7 +475,7 @@ public:
           // transform the pose first if possible, then do IK
           const Eigen::Affine3d& t = getJointStateTarget().getFrameTransform(frame);
           Eigen::Affine3d p;
-          tf::poseMsgToEigen(eef_pose, p);
+          tf2::fromMsg(eef_pose, p);
           return getJointStateTarget().setFromIK(getJointModelGroup(), t * p, eef, 0, 0.0,
                                                  moveit::core::GroupStateValidityCallbackFn(), o);
         }
@@ -1304,7 +1304,7 @@ private:
 
   Options opt_;
   ros::NodeHandle node_handle_;
-  boost::shared_ptr<tf::Transformer> tf_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   robot_model::RobotModelConstPtr robot_model_;
   planning_scene_monitor::CurrentStateMonitorPtr current_state_monitor_;
   std::unique_ptr<actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> > move_action_client_;
@@ -1360,32 +1360,32 @@ private:
 }
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const std::string& group_name,
-                                                                   const boost::shared_ptr<tf::Transformer>& tf,
+                                                                   const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                                                    const ros::WallDuration& wait_for_servers)
 {
   if (!ros::ok())
     throw std::runtime_error("ROS does not seem to be running");
-  impl_ = new MoveGroupInterfaceImpl(Options(group_name), tf ? tf : getSharedTF(), wait_for_servers);
+  impl_ = new MoveGroupInterfaceImpl(Options(group_name), tf_buffer ? tf_buffer : getSharedTF(), wait_for_servers);
 }
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const std::string& group,
-                                                                   const boost::shared_ptr<tf::Transformer>& tf,
+                                                                   const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                                                    const ros::Duration& wait_for_servers)
-  : MoveGroupInterface(group, tf, ros::WallDuration(wait_for_servers.toSec()))
+  : MoveGroupInterface(group, tf_buffer, ros::WallDuration(wait_for_servers.toSec()))
 {
 }
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(const Options& opt,
-                                                                   const boost::shared_ptr<tf::Transformer>& tf,
+                                                                   const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                                                    const ros::WallDuration& wait_for_servers)
 {
-  impl_ = new MoveGroupInterfaceImpl(opt, tf ? tf : getSharedTF(), wait_for_servers);
+  impl_ = new MoveGroupInterfaceImpl(opt, tf_buffer ? tf_buffer : getSharedTF(), wait_for_servers);
 }
 
 moveit::planning_interface::MoveGroupInterface::MoveGroupInterface(
-    const moveit::planning_interface::MoveGroupInterface::Options& opt, const boost::shared_ptr<tf::Transformer>& tf,
-    const ros::Duration& wait_for_servers)
-  : MoveGroupInterface(opt, tf, ros::WallDuration(wait_for_servers.toSec()))
+    const moveit::planning_interface::MoveGroupInterface::Options& opt,
+    const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const ros::Duration& wait_for_servers)
+  : MoveGroupInterface(opt, tf_buffer, ros::WallDuration(wait_for_servers.toSec()))
 {
 }
 
@@ -1746,8 +1746,7 @@ bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const g
 bool moveit::planning_interface::MoveGroupInterface::setJointValueTarget(const Eigen::Affine3d& eef_pose,
                                                                          const std::string& end_effector_link)
 {
-  geometry_msgs::Pose msg;
-  tf::poseEigenToMsg(eef_pose, msg);
+  geometry_msgs::Pose msg = tf2::toMsg(eef_pose);
   return setJointValueTarget(msg, end_effector_link);
 }
 
@@ -1766,8 +1765,7 @@ bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTar
 bool moveit::planning_interface::MoveGroupInterface::setApproximateJointValueTarget(
     const Eigen::Affine3d& eef_pose, const std::string& end_effector_link)
 {
-  geometry_msgs::Pose msg;
-  tf::poseEigenToMsg(eef_pose, msg);
+  geometry_msgs::Pose msg = tf2::toMsg(eef_pose);
   return setApproximateJointValueTarget(msg, end_effector_link);
 }
 
@@ -1817,7 +1815,7 @@ bool moveit::planning_interface::MoveGroupInterface::setPoseTarget(const Eigen::
                                                                    const std::string& end_effector_link)
 {
   std::vector<geometry_msgs::PoseStamped> pose_msg(1);
-  tf::poseEigenToMsg(pose, pose_msg[0].pose);
+  pose_msg[0].pose = tf2::toMsg(pose);
   pose_msg[0].header.frame_id = getPoseReferenceFrame();
   pose_msg[0].header.stamp = ros::Time::now();
   return setPoseTargets(pose_msg, end_effector_link);
@@ -1848,7 +1846,7 @@ bool moveit::planning_interface::MoveGroupInterface::setPoseTargets(const EigenS
   const std::string& frame_id = getPoseReferenceFrame();
   for (std::size_t i = 0; i < target.size(); ++i)
   {
-    tf::poseEigenToMsg(target[i], pose_out[i].pose);
+    pose_out[i].pose = tf2::toMsg(target[i]);
     pose_out[i].header.stamp = tm;
     pose_out[i].header.frame_id = frame_id;
   }
@@ -1899,19 +1897,15 @@ moveit::planning_interface::MoveGroupInterface::getPoseTargets(const std::string
 
 namespace
 {
-inline void transformPose(const tf::Transformer& tf, const std::string& desired_frame,
+inline void transformPose(const tf2_ros::Buffer& tf_buffer, const std::string& desired_frame,
                           geometry_msgs::PoseStamped& target)
 {
   if (desired_frame != target.header.frame_id)
   {
-    tf::Pose pose;
-    tf::poseMsgToTF(target.pose, pose);
-    tf::Stamped<tf::Pose> stamped_target(pose, target.header.stamp, target.header.frame_id);
-    tf::Stamped<tf::Pose> stamped_target_out;
-    tf.transformPose(desired_frame, stamped_target, stamped_target_out);
-    target.header.frame_id = stamped_target_out.frame_id_;
-    //    target.header.stamp = stamped_target_out.stamp_; // we leave the stamp to ros::Time(0) on purpose
-    tf::poseTFToMsg(stamped_target_out, target.pose);
+    geometry_msgs::PoseStamped target_in(target);
+    tf_buffer.transform(target_in, target, desired_frame);
+    // we leave the stamp to ros::Time(0) on purpose
+    target.header.stamp = ros::Time(0);
   }
 }
 }
@@ -1958,8 +1952,9 @@ bool moveit::planning_interface::MoveGroupInterface::setRPYTarget(double r, doub
     target.pose.position.z = 0.0;
     target.header.frame_id = impl_->getPoseReferenceFrame();
   }
-
-  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(r, p, y), target.pose.orientation);
+  tf2::Quaternion q;
+  q.setRPY(r, p, y);
+  target.pose.orientation = tf2::toMsg(q);
   bool result = setPoseTarget(target, end_effector_link);
   impl_->setTargetType(ORIENTATION);
   return result;
@@ -2086,7 +2081,7 @@ moveit::planning_interface::MoveGroupInterface::getRandomPose(const std::string&
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
-  tf::poseEigenToMsg(pose, pose_msg.pose);
+  pose_msg.pose = tf2::toMsg(pose);
   return pose_msg;
 }
 
@@ -2111,7 +2106,7 @@ moveit::planning_interface::MoveGroupInterface::getCurrentPose(const std::string
   geometry_msgs::PoseStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
   pose_msg.header.frame_id = impl_->getRobotModel()->getModelFrame();
-  tf::poseEigenToMsg(pose, pose_msg.pose);
+  pose_msg.pose = tf2::toMsg(pose);
   return pose_msg;
 }
 
@@ -2130,10 +2125,9 @@ std::vector<double> moveit::planning_interface::MoveGroupInterface::getCurrentRP
       if (lm)
       {
         result.resize(3);
-        tf::Matrix3x3 ptf;
-        tf::matrixEigenToTF(current_state->getGlobalLinkTransform(lm).rotation(), ptf);
-        tfScalar pitch, roll, yaw;
-        ptf.getRPY(roll, pitch, yaw);
+        geometry_msgs::TransformStamped tfs = tf2::eigenToTransform(current_state->getGlobalLinkTransform(lm));
+        double pitch, roll, yaw;
+        tf2::getEulerYPR<geometry_msgs::Quaternion>(tfs.transform.rotation, yaw, pitch, roll);
         result[0] = roll;
         result[1] = pitch;
         result[2] = yaw;

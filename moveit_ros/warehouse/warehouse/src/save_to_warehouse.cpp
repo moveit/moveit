@@ -44,6 +44,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <ros/ros.h>
+#include <tf2_ros/transform_listener.h>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
@@ -140,8 +141,10 @@ int main(int argc, char** argv)
   spinner.start();
 
   ros::NodeHandle nh;
-  boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener());
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf);
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>();
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener =
+      std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf_buffer);
   if (!psm.getPlanningScene())
   {
     ROS_ERROR("Unable to initialize PlanningSceneMonitor");

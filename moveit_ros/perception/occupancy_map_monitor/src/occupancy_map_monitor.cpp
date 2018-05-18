@@ -49,16 +49,26 @@ OccupancyMapMonitor::OccupancyMapMonitor(double map_resolution)
   initialize();
 }
 
-OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer>& tf, const std::string& map_frame,
-                                         double map_resolution)
-  : tf_(tf), map_frame_(map_frame), map_resolution_(map_resolution), debug_info_(false), mesh_handle_count_(0), nh_("~")
+OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
+                                         const std::string& map_frame, double map_resolution)
+  : tf_buffer_(tf_buffer)
+  , map_frame_(map_frame)
+  , map_resolution_(map_resolution)
+  , debug_info_(false)
+  , mesh_handle_count_(0)
+  , nh_("~")
 {
   initialize();
 }
 
-OccupancyMapMonitor::OccupancyMapMonitor(const boost::shared_ptr<tf::Transformer>& tf, ros::NodeHandle& nh,
+OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, ros::NodeHandle& nh,
                                          const std::string& map_frame, double map_resolution)
-  : tf_(tf), map_frame_(map_frame), map_resolution_(map_resolution), debug_info_(false), mesh_handle_count_(0), nh_(nh)
+  : tf_buffer_(tf_buffer)
+  , map_frame_(map_frame)
+  , map_resolution_(map_resolution)
+  , debug_info_(false)
+  , mesh_handle_count_(0)
+  , nh_(nh)
 {
   initialize();
 }
@@ -76,10 +86,10 @@ void OccupancyMapMonitor::initialize()
 
   if (map_frame_.empty())
     if (!nh_.getParam("octomap_frame", map_frame_))
-      if (tf_)
+      if (tf_buffer_)
         ROS_WARN("No target frame specified for Octomap. No transforms will be applied to received data.");
 
-  if (!tf_ && !map_frame_.empty())
+  if (!tf_buffer_ && !map_frame_.empty())
     ROS_WARN("Target frame specified but no TF instance specified. No transforms will be applied to received data.");
 
   tree_.reset(new OccMapTree(map_resolution_));

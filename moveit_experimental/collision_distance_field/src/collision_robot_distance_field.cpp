@@ -40,7 +40,7 @@
 #include <moveit/distance_field/propagation_distance_field.h>
 #include <ros/console.h>
 #include <ros/assert.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace collision_detection
 {
@@ -1030,7 +1030,7 @@ void CollisionRobotDistanceField::createCollisionModelMarker(const moveit::core:
     sphere_representation->updatePose(state.getGlobalLinkTransform(link_name));
     for (unsigned int j = 0; j < sphere_representation->getCollisionSpheres().size(); j++)
     {
-      tf::pointEigenToMsg(sphere_representation->getSphereCenters()[j], sphere_marker.pose.position);
+      sphere_marker.pose.position = tf2::toMsg(sphere_representation->getSphereCenters()[j]);
       sphere_marker.scale.x = sphere_marker.scale.y = sphere_marker.scale.z =
           2 * sphere_representation->getCollisionSpheres()[j].radius_;
       sphere_marker.id = id;

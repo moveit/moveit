@@ -36,21 +36,22 @@
 
 #include <moveit/planning_scene_monitor/current_state_monitor.h>
 
-#include <tf_conversions/tf_eigen.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <limits>
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
-                                                                 const boost::shared_ptr<tf::Transformer>& tf)
-  : CurrentStateMonitor(robot_model, tf, ros::NodeHandle())
+                                                                 const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
+  : CurrentStateMonitor(robot_model, tf_buffer, ros::NodeHandle())
 {
 }
 
 planning_scene_monitor::CurrentStateMonitor::CurrentStateMonitor(const robot_model::RobotModelConstPtr& robot_model,
-                                                                 const boost::shared_ptr<tf::Transformer>& tf,
+                                                                 const std::shared_ptr<tf2_ros::Buffer>& tf_buffer,
                                                                  ros::NodeHandle nh)
   : nh_(nh)
-  , tf_(tf)
+  , tf_buffer_(tf_buffer)
   , robot_model_(robot_model)
   , robot_state_(robot_model)
   , state_monitor_started_(false)
@@ -124,10 +125,10 @@ void planning_scene_monitor::CurrentStateMonitor::startStateMonitor(const std::s
       ROS_ERROR("The joint states topic cannot be an empty string");
     else
       joint_state_subscriber_ = nh_.subscribe(joint_states_topic, 25, &CurrentStateMonitor::jointStateCallback, this);
-    if (tf_ && robot_model_->getMultiDOFJointModels().size() > 0)
+    if (tf_buffer_ && robot_model_->getMultiDOFJointModels().size() > 0)
     {
-      tf_connection_.reset(
-          new TFConnection(tf_->addTransformsChangedListener(boost::bind(&CurrentStateMonitor::tfCallback, this))));
+      tf_connection_.reset(new TFConnection(
+          tf_buffer_->_addTransformsChangedListener(boost::bind(&CurrentStateMonitor::tfCallback, this))));
     }
     state_monitor_started_ = true;
     monitor_start_time_ = ros::Time::now();
@@ -145,9 +146,9 @@ void planning_scene_monitor::CurrentStateMonitor::stopStateMonitor()
   if (state_monitor_started_)
   {
     joint_state_subscriber_.shutdown();
-    if (tf_ && tf_connection_)
+    if (tf_buffer_ && tf_connection_)
     {
-      tf_->removeTransformsChangedListener(*tf_connection_);
+      tf_buffer_->_removeTransformsChangedListener(*tf_connection_);
       tf_connection_.reset();
     }
     ROS_DEBUG("No longer listening for joint states");
@@ -415,34 +416,27 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
           joint->getParentLinkModel() ? joint->getParentLinkModel()->getName() : robot_model_->getModelFrame();
 
       ros::Time latest_common_time;
-      std::string err;
-      if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
+      geometry_msgs::TransformStamped transf;
+      try
+      {
+        transf = tf_buffer_->lookupTransform(parent_frame, child_frame, ros::Time(0.0));
+        latest_common_time = transf.header.stamp;
+      }
+      catch (tf2::TransformException& ex)
       {
         ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                        << joint->getName() << "': TF has no common time between '"
-                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+                                        << joint->getName() << "': Failure to lookup transform between '"
+                                        << parent_frame.c_str() << "' and '" << child_frame.c_str()
+                                        << "' with TF exception: " << ex.what());
         continue;
       }
 
       // allow update if time is more recent or if it is a static transform (time = 0)
       if (latest_common_time <= joint_time_[joint] && latest_common_time > ros::Time(0))
         continue;
-
-      tf::StampedTransform transf;
-      try
-      {
-        tf_->lookupTransform(parent_frame, child_frame, latest_common_time, transf);
-      }
-      catch (tf::TransformException& ex)
-      {
-        ROS_ERROR_STREAM_THROTTLE(1, "Unable to update multi-dof joint '" << joint->getName()
-                                                                          << "'. TF exception: " << ex.what());
-        continue;
-      }
       joint_time_[joint] = latest_common_time;
 
-      Eigen::Affine3d eigen_transf;
-      tf::transformTFToEigen(transf, eigen_transf);
+      Eigen::Affine3d eigen_transf = tf2::transformToEigen(transf);
 
       double new_values[joint->getStateSpaceDimension()];
       joint->computeVariablePositions(eigen_transf, new_values);

@@ -49,8 +49,6 @@
 #include <rviz/display_context.h>
 #include <rviz/window_manager_interface.h>
 
-#include <eigen_conversions/eigen_msg.h>
-
 #include <QMessageBox>
 #include <QInputDialog>
 

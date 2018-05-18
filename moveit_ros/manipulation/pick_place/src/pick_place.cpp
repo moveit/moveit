@@ -38,7 +38,6 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
 
 namespace pick_place

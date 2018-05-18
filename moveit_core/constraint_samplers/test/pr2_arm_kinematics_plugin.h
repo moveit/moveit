@@ -43,7 +43,6 @@
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <angles/angles.h>
-#include <tf_conversions/tf_kdl.h>
 
 #include <moveit/macros/class_forward.h>
 #include <moveit_msgs/GetPositionFK.h>

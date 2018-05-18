@@ -42,8 +42,9 @@
 #include <moveit/transforms/transforms.h>
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <tf_conversions/tf_eigen.h>
+#include <tf2/LinearMath/Transform.h>
+#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <algorithm>
@@ -56,11 +57,11 @@ namespace robot_interaction
 {
 InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
                                        const robot_state::RobotState& initial_robot_state,
-                                       const boost::shared_ptr<tf::Transformer>& tf)
+                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(initial_robot_state)
   , name_(fixName(name))
   , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
-  , tf_(tf)
+  , tf_buffer_(tf_buffer)
   , robot_interaction_(NULL)
   , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
   , display_meshes_(true)
@@ -70,11 +71,11 @@ InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interact
 }
 
 InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interaction, const std::string& name,
-                                       const boost::shared_ptr<tf::Transformer>& tf)
+                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(robot_interaction->getRobotModel())
   , name_(fixName(name))
   , planning_frame_(robot_interaction->getRobotModel()->getModelFrame())
-  , tf_(tf)
+  , tf_buffer_(tf_buffer)
   , robot_interaction_(NULL)
   , kinematic_options_map_(robot_interaction->getKinematicOptionsMap())
   , display_meshes_(true)
@@ -85,11 +86,11 @@ InteractionHandler::InteractionHandler(const RobotInteractionPtr& robot_interact
 
 // DEPRECATED
 InteractionHandler::InteractionHandler(const std::string& name, const robot_state::RobotState& initial_robot_state,
-                                       const boost::shared_ptr<tf::Transformer>& tf)
+                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(initial_robot_state)
   , name_(fixName(name))
   , planning_frame_(initial_robot_state.getRobotModel()->getModelFrame())
-  , tf_(tf)
+  , tf_buffer_(tf_buffer)
   , robot_interaction_(NULL)
   , kinematic_options_map_(new KinematicOptionsMap)
   , display_meshes_(true)
@@ -99,11 +100,11 @@ InteractionHandler::InteractionHandler(const std::string& name, const robot_stat
 
 // DEPRECATED
 InteractionHandler::InteractionHandler(const std::string& name, const robot_model::RobotModelConstPtr& robot_model,
-                                       const boost::shared_ptr<tf::Transformer>& tf)
+                                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer)
   : LockedRobotState(robot_model)
   , name_(fixName(name))
   , planning_frame_(robot_model->getModelFrame())
-  , tf_(tf)
+  , tf_buffer_(tf_buffer)
   , robot_interaction_(NULL)
   , kinematic_options_map_(new KinematicOptionsMap)
   , display_meshes_(true)
@@ -339,7 +340,7 @@ void InteractionHandler::updateStateJoint(robot_state::RobotState* state, const 
                                           const geometry_msgs::Pose* feedback_pose, StateChangeCallbackFn* callback)
 {
   Eigen::Affine3d pose;
-  tf::poseMsgToEigen(*feedback_pose, pose);
+  tf2::fromMsg(*feedback_pose, pose);
 
   if (!vj->parent_frame.empty() && !robot_state::Transforms::sameFrame(vj->parent_frame, planning_frame_))
     pose = state->getGlobalLinkTransform(vj->parent_frame).inverse() * pose;
@@ -402,20 +403,19 @@ bool InteractionHandler::transformFeedbackPose(const visualization_msgs::Interac
   tpose.pose = feedback->pose;
   if (feedback->header.frame_id != planning_frame_)
   {
-    if (tf_)
+    if (tf_buffer_)
       try
       {
-        tf::Stamped<tf::Pose> spose;
-        tf::poseStampedMsgToTF(tpose, spose);
+        geometry_msgs::PoseStamped spose(tpose);
         // Express feedback (marker) pose in planning frame
-        tf_->transformPose(planning_frame_, spose, spose);
+        tf_buffer_->transform(tpose, spose, planning_frame_);
         // Apply inverse of offset to bring feedback pose back into the end-effector support link frame
-        tf::Transform tf_offset;
-        tf::poseMsgToTF(offset, tf_offset);
-        spose.setData(spose * tf_offset.inverse());
-        tf::poseStampedTFToMsg(spose, tpose);
+        tf2::Transform tf_offset, tf_tpose;
+        tf2::fromMsg(offset, tf_offset);
+        tf2::fromMsg(spose.pose, tf_tpose);
+        tf2::toMsg(tf_tpose * tf_offset.inverse(), tpose.pose);
       }
-      catch (tf::TransformException& e)
+      catch (tf2::TransformException& e)
       {
         ROS_ERROR("Error transforming from frame '%s' to frame '%s'", tpose.header.frame_id.c_str(),
                   planning_frame_.c_str());

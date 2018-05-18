@@ -35,7 +35,7 @@
   <build_depend>boost</build_depend>
   <build_depend>assimp</build_depend>
   <build_depend>eigen_stl_containers</build_depend>
-  <build_depend>eigen_conversions</build_depend>
+  <build_depend>tf2_eigen</build_depend>
   <build_depend version_gte="0.3.4">geometric_shapes</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>rostime</build_depend>
@@ -53,7 +53,7 @@
   <run_depend>boost</run_depend>
   <run_depend>assimp</run_depend>
   <run_depend>eigen_stl_containers</run_depend>
-  <run_depend>eigen_conversions</run_depend>
+  <run_depend>tf2_eigen</run_depend>
   <run_depend version_gte="0.3.4">geometric_shapes</run_depend>
   <run_depend>rostime</run_depend>
   <run_depend>rosconsole</run_depend>
@@ -71,7 +71,6 @@
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
   <test_depend>angles</test_depend>
-  <test_depend>tf_conversions</test_depend>
 
   <export>
     <moveit_core plugin="${prefix}/collision_detector_hybrid_description.xml" />

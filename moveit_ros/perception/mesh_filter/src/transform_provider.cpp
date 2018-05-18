@@ -35,8 +35,9 @@
 /* Author: Suat Gedikli */
 
 #include <moveit/mesh_filter/transform_provider.h>
-#include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 using namespace std;
 using namespace boost;
@@ -46,8 +47,9 @@ using namespace mesh_filter;
 
 TransformProvider::TransformProvider(unsigned long interval_us) : stop_(true), interval_us_(interval_us)
 {
-  tf_.reset(new TransformListener);
-  psm_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf_));
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>();
+  tf_listener_.reset(new tf2_ros::TransformListener(*tf_buffer_));
+  psm_.reset(new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf_buffer_));
   psm_->startStateMonitor();
 }
 
@@ -126,25 +128,33 @@ void TransformProvider::setUpdateInterval(unsigned long usecs)
 
 void TransformProvider::updateTransforms()
 {
-  static Affine3d transformation;
+  static tf2::Stamped<Affine3d> input_transform, output_transform;
   static robot_state::RobotStatePtr robot_state;
   robot_state = psm_->getStateMonitor()->getCurrentState();
-
-  static string error;
-  static Stamped<Pose> input_pose, out_pose;
-  tf_->getLatestCommonTime(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), input_pose.stamp_, &error);
-  input_pose.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
+  try
+  {
+    geometry_msgs::TransformStamped common_tf =
+        tf_buffer_->lookupTransform(frame_id_, psm_->getPlanningScene()->getPlanningFrame(), ros::Time(0.0));
+  }
+  catch (tf2::TransformException& ex)
+  {
+    ROS_ERROR("TF Problem: %s", ex.what());
+    return;
+  }
+  input_transform.stamp_ = common_tf.header.stamp;
+  input_transform.frame_id_ = psm_->getPlanningScene()->getPlanningFrame();
 
   for (map<MeshHandle, shared_ptr<TransformContext> >::const_iterator contextIt = handle2context_.begin();
        contextIt != handle2context_.end(); ++contextIt)
   {
-    transformation = robot_state->getLinkState(contextIt->second->frame_id_)->getGlobalCollisionBodyTransform();
-    poseEigenToTF(transformation, input_pose);
     try
     {
-      tf_->transformPose(frame_id_, input_pose, out_pose);
+      // TODO: check logic here - which global collision body's transform should be used?
+      input_transform.setData(
+          robot_state->getAttachedBody(contextIt->second->frame_id_)->getGlobalCollisionBodyTransforms()[0]);
+      tf_buffer_->transform(input_transform, output_transform, frame_id_);
     }
-    catch (const tf::TransformException& ex)
+    catch (const tf2::TransformException& ex)
     {
       handle2context_[contextIt->first]->mutex_.lock();
       handle2context_[contextIt->first]->transformation_.matrix().setZero();
@@ -155,9 +165,8 @@ void TransformProvider::updateTransforms()
     {
       ROS_ERROR("Caught %s while updating transforms", ex.what());
     }
-    poseTFToEigen(out_pose, transformation);
     handle2context_[contextIt->first]->mutex_.lock();
-    handle2context_[contextIt->first]->transformation_ = transformation;
+    handle2context_[contextIt->first]->transformation_ = static_cast<Affine3d>(output_transform);
     handle2context_[contextIt->first]->mutex_.unlock();
   }
 }

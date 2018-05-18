@@ -38,7 +38,7 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/collision_detection/collision_tools.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <moveit/move_group/capability_names.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -95,14 +95,14 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     for (std::size_t i = 0; i < req.waypoints.size(); ++i)
     {
       if (no_transform)
-        tf::poseMsgToEigen(req.waypoints[i], waypoints[i]);
+        tf2::fromMsg(req.waypoints[i], waypoints[i]);
       else
       {
         geometry_msgs::PoseStamped p;
         p.header = req.header;
         p.pose = req.waypoints[i];
         if (performTransform(p, default_frame))
-          tf::poseMsgToEigen(p.pose, waypoints[i]);
+          tf2::fromMsg(p.pose, waypoints[i]);
         else
         {
           ROS_ERROR("Error encountered transforming waypoints to frame '%s'", default_frame.c_str());

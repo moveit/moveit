@@ -37,7 +37,7 @@
 #include "kinematics_service_capability.h"
 #include <moveit/robot_state/conversions.h>
 #include <moveit/kinematic_constraints/utils.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <moveit/move_group/capability_names.h>
 
 move_group::MoveGroupKinematicsService::MoveGroupKinematicsService() : MoveGroupCapability("KinematicsService")
@@ -115,7 +115,7 @@ void move_group::MoveGroupKinematicsService::computeIK(
         {
           geometry_msgs::PoseStamped msg = req.pose_stamped_vector[k];
           if (performTransform(msg, default_frame))
-            tf::poseMsgToEigen(msg.pose, req_poses[k]);
+            tf2::fromMsg(msg.pose, req_poses[k]);
           else
           {
             error_code.val = moveit_msgs::MoveItErrorCodes::FRAME_TRANSFORM_FAILURE;
@@ -194,7 +194,7 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
     if (rs.getRobotModel()->hasLinkModel(req.fk_link_names[i]))
     {
       res.pose_stamped.resize(res.pose_stamped.size() + 1);
-      tf::poseEigenToMsg(rs.getGlobalLinkTransform(req.fk_link_names[i]), res.pose_stamped.back().pose);
+      res.pose_stamped.back().pose = tf2::toMsg(rs.getGlobalLinkTransform(req.fk_link_names[i]));
       res.pose_stamped.back().header.frame_id = default_frame;
       res.pose_stamped.back().header.stamp = ros::Time::now();
       if (do_transform)

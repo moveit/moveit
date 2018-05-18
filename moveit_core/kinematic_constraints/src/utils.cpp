@@ -36,7 +36,6 @@
 
 #include <moveit/kinematic_constraints/utils.h>
 #include <geometric_shapes/solid_primitive_dims.h>
-#include <eigen_conversions/eigen_msg.h>
 
 moveit_msgs::Constraints kinematic_constraints::mergeConstraints(const moveit_msgs::Constraints& first,
                                                                  const moveit_msgs::Constraints& second)

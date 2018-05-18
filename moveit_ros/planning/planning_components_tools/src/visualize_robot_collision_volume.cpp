@@ -36,6 +36,8 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <cstdlib>
+#include <tf2_ros/transform_listener.h>
+#include <memory>
 
 static const std::string ROBOT_DESCRIPTION = "robot_description";
 
@@ -48,15 +50,17 @@ int main(int argc, char** argv)
 
   double radius = 0.02;
   double lifetime = 600.0;
+  ros::NodeHandle nh;
 
-  boost::shared_ptr<tf::TransformListener> tr(new tf::TransformListener());
-  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tr);
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>();
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener =
+      std::make_shared<tf2_ros::TransformListener>(*tf_buffer, nh);
+  planning_scene_monitor::PlanningSceneMonitor psm(ROBOT_DESCRIPTION, tf_buffer);
   if (psm.getPlanningScene())
   {
     psm.startWorldGeometryMonitor();
     psm.startSceneMonitor();
     psm.startStateMonitor();
-    ros::NodeHandle nh;
     ros::Publisher pub_markers = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
     std::cout << "\nListening for planning scene...\nType the number of spheres to generate and press Enter: "
               << std::endl;

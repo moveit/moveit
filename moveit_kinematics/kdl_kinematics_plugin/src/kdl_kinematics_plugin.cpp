@@ -37,8 +37,9 @@
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
 #include <class_loader/class_loader.hpp>
 
-//#include <tf/transform_datatypes.h>
-#include <tf_conversions/tf_kdl.h>
+#include <tf2_kdl/tf2_kdl.h>
+#include <tf2/transform_datatypes.h>
+
 #include <kdl_parser/kdl_parser.hpp>
 
 // URDF, SRDF
@@ -485,7 +486,7 @@ bool KDLKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose, c
   solution.resize(dimension_);
 
   KDL::Frame pose_desired;
-  tf::poseMsgToKDL(ik_pose, pose_desired);
+  tf2::fromMsg(ik_pose, pose_desired);
 
   ROS_DEBUG_STREAM_NAMED("kdl", "searchPositionIK2: Position request pose is "
                                     << ik_pose.position.x << " " << ik_pose.position.y << " " << ik_pose.position.z
@@ -573,9 +574,6 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
   }
 
   KDL::Frame p_out;
-  geometry_msgs::PoseStamped pose;
-  tf::Stamped<tf::Pose> tf_pose;
-
   KDL::JntArray jnt_pos_in(dimension_);
   for (unsigned int i = 0; i < dimension_; i++)
   {
@@ -590,7 +588,7 @@ bool KDLKinematicsPlugin::getPositionFK(const std::vector<std::string>& link_nam
     ROS_DEBUG_NAMED("kdl", "End effector index: %d", getKDLSegmentIndex(link_names[i]));
     if (fk_solver.JntToCart(jnt_pos_in, p_out, getKDLSegmentIndex(link_names[i])) >= 0)
     {
-      tf::poseKDLToMsg(p_out, poses[i]);
+      poses[i] = tf2::toMsg(p_out);
     }
     else
     {

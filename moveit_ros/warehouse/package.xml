@@ -20,12 +20,14 @@
   <build_depend>moveit_ros_planning</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
-  <build_depend>tf</build_depend>
+  <build_depend>tf2_eigen</build_depend>
+  <build_depend>tf2_ros</build_depend>
 
   <run_depend>warehouse_ros</run_depend>
   <run_depend>moveit_ros_planning</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
-  <run_depend>tf</run_depend>
+  <run_depend>tf2_eigen</run_depend>
+  <run_depend>tf2_ros</run_depend>
 
 </package>

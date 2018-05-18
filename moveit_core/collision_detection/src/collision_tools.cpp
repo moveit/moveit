@@ -35,7 +35,7 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/collision_detection/collision_tools.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace collision_detection
 {
@@ -272,8 +272,8 @@ void costSourceToMsg(const CostSource& cost_source, moveit_msgs::CostSource& msg
 
 void contactToMsg(const Contact& contact, moveit_msgs::ContactInformation& msg)
 {
-  tf::pointEigenToMsg(contact.pos, msg.position);
-  tf::vectorEigenToMsg(contact.normal, msg.normal);
+  msg.position = tf2::toMsg(contact.pos);
+  tf2::toMsg(contact.normal, msg.normal);
   msg.depth = contact.depth;
   msg.contact_body_1 = contact.body_name_1;
   msg.contact_body_2 = contact.body_name_2;

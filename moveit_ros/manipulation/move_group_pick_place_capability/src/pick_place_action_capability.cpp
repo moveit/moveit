@@ -39,8 +39,6 @@
 #include <moveit/plan_execution/plan_with_sensing.h>
 #include <moveit/move_group_pick_place_capability/capability_names.h>
 
-#include <eigen_conversions/eigen_msg.h>
-
 move_group::MoveGroupPickPlaceAction::MoveGroupPickPlaceAction()
   : MoveGroupCapability("PickPlaceAction"), pickup_state_(IDLE)
 {

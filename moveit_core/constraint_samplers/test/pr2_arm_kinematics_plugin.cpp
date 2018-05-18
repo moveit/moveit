@@ -36,8 +36,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <kdl_parser/kdl_parser.hpp>
-#include <eigen_conversions/eigen_msg.h>
-#include <eigen_conversions/eigen_kdl.h>
+#include <tf2_kdl/tf2_kdl.h>
 #include <algorithm>
 #include <numeric>
 
@@ -340,9 +339,7 @@ bool PR2ArmKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
     return false;
   }
   KDL::Frame pose_desired;
-  Eigen::Affine3d tp;
-  tf::poseMsgToEigen(ik_pose, tp);
-  tf::transformEigenToKDL(tp, pose_desired);
+  tf2::fromMsg(ik_pose, pose_desired);
 
   // Do the IK
   KDL::JntArray jnt_pos_in;

@@ -36,6 +36,9 @@
 
 #include <moveit/depth_image_octomap_updater/depth_image_octomap_updater.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/LinearMath/Transform.h>
 #include <geometric_shapes/shape_operations.h>
 #include <sensor_msgs/image_encodings.h>
 #include <XmlRpcException.h>
@@ -109,7 +112,7 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
 
 bool DepthImageOctomapUpdater::initialize()
 {
-  tf_ = monitor_->getTFClient();
+  tf_buffer_ = monitor_->getTFClient();
   free_space_updater_.reset(new LazyFreeSpaceUpdater(tree_));
 
   // create our mesh filter
@@ -234,12 +237,12 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
     monitor_->setMapFrame(depth_msg->header.frame_id);
 
   /* get transform for cloud into map frame */
-  tf::StampedTransform map_H_sensor;
+  tf2::Stamped<tf2::Transform> map_H_sensor;
   if (monitor_->getMapFrame() == depth_msg->header.frame_id)
     map_H_sensor.setIdentity();
   else
   {
-    if (tf_)
+    if (tf_buffer_)
     {
       // wait at most 50ms
       static const double TEST_DT = 0.005;
@@ -249,12 +252,13 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       for (int t = 0; t < nt; ++t)
         try
         {
-          tf_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp,
-                               map_H_sensor);
+          tf2::fromMsg(
+              tf_buffer_->lookupTransform(monitor_->getMapFrame(), depth_msg->header.frame_id, depth_msg->header.stamp),
+              map_H_sensor);
           found = true;
           break;
         }
-        catch (tf::TransformException& ex)
+        catch (tf2::TransformException& ex)
         {
           static const ros::Duration d(TEST_DT);
           err = ex.what();
@@ -458,7 +462,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
           // on far plane or a model point -> remove
@@ -468,7 +472,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
             // add to the list of model cells
             model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
@@ -487,7 +491,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }
           else if (labels_row[x] >= mesh_filter::MeshFilterBase::FarClip)
@@ -496,7 +500,7 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             float yy = y_cache_[y] * zz;
             float xx = x_cache_[x] * zz;
             /* transform to map frame */
-            tf::Vector3 point_tf = map_H_sensor * tf::Vector3(xx, yy, zz);
+            tf2::Vector3 point_tf = map_H_sensor * tf2::Vector3(xx, yy, zz);
             // add to the list of model cells
             model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
           }

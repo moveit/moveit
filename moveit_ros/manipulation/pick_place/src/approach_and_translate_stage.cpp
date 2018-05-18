@@ -37,7 +37,7 @@
 #include <moveit/pick_place/pick_place.h>
 #include <moveit/pick_place/approach_and_translate_stage.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <ros/console.h>
 
 namespace pick_place
@@ -199,8 +199,8 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // convert approach direction and retreat direction to Eigen structures
   Eigen::Vector3d approach_direction, retreat_direction;
-  tf::vectorMsgToEigen(plan->approach_.direction.vector, approach_direction);
-  tf::vectorMsgToEigen(plan->retreat_.direction.vector, retreat_direction);
+  tf2::fromMsg(plan->approach_.direction.vector, approach_direction);
+  tf2::fromMsg(plan->retreat_.direction.vector, retreat_direction);
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local;
   // otherwise, the frame is global

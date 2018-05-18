@@ -38,8 +38,6 @@
 #include <moveit_msgs/GetMotionPlan.h>
 #include <chomp_interface/chomp_planning_context.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <pluginlib/class_list_macros.hpp>
 
 namespace chomp_interface

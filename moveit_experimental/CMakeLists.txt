@@ -16,7 +16,7 @@ COMPONENTS
   kdl_parser
   geometric_shapes
   eigen_stl_containers
-  eigen_conversions
+  tf2_eigen
   random_numbers
   visualization_msgs
   roslib
@@ -57,7 +57,6 @@ catkin_package(
     moveit_core
     geometric_shapes
     eigen_stl_containers
-    eigen_conversions
     moveit_msgs
     kdl_parser
     pluginlib

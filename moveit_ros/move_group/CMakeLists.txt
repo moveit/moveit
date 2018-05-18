@@ -15,7 +15,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   pluginlib
   std_srvs
-  tf
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
 )
 
 catkin_package(

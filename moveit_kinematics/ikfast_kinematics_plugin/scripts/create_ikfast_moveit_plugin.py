@@ -278,8 +278,8 @@ if __name__ == '__main__':
    package_xml = etree.parse(package_file_name, parser)
 
    # Make sure at least all required dependencies are in the depends lists
-   build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions"]
-   run_deps   = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf_conversions"]
+   build_deps = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl"]
+   run_deps   = ["liblapack-dev", "moveit_core", "pluginlib", "roscpp", "tf2_kdl"]
 
    def update_deps(reqd_deps, req_type, e_parent):
       curr_deps = [e.text for e in e_parent.findall(req_type)]
