@@ -40,7 +40,6 @@
 #include <string>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/shared_ptr.hpp>
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/mesh_filter/mesh_filter_base.h>

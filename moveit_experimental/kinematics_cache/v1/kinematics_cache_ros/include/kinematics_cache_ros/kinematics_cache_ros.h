@@ -63,8 +63,9 @@ public:
 private:
   kinematics::KinematicsBase* kinematics_solver_; /** An instance of a kinematics solver needed by this class */
 
-  boost::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> >
-      kinematics_loader_; /** A loader needed to load the instance of a kinematics solver */
+  std::shared_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase> > kinematics_loader_; /** A loader needed to load
+                                                                                              the instance of a
+                                                                                              kinematics solver */
 
   planning_models::RobotModelPtr kinematic_model_; /** A kinematics model */
 };

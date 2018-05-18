@@ -42,8 +42,6 @@
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_state/robot_state.h>
 
-#include <boost/shared_ptr.hpp>
-
 namespace kinematics_cache
 {
 class KinematicsCache
@@ -172,15 +170,15 @@ private:
   robot_model::RobotModelConstPtr kinematic_model_; /** An instance of the kinematic model */
   robot_state::RobotStatePtr kinematic_state_;      /** An instance of the kinematic state */
 
-  const robot_model::JointModelGroup* joint_model_group_; /** Joint model group associated with this cache */
-  boost::shared_ptr<robot_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
+  const robot_model::JointModelGroup* joint_model_group_;           /** Joint model group associated with this cache */
+  std::shared_ptr<robot_state::JointStateGroup> joint_state_group_; /** Joint state corresponding to cache */
 
   //    mutable std::vector<double> solution_local_; /** Local pre-allocated storage */
 
   double min_squared_distance_, max_squared_distance_;
 };
 
-typedef boost::shared_ptr<KinematicsCache> KinematicsCachePtr;
+typedef std::shared_ptr<KinematicsCache> KinematicsCachePtr;
 }
 
 #endif

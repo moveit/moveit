@@ -37,9 +37,6 @@
 
 #include <kinematics_cache_ros/kinematics_cache_ros.h>
 
-// ROS
-#include <boost/shared_ptr.hpp>
-
 // MoveIt!
 #include <planning_models/kinematic_state.h>
 #include <rdf_loader/rdf_loader.h>
