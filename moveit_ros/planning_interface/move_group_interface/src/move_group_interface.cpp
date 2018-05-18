@@ -162,7 +162,7 @@ public:
         node_handle_, move_group::EXECUTE_ACTION_NAME, false));
     // TODO: after deprecation period, i.e. for L-turtle, switch back to standard waitForAction function
     // waitForAction(execute_action_client_, move_group::EXECUTE_ACTION_NAME, timeout_for_servers, allotted_time);
-    waitForExecuteActionOrService(timeout_for_servers);
+    waitForExecuteAction(timeout_for_servers);
 
     query_service_ =
         node_handle_.serviceClient<moveit_msgs::QueryPlannerInterfaces>(move_group::QUERY_PLANNERS_SERVICE_NAME);
@@ -236,18 +236,14 @@ public:
     }
   }
 
-  void waitForExecuteActionOrService(ros::WallTime timeout)
+  void waitForExecuteAction(ros::WallTime timeout)
   {
     ROS_DEBUG("Waiting for move_group action server (%s)...", move_group::EXECUTE_ACTION_NAME.c_str());
 
-    // Deprecated service
-    execute_service_ =
-        node_handle_.serviceClient<moveit_msgs::ExecuteKnownTrajectory>(move_group::EXECUTE_SERVICE_NAME);
-
-    // wait for either of action or service
+    // wait for action
     if (timeout == ros::WallTime())  // wait forever
     {
-      while (!execute_action_client_->isServerConnected() && !execute_service_.exists())
+      while (!execute_action_client_->isServerConnected())
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
@@ -265,8 +261,7 @@ public:
     }
     else  // wait with timeout
     {
-      while (!execute_action_client_->isServerConnected() && !execute_service_.exists() &&
-             timeout > ros::WallTime::now())
+      while (!execute_action_client_->isServerConnected() && timeout > ros::WallTime::now())
       {
         ros::WallDuration(0.001).sleep();
         // explicit ros::spinOnce on the callback queue used by NodeHandle that manages the action client
@@ -286,21 +281,10 @@ public:
     // issue warning
     if (!execute_action_client_->isServerConnected())
     {
-      if (execute_service_.exists())
-      {
-        ROS_WARN_NAMED("move_group_interface",
-                       "\nDeprecation warning: Trajectory execution service is deprecated (was replaced by an action)."
-                       "\nReplace 'MoveGroupExecuteService' with 'MoveGroupExecuteTrajectoryAction' in "
-                       "move_group.launch");
-      }
-      else
-      {
-        ROS_ERROR_STREAM_NAMED("move_group_interface",
-                               "Unable to find execution action on topic: "
-                                   << node_handle_.getNamespace() + move_group::EXECUTE_ACTION_NAME << " or service: "
-                                   << node_handle_.getNamespace() + move_group::EXECUTE_SERVICE_NAME);
-        throw std::runtime_error("No Trajectory execution capability available.");
-      }
+      ROS_ERROR_STREAM_NAMED("move_group_interface",
+                             "Unable to find execution action on topic: " << node_handle_.getNamespace() +
+                                                                                 move_group::EXECUTE_ACTION_NAME);
+      throw std::runtime_error("No Trajectory execution capability available.");
       execute_action_client_.reset();
     }
   }
@@ -882,23 +866,6 @@ public:
 
   MoveItErrorCode execute(const Plan& plan, bool wait)
   {
-    if (!execute_action_client_)
-    {
-      // TODO: Remove this backwards compatibility code in L-turtle
-      moveit_msgs::ExecuteKnownTrajectory::Request req;
-      moveit_msgs::ExecuteKnownTrajectory::Response res;
-      req.trajectory = plan.trajectory_;
-      req.wait_for_execution = wait;
-      if (execute_service_.call(req, res))
-      {
-        return MoveItErrorCode(res.error_code);
-      }
-      else
-      {
-        return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
-      }
-    }
-
     if (!execute_action_client_->isServerConnected())
     {
       return MoveItErrorCode(moveit_msgs::MoveItErrorCodes::FAILURE);
@@ -1346,7 +1313,6 @@ private:
   // ROS communication
   ros::Publisher trajectory_event_publisher_;
   ros::Publisher attached_object_publisher_;
-  ros::ServiceClient execute_service_;
   ros::ServiceClient query_service_;
   ros::ServiceClient get_params_service_;
   ros::ServiceClient set_params_service_;
