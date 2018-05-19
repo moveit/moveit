@@ -944,7 +944,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
   if (!csm_->waitForCurrentState(ros::Time::now()) || !(current_state = csm_->getCurrentState()))
   {
     ROS_WARN_NAMED(name_, "Failed to validate trajectory: couldn't receive full current joint state within 1s");
-    //return false;
+    return false;
   }
 
   for (const auto& trajectory : context.trajectory_parts_)
