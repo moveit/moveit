@@ -253,6 +253,7 @@ public:
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
+  bool outputROSControllersYAML(const std::string& file_path);
 
   /**
    * \brief Set list of collision link pairs in SRDF; sorted; with optional filter
