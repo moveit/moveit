@@ -504,6 +504,85 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
+// bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
+// {
+//   YAML::Emitter emitter;
+//   emitter << YAML::BeginMap;
+
+//   // Output every available planner ---------------------------------------------------
+//   emitter << YAML::Key << "generic_hw_control_loop";
+
+//   emitter << YAML::Key << "loop_hz";
+//   emitter << YAML::Value << "300";
+//   emitter << YAML::Key << "cycle_time_error_threshold";
+//   emitter << YAML::Value << "300";
+//   emitter << YAML::EndMap;
+
+//   // // Add Planners with parameter values
+//   // std::vector<std::string> pconfigs;
+//   // for (std::size_t i = 0; i < planner_des.size(); ++i)
+//   // {
+//   //   std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
+//   //   emitter << YAML::Key << defaultconfig;
+//   //   emitter << YAML::Value << YAML::BeginMap;
+//   //   emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
+//   //   for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
+//   //   {
+//   //     emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
+//   //     emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
+//   //     emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
+//   //   }
+//   //   emitter << YAML::EndMap;
+
+//   //   pconfigs.push_back(defaultconfig);
+//   // }
+
+//   // // End of every avail planner
+//   // emitter << YAML::EndMap;
+
+//   // // Output every group and the planners it can use ----------------------------------
+//   // for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+//   //      ++group_it)
+//   // {
+//   //   emitter << YAML::Key << group_it->name_;
+//   //   emitter << YAML::Value << YAML::BeginMap;
+//   //   // Output associated planners
+//   //   emitter << YAML::Key << "planner_configs";
+//   //   emitter << YAML::Value << YAML::BeginSeq;
+//   //   for (std::size_t i = 0; i < pconfigs.size(); ++i)
+//   //     emitter << pconfigs[i];
+//   //   emitter << YAML::EndSeq;
+
+//   //   // Output projection_evaluator
+//   //   std::string projection_joints = decideProjectionJoints(group_it->name_);
+//   //   if (!projection_joints.empty())
+//   //   {
+//   //     emitter << YAML::Key << "projection_evaluator";
+//   //     emitter << YAML::Value << projection_joints;
+//   //     // OMPL collision checking discretization
+//   //     emitter << YAML::Key << "longest_valid_segment_fraction";
+//   //     emitter << YAML::Value << "0.005";
+//   //   }
+
+//   //   emitter << YAML::EndMap;
+//   // }
+
+//   // emitter << YAML::EndMap;
+
+//   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+//   if (!output_stream.good())
+//   {
+//     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+//     return false;
+//   }
+
+//   output_stream << emitter.c_str();
+//   output_stream.close();
+
+//   return true;  // file created successfully
+// }
+
+// Controllers
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
 {
   YAML::Emitter emitter;
