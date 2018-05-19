@@ -39,7 +39,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <sensor_msgs/JointState.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <ros/console.h>
 #include <map>
 #include <iterator>

@@ -48,7 +48,7 @@
 #include <moveit/warehouse/trajectory_constraints_storage.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <warehouse_ros/database_loader.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 #include <map>
 #include <vector>
