@@ -561,6 +561,184 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Output controllers config files
+// ******************************************************************************************
+bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
+{
+  // Cache the joints' names.
+  std::vector<std::vector<std::string>> planning_groups;
+  std::vector<std::string> group_joints;
+
+  // We are going to write the joints names many times.
+  // Loop through groups to store the joints names in group_joints vector and reuse is.
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
+  {
+    // Get list of associated joints
+    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
+    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
+    // Iterate through the joints and push into group_joints vector.
+    for (const robot_model::JointModel* joint : joint_models)
+    {
+      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
+        continue;
+      else
+        group_joints.push_back(joint->getName());
+    }
+    // Push all the group joints into planning_groups vector.
+    planning_groups.push_back(group_joints);
+    group_joints.clear();
+  }
+
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
+
+  emitter << YAML::Comment("MoveIt-specific simulation settings");
+  emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "joint_model_group";
+  emitter << YAML::Value << "manipulator";
+  emitter << YAML::Key << "joint_model_group_pose";
+  emitter << YAML::Value << "up";
+  emitter << YAML::Key << "cycle_time_error_threshold";
+  emitter << YAML::Value << "0.01";
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Settings for ros_control control loop");
+  emitter << YAML::Key << "generic_hw_control_loop" << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "loop_hz";
+  emitter << YAML::Value << "300";
+  emitter << YAML::Key << "cycle_time_error_threshold";
+  emitter << YAML::Value << "0.01";
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Settings for ros_control hardware interface");
+  emitter << YAML::Key << "hardware_interface";
+  emitter << YAML::Value << YAML::BeginMap;
+  // Loop through groups
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
+  {
+    emitter << YAML::Key << "name";
+    emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
+    emitter << YAML::Key << "joints";
+    emitter << YAML::Value << YAML::BeginSeq;
+
+    // Iterate through the joints
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
+    {
+      emitter << planning_groups[i][j];
+    }
+    emitter << YAML::EndSeq;
+  }
+  emitter << YAML::Key << "sim_control_mode";
+  emitter << YAML::Value << "1";
+  emitter << YAML::Comment("0: position, 1: velocity");
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Publish all joint states");
+  emitter << YAML::Newline << YAML::Comment("Creates the /joint_states topic necessary in ROS");
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Key << "joint_state_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "joint_state_controller/JointStateController";
+  emitter << YAML::Key << "publish_rate";
+  emitter << YAML::Value << "50";
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Joint Trajectory Controller");
+  emitter << YAML::Newline << YAML::Comment("For detailed explanations of parameter see "
+                                            "http://wiki.ros.org/joint_trajectory_controller");
+
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Key << "position_trajectory_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "position_controllers/JointTrajectoryController";
+  // Loop through groups
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
+  {
+    // emitter << YAML::BeginMap;
+    emitter << YAML::Key << "name";
+    emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
+    emitter << YAML::Key << "joints";
+    emitter << YAML::Value << YAML::BeginSeq;
+
+    // Iterate through the joints
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
+    {
+      emitter << planning_groups[i][j];
+    }
+    emitter << YAML::EndSeq;
+  }
+  emitter << YAML::Key << "constraints";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "goal_time";
+  emitter << YAML::Value << "5.0";
+  // Loop through groups
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
+  {
+    emitter << YAML::Key << "name";
+    emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
+    emitter << YAML::Key << "joints";
+    emitter << YAML::Value << YAML::BeginSeq;
+
+    // Iterate through the joints
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
+    {
+      emitter << YAML::BeginMap;
+      emitter << YAML::Key << planning_groups[i][j] << YAML::Value << YAML::BeginMap;
+      emitter << YAML::Key << "trajectory";
+      emitter << YAML::Value << "0.60";
+      emitter << YAML::Key << "goal";
+      emitter << YAML::Value << "0.15";
+      emitter << YAML::EndMap;
+      emitter << YAML::EndMap;
+    }
+    emitter << YAML::EndSeq;
+  }
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
+  emitter << YAML::Newline;
+
+  emitter << YAML::Comment("Group Position Controllers");
+  emitter << YAML::Comment("Allows to send single ROS msg of Float64MultiArray to all joints");
+  emitter << YAML::Key << "joint_position_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "position_controllers/JointGroupPositionController";
+  // Loop through groups
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
+  {
+    emitter << YAML::Key << "name";
+    emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
+    emitter << YAML::Key << "joints";
+    emitter << YAML::Value << YAML::BeginSeq;
+
+    // Iterate through the joints
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
+    {
+      emitter << planning_groups[i][j];
+    }
+    emitter << YAML::EndSeq;
+  }
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
+// ******************************************************************************************
 // Output joint limits config files
 // ******************************************************************************************
 bool MoveItConfigData::outputJointLimitsYAML(const std::string& file_path)
