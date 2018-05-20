@@ -70,6 +70,12 @@ ChainIkSolverVel_pinv_mimic::ChainIkSolverVel_pinv_mimic(const Chain& _chain, in
     mimic_joints_[i].reset(i);
 }
 
+void ChainIkSolverVel_pinv_mimic::updateInternalDataStructures()
+{
+  // TODO: move (re)allocation of any internal data structures here
+  // to react to changes in chain
+}
+
 ChainIkSolverVel_pinv_mimic::~ChainIkSolverVel_pinv_mimic()
 {
 }

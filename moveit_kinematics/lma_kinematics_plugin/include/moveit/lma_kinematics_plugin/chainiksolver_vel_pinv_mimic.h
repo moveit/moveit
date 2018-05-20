@@ -77,6 +77,8 @@ public:
   explicit ChainIkSolverVel_pinv_mimic(const Chain& chain, int num_mimic_joints = 0, int num_redundant_joints = 0,
                                        bool position_ik = false, double eps = 0.00001, int maxiter = 150);
 
+  virtual void updateInternalDataStructures();
+
   ~ChainIkSolverVel_pinv_mimic();
 
   virtual int CartToJnt(const JntArray& q_in, const Twist& v_in, JntArray& qdot_out);

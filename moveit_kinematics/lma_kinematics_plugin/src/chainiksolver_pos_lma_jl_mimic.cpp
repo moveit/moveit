@@ -69,6 +69,12 @@ ChainIkSolverPos_LMA_JL_Mimic::ChainIkSolverPos_LMA_JL_Mimic(const Chain& _chain
   ROS_DEBUG_NAMED("lma", " ");
 }
 
+void ChainIkSolverPos_LMA_JL_Mimic::updateInternalDataStructures()
+{
+  // TODO: move (re)allocation of any internal data structures here
+  // to react to changes in chain
+}
+
 bool ChainIkSolverPos_LMA_JL_Mimic::setMimicJoints(const std::vector<lma_kinematics_plugin::JointMimic>& _mimic_joints)
 {
   if (_mimic_joints.size() != chain.getNrOfJoints())
