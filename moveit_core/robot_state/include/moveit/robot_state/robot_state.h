@@ -95,21 +95,12 @@ struct JumpThreshold
     Setting translation to zero will disable checking for translations and the same goes for rotation */
 struct MaxEEFStep
 {
+  MaxEEFStep(double translation = 0.0, double rotation = 0.0) : translation(translation), rotation(rotation)
+  {
+  }
+
   double translation;  // Meters
   double rotation;     // Radians
-
-  explicit MaxEEFStep() : translation(0.0), rotation(0.0)
-  {
-  }
-
-  explicit MaxEEFStep(double max_translation) : translation(max_translation), rotation(0.0)
-  {
-  }
-
-  explicit MaxEEFStep(double max_translation, double max_rotation)
-    : translation(max_translation), rotation(max_rotation)
-  {
-  }
 };
 
 /** \brief Representation of a robot's state. This includes position,
@@ -1156,7 +1147,7 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, target, global_reference_frame, MaxEEFStep(max_step),
+    return computeCartesianPath(group, traj, link, target, global_reference_frame, MaxEEFStep(max_step, max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
   }
 
@@ -1178,7 +1169,7 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, MaxEEFStep(max_step),
+    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, MaxEEFStep(max_step, max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
   }
 
@@ -1197,7 +1188,6 @@ as the new values that correspond to the group */
      @param jump_threshold The struct holding jump thresholds to determine if a joint space jump has occurred.
      @return The fraction of the trajectory that passed.
   */
-
   static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                    const JumpThreshold& jump_threshold);
 

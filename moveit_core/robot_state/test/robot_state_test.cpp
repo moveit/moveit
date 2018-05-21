@@ -614,6 +614,21 @@ std::size_t generateTestTraj(std::vector<std::shared_ptr<robot_state::RobotState
   return traj.size();
 }
 
+TEST_F(OneRobot, testGenerateTrajectory)
+{
+  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
+  std::vector<std::shared_ptr<robot_state::RobotState>> traj;
+
+  // A revolute joint jumps 1.01 at the 5th waypoint and a prismatic joint jumps 1.01 at the 6th waypoint
+  const std::size_t expected_full_traj_len = 7;
+
+  // Generate a test trajectory
+  std::size_t full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
+
+  // Test the generateTestTraj still generates a trajectory of length 7
+  EXPECT_EQ(full_traj_len, expected_full_traj_len);  // full traj should be 7 waypoints long
+}
+
 TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 {
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
@@ -628,12 +643,6 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
   const double expected_prismatic_jump_fraction =
       (double)expected_prismatic_jump_traj_len / (double)expected_full_traj_len;
 
-  // Generate a test trajectory
-  std::size_t full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
-
-  // Test the generateTestTraj still generates a trajectory of length 7
-  EXPECT_EQ(full_traj_len, expected_full_traj_len);  // full traj should be 7 waypoints long
-
   // Container for results
   double fraction;
 
@@ -646,25 +655,25 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
   // Indirect call using testJointSpaceJumps
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
-  EXPECT_EQ(expected_revolute_jump_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_revolute_jump_traj_len, traj.size());  // traj should be cut before the revolute jump
   EXPECT_NEAR(expected_revolute_jump_fraction, fraction, 0.01);
 
-  // Ignore prismatic joints
+  // Test revolute joints
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 0.0));
-  EXPECT_EQ(expected_revolute_jump_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_revolute_jump_traj_len, traj.size());  // traj should be cut before the revolute jump
   EXPECT_NEAR(expected_revolute_jump_fraction, fraction, 0.01);
 
-  // Ignore revolute joints
+  // Test prismatic joints
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 1.0));
-  EXPECT_EQ(expected_prismatic_jump_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_prismatic_jump_traj_len, traj.size());  // traj should be cut before the prismatic jump
   EXPECT_NEAR(expected_prismatic_jump_fraction, fraction, 0.01);
 
   // Ignore all absolute jumps
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(0.0, 0.0));
-  EXPECT_EQ(expected_full_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_full_traj_len, traj.size());  // traj should not be cut
   EXPECT_NEAR(1.0, fraction, 0.01);
 }
 
@@ -673,17 +682,11 @@ TEST_F(OneRobot, testRelativeJointSpaceJump)
   const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
-  // The first large jump of -1.01 occurs at the 5th waypoint so the test should trim the trajectory to lenght 4
+  // The first large jump of 1.01 occurs at the 5th waypoint so the test should trim the trajectory to length 4
   const std::size_t expected_relative_jump_traj_len = 4;
   const std::size_t expected_full_traj_len = 7;
   const double expected_relative_jump_fraction =
       (double)expected_relative_jump_traj_len / (double)expected_full_traj_len;
-
-  // Generate a test trajectory
-  std::size_t full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
-
-  // Test the generateTestTraj still generates a trajectory of length expected_full_traj_len
-  EXPECT_EQ(expected_full_traj_len, full_traj_len);  // full traj should be 7 waypoints long
 
   // Container for results
   double fraction;
@@ -691,13 +694,13 @@ TEST_F(OneRobot, testRelativeJointSpaceJump)
   // Direct call of relative version: 1.01 > 2.97 * (0.01 * 2 + 1.01 * 2)/6.
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testRelativeJointSpaceJump(joint_model_group, traj, 2.97);
-  EXPECT_EQ(expected_relative_jump_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_relative_jump_traj_len, traj.size());  // traj should be cut before the first jump of 1.01
   EXPECT_NEAR(expected_relative_jump_fraction, fraction, 0.01);
 
   // Indirect call of relative version using testJointSpaceJumps
   generateTestTraj(traj, robot_model, joint_model_group);
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(2.97));
-  EXPECT_EQ(expected_relative_jump_traj_len, traj.size());  // traj should be cut
+  EXPECT_EQ(expected_relative_jump_traj_len, traj.size());  // traj should be cut before the first jump of 1.01
   EXPECT_NEAR(expected_relative_jump_fraction, fraction, 0.01);
 
   // Trajectory should not be cut: 1.01 < 2.98 * (0.01 * 2 + 1.01 * 2)/6.
