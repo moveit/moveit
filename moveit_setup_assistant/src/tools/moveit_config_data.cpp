@@ -638,57 +638,6 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
-// Controllers
-bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
-{
-  YAML::Emitter emitter;
-  emitter << YAML::BeginMap;
-
-  emitter << YAML::Key << "controller_list";
-  emitter << YAML::Value << YAML::BeginSeq;
-
-  // Union all the joints in groups
-  std::set<const robot_model::JointModel*> joints;
-
-  // Loop through groups
-  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
-       ++group_it)
-  {
-    // Get list of associated joints
-    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
-    emitter << YAML::BeginMap;
-    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
-    emitter << YAML::Key << "name";
-    emitter << YAML::Value << "fake_" + group_it->name_ + "_controller";
-    emitter << YAML::Key << "joints";
-    emitter << YAML::Value << YAML::BeginSeq;
-
-    // Iterate through the joints
-    for (const robot_model::JointModel* joint : joint_models)
-    {
-      if (joint->isPassive() || joint->getMimic() != NULL || joint->getType() == robot_model::JointModel::FIXED)
-        continue;
-      emitter << joint->getName();
-    }
-    emitter << YAML::EndSeq;
-    emitter << YAML::EndMap;
-  }
-  emitter << YAML::EndSeq;
-  emitter << YAML::EndMap;
-
-  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
-  if (!output_stream.good())
-  {
-    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
-    return false;
-  }
-
-  output_stream << emitter.c_str();
-  output_stream.close();
-
-  return true;  // file created successfully
-}
-
 // ******************************************************************************************
 // Output joint limits config files
 // ******************************************************************************************
