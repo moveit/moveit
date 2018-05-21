@@ -989,7 +989,7 @@ bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& cont
       // Check multi-dof trajectory
       const std::vector<geometry_msgs::Transform>& transforms =
           trajectory.multi_dof_joint_trajectory.points.front().transforms;
-      const std::vector<std::string>& joint_names = trajectory.joint_trajectory.joint_names;
+      const std::vector<std::string>& joint_names = trajectory.multi_dof_joint_trajectory.joint_names;
       if (transforms.size() != joint_names.size())
       {
         ROS_ERROR_NAMED(name_, "Wrong trajectory: #joints: %zu != #transforms: %zu", joint_names.size(),
