@@ -471,6 +471,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
+  // controllers.launch ------------------------------------------------------------------
+  file.file_name_ = "controllers.launch";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, "controllers.launch");
+  file.description_ = "ros_control controllers launch file";
+  file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
   // moveit.rviz ------------------------------------------------------------------
   file.file_name_ = "moveit.rviz";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
