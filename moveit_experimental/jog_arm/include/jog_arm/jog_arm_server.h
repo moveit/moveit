@@ -92,7 +92,7 @@ int readParams(ros::NodeHandle& n);
 std::string g_move_group_name, g_joint_topic, g_command_in_topic, g_command_frame, g_command_out_topic,
     g_planning_frame, g_warning_topic;
 double g_linear_scale, g_rot_scale, g_singularity_threshold, g_hard_stop_sing_thresh, g_low_pass_filter_coeff,
-    g_publish_period, g_incoming_cmd_timeout;
+    g_publish_period, g_incoming_command_timeout;
 bool g_simulation, g_collision_check;
 
 /**

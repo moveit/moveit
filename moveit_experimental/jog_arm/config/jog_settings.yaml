@@ -3,7 +3,7 @@ jog_arm_server:
   collision_check: false # Check collisions?
   command_in_topic:  jog_arm_server/delta_jog_cmds
   command_frame:  base_link  # TF frame that incoming cmds are given in
-  incoming_cmd_timeout:  5  # Stop jogging if X seconds elapse without a new cmd
+  incoming_command_timeout:  5  # Stop jogging if X seconds elapse without a new cmd
   joint_topic:  joint_states
   move_group_name:  right_ur5
   singularity_threshold:  5.5  # Slow down when the condition number hits this (close to singularity)

@@ -88,7 +88,7 @@ int main(int argc, char** argv)
     if (jog_arm::g_new_traj.joint_names.size() != 0)
     {
       // Check for stale cmds
-      if (ros::Time::now() - jog_arm::g_new_traj.header.stamp < ros::Duration(jog_arm::g_incoming_cmd_timeout))
+      if (ros::Time::now() - jog_arm::g_new_traj.header.stamp < ros::Duration(jog_arm::g_incoming_command_timeout))
       {
         // Skip the jogging publication if all inputs are 0.
         pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
       {
         ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Stale joint "
                                                             "trajectory msg. Try a larger "
-                                                            "'incoming_cmd_timeout' parameter.");
+                                                            "'incoming_command_timeout' parameter.");
         ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Did input from the "
                                                             "controller get interrupted? Are "
                                                             "calculations taking too long?");
@@ -158,10 +158,6 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
     ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_command_in_topic);
     ROS_INFO_NAMED("jog_arm_server", "Received first joint msg.");
 
-    pthread_mutex_lock(&g_joints_mutex);
-    sensor_msgs::JointState jts = jog_arm::g_joints;
-    pthread_mutex_unlock(&g_joints_mutex);
-
     ros::Rate collision_rate(100);
 
     /////////////////////////////////////////////////
@@ -169,6 +165,10 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
     /////////////////////////////////////////////////
     while (ros::ok())
     {
+      pthread_mutex_lock(&g_joints_mutex);
+      sensor_msgs::JointState jts = jog_arm::g_joints;
+      pthread_mutex_unlock(&g_joints_mutex);
+
       for (std::size_t i = 0; i < jts.position.size(); i++)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
@@ -662,9 +662,9 @@ int readParams(ros::NodeHandle& n)
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_in_topic: " << jog_arm::g_command_in_topic);
   jog_arm::g_command_frame = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_frame", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_frame: " << jog_arm::g_command_frame);
-  jog_arm::g_incoming_cmd_timeout =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/incoming_cmd_timeout", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "incoming_cmd_timeout: " << jog_arm::g_incoming_cmd_timeout);
+  jog_arm::g_incoming_command_timeout =
+      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/incoming_command_timeout", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "incoming_command_timeout: " << jog_arm::g_incoming_command_timeout);
   jog_arm::g_command_out_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_out_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_out_topic: " << jog_arm::g_command_out_topic);
   jog_arm::g_singularity_threshold =
