@@ -504,83 +504,139 @@ bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
-// bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
-// {
-//   YAML::Emitter emitter;
-//   emitter << YAML::BeginMap;
+// ******************************************************************************************
+// Output controllers config files
+// ******************************************************************************************
+bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
+{
+  std::vector<std::string> joints;
+  YAML::Emitter emitter;
+  emitter << YAML::BeginMap;
 
-//   // Output every available planner ---------------------------------------------------
-//   emitter << YAML::Key << "generic_hw_control_loop";
+  emitter << YAML::Comment("Settings for ros_control control loop");
+  emitter << YAML::Key << "generic_hw_control_loop" << YAML::BeginMap;
+  emitter << YAML::Key << "loop_hz";
+  emitter << YAML::Value << "300";
+  emitter << YAML::Key << "cycle_time_error_threshold";
+  emitter << YAML::Value << "0.01";
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
 
-//   emitter << YAML::Key << "loop_hz";
-//   emitter << YAML::Value << "300";
-//   emitter << YAML::Key << "cycle_time_error_threshold";
-//   emitter << YAML::Value << "300";
-//   emitter << YAML::EndMap;
+  emitter << YAML::BeginMap;
+  emitter << YAML::Comment("Settings for ros_control hardware interface");
+  emitter << YAML::Key << "hardware_interface";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "joints";
+  emitter << YAML::Value << YAML::BeginSeq;
 
-//   // // Add Planners with parameter values
-//   // std::vector<std::string> pconfigs;
-//   // for (std::size_t i = 0; i < planner_des.size(); ++i)
-//   // {
-//   //   std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
-//   //   emitter << YAML::Key << defaultconfig;
-//   //   emitter << YAML::Value << YAML::BeginMap;
-//   //   emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
-//   //   for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
-//   //   {
-//   //     emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
-//   //     emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
-//   //     emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
-//   //   }
-//   //   emitter << YAML::EndMap;
+  // Loop through groups
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
+  {
+    // Get list of associated joints
+    const robot_model::JointModelGroup* joint_model_group = getRobotModel()->getJointModelGroup(group_it->name_);
+    const std::vector<const robot_model::JointModel*>& joint_models = joint_model_group->getActiveJointModels();
+    // Iterate through the joints
+    for (const robot_model::JointModel* joint : joint_models)
+    {
+      if (joint->getType() == robot_model::JointModel::REVOLUTE)
+      {
+        emitter << YAML::Value << joint->getName();
+        joints.push_back(joint->getName());
+      }
+    }
+  }
+  emitter << YAML::EndSeq;
+  emitter << YAML::EndMap;
 
-//   //   pconfigs.push_back(defaultconfig);
-//   // }
+  emitter << YAML::BeginMap;
+  emitter << YAML::Key << "sim_control_mode";
+  emitter << YAML::Value << "1";
+  emitter << YAML::Comment("0: position, 1: velocity");
 
-//   // // End of every avail planner
-//   // emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
 
-//   // // Output every group and the planners it can use ----------------------------------
-//   // for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
-//   //      ++group_it)
-//   // {
-//   //   emitter << YAML::Key << group_it->name_;
-//   //   emitter << YAML::Value << YAML::BeginMap;
-//   //   // Output associated planners
-//   //   emitter << YAML::Key << "planner_configs";
-//   //   emitter << YAML::Value << YAML::BeginSeq;
-//   //   for (std::size_t i = 0; i < pconfigs.size(); ++i)
-//   //     emitter << pconfigs[i];
-//   //   emitter << YAML::EndSeq;
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Publish all joint states");
+  emitter << YAML::Newline << YAML::Comment("Creates the /joint_states topic necessary in ROS");
 
-//   //   // Output projection_evaluator
-//   //   std::string projection_joints = decideProjectionJoints(group_it->name_);
-//   //   if (!projection_joints.empty())
-//   //   {
-//   //     emitter << YAML::Key << "projection_evaluator";
-//   //     emitter << YAML::Value << projection_joints;
-//   //     // OMPL collision checking discretization
-//   //     emitter << YAML::Key << "longest_valid_segment_fraction";
-//   //     emitter << YAML::Value << "0.005";
-//   //   }
+  emitter << YAML::BeginMap;
+  emitter << YAML::Key << "joint_state_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "joint_state_controller/JointStateController";
+  emitter << YAML::Key << "publish_rate";
+  emitter << YAML::Value << "50";
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Joint Trajectory Controller");
+  emitter << YAML::Newline << YAML::Comment("For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller");
 
-//   //   emitter << YAML::EndMap;
-//   // }
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
 
-//   // emitter << YAML::EndMap;
+  emitter << YAML::BeginMap;
+  emitter << YAML::Key << "position_trajectory_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "position_controllers/JointTrajectoryController";
 
-//   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
-//   if (!output_stream.good())
-//   {
-//     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
-//     return false;
-//   }
+  emitter << YAML::Key << "joints";
+  emitter << YAML::Value << YAML::BeginSeq;
 
-//   output_stream << emitter.c_str();
-//   output_stream.close();
+  for (std::vector<std::string>::iterator joint = joints.begin(); joint != joints.end(); ++joint)
+  {
+    emitter << YAML::Value << *joint;
+  }
+  emitter << YAML::EndSeq;
 
-//   return true;  // file created successfully
-// }
+  emitter << YAML::Key << "constraints";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "goal_time";
+  emitter << YAML::Value << "5.0";
+
+  for (std::vector<std::string>::iterator joint = joints.begin(); joint != joints.end(); ++joint)
+  {
+    emitter << YAML::Key << *joint;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "trajectory";
+    emitter << YAML::Value << "0.60";
+    emitter << YAML::Key << "goal";
+    emitter << YAML::Value << "0.15";
+    emitter << YAML::EndMap;
+  }
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Newline;
+  emitter << YAML::Comment("Group Position Controllers");
+  emitter << YAML::Comment("Allows to send single ROS msg of Float64MultiArray to all joints");
+  emitter << YAML::BeginMap;
+  emitter << YAML::Key << "joint_position_controller";
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "type";
+  emitter << YAML::Value << "position_controllers/JointGroupPositionController";
+  emitter << YAML::Key << "joints";
+  emitter << YAML::Value << YAML::BeginSeq;
+
+  for (std::vector<std::string>::iterator joint = joints.begin(); joint != joints.end(); ++joint)
+  {
+    emitter << YAML::Value << *joint;
+  }
+  emitter << YAML::EndSeq;
+  emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
 
 // Controllers
 bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
