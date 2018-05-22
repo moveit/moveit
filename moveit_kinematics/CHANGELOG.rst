@@ -2,8 +2,8 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
   various fixes for melodic build
 * KDL solvers: provide dummy updateInternalDataStructures()

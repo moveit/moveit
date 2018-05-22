@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
   migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
   - All type conversions now depend on geometry2 ROS packages, rather than geometry

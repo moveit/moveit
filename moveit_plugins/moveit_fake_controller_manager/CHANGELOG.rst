@@ -2,8 +2,8 @@
 Changelog for package moveit_fake_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
 * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
   * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE

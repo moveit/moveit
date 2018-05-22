@@ -2,8 +2,8 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * Merge pull request `#861 <https://github.com/ros-planning/moveit/issues/861>`_ from BryceStevenWilley/patch-1
   Fix and Test for `#842 <https://github.com/ros-planning/moveit/issues/842>`_
 * Added a test for PlanningSceneInterface

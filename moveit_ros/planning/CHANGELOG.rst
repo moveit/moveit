@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * Fix multi dof validate trajectory (`#905 <https://github.com/ros-planning/moveit/issues/905>`_)
   bugfix: correctly check names of multidof trajectory
 * MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)

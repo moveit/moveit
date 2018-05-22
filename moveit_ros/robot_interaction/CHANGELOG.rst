@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * [fix] interaction with planar joints (`#767 <https://github.com/ros-planning/moveit/issues/767>`_)
 * [maintenance] boost::shared_ptr to std::shared_ptr
 * [maintenance] MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)

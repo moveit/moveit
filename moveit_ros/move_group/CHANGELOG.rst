@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2018-05-22)
+-------------------
 * Merge pull request `#833 <https://github.com/ros-planning/moveit/issues/833>`_ from davetcoleman-melodic-execute-service
 * MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
   migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
