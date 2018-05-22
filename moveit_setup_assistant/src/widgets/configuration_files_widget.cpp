@@ -284,6 +284,15 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;  // Can they be changed?
   gen_files_.push_back(file);
 
+  // fake_controllers.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "fake_controllers.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Creates dummy configurations for controllers that correspond to defined groups. This is mostly "
+                      "useful for testing.";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputFakeControllersYAML, config_data_, _1);
+  file.write_on_changes = MoveItConfigData::GROUPS;
+  gen_files_.push_back(file);
+
   // controllers.yaml --------------------------------------------------------------------------------------
   file.file_name_ = "controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);

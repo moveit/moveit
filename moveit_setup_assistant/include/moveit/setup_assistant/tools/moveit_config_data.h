@@ -251,6 +251,7 @@ public:
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
+  bool outputFakeControllersYAML(const std::string& file_path);
   bool outputControllersYAML(const std::string& file_path);
 
   /**
