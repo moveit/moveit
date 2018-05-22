@@ -2,6 +2,43 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#833 <https://github.com/ros-planning/moveit/issues/833>`_ from davetcoleman-melodic-execute-service
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* Remove deprecated ExecuteTrajectoryServiceCapability in Melodic
+  - Add MIGRATION.md file
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* Cleanup source of execute trajectory action capability (`#834 <https://github.com/ros-planning/moveit/issues/834>`_)
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+  * Add python goodies
+  * Update planning interface tests for namespace arg
+  * Add namespace tests
+  * Update moveit commander for namespacing
+  * Add moveit commander tests
+  * Add movegroup test in namespace
+  * Update param scopes in template and launch files
+  * Code formatting
+  * Add BSD License and name
+  * Add description
+  * Fix joy test
+* disable flaky unittest (`#771 <https://github.com/ros-planning/moveit/issues/771>`_)
+  ... introduced in `#756 <https://github.com/ros-planning/moveit/issues/756>`_
+* MoveAction capability can drop cancel request if it is sent shortly after goal is sent (`#756 <https://github.com/ros-planning/moveit/issues/756>`_)
+  * add unittests to check for dropped cancelling of move action
+  * prevent cancelling of move actionstarts to be dropped
+* Contributors: Dave Coleman, Ian McMahon, Mikael Arguedas, Robert Haschke, Will Baker, khupilz
+
 0.9.11 (2017-12-25)
 -------------------
 

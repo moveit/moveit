@@ -2,6 +2,51 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#861 <https://github.com/ros-planning/moveit/issues/861>`_ from BryceStevenWilley/patch-1
+  Fix and Test for `#842 <https://github.com/ros-planning/moveit/issues/842>`_
+* Added a test for PlanningSceneInterface
+  Ensures that you can construct a PlanningSceneInterface without having to pass an explicit namespace.
+* Fix `#842 <https://github.com/ros-planning/moveit/issues/842>`_
+  Adds a optional namespace argument to the python side of planning_scene_interface and passes it to the wrapped C++, which expects a namespace after `#835 <https://github.com/ros-planning/moveit/issues/835>`_.
+* Remove trailing whitespace from py, xml, launch files (`#837 <https://github.com/ros-planning/moveit/issues/837>`_)
+* Feature/markers and states (`#836 <https://github.com/ros-planning/moveit/issues/836>`_)
+  * Add python goodies
+  * Update planning interface tests for namespace arg
+  * Add namespace tests
+  * Update moveit commander for namespacing
+  * Add moveit commander tests
+  * Add movegroup test in namespace
+  * Update param scopes in template and launch files
+  * Code formatting
+  * Add functionality to get robot markers and plan from state
+  * is None is not None
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+  * Add python goodies
+  * Update planning interface tests for namespace arg
+  * Add namespace tests
+  * Update moveit commander for namespacing
+  * Add moveit commander tests
+  * Add movegroup test in namespace
+  * Update param scopes in template and launch files
+  * Code formatting
+  * Add BSD License and name
+  * Add description
+  * Fix joy test
+* Constrained Cartesian planning using moveit commander (`#805 <https://github.com/ros-planning/moveit/issues/805>`_)
+  * Add constraints to cartesian planning with moveit commander
+  * clang formatting
+  * Formatting, add comments
+  * Add demo script
+  * Fix minor typos in comments
+* Handle robot_description parameter in RobotCommander (`#782 <https://github.com/ros-planning/moveit/issues/782>`_)
+* support TrajectoryConstraints in MoveGroupInterface + MoveitCommander (`#793 <https://github.com/ros-planning/moveit/issues/793>`_)
+* Add API to get planner_id (`#788 <https://github.com/ros-planning/moveit/issues/788>`_)
+  * Add a member function to get the current planner_id
+  * Add python method to get planner_id
+* Contributors: Akiyoshi Ochiai, Bence Magyar, Bryce Willey, Dave Coleman, Michael Görner, Ryan Keating, Will Baker, srsidd
+
 0.9.11 (2017-12-25)
 -------------------
 

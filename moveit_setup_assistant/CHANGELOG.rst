@@ -2,6 +2,63 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* Remove trailing whitespace from py, xml, launch files (`#837 <https://github.com/ros-planning/moveit/issues/837>`_)
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+  * Add python goodies
+  * Update planning interface tests for namespace arg
+  * Add namespace tests
+  * Update moveit commander for namespacing
+  * Add moveit commander tests
+  * Add movegroup test in namespace
+  * Update param scopes in template and launch files
+  * Code formatting
+  * Add BSD License and name
+  * Add description
+  * Fix joy test
+* Merge pull request `#795 <https://github.com/ros-planning/moveit/issues/795>`_ from ubi-agni/msa-yaml-parsing
+  msa: cleanup yaml parsing
+* simplify YAML parsing
+  - using utility function parse()
+  - removing yaml-cpp 0.3 support
+* cleanup yaml parsing
+  - limit findValue to std::string key
+  using templates for char[N] is ineffient, as every literal of new
+  length N requires a new template instance
+  - use boost::optional constructor to return value
+* actually use found yaml-cpp
+* Merge pull request `#796 <https://github.com/ros-planning/moveit/issues/796>`_ from ubi-agni/msa-xacro-args
+  msa: added support for xacro args
+* allow to edit xacro args
+* cleanup LoadPathWidget API
+  - use QString were suitable
+  - pass parent before bool options
+* report about xacro errors
+* Merge pull request `#769 <https://github.com/ros-planning/moveit/issues/769>`_ from ubi-agni/improve-eef-mapping
+  improve association of IK solvers to groups
+* jmg is also considered for collision checking
+* clarify that joints and links always go in pairs
+* 'or' to indicate config methods are alternative options
+* MSA: extended explanation of planning group + end effector
+* MSA: fix setting of group states (`#762 <https://github.com/ros-planning/moveit/issues/762>`_)
+  * allow same pose name in different groups
+  * only consider active joints when defining named poses
+* cherry-pick `#753 <https://github.com/ros-planning/moveit/issues/753>`_: skip non-actuated joints for execution (`#754 <https://github.com/ros-planning/moveit/issues/754>`_)
+* Contributors: Dave Coleman, Ian McMahon, Michael Görner, Mikael Arguedas, Robert Haschke, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 

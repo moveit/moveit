@@ -2,6 +2,22 @@
 Changelog for package moveit_ros_manipulation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* Contributors: Ian McMahon, Mikael Arguedas
+
 0.9.11 (2017-12-25)
 -------------------
 

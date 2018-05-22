@@ -2,6 +2,15 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
+  * [Fix] clang format
+  * [Fix] manually fix bad clang-formatting in strings
+* Contributors: Mikael Arguedas, Xiaojian Ma
+
 0.9.11 (2017-12-25)
 -------------------
 

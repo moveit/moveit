@@ -2,6 +2,80 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix multi dof validate trajectory (`#905 <https://github.com/ros-planning/moveit/issues/905>`_)
+  bugfix: correctly check names of multidof trajectory
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* explicitly enforce updateSceneWithCurrentState() in waitForCurrentRobotState() (`#824 <https://github.com/ros-planning/moveit/issues/824>`_)
+* execution manager: use variable for named logging (`#838 <https://github.com/ros-planning/moveit/issues/838>`_)
+* Support static TFs for multi-DOF joints in CurrentStateMonitor (`#799 <https://github.com/ros-planning/moveit/issues/799>`_)
+* Merge pull request `#796 <https://github.com/ros-planning/moveit/issues/796>`_ from ubi-agni/msa-xacro-args
+  msa: added support for xacro args
+* rdf_loader: remove --inorder xacro argument
+  this should be provided in xacro_args
+* CSM: wait for *active* joint states only (`#792 <https://github.com/ros-planning/moveit/issues/792>`_)
+  We don't expect that drivers publish the transforms for fixed joints
+  Fixup for 739a85a4820ec68fecd31f51519ecc92a50f8c7e
+  It wasn't a problem before because the checks used variable names
+  and fixed joints do not have variables. So nothing was checked.
+* Merge pull request `#769 <https://github.com/ros-planning/moveit/issues/769>`_ from ubi-agni/improve-eef-mapping
+  improve association of IK solvers to groups
+* add warning about undefined kinematics plugins
+* cherry-pick `#753 <https://github.com/ros-planning/moveit/issues/753>`_: skip non-actuated joints for execution (`#754 <https://github.com/ros-planning/moveit/issues/754>`_)
+* clang-format fix
+* Allow wait time to be specified for getCurrentState() (`#685 <https://github.com/ros-planning/moveit/issues/685>`_)
+  Expose wait_time argument to MoveGroupInterface::getCurrentState()
+* fix newly introduced error (`#758 <https://github.com/ros-planning/moveit/issues/758>`_)
+* Iterative cubic spline (`#441 <https://github.com/ros-planning/moveit/issues/441>`_)
+  * adding iterative spline time parameterization
+  * add 2nd and 2nd-last points
+  * move added points near endpoints, but not exactly the same.  Fix math error.
+  * add jerk comment
+  * clang-formatting
+  * prevent divide-by-zero. Fix out-of-bounds array write
+  * fix variables
+  * off by one error.  change default limits
+  * comments
+  * fix for setting waypoint durations
+  * comments
+  * add time parameterization unit test
+  * styling
+  * add compile-time option to disable jerk
+  * allow jerk to be enabled/disabled at runtime
+  * make requested changes, the biggest of which is allowing for min and max constraints
+  * add duration check to unit test
+  * set default acceleration to 1.0
+  * fix class name
+  * add migration notes
+  * whitespace styling
+  * set waypoint velocities/accelerations when unset.  Increase default jerk limit.  Modify test case to catch this.
+  * improved handling of unspecified initial/final velocities/accelerations
+  * change 0.01 constant to epsilon()
+  * simplify tests
+  * styling
+  * Remove jerk, as it causes oscillations
+* Floating Joint Support in CurrentStateMonitor (`#748 <https://github.com/ros-planning/moveit/issues/748>`_)
+  * allow CSM to update any multi-dof joint via TF
+  Previously this was limited to the root link of the robot.
+  * change key of time map from string to JointModel*
+  * remove obsolete private method `isPassiveOrMimicDOF`
+* validate multi-dof trajectories before execution (`#713 <https://github.com/ros-planning/moveit/issues/713>`_)
+  * validate multi-dof trajectories before execution
+  * addressed Dave's comments
+* Contributors: Bruno Brito, Dave Coleman, Ian McMahon, Ken Anderson, Michael Görner, Mikael Arguedas, Phil, Robert Haschke
+
 0.9.11 (2017-12-25)
 -------------------
 

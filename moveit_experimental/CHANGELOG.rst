@@ -2,6 +2,38 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
+  various fixes for melodic build
+* boost::shared_ptr to std::shared_ptr
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* fix printf conversion specifiers for logging  (`#876 <https://github.com/ros-planning/moveit/issues/876>`_)
+  * printf size_t values with %zu
+* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
+  * [Fix] clang format
+  * [Fix] manually fix bad clang-formatting in strings
+* Merge pull request `#863 <https://github.com/ros-planning/moveit/issues/863>`_ from ubi-agni/fix-buid-farm-issues
+  * fix various cmake warnings
+  * remove not required test dependency
+  * replaced 2nd find_package(catkin ...)
+* fix various cmake warnings
+* Add ability to request detailed distance information from fcl (`#662 <https://github.com/ros-planning/moveit/issues/662>`_)
+  Expose the ability to request detailed distance information from FCL. New virtual methods distanceXXX(DistanceRequest&, DistanceResult&) are provided in CollisionRobot and CollisionWorld. Existing methods were adapted to use the new underlying infrastructure of DistanceRequests.
+* Contributors: Bence Magyar, Ian McMahon, Levi Armstrong, Mikael Arguedas, Robert Haschke, Xiaojian Ma
+
 0.9.11 (2017-12-25)
 -------------------
 

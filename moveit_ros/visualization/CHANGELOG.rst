@@ -2,6 +2,50 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
+  various fixes for melodic build
+* moveit_ros_visualization: build_depend on qt-dev + ogre-dev
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* rviz plugin: set start/goal RobotState from external (`#823 <https://github.com/ros-planning/moveit/issues/823>`_)
+  - /rviz/moveit/update_custom_start_state
+  - /rviz/moveit/update_custom_goal_state
+  stopping from external:
+  - /rviz/moveit/stop
+* Save and resume approximate_IK UI setting for easier usage (`#841 <https://github.com/ros-planning/moveit/issues/841>`_)
+* Remove trailing whitespace from py, xml, launch files (`#837 <https://github.com/ros-planning/moveit/issues/837>`_)
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+  * Add python goodies
+  * Update planning interface tests for namespace arg
+  * Add namespace tests
+  * Update moveit commander for namespacing
+  * Add moveit commander tests
+  * Add movegroup test in namespace
+  * Update param scopes in template and launch files
+  * Code formatting
+  * Add BSD License and name
+  * Add description
+  * Fix joy test
+* consider shape transform for OcTree
+* MotionPlanningDisplay: check for parent widget (`#801 <https://github.com/ros-planning/moveit/issues/801>`_)
+* show/hide panel if display is enabled/disabled (`#760 <https://github.com/ros-planning/moveit/issues/760>`_)
+* fix realtime trajectory display (`#761 <https://github.com/ros-planning/moveit/issues/761>`_)
+  Don't reset current_state_time\_ to zero, but continously increment it based on wall_dt.
+  This ensures that waypoints are displayed in realtime.
+* Contributors: Alexander Rössler, Dave Coleman, Ian McMahon, Mikael Arguedas, Pan Hy, Phy, Robert Haschke, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 

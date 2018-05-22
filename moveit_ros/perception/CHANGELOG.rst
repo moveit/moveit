@@ -2,6 +2,36 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
+  various fixes for melodic build
+* boost::shared_ptr to std::shared_ptr
+* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
+  - All type conversions now depend on geometry2 ROS packages, rather than geometry
+  (see https://github.com/ros/geometry2/pull/292 and
+  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
+  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
+  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
+  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
+  (see https://github.com/ros/geometry/pull/163 for details of the new API)
+  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
+  - Replaced deprecated tf2 _getLatestCommonTime
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* cleanup typo in perception CMakeLists.txt (`#825 <https://github.com/ros-planning/moveit/issues/825>`_)
+* moveit_ros_perception: make OpenGL parts optional (`#698 <https://github.com/ros-planning/moveit/issues/698>`_)
+  But build everything by default.
+  This commit is motivated by the work on the OpenEmbedded layer
+  for ROS, a cross-compilation tool chain environment for ROS
+  packages. We would like to allow to use moveit_ros_perception
+  in embedded systems without OpenGL support.
+  Signed-off-by: Dmitry Rozhkov <dmitry.rozhkov@linux.intel.com>
+  [Ported Dmitry's patch from indigo to current kinetic branch,
+  renamed build config, elaborated commit message]
+  Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+* Contributors: Bence Magyar, Ian McMahon, Lukas Bulwahn, Michael Görner, Mikael Arguedas, Robert Haschke
+
 0.9.11 (2017-12-25)
 -------------------
 

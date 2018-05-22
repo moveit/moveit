@@ -2,6 +2,12 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
+* fixed a small typo in README (`#794 <https://github.com/ros-planning/moveit/issues/794>`_)
+* Contributors: Mikael Arguedas, Mohmmad Ayman
+
 0.9.11 (2017-12-25)
 -------------------
 
