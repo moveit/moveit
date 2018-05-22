@@ -554,7 +554,6 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   return true;  // file created successfully
 }
 
-
 // ******************************************************************************************
 // Output controllers config files
 // ******************************************************************************************
@@ -620,7 +619,8 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Value << "50";
   emitter << YAML::Newline;
   emitter << YAML::Comment("Joint Trajectory Controller");
-  emitter << YAML::Newline << YAML::Comment("For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller");
+  emitter << YAML::Newline << YAML::Comment("For detailed explanations of parameter see "
+                                            "http://wiki.ros.org/joint_trajectory_controller");
 
   emitter << YAML::EndMap;
   emitter << YAML::EndMap;
