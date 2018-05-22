@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="yumi">
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="left_arm">
+        <chain base_link="yumi_body" tip_link="yumi_link_7_l" />
+    </group>
+    <group name="right_arm">
+        <chain base_link="yumi_body" tip_link="yumi_link_7_r" />
+    </group>
+    <group name="both_arms">
+        <group name="left_arm" />
+        <group name="right_arm" />
+    </group>
+    <group name="left_gripper">
+        <link name="gripper_l_finger_r" />
+        <link name="gripper_l_base" />
+        <link name="gripper_l_finger_l" />
+    </group>
+    <group name="right_gripper">
+        <link name="gripper_r_base" />
+        <link name="gripper_r_finger_r" />
+        <link name="gripper_r_finger_l" />
+    </group>
+    <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
+    <group_state name="home" group="both_arms">
+        <joint name="yumi_joint_1_l" value="-1.351" />
+        <joint name="yumi_joint_1_r" value="1.37567" />
+        <joint name="yumi_joint_2_l" value="-2.02249" />
+        <joint name="yumi_joint_2_r" value="-2.03575" />
+        <joint name="yumi_joint_3_l" value="0.668112" />
+        <joint name="yumi_joint_3_r" value="0.660782" />
+        <joint name="yumi_joint_4_l" value="2.38272" />
+        <joint name="yumi_joint_4_r" value="-2.41327" />
+        <joint name="yumi_joint_5_l" value="1.84185" />
+        <joint name="yumi_joint_5_r" value="1.85703" />
+        <joint name="yumi_joint_6_l" value="-0.121475" />
+        <joint name="yumi_joint_6_r" value="0.109781" />
+        <joint name="yumi_joint_7_l" value="0.746477" />
+        <joint name="yumi_joint_7_r" value="-0.470017" />
+    </group_state>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="left_gripper_ee" parent_link="yumi_link_7_l" group="left_gripper" parent_group="left_arm" />
+    <end_effector name="right_gripper_ee" parent_link="yumi_link_7_r" group="right_gripper" parent_group="right_arm" />
+    <!--PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated-->
+    <passive_joint name="gripper_l_joint_m" />
+    <passive_joint name="gripper_r_joint_m" />
+    <passive_joint name="gripper_l_joint" />
+    <passive_joint name="gripper_r_joint" />
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="gripper_l_base" link2="gripper_l_finger_l" reason="Adjacent" />
+    <disable_collisions link1="gripper_l_base" link2="gripper_l_finger_r" reason="Adjacent" />
+    <disable_collisions link1="gripper_l_base" link2="yumi_link_3_l" reason="Never" />
+    <disable_collisions link1="gripper_l_base" link2="yumi_link_4_l" reason="Never" />
+    <disable_collisions link1="gripper_l_base" link2="yumi_link_6_l" reason="Never" />
+    <disable_collisions link1="gripper_l_base" link2="yumi_link_7_l" reason="Adjacent" />
+    <disable_collisions link1="gripper_l_finger_l" link2="gripper_l_finger_r" reason="Default" />
+    <disable_collisions link1="gripper_l_finger_l" link2="yumi_link_3_l" reason="Never" />
+    <disable_collisions link1="gripper_l_finger_l" link2="yumi_link_4_l" reason="Never" />
+    <disable_collisions link1="gripper_l_finger_l" link2="yumi_link_5_l" reason="Never" />
+    <disable_collisions link1="gripper_l_finger_l" link2="yumi_link_6_l" reason="Never" />
+    <disable_collisions link1="gripper_l_finger_l" link2="yumi_link_7_l" reason="Never" />
+    <disable_collisions link1="gripper_r_base" link2="gripper_r_finger_l" reason="Adjacent" />
+    <disable_collisions link1="gripper_r_base" link2="gripper_r_finger_r" reason="Adjacent" />
+    <disable_collisions link1="gripper_r_base" link2="yumi_link_3_r" reason="Never" />
+    <disable_collisions link1="gripper_r_base" link2="yumi_link_4_r" reason="Never" />
+    <disable_collisions link1="gripper_r_base" link2="yumi_link_6_r" reason="Never" />
+    <disable_collisions link1="gripper_r_base" link2="yumi_link_7_r" reason="Adjacent" />
+    <disable_collisions link1="gripper_r_finger_l" link2="gripper_r_finger_r" reason="Default" />
+    <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_3_r" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_4_r" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_5_r" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_6_r" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_7_r" reason="Never" />
+    <disable_collisions link1="yumi_body" link2="yumi_link_1_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_body" link2="yumi_link_1_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_1_l" link2="yumi_link_1_r" reason="Never" />
+    <disable_collisions link1="yumi_link_1_l" link2="yumi_link_2_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_1_l" link2="yumi_link_3_l" reason="Never" />
+    <disable_collisions link1="yumi_link_1_r" link2="yumi_link_2_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_1_r" link2="yumi_link_3_r" reason="Never" />
+    <disable_collisions link1="yumi_link_2_l" link2="yumi_link_3_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_2_r" link2="yumi_link_3_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_3_l" link2="yumi_link_4_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_3_l" link2="yumi_link_5_l" reason="Never" />
+    <disable_collisions link1="yumi_link_3_l" link2="yumi_link_6_l" reason="Never" />
+    <disable_collisions link1="yumi_link_3_l" link2="yumi_link_7_l" reason="Never" />
+    <disable_collisions link1="yumi_link_3_r" link2="yumi_link_4_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_3_r" link2="yumi_link_5_r" reason="Never" />
+    <disable_collisions link1="yumi_link_3_r" link2="yumi_link_6_r" reason="Never" />
+    <disable_collisions link1="yumi_link_3_r" link2="yumi_link_7_r" reason="Never" />
+    <disable_collisions link1="yumi_link_4_l" link2="yumi_link_5_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_4_l" link2="yumi_link_6_l" reason="Never" />
+    <disable_collisions link1="yumi_link_4_l" link2="yumi_link_7_l" reason="Never" />
+    <disable_collisions link1="yumi_link_4_r" link2="yumi_link_5_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_4_r" link2="yumi_link_6_r" reason="Never" />
+    <disable_collisions link1="yumi_link_4_r" link2="yumi_link_7_r" reason="Never" />
+    <disable_collisions link1="yumi_link_5_l" link2="yumi_link_6_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_5_r" link2="yumi_link_6_r" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_6_l" link2="yumi_link_7_l" reason="Adjacent" />
+    <disable_collisions link1="yumi_link_6_r" link2="yumi_link_7_r" reason="Adjacent" />
+</robot>
