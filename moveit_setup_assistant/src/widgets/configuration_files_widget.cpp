@@ -293,10 +293,10 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
-  // controllers.yaml --------------------------------------------------------------------------------------
-  file.file_name_ = "controllers.yaml";
+  // ros_controllers.yaml --------------------------------------------------------------------------------------
+  file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
-  file.description_ = "Creates configurations for controllers.";
+  file.description_ = "Creates configurations for ros_controllers.";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
@@ -480,11 +480,11 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
-  // controllers.launch ------------------------------------------------------------------
-  file.file_name_ = "controllers.launch";
+  // ros_controllers.launch ------------------------------------------------------------------
+  file.file_name_ = "ros_controllers.launch";
   file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
-  template_path = config_data_->appendPaths(template_launch_path, "controllers.launch");
-  file.description_ = "ros_control controllers launch file";
+  template_path = config_data_->appendPaths(template_launch_path, "ros_controllers.launch");
+  file.description_ = "ros_controllers launch file";
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
