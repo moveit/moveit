@@ -43,7 +43,7 @@
 namespace robot_trajectory
 {
 RobotTrajectory::RobotTrajectory(const robot_model::RobotModelConstPtr& robot_model, const std::string& group)
-  : robot_model_(robot_model), group_(group.empty() ? NULL : robot_model->getJointModelGroup(group))
+  : robot_model_(robot_model), group_(group.empty() ? nullptr : robot_model->getJointModelGroup(group))
 {
 }
 

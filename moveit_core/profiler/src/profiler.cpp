@@ -46,13 +46,13 @@ namespace moveit
 {
 namespace tools
 {
-Profiler& Profiler::Instance(void)
+Profiler& Profiler::Instance()
 {
   static Profiler p(false, false);
   return p;
 }
 
-void Profiler::start(void)
+void Profiler::start()
 {
   lock_.lock();
   if (!running_)
@@ -63,7 +63,7 @@ void Profiler::start(void)
   lock_.unlock();
 }
 
-void Profiler::stop(void)
+void Profiler::stop()
 {
   lock_.lock();
   if (running_)
@@ -74,7 +74,7 @@ void Profiler::stop(void)
   lock_.unlock();
 }
 
-void Profiler::clear(void)
+void Profiler::clear()
 {
   lock_.lock();
   data_.clear();
@@ -170,7 +170,7 @@ void Profiler::status(std::ostream& out, bool merge)
   lock_.unlock();
 }
 
-void Profiler::console(void)
+void Profiler::console()
 {
   std::stringstream ss;
   ss << std::endl;
