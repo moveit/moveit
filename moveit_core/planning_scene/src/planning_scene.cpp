@@ -60,12 +60,12 @@ public:
   {
   }
 
-  virtual bool canTransform(const std::string& from_frame) const
+  bool canTransform(const std::string& from_frame) const override
   {
     return scene_->knowsFrameTransform(from_frame);
   }
 
-  virtual bool isFixedFrame(const std::string& frame) const
+  bool isFixedFrame(const std::string& frame) const override
   {
     if (frame.empty())
       return false;
@@ -77,7 +77,7 @@ public:
       return knowsObject(frame);
   }
 
-  virtual const Eigen::Affine3d& getTransform(const std::string& from_frame) const
+  const Eigen::Affine3d& getTransform(const std::string& from_frame) const override
   {  // the call below also calls Transforms::getTransform() too
     return scene_->getFrameTransform(from_frame);
   }
@@ -107,8 +107,8 @@ bool PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
   /* a state is empty if it includes no information and it is a diff; if the state is not a diff, then the implicit
      information is
      that the set of attached bodies is empty, so they must be cleared from the state to be updated */
-  return msg.is_diff == true && msg.multi_dof_joint_state.joint_names.empty() && msg.joint_state.name.empty() &&
-         msg.attached_collision_objects.empty() && msg.joint_state.position.empty() &&
+  return static_cast<bool>(msg.is_diff) && msg.multi_dof_joint_state.joint_names.empty() &&
+         msg.joint_state.name.empty() && msg.attached_collision_objects.empty() && msg.joint_state.position.empty() &&
          msg.joint_state.velocity.empty() && msg.joint_state.effort.empty() &&
          msg.multi_dof_joint_state.transforms.empty() && msg.multi_dof_joint_state.twist.empty() &&
          msg.multi_dof_joint_state.wrench.empty();

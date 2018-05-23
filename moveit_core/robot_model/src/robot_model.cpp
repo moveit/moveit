@@ -52,7 +52,7 @@ namespace core
 {
 RobotModel::RobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model, const srdf::ModelConstSharedPtr& srdf_model)
 {
-  root_joint_ = NULL;
+  root_joint_ = nullptr;
   urdf_ = urdf_model;
   srdf_ = srdf_model;
   buildModel(*urdf_model, *srdf_model);
@@ -83,8 +83,8 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
   moveit::tools::Profiler::ScopedStart prof_start;
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::buildModel");
 
-  root_joint_ = NULL;
-  root_link_ = NULL;
+  root_joint_ = nullptr;
+  root_link_ = nullptr;
   link_geometry_count_ = 0;
   variable_count_ = 0;
   model_name_ = urdf_model.getName();
@@ -96,7 +96,7 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
     model_frame_ = '/' + root_link_ptr->name;
 
     ROS_DEBUG_NAMED("robot_model", "... building kinematic chain");
-    root_joint_ = buildRecursive(NULL, root_link_ptr, srdf_model);
+    root_joint_ = buildRecursive(nullptr, root_link_ptr, srdf_model);
     if (root_joint_)
       root_link_ = root_joint_->getChildLinkModel();
     ROS_DEBUG_NAMED("robot_model", "... building mimic joints");
@@ -117,8 +117,7 @@ void RobotModel::buildModel(const urdf::ModelInterface& urdf_model, const srdf::
     buildGroupStates(srdf_model);
 
     // For debugging entire model
-    if (false)
-      printModelInfo(std::cout);
+    // printModelInfo(std::cout);
   }
   else
     ROS_WARN_NAMED("robot_model", "No root link found");
@@ -269,7 +268,7 @@ void RobotModel::buildJointInfo()
         variable_names_.push_back(name_order[j]);
         joints_of_variable_.push_back(joint_model_vector_[i]);
       }
-      if (joint_model_vector_[i]->getMimic() == NULL)
+      if (joint_model_vector_[i]->getMimic() == nullptr)
       {
         active_joint_model_start_index_.push_back(variable_count_);
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
@@ -400,7 +399,7 @@ void RobotModel::buildMimic(const urdf::ModelInterface& urdf_model)
         {
           ROS_ERROR_NAMED("robot_model", "Cycle found in joint that mimic each other. Ignoring all mimic joints.");
           for (std::size_t i = 0; i < joint_model_vector_.size(); ++i)
-            joint_model_vector_[i]->setMimic(NULL, 0.0, 0.0);
+            joint_model_vector_[i]->setMimic(nullptr, 0.0, 0.0);
           change = false;
           break;
         }
@@ -429,7 +428,7 @@ const JointModelGroup* RobotModel::getEndEffector(const std::string& name) const
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
     ROS_ERROR_NAMED("robot_model", "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -443,7 +442,7 @@ JointModelGroup* RobotModel::getEndEffector(const std::string& name)
     if (it != joint_model_group_map_.end() && it->second->isEndEffector())
       return it->second;
     ROS_ERROR_NAMED("robot_model", "End-effector '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -459,7 +458,7 @@ const JointModelGroup* RobotModel::getJointModelGroup(const std::string& name) c
   if (it == joint_model_group_map_.end())
   {
     ROS_ERROR_NAMED("robot_model", "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -470,7 +469,7 @@ JointModelGroup* RobotModel::getJointModelGroup(const std::string& name)
   if (it == joint_model_group_map_.end())
   {
     ROS_ERROR_NAMED("robot_model", "Group '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -585,7 +584,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
             }
           }
 
-        JointModelGroup* eef_parent_group = NULL;
+        JointModelGroup* eef_parent_group = nullptr;
         // if a parent group is specified in SRDF, try to use it
         if (!eefs[k].parent_group_.empty())
         {
@@ -612,7 +611,7 @@ void RobotModel::buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model)
         }
 
         // if no parent group was specified, use a default one
-        if (eef_parent_group == NULL)
+        if (eef_parent_group == nullptr)
           if (!possible_parent_groups.empty())
           {
             // if there are multiple options for the group that contains this end-effector,
@@ -760,9 +759,9 @@ JointModel* RobotModel::buildRecursive(LinkModel* parent, const urdf::Link* urdf
   // construct the joint
   JointModel* joint = urdf_link->parent_joint ?
                           constructJointModel(urdf_link->parent_joint.get(), urdf_link, srdf_model) :
-                          constructJointModel(NULL, urdf_link, srdf_model);
-  if (joint == NULL)
-    return NULL;
+                          constructJointModel(nullptr, urdf_link, srdf_model);
+  if (joint == nullptr)
+    return nullptr;
 
   // bookkeeping for the joint
   joint_model_map_[joint->getName()] = joint;
@@ -843,7 +842,7 @@ static inline VariableBounds jointBoundsFromURDF(const urdf::Joint* urdf_joint)
 JointModel* RobotModel::constructJointModel(const urdf::Joint* urdf_joint, const urdf::Link* child_link,
                                             const srdf::Model& srdf_model)
 {
-  JointModel* result = NULL;
+  JointModel* result = nullptr;
 
   // must be the root link transform
   if (urdf_joint)
@@ -1033,7 +1032,7 @@ shapes::ShapePtr RobotModel::constructShape(const urdf::Geometry* geom)
 {
   moveit::tools::Profiler::ScopedBlock prof_block("RobotModel::constructShape");
 
-  shapes::Shape* result = NULL;
+  shapes::Shape* result = nullptr;
   switch (geom->type)
   {
     case urdf::Geometry::SPHERE:
@@ -1084,7 +1083,7 @@ const JointModel* RobotModel::getJointModel(const std::string& name) const
   if (it != joint_model_map_.end())
     return it->second;
   ROS_ERROR_NAMED("robot_model", "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return nullptr;
 }
 
 const JointModel* RobotModel::getJointModel(int index) const
@@ -1093,7 +1092,7 @@ const JointModel* RobotModel::getJointModel(int index) const
   {
     ROS_ERROR_NAMED("robot_model", "Joint index '%i' out of bounds of joints in model '%s'", index,
                     model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   assert(joint_model_vector_[index]->getJointIndex() == index);
   return joint_model_vector_[index];
@@ -1105,7 +1104,7 @@ JointModel* RobotModel::getJointModel(const std::string& name)
   if (it != joint_model_map_.end())
     return it->second;
   ROS_ERROR_NAMED("robot_model", "Joint '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return nullptr;
 }
 
 const LinkModel* RobotModel::getLinkModel(const std::string& name) const
@@ -1118,7 +1117,7 @@ const LinkModel* RobotModel::getLinkModel(int index) const
   if (index < 0 || index >= static_cast<int>(link_model_vector_.size()))
   {
     ROS_ERROR_NAMED("robot_model", "Link index '%i' out of bounds of links in model '%s'", index, model_name_.c_str());
-    return NULL;
+    return nullptr;
   }
   assert(link_model_vector_[index]->getLinkIndex() == index);
   return link_model_vector_[index];
@@ -1130,7 +1129,7 @@ LinkModel* RobotModel::getLinkModel(const std::string& name)
   if (it != link_model_map_.end())
     return it->second;
   ROS_ERROR_NAMED("robot_model", "Link '%s' not found in model '%s'", name.c_str(), model_name_.c_str());
-  return NULL;
+  return nullptr;
 }
 
 const LinkModel* RobotModel::getRigidlyConnectedParentLinkModel(const LinkModel* link)
@@ -1199,7 +1198,7 @@ void RobotModel::getMissingVariableNames(const std::vector<std::string>& variabl
   std::set<std::string> keys(variables.begin(), variables.end());
   for (std::size_t i = 0; i < variable_names_.size(); ++i)
     if (keys.find(variable_names_[i]) == keys.end())
-      if (getJointOfVariable(variable_names_[i])->getMimic() == NULL)
+      if (getJointOfVariable(variable_names_[i])->getMimic() == nullptr)
         missing_variables.push_back(variable_names_[i]);
 }
 
