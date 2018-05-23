@@ -189,7 +189,7 @@ bool collisionCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void*
       {
         fcl2contact(col_result.getContact(i), c);
         // if the contact is  not allowed, we have a collision
-        if (dcf(c) == false)
+        if (!dcf(c))
         {
           // store the contact, if it is needed
           if (want_contact_count > 0)
