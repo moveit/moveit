@@ -613,7 +613,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j =0; j < groups[i].size(); j++)
+    for (int j = 0; j < groups[i].size(); j++)
     {
       emitter << groups[i][j];
     }
@@ -667,7 +667,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j =0; j < groups[i].size(); j++)
+    for (int j = 0; j < groups[i].size(); j++)
     {
       emitter << groups[i][j];
     }
@@ -694,7 +694,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j =0; j < groups[i].size(); j++)
+    for (int j = 0; j < groups[i].size(); j++)
     {
       emitter << YAML::BeginMap;
       emitter << YAML::Key << groups[i][j] << YAML::Value << YAML::BeginMap;
@@ -737,7 +737,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j =0; j < groups[i].size(); j++)
+    for (int j = 0; j < groups[i].size(); j++)
     {
       emitter << groups[i][j];
     }
