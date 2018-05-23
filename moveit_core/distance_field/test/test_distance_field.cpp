@@ -530,7 +530,7 @@ TEST(TestSignedPropagationDistanceField, TestSignedAddRemovePoints)
 
         EXPECT_EQ(ncell_dist, dist);
 
-        if (ncell == NULL)
+        if (ncell == nullptr)
         {
           if (ncell_dist > 0)
           {

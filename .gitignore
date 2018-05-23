@@ -45,6 +45,9 @@ qtcreator-*
 # Emacs
 .#*
 
+# VSCode
+.vscode
+
 # Vim
 *.swp
 

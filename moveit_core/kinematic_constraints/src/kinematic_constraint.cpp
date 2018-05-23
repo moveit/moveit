@@ -63,9 +63,7 @@ KinematicConstraint::KinematicConstraint(const robot_model::RobotModelConstPtr& 
 {
 }
 
-KinematicConstraint::~KinematicConstraint()
-{
-}
+KinematicConstraint::~KinematicConstraint() = default;
 
 bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
 {
@@ -76,7 +74,7 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
   if (jc.tolerance_above < 0.0 || jc.tolerance_below < 0.0)
   {
     ROS_WARN_NAMED("kinematic_constraints", "JointConstraint tolerance values must be positive.");
-    joint_model_ = NULL;
+    joint_model_ = nullptr;
     return false;
   }
 
@@ -105,14 +103,14 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
       if (joint_model_->getVariableCount() == 0)
       {
         ROS_ERROR_NAMED("kinematic_constraints", "Joint '%s' has no parameters to constrain", jc.joint_name.c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
       else if (joint_model_->getVariableCount() > 1)
       {
         ROS_ERROR_NAMED("kinematic_constraints", "Joint '%s' has more than one parameter to constrain. "
                                                  "This type of constraint is not supported.",
                         jc.joint_name.c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
     }
     else
@@ -129,7 +127,7 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
       {
         ROS_ERROR_NAMED("kinematic_constraints", "Local variable name '%s' is not known to joint '%s'",
                         local_variable_name_.c_str(), joint_model_->getName().c_str());
-        joint_model_ = NULL;
+        joint_model_ = nullptr;
       }
     }
   }
@@ -192,7 +190,7 @@ bool JointConstraint::configure(const moveit_msgs::JointConstraint& jc)
     else
       constraint_weight_ = jc.weight;
   }
-  return joint_model_ != NULL;
+  return joint_model_ != nullptr;
 }
 
 bool JointConstraint::equal(const KinematicConstraint& other, double margin) const
@@ -246,7 +244,7 @@ bool JointConstraint::enabled() const
 
 void JointConstraint::clear()
 {
-  joint_model_ = NULL;
+  joint_model_ = nullptr;
   joint_variable_index_ = -1;
   joint_is_continuous_ = false;
   local_variable_name_ = "";
@@ -277,7 +275,7 @@ bool PositionConstraint::configure(const moveit_msgs::PositionConstraint& pc, co
   clear();
 
   link_model_ = robot_model_->getLinkModel(pc.link_name);
-  if (link_model_ == NULL)
+  if (link_model_ == nullptr)
   {
     ROS_WARN_NAMED("kinematic_constraints",
                    "Position constraint link model %s not found in kinematic model. Constraint invalid.",
@@ -484,7 +482,7 @@ void PositionConstraint::clear()
   constraint_region_pose_.clear();
   mobile_frame_ = false;
   constraint_frame_id_ = "";
-  link_model_ = NULL;
+  link_model_ = nullptr;
 }
 
 bool PositionConstraint::enabled() const
@@ -555,7 +553,7 @@ bool OrientationConstraint::configure(const moveit_msgs::OrientationConstraint& 
   if (absolute_z_axis_tolerance_ < std::numeric_limits<double>::epsilon())
     ROS_WARN_NAMED("kinematic_constraints", "Near-zero value for absolute_z_axis_tolerance");
 
-  return link_model_ != NULL;
+  return link_model_ != nullptr;
 }
 
 bool OrientationConstraint::equal(const KinematicConstraint& other, double margin) const
@@ -579,7 +577,7 @@ bool OrientationConstraint::equal(const KinematicConstraint& other, double margi
 
 void OrientationConstraint::clear()
 {
-  link_model_ = NULL;
+  link_model_ = nullptr;
   desired_rotation_matrix_ = Eigen::Matrix3d::Identity();
   desired_rotation_matrix_inv_ = Eigen::Matrix3d::Identity();
   desired_rotation_frame_id_ = "";

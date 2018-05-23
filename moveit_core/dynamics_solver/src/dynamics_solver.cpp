@@ -76,15 +76,15 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   {
     ROS_ERROR_NAMED("dynamics_solver", "Group '%s' is not a chain. Will not initialize dynamics solver",
                     group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
-  if (joint_model_group_->getMimicJointModels().size() > 0)
+  if (!joint_model_group_->getMimicJointModels().empty())
   {
     ROS_ERROR_NAMED("dynamics_solver", "Group '%s' has a mimic joint. Will not initialize dynamics solver",
                     group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
@@ -92,7 +92,7 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (!joint->getParentLinkModel())
   {
     ROS_ERROR_NAMED("dynamics_solver", "Group '%s' does not have a parent link", group_name.c_str());
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
 
@@ -108,13 +108,13 @@ DynamicsSolver::DynamicsSolver(const robot_model::RobotModelConstPtr& robot_mode
   if (!kdl_parser::treeFromUrdfModel(*urdf_model, tree))
   {
     ROS_ERROR_NAMED("dynamics_solver", "Could not initialize tree object");
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
   if (!tree.getChain(base_name_, tip_name_, kdl_chain_))
   {
     ROS_ERROR_NAMED("dynamics_solver", "Could not initialize chain object");
-    joint_model_group_ = NULL;
+    joint_model_group_ = nullptr;
     return;
   }
   num_joints_ = kdl_chain_.getNrOfJoints();
@@ -309,9 +309,7 @@ bool DynamicsSolver::getPayloadTorques(const std::vector<double>& joint_angles, 
   ROS_DEBUG_NAMED("dynamics_solver", "New wrench (local frame): %f %f %f", wrenches.back().force.x,
                   wrenches.back().force.y, wrenches.back().force.z);
 
-  if (!getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques))
-    return false;
-  return true;
+  return getTorques(joint_angles, joint_velocities, joint_accelerations, wrenches, joint_torques);
 }
 
 const std::vector<double>& DynamicsSolver::getMaxTorques() const

@@ -148,7 +148,7 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
     return false;
   }
 
-  if (ik_poses.size() == 0)
+  if (ik_poses.empty())
   {
     ROS_ERROR_NAMED("kinematics_base", "Input ik_poses array is empty");
     result.kinematic_error = KinematicErrors::EMPTY_TIP_POSES;

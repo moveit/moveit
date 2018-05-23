@@ -47,9 +47,9 @@ namespace core
 JointModel::JointModel(const std::string& name)
   : name_(name)
   , type_(UNKNOWN)
-  , parent_link_model_(NULL)
-  , child_link_model_(NULL)
-  , mimic_(NULL)
+  , parent_link_model_(nullptr)
+  , child_link_model_(nullptr)
+  , mimic_(nullptr)
   , mimic_factor_(1.0)
   , mimic_offset_(0.0)
   , passive_(false)
@@ -59,9 +59,7 @@ JointModel::JointModel(const std::string& name)
 {
 }
 
-JointModel::~JointModel()
-{
-}
+JointModel::~JointModel() = default;
 
 std::string JointModel::getTypeName() const
 {
