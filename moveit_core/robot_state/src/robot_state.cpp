@@ -1163,6 +1163,11 @@ bool RobotState::getJacobian(const JointModelGroup* group, const LinkModel* link
     const JointModel* pjm = link->getParentJointModel();
     if (pjm->getVariableCount() > 0)
     {
+      if (not group->hasJointModel(pjm->getName()))
+      {
+        link = pjm->getParentLinkModel();
+        continue;
+      }
       unsigned int joint_index = group->getVariableGroupIndex(pjm->getName());
       if (pjm->getType() == robot_model::JointModel::REVOLUTE)
       {
