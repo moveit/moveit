@@ -2,36 +2,11 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.0 (2018-05-22)
--------------------
-* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
-  various fixes for melodic build
-* boost::shared_ptr to std::shared_ptr
-* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
-  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
-  - All type conversions now depend on geometry2 ROS packages, rather than geometry
-  (see https://github.com/ros/geometry2/pull/292 and
-  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
-  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
-  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
-  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
-  (see https://github.com/ros/geometry/pull/163 for details of the new API)
-  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
-  - Replaced deprecated tf2 _getLatestCommonTime
-* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
-* fix printf conversion specifiers for logging  (`#876 <https://github.com/ros-planning/moveit/issues/876>`_)
-  * printf size_t values with %zu
-* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
-  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
-  * [Fix] clang format
-  * [Fix] manually fix bad clang-formatting in strings
-* Merge pull request `#863 <https://github.com/ros-planning/moveit/issues/863>`_ from ubi-agni/fix-buid-farm-issues
-  * fix various cmake warnings
-  * remove not required test dependency
-  * replaced 2nd find_package(catkin ...)
-* fix various cmake warnings
-* Add ability to request detailed distance information from fcl (`#662 <https://github.com/ros-planning/moveit/issues/662>`_)
-  Expose the ability to request detailed distance information from FCL. New virtual methods distanceXXX(DistanceRequest&, DistanceResult&) are provided in CollisionRobot and CollisionWorld. Existing methods were adapted to use the new underlying infrastructure of DistanceRequests.
+Forthcoming
+-----------
+* boost::shared_ptr -> std::shared_ptr
+* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Contributors: Bence Magyar, Ian McMahon, Levi Armstrong, Mikael Arguedas, Robert Haschke, Xiaojian Ma
 
 0.9.11 (2017-12-25)
@@ -108,15 +83,7 @@ Changelog for package moveit_experimental
   * Remove unnecessary debugging ROS_INFO.
   * Port collision_distance_field test to indigo.
   * Remove one assertion that makes collision_distance_field test to fail.
-* Use urdf::*SharedPtr instead of boost::shared_ptr
-  urdfdom_headers uses C++ std::shared_ptr. As it exports it as custom
-  *SharedPtr type, we can use them to stay compatible.
-  Note that there is no std:shared_ptr<const urdf::ModelInterface>
-  typedef, so I replaced it with urdf::ModelInterfaceSharedPtr (loosing a
-  const).
-  Also, there is no conversion from boost::shared_ptr<urdf::Model> to
-  std:shared_ptr<urdf::ModelInterface>, so I used a preprocessor
-  directive.
+* Use ``urdf::*SharedPtr`` instead of ``boost::shared_ptr``
 * fetch moveit_resources path at compile time
   using variable MOVEIT_TEST_RESOURCES_DIR provided by config.h
   instead of calling ros::package::getPath()

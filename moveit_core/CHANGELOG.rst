@@ -2,160 +2,23 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.0 (2018-05-22)
--------------------
-* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
-  various fixes for melodic build
-* adapt unittests after update to tf2
-* KDL solvers: provide dummy updateInternalDataStructures()
-  ... for new abstract method in KDL 1.4.0 of Melodic
-* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
-  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
-  - All type conversions now depend on geometry2 ROS packages, rather than geometry
-  (see https://github.com/ros/geometry2/pull/292 and
-  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
-  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
-  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
-  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
-  (see https://github.com/ros/geometry/pull/163 for details of the new API)
-  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
-  - Replaced deprecated tf2 _getLatestCommonTime
-* Fix allocator type to pass GCC8 static assert. (`#888 <https://github.com/ros-planning/moveit/issues/888>`_)
-* testAbsoluteJointSpaceJump: improve readability of code (`#864 <https://github.com/ros-planning/moveit/issues/864>`_)
-* code clean up of moveit_core (`#882 <https://github.com/ros-planning/moveit/issues/882>`_)
-  * code clean up of moveit_core
-  * code clean up of moveit_core
-* fixup! do not always print visible messages when attaching (`#878 <https://github.com/ros-planning/moveit/issues/878>`_)
-* fixup! fix printf conversion specifiers for logging  (`#876 <https://github.com/ros-planning/moveit/issues/876>`_)
-* do not always print visible messages when attaching (`#878 <https://github.com/ros-planning/moveit/issues/878>`_)
-  This should not be a public message.
-  Especially annoying because the RViz display calls this
-  function quite often when displaying trajectories with attached objects.
-* fix printf conversion specifiers for logging  (`#876 <https://github.com/ros-planning/moveit/issues/876>`_)
-  * printf size_t values with %zu
-* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
-  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
-  * [Fix] clang format
-  * [Fix] manually fix bad clang-formatting in strings
-* robot_state/test: remove introduced dependency to moveit_ros_planning/rdf_loader (`#850 <https://github.com/ros-planning/moveit/issues/850>`_)
-* Remove variable name KinematicConstraint::print() to avoid compilation warning (`#849 <https://github.com/ros-planning/moveit/issues/849>`_)
+Forthcoming
+-----------
+* Clang tidy moveit_core (`#880 <https://github.com/ros-planning/moveit/issues/880>`_) (`#911 <https://github.com/ros-planning/moveit/issues/911>`_)
+* Allow to retrieve Jacobian of a child link of a move group. (`#877 <https://github.com/ros-planning/moveit/issues/877>`_)
+* Contributors: Bryce Willey, Dave Coleman, Michael Görner
+* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* Switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Add ability to request detailed distance information from fcl (`#662 <https://github.com/ros-planning/moveit/issues/662>`_)
-  Expose the ability to request detailed distance information from FCL. New virtual methods distanceXXX(DistanceRequest&, DistanceResult&) are provided in CollisionRobot and CollisionWorld. Existing methods were adapted to use the new underlying infrastructure of DistanceRequests.
-* improved checking for joint-space jumps of Cartesian path (`#843 <https://github.com/ros-planning/moveit/issues/843>`_)
-  * adding absolute jump threshold capability in parallel, also adding test coverage
-  * formatting of comments, reduce redundancy
-  * inline definition of convienency methods
-  * improve readability: always call testJointSpaceJump()
-  * reduce redundancy, improve efficiency
-  * restore old code were applicable
-  * cleanup tests
-  * changing struct variable names to be less redundant, improving tests, removing throw error from abs jump test
-  * revert test changes
-  * relax testing conditions
-  - test for both, relative and absolute jumps (if corresponding thresholds > 0)
-  - skip revolute/prismatic if threshold is <= 0
-  * cherry-pick reworked log messages
-  * cherry-pick test changes: use default joint pose
-  * extend unittests: test both direct and indirect methods
-  * consistent order: 1st: revolute, 2nd: prismatic
-  * fixup! extend unittests: test both direct and indirect methods
-  * computeCartesianPath: only test for jump if there's something to check
-  If the trajectory consists only of the first (current) robot state,
-  there is no need to test for joint space jumps and thus we avoid
-  printing the new warning "too few points to test" in this case.
-* code clean up of robot_model (`#820 <https://github.com/ros-planning/moveit/issues/820>`_)
-  mostly remove explicit `moveit::core` namespaces everywhere
-* code clean up of robot_state.cpp (`#815 <https://github.com/ros-planning/moveit/issues/815>`_)
-  * code clean up of robot_state.cpp
-  * updated with clang-format
-* Simplify adding CollisionObjects with colors (`#810 <https://github.com/ros-planning/moveit/issues/810>`_)
-  To facilitate assignment of object colors in addCollisionObjects() and applyCollisionObjects(),
-  the object id of the CollisionObject is reused for ObjectColors if not specified.
-* fixed typo
-* fix RobotState::computeCartesianPath
-  - consider both, translational and rotational distance to compute number interpolation of steps
-  - ensure that quaternions are on same half sphere before doing quaternion slerp
-* cleanup jump threshold test in computeCartesianPath (`#784 <https://github.com/ros-planning/moveit/issues/784>`_)
-  Issue a warning if too few trajectory waypoints are available for jump threshold test.
-  This would result in unreliable testing.
-* Merge pull request `#768 <https://github.com/ros-planning/moveit/issues/768>`_ from ubi-agni/fix-mimic-joint-updates
-  fix updateMimicJoint()
-* mark updated mimic joints as dirty
-* test mimic joint updates
-* unittests: simplify verification of Eigen matrices
-* replace deprecated logging macros with CONSOLE_BRIDGE macros (`#787 <https://github.com/ros-planning/moveit/issues/787>`_)
-  - replace log* macros with CONSOLE_BRIDGE_log* macros
-  - replace printf commands for size_t: %u -> %zu
+* allow checking for absolute joint-space jumps in Cartesian path (`#843 <https://github.com/ros-planning/moveit/issues/843>`_)
+* Simplify adding colored CollisionObjects (`#810 <https://github.com/ros-planning/moveit/issues/810>`_)
 * updateMimicJoint(group->getMimicJointModels()) -> updateMimicJoints(group)
-  Clearly indicate the fact, that the functions
-  updateMimicJoint(group->getMimicJointModels()) and
-  markDirtyJointTransforms(group)
-  need to be called together!
-* Merge pull request `#765 <https://github.com/ros-planning/moveit/issues/765>`_ from ubi-agni/warp-link
-  improve RobotState::updateStateWithLinkAt()
-* extended documentation
+* improve RobotState::updateStateWithLinkAt() (`#765 <https://github.com/ros-planning/moveit/issues/765>`_)
 * fix computation of shape_extents\_ of links w/o shapes (`#766 <https://github.com/ros-planning/moveit/issues/766>`_)
-* Merge pull request `#769 <https://github.com/ros-planning/moveit/issues/769>`_ from ubi-agni/improve-eef-mapping
-  improve association of IK solvers to groups
-* fix updateMimicJoint()
-  Although the joint transform was marked dirty, the corresponding link transforms were not!
-* improve comments associating kinematics solvers to groups
-* updateStateWithLinkAt(backward=true): mark all collision body transforms dirty
-* improve doc for updateStateWithLinkAt()
-* reduce code bloat
 * RobotModel::getRigidlyConnectedParentLinkModel()
   ... to compute earliest parent link that is rigidly connected to a given link
-* Iterative cubic spline (`#441 <https://github.com/ros-planning/moveit/issues/441>`_)
-  * adding iterative spline time parameterization
-  * add 2nd and 2nd-last points
-  * move added points near endpoints, but not exactly the same.  Fix math error.
-  * add jerk comment
-  * clang-formatting
-  * prevent divide-by-zero. Fix out-of-bounds array write
-  * fix variables
-  * off by one error.  change default limits
-  * comments
-  * fix for setting waypoint durations
-  * comments
-  * add time parameterization unit test
-  * styling
-  * add compile-time option to disable jerk
-  * allow jerk to be enabled/disabled at runtime
-  * make requested changes, the biggest of which is allowing for min and max constraints
-  * add duration check to unit test
-  * set default acceleration to 1.0
-  * fix class name
-  * add migration notes
-  * whitespace styling
-  * set waypoint velocities/accelerations when unset.  Increase default jerk limit.  Modify test case to catch this.
-  * improved handling of unspecified initial/final velocities/accelerations
-  * change 0.01 constant to epsilon()
-  * simplify tests
-  * styling
-  * Remove jerk, as it causes oscillations
-* Merge pull request `#703 <https://github.com/ros-planning/moveit/issues/703>`_ from tradr-project/fix_bbox-kinetic
-  Fixed bugs in computation of AABB in LinkModel and RobotState.
-* Addressed rhaschke's comments.
-* Added a test for the AABB of a specific rotated link on the PR2.
-* Fixed buggy AABB computation.
-  Also added a way to visualize both AABBs and OBBs in RViz to verify.
-* Merge pull request `#731 <https://github.com/ros-planning/moveit/issues/731>`_ from ros-planning/pr-clang-tidy-collision
-  As per `#28 <https://github.com/ros-planning/moveit/issues/28>`_, I setup and documented how to run clang-tidy on the codebase, and tested it on the collision_detection and collision_detection_fcl folders. I chose these two because they were small, so I could get feedback on what to change before applying to the entire repo.
-  The clang-tidy config file is based on https://github.com/davetcoleman/rviz_visual_tools/blob/kinetic-devel/.clang-tidy and adds some more checks to the code.
-* Better naming for clang-changed variables.
-* Changed shared pointer in constructor back and added NOLINT.
-* Little fixes following Dave Colemans' suggestions.
-* clang-format run
-* Fixed computation of a the AABB of links and models.
-* Ran clang-format.
-* Fixed more modernize issues.
-* Moved clang-tidy docs to the website.
-* Forgot to format the include files.
-* Stopped reusing an existing name and clang-format on collision_dection.
-* Ran clang-tidy and clang-format on collision_dection and collision_detection_fcl.
-* Documented how to clang-tidy with run-clang-tidy-3.8.py
-* Fixed a deprecated call to console bridge.
-* Contributors: 2scholz, Bryce Willey, Ian McMahon, Ken Anderson, Levi Armstrong, Maarten de Vries, Martin Pecka, Michael Görner, Mike Lautman, Patrick Holthaus, Robert Haschke, Victor Lamoine, Xiaojian Ma, bailaC
+* Iterative cubic spline interpolation (`#441 <https://github.com/ros-planning/moveit/issues/441>`_)
+* Contributors: Bryce Willey, Ian McMahon, Ken Anderson, Levi Armstrong, Maarten de Vries, Martin Pecka, Michael Görner, Mike Lautman, Patrick Holthaus, Robert Haschke, Victor Lamoine, Xiaojian Ma
 
 0.9.11 (2017-12-25)
 -------------------
@@ -172,7 +35,7 @@ Changelog for package moveit_core
 * [capability] Adds parameter lookup function for kinematics plugins (`#701 <https://github.com/ros-planning/moveit/issues/701>`_)
 * [improve] Make operator bool() explicit `#696 <https://github.com/ros-planning/moveit/pull/696>`_
 * [improve] Get msgs from Planning Scene `#663 <https://github.com/ros-planning/moveit/issues/663>`_
-* [improve] moveit_core: export DEPENDS on LIBFCL `#632 https://github.com/ros-planning/moveit/pull/632>`_
+* [improve] moveit_core: export DEPENDS on LIBFCL `#632 <https://github.com/ros-planning/moveit/pull/632>`_
 * [improve] RobotState: Changed multi-waypoint version of computeCartesianPath to test joint space jumps after all waypoints are generated. (`#576 <https://github.com/ros-planning/moveit/issues/576>`_)
 * [improve] Better debug output for IK tip frames (`#603 <https://github.com/ros-planning/moveit/issues/603>`_)
 * [improve] New debug console colors YELLOW PURPLE (`#604 <https://github.com/ros-planning/moveit/issues/604>`_)
@@ -790,7 +653,7 @@ Changelog for package moveit_core
 0.1.13 (2012-10-20 10:51)
 -------------------------
 * removing no longer needed deps
-* add moveit_ prefix for all generated libs
+* add ``moveit_`` prefix for all generated libs
 
 0.1.12 (2012-10-18)
 -------------------

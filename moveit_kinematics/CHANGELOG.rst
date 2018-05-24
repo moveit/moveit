@@ -2,58 +2,14 @@
 Changelog for package moveit_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.0 (2018-05-22)
--------------------
-* Merge pull request `#906 <https://github.com/ros-planning/moveit/issues/906>`_ from ubi-agni/compile-fixes
-  various fixes for melodic build
-* KDL solvers: provide dummy updateInternalDataStructures()
-  ... for new abstract method in KDL 1.4.0 of Melodic
-* MoveIt! tf2 migration (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
-  migration from tf to tf2 API, resolves issue `#745 <https://github.com/ros-planning/moveit/issues/745>`_
-  - All type conversions now depend on geometry2 ROS packages, rather than geometry
-  (see https://github.com/ros/geometry2/pull/292 and
-  https://github.com/ros/geometry2/pull/294 for details of the new conversions)
-  - Removes all boost::shared_ptr<tf::TransformListener> from the API,
-  and replaced them with std::shared_ptr<tf2_ros::Buffer>'s
-  - Utilize new tf2 API in the tf::Transformer library to access the internal tf2::Buffer of RViz
-  (see https://github.com/ros/geometry/pull/163 for details of the new API)
-  - Removes prepending of forward slashes ('/') for transforms frames as this is deprecated in tf2
-  - Replaced deprecated tf2 _getLatestCommonTime
-* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
-* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
-  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
-  * [Fix] clang format
-  * [Fix] manually fix bad clang-formatting in strings
-* Merge pull request `#863 <https://github.com/ros-planning/moveit/issues/863>`_ from ubi-agni/fix-buid-farm-issues
-  * fix various cmake warnings
-  * remove not required test dependency
-  * replaced 2nd find_package(catkin ...)
-* fix various cmake warnings
-* Improve ikfast kinematics plugin (`#808 <https://github.com/ros-planning/moveit/issues/808>`_)
-  * Initialize constant num_joints\_ in constructor.
-  * Check size of input array in getPositionFK.
-  * Fix implementation error.
-  * Add name variable to ikfast plugin.
+Forthcoming
+-----------
+* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* fixes to ikfast kinematics plugin (`#808 <https://github.com/ros-planning/moveit/issues/808>`_)
 * Cached ik kinematics plugin (`#612 <https://github.com/ros-planning/moveit/issues/612>`_)
   add caching wrapper for IK solvers
-  * - Remove OMPL dependency, add slightly modified versions of OMPL code to this repo
-  - Change camelCase variable names to underscore_names
-  - Use /** ... */ for doxygen comments instead of /// ...
-  - Fix memory leak
-  - Various small fixes
-  * handle optional TRAC-IK dependency a different way
-  * remove OMPL_INCLUDE_DIRS
-  * include trac_ik headers optionally *after* moveit includes
-  Sorting dependency-includes via catkin breaks either way around
-  with multiple `find_package` calls and can always break
-  overlaying workspaces.
-  However, ${catkin_INCLUDE_DIRS} contains many more dependencies
-  than ${trac_ik_kinematics_plugin_INCLUDE_DIRS}, so avoid more
-  breakage than necessary by including catkin_INCLUDE_DIRS first.
-  * add missing include
-  * Don't write configured file to build dir. Can't write to src dir either since it might be read-only. Instead, just comment out the parts that are for development / testing purposes only.
-  * ik cache: use lookupParam for plugin parameters
-* Contributors: Ian McMahon, Mark Moll, Mikael Arguedas, Robert Haschke, Xiaojian Ma, martiniil
+* Contributors: Ian McMahon, Mark Moll, Mikael Arguedas, Robert Haschke, Xiaojian Ma
 
 0.9.11 (2017-12-25)
 -------------------

@@ -2,13 +2,9 @@
 Changelog for package moveit_fake_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.10.0 (2018-05-22)
--------------------
-* update include statements to use new pluginlib and class_loader headers (`#827 <https://github.com/ros-planning/moveit/issues/827>`_)
-* [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
-  * [Fix] switch to ROS_LOGGER from CONSOLE_BRIDGE
-  * [Fix] clang format
-  * [Fix] manually fix bad clang-formatting in strings
+Forthcoming
+-----------
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Contributors: Mikael Arguedas, Xiaojian Ma
 
 0.9.11 (2017-12-25)
@@ -41,7 +37,7 @@ Changelog for package moveit_fake_controller_manager
 * Contributors: Dave Coleman
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.5.7 (2016-01-30)
 ------------------
