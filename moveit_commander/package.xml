@@ -20,6 +20,9 @@
 
   <build_depend>python</build_depend>
 
+  <test_depend>rostest</test_depend>
+  <test_depend>moveit_resources</test_depend>
+
   <run_depend>geometry_msgs</run_depend>
   <run_depend>moveit_msgs</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
