@@ -55,6 +55,14 @@ namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
 
+#define OMPL_ROS_LOG                                                                                                   \
+  {                                                                                                                    \
+    ROSCONSOLE_DEFINE_LOCATION(true, ::ros::console::levels::Debug, ROSCONSOLE_NAME_PREFIX ".ompl");                   \
+    if (ROS_UNLIKELY(__rosconsole_define_location__enabled))                                                           \
+      ::ros::console::print(0, __rosconsole_define_location__loc.logger_, __rosconsole_define_location__loc.level_,    \
+                            filename, line, __ROSCONSOLE_FUNCTION__, "%s", text.c_str());                              \
+  }
+
 class OMPLPlannerManager : public planning_interface::PlannerManager
 {
 public:
@@ -62,38 +70,24 @@ public:
   {
     class OutputHandler : public ompl::msg::OutputHandler
     {
-      const char* format = "[OMPL] %s";
-
     public:
-      OutputHandler() : ompl::msg::OutputHandler()
-      {
-      }
-
-      ~OutputHandler() override
-      {
-      }
-
       void log(const std::string& text, ompl::msg::LogLevel level, const char* filename, int line) override
       {
-        std::unique_lock<std::mutex> lock(lock_);
-        std::stringstream ss;
-        ss << filename << ":" << line;
-
         switch (level)
         {
           case ompl::msg::LOG_DEV2:
           case ompl::msg::LOG_DEV1:
           case ompl::msg::LOG_DEBUG:
-            ROS_DEBUG_NAMED(ss.str().c_str(), format, text.c_str());
+            OMPL_ROS_LOG(::ros::console::levels::Debug);
             break;
           case ompl::msg::LOG_INFO:
-            ROS_INFO_NAMED(ss.str().c_str(), format, text.c_str());
+            OMPL_ROS_LOG(::ros::console::levels::Info);
             break;
           case ompl::msg::LOG_WARN:
-            ROS_WARN_NAMED(ss.str().c_str(), format, text.c_str());
+            OMPL_ROS_LOG(::ros::console::levels::Warn);
             break;
           case ompl::msg::LOG_ERROR:
-            ROS_ERROR_NAMED(ss.str().c_str(), format, text.c_str());
+            OMPL_ROS_LOG(::ros::console::levels::Error);
             break;
           case ompl::msg::LOG_NONE:
           default:
@@ -101,8 +95,6 @@ public:
             break;
         }
       }
-
-      std::mutex lock_;
     };
 
     output_handler_.reset(new OutputHandler());
