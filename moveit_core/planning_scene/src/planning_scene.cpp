@@ -1457,8 +1457,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         collision_detection::CollisionWorld::ObjectConstPtr obj = world_->getObject(object.object.id);
         if (obj)
         {
-          ROS_INFO_NAMED("planning_scene", "Attaching world object '%s' to link '%s'", object.object.id.c_str(),
-                         object.link_name.c_str());
+          ROS_DEBUG_NAMED("planning_scene", "Attaching world object '%s' to link '%s'", object.object.id.c_str(),
+                          object.link_name.c_str());
 
           // extract the shapes from the world
           shapes = obj->shapes_;
@@ -1485,8 +1485,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
         if (world_->removeObject(object.object.id))
         {
           if (object.object.operation == moveit_msgs::CollisionObject::ADD)
-            ROS_INFO_NAMED("planning_scene", "Removing world object with the same name as newly attached object: '%s'",
-                           object.object.id.c_str());
+            ROS_DEBUG_NAMED("planning_scene", "Removing world object with the same name as newly attached object: '%s'",
+                            object.object.id.c_str());
           else
             ROS_WARN_NAMED("planning_scene",
                            "You tried to append geometry to an attached object that is actually a world object ('%s'). "
@@ -1552,9 +1552,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       {
         // there should not exist an attached object with this name
         if (kstate_->clearAttachedBody(object.object.id))
-          ROS_INFO_NAMED("planning_scene", "The robot state already had an object named '%s' attached to link '%s'. "
-                                           "The object was replaced.",
-                         object.object.id.c_str(), object.link_name.c_str());
+          ROS_DEBUG_NAMED("planning_scene", "The robot state already had an object named '%s' attached to link '%s'. "
+                                            "The object was replaced.",
+                          object.object.id.c_str(), object.link_name.c_str());
         kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name,
                             object.detach_posture);
         ROS_DEBUG_NAMED("planning_scene", "Attached object '%s' to link '%s'", object.object.id.c_str(),
@@ -1573,8 +1573,8 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
           kstate_->attachBody(object.object.id, shapes, poses, ab_touch_links, object.link_name, detach_posture);
         else
           kstate_->attachBody(object.object.id, shapes, poses, object.touch_links, object.link_name, detach_posture);
-        ROS_INFO_NAMED("planning_scene", "Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(),
-                       object.link_name.c_str());
+        ROS_DEBUG_NAMED("planning_scene", "Added shapes to object '%s' attached to link '%s'", object.object.id.c_str(),
+                        object.link_name.c_str());
       }
 
       return true;
@@ -1631,8 +1631,9 @@ bool PlanningScene::processAttachedCollisionObjectMsg(const moveit_msgs::Attache
       else
       {
         world_->addToObject(name, shapes, poses);
-        ROS_INFO_NAMED("planning_scene", "Detached object '%s' from link '%s' and added it back in the collision world",
-                       name.c_str(), object.link_name.c_str());
+        ROS_DEBUG_NAMED("planning_scene",
+                        "Detached object '%s' from link '%s' and added it back in the collision world", name.c_str(),
+                        object.link_name.c_str());
       }
     }
     if (!attached_bodies.empty() || object.object.id.empty())
