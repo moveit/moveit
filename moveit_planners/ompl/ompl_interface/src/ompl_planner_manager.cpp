@@ -60,51 +60,53 @@ class OMPLPlannerManager : public planning_interface::PlannerManager
 public:
   OMPLPlannerManager() : planning_interface::PlannerManager(), nh_("~"), display_random_valid_states_(false)
   {
-      class OutputHandler : public ompl::msg::OutputHandler
+    class OutputHandler : public ompl::msg::OutputHandler
+    {
+      const char* format = "[OMPL] %s";
+
+    public:
+      OutputHandler() : ompl::msg::OutputHandler()
       {
-      public:
-          OutputHandler() : ompl::msg::OutputHandler()
-          {
-          }
+      }
 
-          ~OutputHandler() override
-          {
-          }
+      ~OutputHandler() override
+      {
+      }
 
-          void log(const std::string &text, ompl::msg::LogLevel level, const char *filename, int line) override
-          {
-              std::unique_lock<std::mutex> lock(lock_);
-              std::stringstream ss;
-              ss << filename << ":" << line;
+      void log(const std::string& text, ompl::msg::LogLevel level, const char* filename, int line) override
+      {
+        std::unique_lock<std::mutex> lock(lock_);
+        std::stringstream ss;
+        ss << filename << ":" << line;
 
-              switch (level)
-              {
-              case ompl::msg::LOG_DEV2:
-              case ompl::msg::LOG_DEV1:
-              case ompl::msg::LOG_DEBUG:
-                  ROS_DEBUG_NAMED(ss.str().c_str(), "%s", text.c_str());
-                  break;
-              case ompl::msg::LOG_INFO:
-                  ROS_INFO_NAMED(ss.str().c_str(), "%s", text.c_str());
-                  break;
-              case ompl::msg::LOG_WARN:
-                  ROS_WARN_NAMED(ss.str().c_str(), "%s", text.c_str());
-                  break;
-              case ompl::msg::LOG_ERROR:
-                  ROS_ERROR_NAMED(ss.str().c_str(), "%s", text.c_str());
-                  break;
-              case ompl::msg::LOG_NONE:
-              default:
-                  /* ignore */
-                  break;
-              }
-          }
+        switch (level)
+        {
+          case ompl::msg::LOG_DEV2:
+          case ompl::msg::LOG_DEV1:
+          case ompl::msg::LOG_DEBUG:
+            ROS_DEBUG_NAMED(ss.str().c_str(), format, text.c_str());
+            break;
+          case ompl::msg::LOG_INFO:
+            ROS_INFO_NAMED(ss.str().c_str(), format, text.c_str());
+            break;
+          case ompl::msg::LOG_WARN:
+            ROS_WARN_NAMED(ss.str().c_str(), format, text.c_str());
+            break;
+          case ompl::msg::LOG_ERROR:
+            ROS_ERROR_NAMED(ss.str().c_str(), format, text.c_str());
+            break;
+          case ompl::msg::LOG_NONE:
+          default:
+            /* ignore */
+            break;
+        }
+      }
 
-          std::mutex lock_;
-      };
+      std::mutex lock_;
+    };
 
-      output_handler_.reset(new OutputHandler());
-      ompl::msg::useOutputHandler(output_handler_.get());
+    output_handler_.reset(new OutputHandler());
+    ompl::msg::useOutputHandler(output_handler_.get());
   }
 
   virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
