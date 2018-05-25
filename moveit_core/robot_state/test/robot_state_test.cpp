@@ -396,7 +396,7 @@ protected:
     urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL2);
     srdf::ModelSharedPtr srdf_model(new srdf::Model());
     srdf_model->initString(*urdf_model, SMODEL2);
-    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+    robot_model_.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
   }
 
   void TearDown() override
@@ -404,12 +404,12 @@ protected:
   }
 
 protected:
-  moveit::core::RobotModelConstPtr robot_model;
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 
 TEST_F(OneRobot, FK)
 {
-  moveit::core::RobotModelConstPtr model = robot_model;
+  moveit::core::RobotModelConstPtr model = robot_model_;
 
   // testing that the two planning groups are the same
   const moveit::core::JointModelGroup* g_one = model->getJointModelGroup("base_from_joints");
@@ -631,7 +631,7 @@ TEST_F(OneRobot, testGenerateTrajectory)
 
 TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 {
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
   // A revolute joint jumps 1.01 at the 5th waypoint and a prismatic joint jumps 1.01 at the 6th waypoint
@@ -653,6 +653,7 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 
   // Indirect call using testJointSpaceJumps
   generateTestTraj(traj, robot_model, joint_model_group);
+
   fraction = robot_state::RobotState::testJointSpaceJump(joint_model_group, traj, robot_state::JumpThreshold(1.0, 1.0));
   EXPECT_EQ(expected_revolute_jump_traj_len, traj.size());  // traj should be cut before the revolute jump
   EXPECT_NEAR(expected_revolute_jump_fraction, fraction, 0.01);
@@ -678,7 +679,7 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 
 TEST_F(OneRobot, testRelativeJointSpaceJump)
 {
-  const robot_model::JointModelGroup* joint_model_group = robot_model->getJointModelGroup("base_from_base_to_e");
+  const robot_model::JointModelGroup* joint_model_group = robot_model_->getJointModelGroup("base_from_base_to_e");
   std::vector<std::shared_ptr<robot_state::RobotState>> traj;
 
   // The first large jump of 1.01 occurs at the 5th waypoint so the test should trim the trajectory to length 4

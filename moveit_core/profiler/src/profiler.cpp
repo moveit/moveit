@@ -183,29 +183,29 @@ namespace
 {
 struct dataIntVal
 {
-  std::string name;
-  unsigned long int value;
+  std::string name_;
+  unsigned long int value_;
 };
 
 struct SortIntByValue
 {
   bool operator()(const dataIntVal& a, const dataIntVal& b) const
   {
-    return a.value > b.value;
+    return a.value_ > b.value_;
   }
 };
 
 struct dataDoubleVal
 {
-  std::string name;
-  double value;
+  std::string name_;
+  double value_;
 };
 
 struct SortDoubleByValue
 {
   bool operator()(const dataDoubleVal& a, const dataDoubleVal& b) const
   {
-    return a.value > b.value;
+    return a.value_ > b.value_;
   }
 };
 }
@@ -226,7 +226,7 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   if (!events.empty())
     out << "Events:" << std::endl;
   for (unsigned int i = 0; i < events.size(); ++i)
-    out << events[i].name << ": " << events[i].value << std::endl;
+    out << events[i].name_ << ": " << events[i].value_ << std::endl;
 
   std::vector<dataDoubleVal> avg;
   for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin(); ia != data.avg.end(); ++ia)
@@ -239,9 +239,9 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
     out << "Averages:" << std::endl;
   for (unsigned int i = 0; i < avg.size(); ++i)
   {
-    const AvgInfo& a = data.avg.find(avg[i].name)->second;
-    out << avg[i].name << ": " << avg[i].value << " (stddev = "
-        << sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value * avg[i].value) / ((double)a.parts - 1.)) << ")"
+    const AvgInfo& a = data.avg.find(avg[i].name_)->second;
+    out << avg[i].name_ << ": " << avg[i].value_ << " (stddev = "
+        << sqrt(fabs(a.totalSqr - (double)a.parts * avg[i].value_ * avg[i].value_) / ((double)a.parts - 1.)) << ")"
         << std::endl;
   }
 
@@ -260,11 +260,11 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   double unaccounted = total;
   for (unsigned int i = 0; i < time.size(); ++i)
   {
-    const TimeInfo& d = data.time.find(time[i].name)->second;
+    const TimeInfo& d = data.time.find(time[i].name_)->second;
 
     double t_s = to_seconds(d.shortest);
     double t_l = to_seconds(d.longest);
-    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), [" << t_s
+    out << time[i].name_ << ": " << time[i].value_ << "s (" << (100.0 * time[i].value_ / total) << "%), [" << t_s
         << "s --> " << t_l << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
@@ -274,7 +274,7 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
         out << " (" << 1.0 / pavg << " /s)";
     }
     out << std::endl;
-    unaccounted -= time[i].value;
+    unaccounted -= time[i].value_;
   }
   // if we do not appear to have counted time multiple times, print the unaccounted time too
   if (unaccounted >= 0.0)

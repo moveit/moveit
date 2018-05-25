@@ -2050,8 +2050,8 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
 {
   struct LimitData
   {
-    double limit;
-    bool check;
+    double limit_;
+    bool check_;
   };
   LimitData data[2] = { { revolute_threshold, revolute_threshold > 0.0 },
                         { prismatic_threshold, prismatic_threshold > 0.0 } };
@@ -2076,14 +2076,14 @@ double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std:
                          joint->getName().c_str(), joint->getTypeName().c_str());
           continue;
       }
-      if (!data[type_index].check)
+      if (!data[type_index].check_)
         continue;
 
       double distance = traj[traj_ix]->distance(*traj[traj_ix + 1], joint);
-      if (distance > data[type_index].limit)
+      if (distance > data[type_index].limit_)
       {
         ROS_DEBUG_NAMED(LOGNAME, "Truncating Cartesian path due to detected jump of %.4f > %.4f in joint %s", distance,
-                        data[type_index].limit, joint->getName().c_str());
+                        data[type_index].limit_, joint->getName().c_str());
         still_valid = false;
         break;
       }

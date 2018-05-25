@@ -49,7 +49,7 @@ protected:
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
-    srdf_model.reset(new srdf::Model());
+    srdf_model_.reset(new srdf::Model());
     std::string xml_string;
     std::fstream xml_file((res_path / "pr2_description/urdf/robot.xml").string().c_str(), std::fstream::in);
     if (xml_file.is_open())
@@ -61,10 +61,10 @@ protected:
         xml_string += (line + "\n");
       }
       xml_file.close();
-      urdf_model = urdf::parseURDF(xml_string);
+      urdf_model_ = urdf::parseURDF(xml_string);
     }
-    srdf_model->initFile(*urdf_model, (res_path / "pr2_description/srdf/robot.xml").string());
-    robot_model.reset(new moveit::core::RobotModel(urdf_model, srdf_model));
+    srdf_model_->initFile(*urdf_model_, (res_path / "pr2_description/srdf/robot.xml").string());
+    robot_model_.reset(new moveit::core::RobotModel(urdf_model_, srdf_model_));
   };
 
   void TearDown() override
@@ -72,28 +72,28 @@ protected:
   }
 
 protected:
-  urdf::ModelInterfaceSharedPtr urdf_model;
-  srdf::ModelSharedPtr srdf_model;
-  moveit::core::RobotModelConstPtr robot_model;
+  urdf::ModelInterfaceSharedPtr urdf_model_;
+  srdf::ModelSharedPtr srdf_model_;
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 
 TEST_F(LoadPlanningModelsPr2, InitOK)
 {
-  ASSERT_EQ(urdf_model->getName(), "pr2");
-  ASSERT_EQ(srdf_model->getName(), "pr2");
+  ASSERT_EQ(urdf_model_->getName(), "pr2");
+  ASSERT_EQ(srdf_model_->getName(), "pr2");
 }
 
 TEST_F(LoadPlanningModelsPr2, Model)
 {
   // robot_model->printModelInfo(std::cout);
 
-  const std::vector<const moveit::core::JointModel*>& joints = robot_model->getJointModels();
+  const std::vector<const moveit::core::JointModel*>& joints = robot_model_->getJointModels();
   for (std::size_t i = 0; i < joints.size(); ++i)
   {
     ASSERT_EQ(joints[i]->getJointIndex(), i);
-    ASSERT_EQ(robot_model->getJointModel(joints[i]->getName()), joints[i]);
+    ASSERT_EQ(robot_model_->getJointModel(joints[i]->getName()), joints[i]);
   }
-  const std::vector<const moveit::core::LinkModel*>& links = robot_model->getLinkModels();
+  const std::vector<const moveit::core::LinkModel*>& links = robot_model_->getLinkModels();
   for (std::size_t i = 0; i < links.size(); ++i)
   {
     ASSERT_EQ(links[i]->getLinkIndex(), i);
