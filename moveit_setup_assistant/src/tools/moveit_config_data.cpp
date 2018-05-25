@@ -581,32 +581,39 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
       }
     }
     groups.push_back(groupJoints);
+    groupJoints.clear();
   }
 
   YAML::Emitter emitter;
   emitter << YAML::BeginMap;
 
+  emitter << YAML::Comment("MoveIt-specific simulation settings");
+  emitter << YAML::Key << "moveit_sim_hw_interface" << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "joint_model_group";
+  emitter << YAML::Value << "manipulator";
+  emitter << YAML::Key << "joint_model_group_pose";
+  emitter << YAML::Value << "up";
+  emitter << YAML::Key << "cycle_time_error_threshold";
+  emitter << YAML::Value << "0.01";
+  emitter << YAML::EndMap;
+
+  emitter << YAML::Newline;
   emitter << YAML::Comment("Settings for ros_control control loop");
-  emitter << YAML::Key << "generic_hw_control_loop" << YAML::BeginMap;
+  emitter << YAML::Key << "generic_hw_control_loop" << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "loop_hz";
   emitter << YAML::Value << "300";
   emitter << YAML::Key << "cycle_time_error_threshold";
   emitter << YAML::Value << "0.01";
   emitter << YAML::EndMap;
-  emitter << YAML::EndMap;
 
+  emitter << YAML::Newline;
   emitter << YAML::Comment("Settings for ros_control hardware interface");
-  emitter << YAML::BeginMap;
   emitter << YAML::Key << "hardware_interface";
   emitter << YAML::Value << YAML::BeginMap;
-
-  emitter << YAML::Key << "groups";
-  emitter << YAML::Value << YAML::BeginSeq;
 
   // Loop through groups
   for (int i = 0; i < srdf_->groups_.size(); ++i)
   {
-    emitter << YAML::BeginMap;
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
     emitter << YAML::Key << "joints";
@@ -618,22 +625,17 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
       emitter << groups[i][j];
     }
     emitter << YAML::EndSeq;
-    emitter << YAML::EndMap;
   }
-  emitter << YAML::EndSeq;
 
   emitter << YAML::Key << "sim_control_mode";
   emitter << YAML::Value << "1";
   emitter << YAML::Comment("0: position, 1: velocity");
-
-  emitter << YAML::EndMap;
 
   emitter << YAML::Newline;
   emitter << YAML::Comment("Publish all joint states");
   emitter << YAML::Newline << YAML::Comment("Creates the /joint_states topic necessary in ROS");
   emitter << YAML::EndMap;
 
-  emitter << YAML::BeginMap;
   emitter << YAML::Key << "joint_state_controller";
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "type";
@@ -646,21 +648,16 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
                                             "http://wiki.ros.org/joint_trajectory_controller");
 
   emitter << YAML::EndMap;
-  emitter << YAML::EndMap;
 
-  emitter << YAML::BeginMap;
   emitter << YAML::Key << "position_trajectory_controller";
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "type";
   emitter << YAML::Value << "position_controllers/JointTrajectoryController";
 
-  emitter << YAML::Key << "groups";
-  emitter << YAML::Value << YAML::BeginSeq;
-
   // Loop through groups
   for (int i = 0; i < srdf_->groups_.size(); ++i)
   {
-    emitter << YAML::BeginMap;
+    // emitter << YAML::BeginMap;
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
     emitter << YAML::Key << "joints";
@@ -672,22 +669,16 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
       emitter << groups[i][j];
     }
     emitter << YAML::EndSeq;
-    emitter << YAML::EndMap;
   }
-  emitter << YAML::EndSeq;
 
   emitter << YAML::Key << "constraints";
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "goal_time";
   emitter << YAML::Value << "5.0";
 
-  emitter << YAML::Key << "groups";
-  emitter << YAML::Value << YAML::BeginSeq;
-
   // Loop through groups
   for (int i = 0; i < srdf_->groups_.size(); ++i)
   {
-    emitter << YAML::BeginMap;
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
     emitter << YAML::Key << "joints";
@@ -706,11 +697,8 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
       emitter << YAML::EndMap;
     }
     emitter << YAML::EndSeq;
-    emitter << YAML::EndMap;
   }
-  emitter << YAML::EndSeq;
 
-  emitter << YAML::EndMap;
   emitter << YAML::EndMap;
   emitter << YAML::EndMap;
 
@@ -718,19 +706,14 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Comment("Group Position Controllers");
   emitter << YAML::Comment("Allows to send single ROS msg of Float64MultiArray to all joints");
 
-  emitter << YAML::BeginMap;
   emitter << YAML::Key << "joint_position_controller";
   emitter << YAML::Value << YAML::BeginMap;
   emitter << YAML::Key << "type";
   emitter << YAML::Value << "position_controllers/JointGroupPositionController";
 
-  emitter << YAML::Key << "groups";
-  emitter << YAML::Value << YAML::BeginSeq;
-
   // Loop through groups
   for (int i = 0; i < srdf_->groups_.size(); ++i)
   {
-    emitter << YAML::BeginMap;
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
     emitter << YAML::Key << "joints";
@@ -742,10 +725,8 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
       emitter << groups[i][j];
     }
     emitter << YAML::EndSeq;
-    emitter << YAML::EndMap;
   }
 
-  emitter << YAML::EndSeq;
   emitter << YAML::EndMap;
   emitter << YAML::EndMap;
 
