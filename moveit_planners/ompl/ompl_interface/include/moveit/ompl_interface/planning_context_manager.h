@@ -37,7 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 #define MOVEIT_OMPL_INTERFACE_PLANNING_CONTEXT_MANAGER_
 
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space_factory.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>

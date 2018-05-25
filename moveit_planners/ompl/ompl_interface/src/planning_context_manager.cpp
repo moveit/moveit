@@ -205,8 +205,7 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
     context_spec.jmg_ = kmodel_->getJointModelGroup(config.group);
 
     ROS_DEBUG_NAMED("planning_context_manager", "Creating new planning context");
-    boost::shared_ptr<OMPLPlanningContext> ptr = ompl_context_loader_->createInstance(plugin);
-    context = std::shared_ptr<OMPLPlanningContext>(ptr.get(), [ptr](OMPLPlanningContext*) mutable { ptr.reset(); });
+    context.reset(ompl_context_loader_->createUnmanagedInstance(plugin));
 
     context->initialize(context_spec);
     {
@@ -216,7 +215,6 @@ ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::g
   }
 
   last_planning_context_->setContext(context);
-
   context->clear();
 
   robot_state::RobotStatePtr start_state = planning_scene->getCurrentStateUpdated(req.start_state);
