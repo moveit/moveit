@@ -576,13 +576,13 @@ bool planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage(const
     if (no_other_scene_upd)
     {
       upd = UPDATE_NONE;
-      if (!planning_scene::PlanningScene::isEmpty(scene.world))
+      if (!planning_scene::PlanningScene::IsEmpty(scene.world))
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_GEOMETRY);
 
       if (!scene.fixed_frame_transforms.empty())
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_TRANSFORMS);
 
-      if (!planning_scene::PlanningScene::isEmpty(scene.robot_state))
+      if (!planning_scene::PlanningScene::IsEmpty(scene.robot_state))
       {
         upd = (SceneUpdateType)((int)upd | (int)UPDATE_STATE);
         if (!scene.robot_state.attached_collision_objects.empty() || scene.robot_state.is_diff == false)

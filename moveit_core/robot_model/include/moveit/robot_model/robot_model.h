@@ -249,7 +249,7 @@ public:
    * what you went for. Instead, updateStateWithLinkAt(getRigidlyConnectedParentLinkModel(grasp_frame), ...)
    * will actually warp wrist (and all its descendants).
    */
-  static const moveit::core::LinkModel* getRigidlyConnectedParentLinkModel(const LinkModel* link);
+  static const moveit::core::LinkModel* GetRigidlyConnectedParentLinkModel(const LinkModel* link);
 
   /** \brief Get the array of links  */
   const std::vector<const LinkModel*>& getLinkModels() const
@@ -575,10 +575,10 @@ protected:
   void buildGroups(const srdf::Model& srdf_model);
 
   /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupsInfo_Subgroups(const srdf::Model& srdf_model);
+  void buildGroupsInfoSubgroups(const srdf::Model& srdf_model);
 
   /** \brief Compute helpful information about groups (that can be queried later) */
-  void buildGroupsInfo_EndEffectors(const srdf::Model& srdf_model);
+  void buildGroupsInfoEndEffectors(const srdf::Model& srdf_model);
 
   /** \brief Given the URDF model, build up the mimic joints (mutually constrained joints) */
   void buildMimic(const urdf::ModelInterface& urdf_model);

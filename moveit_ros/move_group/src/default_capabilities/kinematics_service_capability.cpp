@@ -183,7 +183,7 @@ bool move_group::MoveGroupKinematicsService::computeFKService(moveit_msgs::GetPo
 
   const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
   bool do_transform = !req.header.frame_id.empty() &&
-                      !robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) &&
+                      !robot_state::Transforms::SameFrame(req.header.frame_id, default_frame) &&
                       context_->planning_scene_monitor_->getTFClient();
   bool tf_problem = false;
 

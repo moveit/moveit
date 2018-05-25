@@ -141,7 +141,7 @@ void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan, c
 void plan_execution::PlanExecution::planAndExecute(ExecutableMotionPlan& plan,
                                                    const moveit_msgs::PlanningScene& scene_diff, const Options& opt)
 {
-  if (planning_scene::PlanningScene::isEmpty(scene_diff))
+  if (planning_scene::PlanningScene::IsEmpty(scene_diff))
     planAndExecute(plan, opt);
   else
   {

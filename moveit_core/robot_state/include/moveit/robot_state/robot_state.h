@@ -1178,7 +1178,7 @@ as the new values that correspond to the group */
      @param jump_threshold The struct holding jump thresholds to determine if a joint space jump has occurred.
      @return The fraction of the trajectory that passed.
   */
-  static double testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+  static double TestJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                    const JumpThreshold& jump_threshold);
 
   /** \brief Tests for relative joint space jumps of the trajectory \e traj.
@@ -1191,7 +1191,7 @@ as the new values that correspond to the group */
      @param jump_threshold_factor The threshold to determine if a joint space jump has occurred .
      @return The fraction of the trajectory that passed.
   */
-  static double testRelativeJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+  static double TestRelativeJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double jump_threshold_factor);
 
   /** \brief Tests for absolute joint space jumps of the trajectory \e traj.
@@ -1206,7 +1206,7 @@ as the new values that correspond to the group */
      @param prismatic_jump_threshold Absolute joint-space threshold for prismatic joints.
      @return The fraction of the trajectory that passed.
   */
-  static double testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+  static double TestAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                            double revolute_jump_threshold, double prismatic_jump_threshold);
 
   /** \brief Compute the Jacobian with reference to a particular point on a given link, for a specified group.

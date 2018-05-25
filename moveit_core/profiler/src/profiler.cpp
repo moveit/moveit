@@ -181,7 +181,7 @@ void Profiler::console()
 /// @cond IGNORE
 namespace
 {
-struct dataIntVal
+struct DataIntVal
 {
   std::string name_;
   unsigned long int value_;
@@ -189,13 +189,13 @@ struct dataIntVal
 
 struct SortIntByValue
 {
-  bool operator()(const dataIntVal& a, const dataIntVal& b) const
+  bool operator()(const DataIntVal& a, const DataIntVal& b) const
   {
     return a.value_ > b.value_;
   }
 };
 
-struct dataDoubleVal
+struct DataDoubleVal
 {
   std::string name_;
   double value_;
@@ -203,7 +203,7 @@ struct dataDoubleVal
 
 struct SortDoubleByValue
 {
-  bool operator()(const dataDoubleVal& a, const dataDoubleVal& b) const
+  bool operator()(const DataDoubleVal& a, const DataDoubleVal& b) const
   {
     return a.value_ > b.value_;
   }
@@ -215,11 +215,11 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
 {
   double total = to_seconds(tinfo_.total);
 
-  std::vector<dataIntVal> events;
+  std::vector<DataIntVal> events;
   for (std::map<std::string, unsigned long int>::const_iterator iev = data.events.begin(); iev != data.events.end();
        ++iev)
   {
-    dataIntVal next = { iev->first, iev->second };
+    DataIntVal next = { iev->first, iev->second };
     events.push_back(next);
   }
   std::sort(events.begin(), events.end(), SortIntByValue());
@@ -228,10 +228,10 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   for (unsigned int i = 0; i < events.size(); ++i)
     out << events[i].name_ << ": " << events[i].value_ << std::endl;
 
-  std::vector<dataDoubleVal> avg;
+  std::vector<DataDoubleVal> avg;
   for (std::map<std::string, AvgInfo>::const_iterator ia = data.avg.begin(); ia != data.avg.end(); ++ia)
   {
-    dataDoubleVal next = { ia->first, ia->second.total / (double)ia->second.parts };
+    DataDoubleVal next = { ia->first, ia->second.total / (double)ia->second.parts };
     avg.push_back(next);
   }
   std::sort(avg.begin(), avg.end(), SortDoubleByValue());
@@ -245,11 +245,11 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
         << std::endl;
   }
 
-  std::vector<dataDoubleVal> time;
+  std::vector<DataDoubleVal> time;
 
   for (std::map<std::string, TimeInfo>::const_iterator itm = data.time.begin(); itm != data.time.end(); ++itm)
   {
-    dataDoubleVal next = { itm->first, to_seconds(itm->second.total) };
+    DataDoubleVal next = { itm->first, to_seconds(itm->second.total) };
     time.push_back(next);
   }
 

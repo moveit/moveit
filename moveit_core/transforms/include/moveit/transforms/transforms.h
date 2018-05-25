@@ -72,7 +72,7 @@ public:
   virtual ~Transforms();
 
   /** \brief Check if two frames end up being the same once the missing / are added as prefix (if they are missing) */
-  static bool sameFrame(const std::string& frame1, const std::string& frame2);
+  static bool SameFrame(const std::string& frame1, const std::string& frame2);
 
   /**
    * @brief Get the planning frame corresponding to this set of transforms

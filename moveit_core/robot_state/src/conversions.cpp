@@ -80,7 +80,7 @@ static bool _multiDOFJointsToRobotState(const sensor_msgs::MultiDOFJointState& m
   Eigen::Affine3d inv_t;
   bool use_inv_t = false;
 
-  if (nj > 0 && !Transforms::sameFrame(mjs.header.frame_id, state.getRobotModel()->getModelFrame()))
+  if (nj > 0 && !Transforms::SameFrame(mjs.header.frame_id, state.getRobotModel()->getModelFrame()))
   {
     if (tf)
       try
@@ -286,7 +286,7 @@ static void _msgToAttachedBody(const Transforms* tf, const moveit_msgs::Attached
         }
 
         // transform poses to link frame
-        if (!Transforms::sameFrame(aco.object.header.frame_id, aco.link_name))
+        if (!Transforms::SameFrame(aco.object.header.frame_id, aco.link_name))
         {
           Eigen::Affine3d t0;
           if (state.knowsFrameTransform(aco.object.header.frame_id))

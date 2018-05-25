@@ -96,13 +96,13 @@ private:
   const PlanningScene* scene_;
 };
 
-bool PlanningScene::isEmpty(const moveit_msgs::PlanningScene& msg)
+bool PlanningScene::IsEmpty(const moveit_msgs::PlanningScene& msg)
 {
   return msg.name.empty() && msg.fixed_frame_transforms.empty() && msg.allowed_collision_matrix.entry_names.empty() &&
-         msg.link_padding.empty() && msg.link_scale.empty() && isEmpty(msg.robot_state) && isEmpty(msg.world);
+         msg.link_padding.empty() && msg.link_scale.empty() && IsEmpty(msg.robot_state) && IsEmpty(msg.world);
 }
 
-bool PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
+bool PlanningScene::IsEmpty(const moveit_msgs::RobotState& msg)
 {
   /* a state is empty if it includes no information and it is a diff; if the state is not a diff, then the implicit
      information is
@@ -114,7 +114,7 @@ bool PlanningScene::isEmpty(const moveit_msgs::RobotState& msg)
          msg.multi_dof_joint_state.wrench.empty();
 }
 
-bool PlanningScene::isEmpty(const moveit_msgs::PlanningSceneWorld& msg)
+bool PlanningScene::IsEmpty(const moveit_msgs::PlanningSceneWorld& msg)
 {
   return msg.collision_objects.empty() && msg.octomap.octomap.data.empty();
 }
@@ -135,7 +135,7 @@ PlanningScene::PlanningScene(const urdf::ModelInterfaceSharedPtr& urdf_model,
   if (!srdf_model)
     throw moveit::ConstructException("The SRDF model cannot be NULL");
 
-  kmodel_ = createRobotModel(urdf_model, srdf_model);
+  kmodel_ = CreateRobotModel(urdf_model, srdf_model);
   if (!kmodel_)
     throw moveit::ConstructException("Could not create RobotModel");
 
@@ -171,7 +171,7 @@ void PlanningScene::initialize()
 }
 
 /* return NULL on failure */
-robot_model::RobotModelPtr PlanningScene::createRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
+robot_model::RobotModelPtr PlanningScene::CreateRobotModel(const urdf::ModelInterfaceSharedPtr& urdf_model,
                                                            const srdf::ModelConstSharedPtr& srdf_model)
 {
   robot_model::RobotModelPtr robot_model(new robot_model::RobotModel(urdf_model, srdf_model));
@@ -221,7 +221,7 @@ PlanningScene::PlanningScene(const PlanningSceneConstPtr& parent) : parent_(pare
   setActiveCollisionDetector(parent_->getActiveCollisionDetectorName());
 }
 
-PlanningScenePtr PlanningScene::clone(const PlanningSceneConstPtr& scene)
+PlanningScenePtr PlanningScene::Clone(const PlanningSceneConstPtr& scene)
 {
   PlanningScenePtr result = scene->diff();
   result->decoupleParent();

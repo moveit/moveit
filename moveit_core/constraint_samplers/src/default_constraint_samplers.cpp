@@ -347,7 +347,7 @@ bool IKConstraintSampler::loadIKSolver()
 
   // check if we need to transform the request into the coordinate frame expected by IK
   ik_frame_ = kb_->getBaseFrame();
-  transform_ik_ = !robot_state::Transforms::sameFrame(ik_frame_, jmg_->getParentModel().getModelFrame());
+  transform_ik_ = !robot_state::Transforms::SameFrame(ik_frame_, jmg_->getParentModel().getModelFrame());
   if (!ik_frame_.empty() && ik_frame_[0] == '/')
     ik_frame_.erase(ik_frame_.begin());
   if (transform_ik_)
@@ -365,12 +365,12 @@ bool IKConstraintSampler::loadIKSolver()
   if (sampling_pose_.position_constraint_)
   {
     const moveit::core::LinkModel* lm = sampling_pose_.position_constraint_->getLinkModel();
-    if (!moveit::core::Transforms::sameFrame(kb_->getTipFrame(), lm->getName()))
+    if (!moveit::core::Transforms::SameFrame(kb_->getTipFrame(), lm->getName()))
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
       for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+        if (moveit::core::Transforms::SameFrame(it->first->getName(), kb_->getTipFrame()))
         {
           eef_to_ik_tip_transform_ = it->second;
           need_eef_to_ik_tip_transform_ = true;
@@ -383,12 +383,12 @@ bool IKConstraintSampler::loadIKSolver()
   if (!wrong_link && sampling_pose_.orientation_constraint_)
   {
     const moveit::core::LinkModel* lm = sampling_pose_.orientation_constraint_->getLinkModel();
-    if (!robot_state::Transforms::sameFrame(kb_->getTipFrame(), lm->getName()))
+    if (!robot_state::Transforms::SameFrame(kb_->getTipFrame(), lm->getName()))
     {
       wrong_link = true;
       const moveit::core::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
       for (moveit::core::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-        if (moveit::core::Transforms::sameFrame(it->first->getName(), kb_->getTipFrame()))
+        if (moveit::core::Transforms::SameFrame(it->first->getName(), kb_->getTipFrame()))
         {
           eef_to_ik_tip_transform_ = it->second;
           need_eef_to_ik_tip_transform_ = true;

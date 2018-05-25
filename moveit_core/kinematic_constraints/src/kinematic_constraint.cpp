@@ -379,7 +379,7 @@ bool PositionConstraint::equal(const KinematicConstraint& other, double margin) 
     return false;
   const PositionConstraint& o = static_cast<const PositionConstraint&>(other);
 
-  if (link_model_ == o.link_model_ && robot_state::Transforms::sameFrame(constraint_frame_id_, o.constraint_frame_id_))
+  if (link_model_ == o.link_model_ && robot_state::Transforms::SameFrame(constraint_frame_id_, o.constraint_frame_id_))
   {
     if ((offset_ - o.offset_).norm() > margin)
       return false;
@@ -563,7 +563,7 @@ bool OrientationConstraint::equal(const KinematicConstraint& other, double margi
   const OrientationConstraint& o = static_cast<const OrientationConstraint&>(other);
 
   if (o.link_model_ == link_model_ &&
-      robot_state::Transforms::sameFrame(desired_rotation_frame_id_, o.desired_rotation_frame_id_))
+      robot_state::Transforms::SameFrame(desired_rotation_frame_id_, o.desired_rotation_frame_id_))
   {
     Eigen::Matrix3d diff = desired_rotation_matrix_.inverse() * o.desired_rotation_matrix_;
     if (!diff.isIdentity(margin))
@@ -748,8 +748,8 @@ bool VisibilityConstraint::equal(const KinematicConstraint& other, double margin
     return false;
   const VisibilityConstraint& o = static_cast<const VisibilityConstraint&>(other);
 
-  if (robot_state::Transforms::sameFrame(target_frame_id_, o.target_frame_id_) &&
-      robot_state::Transforms::sameFrame(sensor_frame_id_, o.sensor_frame_id_) && cone_sides_ == o.cone_sides_ &&
+  if (robot_state::Transforms::SameFrame(target_frame_id_, o.target_frame_id_) &&
+      robot_state::Transforms::SameFrame(sensor_frame_id_, o.sensor_frame_id_) && cone_sides_ == o.cone_sides_ &&
       sensor_view_direction_ == o.sensor_view_direction_)
   {
     if (fabs(max_view_angle_ - o.max_view_angle_) > margin || fabs(target_radius_ - o.target_radius_) > margin)
@@ -1016,16 +1016,16 @@ bool VisibilityConstraint::decideContact(const collision_detection::Contact& con
     return true;
   if (contact.body_type_1 == collision_detection::BodyTypes::ROBOT_LINK &&
       contact.body_type_2 == collision_detection::BodyTypes::WORLD_OBJECT &&
-      (robot_state::Transforms::sameFrame(contact.body_name_1, sensor_frame_id_) ||
-       robot_state::Transforms::sameFrame(contact.body_name_1, target_frame_id_)))
+      (robot_state::Transforms::SameFrame(contact.body_name_1, sensor_frame_id_) ||
+       robot_state::Transforms::SameFrame(contact.body_name_1, target_frame_id_)))
   {
     ROS_DEBUG_NAMED("kinematic_constraints", "Accepted collision with either sensor or target");
     return true;
   }
   if (contact.body_type_2 == collision_detection::BodyTypes::ROBOT_LINK &&
       contact.body_type_1 == collision_detection::BodyTypes::WORLD_OBJECT &&
-      (robot_state::Transforms::sameFrame(contact.body_name_2, sensor_frame_id_) ||
-       robot_state::Transforms::sameFrame(contact.body_name_2, target_frame_id_)))
+      (robot_state::Transforms::SameFrame(contact.body_name_2, sensor_frame_id_) ||
+       robot_state::Transforms::SameFrame(contact.body_name_2, target_frame_id_)))
   {
     ROS_DEBUG_NAMED("kinematic_constraints", "Accepted collision with either sensor or target");
     return true;

@@ -89,8 +89,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
     EigenSTL::vector_Affine3d waypoints(req.waypoints.size());
     const std::string& default_frame = context_->planning_scene_monitor_->getRobotModel()->getModelFrame();
     bool no_transform = req.header.frame_id.empty() ||
-                        robot_state::Transforms::sameFrame(req.header.frame_id, default_frame) ||
-                        robot_state::Transforms::sameFrame(req.header.frame_id, link_name);
+                        robot_state::Transforms::SameFrame(req.header.frame_id, default_frame) ||
+                        robot_state::Transforms::SameFrame(req.header.frame_id, link_name);
 
     for (std::size_t i = 0; i < req.waypoints.size(); ++i)
     {
@@ -137,7 +137,7 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
                 req.avoid_collisions ? static_cast<const planning_scene::PlanningSceneConstPtr&>(*ls).get() : NULL,
                 kset->empty() ? NULL : kset.get(), _1, _2, _3);
           }
-          bool global_frame = !robot_state::Transforms::sameFrame(link_name, req.header.frame_id);
+          bool global_frame = !robot_state::Transforms::SameFrame(link_name, req.header.frame_id);
           ROS_INFO("Attempting to follow %u waypoints for link '%s' using a step of %lf m and jump threshold %lf (in "
                    "%s reference frame)",
                    (unsigned int)waypoints.size(), link_name.c_str(), req.max_step, req.jump_threshold,

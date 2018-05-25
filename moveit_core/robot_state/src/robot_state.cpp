@@ -1357,7 +1357,7 @@ bool RobotState::setToIKSolverFrame(Eigen::Affine3d& pose, const kinematics::Kin
 bool RobotState::setToIKSolverFrame(Eigen::Affine3d& pose, const std::string& ik_frame)
 {
   // Bring the pose to the frame of the IK solver
-  if (!Transforms::sameFrame(ik_frame, robot_model_->getModelFrame()))
+  if (!Transforms::SameFrame(ik_frame, robot_model_->getModelFrame()))
   {
     const LinkModel* lm = getLinkModel((!ik_frame.empty() && ik_frame[0] == '/') ? ik_frame.substr(1) : ik_frame);
     if (!lm)
@@ -1491,7 +1491,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
       // check if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
       std::string solver_tip_frame = solver_tip_frames[solver_tip_id];
 
-      // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings
+      // remove the frame '/' if there is one, so we can avoid calling Transforms::SameFrame() which may copy strings
       // more often that we need to
       if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
         solver_tip_frame = solver_tip_frame.substr(1);
@@ -1518,7 +1518,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
             return false;
           const robot_model::LinkTransformMap& fixed_links = lm->getAssociatedFixedTransforms();
           for (robot_model::LinkTransformMap::const_iterator it = fixed_links.begin(); it != fixed_links.end(); ++it)
-            if (Transforms::sameFrame(it->first->getName(), solver_tip_frame))
+            if (Transforms::SameFrame(it->first->getName(), solver_tip_frame))
             {
               pose_frame = solver_tip_frame;
               pose = pose * it->second;
@@ -1570,7 +1570,7 @@ bool RobotState::setFromIK(const JointModelGroup* jmg, const EigenSTL::vector_Af
     // Process this tip
     std::string solver_tip_frame = solver_tip_frames[solver_tip_id];
 
-    // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more
+    // remove the frame '/' if there is one, so we can avoid calling Transforms::SameFrame() which may copy strings more
     // often that we need to
     if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
       solver_tip_frame = solver_tip_frame.substr(1);
@@ -1733,7 +1733,7 @@ bool RobotState::setFromIKSubgroups(const JointModelGroup* jmg, const EigenSTL::
     // see if the tip frame can be transformed via fixed transforms to the frame known to the IK solver
     std::string solver_tip_frame = solvers[i]->getTipFrame();
 
-    // remove the frame '/' if there is one, so we can avoid calling Transforms::sameFrame() which may copy strings more
+    // remove the frame '/' if there is one, so we can avoid calling Transforms::SameFrame() which may copy strings more
     // often that we need to
     if (!solver_tip_frame.empty() && solver_tip_frame[0] == '/')
       solver_tip_frame = solver_tip_frame.substr(1);
@@ -1950,7 +1950,7 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     last_valid_percentage = percentage;
   }
 
-  last_valid_percentage *= testJointSpaceJump(group, traj, jump_threshold);
+  last_valid_percentage *= TestJointSpaceJump(group, traj, jump_threshold);
 
   return last_valid_percentage;
 }
@@ -1989,12 +1989,12 @@ double RobotState::computeCartesianPath(const JointModelGroup* group, std::vecto
     }
   }
 
-  percentage_solved *= testJointSpaceJump(group, traj, jump_threshold);
+  percentage_solved *= TestJointSpaceJump(group, traj, jump_threshold);
 
   return percentage_solved;
 }
 
-double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+double RobotState::TestJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                       const JumpThreshold& jump_threshold)
 {
   double percentage_solved = 1.0;
@@ -2002,15 +2002,15 @@ double RobotState::testJointSpaceJump(const JointModelGroup* group, std::vector<
     return percentage_solved;
 
   if (jump_threshold.factor > 0.0)
-    percentage_solved *= testRelativeJointSpaceJump(group, traj, jump_threshold.factor);
+    percentage_solved *= TestRelativeJointSpaceJump(group, traj, jump_threshold.factor);
 
   if (jump_threshold.revolute > 0.0 || jump_threshold.prismatic > 0.0)
-    percentage_solved *= testAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
+    percentage_solved *= TestAbsoluteJointSpaceJump(group, traj, jump_threshold.revolute, jump_threshold.prismatic);
 
   return percentage_solved;
 }
 
-double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+double RobotState::TestRelativeJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                               double jump_threshold_factor)
 {
   if (traj.size() < MIN_STEPS_FOR_JUMP_THRESH)
@@ -2045,7 +2045,7 @@ double RobotState::testRelativeJointSpaceJump(const JointModelGroup* group, std:
   return percentage;
 }
 
-double RobotState::testAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
+double RobotState::TestAbsoluteJointSpaceJump(const JointModelGroup* group, std::vector<RobotStatePtr>& traj,
                                               double revolute_threshold, double prismatic_threshold)
 {
   struct LimitData

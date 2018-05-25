@@ -80,7 +80,7 @@ public:
    * allocators, trying to find one that can service the constraints.
    * The first one that can service the request will be called.  If no
    * allocators can service the Constraints, or there are no
-   * allocators, the selectDefaultSampler will be called.
+   * allocators, the SelectDefaultSampler will be called.
    *
    * @param scene The planning scene that will be passed into the constraint sampler
    * @param group_name The group name for which to allocate the constraint sampler
@@ -124,7 +124,7 @@ public:
    * - If there is no direct IK solver for the group, or no valid IKConstraintSampler could be generated, and there are
    *subgroup IKSolvers, the function will attempt to generate a sampler from the various subgroup solvers.
    *   - It will attempt to determine which constraints act on the IK link for the sub-group IK solvers, and attempts to
-   *create ConstraintSampler functions by recursively calling \ref selectDefaultSampler for the sub-group.
+   *create ConstraintSampler functions by recursively calling \ref SelectDefaultSampler for the sub-group.
    *   - If any samplers are valid, it adds them to a vector of type \ref ConstraintSamplerPtr.
    *   - Once it has iterated through each sub-group, if any samplers are valid, they are returned in a
    *UnionConstraintSampler, along with a JointConstraintSampler if one exists.
@@ -135,7 +135,7 @@ public:
    * @return A valid \ref ConstraintSamplerPtr if one could be allocated, and otherwise an empty \ref
    *ConstraintSamplerPtr
    */
-  static ConstraintSamplerPtr selectDefaultSampler(const planning_scene::PlanningSceneConstPtr& scene,
+  static ConstraintSamplerPtr SelectDefaultSampler(const planning_scene::PlanningSceneConstPtr& scene,
                                                    const std::string& group_name,
                                                    const moveit_msgs::Constraints& constr);
 

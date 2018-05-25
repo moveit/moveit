@@ -99,7 +99,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   ROS_INFO("Combined planning and execution request received for MoveGroup action. Forwarding to planning and "
            "execution pipeline.");
 
-  if (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff))
+  if (planning_scene::PlanningScene::IsEmpty(goal->planning_options.planning_scene_diff))
   {
     planning_scene_monitor::LockedPlanningSceneRO lscene(context_->planning_scene_monitor_);
     const robot_state::RobotState& current_state = lscene->getCurrentState();
@@ -119,10 +119,10 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanAndExecute(const m
   plan_execution::PlanExecution::Options opt;
 
   const moveit_msgs::MotionPlanRequest& motion_plan_request =
-      planning_scene::PlanningScene::isEmpty(goal->request.start_state) ? goal->request :
+      planning_scene::PlanningScene::IsEmpty(goal->request.start_state) ? goal->request :
                                                                           clearRequestStartState(goal->request);
   const moveit_msgs::PlanningScene& planning_scene_diff =
-      planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
+      planning_scene::PlanningScene::IsEmpty(goal->planning_options.planning_scene_diff.robot_state) ?
           goal->planning_options.planning_scene_diff :
           clearSceneRobotState(goal->planning_options.planning_scene_diff);
 
@@ -167,7 +167,7 @@ void move_group::MoveGroupMoveAction::executeMoveCallback_PlanOnly(const moveit_
                                                                                             // representation while
                                                                                             // diff() is called
   const planning_scene::PlanningSceneConstPtr& the_scene =
-      (planning_scene::PlanningScene::isEmpty(goal->planning_options.planning_scene_diff)) ?
+      (planning_scene::PlanningScene::IsEmpty(goal->planning_options.planning_scene_diff)) ?
           static_cast<const planning_scene::PlanningSceneConstPtr&>(lscene) :
           lscene->diff(goal->planning_options.planning_scene_diff);
   planning_interface::MotionPlanResponse res;

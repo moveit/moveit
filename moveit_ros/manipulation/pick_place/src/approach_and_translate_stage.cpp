@@ -207,9 +207,9 @@ bool ApproachAndTranslateStage::evaluate(const ManipulationPlanPtr& plan) const
 
   // if translation vectors are specified in the frame of the ik link name, then we assume the frame is local;
   // otherwise, the frame is global
-  bool approach_direction_is_global_frame = !robot_state::Transforms::sameFrame(
+  bool approach_direction_is_global_frame = !robot_state::Transforms::SameFrame(
       plan->approach_.direction.header.frame_id, plan->shared_data_->ik_link_->getName());
-  bool retreat_direction_is_global_frame = !robot_state::Transforms::sameFrame(plan->retreat_.direction.header.frame_id,
+  bool retreat_direction_is_global_frame = !robot_state::Transforms::SameFrame(plan->retreat_.direction.header.frame_id,
                                                                                plan->shared_data_->ik_link_->getName());
 
   // transform the input vectors in accordance to frame specified in the header;

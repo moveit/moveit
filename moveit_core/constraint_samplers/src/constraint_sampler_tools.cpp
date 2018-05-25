@@ -42,7 +42,7 @@ void constraint_samplers::visualizeDistribution(const moveit_msgs::Constraints& 
                                                 const std::string& group, const std::string& link_name,
                                                 unsigned int sample_count, visualization_msgs::MarkerArray& markers)
 {
-  visualizeDistribution(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr), scene->getCurrentState(),
+  visualizeDistribution(ConstraintSamplerManager::SelectDefaultSampler(scene, group, constr), scene->getCurrentState(),
                         link_name, sample_count, markers);
 }
 
@@ -50,7 +50,7 @@ double constraint_samplers::countSamplesPerSecond(const moveit_msgs::Constraints
                                                   const planning_scene::PlanningSceneConstPtr& scene,
                                                   const std::string& group)
 {
-  return countSamplesPerSecond(ConstraintSamplerManager::selectDefaultSampler(scene, group, constr),
+  return countSamplesPerSecond(ConstraintSamplerManager::SelectDefaultSampler(scene, group, constr),
                                scene->getCurrentState());
 }
 

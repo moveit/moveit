@@ -369,7 +369,7 @@ PlacePlanPtr PickPlace::planPlace(const planning_scene::PlanningSceneConstPtr& p
                                   const moveit_msgs::PlaceGoal& goal) const
 {
   PlacePlanPtr p(new PlacePlan(shared_from_this()));
-  if (planning_scene::PlanningScene::isEmpty(goal.planning_options.planning_scene_diff))
+  if (planning_scene::PlanningScene::IsEmpty(goal.planning_options.planning_scene_diff))
     p->plan(planning_scene, goal);
   else
     p->plan(planning_scene->diff(goal.planning_options.planning_scene_diff), goal);

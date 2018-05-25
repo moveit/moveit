@@ -465,7 +465,7 @@ public:
       o.return_approximate_solution = approx;
 
       // if no frame transforms are needed, call IK directly
-      if (frame.empty() || moveit::core::Transforms::sameFrame(frame, getRobotModel()->getModelFrame()))
+      if (frame.empty() || moveit::core::Transforms::SameFrame(frame, getRobotModel()->getModelFrame()))
         return getJointStateTarget().setFromIK(getJointModelGroup(), eef_pose, eef, 0, 0.0,
                                                moveit::core::GroupStateValidityCallbackFn(), o);
       else

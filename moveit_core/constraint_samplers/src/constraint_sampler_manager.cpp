@@ -48,10 +48,10 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       return sampler_alloc_[i]->alloc(scene, group_name, constr);
 
   // if no default sampler was used, try a default one
-  return selectDefaultSampler(scene, group_name, constr);
+  return SelectDefaultSampler(scene, group_name, constr);
 }
 
-constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(
+constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSamplerManager::SelectDefaultSampler(
     const planning_scene::PlanningSceneConstPtr& scene, const std::string& group_name,
     const moveit_msgs::Constraints& constr)
 {
@@ -320,7 +320,7 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       {
         ROS_DEBUG_NAMED("constraint_samplers", "Attempting to construct a sampler for the '%s' subgroup of '%s'",
                         it->first->getName().c_str(), jmg->getName().c_str());
-        ConstraintSamplerPtr cs = selectDefaultSampler(scene, it->first->getName(), sub_constr);
+        ConstraintSamplerPtr cs = SelectDefaultSampler(scene, it->first->getName(), sub_constr);
         if (cs)
         {
           ROS_DEBUG_NAMED("constraint_samplers", "Constructed a sampler for the joints corresponding to group '%s', "

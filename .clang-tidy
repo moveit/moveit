@@ -28,16 +28,24 @@ CheckOptions:
     value:           UPPER_CASE
   - key:             readability-identifier-naming.MethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.ClassMethodCase
+    value:           CamelCase
   - key:             readability-identifier-naming.UnionCase
     value:           CamelCase
   - key:             readability-identifier-naming.VariableCase
     value:           lower_case
   - key:             readability-identifier-naming.ConstantCase
     value:           UPPER_CASE
-  - key:             readability-identifier-naming.CostantMemberCase
+  - key:             readability-identifier-naming.ConstantParameterCase
+    value:           lower_case
+  - key:             readability-identifier-naming.LocalConstantCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StaticConstantCase
     value:           UPPER_CASE
   - key:             readability-identifier-naming.MemberCase
     value:           lower_case
+  - key:             readability-identifier-naming.CostantMemberCase
+    value:           UPPER_CASE
   - key:             readability-identifier-naming.MemberSuffix
     value:           '_'
 ...

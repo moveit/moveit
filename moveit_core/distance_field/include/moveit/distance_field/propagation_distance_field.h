@@ -548,7 +548,7 @@ private:
    *
    * @return Distance between points squared
    */
-  static int eucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
+  static int EucDistSq(Eigen::Vector3i point1, Eigen::Vector3i point2);
 
   bool propagate_negative_; /**< \brief Whether or not to propagate negative distances */
 

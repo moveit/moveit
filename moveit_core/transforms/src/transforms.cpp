@@ -61,14 +61,14 @@ Transforms::Transforms(const std::string& target_frame) : target_frame_(target_f
   }
 }
 
-bool Transforms::sameFrame(const std::string& frame1, const std::string& frame2)
+bool Transforms::SameFrame(const std::string& frame1, const std::string& frame2)
 {
   if (frame1.empty() || frame2.empty())
     return false;
   if (frame1[0] != '/')
-    return sameFrame('/' + frame1, frame2);
+    return SameFrame('/' + frame1, frame2);
   if (frame2[0] != '/')
-    return sameFrame(frame1, '/' + frame2);
+    return SameFrame(frame1, '/' + frame2);
   return frame1 == frame2;
 }
 
@@ -143,7 +143,7 @@ void Transforms::setTransform(const Eigen::Affine3d& t, const std::string& from_
 
 void Transforms::setTransform(const geometry_msgs::TransformStamped& transform)
 {
-  if (sameFrame(transform.child_frame_id, target_frame_))
+  if (SameFrame(transform.child_frame_id, target_frame_))
   {
     Eigen::Affine3d t;
     tf::transformMsgToEigen(transform.transform, t);
