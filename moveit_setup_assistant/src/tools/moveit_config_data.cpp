@@ -611,7 +611,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Key << "hardware_interface";
   emitter << YAML::Value << YAML::BeginMap;
   // Loop through groups
-  for (int i = 0; i < srdf_->groups_.size(); ++i)
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
   {
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
@@ -619,7 +619,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j = 0; j < planning_groups[i].size(); j++)
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
     {
       emitter << planning_groups[i][j];
     }
@@ -651,7 +651,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Key << "type";
   emitter << YAML::Value << "position_controllers/JointTrajectoryController";
   // Loop through groups
-  for (int i = 0; i < srdf_->groups_.size(); ++i)
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
   {
     // emitter << YAML::BeginMap;
     emitter << YAML::Key << "name";
@@ -660,7 +660,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j = 0; j < planning_groups[i].size(); j++)
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
     {
       emitter << planning_groups[i][j];
     }
@@ -671,7 +671,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Key << "goal_time";
   emitter << YAML::Value << "5.0";
   // Loop through groups
-  for (int i = 0; i < srdf_->groups_.size(); ++i)
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
   {
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
@@ -679,7 +679,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j = 0; j < planning_groups[i].size(); j++)
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
     {
       emitter << YAML::BeginMap;
       emitter << YAML::Key << planning_groups[i][j] << YAML::Value << YAML::BeginMap;
@@ -703,7 +703,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   emitter << YAML::Key << "type";
   emitter << YAML::Value << "position_controllers/JointGroupPositionController";
   // Loop through groups
-  for (int i = 0; i < srdf_->groups_.size(); ++i)
+  for (std::size_t i = 0; i < srdf_->groups_.size(); ++i)
   {
     emitter << YAML::Key << "name";
     emitter << YAML::Value << srdf_->groups_[i].name_ + "_controller";
@@ -711,7 +711,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
     emitter << YAML::Value << YAML::BeginSeq;
 
     // Iterate through the joints
-    for (int j = 0; j < planning_groups[i].size(); j++)
+    for (std::size_t j = 0; j < planning_groups[i].size(); j++)
     {
       emitter << planning_groups[i][j];
     }
