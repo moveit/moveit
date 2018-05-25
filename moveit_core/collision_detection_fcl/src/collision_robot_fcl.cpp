@@ -97,10 +97,10 @@ void CollisionRobotFCL::constructFCLObject(const robot_state::RobotState& state,
       transform2fcl(state.getCollisionBodyTransform(geoms_[i]->collision_geometry_data_->ptr.link,
                                                     geoms_[i]->collision_geometry_data_->shape_index),
                     fcl_tf);
-      auto collObj = new fcl::CollisionObject(*fcl_objs_[i]);
-      collObj->setTransform(fcl_tf);
-      collObj->computeAABB();
-      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(collObj));
+      auto coll_obj = new fcl::CollisionObject(*fcl_objs_[i]);
+      coll_obj->setTransform(fcl_tf);
+      coll_obj->computeAABB();
+      fcl_obj.collision_objects_.push_back(FCLCollisionObjectPtr(coll_obj));
     }
 
   // TODO: Implement a method for caching fcl::CollisionObject's for robot_state::AttachedBody's

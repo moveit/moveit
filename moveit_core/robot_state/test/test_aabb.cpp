@@ -106,10 +106,10 @@ TEST_F(TestAABB, TestPR2)
 
   boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
-  const std::string PR2_URDF = this->readFileToString(res_path / "pr2_description/urdf/robot.xml");
-  const std::string PR2_SRDF = this->readFileToString(res_path / "pr2_description/srdf/robot.xml");
+  const std::string p_r2_urdf = this->readFileToString(res_path / "pr2_description/urdf/robot.xml");
+  const std::string p_r2_srdf = this->readFileToString(res_path / "pr2_description/srdf/robot.xml");
 
-  robot_state::RobotState pr2_state = this->loadModel(PR2_URDF, PR2_SRDF);
+  robot_state::RobotState pr2_state = this->loadModel(p_r2_urdf, p_r2_srdf);
 
   const Eigen::Vector3d& extentsBaseFootprint = pr2_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin();
   // values taken from moveit_resources/pr2_description/urdf/robot.xml
@@ -295,7 +295,7 @@ TEST_F(TestAABB, TestSimple)
 {
   // Contains a link with simple geometry and an offset in the collision link
 
-  const std::string SIMPLE_URDF =
+  const std::string simple_urdf =
       "<?xml version='1.0' ?>"
       "<robot name='simple'>"
       "  <link name='base_link'>"
@@ -321,7 +321,7 @@ TEST_F(TestAABB, TestSimple)
       "  </joint>"
       "</robot>";
 
-  const std::string SIMPLE_SRDF =
+  const std::string simple_srdf =
       "<?xml version='1.0'?>"
       "<robot name='simple'>  "
       "  <virtual_joint name='world_joint' type='planar' parent_frame='odom_combined' child_link='base_footprint'/>   "
@@ -330,7 +330,7 @@ TEST_F(TestAABB, TestSimple)
       "  </group>    "
       "</robot>";
 
-  robot_state::RobotState simple_state = this->loadModel(SIMPLE_URDF, SIMPLE_SRDF);
+  robot_state::RobotState simple_state = this->loadModel(simple_urdf, simple_srdf);
 
   std::vector<double> simple_aabb;
   simple_state.computeAABB(simple_aabb);
@@ -348,7 +348,7 @@ TEST_F(TestAABB, TestComplex)
 {
   // Contains a link with simple geometry and an offset and rotation in the collision link
 
-  const std::string COMPLEX_URDF = "<?xml version='1.0' ?>"
+  const std::string complex_urdf = "<?xml version='1.0' ?>"
                                    "<robot name='complex'>"
                                    "  <link name='base_link'>"
                                    "    <collision>"
@@ -379,7 +379,7 @@ TEST_F(TestAABB, TestComplex)
                                    "  </joint>"
                                    "</robot>";
 
-  const std::string COMPLEX_SRDF =
+  const std::string complex_srdf =
       "<?xml version='1.0'?>"
       "<robot name='complex'>  "
       "  <virtual_joint name='world_joint' type='planar' parent_frame='odom_combined' child_link='base_footprint'/>   "
@@ -388,7 +388,7 @@ TEST_F(TestAABB, TestComplex)
       "  </group>    "
       "</robot>";
 
-  robot_state::RobotState complex_state = this->loadModel(COMPLEX_URDF, COMPLEX_SRDF);
+  robot_state::RobotState complex_state = this->loadModel(complex_urdf, complex_srdf);
 
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[0], 0.1, 1e-4);
   EXPECT_NEAR(complex_state.getLinkModel("base_footprint")->getShapeExtentsAtOrigin()[1], 1.0, 1e-4);

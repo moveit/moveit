@@ -88,10 +88,10 @@ TEST_F(LoadPlanningModelsPr2, InitOK)
 
 TEST_F(LoadPlanningModelsPr2, ModelInit)
 {
-  srdf::ModelSharedPtr srdfModel(new srdf::Model());
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
 
   // with no world multidof we should get a fixed joint
-  moveit::core::RobotModel robot_model0(urdf_model, srdfModel);
+  moveit::core::RobotModel robot_model0(urdf_model, srdf_model);
   EXPECT_TRUE(robot_model0.getRootJoint()->getVariableCount() == 0);
 
   static const std::string SMODEL1 = "<?xml version=\"1.0\" ?>"
@@ -99,9 +99,9 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
                                      "<virtual_joint name=\"base_joint\" child_link=\"base_footprint\" "
                                      "parent_frame=\"base_footprint\" type=\"planar\"/>"
                                      "</robot>";
-  srdfModel->initString(*urdf_model, SMODEL1);
+  srdf_model->initString(*urdf_model, SMODEL1);
 
-  moveit::core::RobotModel robot_model1(urdf_model, srdfModel);
+  moveit::core::RobotModel robot_model1(urdf_model, srdf_model);
   ASSERT_TRUE(robot_model1.getRootJoint() != nullptr);
   EXPECT_EQ(robot_model1.getModelFrame(), "/base_footprint");
 
@@ -110,9 +110,9 @@ TEST_F(LoadPlanningModelsPr2, ModelInit)
                                      "<virtual_joint name=\"world_joint\" child_link=\"base_footprint\" "
                                      "parent_frame=\"odom_combined\" type=\"floating\"/>"
                                      "</robot>";
-  srdfModel->initString(*urdf_model, SMODEL2);
+  srdf_model->initString(*urdf_model, SMODEL2);
 
-  moveit::core::RobotModel robot_model2(urdf_model, srdfModel);
+  moveit::core::RobotModel robot_model2(urdf_model, srdf_model);
   ASSERT_TRUE(robot_model2.getRootJoint() != nullptr);
   EXPECT_EQ(robot_model2.getModelFrame(), "/odom_combined");
 }
@@ -132,9 +132,9 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
                                      "</group>"
                                      "</robot>";
 
-  srdf::ModelSharedPtr srdfModel(new srdf::Model());
-  srdfModel->initString(*urdf_model, SMODEL1);
-  moveit::core::RobotModel robot_model1(urdf_model, srdfModel);
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  srdf_model->initString(*urdf_model, SMODEL1);
+  moveit::core::RobotModel robot_model1(urdf_model, srdf_model);
 
   const moveit::core::JointModelGroup* left_arm_base_tip_group = robot_model1.getJointModelGroup("left_arm_base_tip");
   ASSERT_TRUE(left_arm_base_tip_group == nullptr);
@@ -159,9 +159,9 @@ TEST_F(LoadPlanningModelsPr2, GroupInit)
                                      "<joint name=\"l_wrist_roll_joint\"/>"
                                      "</group>"
                                      "</robot>";
-  srdfModel->initString(*urdf_model, SMODEL2);
+  srdf_model->initString(*urdf_model, SMODEL2);
 
-  moveit::core::RobotModelPtr robot_model2(new moveit::core::RobotModel(urdf_model, srdfModel));
+  moveit::core::RobotModelPtr robot_model2(new moveit::core::RobotModel(urdf_model, srdf_model));
 
   left_arm_base_tip_group = robot_model2->getJointModelGroup("left_arm_base_tip");
   ASSERT_TRUE(left_arm_base_tip_group != nullptr);

@@ -103,13 +103,13 @@ TEST(Loading, SimpleRobot)
       "<virtual_joint name=\"base_joint\" child_link=\"base_link\" parent_frame=\"odom_combined\" type=\"floating\"/>"
       "</robot>";
 
-  urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL0);
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL0);
   srdf::ModelSharedPtr srdfModel(new srdf::Model());
-  srdfModel->initString(*urdfModel, SMODEL0);
+  srdfModel->initString(*urdf_model, SMODEL0);
 
   EXPECT_TRUE(srdfModel->getVirtualJoints().size() == 1);
 
-  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
+  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdf_model, srdfModel));
   moveit::core::RobotState state(model);
 
   state.setToDefaultValues();
@@ -167,12 +167,12 @@ TEST(LoadingAndFK, SimpleRobot)
       "</group>"
       "</robot>";
 
-  urdf::ModelInterfaceSharedPtr urdfModel = urdf::parseURDF(MODEL1);
+  urdf::ModelInterfaceSharedPtr urdf_model = urdf::parseURDF(MODEL1);
 
-  srdf::ModelSharedPtr srdfModel(new srdf::Model());
-  srdfModel->initString(*urdfModel, SMODEL1);
+  srdf::ModelSharedPtr srdf_model(new srdf::Model());
+  srdf_model->initString(*urdf_model, SMODEL1);
 
-  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdfModel, srdfModel));
+  moveit::core::RobotModelPtr model(new moveit::core::RobotModel(urdf_model, srdf_model));
   moveit::core::RobotState state(model);
 
   EXPECT_EQ((unsigned int)3, state.getVariableCount());

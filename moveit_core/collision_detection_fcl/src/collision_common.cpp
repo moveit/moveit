@@ -619,7 +619,7 @@ struct IfSameType
 {
   enum
   {
-    value = 0
+    value = 0 // NOLINT, this is used more like a variable than an enum.
   };
 };
 
@@ -628,7 +628,7 @@ struct IfSameType<T, T>
 {
   enum
   {
-    value = 1
+    value = 1 // NOLINT, this is used more like a variable than an enum.
   };
 };
 

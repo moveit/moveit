@@ -1874,8 +1874,8 @@ const object_recognition_msgs::ObjectType& PlanningScene::getObjectType(const st
   }
   if (parent_)
     return parent_->getObjectType(id);
-  static const object_recognition_msgs::ObjectType empty;
-  return empty;
+  static const object_recognition_msgs::ObjectType EMPTY;
+  return EMPTY;
 }
 
 void PlanningScene::setObjectType(const std::string& id, const object_recognition_msgs::ObjectType& type)
@@ -1921,8 +1921,8 @@ const std_msgs::ColorRGBA& PlanningScene::getObjectColor(const std::string& id) 
   }
   if (parent_)
     return parent_->getObjectColor(id);
-  static const std_msgs::ColorRGBA empty;
-  return empty;
+  static const std_msgs::ColorRGBA EMPTY;
+  return EMPTY;
 }
 
 void PlanningScene::getKnownObjectColors(ObjectColorMap& kc) const
@@ -2032,14 +2032,14 @@ bool PlanningScene::isStateConstrained(const robot_state::RobotState& state,
 
 bool PlanningScene::isStateValid(const robot_state::RobotState& state, const std::string& group, bool verbose) const
 {
-  static const moveit_msgs::Constraints emp_constraints;
-  return isStateValid(state, emp_constraints, group, verbose);
+  static const moveit_msgs::Constraints EMP_CONSTRAINTS;
+  return isStateValid(state, EMP_CONSTRAINTS, group, verbose);
 }
 
 bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const std::string& group, bool verbose) const
 {
-  static const moveit_msgs::Constraints emp_constraints;
-  return isStateValid(state, emp_constraints, group, verbose);
+  static const moveit_msgs::Constraints EMP_CONSTRAINTS;
+  return isStateValid(state, EMP_CONSTRAINTS, group, verbose);
 }
 
 bool PlanningScene::isStateValid(const moveit_msgs::RobotState& state, const moveit_msgs::Constraints& constr,
@@ -2075,9 +2075,9 @@ bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                 const moveit_msgs::RobotTrajectory& trajectory, const std::string& group, bool verbose,
                                 std::vector<std::size_t>* invalid_index) const
 {
-  static const moveit_msgs::Constraints emp_constraints;
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(start_state, trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
+  static const moveit_msgs::Constraints EMP_CONSTRAINTS;
+  static const std::vector<moveit_msgs::Constraints> EMP_CONSTRAINTS_VECTOR;
+  return isPathValid(start_state, trajectory, EMP_CONSTRAINTS, EMP_CONSTRAINTS_VECTOR, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
@@ -2085,8 +2085,8 @@ bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
                                 const moveit_msgs::Constraints& path_constraints, const std::string& group,
                                 bool verbose, std::vector<std::size_t>* invalid_index) const
 {
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(start_state, trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
+  static const std::vector<moveit_msgs::Constraints> EMP_CONSTRAINTS_VECTOR;
+  return isPathValid(start_state, trajectory, path_constraints, EMP_CONSTRAINTS_VECTOR, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const moveit_msgs::RobotState& start_state,
@@ -2182,16 +2182,16 @@ bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& traject
                                 const moveit_msgs::Constraints& path_constraints, const std::string& group,
                                 bool verbose, std::vector<std::size_t>* invalid_index) const
 {
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(trajectory, path_constraints, emp_constraints_vector, group, verbose, invalid_index);
+  static const std::vector<moveit_msgs::Constraints> EMP_CONSTRAINTS_VECTOR;
+  return isPathValid(trajectory, path_constraints, EMP_CONSTRAINTS_VECTOR, group, verbose, invalid_index);
 }
 
 bool PlanningScene::isPathValid(const robot_trajectory::RobotTrajectory& trajectory, const std::string& group,
                                 bool verbose, std::vector<std::size_t>* invalid_index) const
 {
-  static const moveit_msgs::Constraints emp_constraints;
-  static const std::vector<moveit_msgs::Constraints> emp_constraints_vector;
-  return isPathValid(trajectory, emp_constraints, emp_constraints_vector, group, verbose, invalid_index);
+  static const moveit_msgs::Constraints EMP_CONSTRAINTS;
+  static const std::vector<moveit_msgs::Constraints> EMP_CONSTRAINTS_VECTOR;
+  return isPathValid(trajectory, EMP_CONSTRAINTS, EMP_CONSTRAINTS_VECTOR, group, verbose, invalid_index);
 }
 
 void PlanningScene::getCostSources(const robot_trajectory::RobotTrajectory& trajectory, std::size_t max_costs,

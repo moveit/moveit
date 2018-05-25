@@ -111,8 +111,8 @@ const Eigen::Affine3d& Transforms::getTransform(const std::string& from_frame) c
                   from_frame.c_str(), target_frame_.c_str());
 
   // return identity
-  static const Eigen::Affine3d identity = Eigen::Affine3d::Identity();
-  return identity;
+  static const Eigen::Affine3d IDENTITY = Eigen::Affine3d::Identity();
+  return IDENTITY;
 }
 
 bool Transforms::canTransform(const std::string& from_frame) const

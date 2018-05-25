@@ -262,10 +262,10 @@ void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
   {
     const TimeInfo& d = data.time.find(time[i].name)->second;
 
-    double tS = to_seconds(d.shortest);
-    double tL = to_seconds(d.longest);
-    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), [" << tS
-        << "s --> " << tL << " s], " << d.parts << " parts";
+    double t_s = to_seconds(d.shortest);
+    double t_l = to_seconds(d.longest);
+    out << time[i].name << ": " << time[i].value << "s (" << (100.0 * time[i].value / total) << "%), [" << t_s
+        << "s --> " << t_l << " s], " << d.parts << " parts";
     if (d.parts > 0)
     {
       double pavg = to_seconds(d.total) / (double)d.parts;
