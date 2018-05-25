@@ -45,8 +45,5 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 add_subdirectory(ompl_interface)
 
-install(FILES ompl_interface_plugin_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-install(FILES ompl_model_based_planning_plugin_description.xml
+install(FILES ompl_interface_plugin_description.xml ompl_model_based_planning_plugin_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

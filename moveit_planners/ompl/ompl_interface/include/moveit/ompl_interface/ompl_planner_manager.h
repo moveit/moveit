@@ -37,7 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_OMPL_PLANNER_MANAGER_
 #define MOVEIT_OMPL_INTERFACE_OMPL_PLANNER_MANAGER_
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
