@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_visualization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2018-05-25)
+-------------------
 * [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * [feature] rviz plugin: set start/goal RobotState from external (`#823 <https://github.com/ros-planning/moveit/issues/823>`_)
   - /rviz/moveit/update_custom_start_state

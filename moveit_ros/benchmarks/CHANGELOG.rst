@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_benchmarks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2018-05-25)
+-------------------
 * migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Contributors: Ian McMahon
 

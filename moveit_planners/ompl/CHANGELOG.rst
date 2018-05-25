@@ -2,8 +2,8 @@
 Changelog for package moveit_planners_ompl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2018-05-25)
+-------------------
 * migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Make trajectory interpolation in MoveIt consistent to OMPL (`#869 <https://github.com/ros-planning/moveit/issues/869>`_)

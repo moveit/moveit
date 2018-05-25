@@ -2,8 +2,8 @@
 Changelog for package moveit_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2018-05-25)
+-------------------
 * Clang tidy moveit_core (`#880 <https://github.com/ros-planning/moveit/issues/880>`_) (`#911 <https://github.com/ros-planning/moveit/issues/911>`_)
 * Allow to retrieve Jacobian of a child link of a move group. (`#877 <https://github.com/ros-planning/moveit/issues/877>`_)
 * Contributors: Bryce Willey, Dave Coleman, Michael Görner
