@@ -37,6 +37,7 @@
 #ifndef MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 #define MOVEIT_OMPL_INTERFACE_MODEL_BASED_PLANNING_CONTEXT_
 
+#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 #include <moveit/ompl_interface/detail/constrained_valid_state_sampler.h>
 #include <moveit/constraint_samplers/constraint_sampler_manager.h>
@@ -51,6 +52,8 @@
 
 namespace ompl_interface
 {
+using namespace moveit_planners_ompl;
+
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace ot = ompl::tools;
@@ -81,6 +84,10 @@ public:
   virtual ~ModelBasedPlanningContext()
   {
   }
+
+  void configureContext(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
+  bool saveConstraintApproximations(const ros::NodeHandle& nh);
+  bool loadConstraintApproximations(const ros::NodeHandle& nh);
 
   virtual bool solve(planning_interface::MotionPlanResponse& res);
   virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);

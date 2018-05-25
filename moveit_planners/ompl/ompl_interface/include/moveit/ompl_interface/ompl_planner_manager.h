@@ -87,9 +87,6 @@ public:
     return *constraint_sampler_manager_;
   }
 
-  // bool saveConstraintApproximations();
-  // bool loadConstraintApproximations();
-
 private:
   void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level)
   {

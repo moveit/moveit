@@ -113,6 +113,17 @@ ompl_interface::ModelBasedPlanningContext::ModelBasedPlanningContext(const std::
       boost::bind(&ModelBasedPlanningContext::allocPathConstrainedSampler, this, _1));
 }
 
+void ompl_interface::ModelBasedPlanningContext::configureContext(const ros::NodeHandle& nh,
+                                                                 const OMPLDynamicReconfigureConfig& config)
+{
+  loadConstraintApproximations(nh);
+
+  simplifySolutions(config.simplify_solutions);
+
+  if (!config.use_constraints_approximations)
+    setConstraintsApproximations(ConstraintsLibraryPtr());
+}
+
 namespace
 {
 using namespace ompl_interface;
@@ -823,7 +834,28 @@ bool ompl_interface::ModelBasedPlanningContext::terminate()
   return true;
 }
 
-// if (config_.use_constraints_approximations)
-//     ctx->setConstraintsApproximations(constraints_library_);
-// else
-//     ctx->setConstraintsApproximations(ConstraintsLibraryPtr());
+bool ompl_interface::ModelBasedPlanningContext::saveConstraintApproximations(const ros::NodeHandle& nh)
+{
+  std::string cpath;
+  if (nh.getParam("constraint_approximations_path", cpath))
+  {
+    constraints_library_->saveConstraintApproximations(cpath);
+    return true;
+  }
+  ROS_WARN("ROS param 'constraint_approximations' not found. Unable to save constraint approximations");
+  return false;
+}
+
+bool ompl_interface::ModelBasedPlanningContext::loadConstraintApproximations(const ros::NodeHandle& nh)
+{
+  std::string cpath;
+  if (nh.getParam("constraint_approximations_path", cpath))
+  {
+    constraints_library_->loadConstraintApproximations(cpath);
+    std::stringstream ss;
+    constraints_library_->printConstraintApproximations(ss);
+    ROS_INFO_STREAM(ss.str());
+    return true;
+  }
+  return false;
+}
