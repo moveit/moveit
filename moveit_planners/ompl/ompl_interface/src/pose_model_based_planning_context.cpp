@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2012, Willow Garage, Inc.
+ *  Copyright (c) 2018, Willow Garage, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,19 +37,13 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <pluginlib/class_list_macros.h>
 
-namespace ompl_interface
+ompl_interface::ModelBasedStateSpacePtr ompl_interface::PoseModelBasedPlanningContext::getStateSpace()
 {
-class PoseModelBasedPlanningContext : public ModelBasedPlanningContext
-{
-  virtual ModelBasedStateSpacePtr getStateSpace()
-  {
-    ModelBasedStateSpaceSpecification space_spec(spec_.robot_model_, spec_.jmg_);
-    space_spec.joint_bounds_ = spec_.joint_bounds_;
+  ModelBasedStateSpaceSpecification space_spec(spec_.robot_model_, spec_.jmg_);
+  space_spec.joint_bounds_ = spec_.joint_bounds_;
 
-    PoseModelStateSpaceFactory factory;
-    return factory.getNewStateSpace(space_spec);
-  }
-};
-}  // ompl_interface
+  PoseModelStateSpaceFactory factory;
+  return factory.getNewStateSpace(space_spec);
+}
 
 PLUGINLIB_EXPORT_CLASS(ompl_interface::PoseModelBasedPlanningContext, ompl_interface::OMPLPlanningContext)

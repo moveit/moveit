@@ -287,6 +287,16 @@ protected:
 
   ConstraintsLibraryPtr constraints_library_;
 };
+
+class JointModelBasedPlanningContext : public ModelBasedPlanningContext
+{
+  ModelBasedStateSpacePtr getStateSpace() override;
+};
+
+class PoseModelBasedPlanningContext : public ModelBasedPlanningContext
+{
+  ModelBasedStateSpacePtr getStateSpace() override;
+};
 }
 
 #endif

@@ -37,6 +37,29 @@
 #ifndef MOVEIT_OMPL_INTERFACE_OMPL_PLANNER_MANAGER_
 #define MOVEIT_OMPL_INTERFACE_OMPL_PLANNER_MANAGER_
 
+#include <class_loader/class_loader.h>
+
+#include <moveit/planning_interface/planning_interface.h>
+#include <moveit/planning_scene/planning_scene.h>
+
+#include <moveit/ompl_interface/planning_context_manager.h>
+
+#include <moveit/constraint_samplers/constraint_sampler_manager.h>
+#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
+
+#include <moveit_msgs/MotionPlanRequest.h>
+#include <moveit_msgs/MotionPlanResponse.h>
+
+#include <ompl/util/Console.h>
+#include <memory>
+#include <string>
+#include <map>
+#include <ros/ros.h>
+
+#include <dynamic_reconfigure/server.h>
+
+#include <moveit_planners_ompl/OMPLDynamicReconfigureConfig.h>
+
 namespace ompl_interface
 {
 using namespace moveit_planners_ompl;
@@ -56,9 +79,17 @@ public:
 
   void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig) override;
 
+  OMPLPlanningContextPtr getOMPLPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                const planning_interface::MotionPlanRequest& req,
+                                                moveit_msgs::MoveItErrorCodes& error_code) const;
+  OMPLPlanningContextPtr getOMPLPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                const planning_interface::MotionPlanRequest& req) const;
+
   planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                                             const planning_interface::MotionPlanRequest& req,
                                                             moveit_msgs::MoveItErrorCodes& error_code) const override;
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                            const planning_interface::MotionPlanRequest& req) const;
 
   /** @brief Get the configurations for the planners that are already loaded
       @param pconfig Configurations for the different planners */

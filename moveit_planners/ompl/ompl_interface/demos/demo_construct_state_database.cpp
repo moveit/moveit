@@ -34,7 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/ompl_interface.h>
+#include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/ompl_interface/detail/constraints_library.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/profiler/profiler.h>
 
@@ -61,10 +62,21 @@ moveit_msgs::Constraints getConstraints()
   return cmsg;
 }
 
-void computeDB(const robot_model::RobotModelPtr& robot_model, unsigned int ns, unsigned int ne)
+void computeDB(const robot_model::RobotModelPtr& robot_model, const std::string& configuration, unsigned int ns,
+               unsigned int ne)
 {
   planning_scene::PlanningScenePtr ps(new planning_scene::PlanningScene(robot_model));
-  ompl_interface::OMPLInterface ompl_interface(robot_model);
+
+  ompl_interface::OMPLPlanningContextSpecification spec;
+  spec.config_.name = "UNINITIALIZED";
+  spec.config_.group = "right_arm";
+  spec.robot_model_ = robot_model;
+  spec.jmg_ = robot_model->getJointModelGroup(spec.config_.group);
+
+  ompl_interface::ModelBasedPlanningContextPtr context =
+      std::make_shared<ompl_interface::PoseModelBasedPlanningContext>();
+  context->initialize(spec);
+
   moveit_msgs::Constraints c = getConstraints();
   ompl_interface::ConstraintApproximationConstructionOptions opt;
   opt.state_space_parameterization = "PoseModel";
@@ -75,8 +87,8 @@ void computeDB(const robot_model::RobotModelPtr& robot_model, unsigned int ns, u
   opt.explicit_points_resolution = 0.05;
   opt.max_explicit_points = 10;
 
-  ompl_interface.getConstraintsLibrary().addConstraintApproximation(c, "right_arm", ps, opt);
-  ompl_interface.getConstraintsLibrary().saveConstraintApproximations("~/constraints_approximation_database");
+  context->getConstraintsLibrary()->addConstraintApproximation(c, spec.config_.group, ps, opt);
+  context->getConstraintsLibrary()->saveConstraintApproximations("~/constraints_approximation_database");
   ROS_INFO("Done");
 }
 
@@ -111,13 +123,14 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
+  std::string configuration;
   unsigned int nstates = 1000;
   unsigned int nedges = 0;
 
   if (argc > 1)
     try
     {
-      nstates = boost::lexical_cast<unsigned int>(argv[1]);
+      configuration = std::string(argv[1]);
     }
     catch (...)
     {
@@ -126,14 +139,23 @@ int main(int argc, char** argv)
   if (argc > 2)
     try
     {
-      nedges = boost::lexical_cast<unsigned int>(argv[2]);
+      nstates = boost::lexical_cast<unsigned int>(argv[2]);
+    }
+    catch (...)
+    {
+    }
+
+  if (argc > 3)
+    try
+    {
+      nedges = boost::lexical_cast<unsigned int>(argv[3]);
     }
     catch (...)
     {
     }
 
   robot_model_loader::RobotModelLoader rml(ROBOT_DESCRIPTION);
-  computeDB(rml.getModel(), nstates, nedges);
+  computeDB(rml.getModel(), configuration, nstates, nedges);
 
   ros::shutdown();
   return 0;

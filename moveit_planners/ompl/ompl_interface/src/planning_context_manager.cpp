@@ -111,6 +111,13 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 }
 
 ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req) const
+{
+  moveit_msgs::MoveItErrorCodes dummy;
+  return getPlanningContext(planning_scene, req, dummy);
+}
+
+ompl_interface::OMPLPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
     const planning_scene::PlanningSceneConstPtr& planning_scene, const moveit_msgs::MotionPlanRequest& req,
     moveit_msgs::MoveItErrorCodes& error_code) const
 {

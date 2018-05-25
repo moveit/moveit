@@ -78,6 +78,9 @@ public:
   OMPLPlanningContextPtr getLastPlanningContext() const;
 
   OMPLPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                            const planning_interface::MotionPlanRequest& req) const;
+
+  OMPLPlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                                             const planning_interface::MotionPlanRequest& req,
                                             moveit_msgs::MoveItErrorCodes& error_code) const;
 

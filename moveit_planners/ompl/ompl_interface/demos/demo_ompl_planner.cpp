@@ -34,9 +34,8 @@
 
 /* Author: Ioan Sucan */
 
-#include <moveit/ompl_interface/ompl_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/ompl_interface/model_based_planning_context.h>
+#include <moveit/ompl_interface/ompl_planner_manager.h>
 #include <tf2_ros/transform_listener.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit/profiler/profiler.h>
@@ -53,7 +52,7 @@ class OMPLPlannerService
 {
 public:
   OMPLPlannerService(planning_scene_monitor::PlanningSceneMonitor& psm, bool debug = false)
-    : nh_("~"), psm_(psm), ompl_interface_(psm.getPlanningScene()->getRobotModel()), debug_(debug)
+    : nh_("~"), psm_(psm), debug_(debug)
   {
     plan_service_ = nh_.advertiseService(PLANNER_SERVICE_NAME, &OMPLPlannerService::computePlan, this);
     if (debug_)
@@ -61,6 +60,8 @@ public:
       pub_plan_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("display_motion_plan", 100);
       pub_request_ = nh_.advertise<moveit_msgs::MotionPlanRequest>("motion_plan_request", 100);
     }
+
+    ompl_planner_manager_.initialize(psm.getPlanningScene()->getRobotModel(), "");
   }
 
   bool computePlan(moveit_msgs::GetMotionPlan::Request& req, moveit_msgs::GetMotionPlan::Response& res)
@@ -70,8 +71,9 @@ public:
       pub_request_.publish(req.motion_plan_request);
     planning_interface::MotionPlanResponse response;
 
-    ompl_interface::ModelBasedPlanningContextPtr context =
-        ompl_interface_.getPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
+    ompl_interface::OMPLPlanningContextPtr context =
+        ompl_planner_manager_.getOMPLPlanningContext(psm_.getPlanningScene(), req.motion_plan_request);
+
     if (!context)
     {
       ROS_ERROR_STREAM_NAMED("computePlan", "No planning context found");
@@ -102,7 +104,6 @@ public:
 
   void status()
   {
-    ompl_interface_.printStatus();
     ROS_INFO("Responding to planning and bechmark requests");
     if (debug_)
       ROS_INFO("Publishing debug information");
@@ -111,7 +112,7 @@ public:
 private:
   ros::NodeHandle nh_;
   planning_scene_monitor::PlanningSceneMonitor& psm_;
-  ompl_interface::OMPLInterface ompl_interface_;
+  ompl_interface::OMPLPlannerManager ompl_planner_manager_;
   ros::ServiceServer plan_service_;
   ros::ServiceServer display_states_service_;
   ros::Publisher pub_plan_;

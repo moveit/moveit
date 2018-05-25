@@ -34,31 +34,7 @@
 
 /* Author: Ioan Sucan, Dave Coleman */
 
-#include "moveit_planners_ompl/OMPLDynamicReconfigureConfig.h"
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_scene/planning_scene.h>
-#include <moveit/robot_state/conversions.h>
-#include <moveit/profiler/profiler.h>
-#include <class_loader/class_loader.hpp>
-#include <class_loader/class_loader.h>
-
-#include <moveit/ompl_interface/planning_context_manager.h>
-#include <moveit/constraint_samplers/constraint_sampler_manager.h>
-#include <moveit/constraint_sampler_manager_loader/constraint_sampler_manager_loader.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit_msgs/MotionPlanRequest.h>
-#include <moveit_msgs/MotionPlanResponse.h>
-#include <string>
-#include <map>
-#include <ros/ros.h>
-
-#include <dynamic_reconfigure/server.h>
-
 #include <moveit/ompl_interface/ompl_planner_manager.h>
-
-#include <ompl/util/Console.h>
-
-#include <memory>
 
 #define OMPL_ROS_LOG(ros_log_level)                                                                                    \
   {                                                                                                                    \
@@ -171,7 +147,16 @@ void ompl_interface::OMPLPlannerManager::setPlannerConfigurations(
   PlannerManager::setPlannerConfigurations(getPlannerConfigurations());
 }
 
-planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPlanningContext(
+ompl_interface::OMPLPlanningContextPtr ompl_interface::OMPLPlannerManager::getOMPLPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req) const
+{
+  OMPLPlanningContextPtr ctx = context_manager_->getPlanningContext(planning_scene, req);
+  ctx->configure(nh_, config_);
+
+  return ctx;
+}
+
+ompl_interface::OMPLPlanningContextPtr ompl_interface::OMPLPlannerManager::getOMPLPlanningContext(
     const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
     moveit_msgs::MoveItErrorCodes& error_code) const
 {
@@ -180,6 +165,20 @@ planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPl
 
   return ctx;
 }
+
+planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req) const
+{
+  return getOMPLPlanningContext(planning_scene, req);
+}
+
+planning_interface::PlanningContextPtr ompl_interface::OMPLPlannerManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
+    moveit_msgs::MoveItErrorCodes& error_code) const
+{
+  return getOMPLPlanningContext(planning_scene, req, error_code);
+}
+
 void ompl_interface::OMPLPlannerManager::loadConstraintSamplers()
 {
   constraint_sampler_manager_loader_.reset(
