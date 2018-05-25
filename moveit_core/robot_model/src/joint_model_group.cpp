@@ -54,18 +54,18 @@ bool includesParent(const JointModel* joint, const JointModelGroup* group)
 {
   bool found = false;
   // if we find that an ancestor is also in the group, then the joint is not a root
-  while (joint->getParentLinkModel() != NULL)
+  while (joint->getParentLinkModel() != nullptr)
   {
     joint = joint->getParentLinkModel()->getParentJointModel();
-    if (group->hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == NULL)
+    if (group->hasJointModel(joint->getName()) && joint->getVariableCount() > 0 && joint->getMimic() == nullptr)
     {
       found = true;
       break;
     }
-    else if (joint->getMimic() != NULL)
+    else if (joint->getMimic() != nullptr)
     {
       const JointModel* mjoint = joint->getMimic();
-      if (group->hasJointModel(mjoint->getName()) && mjoint->getVariableCount() > 0 && mjoint->getMimic() == NULL)
+      if (group->hasJointModel(mjoint->getName()) && mjoint->getVariableCount() > 0 && mjoint->getMimic() == nullptr)
         found = true;
       else if (includesParent(mjoint, group))
         found = true;
@@ -87,7 +87,7 @@ bool jointPrecedes(const JointModel* a, const JointModel* b)
     if (p == b)
       return true;
     if (p->getType() == JointModel::FIXED)
-      p = p->getParentLinkModel() ? p->getParentLinkModel()->getParentJointModel() : NULL;
+      p = p->getParentLinkModel() ? p->getParentLinkModel()->getParentJointModel() : nullptr;
     else
       break;
   }
@@ -101,7 +101,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
                                  const RobotModel* parent_model)
   : parent_model_(parent_model)
   , name_(group_name)
-  , common_root_(NULL)
+  , common_root_(nullptr)
   , variable_count_(0)
   , is_contiguous_index_list_(true)
   , is_chain_(false)
@@ -125,7 +125,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
       if (vc > 1)
         is_single_dof_ = false;
       const std::vector<std::string>& name_order = joint_model_vector_[i]->getVariableNames();
-      if (joint_model_vector_[i]->getMimic() == NULL)
+      if (joint_model_vector_[i]->getMimic() == nullptr)
       {
         active_joint_model_vector_.push_back(joint_model_vector_[i]);
         active_joint_model_name_vector_.push_back(joint_model_vector_[i]->getName());
@@ -260,9 +260,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
   }
 }
 
-JointModelGroup::~JointModelGroup()
-{
-}
+JointModelGroup::~JointModelGroup() = default;
 
 void JointModelGroup::setSubgroupNames(const std::vector<std::string>& subgroups)
 {
@@ -295,7 +293,7 @@ const LinkModel* JointModelGroup::getLinkModel(const std::string& name) const
   if (it == link_model_map_.end())
   {
     ROS_ERROR_NAMED("robot_model.jmg", "Link '%s' not found in group '%s'", name.c_str(), name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -306,7 +304,7 @@ const JointModel* JointModelGroup::getJointModel(const std::string& name) const
   if (it == joint_model_map_.end())
   {
     ROS_ERROR_NAMED("robot_model.jmg", "Joint '%s' not found in group '%s'", name.c_str(), name_.c_str());
-    return NULL;
+    return nullptr;
   }
   return it->second;
 }
@@ -533,7 +531,7 @@ const LinkModel* JointModelGroup::getOnlyOneEndEffectorTip() const
                                        "so cannot return only one");
   else
     ROS_ERROR_NAMED("robot_model.jmg", "No end effector tips found in joint model group");
-  return NULL;
+  return nullptr;
 }
 
 int JointModelGroup::getVariableGroupIndex(const std::string& variable) const

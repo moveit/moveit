@@ -256,9 +256,7 @@ PR2ArmKinematicsPlugin::PR2ArmKinematicsPlugin() : active_(false)
 
 bool PR2ArmKinematicsPlugin::isActive()
 {
-  if (active_)
-    return true;
-  return false;
+  return active_;
 }
 
 void PR2ArmKinematicsPlugin::setRobotModel(urdf::ModelInterfaceSharedPtr& robot_model)
@@ -276,7 +274,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, co
   dimension_ = 7;
 
   ROS_DEBUG_NAMED("pr2_arm_kinematics_plugin", "Loading KDL Tree");
-  if (!getKDLChain(*robot_model_.get(), base_frame_, tip_frame_, kdl_chain_))
+  if (!getKDLChain(*robot_model_, base_frame_, tip_frame_, kdl_chain_))
   {
     active_ = false;
     ROS_ERROR("Could not load kdl tree");
@@ -284,7 +282,7 @@ bool PR2ArmKinematicsPlugin::initialize(const std::string& robot_description, co
   jnt_to_pose_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
   free_angle_ = 2;
 
-  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model_.get(), base_frame_, tip_frame_,
+  pr2_arm_ik_solver_.reset(new pr2_arm_kinematics::PR2ArmIKSolver(*robot_model_, base_frame_, tip_frame_,
                                                                   search_discretization_, free_angle_));
   if (!pr2_arm_ik_solver_->active_)
   {

@@ -45,7 +45,7 @@
 class LoadPlanningModelsPr2 : public testing::Test
 {
 protected:
-  virtual void SetUp()
+  void SetUp() override
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
@@ -71,7 +71,7 @@ protected:
     kmodel.reset(new robot_model::RobotModel(urdf_model, srdf_model));
   };
 
-  virtual void TearDown()
+  void TearDown() override
   {
   }
 
