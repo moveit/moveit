@@ -46,19 +46,19 @@ class OMPLPlannerManager : public planning_interface::PlannerManager
 public:
   OMPLPlannerManager();
 
-  virtual bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns);
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override;
 
-  virtual bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const;
+  bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const override;
 
-  virtual std::string getDescription() const;
+  std::string getDescription() const override;
 
-  virtual void getPlanningAlgorithms(std::vector<std::string>& algs) const;
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
 
-  virtual void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig);
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig) override;
 
-  virtual planning_interface::PlanningContextPtr
+  planning_interface::PlanningContextPtr
   getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const;
+                     const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const override;
 
   /** @brief Get the configurations for the planners that are already loaded
       @param pconfig Configurations for the different planners */

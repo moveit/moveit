@@ -72,21 +72,21 @@ class ModelBasedPlanningContext : public OMPLPlanningContext
 public:
   ModelBasedPlanningContext();
 
-  virtual void initialize(const OMPLPlanningContextSpecification& spec);
-  virtual void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config);
+  void initialize(const OMPLPlanningContextSpecification& spec) override;
+  void configure(const ros::NodeHandle& nh, const OMPLDynamicReconfigureConfig& config) override;
 
-  virtual void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams);
-  virtual bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
-                                  const moveit_msgs::Constraints& path_constraints,
-                                  moveit_msgs::MoveItErrorCodes* error);
-  virtual bool setPathConstraints(const moveit_msgs::Constraints& path_constraints,
-                                  moveit_msgs::MoveItErrorCodes* error);
+  void setPlanningVolume(const moveit_msgs::WorkspaceParameters& wparams) override;
+  bool setGoalConstraints(const std::vector<moveit_msgs::Constraints>& goal_constraints,
+                          const moveit_msgs::Constraints& path_constraints,
+                          moveit_msgs::MoveItErrorCodes* error) override;
+  bool setPathConstraints(const moveit_msgs::Constraints& path_constraints,
+                          moveit_msgs::MoveItErrorCodes* error) override;
 
-  virtual bool solve(planning_interface::MotionPlanResponse& res);
-  virtual bool solve(planning_interface::MotionPlanDetailedResponse& res);
+  bool solve(planning_interface::MotionPlanResponse& res) override;
+  bool solve(planning_interface::MotionPlanDetailedResponse& res) override;
 
-  virtual void clear();
-  virtual bool terminate();
+  void clear() override;
+  bool terminate() override;
 
   const robot_model::RobotModelConstPtr& getRobotModel() const
   {

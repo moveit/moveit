@@ -128,7 +128,6 @@ bool ompl_interface::OMPLPlannerManager::initialize(const robot_model::RobotMode
 
   return planning_interface::PlannerManager::initialize(model, ns);
 }
->>>>>>> c0eb73821... Cleaned up and split ompl_planner_manager into header and source file
 
 bool ompl_interface::OMPLPlannerManager::canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
 {
