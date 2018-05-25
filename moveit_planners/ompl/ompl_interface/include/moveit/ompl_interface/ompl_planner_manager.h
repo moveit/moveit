@@ -60,12 +60,118 @@ public:
   getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
                      const planning_interface::MotionPlanRequest& req, moveit_msgs::MoveItErrorCodes& error_code) const;
 
+  /** @brief Get the configurations for the planners that are already loaded
+      @param pconfig Configurations for the different planners */
+  const planning_interface::PlannerConfigurationMap& getPlannerConfigurations() const
+  {
+    return context_manager_->getPlannerConfigurations();
+  }
+
+  ModelBasedPlanningContextPtr getLastPlanningContext() const
+  {
+    return context_manager_->getLastPlanningContext();
+  }
+
+  const std::unique_ptr<PlanningContextManager>& getPlanningContextManager() const
+  {
+    return context_manager_;
+  }
+
+  std::unique_ptr<PlanningContextManager>& getPlanningContextManager()
+  {
+    return context_manager_;
+  }
+
+  ConstraintsLibrary& getConstraintsLibrary()
+  {
+    return *constraints_library_;
+  }
+
+  const ConstraintsLibrary& getConstraintsLibrary() const
+  {
+    return *constraints_library_;
+  }
+
+  constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager()
+  {
+    return *constraint_sampler_manager_;
+  }
+
+  const constraint_samplers::ConstraintSamplerManager& getConstraintSamplerManager() const
+  {
+    return *constraint_sampler_manager_;
+  }
+
+  void useConstraintsApproximations(bool flag)
+  {
+    use_constraints_approximations_ = flag;
+  }
+
+  bool isUsingConstraintsApproximations() const
+  {
+    return use_constraints_approximations_;
+  }
+
+  void loadConstraintApproximations(const std::string& path);
+
+  void saveConstraintApproximations(const std::string& path);
+
+  bool simplifySolutions() const
+  {
+    return simplify_solutions_;
+  }
+
+  void simplifySolutions(bool flag)
+  {
+    simplify_solutions_ = flag;
+  }
+
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to save constraint
+   * approximations to */
+  bool saveConstraintApproximations();
+
+  /** @brief Look up param server 'constraint_approximations' and use its value as the path to load constraint
+   * approximations to */
+  bool loadConstraintApproximations();
+
+  /** @brief Print the status of this node*/
+  void printStatus();
+
 private:
   void dynamicReconfigureCallback(OMPLDynamicReconfigureConfig& config, uint32_t level);
 
+  /** @brief Load planner configurations for specified group into planner_config */
+  bool loadPlannerConfiguration(const std::string& group_name, const std::string& planner_id,
+                                const std::map<std::string, std::string>& group_params,
+                                planning_interface::PlannerConfigurationSettings& planner_config);
+
+  /** @brief Configure the planners*/
+  void loadPlannerConfigurations();
+
+  /** @brief Load the additional plugins for sampling constraints */
+  void loadConstraintSamplers();
+
+  void configureContext(const ModelBasedPlanningContextPtr& context) const;
+
+  /** \brief Configure the OMPL planning context for a new planning request */
+  ModelBasedPlanningContextPtr prepareForSolve(const planning_interface::MotionPlanRequest& req,
+                                               const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                               moveit_msgs::MoveItErrorCodes* error_code, unsigned int* attempts,
+                                               double* timeout) const;
+
   ros::NodeHandle nh_;
   std::unique_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig> > dynamic_reconfigure_server_;
-  std::unique_ptr<OMPLInterface> ompl_interface_;
+
+  robot_model::RobotModelConstPtr kmodel_;
+  constraint_samplers::ConstraintSamplerManagerPtr constraint_sampler_manager_;
+  constraint_sampler_manager_loader::ConstraintSamplerManagerLoaderPtr constraint_sampler_manager_loader_;
+  ConstraintsLibraryPtr constraints_library_;
+
+  bool use_constraints_approximations_;
+  bool simplify_solutions_;
+
+  std::unique_ptr<PlanningContextManager> context_manager_;
+  OMPLDynamicReconfigureConfig config_;
   std::shared_ptr<ompl::msg::OutputHandler> output_handler_;
 };
 
