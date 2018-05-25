@@ -19,7 +19,7 @@ Currently plugins for `position_controllers/JointTrajectoryController`, `velocit
 ### Setup
 In your MoveIt! launch file (e.g. `ROBOT_moveit_config/launch/ROBOT_moveit_controller_manager.launch.xml`) set the `moveit_controller_manager` parameter:
 ```
-<arg name="moveit_controller_manager" default="moveit_ros_control_interface::MoveItControllerManager" />
+<param name="moveit_controller_manager" value="moveit_ros_control_interface::MoveItControllerManager" />
 ```
 
 And make sure to set the `ros_control_namespace` parameter to the namespace (without the /controller_manager/ part) of the ros_control-based node you like to interface.
@@ -58,5 +58,5 @@ It spawns `moveit_ros_control_interface::MoveItControllerManager` instances with
 ### Setup
 Just set the `moveit_controller_manager` parameter in your MoveIt! launch file (e.g. `ROBOT_moveit_config/launch/ROBOT_moveit_controller_manager.launch.xml`)
 ```
-<arg name="moveit_controller_manager" default="moveit_ros_control_interface::MoveItMultiControllerManager" />
+<param name="moveit_controller_manager" value="moveit_ros_control_interface::MoveItMultiControllerManager" />
 ```
