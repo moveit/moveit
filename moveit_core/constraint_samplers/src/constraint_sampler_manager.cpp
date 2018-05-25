@@ -262,7 +262,8 @@ constraint_samplers::ConstraintSamplerPtr constraint_samplers::ConstraintSampler
       // find the sampler with the smallest sampling volume; delete the rest
       IKConstraintSamplerPtr iks = used_l.begin()->second;
       double msv = iks->getSamplingVolume();
-      for (std::map<std::string, IKConstraintSamplerPtr>::const_iterator it = ++used_l.begin(); it != used_l.end(); ++it)
+      for (std::map<std::string, IKConstraintSamplerPtr>::const_iterator it = ++used_l.begin(); it != used_l.end();
+           ++it)
       {
         double v = it->second->getSamplingVolume();
         if (v < msv)

@@ -244,7 +244,8 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
   }
 
   // variables for Wyvill
-  double a = 0, b = 0, c = 0, r_bounds_2 = 0, r_bounds_4 = 0, r_bounds_6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0, c2 = 0;
+  double a = 0, b = 0, c = 0, r_bounds_2 = 0, r_bounds_4 = 0, r_bounds_6 = 0, a1 = 0, b1 = 0, c1 = 0, a2 = 0, b2 = 0,
+         c2 = 0;
   bool wyvill = true;
 
   octomap::point3d_list::const_iterator it;
@@ -299,7 +300,8 @@ bool sampleCloud(const octomap::point3d_list& cloud, const double& spacing, cons
       double r_scaled = r / r_bounds;
       // TODO still need to address the scaling...
       f_val = pow((1 - r_scaled), 4) * (4 * r_scaled + 1);
-      f_grad = pos * (-4.0 / r_bounds * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) + 4.0 / r_bounds * pow(1 - r_scaled, 4));
+      f_grad = pos * (-4.0 / r_bounds * pow(1.0 - r_scaled, 3) * (4.0 * r_scaled + 1.0) +
+                      4.0 / r_bounds * pow(1 - r_scaled, 4));
     }
 
     // TODO:  The whole library should be overhauled to follow the "gradient points out"

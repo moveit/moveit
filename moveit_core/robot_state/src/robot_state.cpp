@@ -1230,7 +1230,7 @@ void RobotState::computeVariableVelocity(const JointModelGroup* jmg, Eigen::Vect
                                          const Eigen::VectorXd& twist, const LinkModel* tip) const
 {
   // Get the Jacobian of the group at the current configuration
-  Eigen::MatrixXd J(6, jmg->getVariableCount()); // NOLINT, J is a matrix.
+  Eigen::MatrixXd J(6, jmg->getVariableCount());  // NOLINT, J is a matrix.
   Eigen::Vector3d reference_point(0.0, 0.0, 0.0);
   getJacobian(jmg, tip, reference_point, J, false);
 
