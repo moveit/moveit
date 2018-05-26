@@ -1147,7 +1147,7 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, target, global_reference_frame, MaxEEFStep(max_step, max_step),
+    return computeCartesianPath(group, traj, link, target, global_reference_frame, MaxEEFStep(max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
   }
 
@@ -1169,7 +1169,7 @@ as the new values that correspond to the group */
                               const GroupStateValidityCallbackFn& validCallback = GroupStateValidityCallbackFn(),
                               const kinematics::KinematicsQueryOptions& options = kinematics::KinematicsQueryOptions())
   {
-    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, MaxEEFStep(max_step, max_step),
+    return computeCartesianPath(group, traj, link, waypoints, global_reference_frame, MaxEEFStep(max_step),
                                 JumpThreshold(jump_threshold_factor), validCallback, options);
   }
 
