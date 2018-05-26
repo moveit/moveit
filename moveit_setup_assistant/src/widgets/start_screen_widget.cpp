@@ -431,6 +431,10 @@ bool StartScreenWidget::loadExistingFiles()
                              .append(kinematics_yaml_path.make_preferred().native().c_str()));
   }
 
+  fs::path ompl_yaml_path = config_data_->config_pkg_path_;
+  ompl_yaml_path /= "config/ompl_planning.yaml";
+  config_data_->inputOMPLYAML(ompl_yaml_path.make_preferred().native().c_str());
+
   // DONE LOADING --------------------------------------------------------------------------
 
   // Call a function that enables navigation
