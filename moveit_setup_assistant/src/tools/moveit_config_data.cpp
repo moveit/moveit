@@ -206,6 +206,76 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 
   emitter << YAML::Value << YAML::BeginMap;
 
+  std::vector<OMPLPlannerDescription> planner_des = getOMPLPlanners();
+
+  // Add Planners with parameter values
+  std::vector<std::string> pconfigs;
+  for (std::size_t i = 0; i < planner_des.size(); ++i)
+  {
+    std::string defaultconfig = planner_des[i].name_;
+    emitter << YAML::Key << defaultconfig;
+    emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
+    for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
+    {
+      emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
+      emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
+      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
+    }
+    emitter << YAML::EndMap;
+
+    pconfigs.push_back(defaultconfig);
+  }
+
+  // End of every avail planner
+  emitter << YAML::EndMap;
+
+  // Output every group and the planners it can use ----------------------------------
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+       ++group_it)
+  {
+    emitter << YAML::Key << group_it->name_;
+    emitter << YAML::Value << YAML::BeginMap;
+    // Output associated planners
+    emitter << YAML::Key << "default_planner_config" << YAML::Value
+            << group_meta_data_[group_it->name_].default_planner_ + "kConfigDefault";
+    emitter << YAML::Key << "planner_configs";
+    emitter << YAML::Value << YAML::BeginSeq;
+    for (std::size_t i = 0; i < pconfigs.size(); ++i)
+      emitter << pconfigs[i] + "kConfigDefault";
+    emitter << YAML::EndSeq;
+
+    // Output projection_evaluator
+    std::string projection_joints = decideProjectionJoints(group_it->name_);
+    if (!projection_joints.empty())
+    {
+      emitter << YAML::Key << "projection_evaluator";
+      emitter << YAML::Value << projection_joints;
+      // OMPL collision checking discretization
+      emitter << YAML::Key << "longest_valid_segment_fraction";
+      emitter << YAML::Value << "0.005";
+    }
+
+    emitter << YAML::EndMap;
+  }
+
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
+std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
+{
   std::vector<OMPLPlannerDescription> planner_des;
 
   OMPLPlannerDescription SBL("SBL", "geometric");
@@ -386,68 +456,7 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
   SPARStwo.addParameter("max_failures", "5000", "maximum consecutive failure limit. default: 5000");
   planner_des.push_back(SPARStwo);
 
-  // Add Planners with parameter values
-  std::vector<std::string> pconfigs;
-  for (std::size_t i = 0; i < planner_des.size(); ++i)
-  {
-    std::string defaultconfig = planner_des[i].name_ + "kConfigDefault";
-    emitter << YAML::Key << defaultconfig;
-    emitter << YAML::Value << YAML::BeginMap;
-    emitter << YAML::Key << "type" << YAML::Value << "geometric::" + planner_des[i].name_;
-    for (std::size_t j = 0; j < planner_des[i].parameter_list_.size(); j++)
-    {
-      emitter << YAML::Key << planner_des[i].parameter_list_[j].name;
-      emitter << YAML::Value << planner_des[i].parameter_list_[j].value;
-      emitter << YAML::Comment(planner_des[i].parameter_list_[j].comment.c_str());
-    }
-    emitter << YAML::EndMap;
-
-    pconfigs.push_back(defaultconfig);
-  }
-
-  // End of every avail planner
-  emitter << YAML::EndMap;
-
-  // Output every group and the planners it can use ----------------------------------
-  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
-       ++group_it)
-  {
-    emitter << YAML::Key << group_it->name_;
-    emitter << YAML::Value << YAML::BeginMap;
-    // Output associated planners
-    emitter << YAML::Key << "planner_configs";
-    emitter << YAML::Value << YAML::BeginSeq;
-    for (std::size_t i = 0; i < pconfigs.size(); ++i)
-      emitter << pconfigs[i];
-    emitter << YAML::EndSeq;
-
-    // Output projection_evaluator
-    std::string projection_joints = decideProjectionJoints(group_it->name_);
-    if (!projection_joints.empty())
-    {
-      emitter << YAML::Key << "projection_evaluator";
-      emitter << YAML::Value << projection_joints;
-      // OMPL collision checking discretization
-      emitter << YAML::Key << "longest_valid_segment_fraction";
-      emitter << YAML::Value << "0.005";
-    }
-
-    emitter << YAML::EndMap;
-  }
-
-  emitter << YAML::EndMap;
-
-  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
-  if (!output_stream.good())
-  {
-    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
-    return false;
-  }
-
-  output_stream << emitter.c_str();
-  output_stream.close();
-
-  return true;  // file created successfully
+  return planner_des;
 }
 
 // ******************************************************************************************
@@ -916,6 +925,51 @@ bool parse(const YAML::Node& node, const std::string& key, T& storage, const T& 
   bool valid = n;
   storage = valid ? n.as<T>() : default_value;
   return valid;
+}
+
+bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
+{
+  // Load file
+  std::ifstream input_stream(file_path.c_str());
+  if (!input_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for reading " << file_path);
+    return false;
+  }
+
+  // Begin parsing
+  try
+  {
+    YAML::Node doc = YAML::Load(input_stream);
+
+    // Loop through all groups
+    for (YAML::const_iterator group_it = doc.begin(); group_it != doc.end(); ++group_it)
+    {
+      // get group name
+      const std::string group_name = group_it->first.as<std::string>();
+
+      // compare group name found to list of groups in group_meta_data_
+      std::map<std::string, GroupMetaData>::iterator group_meta_it;
+      group_meta_it = group_meta_data_.find(group_name);
+      if (group_meta_it != group_meta_data_.end())
+      {
+        std::string planner;
+        parse(group_it->second, "default_planner_config", planner);
+        int pos = planner.find_last_not_of("kConfigDefault");
+        if (pos != std::string::npos)
+        {
+          planner = planner.substr(0, pos + 1);
+        }
+        group_meta_data_[group_name].default_planner_ = planner;
+      }
+    }
+  }
+  catch (YAML::ParserException& e)  // Catch errors
+  {
+    ROS_ERROR_STREAM(e.what());
+    return false;
+  }
+  return true;
 }
 
 // ******************************************************************************************
