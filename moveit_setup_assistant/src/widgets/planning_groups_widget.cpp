@@ -1107,6 +1107,16 @@ bool PlanningGroupsWidget::saveGroupScreen()
     QMessageBox::warning(this, "Error Saving", "A name must be given for the group!");
     return false;
   }
+   
+  // Check for whitespace in planning group name
+  for (int i = 0; i < group_name.length(); i++)
+  {
+    if (isspace(group_name.at(i)))
+    {
+      QMessageBox::warning(this, "Error Saving", "Make sure the group name does not use any whitespace anywhere!");
+      return false;
+    }
+  }
 
   // Check if this is an existing group
   if (!current_edit_group_.empty())
