@@ -93,6 +93,7 @@ bool DepthImageOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "shadow_threshold", &shadow_threshold_);
     readXmlParam(params, "padding_scale", &padding_scale_);
     readXmlParam(params, "padding_offset", &padding_offset_);
+    readXmlParam(params, "max_update_rate", &max_update_rate_);
     readXmlParam(params, "skip_vertical_pixels", &skip_vertical_pixels_);
     readXmlParam(params, "skip_horizontal_pixels", &skip_horizontal_pixels_);
     if (params.hasMember("filtered_cloud_topic"))
@@ -209,6 +210,11 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
             depth_msg->encoding.c_str());
 
   ros::WallTime start = ros::WallTime::now();
+
+  // ensure we are not updating the octomap representation too often
+  if (start - last_update_time_ <= ros::WallDuration(1.0 / max_update_rate_))
+    return;
+  last_update_time_ = ros::WallTime::now();
 
   // measure the frequency at which we receive updates
   if (image_callback_count_ < 1000)
