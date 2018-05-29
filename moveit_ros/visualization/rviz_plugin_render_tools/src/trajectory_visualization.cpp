@@ -150,7 +150,7 @@ void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::Di
   {
     trajectory_slider_panel_ = new TrajectoryPanel(window_context->getParentWindow());
     trajectory_slider_dock_panel_ =
-        window_context->addPane(display_->getName() + " - Slider", trajectory_slider_panel_);
+        window_context->addPane(display_->getName() + " - Trajectory Slider", trajectory_slider_panel_);
     trajectory_slider_dock_panel_->setIcon(display_->getIcon());
     connect(trajectory_slider_dock_panel_, SIGNAL(visibilityChanged(bool)), this,
             SLOT(trajectorySliderPanelVisibilityChange(bool)));
