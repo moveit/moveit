@@ -2,6 +2,9 @@
 Changelog for package moveit_ros_control_interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -31,7 +34,7 @@ Changelog for package moveit_ros_control_interface
 * Contributors: Dave Coleman, Michael Goerner
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.5.7 (2016-01-30)
 ------------------
