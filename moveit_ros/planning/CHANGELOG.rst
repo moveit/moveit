@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.12 (2018-05-29)
+-------------------
 * CSM: copy dynamics to output if enabled (`#922 <https://github.com/ros-planning/moveit/issues/922>`_)
 * move PlanExecution::executeAndMonitor() into public API (`#812 <https://github.com/ros-planning/moveit/issues/812>`_)
 * [fix] explicitly enforce updateSceneWithCurrentState() in waitForCurrentRobotState() (`#824 <https://github.com/ros-planning/moveit/issues/824>`_)
