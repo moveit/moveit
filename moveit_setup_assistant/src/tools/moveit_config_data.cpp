@@ -566,7 +566,7 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
 // ******************************************************************************************
 // Output controllers config files
 // ******************************************************************************************
-bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
+bool MoveItConfigData::outputROSControllersYAML(const std::string& file_path)
 {
   // Cache the joints' names.
   std::vector<std::vector<std::string>> planning_groups;
@@ -732,7 +732,7 @@ bool MoveItConfigData::outputControllersYAML(const std::string& file_path)
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
   if (!output_stream.good())
   {
-    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    ROS_ERROR_STREAM_NAMED("ros_controllers_config", "Unable to open file for writing " << file_path);
     return false;
   }
   output_stream << emitter.c_str();
