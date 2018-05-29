@@ -4,6 +4,8 @@
   <version>1.0.1</version>
   <description>Package for all inverse kinematics solvers in MoveIt!</description>
 
+  <description>Package for all inverse kinematics solvers in MoveIt!</description>
+
   <author email="dave@picknik.ai">Dave Coleman</author>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
