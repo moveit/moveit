@@ -445,8 +445,8 @@ void VirtualJointsWidget::deleteSelected()
 void VirtualJointsWidget::doneEditing()
 {
   // Get a reference to the supplied strings
-  const std::string vjoint_name = vjoint_name_field_->text().toStdString();
-  const std::string parent_name = parent_name_field_->text().toStdString();
+  const std::string vjoint_name = vjoint_name_field_->text().trimmed().toStdString();
+  const std::string parent_name = parent_name_field_->text().trimmed().toStdString();
 
   // Used for editing existing groups
   srdf::Model::VirtualJoint* searched_data = NULL;

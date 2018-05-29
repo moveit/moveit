@@ -919,8 +919,8 @@ void PlanningGroupsWidget::saveChainScreen()
   srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Get a reference to the supplied strings
-  const std::string& tip = chain_widget_->tip_link_field_->text().toStdString();
-  const std::string& base = chain_widget_->base_link_field_->text().toStdString();
+  const std::string& tip = chain_widget_->tip_link_field_->text().trimmed().toStdString();
+  const std::string& base = chain_widget_->base_link_field_->text().trimmed().toStdString();
 
   // Check that box the tip and base, or neither, have text
   if ((!tip.empty() && base.empty()) || (tip.empty() && !base.empty()))
@@ -1091,7 +1091,7 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 bool PlanningGroupsWidget::saveGroupScreen()
 {
   // Get a reference to the supplied strings
-  const std::string& group_name = group_edit_widget_->group_name_field_->text().toStdString();
+  const std::string& group_name = group_edit_widget_->group_name_field_->text().trimmed().toStdString();
   const std::string& kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
   const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
