@@ -584,7 +584,7 @@
          <item>
           <widget class="QGroupBox" name="groupBox_12">
            <property name="title">
-            <string>Path Constraints:</string>
+            <string>Path Constraints</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_15">
             <property name="topMargin">
