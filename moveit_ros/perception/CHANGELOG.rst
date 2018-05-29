@@ -2,6 +2,13 @@
 Changelog for package moveit_ros_perception
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* boost::shared_ptr -> std::shared_ptr
+* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* [fix] make OpenGL parts optional (`#698 <https://github.com/ros-planning/moveit/issues/698>`_)
+* Contributors: Bence Magyar, Ian McMahon, Lukas Bulwahn, Michael Görner, Mikael Arguedas, Robert Haschke
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -76,7 +83,7 @@ Changelog for package moveit_ros_perception
 
 0.6.3 (2014-12-03)
 ------------------
-* port `#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
+* port `moveit_ros#445 <https://github.com/ros-planning/moveit_ros/issues/445>`_ to indigo
 * disable test that needs display when no display defined
 * GL_TYPE() is a function in newer versions of OpenGL, this fixes tests on Ubuntu 14.04
 * Contributors: Michael Ferguson

@@ -521,9 +521,6 @@ bool MoveItConfigData::outputFakeControllersYAML(const std::string& file_path)
   emitter << YAML::Key << "controller_list";
   emitter << YAML::Value << YAML::BeginSeq;
 
-  // Union all the joints in groups
-  std::set<const robot_model::JointModel*> joints;
-
   // Loop through groups
   for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
        ++group_it)

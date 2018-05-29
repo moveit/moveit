@@ -2,6 +2,13 @@
 Changelog for package moveit_experimental
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* boost::shared_ptr -> std::shared_ptr
+* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* Contributors: Bence Magyar, Ian McMahon, Levi Armstrong, Mikael Arguedas, Robert Haschke, Xiaojian Ma
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -76,15 +83,7 @@ Changelog for package moveit_experimental
   * Remove unnecessary debugging ROS_INFO.
   * Port collision_distance_field test to indigo.
   * Remove one assertion that makes collision_distance_field test to fail.
-* Use urdf::*SharedPtr instead of boost::shared_ptr
-  urdfdom_headers uses C++ std::shared_ptr. As it exports it as custom
-  *SharedPtr type, we can use them to stay compatible.
-  Note that there is no std:shared_ptr<const urdf::ModelInterface>
-  typedef, so I replaced it with urdf::ModelInterfaceSharedPtr (loosing a
-  const).
-  Also, there is no conversion from boost::shared_ptr<urdf::Model> to
-  std:shared_ptr<urdf::ModelInterface>, so I used a preprocessor
-  directive.
+* Use ``urdf::*SharedPtr`` instead of ``boost::shared_ptr``
 * fetch moveit_resources path at compile time
   using variable MOVEIT_TEST_RESOURCES_DIR provided by config.h
   instead of calling ros::package::getPath()

@@ -2,6 +2,15 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* [maintenance] trim group + link names (`#921 <https://github.com/ros-planning/moveit/issues/921>`_)
+* [feature] combo box to choose default planner (`#658 <https://github.com/ros-planning/moveit/issues/658>`_)
+* [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* [maintenance] cleanup yaml parsing, remove yaml-cpp 0.3 support (`#795 <https://github.com/ros-planning/moveit/issues/795>`_)
+* [feature] allow editing of xacro args (`#796 <https://github.com/ros-planning/moveit/issues/796>`_)
+* Contributors: Mohmmad Ayman, Dave Coleman, Ian McMahon, Michael Görner, Mikael Arguedas, Robert Haschke, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 

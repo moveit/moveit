@@ -2,6 +2,11 @@
 Changelog for package moveit_ros_warehouse
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* Contributors: Ian McMahon
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -34,7 +39,7 @@ Changelog for package moveit_ros_warehouse
 * Contributors: Dave Coleman
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.6.6 (2016-06-08)
 ------------------

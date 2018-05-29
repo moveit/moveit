@@ -2,6 +2,14 @@
 Changelog for package moveit_ros_robot_interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* [fix] interaction with planar joints (`#767 <https://github.com/ros-planning/moveit/issues/767>`_)
+* [maintenance] boost::shared_ptr -> std::shared_ptr
+* [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
+* [enhance] association of IK solvers to groups `#769 <https://github.com/ros-planning/moveit/issues/769>`_
+* Contributors: Bence Magyar, Ian McMahon, Michael Görner, Robert Haschke
+
 0.9.11 (2017-12-25)
 -------------------
 
