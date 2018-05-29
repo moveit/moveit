@@ -2,8 +2,8 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.12 (2018-05-29)
+-------------------
 * disable waitForCurrentRobotState() for PlanService capability (`#923 <https://github.com/ros-planning/moveit/issues/923>`_), fixing (`#868 <https://github.com/ros-planning/moveit/issues/868>`_)
 * Remove deprecated ExecuteTrajectoryServiceCapability (`#833 <https://github.com/ros-planning/moveit/issues/833>`_)
 * migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)

@@ -2,8 +2,8 @@
 Changelog for package moveit_setup_assistant
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.12 (2018-05-29)
+-------------------
 * [maintenance] trim group + link names (`#921 <https://github.com/ros-planning/moveit/issues/921>`_)
 * [feature] combo box to choose default planner (`#658 <https://github.com/ros-planning/moveit/issues/658>`_)
 * [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
