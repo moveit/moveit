@@ -297,7 +297,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.file_name_ = "ros_controllers.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
   file.description_ = "Creates configurations for ros_controllers.";
-  file.gen_func_ = boost::bind(&MoveItConfigData::outputControllersYAML, config_data_, _1);
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputROSControllersYAML, config_data_, _1);
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
