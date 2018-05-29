@@ -640,10 +640,8 @@ TEST_F(OneRobot, testAbsoluteJointSpaceJump)
 
   // Pre-compute expected results for tests
   std::size_t full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
-  const double expected_revolute_jump_fraction =
-      (double)expected_revolute_jump_traj_len / (double)full_traj_len;
-  const double expected_prismatic_jump_fraction =
-      (double)expected_prismatic_jump_traj_len / (double)full_traj_len;
+  const double expected_revolute_jump_fraction = (double)expected_revolute_jump_traj_len / (double)full_traj_len;
+  const double expected_prismatic_jump_fraction = (double)expected_prismatic_jump_traj_len / (double)full_traj_len;
 
   // Container for results
   double fraction;
@@ -688,8 +686,7 @@ TEST_F(OneRobot, testRelativeJointSpaceJump)
 
   // Pre-compute expected results for tests
   std::size_t full_traj_len = generateTestTraj(traj, robot_model, joint_model_group);
-  const double expected_relative_jump_fraction =
-      (double)expected_relative_jump_traj_len / (double)full_traj_len;
+  const double expected_relative_jump_fraction = (double)expected_relative_jump_traj_len / (double)full_traj_len;
 
   // Container for results
   double fraction;
