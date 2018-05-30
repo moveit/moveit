@@ -7,8 +7,6 @@ Changelog for package moveit_core
 * consider max linear+rotational eef step in computeCartesianPath() (`#884 <https://github.com/ros-planning/moveit/issues/884>`_)
 * clang-tidy moveit_core (`#880 <https://github.com/ros-planning/moveit/issues/880>`_) (`#911 <https://github.com/ros-planning/moveit/issues/911>`_)
 * Allow to retrieve Jacobian of a child link of a move group. (`#877 <https://github.com/ros-planning/moveit/issues/877>`_)
-* Contributors: Bryce Willey, Dave Coleman, Michael Görner
-* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * Switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * Add ability to request detailed distance information from fcl (`#662 <https://github.com/ros-planning/moveit/issues/662>`_)
 * allow checking for absolute joint-space jumps in Cartesian path (`#843 <https://github.com/ros-planning/moveit/issues/843>`_)
