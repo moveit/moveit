@@ -29,4 +29,7 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>shape_msgs</run_depend>
   <run_depend>tf</run_depend>
+
+  <test_depend>rostest</test_depend>
+  <test_depend>moveit_resources</test_depend>
 </package>
