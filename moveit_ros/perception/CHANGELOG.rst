@@ -5,7 +5,6 @@ Changelog for package moveit_ros_perception
 0.9.12 (2018-05-29)
 -------------------
 * boost::shared_ptr -> std::shared_ptr
-* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * [fix] make OpenGL parts optional (`#698 <https://github.com/ros-planning/moveit/issues/698>`_)
 * Contributors: Bence Magyar, Ian McMahon, Lukas Bulwahn, Michael Görner, Mikael Arguedas, Robert Haschke
 

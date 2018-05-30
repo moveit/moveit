@@ -4,7 +4,6 @@ Changelog for package moveit_kinematics
 
 0.9.12 (2018-05-29)
 -------------------
-* migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
 * fixes to ikfast kinematics plugin (`#808 <https://github.com/ros-planning/moveit/issues/808>`_)
 * Cached ik kinematics plugin (`#612 <https://github.com/ros-planning/moveit/issues/612>`_)

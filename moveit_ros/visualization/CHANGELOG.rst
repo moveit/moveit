@@ -5,7 +5,6 @@ Changelog for package moveit_ros_visualization
 0.9.12 (2018-05-29)
 -------------------
 * [maintenance] Reduce vertical size of Rviz MotionPlanning Window (`#891 <https://github.com/ros-planning/moveit/issues/891>`_)
-* [maintenance] migration from tf to tf2 API (`#830 <https://github.com/ros-planning/moveit/issues/830>`_)
 * [feature] rviz plugin: set start/goal RobotState from external (`#823 <https://github.com/ros-planning/moveit/issues/823>`_)
   - /rviz/moveit/update_custom_start_state
   - /rviz/moveit/update_custom_goal_state
