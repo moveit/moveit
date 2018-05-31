@@ -529,7 +529,7 @@ public:
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
-      "MoveGroupInterface", bp::init<std::string, std::string, std::string>());
+      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
 
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);
