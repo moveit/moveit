@@ -15,7 +15,7 @@
 
   <depend>roscpp</depend>
   <depend>moveit_core</depend>
-  <depend>pluginlib</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
 
   <build_depend>chomp_motion_planner</build_depend>
   <build_depend>moveit_experimental</build_depend>
