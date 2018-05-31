@@ -168,7 +168,10 @@ double RevoluteJointModel::distance(const double* values1, const double* values2
 
 bool RevoluteJointModel::satisfiesPositionBounds(const double* values, const Bounds& bounds, double margin) const
 {
-  return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
+  if (continuous_)
+    return true;
+  else
+    return !(values[0] < bounds[0].min_position_ - margin || values[0] > bounds[0].max_position_ + margin);
 }
 
 bool RevoluteJointModel::enforcePositionBounds(double* values, const Bounds& bounds) const
