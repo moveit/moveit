@@ -524,7 +524,7 @@ TEST_F(OneRobot, FK)
 
   upd_a["joint_a"] = 3.2;
   state.setVariablePositions(upd_a);
-  EXPECT_FALSE(state.satisfiesBounds(model->getJointModel("joint_a")));
+  EXPECT_TRUE(state.satisfiesBounds(model->getJointModel("joint_a")));
   EXPECT_NEAR(state.getVariablePosition("joint_a"), 3.2, 1e-3);
   state.enforceBounds();
   EXPECT_NEAR(state.getVariablePosition("joint_a"), -3.083185, 1e-3);
