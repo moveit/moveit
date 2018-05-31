@@ -175,9 +175,9 @@ public:
 
   bp::dict getRememberedJointValuesPython() const
   {
-    const std::map<std::string, std::vector<double> >& rv = getRememberedJointValues();
+    const std::map<std::string, std::vector<double>>& rv = getRememberedJointValues();
     bp::dict d;
-    for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin(); it != rv.end(); ++it)
+    for (std::map<std::string, std::vector<double>>::const_iterator it = rv.begin(); it != rv.end(); ++it)
       d[it->first] = py_bindings_tools::listFromDouble(it->second);
     return d;
   }
