@@ -38,6 +38,8 @@
 #include <moveit/motion_planning_rviz_plugin/motion_planning_frame.h>
 #include <moveit/motion_planning_rviz_plugin/motion_planning_display.h>
 #include <moveit/robot_state/conversions.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 #include <QMessageBox>
 #include <QInputDialog>
@@ -247,6 +249,171 @@ void MotionPlanningFrame::clearStatesButtonClicked()
 {
   robot_states_.clear();
   populateRobotStatesList();
+}
+
+void MotionPlanningFrame::planAllStatesButtonClicked()
+{
+#if 0
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::planAllStatesCartesianExec, this),
+                                      "plan all cartesian states");
+#else
+  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::planAllStatesJointSpaceExec, this));
+#endif
+}
+
+void MotionPlanningFrame::planAndExecuteAllStatesButtonClicked()
+{
+#if 0
+  planning_display_->addBackgroundJob(boost::bind(&MotionPlanningFrame::planAndExecuteAllStatesCartesianExec, this),
+                                      "plan and execute all cartesian states");
+#else
+  planning_display_->spawnBackgroundJob(boost::bind(&MotionPlanningFrame::planAndExecuteAllStatesJointSpaceExec, this));
+#endif
+}
+
+void MotionPlanningFrame::planAllStatesCartesianTrajectory()
+{
+  std::vector<geometry_msgs::Pose> waypoints;
+  for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
+  {
+    robot_state::RobotState robot_state(*planning_display_->getQueryGoalState());
+    robot_state::robotStateMsgToRobotState(robot_states_[it->first], robot_state);
+    planning_display_->setQueryGoalState(robot_state);
+    geometry_msgs::Pose pose;
+    tf::poseEigenToMsg(robot_state.getGlobalLinkTransform(move_group_->getEndEffectorLink()), pose);
+    ROS_INFO_STREAM("Using waypoint " << it->first << " : " << pose);
+    waypoints.push_back(pose);
+  }
+
+  // setup default params
+  double cart_step_size = 0.01;
+  double cart_jump_thresh = 0.0;
+  bool avoid_collisions = false;
+
+  // compute trajectory
+  moveit_msgs::RobotTrajectory trajectory;
+  ROS_INFO_STREAM("computeCartesianPath");
+
+  double fraction =
+      move_group_->computeCartesianPath(waypoints, cart_step_size, cart_jump_thresh, trajectory, avoid_collisions);
+  if (fraction > 0)
+  {
+    ROS_INFO("Planning suceeded with %f achieved", fraction * 100);
+
+    // Success
+    ui_->result_label->setText(QString::number(fraction * 100, 'f', 0).append(" % achieved"));
+
+    moveit_msgs::RobotTrajectory scaled_trajectory = moveit_msgs::RobotTrajectory(trajectory);
+
+    // Scaling (https://groups.google.com/forum/#!topic/moveit-users/MOoFxy2exT4)
+
+    // The trajectory needs to be modified so it will include velocities as well.
+    // First to create a RobotTrajectory object
+    robot_trajectory::RobotTrajectory rt(move_group_->getRobotModel(), move_group_->getName());
+
+    // Second get a RobotTrajectory from trajectory
+    rt.setRobotTrajectoryMsg(*move_group_->getCurrentState(), scaled_trajectory);
+
+    // Thrid create a IterativeParabolicTimeParameterization object
+    trajectory_processing::IterativeParabolicTimeParameterization iptp;
+
+    // Fourth compute computeTimeStamps
+    bool success =
+        iptp.computeTimeStamps(rt, ui_->velocity_scaling_factor->value(), ui_->acceleration_scaling_factor->value());
+    ROS_INFO("Computed time stamp %s", success ? "SUCCEDED" : "FAILED");
+
+    // Get RobotTrajectory_msg from RobotTrajectory
+    rt.getRobotTrajectoryMsg(scaled_trajectory);
+
+    // Fill in move_group_
+    current_plan_.reset(new moveit::planning_interface::MoveGroupInterface::Plan());
+    current_plan_->trajectory_ = scaled_trajectory;
+  }
+  else
+  {
+    ROS_ERROR("Failed to compute CartesianPath");
+  }
+}
+
+void MotionPlanningFrame::planAllStatesCartesianExec()
+{
+  if (!move_group_)
+    return;
+
+  ui_->plan_all_states_button->setEnabled(false);
+
+  planAllStatesCartesianTrajectory();
+
+  ui_->plan_all_states_button->setEnabled(true);
+}
+
+void MotionPlanningFrame::planAndExecuteAllStatesCartesianExec()
+{
+  if (!move_group_)
+    return;
+
+  ui_->plan_and_execute_all_states_button->setEnabled(false);
+
+  planAllStatesCartesianTrajectory();
+  computeExecuteButtonClicked();
+
+  ui_->plan_and_execute_all_states_button->setEnabled(true);
+}
+
+void MotionPlanningFrame::planAllStatesJointSpaceExec()
+{
+  if (!move_group_)
+    return;
+
+  // Clear status
+  ui_->plan_all_states_button->setEnabled(false);
+
+  std::vector<geometry_msgs::Pose> waypoints_;
+  for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
+  {
+    robot_state::RobotState robot_state(*planning_display_->getQueryGoalState());
+    robot_state::robotStateMsgToRobotState(robot_states_[it->first], robot_state);
+    planning_display_->setQueryGoalState(robot_state);
+    ROS_INFO_STREAM("Using waypoint " << it->first);
+    ROS_INFO_STREAM(robot_state);
+
+    computePlanButtonClicked();
+
+    sleep(2);  // FIXME: wait fo display updates...
+
+    // udpate next start state
+    planning_display_->setQueryStartState(robot_state);
+  }
+
+  ui_->plan_all_states_button->setEnabled(true);
+}
+
+void MotionPlanningFrame::planAndExecuteAllStatesJointSpaceExec()
+{
+  if (!move_group_)
+    return;
+
+  // Clear status
+  ui_->plan_all_states_button->setEnabled(false);
+
+  std::vector<geometry_msgs::Pose> waypoints_;
+  for (RobotStateMap::iterator it = robot_states_.begin(); it != robot_states_.end(); ++it)
+  {
+    robot_state::RobotState robot_state(*planning_display_->getQueryGoalState());
+    robot_state::robotStateMsgToRobotState(robot_states_[it->first], robot_state);
+    planning_display_->setQueryGoalState(robot_state);
+    ROS_INFO_STREAM("Using waypoint " << it->first);
+    ROS_DEBUG_STREAM(robot_state);
+
+    computePlanAndExecuteButtonClicked();
+
+    sleep(2);  // FIXME: wait fo display updates...
+
+    // udpate next start state
+    planning_display_->setQueryStartState(robot_state);
+  }
+
+  ui_->plan_all_states_button->setEnabled(true);
 }
 
 }  // namespace
