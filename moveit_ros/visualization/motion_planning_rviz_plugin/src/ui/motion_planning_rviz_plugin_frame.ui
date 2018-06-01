@@ -782,6 +782,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="cartesian_path">
+            <property name="text">
+             <string>Cartesian Path</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="collision_aware_ik">
             <property name="text">
              <string>Use Collision-Aware IK</string>
