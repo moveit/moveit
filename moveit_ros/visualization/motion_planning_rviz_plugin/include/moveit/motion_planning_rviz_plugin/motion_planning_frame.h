@@ -151,12 +151,15 @@ private Q_SLOTS:
   void approximateIKChanged(int state);
 
   // Planning tab
+  void computeCartesianPlan();
+  void computeJointSpacePlan();
   void planButtonClicked();
   void executeButtonClicked();
   void planAndExecuteButtonClicked();
   void stopButtonClicked();
   void allowReplanningToggled(bool checked);
   void allowLookingToggled(bool checked);
+  void cartesianPathToggled(bool checked);
   void allowExternalProgramCommunication(bool enable);
   void pathConstraintsIndexChanged(int index);
   void startStateTextChanged(const QString& start_state);
