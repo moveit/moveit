@@ -418,9 +418,9 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       std::string err;
       if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
       {
-        ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                        << joint->getName() << "': TF has no common time between '"
-                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
+                             << joint->getName() << "': TF has no common time between '" << parent_frame.c_str()
+                             << "' and '" << child_frame.c_str() << "': " << err);
         continue;
       }
 
