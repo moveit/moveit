@@ -177,9 +177,9 @@ public:
 
   bp::dict getRememberedJointValuesPython() const
   {
-    const std::map<std::string, std::vector<double> >& rv = getRememberedJointValues();
+    const std::map<std::string, std::vector<double>>& rv = getRememberedJointValues();
     bp::dict d;
-    for (std::map<std::string, std::vector<double> >::const_iterator it = rv.begin(); it != rv.end(); ++it)
+    for (std::map<std::string, std::vector<double>>::const_iterator it = rv.begin(); it != rv.end(); ++it)
       d[it->first] = py_bindings_tools::listFromDouble(it->second);
     return d;
   }
@@ -536,7 +536,7 @@ public:
 static void wrap_move_group_interface()
 {
   bp::class_<MoveGroupInterfaceWrapper, boost::noncopyable> MoveGroupInterfaceClass(
-      "MoveGroupInterface", bp::init<std::string, std::string, std::string>());
+      "MoveGroupInterface", bp::init<std::string, std::string, bp::optional<std::string>>());
 
   MoveGroupInterfaceClass.def("async_move", &MoveGroupInterfaceWrapper::asyncMovePython);
   MoveGroupInterfaceClass.def("move", &MoveGroupInterfaceWrapper::movePython);
