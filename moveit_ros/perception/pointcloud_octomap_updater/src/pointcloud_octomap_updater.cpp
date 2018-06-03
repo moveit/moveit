@@ -74,7 +74,8 @@ bool PointCloudOctomapUpdater::setParams(XmlRpc::XmlRpcValue& params)
     readXmlParam(params, "padding_offset", &padding_);
     readXmlParam(params, "padding_scale", &scale_);
     readXmlParam(params, "point_subsample", &point_subsample_);
-    readXmlParam(params, "max_update_rate", &max_update_rate_);
+    if (params.hasMember("max_update_rate"))
+      readXmlParam(params, "max_update_rate", &max_update_rate_);
     if (params.hasMember("filtered_cloud_topic"))
       filtered_cloud_topic_ = static_cast<const std::string&>(params["filtered_cloud_topic"]);
   }
@@ -168,10 +169,13 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 {
   ROS_DEBUG("Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
-  // ensure we are not updating the octomap representation too often
-  if (start - last_update_time_ <= ros::WallDuration(1.0 / max_update_rate_))
-    return;
-  last_update_time_ = ros::WallTime::now();
+  
+  if (max_update_rate_ > 0) {
+    // ensure we are not updating the octomap representation too often
+    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
+      return;
+    last_update_time_ = ros::Time::now();
+  }
 
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);

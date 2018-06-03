@@ -76,7 +76,7 @@ private:
   ros::NodeHandle private_nh_;
   boost::shared_ptr<tf::Transformer> tf_;
 
-  ros::WallTime last_update_time_;
+  ros::Time last_update_time_;
 
   /* params */
   std::string point_cloud_topic_;
@@ -84,7 +84,8 @@ private:
   double padding_;
   double max_range_;
   unsigned int point_subsample_;
-  double max_update_rate_;
+  // setting default 0 in order to ignore param
+  double max_update_rate_ = 0;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
 
