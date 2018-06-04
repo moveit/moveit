@@ -169,8 +169,9 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
 {
   ROS_DEBUG("Received a new point cloud message");
   ros::WallTime start = ros::WallTime::now();
-  
-  if (max_update_rate_ > 0) {
+
+  if (max_update_rate_ > 0)
+  {
     // ensure we are not updating the octomap representation too often
     if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
       return;

@@ -210,8 +210,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   ROS_DEBUG("Received a new depth image message (frame = '%s', encoding='%s')", depth_msg->header.frame_id.c_str(),
             depth_msg->encoding.c_str());
   ros::WallTime start = ros::WallTime::now();
-  
-  if (max_update_rate_ > 0) {
+
+  if (max_update_rate_ > 0)
+  {
     // ensure we are not updating the octomap representation too often
     if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
       return;
