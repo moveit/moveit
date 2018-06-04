@@ -78,7 +78,7 @@ private:
   image_transport::CameraPublisher pub_filtered_depth_image_;
   image_transport::CameraPublisher pub_filtered_label_image_;
 
-  ros::WallTime last_update_time_;
+  ros::Time last_update_time_;
 
   std::string filtered_cloud_topic_;
   std::string sensor_type_;
