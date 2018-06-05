@@ -13,39 +13,39 @@ WORKDIR $CATKIN_WS
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
-	mkdir src && \
-	cd src && \
+    mkdir src && \
+    cd src && \
 
-	# Download moveit source so that we can get necessary dependencies
-	wstool init . && \
-	wstool merge https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
-	wstool update && \
+    # Download moveit source so that we can get necessary dependencies
+    wstool init . && \
+    wstool merge https://raw.githubusercontent.com/ros-planning/moveit/${ROS_DISTRO}-devel/moveit.rosinstall && \
+    wstool update && \
 
-	# Update apt package list as previous containers clear the cache
-	apt-get -qq update && \
-	apt-get -qq dist-upgrade && \
+    # Update apt package list as previous containers clear the cache
+    apt-get -qq update && \
+    apt-get -qq dist-upgrade && \
 
-	# Install some base dependencies
-	apt-get -qq install -y \
-		# Some source builds require a package.xml be downloaded via wget from an external location
-		wget \
-		# Required for rosdep command
-		sudo \
-		# Preferred build tools
-		python-catkin-tools \
-		ccache && \
+    # Install some base dependencies
+    apt-get -qq install -y \
+        # Some source builds require a package.xml be downloaded via wget from an external location
+        wget \
+        # Required for rosdep command
+        sudo \
+        # Preferred build tools
+        python-catkin-tools \
+        ccache && \
 
-	# Download all dependencies of MoveIt!
-	rosdep update && \
-	rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
+    # Download all dependencies of MoveIt!
+    rosdep update && \
+    rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
 
-	# Remove the source code from this container
-	# TODO: in the future we may want to keep this here for further optimization of later containers
-	cd .. && \
-	rm -rf src/ && \
+    # Remove the source code from this container
+    # TODO: in the future we may want to keep this here for further optimization of later containers
+    cd .. && \
+    rm -rf src/ && \
 
-	# Clear apt-cache to reduce image size
-	rm -rf /var/lib/apt/lists/*
+    # Clear apt-cache to reduce image size
+    rm -rf /var/lib/apt/lists/*
 
 # Continous Integration Setting
 ENV IN_DOCKER 1
