@@ -38,11 +38,6 @@ include_directories(
 
 add_library(compliant_control src/jog_arm/compliant_control/compliant_control.cpp)
 
-# Test compliance on a manipulator. It should act like a spring. Requires force & torque data.
-add_executable(compliance_test src/jog_arm/compliance_test/compliance_test.cpp)
-add_dependencies(compliance_test ${catkin_EXPORTED_TARGETS})
-target_link_libraries(compliance_test ${catkin_LIBRARIES} compliant_control)
-
 add_executable(jog_arm_server src/jog_arm/jog_arm_server.cpp src/jog_arm/support/get_ros_params.cpp)
 add_dependencies(jog_arm_server ${catkin_EXPORTED_TARGETS})
 target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})

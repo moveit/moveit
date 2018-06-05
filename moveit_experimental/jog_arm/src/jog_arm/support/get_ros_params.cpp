@@ -25,7 +25,8 @@
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE
 // DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 // FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -38,8 +39,8 @@
 
 #include "jog_arm/get_ros_params.h"
 
-std::string get_ros_params::getStringParam(const std::string& name, ros::NodeHandle& n)
-{
+std::string get_ros_params::getStringParam(const std::string &name,
+                                           ros::NodeHandle &n) {
   std::string s;
   if (!n.getParam(name, s))
     ROS_ERROR_STREAM_NAMED("getStringParam", "YAML config file does not "
@@ -48,8 +49,8 @@ std::string get_ros_params::getStringParam(const std::string& name, ros::NodeHan
   return s;
 }
 
-double get_ros_params::getDoubleParam(const std::string& name, ros::NodeHandle& n)
-{
+double get_ros_params::getDoubleParam(const std::string &name,
+                                      ros::NodeHandle &n) {
   double value;
   if (!n.getParam(name, value))
     ROS_ERROR_STREAM_NAMED("getDoubleParam", "YAML config file does not "
@@ -58,8 +59,8 @@ double get_ros_params::getDoubleParam(const std::string& name, ros::NodeHandle& 
   return value;
 }
 
-double get_ros_params::getIntParam(const std::string& name, ros::NodeHandle& n)
-{
+double get_ros_params::getIntParam(const std::string &name,
+                                   ros::NodeHandle &n) {
   int value;
   if (!n.getParam(name, value))
     ROS_ERROR_STREAM_NAMED("getIntParam", "YAML config file does not "
@@ -68,10 +69,10 @@ double get_ros_params::getIntParam(const std::string& name, ros::NodeHandle& n)
   return value;
 }
 
-bool get_ros_params::getBoolParam(const std::string& name, ros::NodeHandle& n)
-{
+bool get_ros_params::getBoolParam(const std::string &name, ros::NodeHandle &n) {
   bool value;
   if (!n.getParam(name, value))
-    ROS_ERROR_STREAM_NAMED("getBoolParam", "YAML config file does not contain parameter " << name);
+    ROS_ERROR_STREAM_NAMED(
+        "getBoolParam", "YAML config file does not contain parameter " << name);
   return value;
 }

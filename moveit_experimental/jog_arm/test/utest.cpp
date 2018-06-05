@@ -3,8 +3,7 @@
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "utest");
   boost::thread ros_thread(boost::bind(&ros::spin));

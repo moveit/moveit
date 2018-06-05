@@ -25,7 +25,8 @@
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE
 // DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 // FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -42,12 +43,11 @@
 #include <ros/ros.h>
 #include <string>
 
-namespace get_ros_params
-{
-std::string getStringParam(const std::string& name, ros::NodeHandle& n);
-double getDoubleParam(const std::string& name, ros::NodeHandle& n);
-double getIntParam(const std::string& name, ros::NodeHandle& n);
-bool getBoolParam(const std::string& name, ros::NodeHandle& n);
+namespace get_ros_params {
+std::string getStringParam(const std::string &name, ros::NodeHandle &n);
+double getDoubleParam(const std::string &name, ros::NodeHandle &n);
+double getIntParam(const std::string &name, ros::NodeHandle &n);
+bool getBoolParam(const std::string &name, ros::NodeHandle &n);
 }
 
-#endif  // GET_ROS_PARAMS_H
+#endif // GET_ROS_PARAMS_H
