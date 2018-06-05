@@ -58,11 +58,13 @@
 #include <string>
 #include <vector>
 
-namespace compliantEnum {
+namespace compliantEnum
+{
 /**
  * dimension enum.
  */
-enum dimension {
+enum dimension
+{
   NUM_DIMS = 6 /**< 3 translational, 3 rotational dimensions. */
 };
 
@@ -71,7 +73,8 @@ enum dimension {
  * The exitCondition enum is used to know the condition of the controller in
  * the end.
  */
-enum exitCondition {
+enum exitCondition
+{
   NOT_CONTROLLED = 0,    /**< None of the dimension is set to be controlled. */
   FT_VIOLATION = 1,      /**< Force or torque was read as maximum allowable. */
   CONDITION_MET = 2,     /**< One of the compliant conditions is met. */
@@ -79,17 +82,18 @@ enum exitCondition {
   POSE_ACHIEVED = 4      /**< The target pose was reached within tolerances. */
 };                       /**< The number of return conditions. */
 }
-namespace compliant_control {
+namespace compliant_control
+{
 class CompliantControl;
 class LowPassFilter;
 
-class CompliantControl {
+class CompliantControl
+{
 public:
   // Constructor.
-  CompliantControl(std::vector<double> stiffness, std::vector<double> deadband,
-                   std::vector<double> endConditionWrench, double filterParam,
-                   geometry_msgs::WrenchStamped bias,
-                   double highestAllowableForce, double highestAllowableTorque);
+  CompliantControl(std::vector<double> stiffness, std::vector<double> deadband, std::vector<double> endConditionWrench,
+                   double filterParam, geometry_msgs::WrenchStamped bias, double highestAllowableForce,
+                   double highestAllowableTorque);
 
   // Set the "springiness" of compliance in each direction.
   void setStiffness(std::vector<double> stiffness);
@@ -104,15 +108,14 @@ public:
   void adjustStiffness(compliantEnum::dimension dim, double stiffness);
 
   // Update FT values
-  void dataCallback(const geometry_msgs::WrenchStamped::ConstPtr &msg);
+  void dataCallback(const geometry_msgs::WrenchStamped::ConstPtr& msg);
 
   // Bias the FT values
   void biasSensor(geometry_msgs::WrenchStamped bias);
 
   // Set the target FT wrench
-  compliantEnum::exitCondition getVelocity(std::vector<double> vIn,
-                                           geometry_msgs::WrenchStamped ftData,
-                                           std::vector<double> &vOut);
+  compliantEnum::exitCondition getVelocity(std::vector<double> vIn, geometry_msgs::WrenchStamped ftData,
+                                           std::vector<double>& vOut);
 
   /**
    * Set the topic that force/torque data is read from.
@@ -130,18 +133,18 @@ public:
   std::vector<double> deadband_;
   std::vector<double> end_condition_wrench_;
   std::vector<double> ft_;
-  std::vector<double> bias_; // Initial biased force
-  double safeForceLimit_,
-      safeTorqueLimit_; // Quit if these forces/torques are exceeded
+  std::vector<double> bias_;                 // Initial biased force
+  double safeForceLimit_, safeTorqueLimit_;  // Quit if these forces/torques are exceeded
   std::vector<compliant_control::LowPassFilter> vectorOfFilters_;
 
 private:
 };
 
-class LowPassFilter {
+class LowPassFilter
+{
 public:
   LowPassFilter(double filterParam);
-  double filter(const double &new_msrmt);
+  double filter(const double& new_msrmt);
 
   // Related to the cutoff frequency of the filter.
   // filterParam=1 results in a cutoff at 1/4 of the sampling rate.
@@ -153,8 +156,8 @@ public:
   void reset(double data);
 
 private:
-  std::vector<double> prev_msrmts_ = {0., 0., 0.};
-  std::vector<double> prev_filtered_msrmts_ = {0., 0.};
+  std::vector<double> prev_msrmts_ = { 0., 0., 0. };
+  std::vector<double> prev_filtered_msrmts_ = { 0., 0. };
 };
 }
 #endif

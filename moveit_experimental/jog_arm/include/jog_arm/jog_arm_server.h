@@ -60,12 +60,13 @@
 #include <tf/transform_listener.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
-namespace jog_arm {
+namespace jog_arm
+{
 // For jogging calc thread
-void *joggingPipeline(void *threadid);
+void* joggingPipeline(void* threadid);
 
 // For collision checking thread
-void *collisionCheck(void *threadid);
+void* collisionCheck(void* threadid);
 
 // Shared variables
 geometry_msgs::TwistStamped g_command_deltas;
@@ -84,38 +85,44 @@ bool g_zero_trajectory_flag(false);
 pthread_mutex_t g_zero_trajectory_flagmutex;
 
 // ROS subscriber callbacks
-void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr &msg);
-void jointsCB(const sensor_msgs::JointStateConstPtr &msg);
+void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
+void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
 
-int readParameters(ros::NodeHandle &n);
+int readParameters(ros::NodeHandle& n);
 
 // ROS params to be read
-struct jog_arm_parameters {
-  std::string move_group_name, joint_topic, command_in_topic, command_frame, command_out_topic, planning_frame, warning_topic;
-  double linear_scale, rotational_scale, singularity_threshold, hard_stop_singularity_threshold, low_pass_filter_coeff, publish_period, incoming_command_timeout;
+struct jog_arm_parameters
+{
+  std::string move_group_name, joint_topic, command_in_topic, command_frame, command_out_topic, planning_frame,
+      warning_topic;
+  double linear_scale, rotational_scale, singularity_threshold, hard_stop_singularity_threshold, low_pass_filter_coeff,
+      publish_period, incoming_command_timeout;
   bool gazebo, collision_check;
 } g_parameters;
 
 /**
  * Class LowPassFilter - Filter the joint velocities to avoid jerky motion.
  */
-class LowPassFilter {
+class LowPassFilter
+{
 public:
   LowPassFilter(double low_pass_filter_coeff);
-  double filter(const double &new_msrmt);
+  double filter(const double& new_msrmt);
   void reset(double data);
   double filter_coeff_ = 10.;
 
 private:
-  double prev_msrmts_[3] = {0., 0., 0.};
-  double prev_filtered_msrmts_[2] = {0., 0.};
+  double prev_msrmts_[3] = { 0., 0., 0. };
+  double prev_filtered_msrmts_[2] = { 0., 0. };
 };
 
-LowPassFilter::LowPassFilter(double low_pass_filter_coeff) {
+LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
+{
   filter_coeff_ = low_pass_filter_coeff;
 }
 
-void LowPassFilter::reset(double data) {
+void LowPassFilter::reset(double data)
+{
   prev_msrmts_[0] = data;
   prev_msrmts_[1] = data;
   prev_msrmts_[2] = data;
@@ -124,18 +131,17 @@ void LowPassFilter::reset(double data) {
   prev_filtered_msrmts_[1] = data;
 }
 
-double LowPassFilter::filter(const double &new_msrmt) {
+double LowPassFilter::filter(const double& new_msrmt)
+{
   // Push in the new measurement
   prev_msrmts_[2] = prev_msrmts_[1];
   prev_msrmts_[1] = prev_msrmts_[0];
   prev_msrmts_[0] = new_msrmt;
 
-  double new_filtered_msrmt =
-      (1 / (1 + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
-      (prev_msrmts_[2] + 2 * prev_msrmts_[1] + prev_msrmts_[0] -
-       (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1) *
-           prev_filtered_msrmts_[1] -
-       (-2 * filter_coeff_ * filter_coeff_ + 2) * prev_filtered_msrmts_[0]);
+  double new_filtered_msrmt = (1 / (1 + filter_coeff_ * filter_coeff_ + 1.414 * filter_coeff_)) *
+                              (prev_msrmts_[2] + 2 * prev_msrmts_[1] + prev_msrmts_[0] -
+                               (filter_coeff_ * filter_coeff_ - 1.414 * filter_coeff_ + 1) * prev_filtered_msrmts_[1] -
+                               (-2 * filter_coeff_ * filter_coeff_ + 2) * prev_filtered_msrmts_[0]);
 
   // Store the new filtered measurement
   prev_filtered_msrmts_[1] = prev_filtered_msrmts_[0];
@@ -147,9 +153,10 @@ double LowPassFilter::filter(const double &new_msrmt) {
 /**
  * Class JogCalcs - Perform the Jacobian calculations.
  */
-class JogCalcs {
+class JogCalcs
+{
 public:
-  JogCalcs(const std::string &move_group_name);
+  JogCalcs(const std::string& move_group_name);
 
 protected:
   ros::NodeHandle nh_;
@@ -162,31 +169,29 @@ protected:
 
   typedef Eigen::Matrix<double, 6, 1> Vector6d;
 
-  void jogCalcs(const geometry_msgs::TwistStamped &cmd);
+  void jogCalcs(const geometry_msgs::TwistStamped& cmd);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   void updateJoints();
 
-  Vector6d scaleCommand(const geometry_msgs::TwistStamped &command) const;
+  Vector6d scaleCommand(const geometry_msgs::TwistStamped& command) const;
 
-  Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd &J) const;
+  Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd& J) const;
 
-  bool addJointIncrements(sensor_msgs::JointState &output,
-                          const Eigen::VectorXd &increments) const;
+  bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
-  bool updateJointVels(sensor_msgs::JointState &output,
-                       const Eigen::VectorXd &joint_vels) const;
+  bool updateJointVels(sensor_msgs::JointState& output, const Eigen::VectorXd& joint_vels) const;
 
-  double checkConditionNumber(const Eigen::MatrixXd &matrix) const;
+  double checkConditionNumber(const Eigen::MatrixXd& matrix) const;
 
   // Reset the data stored in low-pass filters so the trajectory won't jump when
   // jogging is resumed.
   void resetVelocityFilters();
 
   // Halt the robot
-  void halt(trajectory_msgs::JointTrajectory &jt_traj);
+  void halt(trajectory_msgs::JointTrajectory& jt_traj);
 
-  const robot_state::JointModelGroup *joint_model_group_;
+  const robot_state::JointModelGroup* joint_model_group_;
 
   robot_state::RobotStatePtr kinematic_state_;
 
@@ -207,9 +212,10 @@ protected:
   ros::Publisher warning_pub_;
 };
 
-class CollisionCheck {
+class CollisionCheck
+{
 public:
-  CollisionCheck(const std::string &move_group_name);
+  CollisionCheck(const std::string& move_group_name);
 
 private:
   ros::NodeHandle nh_;
@@ -217,6 +223,6 @@ private:
   ros::Publisher warning_pub_;
 };
 
-} // namespace jog_arm
+}  // namespace jog_arm
 
-#endif // JOG_ARM_SERVER_H
+#endif  // JOG_ARM_SERVER_H

@@ -39,8 +39,8 @@
 
 #include "jog_arm/get_ros_params.h"
 
-std::string get_ros_params::getStringParam(const std::string &name,
-                                           ros::NodeHandle &n) {
+std::string get_ros_params::getStringParam(const std::string& name, ros::NodeHandle& n)
+{
   std::string s;
   if (!n.getParam(name, s))
     ROS_ERROR_STREAM_NAMED("getStringParam", "YAML config file does not "
@@ -49,8 +49,8 @@ std::string get_ros_params::getStringParam(const std::string &name,
   return s;
 }
 
-double get_ros_params::getDoubleParam(const std::string &name,
-                                      ros::NodeHandle &n) {
+double get_ros_params::getDoubleParam(const std::string& name, ros::NodeHandle& n)
+{
   double value;
   if (!n.getParam(name, value))
     ROS_ERROR_STREAM_NAMED("getDoubleParam", "YAML config file does not "
@@ -59,8 +59,8 @@ double get_ros_params::getDoubleParam(const std::string &name,
   return value;
 }
 
-double get_ros_params::getIntParam(const std::string &name,
-                                   ros::NodeHandle &n) {
+double get_ros_params::getIntParam(const std::string& name, ros::NodeHandle& n)
+{
   int value;
   if (!n.getParam(name, value))
     ROS_ERROR_STREAM_NAMED("getIntParam", "YAML config file does not "
@@ -69,10 +69,10 @@ double get_ros_params::getIntParam(const std::string &name,
   return value;
 }
 
-bool get_ros_params::getBoolParam(const std::string &name, ros::NodeHandle &n) {
+bool get_ros_params::getBoolParam(const std::string& name, ros::NodeHandle& n)
+{
   bool value;
   if (!n.getParam(name, value))
-    ROS_ERROR_STREAM_NAMED(
-        "getBoolParam", "YAML config file does not contain parameter " << name);
+    ROS_ERROR_STREAM_NAMED("getBoolParam", "YAML config file does not contain parameter " << name);
   return value;
 }
