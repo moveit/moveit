@@ -1034,8 +1034,8 @@ bool TrajectoryExecutionManager::configure(TrajectoryExecutionContext& context,
 {
   if (trajectory.multi_dof_joint_trajectory.points.empty() && trajectory.joint_trajectory.points.empty())
   {
-    ROS_WARN_NAMED(name_, "The trajectory to execute is empty");
-    return false;
+    // empty trajectories don't need to configure anything
+    return true;
   }
   std::set<std::string> actuated_joints;
 
