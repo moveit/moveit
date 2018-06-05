@@ -10,7 +10,7 @@ ENV TERM xterm
 ENV CATKIN_WS=/root/ws_moveit
 WORKDIR $CATKIN_WS
 
-# Perform a single RUN command only to optimize docker performance (reduce no. of layers)
+# Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
 	mkdir src && \
@@ -34,7 +34,9 @@ RUN \
 		# Preferred build tools
 		python-catkin-tools \
 		ccache && \
-        
+
+	# Download all dependencies of MoveIt!
+	rosdep update && \
 	rosdep install -y --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false && \
 
 	# Remove the source code from this container

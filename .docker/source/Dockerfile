@@ -6,7 +6,7 @@ MAINTAINER Dave Coleman dave@picknik.ai
 
 ENV PYTHONIOENCODING UTF-8
 
-# Perform a single RUN command only to optimize docker performance (reduce no. of layers)
+# Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
 	mkdir src && \
