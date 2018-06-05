@@ -4,8 +4,6 @@
 FROM moveit/moveit:melodic-ci-shadow-fixed
 MAINTAINER Dave Coleman dave@picknik.ai
 
-ENV PYTHONIOENCODING UTF-8
-
 # Commands are combined in single RUN statement with "apt/lists" folder removal to reduce image size
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers
 RUN \
@@ -27,6 +25,7 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 # Build repo
+ENV PYTHONIOENCODING UTF-8
 RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
 
     # Status rate is limited so that just enough info is shown to keep Docker from timing out, but not too much
