@@ -1419,7 +1419,9 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
           longest_part = i;
       }
 
-      // use controller-specific values if defined
+      // prefer controller-specific values over global ones if defined
+      // TODO: the controller-specific parameters are static, but override
+      //       the global ones are configurable via dynamic reconfigure
       std::map<std::string, double>::const_iterator scaling_it =
           controller_allowed_execution_duration_scaling_.find(context.controllers_[i]);
       const double current_scaling = scaling_it != controller_allowed_execution_duration_scaling_.end() ?
