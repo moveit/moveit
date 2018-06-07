@@ -89,8 +89,7 @@ private:
   double shadow_threshold_;
   double padding_scale_;
   double padding_offset_;
-  // setting default 0 in order to ignore param
-  double max_update_rate_ = 0;
+  double max_update_rate_;
   unsigned int skip_vertical_pixels_;
   unsigned int skip_horizontal_pixels_;
 

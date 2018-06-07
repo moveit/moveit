@@ -84,8 +84,7 @@ private:
   double padding_;
   double max_range_;
   unsigned int point_subsample_;
-  // setting default 0 in order to ignore param
-  double max_update_rate_ = 0;
+  double max_update_rate_;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
 
