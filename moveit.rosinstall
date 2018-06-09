@@ -12,10 +12,10 @@
     local-name: moveit_resources
     uri: https://github.com/ros-planning/moveit_resources.git
     version: master
-#- git:
-#    local-name: moveit_visual_tools
-#    uri: https://github.com/ros-planning/moveit_visual_tools.git
-#    version: melodic-devel
+- git:
+    local-name: moveit_visual_tools
+    uri: https://github.com/ros-planning/moveit_visual_tools.git
+    version: melodic-devel
 - git:
     local-name: geometric_shapes
     uri: https://github.com/ros-planning/geometric_shapes.git
