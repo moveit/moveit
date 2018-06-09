@@ -839,20 +839,23 @@ public:
   /** \brief Place an object somewhere safe in the world (a safe location will be detected) */
   MoveItErrorCode place(const std::string& object);
 
-  /** \brief Place an object somewhere safe in the world (a safe location will be detected) (with returning planning result) */
+  /** \brief Place an object somewhere safe in the world (a safe location will be detected) (with returning planning
+   * result) */
   MoveItErrorCode place(const std::string& object, PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations);
 
   /** \brief Place an object at one of the specified possible locations (with returning planning result) */
-  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations, PlacePlan& plan);
+  MoveItErrorCode place(const std::string& object, const std::vector<moveit_msgs::PlaceLocation>& locations,
+                        PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible locations */
   MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses);
 
   /** \brief Place an object at one of the specified possible locations (with returning planning result) */
-  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses, PlacePlan& plan);
+  MoveItErrorCode place(const std::string& object, const std::vector<geometry_msgs::PoseStamped>& poses,
+                        PlacePlan& plan);
 
   /** \brief Place an object at one of the specified possible location */
   MoveItErrorCode place(const std::string& object, const geometry_msgs::PoseStamped& pose);
