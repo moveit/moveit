@@ -76,6 +76,7 @@ public:
   double getRandomJumpAmount() const;
   void setRandomJumpAmount(double amount);
   bool getUseStochasticDescent() const;
+  std::string getTrajectoryInitializationMethod() const;
 
 public:
   double planning_time_limit_;
@@ -104,6 +105,7 @@ public:
   double collision_threshold_;
   bool filter_mode_;
   double random_jump_amount_;
+  std::string trajectory_initialization_method_;
 };
 
 /////////////////////// inline functions follow ////////////////////////
@@ -251,6 +253,11 @@ inline bool ChompParameters::getUseStochasticDescent() const
 inline std::string ChompParameters::getAnimateEndeffectorSegment() const
 {
   return animate_endeffector_segment_;
+}
+
+inline std::string ChompParameters::getTrajectoryInitializationMethod() const
+{
+  return trajectory_initialization_method_;
 }
 
 }  // namespace chomp

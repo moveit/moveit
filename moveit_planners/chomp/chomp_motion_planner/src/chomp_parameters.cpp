@@ -66,6 +66,7 @@ ChompParameters::ChompParameters()
   random_jump_amount_ = 1.0;
   use_stochastic_descent_ = true;
   filter_mode_ = false;
+  trajectory_initialization_method_ = std::string("quintic-spline");
 }
 
 ChompParameters::~ChompParameters()

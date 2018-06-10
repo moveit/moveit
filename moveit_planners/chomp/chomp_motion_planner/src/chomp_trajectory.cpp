@@ -37,6 +37,8 @@
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <iostream>
+#include <stdio.h>
+using namespace std;
 
 namespace chomp
 {
@@ -52,6 +54,9 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getActiveJointModels().size();
   init();
+
+  std::cout << trajectory_ << " complete initialized TRAJECTORY in first constructor..!!!!!" << std::endl;
+
 }
 
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points,
@@ -66,8 +71,15 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getActiveJointModels().size();
   init();
+  std::cout << trajectory_ << " complete initialized TRAJECTORY..!!!!!" << std::endl;
 }
 
+/**
+ * this contructor simply copies over the source trajectory into the current trajectory object
+ * @param source_traj
+ * @param planning_group
+ * @param diff_rule_length
+ */
 ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group,
                                  int diff_rule_length)
   : planning_group_name_(planning_group), discretization_(source_traj.discretization_)
@@ -143,6 +155,10 @@ ChompTrajectory::~ChompTrajectory()
 {
 }
 
+/**
+ * copies the trajectory of the argument in the object's trajectory
+ * @param traj
+ */
 void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj)
 {
   for (unsigned int i = 1; i <= traj.points.size(); i++)
@@ -167,6 +183,44 @@ void ChompTrajectory::updateFromGroupTrajectory(const ChompTrajectory& group_tra
   {
     trajectory_.block(start_index_, i, num_vars_free, 1) =
         group_trajectory.trajectory_.block(group_trajectory.start_index_, i, num_vars_free, 1);
+  }
+}
+
+
+void ChompTrajectory::fillInLinearInterpolation()
+{
+  double start_index  = start_index_ - 1;
+  double end_index    = end_index_ + 1;
+  int time_steps = end_index - start_index;
+  for(int i = 0; i<num_joints_ ; i++)
+  {
+    double theta = ((*this)(end_index, i) - (*this)(start_index,i)) / (end_index- 1);
+    for(int j=start_index+1 ; j< end_index ; j++)
+    {
+      (*this)(j,i) = (*this)(start_index,i) + j*theta;
+    }
+  }
+}
+
+void ChompTrajectory::fillInCubicInterpolation()
+{
+  double start_index  = start_index_ - 1;
+  double end_index    = end_index_ + 1;
+  double dt = 0.001;
+  std::vector<double> coeffs(4,0);
+  double total_time = (end_index - 1) * dt;
+  for(int i = 0; i < num_joints_; i++)
+  {
+    coeffs[0] = (*this)(start_index,i);
+    coeffs[2] = (3/(pow(total_time,2))) * ((*this)(end_index, i) - (*this)(start_index,i));
+    coeffs[3] = (-2/(pow(total_time,3))) * ((*this)(end_index, i) - (*this)(start_index,i));
+
+    double t;
+    for(int j = start_index+1 ; j < end_index; j++)
+    {
+      t = j*dt;
+      (*this)(j,i) = coeffs[0] + coeffs[2]*pow(t,2) + coeffs[3]*pow(t,3);
+    }
   }
 }
 
