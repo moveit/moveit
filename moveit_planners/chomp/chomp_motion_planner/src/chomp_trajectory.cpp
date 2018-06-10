@@ -54,9 +54,6 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getActiveJointModels().size();
   init();
-
-  std::cout << trajectory_ << " complete initialized TRAJECTORY in first constructor..!!!!!" << std::endl;
-
 }
 
 ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_model, int num_points,
