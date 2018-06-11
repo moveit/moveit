@@ -80,6 +80,8 @@ private:
 
   ros::Time last_update_time_;
 
+  ros::Time last_update_time_;
+
   /* params */
   std::string point_cloud_topic_;
   double scale_;

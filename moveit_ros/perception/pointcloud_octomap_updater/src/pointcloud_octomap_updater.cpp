@@ -180,6 +180,14 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::
     last_update_time_ = ros::Time::now();
   }
 
+  if (max_update_rate_ > 0)
+  {
+    // ensure we are not updating the octomap representation too often
+    if (ros::Time::now() - last_update_time_ <= ros::Duration(1.0 / max_update_rate_))
+      return;
+    last_update_time_ = ros::Time::now();
+  }
+
   if (monitor_->getMapFrame().empty())
     monitor_->setMapFrame(cloud_msg->header.frame_id);
 
