@@ -75,14 +75,14 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ros::WallTime start_time = ros::WallTime::now();
   ChompTrajectory trajectory(planning_scene->getRobotModel(), 3.0, .03, req.group_name);
 
-  //std::cout << trajectory.getTrajectory() << " 1. complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" << std::endl;
+  // std::cout << trajectory.getTrajectory() << " 1. complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" <<
+  // std::endl;
 
   jointStateToArray(planning_scene->getRobotModel(), req.start_state.joint_state, req.group_name,
                     trajectory.getTrajectoryPoint(0));
 
-  //std::cout << trajectory.getTrajectory() << " 2.  complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" << std::endl;
-
-
+  // std::cout << trajectory.getTrajectory() << " 2.  complete initialized TRAJECTORY in CHOMP_PLANNER..!!!!!" <<
+  // std::endl;
 
   if (req.goal_constraints.empty())
   {
@@ -145,7 +145,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     return false;
   }
 
-  //std::cout << trajectory.getTrajectory() << "3. complete initialized TRAJECTORY in CHOMP_PLANNER before min jerk..!!!!!" << std::endl;
+  // std::cout << trajectory.getTrajectory() << "3. complete initialized TRAJECTORY in CHOMP_PLANNER before min
+  // jerk..!!!!!" << std::endl;
 
   if(params.trajectory_initialization_method_.compare("quintic-spline") == 0)
     trajectory.fillInMinJerk();
@@ -161,8 +162,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   //trajectory.fillInCubicInterpolation();
   //std::cout << " using initialization method: " << params.interpolation_method_ << std::endl;
 
-  //std::cout << trajectory.getTrajectory() << "4. complete initialized TRAJECTORY in CHOMP_PLANNER after min jerk..!!!!!" << std::endl;
-
+  // std::cout << trajectory.getTrajectory() << "4. complete initialized TRAJECTORY in CHOMP_PLANNER after min
+  // jerk..!!!!!" << std::endl;
 
   // optimize!
   moveit::core::RobotState start_state(planning_scene->getCurrentState());
@@ -170,8 +171,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   start_state.update();
 
   ros::WallTime create_time = ros::WallTime::now();
-  //std::cout << trajectory.getTrajectory() << "5. complete initialized TRAJECTORY in CHOMP_PLANNER before optimizer object creation..!!!!!" << std::endl;
-
+  // std::cout << trajectory.getTrajectory() << "5. complete initialized TRAJECTORY in CHOMP_PLANNER before optimizer
+  // object creation..!!!!!" << std::endl;
 
   ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
   if (!optimizer.isInitialized())
@@ -182,8 +183,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
   ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
 
-  //std::cout << trajectory.getTrajectory() << "6. complete initialized TRAJECTORY in CHOMP_PLANNER before OPTIMIZATION..!!!!!" << std::endl;
-
+  // std::cout << trajectory.getTrajectory() << "6. complete initialized TRAJECTORY in CHOMP_PLANNER before
+  // OPTIMIZATION..!!!!!" << std::endl;
 
   optimizer.optimize();
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",
@@ -193,7 +194,8 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ROS_DEBUG_NAMED("chomp_planner", "Output trajectory has %d joints", trajectory.getNumJoints());
 
-  //std::cout << trajectory.getTrajectory() << "7. complete initialized TRAJECTORY in CHOMP_PLANNER after OPTIMIZATION..!!!!!" << std::endl;
+  // std::cout << trajectory.getTrajectory() << "7. complete initialized TRAJECTORY in CHOMP_PLANNER after
+  // OPTIMIZATION..!!!!!" << std::endl;
 
   res.trajectory.resize(1);
 
