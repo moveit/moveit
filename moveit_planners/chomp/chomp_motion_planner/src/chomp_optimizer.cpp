@@ -180,10 +180,7 @@ void ChompOptimizer::initialize()
 
   last_improvement_iteration_ = -1;
 
-  // HMC initialization:
-  momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
+
   multivariate_gaussian_.clear();
   stochasticity_factor_ = 1.0;
   for (int i = 0; i < num_joints_; i++)
@@ -389,8 +386,7 @@ void ChompOptimizer::optimize()
       }
     }
 
-    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit() &&
-        !parameters_->getAnimatePath() && !parameters_->getAnimateEndeffector())
+    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit() )
     {
       ROS_WARN("Breaking out early due to time limit constraints.");
       break;
