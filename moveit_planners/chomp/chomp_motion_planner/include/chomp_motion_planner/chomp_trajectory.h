@@ -179,15 +179,13 @@ private:
   int num_joints_;                  /**< Number of joints in each trajectory point */
   double discretization_;           /**< Discretization of the trajectory */
   double duration_;                 /**< Duration of the trajectory */
-
+  Eigen::MatrixXd trajectory_;      /**< Storage for the actual trajectory */
   int start_index_; /**< Start index (inclusive) of trajectory to be optimized (everything before it will not be
                        modified) */
   int end_index_; /**< End index (inclusive) of trajectory to be optimized (everything after it will not be modified) */
   std::vector<int> full_trajectory_index_; /**< If this is a "group" trajectory, the index from the original traj which
                                               each
                                               element here was copied */
-public:
-    Eigen::MatrixXd trajectory_;      /**< Storage for the actual trajectory */
 };
 
 ///////////////////////// inline functions follow //////////////////////

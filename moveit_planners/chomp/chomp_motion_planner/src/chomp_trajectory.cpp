@@ -189,7 +189,7 @@ void ChompTrajectory::fillInLinearInterpolation()
   double start_index  = start_index_ - 1;
   double end_index    = end_index_ + 1;
   int time_steps = end_index - start_index;
-  for(int i = 0; i<num_joints_ ; i++)
+  for(int i = 0; i < num_joints_ ; i++)
   {
     double theta = ((*this)(end_index, i) - (*this)(start_index,i)) / (end_index- 1);
     for(int j=start_index+1 ; j< end_index ; j++)
