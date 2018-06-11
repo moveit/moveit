@@ -78,12 +78,15 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
+  ros::Time last_update_time_;
+
   /* params */
   std::string point_cloud_topic_;
   double scale_;
   double padding_;
   double max_range_;
   unsigned int point_subsample_;
+  double max_update_rate_;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
 

@@ -78,6 +78,8 @@ private:
   image_transport::CameraPublisher pub_filtered_depth_image_;
   image_transport::CameraPublisher pub_filtered_label_image_;
 
+  ros::Time last_update_time_;
+
   std::string filtered_cloud_topic_;
   std::string sensor_type_;
   std::string image_topic_;
@@ -87,6 +89,7 @@ private:
   double shadow_threshold_;
   double padding_scale_;
   double padding_offset_;
+  double max_update_rate_;
   unsigned int skip_vertical_pixels_;
   unsigned int skip_horizontal_pixels_;
 
