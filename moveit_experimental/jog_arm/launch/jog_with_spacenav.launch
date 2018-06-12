@@ -1,0 +1,11 @@
+<launch>
+
+  <rosparam command="load" file="$(find moveit_experimental)/jog_arm/config/jog_settings.yaml" />
+
+  <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node" />
+
+  <node name="spacenav_to_twist" pkg="moveit_experimental" type="spacenav_to_twist.py" output="screen" />
+
+  <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" />
+
+</launch>

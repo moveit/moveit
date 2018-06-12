@@ -158,11 +158,14 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
     robot_state::RobotState& current_state = planning_scene.getCurrentStateNonConst();
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 
-    // Wait for initial joint message
+    // Wait for initial messages
     ROS_INFO_NAMED("jog_arm_server", "Waiting for first joint msg.");
     ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_parameters.joint_topic);
-    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(g_parameters.command_in_topic);
     ROS_INFO_NAMED("jog_arm_server", "Received first joint msg.");
+
+    ROS_INFO_NAMED("jog_arm_server", "Waiting for first command msg.");
+    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(g_parameters.command_in_topic);
+    ROS_INFO_NAMED("jog_arm_server", "Received first command msg.");
 
     ros::Rate collision_rate(100);
 
@@ -233,8 +236,11 @@ JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), 
   // Wait for initial messages
   ROS_INFO_NAMED("jog_arm_server", "Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_parameters.joint_topic);
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(g_parameters.command_in_topic);
   ROS_INFO_NAMED("jog_arm_server", "Received first joint msg.");
+
+  ROS_INFO_NAMED("jog_arm_server", "Waiting for first command msg.");
+  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(g_parameters.command_in_topic);
+  ROS_INFO_NAMED("jog_arm_server", "Received first command msg.");;
 
   jt_state_.name = arm_.getJointNames();
   jt_state_.position.resize(jt_state_.name.size());
@@ -574,8 +580,7 @@ JogCalcs::Vector6d JogCalcs::scaleCommand(const geometry_msgs::TwistStamped& com
 // Calculate a pseudo-inverse.
 Eigen::MatrixXd JogCalcs::pseudoInverse(const Eigen::MatrixXd& J) const
 {
-  Eigen::MatrixXd transpose = J.transpose();
-  return transpose * (J * transpose).inverse();
+  return J.transpose() * (J * J.transpose()).inverse();
 }
 
 // Add the deltas to each joint
@@ -598,20 +603,13 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
   return true;
 }
 
-/// Calculate the condition number of the jacobian, to check for singularities
+// Calculate the condition number of the jacobian, to check for singularities
 double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 {
-  // Get Eigenvalues
-  Eigen::MatrixXd::EigenvaluesReturnType eigs = matrix.eigenvalues();
-  Eigen::VectorXd eig_vector = eigs.cwiseAbs();
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd(matrix);
 
-  // CN = max(eigs)/min(eigs)
-  double min = eig_vector.minCoeff();
-  double max = eig_vector.maxCoeff();
-
-  double condition_number = max / min;
-
-  return condition_number;
+  return svd.singularValues()(0) 
+    / svd.singularValues()(svd.singularValues().size()-1);;
 }
 
 // Listen to cartesian delta commands.
