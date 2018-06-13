@@ -86,84 +86,18 @@ struct jog_arm_parameters
   double linear_scale, rotational_scale, singularity_threshold, hard_stop_singularity_threshold, low_pass_filter_coeff,
       publish_period, incoming_command_timeout;
   bool gazebo, collision_check;
-} g_parameters;
+};
 
 /**
  * Class jogROSInterface - Instantiated in main(). Handles ROS subs & pubs.
  */
 class jogROSInterface
 {
-public:
-  jogROSInterface()
-  {
-    ros::NodeHandle n;
+public: 
+  jogROSInterface();
 
-    // Read ROS parameters, typically from YAML file
-    readParameters(n);
-
-    // Crunch the numbers in this thread
-    pthread_t joggingThread;
-    int rc = pthread_create(&joggingThread, NULL, joggingPipeline, this);
-
-    // Check collisions in this thread
-    pthread_t collisionThread;
-    rc = pthread_create(&collisionThread, NULL, collisionCheck, this);
-
-    // ROS subscriptions. Share the data with the worker threads
-    ros::Subscriber cmd_sub = n.subscribe(jog_arm::g_parameters.command_in_topic, 1, &jogROSInterface::deltaCmdCB, this);
-    ros::Subscriber joints_sub = n.subscribe(jog_arm::g_parameters.joint_topic, 1, &jogROSInterface::jointsCB, this);
-
-    // Publish freshly-calculated joints to the robot
-    ros::Publisher joint_trajectory_pub =
-        n.advertise<trajectory_msgs::JointTrajectory>(jog_arm::g_parameters.command_out_topic, 1);
-
-    ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_parameters.joint_topic);
-    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_parameters.command_in_topic);
-
-    // Wait for jog filters to stablize
-    ros::Duration(10 * jog_arm::g_parameters.publish_period).sleep();
-
-    ros::Rate main_rate(1. / jog_arm::g_parameters.publish_period);
-
-    while (ros::ok())
-    {
-      ros::spinOnce();
-
-      // Send the newest target joints
-      pthread_mutex_lock(&jog_arm::g_new_traj_mutex);
-      if (jog_arm::g_new_traj.joint_names.size() != 0)
-      {
-        // Check for stale cmds
-        if (ros::Time::now() - jog_arm::g_new_traj.header.stamp <
-            ros::Duration(jog_arm::g_parameters.incoming_command_timeout))
-        {
-          // Skip the jogging publication if all inputs are 0.
-          pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-          if (!jog_arm::g_zero_trajectory_flag)
-          {
-            jog_arm::g_new_traj.header.stamp = ros::Time::now();
-            joint_trajectory_pub.publish(jog_arm::g_new_traj);
-          }
-          pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
-        }
-        else
-        {
-          ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Stale joint "
-                                                              "trajectory msg. Try a larger "
-                                                              "'incoming_command_timeout' parameter.");
-          ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Did input from the "
-                                                              "controller get interrupted? Are "
-                                                              "calculations taking too long?");
-        }
-      }
-      pthread_mutex_unlock(&jog_arm::g_new_traj_mutex);
-
-      main_rate.sleep();
-    }
-
-    (void)pthread_join(joggingThread, NULL);
-    (void)pthread_join(collisionThread, NULL);
-  }
+  // Store the parameters that were read from ROS server
+  static struct jog_arm_parameters ros_parameters_;
 
 private:
   // ROS subscriber callbacks
@@ -235,7 +169,7 @@ double LowPassFilter::filter(const double& new_msrmt)
 class JogCalcs
 {
 public:
-  JogCalcs(const std::string& move_group_name);
+  JogCalcs(const jog_arm_parameters &parameters);
 
 protected:
   ros::NodeHandle nh_;
@@ -287,12 +221,14 @@ protected:
   ros::Duration time_of_incoming_cmd_;
 
   ros::Publisher warning_pub_;
+
+  jog_arm_parameters parameters_;
 };
 
 class CollisionCheck
 {
 public:
-  CollisionCheck(const std::string& move_group_name);
+  CollisionCheck(const jog_arm_parameters &parameters);
 
 private:
   ros::NodeHandle nh_;
