@@ -215,7 +215,7 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
 }
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), prev_time_(ros::Time::now())
+JogCalcs::JogCalcs(const std::string& move_group_name) :move_group_(move_group_name), prev_time_(ros::Time::now())
 {
   // Publish collision status
   warning_pub_ = nh_.advertise<std_msgs::Bool>(jog_arm::g_parameters.warning_topic, 1);
@@ -242,7 +242,7 @@ JogCalcs::JogCalcs(const std::string& move_group_name) : arm_(move_group_name), 
   ros::topic::waitForMessage<geometry_msgs::TwistStamped>(g_parameters.command_in_topic);
   ROS_INFO_NAMED("jog_arm_server", "Received first command msg.");;
 
-  jt_state_.name = arm_.getJointNames();
+  jt_state_.name = move_group_.getJointNames();
   jt_state_.position.resize(jt_state_.name.size());
   jt_state_.velocity.resize(jt_state_.name.size());
   jt_state_.effort.resize(jt_state_.name.size());
@@ -716,6 +716,11 @@ int readParameters(ros::NodeHandle& n)
   {
     ROS_WARN_NAMED("jog_arm_server", "Parameters 'hard_stop_singularity_threshold' "
                                      "and 'singularity_threshold' should be greater than zero.");
+    return 1;
+  }
+  if (jog_arm::g_parameters.low_pass_filter_coeff < 0.)
+  {
+    ROS_WARN_NAMED("jog_arm_server", "Parameter 'low_pass_filter_coeff' should be greater than zero.");
     return 1;
   }
 

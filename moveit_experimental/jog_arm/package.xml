@@ -8,8 +8,7 @@
   <maintainer email="blakeanderson@utexas.edu">Blake Anderson</maintainer>
   <maintainer email="andyz@utexas.edu">Andy Zelenak</maintainer>
 
-  <license>specified in-file</license>
-
+  <license>BSD 3-Clause</license>
 
   <url type="website">http://wiki.ros.org/jog_arm</url>
 
@@ -17,18 +16,4 @@
   <author email="andyz@utexas.edu">Andy Zelenak</author>
   <author email="blakeanderson@utexas.edu">Blake Anderson</author>
   <author>Nitish Sharma</author>
-
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>cmake_modules</depend>
-  <depend>geometry_msgs</depend>
-  <depend>joy</depend>
-  <depend>moveit_ros_manipulation</depend>
-  <depend>moveit_ros_move_group</depend>
-  <depend>moveit_ros_planning_interface</depend>
-  <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
-  <depend>tf</depend>
-  <depend>tf2_geometry_msgs</depend>
 </package>

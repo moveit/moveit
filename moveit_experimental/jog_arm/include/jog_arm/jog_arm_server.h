@@ -63,10 +63,10 @@
 namespace jog_arm
 {
 // For jogging calc thread
-void* joggingPipeline(void* threadid);
+void* joggingPipeline(void* thread_id);
 
 // For collision checking thread
-void* collisionCheck(void* threadid);
+void* collisionCheck(void* thread_id);
 
 // Shared variables
 geometry_msgs::TwistStamped g_command_deltas;
@@ -161,7 +161,7 @@ public:
 protected:
   ros::NodeHandle nh_;
 
-  moveit::planning_interface::MoveGroupInterface arm_;
+  moveit::planning_interface::MoveGroupInterface move_group_;
 
   geometry_msgs::TwistStamped cmd_deltas_;
 

@@ -58,14 +58,14 @@
 #include <string>
 #include <vector>
 
-namespace compliantEnum
+namespace compliant_control
 {
 /**
  * dimension enum.
  */
 enum dimension
 {
-  NUM_DIMS = 6 /**< 3 translational, 3 rotational dimensions. */
+  NUM_DIMS = 6 // 3 translational, 3 rotational dimensions
 };
 
 /**
@@ -75,15 +75,13 @@ enum dimension
  */
 enum exitCondition
 {
-  NOT_CONTROLLED = 0,    /**< None of the dimension is set to be controlled. */
-  FT_VIOLATION = 1,      /**< Force or torque was read as maximum allowable. */
-  CONDITION_MET = 2,     /**< One of the compliant conditions is met. */
-  CONDITION_NOT_MET = 3, /**< No violation or condition. */
-  POSE_ACHIEVED = 4      /**< The target pose was reached within tolerances. */
-};                       /**< The number of return conditions. */
-}
-namespace compliant_control
-{
+  NOT_CONTROLLED = 0,    // None of the dimension is set to be controlled.
+  FT_VIOLATION = 1,      // Force or torque was read as maximum allowable.
+  CONDITION_MET = 2,     // One of the compliant conditions is met.
+  CONDITION_NOT_MET = 3, // No violation or condition.
+  POSE_ACHIEVED = 4      // The target pose was reached within tolerances.
+};
+
 class CompliantControl;
 class LowPassFilter;
 
@@ -91,37 +89,31 @@ class CompliantControl
 {
 public:
   // Constructor.
-  CompliantControl(std::vector<double> stiffness, std::vector<double> deadband, std::vector<double> endConditionWrench,
-                   double filterParam, geometry_msgs::WrenchStamped bias, double highestAllowableForce,
-                   double highestAllowableTorque);
+  CompliantControl(const std::vector<double> &stiffness, const std::vector<double> &deadband, const std::vector<double> &endConditionWrench,
+                   double filter_param, geometry_msgs::WrenchStamped bias, double highest_allowable_force,
+                   double highest_allowable_torque);
 
   // Set the "springiness" of compliance in each direction.
-  void setStiffness(std::vector<double> stiffness);
+  void setStiffness(const std::vector<double> &stiffness);
 
   // Exit when the given force/torque wrench is achieved in any direction
-  void setEndCondition(std::vector<double> endConditionWrench);
+  void setEndCondition(const std::vector<double> &endConditionWrench);
 
   // Update member variables with current, filtered forces/torques
-  void getFT(geometry_msgs::WrenchStamped ftData);
+  void getForceTorque(geometry_msgs::WrenchStamped force_torque_data);
 
   // Set the "springiness" of compliance in each direction
-  void adjustStiffness(compliantEnum::dimension dim, double stiffness);
+  void adjustStiffness(compliant_control::dimension dim, double stiffness);
 
-  // Update FT values
+  // Update Force/Torque values
   void dataCallback(const geometry_msgs::WrenchStamped::ConstPtr& msg);
 
   // Bias the FT values
-  void biasSensor(geometry_msgs::WrenchStamped bias);
+  void biasSensor(const geometry_msgs::WrenchStamped &bias);
 
   // Set the target FT wrench
-  compliantEnum::exitCondition getVelocity(std::vector<double> vIn, geometry_msgs::WrenchStamped ftData,
+  compliant_control::exitCondition getVelocity(std::vector<double> v_in, geometry_msgs::WrenchStamped force_torque_data,
                                            std::vector<double>& vOut);
-
-  /**
-   * Set the topic that force/torque data is read from.
-   * @param ftTop      The force/torque data topic.
-   */
-  void setFTTopic(std::string ftTop);
 
   /**
    * Set the topic to output velocity commands to.
@@ -133,8 +125,10 @@ public:
   std::vector<double> deadband_;
   std::vector<double> end_condition_wrench_;
   std::vector<double> ft_;
-  std::vector<double> bias_;                 // Initial biased force
-  double safeForceLimit_, safeTorqueLimit_;  // Quit if these forces/torques are exceeded
+  // Initial biased force
+  std::vector<double> bias_;
+  // Quit if these forces/torques are exceeded
+  double safe_force_limit_, safe_torque_limit_;
   std::vector<compliant_control::LowPassFilter> vectorOfFilters_;
 
 private:
@@ -143,15 +137,15 @@ private:
 class LowPassFilter
 {
 public:
-  LowPassFilter(double filterParam);
-  double filter(const double& new_msrmt);
+  LowPassFilter(double filter_param);
+  double filter(const double new_msrmt);
 
   // Related to the cutoff frequency of the filter.
-  // filterParam=1 results in a cutoff at 1/4 of the sampling rate.
+  // filter_param=1 results in a cutoff at 1/4 of the sampling rate.
   // See bitbucket.org/AndyZe/pid for slightly more sophistication.
-  // Larger filterParam --> trust the filtered data more, trust the measurements
-  // less.
-  double filterParam_ = 4.;
+  // Larger filter_param --> trust the filtered data more, trust the measurements
+  // less --> higher cutoff frequency.
+  double filter_param_ = 4.;
 
   void reset(double data);
 
