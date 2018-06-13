@@ -178,7 +178,7 @@ CollisionCheck::CollisionCheck(const std::string& move_group_name)
       sensor_msgs::JointState jts = jog_arm::g_joints;
       pthread_mutex_unlock(&g_joints_mutex);
 
-      for (std::size_t i = 0; i < jts.position.size(); i++)
+      for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
 
       // process collision objects in scene
@@ -248,7 +248,7 @@ JogCalcs::JogCalcs(const std::string& move_group_name) :move_group_(move_group_n
   jt_state_.effort.resize(jt_state_.name.size());
 
   // Low-pass filters for the joint positions & velocities
-  for (std::size_t i = 0; i < joint_names.size(); i++)
+  for (std::size_t i = 0; i < joint_names.size(); ++i)
   {
     velocity_filters_.push_back(jog_arm::LowPassFilter(jog_arm::g_parameters.low_pass_filter_coeff));
     position_filters_.push_back(jog_arm::LowPassFilter(jog_arm::g_parameters.low_pass_filter_coeff));
@@ -259,7 +259,7 @@ JogCalcs::JogCalcs(const std::string& move_group_name) :move_group_(move_group_n
   incoming_jts_ = jog_arm::g_joints;
   pthread_mutex_unlock(&g_joints_mutex);
   updateJoints();
-  for (std::size_t i = 0; i < jt_state_.name.size(); i++)
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
     position_filters_[i].reset(jt_state_.position[i]);
 
   // Wait for the first jogging cmd.
@@ -355,7 +355,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   twist_cmd.twist.angular = rot_vector.vector;
 
   // Apply user-defined scaling
-  const Vector6d delta_x = scaleCommand(twist_cmd);
+  const Eigen::VectorXd delta_x = scaleCommand(twist_cmd);
 
   kinematic_state_->setVariableValues(jt_state_);
   orig_jts_ = jt_state_;
@@ -388,7 +388,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   Eigen::VectorXd joint_vel(delta_theta / delta_t_);
 
   // Low-pass filter the velocities
-  for (std::size_t i = 0; i < jt_state_.name.size(); i++)
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
   {
     joint_vel[static_cast<long>(i)] = velocity_filters_[i].filter(joint_vel[static_cast<long>(i)]);
 
@@ -399,7 +399,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   updateJointVels(jt_state_, joint_vel);
 
   // Low-pass filter the positions
-  for (std::size_t i = 0; i < jt_state_.name.size(); i++)
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
   {
     jt_state_.position[i] = position_filters_[i].filter(jt_state_.position[i]);
 
@@ -454,7 +454,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
     // Only somewhat close to singularity. Just slow down.
     else
     {
-      for (std::size_t i = 0; i < jt_state_.velocity.size(); i++)
+      for (std::size_t i = 0; i < jt_state_.velocity.size(); ++i)
       {
         new_jt_traj.points[0].positions[i] =
             new_jt_traj.points[0].positions[i] - 0.7 * delta_theta[static_cast<long>(i)];
@@ -485,7 +485,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
     // Start from 2 because the first point's timestamp is already
     // 1*jog_arm::g_parameters.publish_period
     point = new_jt_traj.points[0];
-  for (int i = 2; i < 30; i++)
+  for (int i = 2; i < 30; ++i)
   {
     point.time_from_start = ros::Duration(i * jog_arm::g_parameters.publish_period);
     new_jt_traj.points.push_back(point);
@@ -500,7 +500,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
 // Halt the robot
 void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 {
-  for (std::size_t i = 0; i < jt_state_.velocity.size(); i++)
+  for (std::size_t i = 0; i < jt_state_.velocity.size(); ++i)
   {
     jt_traj.points[0].positions[i] = orig_jts_.position[i];
     jt_traj.points[0].velocities[i] = 0.;
@@ -513,7 +513,7 @@ void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 // resumed.
 void JogCalcs::resetVelocityFilters()
 {
-  for (std::size_t i = 0; i < jt_state_.name.size(); i++)
+  for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
     velocity_filters_[i].reset(0);  // Zero velocity
 }
 
@@ -563,9 +563,9 @@ void JogCalcs::updateJoints()
 }
 
 // Scale the incoming jog command
-JogCalcs::Vector6d JogCalcs::scaleCommand(const geometry_msgs::TwistStamped& command) const
+Eigen::VectorXd JogCalcs::scaleCommand(const geometry_msgs::TwistStamped& command) const
 {
-  Vector6d result;
+  Eigen::VectorXd result(6);
 
   result(0) = jog_arm::g_parameters.linear_scale * command.twist.linear.x;
   result(1) = jog_arm::g_parameters.linear_scale * command.twist.linear.y;

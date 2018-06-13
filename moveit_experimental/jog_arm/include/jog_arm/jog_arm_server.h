@@ -167,14 +167,12 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  typedef Eigen::Matrix<double, 6, 1> Vector6d;
-
   void jogCalcs(const geometry_msgs::TwistStamped& cmd);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   void updateJoints();
 
-  Vector6d scaleCommand(const geometry_msgs::TwistStamped& command) const;
+  Eigen::VectorXd scaleCommand(const geometry_msgs::TwistStamped& command) const;
 
   Eigen::MatrixXd pseudoInverse(const Eigen::MatrixXd& J) const;
 

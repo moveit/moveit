@@ -82,9 +82,9 @@ void CompliantControl::biasSensor(const geometry_msgs::WrenchStamped &bias)
   }
 }
 
-void CompliantControl::setStiffness(const std::vector<double> &b)
+void CompliantControl::setStiffness(const std::vector<double> &stiffness)
 {
-  if (b.size() != compliant_control::NUM_DIMS)
+  if (stiffness.size() != compliant_control::NUM_DIMS)
   {
     ROS_ERROR_NAMED("compliant_control", "Invalid stiffness vector: ");
   }
@@ -92,16 +92,16 @@ void CompliantControl::setStiffness(const std::vector<double> &b)
   {
     for (int i = 0; i < compliant_control::NUM_DIMS; i++)
     {
-      if (fabs(b[i]) <= 1e-3)
+      if (fabs(stiffness[i]) <= 1e-3)
       {
         ROS_ERROR_STREAM_NAMED("compliant_control", "Stiffness must be non-zero.Ignoring "
-                                                    "Compliance in direction: "
+                                                    "compliance in direction: "
                                                         << i);
         stiffness_[i] = DBL_MAX;
       }
       else
       {
-        stiffness_[i] = b[i];
+        stiffness_[i] = stiffness[i];
       }
     }
   }
