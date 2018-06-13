@@ -41,10 +41,12 @@
   <build_depend>rostime</build_depend>
   <build_depend>cmake_modules</build_depend>
   <build_depend>moveit_core</build_depend>
+  <!-- The following are required by jog_arm -->
   <build_depend>roscpp</build_depend>
   <build_depend>moveit_ros_manipulation</build_depend>
   <build_depend>moveit_ros_move_group</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>rosparam_shortcuts</build_depend>
   <build_depend>tf</build_depend>
 
   <run_depend>pluginlib</run_depend>
@@ -70,10 +72,12 @@
   <run_depend>trajectory_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
+  <!-- The following are required by jog_arm -->
   <run_depend>roscpp</run_depend>
   <run_depend>moveit_ros_manipulation</run_depend>
   <run_depend>moveit_ros_move_group</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>rosparam_shortcuts</run_depend>
   <run_depend>tf</run_depend>
 
   <test_depend>moveit_resources</test_depend>

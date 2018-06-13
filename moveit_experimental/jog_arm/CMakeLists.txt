@@ -33,9 +33,9 @@ include_directories(
 
 add_library(compliant_control src/jog_arm/compliant_control/compliant_control.cpp)
 
-add_executable(jog_arm_server src/jog_arm/jog_arm_server.cpp src/jog_arm/support/get_ros_params.cpp)
+add_executable(jog_arm_server src/jog_arm/jog_arm_server.cpp)
 add_dependencies(jog_arm_server ${catkin_EXPORTED_TARGETS})
-target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES})
+target_link_libraries(jog_arm_server ${catkin_LIBRARIES} ${Eigen_LIBRARIES} rosparam_shortcuts)
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}

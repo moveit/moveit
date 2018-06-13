@@ -649,60 +649,53 @@ int readParameters(ros::NodeHandle& n)
   ROS_INFO_NAMED("jog_arm_server", " Parameters:");
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");
 
-  // If specified in the launch file, all of the other parameters will be read
+  // If specified in the launch file, all other parameters will be read
   // from this namespace.
   std::string parameter_ns;
   ros::param::get("~parameter_ns", parameter_ns);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "Parameter namespace: " << parameter_ns);
 
-  jog_arm::g_parameters.move_group_name =
-      get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/move_group_name", n);
+  std::size_t error = 0;
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/move_group_name", jog_arm::g_parameters.move_group_name);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/publish_period", jog_arm::g_parameters.publish_period);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/scale/linear", jog_arm::g_parameters.linear_scale);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/scale/rotational", jog_arm::g_parameters.rotational_scale);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/low_pass_filter_coeff", jog_arm::g_parameters.low_pass_filter_coeff);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/joint_topic", jog_arm::g_parameters.joint_topic);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/command_in_topic", jog_arm::g_parameters.command_in_topic);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/command_frame", jog_arm::g_parameters.command_frame);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/incoming_command_timeout", jog_arm::g_parameters.incoming_command_timeout);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/command_out_topic", jog_arm::g_parameters.command_out_topic);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/singularity_threshold", jog_arm::g_parameters.singularity_threshold);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/hard_stop_singularity_threshold", jog_arm::g_parameters.hard_stop_singularity_threshold);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/planning_frame", jog_arm::g_parameters.planning_frame);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/gazebo", jog_arm::g_parameters.gazebo);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/gazebo", jog_arm::g_parameters.collision_check);
+  error += !rosparam_shortcuts::get("", n, parameter_ns+"jog_arm_server/gazebo", jog_arm::g_parameters.warning_topic);
+
   ROS_INFO_STREAM_NAMED("jog_arm_server", "move_group_name: " << jog_arm::g_parameters.move_group_name);
-  jog_arm::g_parameters.linear_scale = get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/scale/linear", n);
+  ROS_INFO_STREAM_NAMED("jog_arm_server", "publish_period: " << jog_arm::g_parameters.publish_period);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "linear_scale: " << jog_arm::g_parameters.linear_scale);
-  jog_arm::g_parameters.rotational_scale =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/scale/rotational", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "rotational_scale: " << jog_arm::g_parameters.rotational_scale);
-  jog_arm::g_parameters.low_pass_filter_coeff =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/low_pass_filter_coeff", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "low_pass_filter_coeff: " << jog_arm::g_parameters.low_pass_filter_coeff);
-  jog_arm::g_parameters.joint_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/joint_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "joint_topic: " << jog_arm::g_parameters.joint_topic);
-  g_parameters.command_in_topic = get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_in_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_in_topic: " << g_parameters.command_in_topic);
-  jog_arm::g_parameters.command_frame =
-      get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_frame", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_frame: " << jog_arm::g_parameters.command_frame);
-  jog_arm::g_parameters.incoming_command_timeout =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/incoming_command_timeout", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server",
                         "incoming_command_timeout: " << jog_arm::g_parameters.incoming_command_timeout);
-  jog_arm::g_parameters.command_out_topic =
-      get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/command_out_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "command_out_topic: " << jog_arm::g_parameters.command_out_topic);
-  jog_arm::g_parameters.singularity_threshold =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/singularity_threshold", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "singularity_threshold: " << jog_arm::g_parameters.singularity_threshold);
-  jog_arm::g_parameters.hard_stop_singularity_threshold =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/hard_stop_singularity_threshold", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server",
                         "hard_stop_singularity_threshold: " << jog_arm::g_parameters.hard_stop_singularity_threshold);
-  jog_arm::g_parameters.planning_frame =
-      get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/planning_frame", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "planning_frame: " << jog_arm::g_parameters.planning_frame);
-  jog_arm::g_parameters.publish_period =
-      get_ros_params::getDoubleParam(parameter_ns + "/jog_arm_server/publish_period", n);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "publish_period: " << jog_arm::g_parameters.publish_period);
-  jog_arm::g_parameters.gazebo = get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/gazebo", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "gazebo: " << jog_arm::g_parameters.gazebo);
-  jog_arm::g_parameters.collision_check =
-      get_ros_params::getBoolParam(parameter_ns + "/jog_arm_server/collision_check", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "collision_check: " << jog_arm::g_parameters.collision_check);
-  jog_arm::g_parameters.warning_topic =
-      get_ros_params::getStringParam(parameter_ns + "/jog_arm_server/warning_topic", n);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "warning_topic: " << jog_arm::g_parameters.warning_topic);
+
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");
+
+  rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
   // Input checking
   if (jog_arm::g_parameters.hard_stop_singularity_threshold < jog_arm::g_parameters.singularity_threshold)

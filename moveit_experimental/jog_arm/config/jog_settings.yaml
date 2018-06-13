@@ -5,7 +5,7 @@ jog_arm_server:
   command_frame:  base_link  # TF frame that incoming cmds are given in
   incoming_command_timeout:  5  # Stop jogging if X seconds elapse without a new cmd
   joint_topic:  joint_states
-  move_group_name:  arm  # Often 'manipulator'
+  move_group_name:  arm  # Often 'manipulator' or 'arm'
   singularity_threshold:  15  # Slow down when the condition number hits this (close to singularity)
   hard_stop_singularity_threshold: 20 # Stop when the condition number hits this
   command_out_topic:  sia5_controller/command

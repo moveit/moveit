@@ -44,7 +44,6 @@
 
 #include <Eigen/Eigenvalues>
 #include <geometry_msgs/Twist.h>
-#include <jog_arm/get_ros_params.h>
 #include <math.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -53,6 +52,7 @@
 #include <moveit/robot_state/robot_state.h>
 #include <pthread.h>
 #include <ros/ros.h>
+#include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Bool.h>
