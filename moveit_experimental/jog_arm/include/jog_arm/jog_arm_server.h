@@ -62,12 +62,6 @@
 
 namespace jog_arm
 {
-// For jogging calc thread
-void* joggingPipeline(void* thread_id);
-
-// For collision checking thread
-void* collisionCheck(void* thread_id);
-
 // Shared variables
 geometry_msgs::TwistStamped g_command_deltas;
 pthread_mutex_t g_command_deltas_mutex;
@@ -84,12 +78,6 @@ pthread_mutex_t g_imminent_collision_mutex;
 bool g_zero_trajectory_flag(false);
 pthread_mutex_t g_zero_trajectory_flagmutex;
 
-// ROS subscriber callbacks
-void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
-void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
-
-int readParameters(ros::NodeHandle& n);
-
 // ROS params to be read
 struct jog_arm_parameters
 {
@@ -99,6 +87,97 @@ struct jog_arm_parameters
       publish_period, incoming_command_timeout;
   bool gazebo, collision_check;
 } g_parameters;
+
+/**
+ * Class jogROSInterface - Instantiated in main(). Handles ROS subs & pubs.
+ */
+class jogROSInterface
+{
+public:
+  jogROSInterface()
+  {
+    ros::NodeHandle n;
+
+    // Read ROS parameters, typically from YAML file
+    readParameters(n);
+
+    // Crunch the numbers in this thread
+    pthread_t joggingThread;
+    int rc = pthread_create(&joggingThread, NULL, joggingPipeline, this);
+
+    // Check collisions in this thread
+    pthread_t collisionThread;
+    rc = pthread_create(&collisionThread, NULL, collisionCheck, this);
+
+    // ROS subscriptions. Share the data with the worker threads
+    ros::Subscriber cmd_sub = n.subscribe(jog_arm::g_parameters.command_in_topic, 1, &jogROSInterface::deltaCmdCB, this);
+    ros::Subscriber joints_sub = n.subscribe(jog_arm::g_parameters.joint_topic, 1, &jogROSInterface::jointsCB, this);
+
+    // Publish freshly-calculated joints to the robot
+    ros::Publisher joint_trajectory_pub =
+        n.advertise<trajectory_msgs::JointTrajectory>(jog_arm::g_parameters.command_out_topic, 1);
+
+    ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_parameters.joint_topic);
+    ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_parameters.command_in_topic);
+
+    // Wait for jog filters to stablize
+    ros::Duration(10 * jog_arm::g_parameters.publish_period).sleep();
+
+    ros::Rate main_rate(1. / jog_arm::g_parameters.publish_period);
+
+    while (ros::ok())
+    {
+      ros::spinOnce();
+
+      // Send the newest target joints
+      pthread_mutex_lock(&jog_arm::g_new_traj_mutex);
+      if (jog_arm::g_new_traj.joint_names.size() != 0)
+      {
+        // Check for stale cmds
+        if (ros::Time::now() - jog_arm::g_new_traj.header.stamp <
+            ros::Duration(jog_arm::g_parameters.incoming_command_timeout))
+        {
+          // Skip the jogging publication if all inputs are 0.
+          pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
+          if (!jog_arm::g_zero_trajectory_flag)
+          {
+            jog_arm::g_new_traj.header.stamp = ros::Time::now();
+            joint_trajectory_pub.publish(jog_arm::g_new_traj);
+          }
+          pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
+        }
+        else
+        {
+          ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Stale joint "
+                                                              "trajectory msg. Try a larger "
+                                                              "'incoming_command_timeout' parameter.");
+          ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Did input from the "
+                                                              "controller get interrupted? Are "
+                                                              "calculations taking too long?");
+        }
+      }
+      pthread_mutex_unlock(&jog_arm::g_new_traj_mutex);
+
+      main_rate.sleep();
+    }
+
+    (void)pthread_join(joggingThread, NULL);
+    (void)pthread_join(collisionThread, NULL);
+  }
+
+private:
+  // ROS subscriber callbacks
+  void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
+  void jointsCB(const sensor_msgs::JointStateConstPtr& msg);
+
+  int readParameters(ros::NodeHandle& n);
+
+  // Jogging calculation thread
+  static void* joggingPipeline(void* thread_id);
+
+  // Collision checking thread
+  static void* collisionCheck(void* thread_id);
+};
 
 /**
  * Class LowPassFilter - Filter the joint velocities to avoid jerky motion.

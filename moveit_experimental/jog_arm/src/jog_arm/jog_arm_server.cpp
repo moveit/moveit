@@ -51,74 +51,8 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "jog_arm_server");
-  ros::NodeHandle n;
 
-  // Read ROS parameters, typically from YAML file
-  if (jog_arm::readParameters(n))
-    return 1;
-
-  // Crunch the numbers in this thread
-  pthread_t joggingThread;
-  int rc = pthread_create(&joggingThread, NULL, jog_arm::joggingPipeline, 0);
-
-  // Check collisions in this thread
-  pthread_t collisionThread;
-  rc = pthread_create(&collisionThread, NULL, jog_arm::collisionCheck, 0);
-
-  // ROS subscriptions. Share the data with the worker threads
-  ros::Subscriber cmd_sub = n.subscribe(jog_arm::g_parameters.command_in_topic, 1, jog_arm::deltaCmdCB);
-  ros::Subscriber joints_sub = n.subscribe(jog_arm::g_parameters.joint_topic, 1, jog_arm::jointsCB);
-
-  // Publish freshly-calculated joints to the robot
-  ros::Publisher joint_trajectory_pub =
-      n.advertise<trajectory_msgs::JointTrajectory>(jog_arm::g_parameters.command_out_topic, 1);
-
-  ros::topic::waitForMessage<sensor_msgs::JointState>(jog_arm::g_parameters.joint_topic);
-  ros::topic::waitForMessage<geometry_msgs::TwistStamped>(jog_arm::g_parameters.command_in_topic);
-
-  // Wait for jog filters to stablize
-  ros::Duration(10 * jog_arm::g_parameters.publish_period).sleep();
-
-  ros::Rate main_rate(1. / jog_arm::g_parameters.publish_period);
-
-  while (ros::ok())
-  {
-    ros::spinOnce();
-
-    // Send the newest target joints
-    pthread_mutex_lock(&jog_arm::g_new_traj_mutex);
-    if (jog_arm::g_new_traj.joint_names.size() != 0)
-    {
-      // Check for stale cmds
-      if (ros::Time::now() - jog_arm::g_new_traj.header.stamp <
-          ros::Duration(jog_arm::g_parameters.incoming_command_timeout))
-      {
-        // Skip the jogging publication if all inputs are 0.
-        pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-        if (!jog_arm::g_zero_trajectory_flag)
-        {
-          jog_arm::g_new_traj.header.stamp = ros::Time::now();
-          joint_trajectory_pub.publish(jog_arm::g_new_traj);
-        }
-        pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
-      }
-      else
-      {
-        ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Stale joint "
-                                                            "trajectory msg. Try a larger "
-                                                            "'incoming_command_timeout' parameter.");
-        ROS_WARN_STREAM_THROTTLE_NAMED(2, "jog_arm_server", "Did input from the "
-                                                            "controller get interrupted? Are "
-                                                            "calculations taking too long?");
-      }
-    }
-    pthread_mutex_unlock(&jog_arm::g_new_traj_mutex);
-
-    main_rate.sleep();
-  }
-
-  (void)pthread_join(joggingThread, NULL);
-  (void)pthread_join(collisionThread, NULL);
+  jog_arm::jogROSInterface ros_interface;
 
   return 0;
 }
@@ -126,14 +60,14 @@ int main(int argc, char** argv)
 namespace jog_arm
 {
 // A separate thread for the heavy jogging calculations.
-void* joggingPipeline(void*)
+void* jogROSInterface::joggingPipeline(void*)
 {
   jog_arm::JogCalcs ja(jog_arm::g_parameters.move_group_name);
   return nullptr;
 }
 
 // A separate thread for collision checking.
-void* collisionCheck(void*)
+void* jogROSInterface::collisionCheck(void*)
 {
   jog_arm::CollisionCheck cc(jog_arm::g_parameters.move_group_name);
   return nullptr;
@@ -614,7 +548,7 @@ double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 
 // Listen to cartesian delta commands.
 // Store them in a shared variable.
-void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
+void jogROSInterface::deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   pthread_mutex_lock(&g_command_deltas_mutex);
   jog_arm::g_command_deltas = *msg;
@@ -635,7 +569,7 @@ void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 
 // Listen to joint angles.
 // Store them in a shared variable.
-void jointsCB(const sensor_msgs::JointStateConstPtr& msg)
+void jogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   pthread_mutex_lock(&g_joints_mutex);
   jog_arm::g_joints = *msg;
@@ -643,7 +577,7 @@ void jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 }
 
 // Read ROS parameters, typically from YAML file
-int readParameters(ros::NodeHandle& n)
+int jogROSInterface::readParameters(ros::NodeHandle& n)
 {
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");
   ROS_INFO_NAMED("jog_arm_server", " Parameters:");
