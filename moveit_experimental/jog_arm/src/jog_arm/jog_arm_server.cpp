@@ -41,8 +41,9 @@
 
 #include <jog_arm/jog_arm_server.h>
 
-// Initialize this static struct to hold ROS parameters
+// Initialize these static struct to hold ROS parameters
 jog_arm::jog_arm_parameters jog_arm::jogROSInterface::ros_parameters_;
+jog_arm::jog_arm_shared jog_arm::jogROSInterface::shared_variables_;
 
 /////////////////////////////////////////////////
 // MAIN handles ROS subscriptions.
@@ -50,7 +51,7 @@ jog_arm::jog_arm_parameters jog_arm::jogROSInterface::ros_parameters_;
 // Another worker thread does collision checking.
 /////////////////////////////////////////////////
 
-// MAIN: create the worker thread and subscribe to jogging cmds and joint angles
+// MAIN: create the worker threads and subscribe to jogging cmds and joint angles
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "jog_arm_server");
@@ -99,21 +100,21 @@ jogROSInterface::jogROSInterface()
     ros::spinOnce();
 
     // Send the newest target joints
-    pthread_mutex_lock(&jog_arm::g_new_traj_mutex);
-    if (jog_arm::g_new_traj.joint_names.size() != 0)
+    pthread_mutex_lock(&shared_variables_.new_traj_mutex);
+    if (shared_variables_.new_traj.joint_names.size() != 0)
     {
       // Check for stale cmds
-      if (ros::Time::now() - jog_arm::g_new_traj.header.stamp <
+      if (ros::Time::now() - shared_variables_.new_traj.header.stamp <
           ros::Duration(ros_parameters_.incoming_command_timeout))
       {
         // Skip the jogging publication if all inputs are 0.
-        pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-        if (!jog_arm::g_zero_trajectory_flag)
+        pthread_mutex_lock(&shared_variables_.zero_trajectory_flag_mutex);
+        if (!shared_variables_.zero_trajectory_flag)
         {
-          jog_arm::g_new_traj.header.stamp = ros::Time::now();
-          joint_trajectory_pub.publish(jog_arm::g_new_traj);
+          shared_variables_.new_traj.header.stamp = ros::Time::now();
+          joint_trajectory_pub.publish(shared_variables_.new_traj);
         }
-        pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
+        pthread_mutex_unlock(&shared_variables_.zero_trajectory_flag_mutex);
       }
       else
       {
@@ -125,7 +126,7 @@ jogROSInterface::jogROSInterface()
                                                             "calculations taking too long?");
       }
     }
-    pthread_mutex_unlock(&jog_arm::g_new_traj_mutex);
+    pthread_mutex_unlock(&shared_variables_.new_traj_mutex);
 
     main_rate.sleep();
   }
@@ -137,19 +138,19 @@ jogROSInterface::jogROSInterface()
 // A separate thread for the heavy jogging calculations.
 void* jogROSInterface::joggingPipeline(void*)
 {
-  jog_arm::JogCalcs ja(ros_parameters_);
+  jog_arm::JogCalcs ja(ros_parameters_, shared_variables_);
   return nullptr;
 }
 
 // A separate thread for collision checking.
 void* jogROSInterface::collisionCheck(void*)
 {
-  jog_arm::CollisionCheck cc(ros_parameters_);
+  jog_arm::CollisionCheck cc(ros_parameters_, shared_variables_);
   return nullptr;
 }
 
 // Constructor for the class that handles collision checking
-CollisionCheck::CollisionCheck(const jog_arm_parameters &parameters)
+CollisionCheck::CollisionCheck(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables)
 {
   // If user specified true in yaml file
   if (parameters.collision_check)
@@ -183,9 +184,9 @@ CollisionCheck::CollisionCheck(const jog_arm_parameters &parameters)
     /////////////////////////////////////////////////
     while (ros::ok())
     {
-      pthread_mutex_lock(&g_joints_mutex);
-      sensor_msgs::JointState jts = jog_arm::g_joints;
-      pthread_mutex_unlock(&g_joints_mutex);
+      pthread_mutex_lock(&shared_variables.joints_mutex);
+      sensor_msgs::JointState jts = shared_variables.joints;
+      pthread_mutex_unlock(&shared_variables.joints_mutex);
 
       for (std::size_t i = 0; i < jts.position.size(); ++i)
         current_state.setJointPositions(jts.name[i], &jts.position[i]);
@@ -203,18 +204,18 @@ CollisionCheck::CollisionCheck(const jog_arm_parameters &parameters)
       // If collision, signal the jogging to stop
       if (collision_result.collision)
       {
-        pthread_mutex_lock(&jog_arm::g_imminent_collision_mutex);
-        jog_arm::g_imminent_collision = true;
-        pthread_mutex_unlock(&jog_arm::g_imminent_collision_mutex);
+        pthread_mutex_lock(&shared_variables.imminent_collision_mutex);
+        shared_variables.imminent_collision = true;
+        pthread_mutex_unlock(&shared_variables.imminent_collision_mutex);
 
         collision_status.data = true;
         warning_pub_.publish(collision_status);
       }
       else
       {
-        pthread_mutex_lock(&jog_arm::g_imminent_collision_mutex);
-        jog_arm::g_imminent_collision = false;
-        pthread_mutex_unlock(&jog_arm::g_imminent_collision_mutex);
+        pthread_mutex_lock(&shared_variables.imminent_collision_mutex);
+        shared_variables.imminent_collision = false;
+        pthread_mutex_unlock(&shared_variables.imminent_collision_mutex);
       }
 
       ros::spinOnce();
@@ -224,7 +225,7 @@ CollisionCheck::CollisionCheck(const jog_arm_parameters &parameters)
 }
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const jog_arm_parameters &parameters):
+JogCalcs::JogCalcs(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables):
   move_group_(parameters.move_group_name),
   prev_time_(ros::Time::now())
 {
@@ -268,9 +269,9 @@ JogCalcs::JogCalcs(const jog_arm_parameters &parameters):
   }
 
   // Initialize the position filters to initial robot joints
-  pthread_mutex_lock(&g_joints_mutex);
-  incoming_jts_ = jog_arm::g_joints;
-  pthread_mutex_unlock(&g_joints_mutex);
+  pthread_mutex_lock(&shared_variables.joints_mutex);
+  incoming_jts_ = shared_variables.joints;
+  pthread_mutex_unlock(&shared_variables.joints_mutex);
   updateJoints();
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
     position_filters_[i].reset(jt_state_.position[i]);
@@ -281,9 +282,9 @@ JogCalcs::JogCalcs(const jog_arm_parameters &parameters):
   while (cmd_deltas_.header.stamp == ros::Time(0.))
   {
     ros::Duration(0.05).sleep();
-    pthread_mutex_lock(&g_command_deltas_mutex);
-    cmd_deltas_ = jog_arm::g_command_deltas;
-    pthread_mutex_unlock(&g_command_deltas_mutex);
+    pthread_mutex_lock(&shared_variables.command_deltas_mutex);
+    cmd_deltas_ = shared_variables.command_deltas;
+    pthread_mutex_unlock(&shared_variables.command_deltas_mutex);
   }
 
   // Now do jogging calcs
@@ -291,25 +292,25 @@ JogCalcs::JogCalcs(const jog_arm_parameters &parameters):
   {
     // If user commands are all zero, reset the low-pass filters
     // when commands resume
-    pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-    bool flag = jog_arm::g_zero_trajectory_flag;
-    pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
+    pthread_mutex_lock(&shared_variables.zero_trajectory_flag_mutex);
+    bool flag = shared_variables.zero_trajectory_flag;
+    pthread_mutex_unlock(&shared_variables.zero_trajectory_flag_mutex);
     if (flag)
       // Reset low-pass filters
       resetVelocityFilters();
 
     // Pull data from the shared variables.
-    pthread_mutex_lock(&g_command_deltas_mutex);
-    cmd_deltas_ = jog_arm::g_command_deltas;
-    pthread_mutex_unlock(&g_command_deltas_mutex);
+    pthread_mutex_lock(&shared_variables.command_deltas_mutex);
+    cmd_deltas_ = shared_variables.command_deltas;
+    pthread_mutex_unlock(&shared_variables.command_deltas_mutex);
 
-    pthread_mutex_lock(&g_joints_mutex);
-    incoming_jts_ = jog_arm::g_joints;
-    pthread_mutex_unlock(&g_joints_mutex);
+    pthread_mutex_lock(&shared_variables.joints_mutex);
+    incoming_jts_ = shared_variables.joints;
+    pthread_mutex_unlock(&shared_variables.joints_mutex);
 
     updateJoints();
 
-    jogCalcs(cmd_deltas_);
+    jogCalcs(cmd_deltas_, shared_variables);
 
     // Generally want to run these calculations fast.
     // Add a small sleep to avoid 100% CPU usage
@@ -318,7 +319,7 @@ JogCalcs::JogCalcs(const jog_arm_parameters &parameters):
 }
 
 // Perform the jogging calculations
-void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
+void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared &shared_variables)
 {
   // Convert the cmd to the MoveGroup planning frame.
   try
@@ -434,9 +435,9 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   new_jt_traj.points.push_back(point);
 
   // Stop if imminent collision
-  pthread_mutex_lock(&jog_arm::g_imminent_collision_mutex);
-  bool collision = jog_arm::g_imminent_collision;
-  pthread_mutex_unlock(&jog_arm::g_imminent_collision_mutex);
+  pthread_mutex_lock(&shared_variables.imminent_collision_mutex);
+  bool collision = shared_variables.imminent_collision;
+  pthread_mutex_unlock(&shared_variables.imminent_collision_mutex);
   if (collision)
   {
     ROS_ERROR_STREAM_THROTTLE_NAMED(2, "jog_arm_server", ros::this_node::getName() << " Close to a collision. "
@@ -505,9 +506,9 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd)
   }
 
   // Share with main to be published
-  pthread_mutex_lock(&jog_arm::g_new_traj_mutex);
-  jog_arm::g_new_traj = new_jt_traj;
-  pthread_mutex_unlock(&jog_arm::g_new_traj_mutex);
+  pthread_mutex_lock(&shared_variables.new_traj_mutex);
+  shared_variables.new_traj = new_jt_traj;
+  pthread_mutex_unlock(&shared_variables.new_traj_mutex);
 }
 
 // Halt the robot
@@ -629,30 +630,30 @@ double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 // Store them in a shared variable.
 void jogROSInterface::deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
-  pthread_mutex_lock(&g_command_deltas_mutex);
-  jog_arm::g_command_deltas = *msg;
+  pthread_mutex_lock(&shared_variables_.command_deltas_mutex);
+  shared_variables_.command_deltas = *msg;
   // Input frame determined by YAML file:
-  jog_arm::g_command_deltas.header.frame_id = ros_parameters_.command_frame;
-  pthread_mutex_unlock(&g_command_deltas_mutex);
+  shared_variables_.command_deltas.header.frame_id = ros_parameters_.command_frame;
+  pthread_mutex_unlock(&shared_variables_.command_deltas_mutex);
 
   // Check if input is all zeros. Flag it if so to skip calculations/publication
-  pthread_mutex_lock(&jog_arm::g_zero_trajectory_flagmutex);
-  if (jog_arm::g_command_deltas.twist.linear.x == 0 && jog_arm::g_command_deltas.twist.linear.y == 0 &&
-      jog_arm::g_command_deltas.twist.linear.z == 0 && jog_arm::g_command_deltas.twist.angular.x == 0 &&
-      jog_arm::g_command_deltas.twist.linear.y == 0 && jog_arm::g_command_deltas.twist.linear.z == 0)
-    jog_arm::g_zero_trajectory_flag = true;
+  pthread_mutex_lock(&shared_variables_.zero_trajectory_flag_mutex);
+  if (shared_variables_.command_deltas.twist.linear.x == 0 && shared_variables_.command_deltas.twist.linear.y == 0 &&
+      shared_variables_.command_deltas.twist.linear.z == 0 && shared_variables_.command_deltas.twist.angular.x == 0 &&
+      shared_variables_.command_deltas.twist.linear.y == 0 && shared_variables_.command_deltas.twist.linear.z == 0)
+    shared_variables_.zero_trajectory_flag = true;
   else
-    jog_arm::g_zero_trajectory_flag = false;
-  pthread_mutex_unlock(&jog_arm::g_zero_trajectory_flagmutex);
+    shared_variables_.zero_trajectory_flag = false;
+  pthread_mutex_unlock(&shared_variables_.zero_trajectory_flag_mutex);
 }
 
 // Listen to joint angles.
 // Store them in a shared variable.
 void jogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
-  pthread_mutex_lock(&g_joints_mutex);
-  jog_arm::g_joints = *msg;
-  pthread_mutex_unlock(&g_joints_mutex);
+  pthread_mutex_lock(&shared_variables_.joints_mutex);
+  shared_variables_.joints = *msg;
+  pthread_mutex_unlock(&shared_variables_.joints_mutex);
 }
 
 // Read ROS parameters, typically from YAML file

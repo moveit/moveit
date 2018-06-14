@@ -62,21 +62,24 @@
 
 namespace jog_arm
 {
-// Shared variables
-geometry_msgs::TwistStamped g_command_deltas;
-pthread_mutex_t g_command_deltas_mutex;
+// Variables to share between threads, and their mutexes
+struct jog_arm_shared
+{
+  geometry_msgs::TwistStamped command_deltas;
+  pthread_mutex_t command_deltas_mutex;
 
-sensor_msgs::JointState g_joints;
-pthread_mutex_t g_joints_mutex;
+  sensor_msgs::JointState joints;
+  pthread_mutex_t joints_mutex;
 
-trajectory_msgs::JointTrajectory g_new_traj;
-pthread_mutex_t g_new_traj_mutex;
+  trajectory_msgs::JointTrajectory new_traj;
+  pthread_mutex_t new_traj_mutex;
 
-bool g_imminent_collision(false);
-pthread_mutex_t g_imminent_collision_mutex;
+  bool imminent_collision;
+  pthread_mutex_t imminent_collision_mutex;
 
-bool g_zero_trajectory_flag(false);
-pthread_mutex_t g_zero_trajectory_flagmutex;
+  bool zero_trajectory_flag;
+  pthread_mutex_t zero_trajectory_flag_mutex;
+};
 
 // ROS params to be read
 struct jog_arm_parameters
@@ -96,9 +99,6 @@ class jogROSInterface
 public: 
   jogROSInterface();
 
-  // Store the parameters that were read from ROS server
-  static struct jog_arm_parameters ros_parameters_;
-
 private:
   // ROS subscriber callbacks
   void deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg);
@@ -111,6 +111,12 @@ private:
 
   // Collision checking thread
   static void* collisionCheck(void* thread_id);
+
+  // Store the parameters that were read from ROS server
+  static struct jog_arm_parameters ros_parameters_;
+
+  // Variables to share between threads
+  static struct jog_arm_shared shared_variables_;
 };
 
 /**
@@ -120,7 +126,7 @@ class LowPassFilter
 {
 public:
   LowPassFilter(double low_pass_filter_coeff);
-  double filter(const double& new_msrmt);
+  double filter(const double new_msrmt);
   void reset(double data);
   double filter_coeff_ = 10.;
 
@@ -144,7 +150,7 @@ void LowPassFilter::reset(double data)
   prev_filtered_msrmts_[1] = data;
 }
 
-double LowPassFilter::filter(const double& new_msrmt)
+double LowPassFilter::filter(const double new_msrmt)
 {
   // Push in the new measurement
   prev_msrmts_[2] = prev_msrmts_[1];
@@ -169,7 +175,7 @@ double LowPassFilter::filter(const double& new_msrmt)
 class JogCalcs
 {
 public:
-  JogCalcs(const jog_arm_parameters &parameters);
+  JogCalcs(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables);
 
 protected:
   ros::NodeHandle nh_;
@@ -180,7 +186,7 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  void jogCalcs(const geometry_msgs::TwistStamped& cmd);
+  void jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared &shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   void updateJoints();
@@ -228,7 +234,7 @@ protected:
 class CollisionCheck
 {
 public:
-  CollisionCheck(const jog_arm_parameters &parameters);
+  CollisionCheck(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables);
 
 private:
   ros::NodeHandle nh_;
