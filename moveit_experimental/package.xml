@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>moveit_experimental</name>
   <version>0.9.11</version>
   <description>Experimental packages for moveit.</description>
@@ -16,69 +16,39 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>pluginlib</build_depend>
-  <build_depend>libconsole-bridge-dev</build_depend>
-  <build_depend>liburdfdom-dev</build_depend>
-  <build_depend>liburdfdom-headers-dev</build_depend>
-  <build_depend>octomap_msgs</build_depend>
-  <build_depend>moveit_msgs</build_depend>
-  <build_depend>actionlib_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>shape_msgs</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>trajectory_msgs</build_depend>
-  <build_depend>visualization_msgs</build_depend>
-  <build_depend>octomap</build_depend>
-  <build_depend>kdl_parser</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>boost</build_depend>
-  <build_depend>assimp</build_depend>
-  <build_depend>eigen_stl_containers</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend version_gte="0.3.4">geometric_shapes</build_depend>
-  <build_depend>roslib</build_depend>
-  <build_depend>rostime</build_depend>
-  <build_depend>cmake_modules</build_depend>
-  <build_depend>moveit_core</build_depend>
+  <depend>actionlib_msgs</depend>
+  <depend>assimp</depend>
+  <depend>boost</depend>
+  <depend>cmake_modules</depend>
+  <depend>eigen</depend>
+  <depend>eigen_conversions</depend>
+  <depend>eigen_stl_containers</depend>
+  <depend>geometry_msgs</depend>
+  <depend version_gte="0.3.4">geometric_shapes</depend>
+  <depend>kdl_parser</depend>
+  <depend>libconsole-bridge-dev</depend>
+  <depend>liburdfdom-dev</depend>
+  <depend>liburdfdom-headers-dev</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_msgs</depend>
+  <depend>octomap</depend>
+  <depend>octomap_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>sensor_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>roslib</depend>
+  <depend>rostime</depend>
   <!-- The following are required by jog_arm -->
-  <build_depend>roscpp</build_depend>
-  <build_depend>moveit_ros_manipulation</build_depend>
-  <build_depend>moveit_ros_move_group</build_depend>
-  <build_depend>moveit_ros_planning_interface</build_depend>
-  <build_depend>rosparam_shortcuts</build_depend>
-  <build_depend>tf</build_depend>
-
-  <run_depend>pluginlib</run_depend>
-  <run_depend>libconsole-bridge-dev</run_depend>
-  <run_depend>liburdfdom-dev</run_depend>
-  <run_depend>liburdfdom-headers-dev</run_depend>
-  <run_depend>octomap</run_depend>
-  <run_depend>kdl_parser</run_depend>
-  <run_depend>eigen</run_depend>
-  <run_depend>boost</run_depend>
-  <run_depend>assimp</run_depend>
-  <run_depend>eigen_stl_containers</run_depend>
-  <run_depend>eigen_conversions</run_depend>
-  <run_depend version_gte="0.3.4">geometric_shapes</run_depend>
-  <run_depend>rostime</run_depend>
-  <run_depend>octomap_msgs</run_depend>
-  <run_depend>moveit_msgs</run_depend>
-  <run_depend>actionlib_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>shape_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>trajectory_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>
-  <run_depend>moveit_core</run_depend>
-  <!-- The following are required by jog_arm -->
-  <run_depend>roscpp</run_depend>
-  <run_depend>moveit_ros_manipulation</run_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
-  <run_depend>moveit_ros_planning_interface</run_depend>
-  <run_depend>rosparam_shortcuts</run_depend>
-  <run_depend>tf</run_depend>
+  <depend>moveit_ros_manipulation</depend>
+  <depend>moveit_ros_move_group</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>roscpp</depend>
+  <depend>rosparam_shortcuts</depend>
+  <depend>tf</depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
