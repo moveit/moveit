@@ -39,8 +39,9 @@
 #include <QMessageBox>
 #include <QFormLayout>
 #include <QString>
+#include <QGroupBox>
 #include "group_edit_widget.h"
-#include <pluginlib/class_loader.h>  // for loading all avail kinematic planners
+#include <pluginlib/class_loader.hpp>  // for loading all avail kinematic planners
 
 namespace moveit_setup_assistant
 {
@@ -53,13 +54,16 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   // Basic widget container
   QVBoxLayout* layout = new QVBoxLayout();
 
+  QGroupBox* group1 = new QGroupBox("Kinematics");
+  QGroupBox* group2 = new QGroupBox("OMPL Planning");
+
   // Label ------------------------------------------------
   title_ = new QLabel(this);  // specify the title from the parent widget
   QFont group_title_font(QFont().defaultFamily(), 12, QFont::Bold);
   title_->setFont(group_title_font);
   layout->addWidget(title_);
 
-  // Simple form -------------------------------------------
+  // Kinematic form -------------------------------------------
   QFormLayout* form_layout = new QFormLayout();
   form_layout->setContentsMargins(0, 15, 0, 15);
 
@@ -89,7 +93,24 @@ GroupEditWidget::GroupEditWidget(QWidget* parent, moveit_setup_assistant::MoveIt
   kinematics_attempts_field_->setMaximumWidth(400);
   form_layout->addRow("Kin. Solver Attempts:", kinematics_attempts_field_);
 
-  layout->addLayout(form_layout);
+  group1->setLayout(form_layout);
+
+  // OMPL Planner form --------------------------------------------
+
+  QFormLayout* form_layout2 = new QFormLayout();
+  form_layout2->setContentsMargins(0, 15, 0, 15);
+
+  // Kinematic default planner
+  default_planner_field_ = new QComboBox(this);
+  default_planner_field_->setEditable(false);
+  default_planner_field_->setMaximumWidth(400);
+  form_layout2->addRow("Group Default Planner:", default_planner_field_);
+
+  group2->setLayout(form_layout2);
+
+  layout->addWidget(group1);
+  layout->addWidget(group2);
+
   layout->setAlignment(Qt::AlignTop);
 
   // New Group Options  ---------------------------------------------------------
@@ -240,7 +261,25 @@ void GroupEditWidget::setSelected(const std::string& group_name)
     kinematics_solver_field_->setCurrentIndex(index);
   }
 
-  // Set default
+  // Set default planner
+  std::string default_planner = config_data_->group_meta_data_[group_name].default_planner_;
+
+  // If this group doesn't have a solver, reset it to 'None'
+  if (default_planner.empty())
+  {
+    default_planner = "None";
+  }
+
+  index = default_planner_field_->findText(default_planner.c_str());
+  if (index == -1)
+  {
+    QMessageBox::warning(this, "Missing Default Planner",
+                         QString("Unable to find the default planner '%1'").arg(default_planner.c_str()));
+  }
+  else
+  {
+    default_planner_field_->setCurrentIndex(index);
+  }
 }
 
 // ******************************************************************************************
@@ -256,9 +295,11 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
 
   // Remove all old items
   kinematics_solver_field_->clear();
+  default_planner_field_->clear();
 
   // Add none option, the default
   kinematics_solver_field_->addItem("None");
+  default_planner_field_->addItem("None");
 
   // load all avail kin planners
   std::unique_ptr<pluginlib::ClassLoader<kinematics::KinematicsBase>> loader;
@@ -290,6 +331,13 @@ void GroupEditWidget::loadKinematicPlannersComboBox()
   for (std::vector<std::string>::const_iterator plugin_it = classes.begin(); plugin_it != classes.end(); ++plugin_it)
   {
     kinematics_solver_field_->addItem(plugin_it->c_str());
+  }
+
+  std::vector<OMPLPlannerDescription> planners = config_data_->getOMPLPlanners();
+  for (int i = 0; i < planners.size(); ++i)
+  {
+    std::string planner_name = planners[i].name_;
+    default_planner_field_->addItem(planner_name.c_str());
   }
 }
 

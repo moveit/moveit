@@ -55,7 +55,7 @@ class PlanningSceneInterfaceWrapper : protected py_bindings_tools::ROScppInitial
 {
 public:
   // ROSInitializer is constructed first, and ensures ros::init() was called, if needed
-  PlanningSceneInterfaceWrapper(const std::string& ns)
+  PlanningSceneInterfaceWrapper(const std::string& ns = "")
     : py_bindings_tools::ROScppInitializer(), PlanningSceneInterface(ns)
   {
   }
@@ -114,7 +114,8 @@ public:
 
 static void wrap_planning_scene_interface()
 {
-  bp::class_<PlanningSceneInterfaceWrapper> PlanningSceneClass("PlanningSceneInterface", bp::init<std::string>());
+  bp::class_<PlanningSceneInterfaceWrapper> PlanningSceneClass("PlanningSceneInterface",
+                                                               bp::init<bp::optional<std::string>>());
 
   PlanningSceneClass.def("get_known_object_names", &PlanningSceneInterfaceWrapper::getKnownObjectNamesPython);
   PlanningSceneClass.def("get_known_object_names_in_roi",

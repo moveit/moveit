@@ -2,6 +2,11 @@
 Changelog for package moveit_simple_controller_manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* switch to ROS_LOGGER from CONSOLE_BRIDGE (`#874 <https://github.com/ros-planning/moveit/issues/874>`_)
+* Contributors: Mikael Arguedas, Xiaojian Ma
+
 0.9.11 (2017-12-25)
 -------------------
 
@@ -37,7 +42,7 @@ Changelog for package moveit_simple_controller_manager
 * Contributors: Dave Coleman, Michael Ferguson
 
 0.9.3 (2016-11-16)
------------
+------------------
 
 0.5.7 (2016-01-30)
 ------------------

@@ -919,8 +919,8 @@ void PlanningGroupsWidget::saveChainScreen()
   srdf::Model::Group* searched_group = config_data_->findGroupByName(current_edit_group_);
 
   // Get a reference to the supplied strings
-  const std::string& tip = chain_widget_->tip_link_field_->text().toStdString();
-  const std::string& base = chain_widget_->base_link_field_->text().toStdString();
+  const std::string& tip = chain_widget_->tip_link_field_->text().trimmed().toStdString();
+  const std::string& base = chain_widget_->base_link_field_->text().trimmed().toStdString();
 
   // Check that box the tip and base, or neither, have text
   if ((!tip.empty() && base.empty()) || (tip.empty() && !base.empty()))
@@ -1091,8 +1091,9 @@ void PlanningGroupsWidget::saveSubgroupsScreen()
 bool PlanningGroupsWidget::saveGroupScreen()
 {
   // Get a reference to the supplied strings
-  const std::string& group_name = group_edit_widget_->group_name_field_->text().toStdString();
+  const std::string& group_name = group_edit_widget_->group_name_field_->text().trimmed().toStdString();
   const std::string& kinematics_solver = group_edit_widget_->kinematics_solver_field_->currentText().toStdString();
+  const std::string& default_planner = group_edit_widget_->default_planner_field_->currentText().toStdString();
   const std::string& kinematics_resolution = group_edit_widget_->kinematics_resolution_field_->text().toStdString();
   const std::string& kinematics_timeout = group_edit_widget_->kinematics_timeout_field_->text().toStdString();
   const std::string& kinematics_attempts = group_edit_widget_->kinematics_attempts_field_->text().toStdString();
@@ -1266,6 +1267,7 @@ bool PlanningGroupsWidget::saveGroupScreen()
   config_data_->group_meta_data_[group_name].kinematics_solver_search_resolution_ = kinematics_resolution_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_timeout_ = kinematics_timeout_double;
   config_data_->group_meta_data_[group_name].kinematics_solver_attempts_ = kinematics_attempts_int;
+  config_data_->group_meta_data_[group_name].default_planner_ = default_planner;
   config_data_->changes |= MoveItConfigData::GROUP_KINEMATICS;
 
   // Reload main screen table

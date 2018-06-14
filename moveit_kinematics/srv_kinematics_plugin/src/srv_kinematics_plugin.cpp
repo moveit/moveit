@@ -35,7 +35,7 @@
 /* Author: Dave Coleman, Masaki Murooka */
 
 #include <moveit/srv_kinematics_plugin/srv_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 // URDF, SRDF
 #include <urdf_model/model.h>
@@ -106,7 +106,7 @@ bool SrvKinematicsPlugin::initialize(const std::string& robot_description, const
 
   if (debug)
   {
-    ROS_ERROR_STREAM_NAMED("temp", "tip links available:");
+    ROS_ERROR_STREAM_NAMED("srv", "tip links available:");
     std::copy(tip_frames_.begin(), tip_frames_.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
   }
 
@@ -381,7 +381,8 @@ bool SrvKinematicsPlugin::searchPositionIK(const std::vector<geometry_msgs::Pose
           ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: FAILURE");
           break;
         case moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION:
-          ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: NO IK SOLUTION");
+          ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: "
+                                        "NO IK SOLUTION");
           break;
         default:
           ROS_ERROR_STREAM_NAMED("srv", "IK solution callback failed with with error code: " << error_code.val);

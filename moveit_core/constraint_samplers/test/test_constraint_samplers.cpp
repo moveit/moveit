@@ -72,7 +72,7 @@ protected:
     }
   }
 
-  virtual void SetUp()
+  void SetUp() override
   {
     boost::filesystem::path res_path(MOVEIT_TEST_RESOURCES_DIR);
 
@@ -117,7 +117,7 @@ protected:
     ps.reset(new planning_scene::PlanningScene(kmodel));
   };
 
-  virtual void TearDown()
+  void TearDown() override
   {
   }
 
@@ -680,7 +680,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
 
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s != nullptr);
   constraint_samplers::IKConstraintSampler* iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
   ASSERT_TRUE(static_cast<bool>(iks->getPositionConstraint()));
@@ -705,7 +705,7 @@ TEST_F(LoadPlanningModelsPr2, PoseConstraintSamplerManager)
   c.orientation_constraints.push_back(ocm);
 
   s = constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "left_arm", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s != nullptr);
 
   iks = dynamic_cast<constraint_samplers::IKConstraintSampler*>(s.get());
   ASSERT_TRUE(iks);
@@ -1027,7 +1027,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
   // no constraints should give no sampler
   constraint_samplers::ConstraintSamplerPtr s0 =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s0.get() == NULL);
+  EXPECT_TRUE(s0 == nullptr);
 
   // add the constraints
   c.joint_constraints.push_back(jcm1);
@@ -1037,7 +1037,7 @@ TEST_F(LoadPlanningModelsPr2, SubgroupJointConstraintsSamplerManager)
 
   constraint_samplers::ConstraintSamplerPtr s =
       constraint_samplers::ConstraintSamplerManager::selectDefaultSampler(ps, "arms", c);
-  EXPECT_TRUE(s.get() != NULL);
+  EXPECT_TRUE(s != nullptr);
 
   // test the generated sampler
   for (int t = 0; t < 1000; ++t)
@@ -1128,9 +1128,9 @@ TEST_F(LoadPlanningModelsPr2, SubgroupPoseConstraintsSampler)
     if (s->sample(ks, ks_const, 1))
       succ++;
   }
-  CONSOLE_BRIDGE_logInform("Success rate for IK Constraint Sampler with position & orientation constraints for both "
-                           "arms: %lf",
-                           (double)succ / (double)NT);
+  ROS_INFO_NAMED("pr2_arm_kinematics_plugin",
+                 "Success rate for IK Constraint Sampler with position & orientation constraints for both arms: %lf",
+                 (double)succ / (double)NT);
 }
 
 int main(int argc, char** argv)

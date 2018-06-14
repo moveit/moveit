@@ -35,7 +35,7 @@
 /* Author: Sachin Chitta, David Lu!!, Ugo Cupcic */
 
 #include <moveit/kdl_kinematics_plugin/kdl_kinematics_plugin.h>
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 
 //#include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_kdl.h>
@@ -308,7 +308,8 @@ bool KDLKinematicsPlugin::setRedundantJoints(const std::vector<unsigned int>& re
       {
         ROS_ASSERT(joint_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
         redundant_joints.push_back(static_cast<std::string>(joint_list[i]));
-        ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint", redundant_joints.back().c_str());
+        ROS_INFO_NAMED("kdl","Designated joint: %s as redundant joint",
+    redundant_joints.back().c_str());
       }
     }
   */
