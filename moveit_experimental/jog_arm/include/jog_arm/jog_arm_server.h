@@ -96,7 +96,7 @@ struct jog_arm_parameters
  */
 class jogROSInterface
 {
-public: 
+public:
   jogROSInterface();
 
 private:
@@ -175,7 +175,7 @@ double LowPassFilter::filter(const double new_msrmt)
 class JogCalcs
 {
 public:
-  JogCalcs(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables);
+  JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables);
 
 protected:
   ros::NodeHandle nh_;
@@ -186,7 +186,7 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  void jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared &shared_variables);
+  void jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   void updateJoints();
@@ -234,7 +234,7 @@ protected:
 class CollisionCheck
 {
 public:
-  CollisionCheck(const jog_arm_parameters &parameters, jog_arm_shared &shared_variables);
+  CollisionCheck(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables);
 
 private:
   ros::NodeHandle nh_;

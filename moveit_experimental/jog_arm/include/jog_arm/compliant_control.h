@@ -65,7 +65,7 @@ namespace compliant_control
  */
 enum dimension
 {
-  NUM_DIMS = 6 // 3 translational, 3 rotational dimensions
+  NUM_DIMS = 6  // 3 translational, 3 rotational dimensions
 };
 
 /**
@@ -75,11 +75,11 @@ enum dimension
  */
 enum exitCondition
 {
-  NOT_CONTROLLED = 0,    // None of the dimension is set to be controlled.
-  FT_VIOLATION = 1,      // Force or torque was read as maximum allowable.
-  CONDITION_MET = 2,     // One of the compliant conditions is met.
-  CONDITION_NOT_MET = 3, // No violation or condition.
-  POSE_ACHIEVED = 4      // The target pose was reached within tolerances.
+  NOT_CONTROLLED = 0,     // None of the dimension is set to be controlled.
+  FT_VIOLATION = 1,       // Force or torque was read as maximum allowable.
+  CONDITION_MET = 2,      // One of the compliant conditions is met.
+  CONDITION_NOT_MET = 3,  // No violation or condition.
+  POSE_ACHIEVED = 4       // The target pose was reached within tolerances.
 };
 
 class CompliantControl;
@@ -89,15 +89,15 @@ class CompliantControl
 {
 public:
   // Constructor.
-  CompliantControl(const std::vector<double> &stiffness, const std::vector<double> &deadband, const std::vector<double> &endConditionWrench,
-                   double filter_param, geometry_msgs::WrenchStamped bias, double highest_allowable_force,
-                   double highest_allowable_torque);
+  CompliantControl(const std::vector<double>& stiffness, const std::vector<double>& deadband,
+                   const std::vector<double>& endConditionWrench, double filter_param,
+                   geometry_msgs::WrenchStamped bias, double highest_allowable_force, double highest_allowable_torque);
 
   // Set the "springiness" of compliance in each direction.
-  void setStiffness(const std::vector<double> &stiffness);
+  void setStiffness(const std::vector<double>& stiffness);
 
   // Exit when the given force/torque wrench is achieved in any direction
-  void setEndCondition(const std::vector<double> &endConditionWrench);
+  void setEndCondition(const std::vector<double>& endConditionWrench);
 
   // Update member variables with current, filtered forces/torques
   void getForceTorque(geometry_msgs::WrenchStamped force_torque_data);
@@ -109,11 +109,11 @@ public:
   void dataCallback(const geometry_msgs::WrenchStamped::ConstPtr& msg);
 
   // Bias the FT values
-  void biasSensor(const geometry_msgs::WrenchStamped &bias);
+  void biasSensor(const geometry_msgs::WrenchStamped& bias);
 
   // Set the target FT wrench
   compliant_control::exitCondition getVelocity(std::vector<double> v_in, geometry_msgs::WrenchStamped force_torque_data,
-                                           std::vector<double>& vOut);
+                                               std::vector<double>& vOut);
 
   /**
    * Set the topic to output velocity commands to.

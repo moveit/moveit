@@ -41,8 +41,8 @@
 
 namespace compliant_control
 {
-CompliantControl::CompliantControl(const std::vector<double> &stiffness, const std::vector<double> &deadband,
-                                   const std::vector<double> &end_condition_wrench, double filter_param,
+CompliantControl::CompliantControl(const std::vector<double>& stiffness, const std::vector<double>& deadband,
+                                   const std::vector<double>& end_condition_wrench, double filter_param,
                                    geometry_msgs::WrenchStamped bias, double highest_allowable_force,
                                    double highest_allowable_torque)
   : stiffness_(stiffness)
@@ -67,7 +67,7 @@ CompliantControl::CompliantControl(const std::vector<double> &stiffness, const s
 }
 
 // Tare or bias the wrench readings -- i.e. reset its ground truth
-void CompliantControl::biasSensor(const geometry_msgs::WrenchStamped &bias)
+void CompliantControl::biasSensor(const geometry_msgs::WrenchStamped& bias)
 {
   bias_[0] = bias.wrench.force.x;
   bias_[1] = bias.wrench.force.y;
@@ -82,7 +82,7 @@ void CompliantControl::biasSensor(const geometry_msgs::WrenchStamped &bias)
   }
 }
 
-void CompliantControl::setStiffness(const std::vector<double> &stiffness)
+void CompliantControl::setStiffness(const std::vector<double>& stiffness)
 {
   if (stiffness.size() != compliant_control::NUM_DIMS)
   {
@@ -107,7 +107,7 @@ void CompliantControl::setStiffness(const std::vector<double> &stiffness)
   }
 }
 
-void CompliantControl::setEndCondition(const std::vector<double> &end_condition_wrench)
+void CompliantControl::setEndCondition(const std::vector<double>& end_condition_wrench)
 {
   if (end_condition_wrench.size() != compliant_control::NUM_DIMS)
   {
@@ -161,8 +161,9 @@ void CompliantControl::getForceTorque(geometry_msgs::WrenchStamped force_torque_
   ft_[5] = vectorOfFilters_[5].filter(biasedFT[5]);
 }
 
-compliant_control::exitCondition CompliantControl::getVelocity(std::vector<double> v_in, geometry_msgs::WrenchStamped force_torque_data,
-                                                           std::vector<double>& vOut)
+compliant_control::exitCondition CompliantControl::getVelocity(std::vector<double> v_in,
+                                                               geometry_msgs::WrenchStamped force_torque_data,
+                                                               std::vector<double>& vOut)
 {
   compliant_control::exitCondition exitCondition = compliant_control::NOT_CONTROLLED;
   getForceTorque(force_torque_data);
