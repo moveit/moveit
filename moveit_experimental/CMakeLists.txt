@@ -18,6 +18,7 @@ COMPONENTS
   eigen_stl_containers
   eigen_conversions
   random_numbers
+  tf2_geometry_msgs
   visualization_msgs
   roslib
   rostime

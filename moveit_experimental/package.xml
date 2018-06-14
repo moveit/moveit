@@ -48,6 +48,7 @@
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>rosparam_shortcuts</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
 
   <run_depend>pluginlib</run_depend>
   <run_depend>libconsole-bridge-dev</run_depend>
@@ -79,6 +80,7 @@
   <run_depend>moveit_ros_planning_interface</run_depend>
   <run_depend>rosparam_shortcuts</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>tf2_geometry_msgs</run_depend>
 
   <test_depend>moveit_resources</test_depend>
   <test_depend>orocos_kdl</test_depend>
