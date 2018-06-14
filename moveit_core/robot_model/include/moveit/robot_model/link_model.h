@@ -65,7 +65,7 @@ typedef std::map<std::string, const LinkModel*> LinkModelMapConst;
 
 /** \brief Map from link model instances to Eigen transforms */
 typedef std::map<const LinkModel*, Eigen::Affine3d, std::less<const LinkModel*>,
-                 Eigen::aligned_allocator<std::pair<const LinkModel*, Eigen::Affine3d> > >
+                 Eigen::aligned_allocator<std::pair<const LinkModel* const, Eigen::Affine3d> > >
     LinkTransformMap;
 
 /** \brief A link from the robot. Contains the constant transform applied to the link and its geometry */

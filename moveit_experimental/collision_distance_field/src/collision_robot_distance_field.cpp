@@ -140,7 +140,7 @@ void CollisionRobotDistanceField::generateCollisionCheckingStructures(
   DistanceFieldCacheEntryConstPtr dfce = getDistanceFieldCacheEntry(group_name, state, acm);
   if (!dfce || (generate_distance_field && !dfce->distance_field_))
   {
-    // ROS_DEBUG_STREAM_NAMED("distance_field","Generating new
+    // ROS_DEBUG_STREAM_NAMED("collision_distance_field", "Generating new
     // DistanceFieldCacheEntry for CollisionRobot");
     DistanceFieldCacheEntryPtr new_dfce =
         generateDistanceFieldCacheEntry(group_name, state, acm, generate_distance_field);
@@ -194,7 +194,7 @@ DistanceFieldCacheEntryConstPtr CollisionRobotDistanceField::getDistanceFieldCac
   else if (!compareCacheEntryToState(cur, state))
   {
     // Regenerating distance field as state has changed from last time
-    // ROS_DEBUG_STREAM_NAMED("distance_field","Regenerating distance field as
+    // ROS_DEBUG_STREAM_NAMED("collision_distance_field", "Regenerating distance field as
     // state has changed from last time");
     return ret;
   }
@@ -1087,7 +1087,7 @@ CollisionRobotDistanceField::getPosedLinkBodyPointDecomposition(const moveit::co
   std::map<std::string, unsigned int>::const_iterator it = link_body_decomposition_index_map_.find(ls->getName());
   if (it == link_body_decomposition_index_map_.end())
   {
-    logError("No link body decomposition for link %s.", ls->getName().c_str());
+    ROS_ERROR_NAMED("collision_distance_field", "No link body decomposition for link %s.", ls->getName().c_str());
     return ret;
   }
   ret.reset(new PosedBodyPointDecomposition(link_body_decomposition_vector_[it->second]));

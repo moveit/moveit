@@ -244,5 +244,5 @@ void move_group::MoveGroupMoveAction::setMoveState(MoveGroupState state)
   move_action_server_->publishFeedback(move_feedback_);
 }
 
-#include <class_loader/class_loader.h>
+#include <class_loader/class_loader.hpp>
 CLASS_LOADER_REGISTER_CLASS(move_group::MoveGroupMoveAction, move_group::MoveGroupCapability)

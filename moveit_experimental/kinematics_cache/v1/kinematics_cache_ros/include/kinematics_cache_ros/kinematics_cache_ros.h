@@ -40,7 +40,7 @@
 
 #include <kinematics_cache/kinematics_cache.h>
 #include <planning_models/robot_model.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 namespace kinematics_cache_ros
 {

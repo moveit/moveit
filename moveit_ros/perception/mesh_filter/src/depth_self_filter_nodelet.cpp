@@ -213,5 +213,5 @@ void mesh_filter::DepthSelfFiltering::depthCb(const sensor_msgs::ImageConstPtr& 
   filter(depth_msg, info_msg);
 }
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(mesh_filter::DepthSelfFiltering, nodelet::Nodelet)

@@ -37,7 +37,7 @@
 #include <ros/ros.h>
 #include <moveit/controller_manager/controller_manager.h>
 #include <sensor_msgs/JointState.h>
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 #include <map>
 
 namespace moveit_controller_manager_example

@@ -1,6 +1,6 @@
 <package format="2">
   <name>moveit_experimental</name>
-  <version>0.9.11</version>
+  <version>0.9.12</version>
   <description>Experimental packages for moveit.</description>
   <author email="isucan@google.com">Ioan Sucan</author>
   <author email="robot.moveit@gmail.com">Sachin Chitta</author>
@@ -33,14 +33,15 @@
   <depend>moveit_msgs</depend>
   <depend>octomap</depend>
   <depend>octomap_msgs</depend>
-  <depend>pluginlib</depend>
+  <depend version_gte="1.11.2">pluginlib</depend>
+  <depend>rosconsole</depend>
+  <depend>roslib</depend>
+  <depend>rostime</depend>
   <depend>sensor_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>std_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>visualization_msgs</depend>
-  <depend>roslib</depend>
-  <depend>rostime</depend>
   <!-- The following are required by jog_arm -->
   <depend>moveit_ros_manipulation</depend>
   <depend>moveit_ros_move_group</depend>

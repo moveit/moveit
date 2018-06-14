@@ -102,6 +102,24 @@ void planning_scene_monitor::CurrentStateMonitor::setToCurrentState(robot_state:
   boost::mutex::scoped_lock slock(state_update_lock_);
   const double* pos = robot_state_.getVariablePositions();
   upd.setVariablePositions(pos);
+  if (copy_dynamics_)
+  {
+    if (robot_state_.hasVelocities())
+    {
+      const double* vel = robot_state_.getVariableVelocities();
+      upd.setVariableVelocities(vel);
+    }
+    if (robot_state_.hasAccelerations())
+    {
+      const double* acc = robot_state_.getVariableAccelerations();
+      upd.setVariableAccelerations(acc);
+    }
+    if (robot_state_.hasEffort())
+    {
+      const double* eff = robot_state_.getVariableEffort();
+      upd.setVariableEffort(eff);
+    }
+  }
 }
 
 void planning_scene_monitor::CurrentStateMonitor::addUpdateCallback(const JointStateUpdateCallback& fn)
@@ -418,9 +436,9 @@ void planning_scene_monitor::CurrentStateMonitor::tfCallback()
       std::string err;
       if (tf_->getLatestCommonTime(parent_frame, child_frame, latest_common_time, &err) != tf::NO_ERROR)
       {
-        ROS_WARN_STREAM_THROTTLE(1, "Unable to update multi-DOF joint '"
-                                        << joint->getName() << "': TF has no common time between '"
-                                        << parent_frame.c_str() << "' and '" << child_frame.c_str() << "': " << err);
+        ROS_WARN_STREAM_ONCE("Unable to update multi-DOF joint '"
+                             << joint->getName() << "': TF has no common time between '" << parent_frame.c_str()
+                             << "' and '" << child_frame.c_str() << "': " << err);
         continue;
       }
 

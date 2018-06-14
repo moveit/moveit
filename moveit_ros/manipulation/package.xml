@@ -1,6 +1,6 @@
 <package>
   <name>moveit_ros_manipulation</name>
-  <version>0.9.11</version>
+  <version>0.9.12</version>
   <description>Components of MoveIt used for manipulation</description>
 
   <author email="isucan@google.com">Ioan Sucan</author>
@@ -27,7 +27,7 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rosconsole</build_depend>
   <build_depend>tf</build_depend>
-  <build_depend>pluginlib</build_depend>
+  <build_depend version_gte="1.11.2">pluginlib</build_depend>
   <build_depend>eigen</build_depend>
 
   <run_depend>actionlib</run_depend>
@@ -39,7 +39,7 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rosconsole</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>pluginlib</run_depend>
+  <run_depend version_gte="1.11.2">pluginlib</run_depend>
 
   <export>
     <moveit_ros_move_group plugin="${prefix}/pick_place_capability_plugin_description.xml"/>

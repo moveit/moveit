@@ -33,7 +33,7 @@
  *********************************************************************/
 
 #include <moveit/collision_plugin_loader/collision_plugin_loader.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 #include <memory>
 
 namespace collision_detection

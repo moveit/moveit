@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   )
 
-find_package(OMPL REQUIRED)
+find_package(ompl REQUIRED)
 
 generate_dynamic_reconfigure_options("ompl_interface/cfg/OMPLDynamicReconfigure.cfg")
 

@@ -37,7 +37,7 @@
 
 #include <moveit/robot_model/floating_joint_model.h>
 #include <boost/math/constants/constants.hpp>
-#include <console_bridge/console.h>
+#include <ros/console.h>
 #include <limits>
 #include <cmath>
 
@@ -159,9 +159,7 @@ bool FloatingJointModel::satisfiesPositionBounds(const double* values, const Bou
   if (values[2] < bounds[2].min_position_ - margin || values[2] > bounds[2].max_position_ + margin)
     return false;
   double normSqr = values[3] * values[3] + values[4] * values[4] + values[5] * values[5] + values[6] * values[6];
-  if (fabs(normSqr - 1.0) > std::numeric_limits<float>::epsilon() * 10.0)
-    return false;
-  return true;
+  return fabs(normSqr - 1.0) <= std::numeric_limits<float>::epsilon() * 10.0;
 }
 
 bool FloatingJointModel::normalizeRotation(double* values) const
@@ -173,7 +171,7 @@ bool FloatingJointModel::normalizeRotation(double* values) const
     double norm = sqrt(normSqr);
     if (norm < std::numeric_limits<double>::epsilon() * 100.0)
     {
-      CONSOLE_BRIDGE_logWarn("Quaternion is zero in RobotState representation. Setting to identity");
+      ROS_WARN_NAMED("robot_model", "Quaternion is zero in RobotState representation. Setting to identity");
       values[3] = 0.0;
       values[4] = 0.0;
       values[5] = 0.0;

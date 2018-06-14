@@ -2,6 +2,16 @@
 Changelog for package moveit_commander
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.12 (2018-05-29)
+-------------------
+* Get robot markers from state (`#836 <https://github.com/ros-planning/moveit/issues/836>`_)
+* Add namespace capabilities to moveit_commander (`#835 <https://github.com/ros-planning/moveit/issues/835>`_)
+* Constrained Cartesian planning using moveit commander (`#805 <https://github.com/ros-planning/moveit/issues/805>`_)
+* Handle robot_description parameter in RobotCommander (`#782 <https://github.com/ros-planning/moveit/issues/782>`_)
+* support TrajectoryConstraints in MoveGroupInterface + MoveitCommander (`#793 <https://github.com/ros-planning/moveit/issues/793>`_)
+* API to get planner_id (`#788 <https://github.com/ros-planning/moveit/issues/788>`_)
+* Contributors: Akiyoshi Ochiai, Bence Magyar, Bryce Willey, Dave Coleman, Michael Görner, Ryan Keating, Will Baker
+
 0.9.11 (2017-12-25)
 -------------------
 

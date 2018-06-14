@@ -35,21 +35,24 @@
 /* Author: Ioan Sucan */
 
 #include "moveit/profiler/profiler.h"
+#if MOVEIT_ENABLE_PROFILING
 
-moveit::tools::Profiler& moveit::tools::Profiler::Instance(void)
+#include <ros/console.h>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+
+namespace moveit
+{
+namespace tools
+{
+Profiler& Profiler::Instance()
 {
   static Profiler p(false, false);
   return p;
 }
 
-#if MOVEIT_ENABLE_PROFILING
-
-#include <console_bridge/console.h>
-#include <vector>
-#include <algorithm>
-#include <sstream>
-
-void moveit::tools::Profiler::start(void)
+void Profiler::start()
 {
   lock_.lock();
   if (!running_)
@@ -60,7 +63,7 @@ void moveit::tools::Profiler::start(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::stop(void)
+void Profiler::stop()
 {
   lock_.lock();
   if (running_)
@@ -71,7 +74,7 @@ void moveit::tools::Profiler::stop(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::clear(void)
+void Profiler::clear()
 {
   lock_.lock();
   data_.clear();
@@ -81,14 +84,14 @@ void moveit::tools::Profiler::clear(void)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::event(const std::string& name, const unsigned int times)
+void Profiler::event(const std::string& name, const unsigned int times)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].events[name] += times;
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::average(const std::string& name, const double value)
+void Profiler::average(const std::string& name, const double value)
 {
   lock_.lock();
   AvgInfo& a = data_[boost::this_thread::get_id()].avg[name];
@@ -98,14 +101,14 @@ void moveit::tools::Profiler::average(const std::string& name, const double valu
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::begin(const std::string& name)
+void Profiler::begin(const std::string& name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].set();
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::end(const std::string& name)
+void Profiler::end(const std::string& name)
 {
   lock_.lock();
   data_[boost::this_thread::get_id()].time[name].update();
@@ -120,7 +123,7 @@ inline double to_seconds(const boost::posix_time::time_duration& d)
 }
 }
 
-void moveit::tools::Profiler::status(std::ostream& out, bool merge)
+void Profiler::status(std::ostream& out, bool merge)
 {
   stop();
   lock_.lock();
@@ -167,12 +170,12 @@ void moveit::tools::Profiler::status(std::ostream& out, bool merge)
   lock_.unlock();
 }
 
-void moveit::tools::Profiler::console(void)
+void Profiler::console()
 {
   std::stringstream ss;
   ss << std::endl;
   status(ss, true);
-  CONSOLE_BRIDGE_logInform(ss.str().c_str());
+  ROS_INFO_STREAM_NAMED("profiler", ss.str());
 }
 
 /// @cond IGNORE
@@ -208,7 +211,7 @@ struct SortDoubleByValue
 }
 /// @endcond
 
-void moveit::tools::Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
+void Profiler::printThreadInfo(std::ostream& out, const PerThread& data)
 {
   double total = to_seconds(tinfo_.total);
 
@@ -285,4 +288,6 @@ void moveit::tools::Profiler::printThreadInfo(std::ostream& out, const PerThread
   out << std::endl;
 }
 
+}  // end of namespace tools
+}  // end of namespace moveit
 #endif

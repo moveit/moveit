@@ -146,7 +146,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   planning_scene_publisher_ = nh_.advertise<moveit_msgs::PlanningScene>("planning_scene", 1);
   planning_scene_world_publisher_ = nh_.advertise<moveit_msgs::PlanningSceneWorld>("planning_scene_world", 1);
 
-  //  object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
+  // object_recognition_trigger_publisher_ = nh_.advertise<std_msgs::Bool>("recognize_objects_switch", 1);
   object_recognition_client_.reset(new actionlib::SimpleActionClient<object_recognition_msgs::ObjectRecognitionAction>(
       OBJECT_RECOGNITION_ACTION, false));
   object_recognition_subscriber_ =
@@ -160,7 +160,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
     }
     catch (std::exception& ex)
     {
-      //      ROS_ERROR("Object recognition action: %s", ex.what());
+      // ROS_ERROR("Object recognition action: %s", ex.what());
       object_recognition_client_.reset();
     }
   }
@@ -211,6 +211,11 @@ void MotionPlanningFrame::setItemSelectionInList(const std::string& item_name, b
 
 void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
 {
+  // This is needed to prevent UI event (resuming the options) triggered
+  // before getRobotInteraction() is loaded and ready
+  if (first_time_)
+    return;
+
   planning_display_->getRobotInteraction()->toggleMoveInteractiveMarkerTopic(enable);
   planning_display_->toggleSelectPlanningGroupSubscription(enable);
   if (enable)
@@ -218,17 +223,25 @@ void MotionPlanningFrame::allowExternalProgramCommunication(bool enable)
     ros::NodeHandle nh;
     plan_subscriber_ = nh.subscribe("/rviz/moveit/plan", 1, &MotionPlanningFrame::remotePlanCallback, this);
     execute_subscriber_ = nh.subscribe("/rviz/moveit/execute", 1, &MotionPlanningFrame::remoteExecuteCallback, this);
+    stop_subscriber_ = nh.subscribe("/rviz/moveit/stop", 1, &MotionPlanningFrame::remoteStopCallback, this);
     update_start_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_start_state", 1, &MotionPlanningFrame::remoteUpdateStartStateCallback, this);
     update_goal_state_subscriber_ =
         nh.subscribe("/rviz/moveit/update_goal_state", 1, &MotionPlanningFrame::remoteUpdateGoalStateCallback, this);
+    update_custom_start_state_subscriber_ = nh.subscribe(
+        "/rviz/moveit/update_custom_start_state", 1, &MotionPlanningFrame::remoteUpdateCustomStartStateCallback, this);
+    update_custom_goal_state_subscriber_ = nh.subscribe(
+        "/rviz/moveit/update_custom_goal_state", 1, &MotionPlanningFrame::remoteUpdateCustomGoalStateCallback, this);
   }
   else
   {  // disable
     plan_subscriber_.shutdown();
     execute_subscriber_.shutdown();
+    stop_subscriber_.shutdown();
     update_start_state_subscriber_.shutdown();
     update_goal_state_subscriber_.shutdown();
+    update_custom_start_state_subscriber_.shutdown();
+    update_custom_goal_state_subscriber_.shutdown();
   }
 }
 
@@ -331,6 +344,9 @@ void MotionPlanningFrame::changePlanningGroupHelper()
         }
         // This ensures saved UI settings applied after planning_display_ is ready
         planning_display_->useApproximateIK(ui_->approximate_ik->isChecked());
+        if (ui_->allow_external_program->isChecked())
+          planning_display_->addMainLoopJob(
+              boost::bind(&MotionPlanningFrame::allowExternalProgramCommunication, this, true));
       }
     }
   }
