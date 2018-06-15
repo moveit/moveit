@@ -246,6 +246,8 @@ JogCalcs::JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_
   std::vector<double> dummy_joint_values;
   kinematic_state_->copyJointGroupPositions(joint_model_group_, dummy_joint_values);
 
+  planning_frame_ = move_group_.getPlanningFrame();
+
   // Wait for initial messages
   ROS_INFO_NAMED("jog_arm_server", "Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>(parameters_.joint_topic);
@@ -324,7 +326,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
   // Convert the cmd to the MoveGroup planning frame.
   try
   {
-    listener_.waitForTransform(cmd.header.frame_id, parameters_.planning_frame, ros::Time::now(), ros::Duration(0.2));
+    listener_.waitForTransform(cmd.header.frame_id, planning_frame_, ros::Time::now(), ros::Duration(0.2));
   }
   catch (tf::TransformException ex)
   {
@@ -339,7 +341,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
   lin_vector.header.frame_id = cmd.header.frame_id;
   try
   {
-    listener_.transformVector(parameters_.planning_frame, lin_vector, lin_vector);
+    listener_.transformVector(planning_frame_, lin_vector, lin_vector);
   }
   catch (tf::TransformException ex)
   {
@@ -352,7 +354,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
   rot_vector.header.frame_id = cmd.header.frame_id;
   try
   {
-    listener_.transformVector(parameters_.planning_frame, rot_vector, rot_vector);
+    listener_.transformVector(planning_frame_, rot_vector, rot_vector);
   }
   catch (tf::TransformException ex)
   {
@@ -363,7 +365,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
   // Put these components back into a TwistStamped
   geometry_msgs::TwistStamped twist_cmd;
   twist_cmd.header.stamp = cmd.header.stamp;
-  twist_cmd.header.frame_id = parameters_.planning_frame;
+  twist_cmd.header.frame_id = planning_frame_;
   twist_cmd.twist.linear = lin_vector.vector;
   twist_cmd.twist.angular = rot_vector.vector;
 
@@ -423,7 +425,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
 
   // Compose the outgoing msg
   trajectory_msgs::JointTrajectory new_jt_traj;
-  new_jt_traj.header.frame_id = parameters_.planning_frame;
+  new_jt_traj.header.frame_id = planning_frame_;
   new_jt_traj.header.stamp = cmd.header.stamp;
   new_jt_traj.joint_names = jt_state_.name;
   trajectory_msgs::JointTrajectoryPoint point;
@@ -691,8 +693,6 @@ int jogROSInterface::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.singularity_threshold);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/hard_stop_singularity_threshold",
                                     ros_parameters_.hard_stop_singularity_threshold);
-  error +=
-      !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/planning_frame", ros_parameters_.planning_frame);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/gazebo", ros_parameters_.gazebo);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/gazebo", ros_parameters_.collision_check);
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/gazebo", ros_parameters_.warning_topic);
@@ -710,7 +710,6 @@ int jogROSInterface::readParameters(ros::NodeHandle& n)
   ROS_INFO_STREAM_NAMED("jog_arm_server", "singularity_threshold: " << ros_parameters_.singularity_threshold);
   ROS_INFO_STREAM_NAMED("jog_arm_server",
                         "hard_stop_singularity_threshold: " << ros_parameters_.hard_stop_singularity_threshold);
-  ROS_INFO_STREAM_NAMED("jog_arm_server", "planning_frame: " << ros_parameters_.planning_frame);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "gazebo: " << ros_parameters_.gazebo);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "collision_check: " << ros_parameters_.collision_check);
   ROS_INFO_STREAM_NAMED("jog_arm_server", "warning_topic: " << ros_parameters_.warning_topic);
