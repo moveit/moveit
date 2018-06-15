@@ -124,11 +124,6 @@ TEST(compliantControlTest, getVelocity)
   EXPECT_NEAR(vOut[4], vIn[4], 0.2);
   EXPECT_NEAR(vOut[5], vIn[5], 0.2);
 
-  //  To test std_msgs::String length
-  char cmd[74];
-  sprintf(cmd, "speedl([%1.5f, %1.5f, %1.5f, %1.5f, %1.5f, %1.5f], 0.2, 0.1)\n", vOut[0], vOut[1], vOut[2], vOut[3],
-          vOut[4], vOut[5]);
-
   //  One of the controlled velocities has met the force/torque end condition so
   //  velocity in
   //  that direction should be zero.

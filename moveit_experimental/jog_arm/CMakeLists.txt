@@ -53,6 +53,6 @@ if(CATKIN_ENABLE_TESTING)
   set(UTEST_SRC_FILES test/utest.cpp
       test/compliant_control.cpp)
 
-  add_rostest_gtest(${PROJECT_NAME}_utest test/launch/utest.launch ${UTEST_SRC_FILES})
-  target_link_libraries(${PROJECT_NAME}_utest ${catkin_LIBRARIES} ${Boost_LIBRARIES} compliant_control)
+  add_rostest_gtest(compliant_control_utest test/launch/utest.launch ${UTEST_SRC_FILES})
+  target_link_libraries(compliant_control_utest ${catkin_LIBRARIES} ${Boost_LIBRARIES} compliant_control)
 endif()
