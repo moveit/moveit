@@ -35,12 +35,12 @@ private:
     t_s.twist.angular.y = msg->axes[4];
     t_s.twist.angular.z = msg->axes[5];
 
-    twist_pub_.publish( t_s );
+    twist_pub_.publish(t_s);
   }
 };
-} // end to_twist namespace
+}  // end to_twist namespace
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spacenav_to_twist");
 
