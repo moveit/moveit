@@ -9,6 +9,7 @@ jog_arm_server:
   singularity_threshold:  15  # Slow down when the condition number hits this (close to singularity)
   hard_stop_singularity_threshold: 20 # Stop when the condition number hits this
   command_out_topic:  sia5_controller/command
+  planning_frame:  base_link  # The MoveIt! planning frame. Often 'base_link'
   low_pass_filter_coeff:  2.  # Larger --> trust the filtered data more, trust the measurements less.
   publish_period:  0.01  # 1/Nominal publish rate [seconds]
   scale:

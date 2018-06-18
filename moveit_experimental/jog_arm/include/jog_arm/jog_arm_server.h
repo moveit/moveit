@@ -84,7 +84,8 @@ struct jog_arm_shared
 // ROS params to be read
 struct jog_arm_parameters
 {
-  std::string move_group_name, joint_topic, command_in_topic, command_frame, command_out_topic, warning_topic;
+  std::string move_group_name, joint_topic, command_in_topic, command_frame, command_out_topic, planning_frame,
+      warning_topic;
   double linear_scale, rotational_scale, singularity_threshold, hard_stop_singularity_threshold, low_pass_filter_coeff,
       publish_period, incoming_command_timeout;
   bool gazebo, collision_check;
@@ -228,8 +229,6 @@ protected:
   ros::Publisher warning_pub_;
 
   jog_arm_parameters parameters_;
-
-  std::string planning_frame_;
 };
 
 class CollisionCheck
