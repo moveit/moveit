@@ -563,9 +563,9 @@ void JogCalcs::updateJoints()
   }
 
   // Store joints in a member variable
-  for (std::size_t m = 0; m < incoming_jts_.name.size(); m++)
+  for (std::size_t m = 0; m < incoming_jts_.name.size(); ++m)
   {
-    for (std::size_t c = 0; c < jt_state_.name.size(); c++)
+    for (std::size_t c = 0; c < jt_state_.name.size(); ++c)
     {
       if (incoming_jts_.name[m] == jt_state_.name[c])
       {
