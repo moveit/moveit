@@ -491,6 +491,7 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
   }
 
   if (parameters_.gazebo)
+  {
     // Spam several redundant points into the trajectory. The first few may be
     // skipped if the
     // time stamp is in the past when it reaches the client. Needed for gazebo
@@ -498,10 +499,11 @@ void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& 
     // Start from 2 because the first point's timestamp is already
     // 1*parameters_.publish_period
     point = new_jt_traj.points[0];
-  for (int i = 2; i < 30; ++i)
-  {
-    point.time_from_start = ros::Duration(i * parameters_.publish_period);
-    new_jt_traj.points.push_back(point);
+    for (int i = 2; i < 30; ++i)
+    {
+      point.time_from_start = ros::Duration(i * parameters_.publish_period);
+      new_jt_traj.points.push_back(point);
+    }
   }
 
   // Share with main to be published
@@ -527,7 +529,8 @@ void JogCalcs::halt(trajectory_msgs::JointTrajectory& jt_traj)
 void JogCalcs::resetVelocityFilters()
 {
   for (std::size_t i = 0; i < jt_state_.name.size(); ++i)
-    velocity_filters_[i].reset(0);  // Zero velocity
+    // Zero velocity
+    velocity_filters_[i].reset(0);
 }
 
 // Update joint velocities
@@ -619,10 +622,19 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 // Calculate the condition number of the jacobian, to check for singularities
 double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 {
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(matrix);
+  // For 6-DOF arms, use eigenvalues. It's faster than singular value decomposition
+  if (jt_state_.name.size() == 6) {
+    Eigen::MatrixXd::EigenvaluesReturnType eigs = matrix.eigenvalues();
+    Eigen::VectorXd eig_vector = eigs.cwiseAbs();
 
-  return svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
-  ;
+    // condition = max(eigs)/min(eigs)
+    return eig_vector.maxCoeff() / eig_vector.minCoeff();
+  }
+  else
+  {
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(matrix);
+    return svd.singularValues()(0) / svd.singularValues()(svd.singularValues().size() - 1);
+  }
 }
 
 // Listen to cartesian delta commands.
