@@ -623,7 +623,8 @@ bool JogCalcs::addJointIncrements(sensor_msgs::JointState& output, const Eigen::
 double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 {
   // For 6-DOF arms, use eigenvalues. It's faster than singular value decomposition
-  if (jt_state_.name.size() == 6) {
+  if (jt_state_.name.size() == 6)
+  {
     Eigen::MatrixXd::EigenvaluesReturnType eigs = matrix.eigenvalues();
     Eigen::VectorXd eig_vector = eigs.cwiseAbs();
 
