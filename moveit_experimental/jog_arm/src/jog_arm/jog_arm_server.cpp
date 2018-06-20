@@ -42,8 +42,8 @@
 #include <jog_arm/jog_arm_server.h>
 
 // Initialize these static struct to hold ROS parameters
-jog_arm::jog_arm_parameters jog_arm::jogROSInterface::ros_parameters_;
-jog_arm::jog_arm_shared jog_arm::jogROSInterface::shared_variables_;
+jog_arm::JogArmParameters jog_arm::JogROSInterface::ros_parameters_;
+jog_arm::JogArmShared jog_arm::JogROSInterface::shared_variables_;
 
 /////////////////////////////////////////////////
 // MAIN handles ROS subscriptions.
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "jog_arm_server");
 
-  jog_arm::jogROSInterface ros_interface;
+  jog_arm::JogROSInterface ros_interface;
 
   return 0;
 }
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 namespace jog_arm
 {
 // Constructor for the main ROS interface node
-jogROSInterface::jogROSInterface()
+JogROSInterface::JogROSInterface()
 {
   ros::NodeHandle n;
 
@@ -80,8 +80,8 @@ jogROSInterface::jogROSInterface()
   rc = pthread_create(&collisionThread, NULL, this->collisionCheck, this);
 
   // ROS subscriptions. Share the data with the worker threads
-  ros::Subscriber cmd_sub = n.subscribe(ros_parameters_.command_in_topic, 1, &jogROSInterface::deltaCmdCB, this);
-  ros::Subscriber joints_sub = n.subscribe(ros_parameters_.joint_topic, 1, &jogROSInterface::jointsCB, this);
+  ros::Subscriber cmd_sub = n.subscribe(ros_parameters_.command_in_topic, 1, &JogROSInterface::deltaCmdCB, this);
+  ros::Subscriber joints_sub = n.subscribe(ros_parameters_.joint_topic, 1, &JogROSInterface::jointsCB, this);
 
   // Publish freshly-calculated joints to the robot
   ros::Publisher joint_trajectory_pub =
@@ -136,21 +136,21 @@ jogROSInterface::jogROSInterface()
 }
 
 // A separate thread for the heavy jogging calculations.
-void* jogROSInterface::joggingPipeline(void*)
+void* JogROSInterface::joggingPipeline(void*)
 {
   jog_arm::JogCalcs ja(ros_parameters_, shared_variables_);
   return nullptr;
 }
 
 // A separate thread for collision checking.
-void* jogROSInterface::collisionCheck(void*)
+void* JogROSInterface::collisionCheck(void*)
 {
   jog_arm::CollisionCheck cc(ros_parameters_, shared_variables_);
   return nullptr;
 }
 
 // Constructor for the class that handles collision checking
-CollisionCheck::CollisionCheck(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables)
+CollisionCheck::CollisionCheck(const JogArmParameters& parameters, JogArmShared& shared_variables)
 {
   // If user specified true in yaml file
   if (parameters.collision_check)
@@ -225,7 +225,7 @@ CollisionCheck::CollisionCheck(const jog_arm_parameters& parameters, jog_arm_sha
 }
 
 // Constructor for the class that handles jogging calculations
-JogCalcs::JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables)
+JogCalcs::JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables)
   : move_group_(parameters.move_group_name), prev_time_(ros::Time::now())
 {
   parameters_ = parameters;
@@ -319,7 +319,7 @@ JogCalcs::JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_
 }
 
 // Perform the jogging calculations
-void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables)
+void JogCalcs::jogCalcs(const geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables)
 {
   // Convert the cmd to the MoveGroup planning frame.
   try
@@ -639,7 +639,7 @@ double JogCalcs::checkConditionNumber(const Eigen::MatrixXd& matrix) const
 
 // Listen to cartesian delta commands.
 // Store them in a shared variable.
-void jogROSInterface::deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
+void JogROSInterface::deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.command_deltas_mutex);
   shared_variables_.command_deltas = *msg;
@@ -660,7 +660,7 @@ void jogROSInterface::deltaCmdCB(const geometry_msgs::TwistStampedConstPtr& msg)
 
 // Listen to joint angles.
 // Store them in a shared variable.
-void jogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
+void JogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   pthread_mutex_lock(&shared_variables_.joints_mutex);
   shared_variables_.joints = *msg;
@@ -668,7 +668,7 @@ void jogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 }
 
 // Read ROS parameters, typically from YAML file
-int jogROSInterface::readParameters(ros::NodeHandle& n)
+int JogROSInterface::readParameters(ros::NodeHandle& n)
 {
   ROS_INFO_NAMED("jog_arm_server", "---------------------------------------");
   ROS_INFO_NAMED("jog_arm_server", " Parameters:");

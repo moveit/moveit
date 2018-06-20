@@ -63,7 +63,7 @@
 namespace jog_arm
 {
 // Variables to share between threads, and their mutexes
-struct jog_arm_shared
+struct JogArmShared
 {
   geometry_msgs::TwistStamped command_deltas;
   pthread_mutex_t command_deltas_mutex;
@@ -82,7 +82,7 @@ struct jog_arm_shared
 };
 
 // ROS params to be read
-struct jog_arm_parameters
+struct JogArmParameters
 {
   std::string move_group_name, joint_topic, command_in_topic, command_frame, command_out_topic, planning_frame,
       warning_topic;
@@ -92,12 +92,12 @@ struct jog_arm_parameters
 };
 
 /**
- * Class jogROSInterface - Instantiated in main(). Handles ROS subs & pubs.
+ * Class JogROSInterface - Instantiated in main(). Handles ROS subs & pubs.
  */
-class jogROSInterface
+class JogROSInterface
 {
 public:
-  jogROSInterface();
+  JogROSInterface();
 
 private:
   // ROS subscriber callbacks
@@ -113,10 +113,10 @@ private:
   static void* collisionCheck(void* thread_id);
 
   // Store the parameters that were read from ROS server
-  static struct jog_arm_parameters ros_parameters_;
+  static struct JogArmParameters ros_parameters_;
 
   // Variables to share between threads
-  static struct jog_arm_shared shared_variables_;
+  static struct JogArmShared shared_variables_;
 };
 
 /**
@@ -175,7 +175,7 @@ double LowPassFilter::filter(const double new_msrmt)
 class JogCalcs
 {
 public:
-  JogCalcs(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables);
+  JogCalcs(const JogArmParameters& parameters, JogArmShared& shared_variables);
 
 protected:
   ros::NodeHandle nh_;
@@ -186,7 +186,7 @@ protected:
 
   sensor_msgs::JointState incoming_jts_;
 
-  void jogCalcs(const geometry_msgs::TwistStamped& cmd, jog_arm_shared& shared_variables);
+  void jogCalcs(const geometry_msgs::TwistStamped& cmd, JogArmShared& shared_variables);
 
   // Parse the incoming joint msg for the joints of our MoveGroup
   void updateJoints();
@@ -228,13 +228,13 @@ protected:
 
   ros::Publisher warning_pub_;
 
-  jog_arm_parameters parameters_;
+  JogArmParameters parameters_;
 };
 
 class CollisionCheck
 {
 public:
-  CollisionCheck(const jog_arm_parameters& parameters, jog_arm_shared& shared_variables);
+  CollisionCheck(const JogArmParameters& parameters, JogArmShared& shared_variables);
 
 private:
   ros::NodeHandle nh_;

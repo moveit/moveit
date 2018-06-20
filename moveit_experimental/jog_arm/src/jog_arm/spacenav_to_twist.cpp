@@ -4,12 +4,12 @@
 
 namespace to_twist
 {
-class spaceNavToTwist
+class SpaceNavToTwist
 {
 public:
-  spaceNavToTwist() : spinner_(2)
+  SpaceNavToTwist() : spinner_(2)
   {
-    joy_sub_ = n_.subscribe("spacenav/joy", 1, &spaceNavToTwist::joyCallback, this);
+    joy_sub_ = n_.subscribe("spacenav/joy", 1, &SpaceNavToTwist::joyCallback, this);
     twist_pub_ = n_.advertise<geometry_msgs::TwistStamped>("jog_arm_server/delta_jog_cmds", 1);
 
     spinner_.start();
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "spacenav_to_twist");
 
-  to_twist::spaceNavToTwist to_twist;
+  to_twist::SpaceNavToTwist to_twist;
 
   return 0;
 }
