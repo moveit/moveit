@@ -100,10 +100,10 @@ add_subdirectory(lazy_free_space_updater)
 add_subdirectory(point_containment_filter)
 add_subdirectory(occupancy_map_monitor)
 add_subdirectory(pointcloud_octomap_updater)
-if (BUILD_OPENGL)
+if (WITH_OPENGL)
   add_subdirectory(mesh_filter)
   add_subdirectory(depth_image_octomap_updater)
-endif(BUILD_OPENGL)
+endif(WITH_OPENGL)
 
 add_subdirectory(semantic_world)
 
