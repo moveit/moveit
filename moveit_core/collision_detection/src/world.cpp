@@ -155,6 +155,20 @@ bool World::moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr
   return false;
 }
 
+bool World::moveObject(const std::string& id, const Eigen::Affine3d& transform)
+{
+  auto it = objects_.find(id);
+  if (it == objects_.end())
+    return false;
+  ensureUnique(it->second);
+  for (size_t i = 0, n = it->second->shapes_.size(); i < n; ++i)
+  {
+    it->second->shape_poses_[i] = transform * it->second->shape_poses_[i];
+  }
+  notify(it->second, MOVE_SHAPE);
+  return true;
+}
+
 bool World::removeShapeFromObject(const std::string& id, const shapes::ShapeConstPtr& shape)
 {
   auto it = objects_.find(id);

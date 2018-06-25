@@ -157,6 +157,9 @@ public:
    * verified by comparing pointers. Returns true on success. */
   bool moveShapeInObject(const std::string& id, const shapes::ShapeConstPtr& shape, const Eigen::Affine3d& pose);
 
+  /** \brief Move all shapes in an object according to the given transform specified in world frame */
+  bool moveObject(const std::string& id, const Eigen::Affine3d& transform);
+
   /** \brief Remove shape from object.
    * Shape equality is verified by comparing pointers. Ownership of the
    * object is renounced (i.e. object is deleted if no external references
