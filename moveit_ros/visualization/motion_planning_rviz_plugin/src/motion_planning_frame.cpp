@@ -116,6 +116,7 @@ MotionPlanningFrame::MotionPlanningFrame(MotionPlanningDisplay* pdisplay, rviz::
   connect(ui_->load_state_button, SIGNAL(clicked()), this, SLOT(loadStateButtonClicked()));
   connect(ui_->save_start_state_button, SIGNAL(clicked()), this, SLOT(saveStartStateButtonClicked()));
   connect(ui_->save_goal_state_button, SIGNAL(clicked()), this, SLOT(saveGoalStateButtonClicked()));
+  connect(ui_->save_current_state_button, SIGNAL(clicked()), this, SLOT(saveCurrentStateButtonClicked()));
   connect(ui_->set_as_start_state_button, SIGNAL(clicked()), this, SLOT(setAsStartStateButtonClicked()));
   connect(ui_->set_as_goal_state_button, SIGNAL(clicked()), this, SLOT(setAsGoalStateButtonClicked()));
   connect(ui_->remove_state_button, SIGNAL(clicked()), this, SLOT(removeStateButtonClicked()));

@@ -1524,6 +1524,13 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="save_current_state_button">
+              <property name="text">
+               <string>Current State</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

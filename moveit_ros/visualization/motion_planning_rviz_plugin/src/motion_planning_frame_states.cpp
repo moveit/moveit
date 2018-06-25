@@ -184,6 +184,14 @@ void MotionPlanningFrame::saveGoalStateButtonClicked()
   saveRobotStateButtonClicked(*planning_display_->getQueryGoalState());
 }
 
+void MotionPlanningFrame::saveCurrentStateButtonClicked()
+{
+  planning_display_->waitForCurrentRobotState();
+  const planning_scene_monitor::LockedPlanningSceneRO& ps = planning_display_->getPlanningSceneRO();
+  if (ps)
+    saveRobotStateButtonClicked(ps->getCurrentState());
+}
+
 void MotionPlanningFrame::setAsStartStateButtonClicked()
 {
   QListWidgetItem* item = ui_->list_states->currentItem();
