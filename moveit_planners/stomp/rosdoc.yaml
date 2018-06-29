@@ -1,0 +1,3 @@
+- builder: doxygen
+  file_patterns: '*.cpp *.h *.dox *.launch *.yaml'
+  extract_all: NO

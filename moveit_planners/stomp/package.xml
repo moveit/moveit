@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package>
+  <name>stomp_moveit</name>
+  <version>0.1.1</version>
+  <description>The stomp_moveit package</description>
+
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <license>Apache 2.0</license>
+  <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
+  <url type="website">http://ros.org/wiki/stomp_moveit</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>stomp_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>cmake_modules</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>stomp_core</run_depend>
+  <run_depend>pluginlib</run_depend>
+  <run_depend>cmake_modules</run_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <moveit_core plugin="${prefix}/planner_manager_plugins.xml"/>
+    <stomp_moveit plugin="${prefix}/cost_function_plugins.xml"/>
+    <stomp_moveit plugin="${prefix}/noisy_filter_plugins.xml"/>
+    <stomp_moveit plugin="${prefix}/update_filter_plugins.xml"/>
+    <stomp_moveit plugin="${prefix}/noise_generator_plugins.xml"/>
+    <rosdoc config="rosdoc.yaml"/>
+  </export>
+</package>

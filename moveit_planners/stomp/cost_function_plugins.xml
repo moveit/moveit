@@ -1,0 +1,17 @@
+<library path="libstomp_moveit_cost_functions">
+  <class name="stomp_moveit/CollisionCheck" type="stomp_moveit::cost_functions::CollisionCheck" base_class_type="stomp_moveit::cost_functions::StompCostFunction">
+    <description>
+      FCL Mesh-model-based exact collision check
+    </description>
+  </class>
+  <class name="stomp_moveit/ObstacleDistanceGradient" type="stomp_moveit::cost_functions::ObstacleDistanceGradient" base_class_type="stomp_moveit::cost_functions::StompCostFunction">
+    <description>
+      Uses the shortests distance to obstacles in order to calculate state costs.
+    </description>
+  </class>
+  <class name="stomp_moveit/ToolGoalPose" type="stomp_moveit::cost_functions::ToolGoalPose" base_class_type="stomp_moveit::cost_functions::StompCostFunction">
+    <description>
+      Scores based on proximity of the last trajectory point to the desired tool goal pose
+    </description>
+  </class>
+</library>

@@ -1,0 +1,325 @@
+/**
+@page stomp_moveit_examples STOMP MoveIt! examples
+@tableofcontents
+@section stomp_moveit Plan with STOMP through MoveIt!
+
+  - @ref stomp_moveit_setup
+  
+@section stomp_configuration STOMP Configuration
+
+  - @ref  stomp_config_example
+
+@section stomp_plugins STOMP Plugins
+  @subsection  noise_generator_configuration Noise Generator Plugin Configuration 
+    Adds random noise onto the trajectory in order to explore the workspace.  Only one can be loaded
+    - @ref  normal_distribution_sampling_example
+    - @ref  goal_guided_mult_gaussian_example
+  
+  @subsection  cost_function_configuration Cost Function Plugins Configuration 
+    Evaluate the state costs of each noisy trajectory.  The plugins are applied from top to bottom as listed
+    in the stomp yaml file.
+    - @ref  cost_function_collision_check_example
+    - @ref  cost_function_obstacle_distance_example
+    - @ref  tool_goal_pose_example
+  
+  @subsection  noisy_filters_configuration Noisy Filters Plugins Configuration 
+    Apply various filtering methods to the noisy trajectories. The plugins are applied from top to bottom 
+    as listed in the stomp yaml file.
+    - @ref  joint_limits_example
+    - @ref  multi_trajectory_visualization_example
+  
+  @subsection  update_filters_configuration Update Filters Plugins Configuration 
+    Apply various filtering methods to the update values that will be used in improving the current trajectory.
+    The plugins are applied from top to bottom as listed in the stomp yaml file.
+    - @ref  control_cost_projection_example
+    - @ref  polynomial_smoother_example
+    - @ref  trajectory_visualization_example
+    - @ref  update_logger_example
+*/
+
+/**
+ @page moveit_setup_assistant_link
+ <a href="http://docs.ros.org/hydro/api/moveit_setup_assistant/html/doc/tutorial.html">MoveIt! Setup Assistant </a>
+*/
+
+/**
+@page stomp_moveit_setup STOMP MoveIt! Setup
+
+@section create_launch_file Create the Pipeline Launch File
+  First, you must already have a moveit_config package that was generated with the <a href="http://docs.ros.org/hydro/api/moveit_setup_assistant/html/doc/tutorial.html">MoveIt! Setup Assistant </a> .  Once this package is
+  available you can tell the <b>move_group</b> node to load STOMP by creating a <b>stomp_planning_pipeline.launch.xml</b>
+  file as follows:
+@include stomp_planning_pipeline.launch.xml
+
+- Take notice of how the <b>pluginlib</b> parameters is set to <b>stomp_moveit_interface/StompPlannerManager</b> in order
+  to tell the <b>move_group</b> node to load STOMP into MoveIt!
+- The STOMP planner is then configured from the yaml file as shown in the line below:
+  @code
+    <rosparam command="load" file="$(find test_moveit_config)/config/stomp_planning.yaml"/>
+  @endcode
+
+@section change_move_group_launch  Modify the move_group.launch file
+  Open the <b>move_group.launch</b> file of your moveit_config package and change the <b>pipeline</b> parameter to <b>"stomp"</b> as shown below:
+  @code
+      . 
+      .
+      .
+    <!-- Planning Functionality --> 
+    <include ns="move_group" file="$(test_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="stomp" />
+    </include>
+      . 
+      .
+  @endcode
+
+*/
+
+/**
+@page stomp_config_example STOMP Yaml file
+@tableofcontents
+@section basic_planner_config Basic STOMP planner configuration
+@par
+  A basic configuration file is as follows: 
+  - stomp_config_example.yaml
+  @include stomp_config_example.yaml
+  Each "stomp/group_name" section is specific to that planning group.  The group name must 
+  be a valid planning group in the SRDF file
+@section explanation_of_parameters Explanation of parameters
+  @subsection optimization_parameters Optimization Parameters
+    All the parameters under the <b>optimization</b> field affect the behavior of the optimization process.  These parameters are as follows:
+    - num_timesteps: The number of timesteps in the trajectory.
+    - num_iterations: How many times to iterate in order to find a valid trajectory.  If the allowed number 
+                      of iterations is reached before a solution is found then the trajectory is invalid.
+    - num_iterations_after_valid: How many times to iterate after success in order to further improve the trajectory.  
+    - num_rollouts: Number of new noisy trajectories to generate at each iteration.
+    - max_rollouts: How many rollouts STOMP will store from previous iterations.  When the maximum is reached, old rollouts
+                     with higher costs will be discarded in place of rollouts with less cost.
+    - initialization_method:  An integer value indicated the method for creating the initial trajectory.
+        - Linear Interpolation (1): An interpolation from start to end.
+        - Cubic Polynomial(2):      Uses a cubic spline.
+        - Minimum Control Cost(3):  Builds a covariance matrix and uses it to generate an initial trajectory with
+                                    low accelerations.
+    - control_cost_weight: Weighting factor applied to the acceleration costs, using zero is recommended.
+  @subsection tasks_parameters Tasks Parameters
+    At each iteration, STOMP invokes a StompTaks object.  The taks object holds all of the active plugins and
+    invokes them at specific stages of the optimization process.  Thus each of the plugins is listed under a 
+    plugin specifier entry below the "task" field.  Each plugin entry should at least have a "class" field which
+    is used by pluginlib to identify and load the plugin.  
+    There are four types of plugins that can be loaded into the StompTask and these are:
+    - noise_generator:  Adds random noise onto the trajectory in order to explore the workspace.  Only one can be loaded
+    - cost_functions:   Evaluate the state costs of each noisy trajectory.
+    - noisy_filters:    Apply various filtering methods to the noisy trajectories.
+    - update_filters:   Apply various filtering methods to the update values that will be used in 
+                        improving the current trajectory.
+
+*/
+
+/**
+@page normal_distribution_sampling_example NormalDistributionSampling 
+Uses a normal distribution in order to add noise to each joint at every timestep in the trajectory.
+The parameters are as follows:
+@code 
+  - class: stomp_moveit/NormalDistributionSampling
+    stddev: [0.05, 0.4, 1.2, 0.4, 0.4, 0.1, 0.1]
+@endcode
+  - class: The class name
+  - stddev: The amplitude of the noise applied to each joint in the planning group.  Using
+            larger values will produce larger motions for such joints.
+*/
+/**
+@page goal_guided_mult_gaussian_example Goal Guided Multivariate Gaussian
+Generates noise that is applied onto the trajectory while keeping the goal pose within the task manifold.  The parameters are 
+as follows:
+@code
+  noise_generator:
+    - class: stomp_moveit/GoalGuidedMultivariateGaussian
+      stddev: [0.1, 0.05, 0.1, 0.05, 0.05, 0.05, 0.05] 
+      goal_stddev: [0.0, 0.0, 0.0, 0.0, 0.0, 2.0] 
+      constrained_dofs: [1, 1, 1, 1, 1, 0]
+@endcode
+  - class:            The class name.
+  - stddev:           The amplitude of the noise applied onto each joint.
+  - goal_stddev:      The amplitude of the noise applied onto each cartesian DOF at the goal.  The array has the following
+                      form [px, py, pz, rx, ry, rz].
+  - constrained_dofs: Indicates which cartesians DOF are fully constrained (1) or unconstrained (0).  This vector is of the form
+                      [x y z rx ry rz] where each entry can only take a value of 0 or 1.
+*/
+
+/**
+@page cost_function_collision_check_example CollisionCheck 
+Checks for collisions and assigns a non zero cost when the robot is in collision at a given timestep.  In addition to that, it
+propagates the cost of trajectory points in collision to adjacent points that may be collision free.  This approach allows
+for a better evaluation of a trajectory as a whole. The parameters are as follow:
+@code
+  - class: stomp_moveit/CollisionCheck
+    collision_penalty: 1.0
+    cost_weight: 1.0
+    kernel_window_percentage: 0.2
+    longest_valid_joint_move: 0.05 
+@endcode
+  - class: The class name
+  - collision_penalty: The cost value associated with each collision
+  - kernel_window_percentage: The extend to which collision state costs will be propagated to adjacent points.
+  - cost_weight:   A weight value multiplied onto to each state cost, it can be used to set the extent to which 
+                   this collision cost affects the overall state cost. A value of 1.0 is recomended.
+  - longest_valid_joint_move: This value is used to check for collisions at intermediate poses between consecutive
+                              points in a trajectory.  A smaller value could lead to more collision checks during 
+                              large joint motions.
+*/
+
+/**
+@page cost_function_obstacle_distance_example ObstacleDistanceGradient 
+Uses the shortest distances between obstacles and the robot in order to penalize the feasability of each state.  The smaller
+distances will lead to higher costs values for that state. Collisions will be set to the highest cost.
+@code
+  - class: stomp_moveit/ObstacleDistanceGradient
+    max_distance: 0.2
+    cost_weight: 1.0
+    longest_valid_joint_move: 0.05 
+@endcode
+  - class:        The class name
+  - max_distance: Used in calculating the cost as a function of the shortest distance.  The cost equals <b>[(max_distance - d)/max_distance]</b>
+                  If the shortest distance is greater than <b>max_distance</b> then the cost is set to zero.
+  - cost_weight:  A weight value multiplied onto to each state cost.
+  - longest_valid_joint_move: This value is used to check for collisions at intermediate poses between consecutive
+                              points in a trajectory.  A smaller value could lead to more collision checks during 
+                              large joint motions.
+*/
+
+/**
+@page tool_goal_pose_example Tool Goal Pose 
+Evaluates the cost of the goal pose by determining how far it is from the underconstrained task manifold.  The parameters
+are as follow:
+@code
+  cost_functions:
+    - class: stomp_moveit/ToolGoalPose
+      constrained_dofs: [1, 1, 1, 1, 1, 0]
+      position_error_range: [0.01, 0.1]     #[min, max]
+      orientation_error_range: [0.01, 0.1]  #[min, max]
+      position_cost_weight: 0.5
+      orientation_cost_weight: 0.5
+@endcode
+  - class:                    The class name.
+  - constrained_dofs:         Indicates which cartesians DOF are fully constrained (1) or unconstrained (0).  This vector is of the form
+                              [x y z rx ry rz] where each entry can only take a value of 0 or 1.
+  - position_error_range:     Used in scaling the position error from 0 to 1.  Any error less than this range is set to 
+                              a cost of 0 and errors above this range are set to 1.
+  - orientation_error_range:  Used in scaling the orientation error from 0 to 1.  Any error less than this range is set to 
+                              a cost of 0 and errors above this range are set to 1.
+  - position_cost_weight:     Factor applied to the position error cost. The total cost = pos_cost * pos_weight + orient_cost * orient_weight
+  - orientation_cost_weight:  Factor applied to the orientation error cost.  The total cost = pos_cost * pos_weight + orient_cost * orient_weight
+*/
+
+
+/**
+@page joint_limits_example JointLimits 
+Caps the joint values to the allowed limits as defined in the robot's URDF file.  It also allows to lock the start and goal positions
+@code
+  - class: stomp_moveit/JointLimits
+    lock_start: True
+    lock_goal: True
+@endcode
+  - class: The class name
+  - lock_start: True to lock the start joint pose
+  - lock_goal:  True to lock the goal joint pose
+*/
+
+/**
+@page multi_trajectory_visualization_example MultiTrajectoryVisualization 
+Publishes line markers for visualizing the noisy trajectories
+@code
+  - class: stomp_moveit/MultiTrajectoryVisualization
+    line_width: 0.02
+    rgb: [0, 255, 0]
+    marker_array_topic: stomp_trajectories
+    marker_namespace: noisy
+@endcode
+  - class:              The class name
+  - line_width:         The width of the line markers
+  - rgb:                The color of the line markers
+  - marker_array_topic: The marker topic name
+  - marker_namespace:   The namespace of the line markers
+*/
+  
+/**
+@page control_cost_projection_example ControlCostProjectionMatrix 
+Uses a Control Cost Matrix projection in order to smooth out the trajectory.
+@code
+  - class: stomp_moveit/ControlCostProjectionMatrix
+@endcode
+  - class: The class name
+*/
+
+/**
+@page polynomial_smoother_example PolynomialSmoother 
+Applies a polynomial to smooth out sharp turns
+@code
+  - class: stomp_moveit/PolynomialSmoother
+    poly_order: 5
+@endcode
+  - class:      The class name
+  - poly_order: The order to the polynomial.  Higher orders will allow for more turns
+*/
+
+/**
+@page trajectory_visualization_example TrajectoryVisualization 
+Publishes markers to visualize the current optimized trajectory
+@code
+  - class: stomp_moveit/TrajectoryVisualization
+    line_width: 0.02
+    rgb: [0, 191, 255]
+    error_rgb: [255, 0, 0]
+    publish_intermediate: True
+    marker_topic: stomp_trajectory
+    marker_namespace: optimized
+@endcode
+  - class:                The class name
+  - line_width:           The width of the line marker.
+  - rgb:                  The color of the line marker.
+  - error_rgb:            The color used when the trajectory is invalid.
+  - publish_intermediate: Whether to publish the optimized trajectory during each iteration.  When <b>False</b> only the
+                          final trajectory will be published.
+  - marker_array_topic:   The marker topic name.
+  - marker_namespace:     The namespace of the line marker.
+*/
+
+/**
+@page update_logger_example UpdateLogger 
+Stores the update values into files for post processing purposes. The file is compatible with the python numpy
+library and can be loaded into a numpy array by running.
+@code numpy.loadtxt('file_name.txt') @endcode
+
+The yaml configuration is as follows:
+@code
+- class: stomp_moveit/UpdateLogger
+  package: stomp_moveit
+  directory: log
+  filename: smoothed_update.txt
+@endcode
+  - class: The class name
+  - package: The ros package where the file will be saved
+  - directory:  The directory relative to the ros package
+  - filename:   The name of the file.
+*/
+
+/**
+@page constrained_cart_goal_example Constrained Cartesian Goal
+Modifies the trajectory update such that the goal of the updated trajectory is within the task manifold
+@code
+  update_filters:
+      - class: stomp_moveit/ConstrainedCartesianGoal
+        constrained_dofs: [1, 1, 1, 1, 1, 0]
+        cartesian_convergence: [0.005, 0.005, 0.005, 0.01, 0.01, 1.00]
+        joint_update_rates: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+        max_ik_iterations: 100
+@endcode
+  - class:                  The class name.
+  - constrained_dofs:       Indicates which cartesians DOF are fully constrained (1) or unconstrained (0).  This vector is of the form
+                            [x y z rx ry rz] where each entry can only take a value of 0 or 1.
+  - cartesian_convergence:  A vector of convergence values for each cartesian DOF [vx vy vz wx wy wz].
+  - joint_update_rates:     The rates at which to update the joints during numerical ik computations.
+  - max_ik_iterations:      Limit on the number of iterations allowed for numerical ik computations.
+*/
+
+
+

@@ -1,0 +1,60 @@
+stomp/manipulator:
+  group_name: manipulator
+  optimization:
+    num_timesteps: 20
+    num_iterations: 50
+    num_iterations_after_valid: 0    
+    num_rollouts: 10
+    max_rollouts: 100
+    initialization_method: 1 #[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST
+    control_cost_weight: 0.0
+  task:
+    noise_generator:
+      - class: stomp_moveit/NormalDistributionSampling
+        stddev: [0.3, 1.0, 0.5, 0.4, 0.3, 0.3]
+    cost_functions:
+      - class: stomp_moveit/CollisionCheck
+        collision_penalty: 1.0
+        cost_weight: 1.0 
+        kernel_window_percentage: 0.4
+    noisy_filters:
+      - class: stomp_moveit/JointLimits
+        lock_start: True
+        lock_goal: True
+    update_filters:
+      - class: stomp_moveit/ControlCostProjectionMatrix
+stomp/manipulator_rail:
+  group_name: manipulator_rail
+  optimization:
+    num_timesteps: 40
+    num_iterations: 40
+    num_iterations_after_valid: 0    
+    num_rollouts: 10
+    max_rollouts: 10 
+    initialization_method: 3 #[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST
+    control_cost_weight: 0.0
+  task:
+    noise_generator:
+      - class: stomp_moveit/NormalDistributionSampling
+        stddev: [0.05, 0.4, 1.2, 0.4, 0.4, 0.1, 0.1]
+    cost_functions:
+      - class: stomp_moveit/CollisionCheck
+        collision_penalty: 1.0
+        cost_weight: 1.0
+        kernel_window_percentage: 0.2
+        longest_valid_joint_move: 0.05 
+    noisy_filters:
+      - class: stomp_moveit/JointLimits
+        lock_start: True
+        lock_goal: True
+      - class: stomp_moveit/MultiTrajectoryVisualization
+        line_width: 0.02
+        rgb: [255, 255, 0]
+        marker_array_topic: stomp_trajectories
+        marker_namespace: noisy
+    update_filters:
+      - class: stomp_moveit/ControlCostProjectionMatrix
+      - class: stomp_moveit/UpdateLogger
+        package: stomp_moveit
+        directory: log
+        filename: smoothed_update.txt
