@@ -23,8 +23,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_
-#define INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_
+#ifndef MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_
+#define MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_
 
 #include <Eigen/Core>
 #include <XmlRpc.h>
@@ -145,4 +145,4 @@ public:
 
 } /* namespace stomp_moveit */
 
-#endif /* INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_ */
+#endif /* MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_NOISY_FILTER_H_ */
