@@ -68,15 +68,9 @@ ChompTrajectory::ChompTrajectory(const moveit::core::RobotModelConstPtr& robot_m
   const moveit::core::JointModelGroup* model_group = robot_model->getJointModelGroup(planning_group_name_);
   num_joints_ = model_group->getActiveJointModels().size();
   init();
-  std::cout << trajectory_ << " complete initialized TRAJECTORY..!!!!!" << std::endl;
 }
 
-/**
- * this contructor simply copies over the source trajectory into the current trajectory object
- * @param source_traj
- * @param planning_group
- * @param diff_rule_length
- */
+
 ChompTrajectory::ChompTrajectory(const ChompTrajectory& source_traj, const std::string& planning_group,
                                  int diff_rule_length)
   : planning_group_name_(planning_group), discretization_(source_traj.discretization_)
@@ -152,10 +146,6 @@ ChompTrajectory::~ChompTrajectory()
 {
 }
 
-/**
- * copies the trajectory of the argument in the object's trajectory
- * @param traj
- */
 void ChompTrajectory::overwriteTrajectory(const trajectory_msgs::JointTrajectory& traj)
 {
   for (unsigned int i = 1; i <= traj.points.size(); i++)

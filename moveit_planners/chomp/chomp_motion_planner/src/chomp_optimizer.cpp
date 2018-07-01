@@ -866,6 +866,4 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   state_.update();
 }
 
-
-
 }  // namespace chomp

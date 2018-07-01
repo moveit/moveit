@@ -66,6 +66,5 @@ void CHOMPInterface::loadParams()
 
   nh_.param("use_stochastic_descent", params_.use_stochastic_descent_, true);
   nh_.param("interpolation_method", params_.trajectory_initialization_method_, std::string("quintic-spline"));
-  // filter_mode_ = false;
 }
 }
