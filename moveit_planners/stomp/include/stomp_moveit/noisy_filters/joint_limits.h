@@ -23,8 +23,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_
-#define INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_
+#ifndef MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_
+#define MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_
 
 #include <moveit/robot_model/robot_model.h>
 #include <moveit_msgs/GetMotionPlan.h>
@@ -110,4 +110,4 @@ protected:
 } /* namespace filters */
 } /* namespace stomp_moveit */
 
-#endif /* INDUSTRIAL_MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_ */
+#endif /* MOVEIT_STOMP_MOVEIT_INCLUDE_STOMP_MOVEIT_NOISY_FILTERS_JOINT_LIMITS_H_ */
