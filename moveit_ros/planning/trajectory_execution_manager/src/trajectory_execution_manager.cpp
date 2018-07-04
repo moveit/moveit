@@ -129,6 +129,9 @@ void TrajectoryExecutionManager::initialize()
   else
     allowed_goal_duration_margin_ = DEFAULT_CONTROLLER_GOAL_DURATION_MARGIN;
 
+  // load controller-specific values for allowed_execution_duration_scaling and allowed_goal_duration_margin
+  loadControllerParams();
+
   // load the controller manager plugin
   try
   {
@@ -1415,12 +1418,26 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
                          context.trajectory_parts_[longest_part].multi_dof_joint_trajectory.points.size()))
           longest_part = i;
       }
-      expected_trajectory_duration = std::max(d, expected_trajectory_duration);
-    }
-    // add 10% + 0.5s to the expected duration; this is just to allow things to finish propery
 
-    expected_trajectory_duration = expected_trajectory_duration * allowed_execution_duration_scaling_ +
-                                   ros::Duration(allowed_goal_duration_margin_);
+      // prefer controller-specific values over global ones if defined
+      // TODO: the controller-specific parameters are static, but override
+      //       the global ones are configurable via dynamic reconfigure
+      std::map<std::string, double>::const_iterator scaling_it =
+          controller_allowed_execution_duration_scaling_.find(context.controllers_[i]);
+      const double current_scaling = scaling_it != controller_allowed_execution_duration_scaling_.end() ?
+                                         scaling_it->second :
+                                         allowed_execution_duration_scaling_;
+
+      std::map<std::string, double>::const_iterator margin_it =
+          controller_allowed_goal_duration_margin_.find(context.controllers_[i]);
+      const double current_margin = margin_it != controller_allowed_goal_duration_margin_.end() ?
+                                        margin_it->second :
+                                        allowed_goal_duration_margin_;
+
+      // expected duration is the duration of the longest part
+      expected_trajectory_duration =
+          std::max(d * current_scaling + ros::Duration(current_margin), expected_trajectory_duration);
+    }
 
     // construct a map from expected time to state index, for easy access to expected state location
     if (longest_part >= 0)
@@ -1723,6 +1740,28 @@ bool TrajectoryExecutionManager::ensureActiveControllers(const std::vector<std::
       if (it->second.state_.active_)
         originally_active.insert(it->first);
     return std::includes(originally_active.begin(), originally_active.end(), controllers.begin(), controllers.end());
+  }
+}
+
+void TrajectoryExecutionManager::loadControllerParams()
+{
+  XmlRpc::XmlRpcValue controller_list;
+  if (node_handle_.getParam("controller_list", controller_list) &&
+      controller_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
+  {
+    for (int i = 0; i < controller_list.size(); ++i)
+    {
+      XmlRpc::XmlRpcValue& controller = controller_list[i];
+      if (controller.hasMember("name"))
+      {
+        if (controller.hasMember("allowed_execution_duration_scaling"))
+          controller_allowed_execution_duration_scaling_[std::string(controller["name"])] =
+              controller["allowed_execution_duration_scaling"];
+        if (controller.hasMember("allowed_goal_duration_margin"))
+          controller_allowed_goal_duration_margin_[std::string(controller["name"])] =
+              controller["allowed_goal_duration_margin"];
+      }
+    }
   }
 }
 }
