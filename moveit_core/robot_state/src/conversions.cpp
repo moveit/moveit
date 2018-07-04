@@ -389,6 +389,7 @@ bool robotStateMsgToRobotState(const Transforms& tf, const moveit_msgs::RobotSta
 
 void robotStateToRobotStateMsg(const RobotState& state, moveit_msgs::RobotState& robot_state, bool copy_attached_bodies)
 {
+  robot_state.is_diff = false;
   robotStateToJointStateMsg(state, robot_state.joint_state);
   _robotStateToMultiDOFJointState(state, robot_state.multi_dof_joint_state);
 
