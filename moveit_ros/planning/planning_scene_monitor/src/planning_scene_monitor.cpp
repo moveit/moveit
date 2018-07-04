@@ -328,19 +328,22 @@ void planning_scene_monitor::PlanningSceneMonitor::scenePublishingThread()
 {
   ROS_DEBUG_NAMED(LOGNAME, "Started scene publishing thread ...");
 
-  // publish the full planning scene
-  moveit_msgs::PlanningScene msg;
+  // publish the full planning scene once
   {
-    occupancy_map_monitor::OccMapTree::ReadLock lock;
-    if (octomap_monitor_)
-      lock = octomap_monitor_->getOcTreePtr()->reading();
-    scene_->getPlanningSceneMsg(msg);
+    moveit_msgs::PlanningScene msg;
+    {
+      occupancy_map_monitor::OccMapTree::ReadLock lock;
+      if (octomap_monitor_)
+        lock = octomap_monitor_->getOcTreePtr()->reading();
+      scene_->getPlanningSceneMsg(msg);
+    }
+    planning_scene_publisher_.publish(msg);
+    ROS_DEBUG_NAMED(LOGNAME, "Published the full planning scene: '%s'", msg.name.c_str());
   }
-  planning_scene_publisher_.publish(msg);
-  ROS_DEBUG_NAMED(LOGNAME, "Published the full planning scene: '%s'", msg.name.c_str());
 
   do
   {
+    moveit_msgs::PlanningScene msg;
     bool publish_msg = false;
     bool is_full = false;
     ros::Rate rate(publish_planning_scene_frequency_);
