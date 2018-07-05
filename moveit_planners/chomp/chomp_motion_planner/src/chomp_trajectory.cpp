@@ -37,8 +37,6 @@
 #include <ros/ros.h>
 #include <chomp_motion_planner/chomp_trajectory.h>
 #include <iostream>
-#include <stdio.h>
-using namespace std;
 
 namespace chomp
 {
@@ -182,7 +180,7 @@ void ChompTrajectory::fillInLinearInterpolation()
   for (int i = 0; i < num_joints_; i++)
   {
     double theta = ((*this)(end_index, i) - (*this)(start_index,i)) / (end_index- 1);
-    for(int j=start_index+1 ; j< end_index ; j++)
+    for(int j = start_index+1 ; j< end_index ; j++)
     {
       (*this)(j,i) = (*this)(start_index,i) + j*theta;
     }
