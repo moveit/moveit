@@ -10,6 +10,6 @@ RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -cs` 
 # Upgrade packages to ros-shadow-fixed and clean apt-cache within one RUN command
 RUN apt-get -qq update && \
     apt-get -qq dist-upgrade && \
-
+    #
     # Clear apt-cache to reduce image size
     rm -rf /var/lib/apt/lists/*
