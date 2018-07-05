@@ -423,6 +423,11 @@ bool StartScreenWidget::loadExistingFiles()
   ompl_yaml_path /= "config/ompl_planning.yaml";
   config_data_->inputOMPLYAML(ompl_yaml_path.make_preferred().native().c_str());
 
+  // No need for this currently
+  /*fs::path stomp_yaml_path = config_data_->config_pkg_path_;
+  stomp_yaml_path /= "config/stomp_planning.yaml";
+  config_data_->inputSTOMPYAML(stomp_yaml_path.make_preferred().native().c_str());
+*/
   // DONE LOADING --------------------------------------------------------------------------
 
   // Call a function that enables navigation

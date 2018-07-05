@@ -263,11 +263,19 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = MoveItConfigData::GROUPS;
   gen_files_.push_back(file);
 
+
   // chomp_planning.yaml  --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning.yaml";
   file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
   file.description_ = "Specifies which chomp planning plugin parameters to be used for the CHOMP planner";
   file.gen_func_ = boost::bind(&MoveItConfigData::outputCHOMPPlanningYAML, config_data_, _1);
+
+  // stomp_planning.yaml  --------------------------------------------------------------------------------------
+  file.file_name_ = "stomp_planning.yaml";
+  file.rel_path_ = config_data_->appendPaths(config_path, file.file_name_);
+  file.description_ = "Specifies which stomp planning plugin parameters to be used for the STOMP planner";
+  file.gen_func_ = boost::bind(&MoveItConfigData::outputSTOMPPlanningYAML, config_data_, _1);
+
   file.write_on_changes = MoveItConfigData::GROUPS;  // need to double check if this is actually correct!
   gen_files_.push_back(file);
 
@@ -376,6 +384,7 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.write_on_changes = 0;
   gen_files_.push_back(file);
 
+
   // chomp_planning_pipeline.launch
   // --------------------------------------------------------------------------------------
   file.file_name_ = "chomp_planning_pipeline.launch.xml";
@@ -384,6 +393,16 @@ bool ConfigurationFilesWidget::loadGenFiles()
   file.description_ = "Intended to be included in other launch files that require the CHOMP planning plugin. Defines "
                       "the proper plugin name on the parameter server and a default selection of planning request "
                       "adapters.";
+
+  // stomp_planning_pipeline.launch
+  // --------------------------------------------------------------------------------------
+  file.file_name_ = "stomp_planning_pipeline.launch.xml";
+  file.rel_path_ = config_data_->appendPaths(launch_path, file.file_name_);
+  template_path = config_data_->appendPaths(template_launch_path, file.file_name_);
+  file.description_ = "Intended to be included in other launch files that require the STOMP planning plugin. Defines "
+          "the proper plugin name on the parameter server and a default selection of planning request "
+          "adapters.";
+
   file.gen_func_ = boost::bind(&ConfigurationFilesWidget::copyTemplate, this, template_path, _1);
   file.write_on_changes = 0;
   gen_files_.push_back(file);
