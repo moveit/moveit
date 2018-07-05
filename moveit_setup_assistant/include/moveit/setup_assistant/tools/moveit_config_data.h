@@ -312,6 +312,7 @@ public:
   bool outputSetupAssistantFile(const std::string& file_path);
   bool outputOMPLPlanningYAML(const std::string& file_path);
   bool outputCHOMPPlanningYAML(const std::string& file_path);
+  bool outputSTOMPPlanningYAML(const std::string& file_path);
   bool outputKinematicsYAML(const std::string& file_path);
   bool outputJointLimitsYAML(const std::string& file_path);
   bool outputFakeControllersYAML(const std::string& file_path);
@@ -354,6 +355,7 @@ public:
    * @return true if the file was read correctly
    */
   bool inputOMPLYAML(const std::string& file_path);
+
 
   /**
    * Input kinematics.yaml file for editing its values

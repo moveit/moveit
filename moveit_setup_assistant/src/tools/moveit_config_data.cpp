@@ -40,7 +40,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>        // for creating folders/files
 #include <boost/algorithm/string.hpp>  // for string find and replace in templates
-
+#include <string.h>
 // ROS
 #include <ros/console.h>
 #include <ros/package.h>  // for getting file path for loading images
@@ -661,6 +661,153 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   return planner_des;
 }
 
+bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
+{
+
+
+  YAML::Emitter emitter;
+
+  emitter << YAML::BeginMap;
+  // Output every group and the kinematic solver it can use ----------------------------------
+  for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
+     ++group_it)
+  {
+
+    std::string stomp = "stomp/";
+    std::string temp = stomp + group_it->name_;
+
+    emitter << YAML::Key << temp;
+    emitter << YAML::Value << YAML::BeginMap;
+
+
+    //emitter << YAML::Key << "stomp/panda_arm";
+    //emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "group_name";
+    emitter << YAML::Value << group_it->name_;
+    emitter << YAML::Key << "optimization";
+
+    emitter << YAML::Value << YAML::BeginMap;
+    emitter << YAML::Key << "num_timesteps";
+    emitter << YAML::Value << "60";
+    emitter << YAML::Key << "num_iterations";
+    emitter << YAML::Value << "40";
+    emitter << YAML::Key << "num_iterations_after_valid";
+    emitter << YAML::Value << "0";
+    emitter << YAML::Key << "num_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "max_rollouts";
+    emitter << YAML::Value << "30";
+    emitter << YAML::Key << "initialization_mthod";
+    emitter << YAML::Value << "1";
+    emitter << YAML::Key << "control_cost_weight";
+    emitter << YAML::Value << "0.0";
+    emitter << YAML::EndMap;
+
+
+    emitter << YAML::Key << "task";
+    emitter << YAML::Value << YAML::BeginMap;
+
+    emitter << YAML::Key << "noise_generator";
+    emitter << YAML::Value << YAML::BeginSeq;
+
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/NormalDistributionSampling";
+    emitter << YAML::Key << "stddev";
+    emitter << YAML::Flow;
+    emitter << YAML::Value << YAML::BeginSeq << 0.05 << 0.8 << 1.01 << 0.8 << 0.4 << 0.4 << 0.4 << YAML::EndSeq;
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "cost_functions";
+    emitter << YAML::Value << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/CollisionCheck";
+    emitter << YAML::Key << "collision_penalty";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "cost_weight";
+    emitter << YAML::Value << "1.0";
+    emitter << YAML::Key << "kernel_window_percentage";
+    emitter << YAML::Value << "0.2";
+    emitter << YAML::Key << "longest_valid_joint_move";
+    emitter << YAML::Value << "0.05";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+
+    emitter << YAML::Key << "noisy_filters";
+    emitter << YAML::Value << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/JointLimits";
+    emitter << YAML::Key << "lock_start";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "lock_goal";
+    emitter << YAML::Value << "True";
+    emitter << YAML::EndMap;
+
+
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/MultiTrajectoryVisualization";
+    emitter << YAML::Key << "line_width";
+    emitter << YAML::Value << "0.02";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow;
+    emitter << YAML::Value << YAML::BeginSeq << 255 << 255 << 0 << YAML::EndSeq;
+    emitter << YAML::Key << "marker_array_topic";
+    emitter << YAML::Value << "stomp_trajectories";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "noisy";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+
+    emitter << YAML::Key << "update_filters";
+    emitter << YAML::Value << YAML::BeginSeq;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class";
+    emitter << YAML::Value << "stomp_moveit/PolynomialSmoother";
+    emitter << YAML::Key << "poly_order";
+    emitter << YAML::Value << "6";
+    emitter << YAML::EndMap;
+
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "class" << YAML::Value << "stomp_moveit/TrajectoryVisualization";
+    emitter << YAML::Key << "line_width" << YAML::Value << "0.05";
+    emitter << YAML::Key << "rgb";
+    emitter << YAML::Flow << YAML::Value << YAML::BeginSeq << 0 << 191 << 255 << YAML::EndSeq;
+    emitter << YAML::Key << "error_rgb";
+    emitter << YAML::Flow << YAML::Value << YAML::BeginSeq << 255 << 0 << 0 << YAML::EndSeq;
+    emitter << YAML::Key << "publish_intermediate";
+    emitter << YAML::Value << "True";
+    emitter << YAML::Key << "marker_topic";
+    emitter << YAML::Value << "stomp_trajectory";
+    emitter << YAML::Key << "marker_namespace";
+    emitter << YAML::Value << "optimized";
+    emitter << YAML::EndMap;
+    emitter << YAML::EndSeq;
+
+
+    emitter << YAML::EndMap;
+    emitter << YAML::EndMap;
+
+  }
+    emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good()) {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
 // ******************************************************************************************
 // Helper function to write the FollowJointTrajectory for each planning group to ros_controller.yaml,
 // and erases the controller that have been written, to avoid mixing between FollowJointTrajectory
@@ -1178,6 +1325,7 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
   }
   return true;
 }
+
 
 // ******************************************************************************************
 // Input kinematics.yaml file
