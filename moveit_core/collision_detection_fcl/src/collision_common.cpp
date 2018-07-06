@@ -646,7 +646,7 @@ FCLGeometryConstPtr createCollisionGeometry(const shapes::ShapeConstPtr& shape, 
     ShapeMap::const_iterator cache_it = cache.map_.find(wptr);
     if (cache_it != cache.map_.end())
     {
-      if (cache_it->second->collision_geometry_data_->ptr.raw == (void*)data)
+      if (cache_it->second->collision_geometry_data_->ptr.raw == data)
       {
         //        ROS_DEBUG_NAMED("collision_detection.fcl", "Collision data structures for object %s retrieved from
         //        cache.",
