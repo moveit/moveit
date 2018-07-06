@@ -14,11 +14,9 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 # Warnings
-add_definitions(-W -Wall -Wextra
-  -Wwrite-strings -Wunreachable-code -Wpointer-arith
-  -Winit-self -Wredundant-decls
+add_definitions(-Wall -Wextra
+  -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
   -Wno-unused-parameter -Wno-unused-function)
-#TODO(davetcoleman) enable -Wcast-qual
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
