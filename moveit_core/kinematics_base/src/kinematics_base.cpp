@@ -133,7 +133,6 @@ bool KinematicsBase::getPositionIK(const std::vector<geometry_msgs::Pose>& ik_po
   std::vector<double> solution;
   result.solution_percentage = 0.0;
 
-  bool supported = false;
   if (std::find(supported_methods_.begin(), supported_methods_.end(), options.discretization_method) ==
       supported_methods_.end())
   {
