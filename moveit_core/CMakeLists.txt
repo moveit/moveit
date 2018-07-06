@@ -16,7 +16,7 @@ endif()
 # Warnings
 add_definitions(-Wall -Wextra
   -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls -Wcast-qual
-  -Wno-unused-parameter -Wno-unused-function)
+  -Wno-unused-parameter -Wno-unused-function -Wno-maybe-uninitialized)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
