@@ -365,7 +365,6 @@ struct FCLShapeCache
     if (clean_count_ > MAX_CLEAN_COUNT || force)
     {
       clean_count_ = 0;
-      unsigned int from = map_.size();
       for (auto it = map_.begin(); it != map_.end();)
       {
         auto nit = it;
@@ -542,7 +541,7 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
       {
         double max_dist = 0;
         int max_index = 0;
-        for (int i = 0; i < contacts; ++i)
+        for (std::size_t i = 0; i < contacts; ++i)
         {
           const fcl::Contact& contact = coll_res.getContact(i);
           if (contact.penetration_depth > max_dist)
