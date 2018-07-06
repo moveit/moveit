@@ -60,6 +60,7 @@ PropagationDistanceField::PropagationDistanceField(const octomap::OcTree& octree
                   octree.getResolution(), bbx_min.x(), bbx_min.y(), bbx_min.z())
   , propagate_negative_(propagate_negative_distances)
   , max_distance_(max_distance)
+  , max_distance_sq_(0)  // avoid gcc warning about uninitialized value
 {
   initialize();
   addOcTreeToField(&octree);
