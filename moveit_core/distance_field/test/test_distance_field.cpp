@@ -295,7 +295,7 @@ void check_distance_field(const PropagationDistanceField& df, const EigenSTL::ve
   for (unsigned int i = 0; i < points.size(); i++)
   {
     Eigen::Vector3i loc;
-    bool valid = df.worldToGrid(points[i].x(), points[i].y(), points[i].z(), loc.x(), loc.y(), loc.z());
+    df.worldToGrid(points[i].x(), points[i].y(), points[i].z(), loc.x(), loc.y(), loc.z());
     points_ind[i] = loc;
   }
 
