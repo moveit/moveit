@@ -13,6 +13,13 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
+# Warnings
+add_definitions(-W -Wall -Wextra
+  -Wwrite-strings -Wunreachable-code -Wpointer-arith
+  -Winit-self -Wredundant-decls
+  -Wno-unused-parameter -Wno-unused-function)
+#TODO(davetcoleman) enable -Wcast-qual
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
