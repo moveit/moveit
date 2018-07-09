@@ -1,13 +1,11 @@
 <launch>
 
-  <rosparam command="load" file="$(find moveit_experimental)/jog_arm/config/jog_settings.yaml" />
+  <node name="joy_node" pkg="joy" type="joy_node" />
 
-  <node name="joy_node" pkg="joy" type="joy_node" >
-    <param name="autorepeat_rate" value="10"/>
+  <node name="xbox_to_twist" pkg="moveit_experimental" type="xbox_to_twist" output="screen" />
+
+  <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" >
+    <rosparam command="load" file="$(find jog_arm)/config/jog_settings.yaml" />
   </node>
-
-  <node name="joy_to_twist" pkg="moveit_experimental" type="xbox_to_twist" output="screen" />
-
-  <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" />
 
 </launch>
