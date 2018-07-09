@@ -141,3 +141,15 @@ install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY templates DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+# Unit tests
+if(CATKIN_ENABLE_TESTING)
+  find_package(moveit_resources REQUIRED)
+  include_directories(${moveit_resources_INCLUDE_DIRS})
+
+  catkin_add_gtest(test_writing_ros_controllers test/moveit_config_data_test.cpp)
+  target_link_libraries(test_writing_ros_controllers  ${PROJECT_NAME}_tools
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${MOVEIT_LIB_NAME})
+endif()
