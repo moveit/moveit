@@ -1057,6 +1057,22 @@ void ConfigurationFilesWidget::loadTemplateStrings()
     addTemplateString("[OTHER_DEPENDENCIES]", deps.str());  // not relative to a ROS package
   }
 
+  // Pair 9 - Add ROS Controllers to ros_controllers.launch file
+  if (config_data_->getROSControllers().empty())
+  {
+    addTemplateString("[ROS_CONTROLLERS]", "");
+  }
+  else
+  {
+    std::stringstream controllers;
+    for (std::vector<ROSControlConfig>::iterator controller_it = config_data_->getROSControllers().begin();
+         controller_it != config_data_->getROSControllers().end(); ++controller_it)
+    {
+      controllers << controller_it->name_ << " ";
+    }
+    addTemplateString("[ROS_CONTROLLERS]", controllers.str());
+  }
+
   addTemplateString("[AUTHOR_NAME]", config_data_->author_name_);
   addTemplateString("[AUTHOR_EMAIL]", config_data_->author_email_);
 }
