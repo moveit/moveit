@@ -156,18 +156,18 @@ void CompliantControl::getForceTorque(geometry_msgs::WrenchStamped force_torque_
   ft_[5] = vectorOfFilters_[5].filter(biasedFT[5]);
 }
 
-compliant_control::exitCondition CompliantControl::getVelocity(std::vector<double> v_in,
+compliant_control::ExitCondition CompliantControl::getVelocity(std::vector<double> v_in,
                                                                geometry_msgs::WrenchStamped force_torque_data,
-                                                               std::vector<double>& vOut)
+                                                               std::vector<double>& v_out)
 {
-  compliant_control::exitCondition exitCondition = compliant_control::NOT_CONTROLLED;
+  compliant_control::ExitCondition exit_condition = compliant_control::NOT_CONTROLLED;
   getForceTorque(force_torque_data);
 
   if (((fabs(ft_[0]) + fabs(ft_[1]) + fabs(ft_[2])) >= safe_force_limit_) ||
       ((fabs(ft_[3]) + fabs(ft_[4]) + fabs(ft_[5])) >= safe_torque_limit_))
   {
     ROS_ERROR_NAMED("compliant_control", "Total force or torque exceeds safety limits. Stopping motion.");
-    vOut = std::vector<double>(6, 0.0);
+    v_out = std::vector<double>(6, 0.0);
     return compliant_control::FT_VIOLATION;
   }
 
@@ -178,15 +178,15 @@ compliant_control::exitCondition CompliantControl::getVelocity(std::vector<doubl
       if (ft_[i] > end_condition_wrench_[i])
       {
         ROS_INFO_STREAM_NAMED("compliant_control", "Exit condition met in direction: " << i);
-        vOut[i] = 0.0;
-        exitCondition = compliant_control::CONDITION_MET;
+        v_out[i] = 0.0;
+        exit_condition = compliant_control::CONDITION_MET;
       }
       else
       {
-        vOut[i] = v_in[i] + ft_[i] / stiffness_[i];
-        if (exitCondition != compliant_control::CONDITION_MET)
+        v_out[i] = v_in[i] + ft_[i] / stiffness_[i];
+        if (exit_condition != compliant_control::CONDITION_MET)
         {
-          exitCondition = compliant_control::CONDITION_NOT_MET;
+          exit_condition = compliant_control::CONDITION_NOT_MET;
         }
       }
     }
@@ -195,23 +195,23 @@ compliant_control::exitCondition CompliantControl::getVelocity(std::vector<doubl
       if (ft_[i] < end_condition_wrench_[i])
       {
         ROS_INFO_STREAM_NAMED("compliant_control", "Exit condition met in direction: " << i);
-        vOut[i] = 0.0;
-        exitCondition = compliant_control::CONDITION_MET;
+        v_out[i] = 0.0;
+        exit_condition = compliant_control::CONDITION_MET;
       }
       else
       {
-        vOut[i] = v_in[i] + ft_[i] / stiffness_[i];
-        if (exitCondition != compliant_control::CONDITION_MET)
+        v_out[i] = v_in[i] + ft_[i] / stiffness_[i];
+        if (exit_condition != compliant_control::CONDITION_MET)
         {
-          exitCondition = compliant_control::CONDITION_NOT_MET;
+          exit_condition = compliant_control::CONDITION_NOT_MET;
         }
       }
     }
   }
-  return exitCondition;
+  return exit_condition;
 }
 
-LowPassFilter::LowPassFilter(const double filter_param) : filter_param_(filter_param)
+LowPassFilter::LowPassFilter(double filter_param) : filter_param_(filter_param)
 {
 }
 
