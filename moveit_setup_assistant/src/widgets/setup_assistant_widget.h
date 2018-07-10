@@ -60,6 +60,7 @@
 #include "passive_joints_widget.h"
 #include "author_information_widget.h"
 #include "configuration_files_widget.h"
+#include "perception_widget.h"
 
 #ifndef Q_MOC_RUN
 #include <moveit/setup_assistant/tools/moveit_config_data.h>
@@ -222,6 +223,7 @@ private:
   PassiveJointsWidget* pjw_;
   AuthorInformationWidget* aiw_;
   ConfigurationFilesWidget* cfw_;
+  PerceptionWidget* perception_widget_;
 
   /// Contains all the configuration data for the setup assistant
   moveit_setup_assistant::MoveItConfigDataPtr config_data_;
