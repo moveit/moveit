@@ -544,12 +544,20 @@ int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<doub
       return solutions.GetNumSolutions();
 
     case IKP_TranslationXAxisAngle4D:
+      double roll, pitch, yaw;
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
     case IKP_TranslationYAxisAngle4D:
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
     case IKP_TranslationZAxisAngle4D:
-      // For **TranslationXAxisAngle4D**, **TranslationYAxisAngle4D**, and **TranslationZAxisAngle4D**, the first value
-      // represents the angle.
-      ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
-      return 0;
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
 
     case IKP_TranslationLocalGlobal6D:
       // For **TranslationLocalGlobal6D**, the diagonal elements ([0],[4],[8]) are the local translation inside the end
