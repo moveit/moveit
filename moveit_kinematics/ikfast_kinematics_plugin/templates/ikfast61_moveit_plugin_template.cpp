@@ -569,11 +569,23 @@ int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<doub
     case IKP_Lookat3D:
     case IKP_TranslationXY2D:
     case IKP_TranslationXYOrientation3D:
-    case IKP_TranslationXAxisAngleZNorm4D:
-    case IKP_TranslationYAxisAngleXNorm4D:
-    case IKP_TranslationZAxisAngleYNorm4D:
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
+
+    case IKP_TranslationXAxisAngleZNorm4D:
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
+    case IKP_TranslationYAxisAngleXNorm4D:
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
+    case IKP_TranslationZAxisAngleYNorm4D:
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
 
     default:
       ROS_ERROR_NAMED(name_, "Unknown IkParameterizationType! Was the solver generated with an incompatible version "
