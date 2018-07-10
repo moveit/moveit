@@ -115,7 +115,6 @@ public:
    */
   void fillInMinJerk();
 
-
   /**
    * \brief Generates a linearly interpolated trajectory from the start index to end index
    *

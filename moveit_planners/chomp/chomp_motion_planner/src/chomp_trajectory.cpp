@@ -171,7 +171,6 @@ void ChompTrajectory::updateFromGroupTrajectory(const ChompTrajectory& group_tra
   }
 }
 
-
 void ChompTrajectory::fillInLinearInterpolation()
 {
   double start_index  = start_index_ - 1;

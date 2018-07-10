@@ -180,7 +180,12 @@ void ChompOptimizer::initialize()
 
   last_improvement_iteration_ = -1;
 
+  /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
+  // HMC initialization:
+  //momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  //random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  //random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
   multivariate_gaussian_.clear();
   stochasticity_factor_ = 1.0;
   for (int i = 0; i < num_joints_; i++)
@@ -332,6 +337,25 @@ void ChompOptimizer::optimize()
 
     // ROS_INFO_STREAM("Collision cost " << cCost << " smoothness cost " << sCost);
 
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
+    // if(parameters_->getAddRandomness() && currentCostIter != -1)
+    // {
+    //   costs[currentCostIter] = cCost;
+    //   currentCostIter++;
+
+    //   if(currentCostIter >= costWindow)
+    //   {
+    //     for(int i = 1; i < costWindow; i++)
+    //     {
+    //       averageCostVelocity += (costs.at(i) - costs.at(i - 1));
+    //     }
+
+    //     averageCostVelocity /= (double)(costWindow);
+    //     currentCostIter = -1;
+    //   }
+    // }
+
     if (iteration_ == 0)
     {
       best_group_trajectory_ = group_trajectory_.getTrajectory();
@@ -352,8 +376,21 @@ void ChompOptimizer::optimize()
     // ROS_INFO_STREAM("Collision increments took " << (ros::WallTime::now()-coll_time));
     calculateTotalIncrements();
 
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
+    // if(!parameters_->getUseHamiltonianMonteCarlo())
+    // {
+    //   // non-stochastic version:
     addIncrementsToTrajectory();
+    // }
+    // else
+    // {
+    //   // hamiltonian monte carlo updates:
+    //   getRandomMomentum();
+    //   updateMomentum();
+    //   updatePositionFromMomentum();
+    //   stochasticity_factor_ *= parameters_->getHmcAnnealingFactor();
+    // }
 
     handleJointLimits();
     updateFullTrajectory();
@@ -369,6 +406,30 @@ void ChompOptimizer::optimize()
         iteration_++;
         should_break_out = true;
       }
+      // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
+
+      /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
+      // ROS_DEBUG("Trajectory cost: %f (s=%f, c=%f)", getTrajectoryCost(), getSmoothnessCost(), getCollisionCost());
+      // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
+      // if(safety == CollisionProximitySpace::MeshToMeshSafe)
+      // {
+      //   num_collision_free_iterations_ = 0;
+      //   ROS_INFO("Chomp Got mesh to mesh safety at iter %d. Breaking out early.", iteration_);
+      //   is_collision_free_ = true;
+      //   iteration_++;
+      //   should_break_out = true;
+      // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
+      //   num_collision_free_iterations_ = parameters_->getMaxIterationsAfterCollisionFree();
+      //   ROS_INFO("Chomp Got in collision safety at iter %d. Breaking out soon.", iteration_);
+      //   is_collision_free_ = true;
+      //   iteration_++;
+      //   should_break_out = true;
+      // }
+      // else
+      // {
+      //   is_collision_free_ = false;
+      // }
     }
 
     if (!parameters_->getFilterMode())
@@ -392,6 +453,53 @@ void ChompOptimizer::optimize()
       break;
     }
 
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
+    // if(fabs(averageCostVelocity) < minimaThreshold && currentCostIter == -1 && !is_collision_free_ &&
+    // parameters_->getAddRandomness())
+    // {
+    //   ROS_INFO("Detected local minima. Attempting to break out!");
+    //   int iter = 0;
+    //   bool success = false;
+    //   while(iter < 20 && !success)
+    //   {
+    //     performForwardKinematics();
+    //     double original_cost = getTrajectoryCost();
+    //     group_trajectory_backup_ = group_trajectory_.getTrajectory();
+    //     perturbTrajectory();
+    //     handleJointLimits();
+    //     updateFullTrajectory();
+    //     performForwardKinematics();
+    //     double new_cost = getTrajectoryCost();
+    //     iter ++;
+    //     if(new_cost < original_cost)
+    //     {
+    //       ROS_INFO("Got out of minimum in %d iters!", iter);
+    //       averageCostVelocity = 0.0;
+    //       currentCostIter = 0;
+    //       success = true;
+    //     }
+    //     else
+    //     {
+    //       group_trajectory_.getTrajectory() = group_trajectory_backup_;
+    //       updateFullTrajectory();
+    //       currentCostIter = 0;
+    //       averageCostVelocity = 0.0;
+    //       success = false;
+    //     }
+
+    //   }
+
+    //   if(!success)
+    //   {
+    //     ROS_INFO("Failed to exit minimum!");
+    //   }
+    //}
+    //else if (currentCostIter == -1)
+    //{
+    //  currentCostIter = 0;
+    //  averageCostVelocity = 0.0;
+    //}
 
 
     if (should_break_out)
@@ -403,6 +511,11 @@ void ChompOptimizer::optimize()
       }
       else if (collision_free_iteration_ > num_collision_free_iterations_)
       {
+        // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
+        // if(safety != CollisionProximitySpace::MeshToMeshSafe &&
+        //    safety != CollisionProximitySpace::InCollisionSafe) {
+        //   ROS_WARN_STREAM("Apparently regressed");
+        // }
         break;
       }
     }
@@ -444,6 +557,38 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   return planning_scene_->isPathValid(start_state_msg, traj, planning_group_);
 }
 
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
+// CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()
+// {
+//   JointTrajectory jointTrajectory;
+//   jointTrajectory.joint_names = joint_names_;
+//   jointTrajectory.header.frame_id = collision_space_->getCollisionModelsInterface()->getRobotFrameId();
+//   jointTrajectory.header.stamp = ros::Time::now();
+//   Constraints goalConstraints;
+//   Constraints pathConstraints;
+//   ArmNavigationErrorCodes errorCode;
+//   vector<ArmNavigationErrorCodes> trajectoryErrorCodes;
+//   for(int i = 0; i < group_trajectory_.getNumPoints(); i++)
+//   {
+//     JointTrajectoryPoint point;
+//     for(int j = 0; j < group_trajectory_.getNumJoints(); j++)
+//     {
+//       point.positions.push_back(best_group_trajectory_(i, j));
+//     }
+//     jointTrajectory.points.push_back(point);
+//   }
+
+//   return collision_space_->isTrajectorySafe(jointTrajectory, goalConstraints, pathConstraints, planning_group_);
+//   /*
+//     bool valid = collision_space_->getCollisionModelsInterface()->isJointTrajectoryValid(*state_,
+//     jointTrajectory,
+//     goalConstraints,
+//     pathConstraints, errorCode,
+//     trajectoryErrorCodes, false);
+//   */
+
+// }
 
 void ChompOptimizer::calculateSmoothnessIncrements()
 {
@@ -520,6 +665,12 @@ void ChompOptimizer::calculateCollisionIncrements()
         collision_increments_.row(i - free_vars_start_).transpose() -= jacobian_.transpose() * cartesian_gradient;
       }
 
+      /*
+        if(point_is_in_collision_[i][j])
+        {
+        break;
+        }
+      */
     }
   }
   // cout << collision_increments_ << endl;
@@ -820,6 +971,15 @@ void ChompOptimizer::performForwardKinematics()
           if (point_is_in_collision_[i][j])
           {
             state_is_in_collision_[i] = true;
+            // if(is_collision_free_ == true) {
+            //   ROS_INFO_STREAM("We know it's not collision free " << g);
+            //   ROS_INFO_STREAM("Sphere location " << info.sphere_locations[k].x() << " " <<
+            //   info.sphere_locations[k].y() << " " << info.sphere_locations[k].z());
+            //   ROS_INFO_STREAM("Gradient " << info.gradients[k].x() << " " << info.gradients[k].y() << " " <<
+            //   info.gradients[k].z() << " distance " << info.distances[k] << " radii " << info.sphere_radii[k]);
+            //   ROS_INFO_STREAM("Radius " << info.sphere_radii[k] << " potential " <<
+            //   collision_point_potential_[i][j]);
+            // }
 
             is_collision_free_ = false;
           }
@@ -865,5 +1025,117 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   state_.setJointGroupPositions(planning_group_, joint_states);
   state_.update();
 }
+
+    void ChompOptimizer::perturbTrajectory()
+    {
+      // int mid_point = (free_vars_start_ + free_vars_end_) / 2;
+      if (worst_collision_cost_state_ < 0)
+        return;
+      int mid_point = worst_collision_cost_state_;
+      moveit::core::RobotState random_state = state_;
+      const moveit::core::JointModelGroup* planning_group = state_.getJointModelGroup(planning_group_);
+      random_state.setToRandomPositions(planning_group);
+      std::vector<double> vals;
+      random_state.copyJointGroupPositions(planning_group_, vals);
+      double* ptr = &vals[0];
+      Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size());
+      // Eigen::VectorXd random_matrix = vals;
+
+      // convert the state into an increment
+      random_matrix -= group_trajectory_.getTrajectoryPoint(mid_point).transpose();
+
+      // project the increment orthogonal to joint velocities
+      group_trajectory_.getJointVelocities(mid_point, joint_state_velocities_);
+      joint_state_velocities_.normalize();
+      random_matrix = (Eigen::MatrixXd::Identity(num_joints_, num_joints_) -
+                       joint_state_velocities_ * joint_state_velocities_.transpose()) *
+                      random_matrix;
+
+      int mp_free_vars_index = mid_point - free_vars_start_;
+      for (int i = 0; i < num_joints_; i++)
+      {
+        group_trajectory_.getFreeJointTrajectoryBlock(i) +=
+                joint_costs_[i].getQuadraticCostInverse().col(mp_free_vars_index) * random_state_(i);
+      }
+    }
+
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+// void ChompOptimizer::getRandomState(const RobotState currentState, const string& groupName, Eigen::VectorXd&
+// state_vec)
+// {
+//   const vector<RobotState *::JointState*>& jointStates =
+//     currentState->getJointStateGroup(groupName)->getJointStateVector();
+//   for(size_t i = 0; i < jointStates.size(); i++)
+//   {
+
+//     bool continuous = false;
+
+//     RobotState *::JointState* jointState = jointStates[i];
+//     const RevoluteJointModel* revolute_joint
+//       = dynamic_cast<const RevoluteJointModel*>(jointState->getJointModel());
+//     if(revolute_joint && revolute_joint->continuous_) {
+//       continuous = true;
+//     }
+
+//     map<string, pair<double, double> > bounds = jointState->getJointModel()->getAllVariableBounds();
+//     int j = 0;
+//     for(map<string, pair<double, double> >::iterator it = bounds.begin(); it != bounds.end(); it++)
+//     {
+//       double randVal = jointState->getJointStateValues()[j] + (getRandomDouble()
+//                                                                * (parameters_->getRandomJumpAmount()) -
+//                                                                getRandomDouble() *
+//                                                                (parameters_->getRandomJumpAmount()));
+
+//       if(!continuous)
+//       {
+//         if(randVal > it->second.second)
+//         {
+//           randVal = it->second.second;
+//         }
+//         else if(randVal < it->second.first)
+//         {
+//           randVal = it->second.first;
+//         }
+//       }
+
+//       ROS_DEBUG_STREAM("Joint " << it->first << " old value " << jointState->getJointStateValues()[j] << " new value
+//       " << randVal);
+//       state_vec(i) = randVal;
+
+//       j++;
+//     }
+//   }
+// }
+
+/*
+void ChompOptimizer::getRandomMomentum()
+{
+  if (is_collision_free_)
+    random_momentum_.setZero(num_vars_free_, num_joints_);
+  else
+    for (int i = 0; i < num_joints_; ++i)
+    {
+      multivariate_gaussian_[i].sample(random_joint_momentum_);
+      random_momentum_.col(i) = stochasticity_factor_ * random_joint_momentum_;
+    }
+}
+
+void ChompOptimizer::updateMomentum()
+{
+  // double alpha = 1.0 - parameters_->getHmcStochasticity();
+  double eps = parameters_->getHmcDiscretization();
+  if (iteration_ > 0)
+    momentum_ = (momentum_ + eps * final_increments_);
+  else
+    momentum_ = random_momentum_;
+  // momentum_ = alpha * (momentum_ + eps*final_increments_) + sqrt(1.0-alpha*alpha)*random_momentum_;
+}
+
+void ChompOptimizer::updatePositionFromMomentum()
+{
+  double eps = parameters_->getHmcDiscretization();
+  group_trajectory_.getFreeTrajectoryBlock() += eps * momentum_;
+}
+*/
 
 }  // namespace chomp
