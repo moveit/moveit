@@ -691,15 +691,10 @@ void jogROSInterface::jointsCB(const sensor_msgs::JointStateConstPtr& msg)
 // Read ROS parameters, typically from YAML file
 int jogROSInterface::readParameters(ros::NodeHandle& n)
 {
-  ROS_INFO_NAMED(NODE_NAME, "---------------------------------------");
-  ROS_INFO_NAMED(NODE_NAME, " Parameters:");
-  ROS_INFO_NAMED(NODE_NAME, "---------------------------------------");
-
   // If specified in the launch file, all other parameters will be read
   // from this namespace.
   std::string parameter_ns;
   ros::param::get("~parameter_ns", parameter_ns);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "Parameter namespace: " << parameter_ns);
 
   std::size_t error = 0;
   error += !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/move_group_name",
@@ -731,27 +726,6 @@ int jogROSInterface::readParameters(ros::NodeHandle& n)
                                     ros_parameters_.collision_check);
   error +=
       !rosparam_shortcuts::get("", n, parameter_ns + "/jog_arm_server/warning_topic", ros_parameters_.warning_topic);
-
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "move_group_name: " << ros_parameters_.move_group_name);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "publish_period: " << ros_parameters_.publish_period);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "linear_scale: " << ros_parameters_.linear_scale);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "rotational_scale: " << ros_parameters_.rotational_scale);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "low_pass_filter_coeff: " << ros_parameters_.low_pass_filter_coeff);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "joint_topic: " << ros_parameters_.joint_topic);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "command_in_topic: " << ros_parameters_.command_in_topic);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "command_frame: " << ros_parameters_.command_frame);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "incoming_command_timeout: " << ros_parameters_.incoming_command_timeout);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "command_out_topic: " << ros_parameters_.command_out_topic);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "singularity_threshold: " << ros_parameters_.singularity_threshold);
-  ROS_INFO_STREAM_NAMED(NODE_NAME,
-                        "hard_stop_singularity_threshold: " << ros_parameters_.hard_stop_singularity_threshold);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "planning_frame: " << ros_parameters_.planning_frame);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "gazebo: " << ros_parameters_.gazebo);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "collision_check: " << ros_parameters_.collision_check);
-  ROS_INFO_STREAM_NAMED(NODE_NAME, "warning_topic: " << ros_parameters_.warning_topic);
-
-  ROS_INFO_NAMED(NODE_NAME, "---------------------------------------");
-  ROS_INFO_NAMED(NODE_NAME, "---------------------------------------");
 
   rosparam_shortcuts::shutdownIfError(parameter_ns, error);
 
