@@ -29,7 +29,7 @@ Changelog for package moveit_ros_planning
 0.9.9 (2017-08-06)
 ------------------
 * [fix] Change getCurrentExpectedTrajectory index so collision detection is still performed even if the path timing is not known (`#550 <https://github.com/ros-planning/moveit/issues/550>`_)
-* [fix] Support for MultiDoF only trajectories `#553 <https://github.com/ros-planning/moveit/pull/553>`_ 
+* [fix] Support for MultiDoF only trajectories `#553 <https://github.com/ros-planning/moveit/pull/553>`_
 * [fix] ros_error macro name (`#544 <https://github.com/ros-planning/moveit/issues/544>`_)
 * [fix] check plan size for plan length=0 `#535 <https://github.com/ros-planning/moveit/issues/535>`_
 * Contributors: Cyrille Morin, Michael Görner, Mikael Arguedas, Notou, Unknown
