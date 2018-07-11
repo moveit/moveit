@@ -415,7 +415,7 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   OMPLPlannerDescription KPIECE("KPIECE", "geometric");
   KPIECE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
                                       "setup()");
-  KPIECE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  KPIECE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   KPIECE.addParameter("border_fraction", "0.9", "Fraction of time focused on boarder default: 0.9 (0.0,1.]");
   KPIECE.addParameter("failed_expansion_score_factor", "0.5", "When extending motion fails, scale score by factor. "
                                                               "default: 0.5");
@@ -448,7 +448,7 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   TRRT.addParameter("min_temperature", "10e-10", "lower limit of temp change. default: 10e-10");
   TRRT.addParameter("init_temperature", "10e-6", "initial temperature. default: 10e-6");
   TRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
-                                                  "default: 0.0 set in setup() ");
+                                                  "default: 0.0 set in setup()");
   TRRT.addParameter("frountierNodeRatio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   TRRT.addParameter("k_constant", "0.0", "value used to normalize expresssion. default: 0.0 set in setup()");
   planner_des.push_back(TRRT);
@@ -493,12 +493,12 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   OMPLPlannerDescription STRIDE("STRIDE", "geometric");
   STRIDE.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
                                       "setup()");
-  STRIDE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  STRIDE.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   STRIDE.addParameter("use_projected_distance", "0", "whether nearest neighbors are computed based on distances in a "
                                                      "projection of the state rather distances in the state space "
                                                      "itself. default: 0");
   STRIDE.addParameter("degree", "16", "desired degree of a node in the Geometric Near-neightbor Access Tree (GNAT). "
-                                      "default: 16 ");
+                                      "default: 16");
   STRIDE.addParameter("max_degree", "18", "max degree of a node in the GNAT. default: 12");
   STRIDE.addParameter("min_degree", "12", "min degree of a node in the GNAT. default: 12");
   STRIDE.addParameter("max_pts_per_leaf", "6", "max points per leaf in the GNAT. default: 6");
@@ -512,7 +512,7 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   BiTRRT.addParameter("temp_change_factor", "0.1", "how much to increase or decrease temp. default: 0.1");
   BiTRRT.addParameter("init_temperature", "100", "initial temperature. default: 100");
   BiTRRT.addParameter("frountier_threshold", "0.0", "dist new state to nearest neighbor to disqualify as frontier. "
-                                                    "default: 0.0 set in setup() ");
+                                                    "default: 0.0 set in setup()");
   BiTRRT.addParameter("frountier_node_ratio", "0.1", "1/10, or 1 nonfrontier for every 10 frontier. default: 0.1");
   BiTRRT.addParameter("cost_threshold", "1e300", "the cost threshold. Any motion cost that is not better will not be "
                                                  "expanded. default: inf");
@@ -521,7 +521,7 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   OMPLPlannerDescription LBTRRT("LBTRRT", "geometric");
   LBTRRT.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
                                       "setup()");
-  LBTRRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  LBTRRT.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   LBTRRT.addParameter("epsilon", "0.4", "optimality approximation factor. default: 0.4");
   planner_des.push_back(LBTRRT);
 
@@ -533,7 +533,7 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
   OMPLPlannerDescription ProjEST("ProjEST", "geometric");
   ProjEST.addParameter("range", "0.0", "Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on "
                                        "setup()");
-  ProjEST.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05 ");
+  ProjEST.addParameter("goal_bias", "0.05", "When close to goal select goal, with this probability. default: 0.05");
   planner_des.push_back(ProjEST);
 
   OMPLPlannerDescription LazyPRM("LazyPRM", "geometric");
