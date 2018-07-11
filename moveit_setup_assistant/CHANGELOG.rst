@@ -45,7 +45,7 @@ Changelog for package moveit_setup_assistant
 
 0.9.5 (2017-03-08)
 ------------------
-* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_ 
+* [fix][moveit_ros_warehouse] gcc6 build error `#423 <https://github.com/ros-planning/moveit/pull/423>`_
 * Contributors: Dave Coleman
 
 0.9.4 (2017-02-06)
@@ -71,7 +71,7 @@ Changelog for package moveit_setup_assistant
 
 0.7.1 (2016-06-24)
 ------------------
-* [sys] Qt adjustment. 
+* [sys] Qt adjustment.
   * relax Qt-version requirement.  Minor Qt version updates are ABI-compatible with each other:  https://wiki.qt.io/Qt-Version-Compatibility
   * auto-select Qt version matching the one from rviz `#114 <https://github.com/ros-planning/moveit_setup_assistant/issues/114>`_
   * Allow to conditionally compile against Qt5 by setting -DUseQt5=On
