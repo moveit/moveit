@@ -55,14 +55,14 @@ public:
    * @param ns    The parameter namespace
    * @return      True if succeeded, False otherwise
    */
-  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string &ns) override;
+  bool initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns) override;
 
   /**
    * @brief Checks if the request can be planned for.
    * @param req
    * @return True if succeeded, False otherwise
    */
-  bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req) const override;
+  bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const override;
 
   /**
    * @brief Description string getter
@@ -77,13 +77,13 @@ public:
    * @brief Getter for a list of the available planners, usually one STOMP planner per planning group
    * @param algs List of available planners.
    */
-  void getPlanningAlgorithms(std::vector<std::string> &algs) const override;
+  void getPlanningAlgorithms(std::vector<std::string>& algs) const override;
 
   /**
    * @brief Not applicable
    * @param pcs this argument is ignored.
    */
-  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pcs) override;
+  void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs) override;
 
   /**
    * @brief Provides a planning context that matches the desired plan requests specifications
@@ -92,17 +92,14 @@ public:
    * @param error_code      Error code, will be set to moveit_msgs::MoveItErrorCodes::SUCCESS if it succeeded
    * @return  A pointer to the planning context
    */
-  planning_interface::PlanningContextPtr getPlanningContext(
-      const planning_scene::PlanningSceneConstPtr &planning_scene,
-      const planning_interface::MotionPlanRequest &req,
-      moveit_msgs::MoveItErrorCodes &error_code) const override;
-
+  planning_interface::PlanningContextPtr getPlanningContext(const planning_scene::PlanningSceneConstPtr& planning_scene,
+                                                            const planning_interface::MotionPlanRequest& req,
+                                                            moveit_msgs::MoveItErrorCodes& error_code) const override;
 
 protected:
   ros::NodeHandle nh_;
 
-
-  std::map< std::string, planning_interface::PlanningContextPtr> planners_; /**< The planners for each planning group */
+  std::map<std::string, planning_interface::PlanningContextPtr> planners_; /**< The planners for each planning group */
 
   // the robot model
   moveit::core::RobotModelConstPtr robot_model_;

@@ -37,10 +37,8 @@
 #include <stomp_moveit/noisy_filters/stomp_noisy_filter.h>
 #include <stomp_moveit/update_filters/stomp_update_filter.h>
 
-
 namespace stomp_moveit
 {
-
 typedef pluginlib::ClassLoader<stomp_moveit::cost_functions::StompCostFunction> CostFunctionLoader;
 typedef std::shared_ptr<CostFunctionLoader> CostFuctionLoaderPtr;
 typedef pluginlib::ClassLoader<stomp_moveit::noisy_filters::StompNoisyFilter> NoisyFilterLoader;
@@ -50,7 +48,6 @@ typedef std::shared_ptr<UpdateFilterLoader> UpdateFilterLoaderPtr;
 typedef pluginlib::ClassLoader<stomp_moveit::noise_generators::StompNoiseGenerator> NoiseGeneratorLoader;
 typedef std::shared_ptr<NoiseGeneratorLoader> NoiseGeneratorLoaderPtr;
 
-
 /**
  * @class stomp_moveit::StompOptimizationTask
  * @brief Loads and manages the STOMP plugins during the planning process.
@@ -59,7 +56,7 @@ typedef std::shared_ptr<NoiseGeneratorLoader> NoiseGeneratorLoaderPtr;
  * All examples are located here @ref stomp_moveit_examples
  *
  */
-class StompOptimizationTask: public stomp_core::Task
+class StompOptimizationTask : public stomp_core::Task
 {
 public:
   /**
@@ -81,9 +78,9 @@ public:
    * @return  true if succeeded,false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code);
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code);
 
   /**
    * @brief Generates a noisy trajectory from the parameters by calling the active Noise Generator plugin.
@@ -96,16 +93,13 @@ public:
    * @param noise             the noise applied to the parameters
    * @return  false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool generateNoisyParameters(const Eigen::MatrixXd& parameters,
-                                       std::size_t start_timestep,
-                                       std::size_t num_timesteps,
-                                       int iteration_number,
-                                       int rollout_number,
-                                       Eigen::MatrixXd& parameters_noise,
-                                       Eigen::MatrixXd& noise) override;
+  virtual bool generateNoisyParameters(const Eigen::MatrixXd& parameters, std::size_t start_timestep,
+                                       std::size_t num_timesteps, int iteration_number, int rollout_number,
+                                       Eigen::MatrixXd& parameters_noise, Eigen::MatrixXd& noise) override;
 
   /**
-   * @brief computes the state costs as a function of the noisy parameters for each time step. It does this by calling the loaded Cost Function plugins
+   * @brief computes the state costs as a function of the noisy parameters for each time step. It does this by calling
+   * the loaded Cost Function plugins
    * @param parameters [num_dimensions] num_parameters - policy parameters to execute
    * @param start_timestep    start index into the 'parameters' array, usually 0.
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
@@ -115,16 +109,13 @@ public:
    * @param validity whether or not the trajectory is valid
    * @return  false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool computeNoisyCosts(const Eigen::MatrixXd& parameters,
-                       std::size_t start_timestep,
-                       std::size_t num_timesteps,
-                       int iteration_number,
-                       int rollout_number,
-                       Eigen::VectorXd& costs,
-                       bool& validity) override;
+  virtual bool computeNoisyCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep,
+                                 std::size_t num_timesteps, int iteration_number, int rollout_number,
+                                 Eigen::VectorXd& costs, bool& validity) override;
 
   /**
-   * @brief computes the state costs as a function of the optimized parameters for each time step. It does this by calling the loaded Cost Function plugins
+   * @brief computes the state costs as a function of the optimized parameters for each time step. It does this by
+   * calling the loaded Cost Function plugins
    * @param parameters        [num_dimensions] num_parameters - policy parameters to execute
    * @param start_timestep    start index into the 'parameters' array, usually 0.
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
@@ -133,16 +124,14 @@ public:
    * @param validity          whether or not the trajectory is valid
    * @return  false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool computeCosts(const Eigen::MatrixXd& parameters,
-                       std::size_t start_timestep,
-                       std::size_t num_timesteps,
-                       int iteration_number,
-                       Eigen::VectorXd& costs,
-                       bool& validity) override;
+  virtual bool computeCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep, std::size_t num_timesteps,
+                            int iteration_number, Eigen::VectorXd& costs, bool& validity) override;
 
   /**
-   * @brief Filters the given noisy parameters which is applied after noisy trajectory generation. It could be used for clipping
-   * of joint limits or projecting into the null space of the Jacobian.  It accomplishes this by calling the loaded Noisy Filter plugins.
+   * @brief Filters the given noisy parameters which is applied after noisy trajectory generation. It could be used for
+   * clipping
+   * of joint limits or projecting into the null space of the Jacobian.  It accomplishes this by calling the loaded
+   * Noisy Filter plugins.
    *
    * @param start_timestep    start index into the 'parameters' array, usually 0.
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
@@ -152,16 +141,14 @@ public:
    * @param filtered          False if no filtering was done
    * @return  false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filterNoisyParameters(std::size_t start_timestep,
-                                     std::size_t num_timesteps,
-                                     int iteration_number,
-                                     int rollout_number,
-                                     Eigen::MatrixXd& parameters,
-                                     bool& filtered) override;
+  virtual bool filterNoisyParameters(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                                     int rollout_number, Eigen::MatrixXd& parameters, bool& filtered) override;
 
   /**
-   * @brief Filters the given parameters which is applied after calculating the update. It could be used for clipping of joint limits
-   * or projecting the goal pose into the null space of the Jacobian. It accomplishes this by calling the loaded Update Filter plugins.
+   * @brief Filters the given parameters which is applied after calculating the update. It could be used for clipping of
+   * joint limits
+   * or projecting the goal pose into the null space of the Jacobian. It accomplishes this by calling the loaded Update
+   * Filter plugins.
    *
    * @param start_timestep    start index into the 'parameters' array, usually 0.
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
@@ -170,11 +157,8 @@ public:
    * @param updates           The updates to the parameters
    * @return  false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filterParameterUpdates(std::size_t start_timestep,
-                                      std::size_t num_timesteps,
-                                      int iteration_number,
-                                      const Eigen::MatrixXd& parameters,
-                                      Eigen::MatrixXd& updates) override;
+  virtual bool filterParameterUpdates(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates) override;
 
   /**
    * @brief Called by STOMP at the end of each iteration.
@@ -182,10 +166,11 @@ public:
    * @param num_timesteps     The number of elements to use from 'parameters' starting from 'start_timestep'
    * @param iteration_number  The current iteration count in the optimization loop
    * @param cost              The cost value for the current parameters.
-   * @param parameters        The value of the parameters at the end of the current iteration [num_dimensions x num_timesteps].
+   * @param parameters        The value of the parameters at the end of the current iteration [num_dimensions x
+   * num_timesteps].
    */
-  virtual void postIteration(std::size_t start_timestep,
-                                std::size_t num_timesteps,int iteration_number,double cost,const Eigen::MatrixXd& parameters);
+  virtual void postIteration(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number, double cost,
+                             const Eigen::MatrixXd& parameters);
 
   /**
    * @brief Called by Stomp at the end of the optimization process
@@ -195,10 +180,9 @@ public:
    * @param final_cost        The cost value after optimizing.
    * @param parameters        The parameters generated at the end of current iteration[num_dimensions x num_timesteps]
    */
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override;
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override;
 
 protected:
-
   // robot environment
   std::string group_name_;
   moveit::core::RobotModelConstPtr robot_model_ptr_;
@@ -216,7 +200,6 @@ protected:
   std::vector<update_filters::StompUpdateFilterPtr> update_filters_;
   std::vector<noise_generators::StompNoiseGeneratorPtr> noise_generators_;
 };
-
 
 } /* namespace stomp_moveit */
 

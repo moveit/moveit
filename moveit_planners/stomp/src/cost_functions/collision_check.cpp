@@ -28,7 +28,7 @@
 #include <moveit/robot_state/conversions.h>
 #include "stomp_moveit/cost_functions/collision_check.h"
 
-PLUGINLIB_EXPORT_CLASS(stomp_moveit::cost_functions::CollisionCheck,stomp_moveit::cost_functions::StompCostFunction)
+PLUGINLIB_EXPORT_CLASS(stomp_moveit::cost_functions::CollisionCheck, stomp_moveit::cost_functions::StompCostFunction)
 
 static const int MIN_KERNEL_WINDOW_SIZE = 3;
 
@@ -43,29 +43,27 @@ static void applyKernelSmoothing(std::size_t window_size, const Eigen::VectorXd&
   using namespace Eigen;
 
   // allocation
-  window_size = 2*(window_size/2) + 1;// forcing it into an odd number
+  window_size = 2 * (window_size / 2) + 1;  // forcing it into an odd number
   smoothed.setZero(data.size());
   VectorXd x_nneighbors = VectorXd::Zero(window_size);
   VectorXd y_nneighbors = VectorXd::Zero(window_size);
   VectorXd kernel_weights = VectorXd::Zero(window_size);
 
-
   // indexing
   int index_left, index_right;
-  std::size_t window_index_middle = window_size/2;
+  std::size_t window_index_middle = window_size / 2;
 
   // kernel function
-  //Epanechnikov(x,neighbors,lambda)
-  auto epanechnikov_function = [](double x_m,const VectorXd& neighbors,double lambda, VectorXd& weights )
-  {
+  // Epanechnikov(x,neighbors,lambda)
+  auto epanechnikov_function = [](double x_m, const VectorXd& neighbors, double lambda, VectorXd& weights) {
 
     double t = 0;
-    for(int i = 0; i < neighbors.size(); i++)
+    for (int i = 0; i < neighbors.size(); i++)
     {
-      t = std::abs(x_m - neighbors(i))/lambda;
-      if(t < 1)
+      t = std::abs(x_m - neighbors(i)) / lambda;
+      if (t < 1)
       {
-        weights(i) = 0.75f*(1 - std::pow(t,2));
+        weights(i) = 0.75f * (1 - std::pow(t, 2));
       }
       else
       {
@@ -75,19 +73,19 @@ static void applyKernelSmoothing(std::size_t window_size, const Eigen::VectorXd&
 
   };
 
-  for(int i = 0; i < data.size(); i++)
+  for (int i = 0; i < data.size(); i++)
   {
     // middle term
     x_nneighbors(window_index_middle) = i;
     y_nneighbors(window_index_middle) = data(i);
 
     // grabbing neighbors
-    for(int j = 1; j <= window_size/2; j++)
+    for (int j = 1; j <= window_size / 2; j++)
     {
       index_left = i - j;
       index_right = i + j;
 
-      if(index_left < 0)
+      if (index_left < 0)
       {
         x_nneighbors(window_index_middle - j) = 0;
         y_nneighbors(window_index_middle - j) = data(0);
@@ -98,9 +96,9 @@ static void applyKernelSmoothing(std::size_t window_size, const Eigen::VectorXd&
         y_nneighbors(window_index_middle - j) = data(index_left);
       }
 
-      if(index_right > data.rows()-1)
+      if (index_right > data.rows() - 1)
       {
-        x_nneighbors(window_index_middle + j) = data.rows()-1;
+        x_nneighbors(window_index_middle + j) = data.rows() - 1;
         y_nneighbors(window_index_middle + j) = data(data.rows() - 1);
       }
       else
@@ -108,28 +106,20 @@ static void applyKernelSmoothing(std::size_t window_size, const Eigen::VectorXd&
         x_nneighbors(window_index_middle + j) = index_right;
         y_nneighbors(window_index_middle + j) = data(index_right);
       }
-
     }
 
-    epanechnikov_function(i,x_nneighbors,window_size,kernel_weights);
-    smoothed(i) = (y_nneighbors.array()*kernel_weights.array()).sum()/kernel_weights.sum();
+    epanechnikov_function(i, x_nneighbors, window_size, kernel_weights);
+    smoothed(i) = (y_nneighbors.array() * kernel_weights.array()).sum() / kernel_weights.sum();
   }
-
-
 }
 
 namespace stomp_moveit
 {
 namespace cost_functions
 {
-
-CollisionCheck::CollisionCheck():
-    name_("CollisionCheckPlugin"),
-    robot_state_(),
-    collision_penalty_(0.0)
+CollisionCheck::CollisionCheck() : name_("CollisionCheckPlugin"), robot_state_(), collision_penalty_(0.0)
 {
   // TODO Auto-generated constructor stub
-
 }
 
 CollisionCheck::~CollisionCheck()
@@ -137,8 +127,8 @@ CollisionCheck::~CollisionCheck()
   // TODO Auto-generated destructor stub
 }
 
-bool CollisionCheck::initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                        const std::string& group_name,XmlRpc::XmlRpcValue& config)
+bool CollisionCheck::initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                                XmlRpc::XmlRpcValue& config)
 {
   robot_model_ptr_ = robot_model_ptr;
   group_name_ = group_name;
@@ -146,9 +136,9 @@ bool CollisionCheck::initialize(moveit::core::RobotModelConstPtr robot_model_ptr
 }
 
 bool CollisionCheck::setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::MotionPlanRequest &req,
-                 const stomp_core::StompConfiguration &config,
-                 moveit_msgs::MoveItErrorCodes& error_code)
+                                          const moveit_msgs::MotionPlanRequest& req,
+                                          const stomp_core::StompConfiguration& config,
+                                          moveit_msgs::MoveItErrorCodes& error_code)
 {
   using namespace moveit::core;
 
@@ -170,14 +160,14 @@ bool CollisionCheck::setMotionPlanRequest(const planning_scene::PlanningSceneCon
 
   // storing robot state
   robot_state_.reset(new RobotState(robot_model_ptr_));
-  if(!robotStateMsgToRobotState(req.start_state,*robot_state_,true))
+  if (!robotStateMsgToRobotState(req.start_state, *robot_state_, true))
   {
-    ROS_ERROR("%s Failed to get current robot state from request",getName().c_str());
+    ROS_ERROR("%s Failed to get current robot state from request", getName().c_str());
     return false;
   }
 
   // copying into intermediate robot states
-  for(auto& rs : intermediate_coll_states_)
+  for (auto& rs : intermediate_coll_states_)
   {
     rs.reset(new RobotState(*robot_state_));
   }
@@ -185,25 +175,19 @@ bool CollisionCheck::setMotionPlanRequest(const planning_scene::PlanningSceneCon
   // allocating arrays
   raw_costs_ = Eigen::VectorXd::Zero(config.num_timesteps);
 
-
   return true;
 }
 
-bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters,
-                          std::size_t start_timestep,
-                          std::size_t num_timesteps,
-                          int iteration_number,
-                          int rollout_number,
-                          Eigen::VectorXd& costs,
-                          bool& validity)
+bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep,
+                                  std::size_t num_timesteps, int iteration_number, int rollout_number,
+                                  Eigen::VectorXd& costs, bool& validity)
 {
-
   using namespace moveit::core;
   using namespace Eigen;
 
-  if(!robot_state_)
+  if (!robot_state_)
   {
-    ROS_ERROR("%s Robot State has not been updated",getName().c_str());
+    ROS_ERROR("%s Robot State has not been updated", getName().c_str());
     return false;
   }
 
@@ -226,7 +210,7 @@ bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters,
   // planning groups
   const JointModelGroup* joint_group = robot_model_ptr_->getJointModelGroup(group_name_);
 
-  if(parameters.cols()< (start_timestep + num_timesteps))
+  if (parameters.cols() < (start_timestep + num_timesteps))
   {
     ROS_ERROR_STREAM("Size in the 'parameters' matrix is less than required");
     return false;
@@ -234,33 +218,28 @@ bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters,
 
   // check for collisions at each state
   bool skip_next_check = false;
-  for (auto t=start_timestep; t<start_timestep + num_timesteps; ++t)
+  for (auto t = start_timestep; t < start_timestep + num_timesteps; ++t)
   {
-    if(!skip_next_check)
+    if (!skip_next_check)
     {
-      robot_state_->setJointGroupPositions(joint_group,parameters.col(t));
+      robot_state_->setJointGroupPositions(joint_group, parameters.col(t));
       robot_state_->update();
 
       // checking robot vs world (attached objects, octomap, not in urdf) collisions
       result_world_collision.distance = std::numeric_limits<double>::max();
 
-      collision_world_->checkRobotCollision(request,
-                                            result_world_collision,
-                                            *collision_robot_,
-                                            *robot_state_,
+      collision_world_->checkRobotCollision(request, result_world_collision, *collision_robot_, *robot_state_,
                                             planning_scene_->getAllowedCollisionMatrix());
 
-      collision_robot_->checkSelfCollision(request,
-                                           result_robot_collision,
-                                           *robot_state_,
+      collision_robot_->checkSelfCollision(request, result_robot_collision, *robot_state_,
                                            planning_scene_->getAllowedCollisionMatrix());
 
-      results[0]= result_world_collision;
+      results[0] = result_world_collision;
       results[1] = result_robot_collision;
-      for(std::vector<collision_detection::CollisionResult>::iterator i = results.begin(); i != results.end(); i++)
+      for (std::vector<collision_detection::CollisionResult>::iterator i = results.begin(); i != results.end(); i++)
       {
         collision_detection::CollisionResult& result = *i;
-        if(result.collision)
+        if (result.collision)
         {
           raw_costs_(t) = collision_penalty_;
           validity = false;
@@ -270,12 +249,12 @@ bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters,
     }
 
     // check intermediate poses to the next position (skip the last one)
-    if(t  < start_timestep + num_timesteps - 1)
+    if (t < start_timestep + num_timesteps - 1)
     {
-      if(!checkIntermediateCollisions(parameters.col(t),parameters.col(t+1),longest_valid_joint_move_))
+      if (!checkIntermediateCollisions(parameters.col(t), parameters.col(t + 1), longest_valid_joint_move_))
       {
         raw_costs_(t) = 1.0;
-        raw_costs_(t+1) = 1.0;
+        raw_costs_(t + 1) = 1.0;
         validity = false;
         skip_next_check = true;
       }
@@ -287,37 +266,35 @@ bool CollisionCheck::computeCosts(const Eigen::MatrixXd& parameters,
   }
 
   // applying kernel smoothing
-  if(!validity)
+  if (!validity)
   {
-
-    if(kernel_window_percentage_> 1e-6)
+    if (kernel_window_percentage_ > 1e-6)
     {
-      int window_size = num_timesteps*kernel_window_percentage_;
+      int window_size = num_timesteps * kernel_window_percentage_;
       window_size = window_size < MIN_KERNEL_WINDOW_SIZE ? MIN_KERNEL_WINDOW_SIZE : window_size;
 
       // adding minimum cost
       intermediate_costs_slots_ = (raw_costs_.array() < collision_penalty_).cast<double>();
-      raw_costs_ += (raw_costs_.sum()/raw_costs_.size())*(intermediate_costs_slots_.matrix());
+      raw_costs_ += (raw_costs_.sum() / raw_costs_.size()) * (intermediate_costs_slots_.matrix());
 
       // smoothing
-      applyKernelSmoothing(window_size,raw_costs_,costs);
+      applyKernelSmoothing(window_size, raw_costs_, costs);
     }
     else
     {
       costs = raw_costs_;
     }
-
   }
 
   return true;
 }
 
-bool CollisionCheck::checkIntermediateCollisions(const Eigen::VectorXd& start,
-                                                           const Eigen::VectorXd& end,double longest_valid_joint_move)
+bool CollisionCheck::checkIntermediateCollisions(const Eigen::VectorXd& start, const Eigen::VectorXd& end,
+                                                 double longest_valid_joint_move)
 {
   Eigen::VectorXd diff = end - start;
-  int num_intermediate = std::ceil(((diff.cwiseAbs())/longest_valid_joint_move).maxCoeff()) - 1;
-  if(num_intermediate < 1.0)
+  int num_intermediate = std::ceil(((diff.cwiseAbs()) / longest_valid_joint_move).maxCoeff()) - 1;
+  if (num_intermediate < 1.0)
   {
     // no interpolation needed
     return true;
@@ -328,9 +305,9 @@ bool CollisionCheck::checkIntermediateCollisions(const Eigen::VectorXd& start,
   auto& mid_state = intermediate_coll_states_[1];
   auto& end_state = intermediate_coll_states_[2];
 
-  if(!start_state || !mid_state || !end_state)
+  if (!start_state || !mid_state || !end_state)
   {
-    ROS_ERROR("%s intermediate states not initialized",getName().c_str());
+    ROS_ERROR("%s intermediate states not initialized", getName().c_str());
     return false;
   }
 
@@ -339,17 +316,17 @@ bool CollisionCheck::checkIntermediateCollisions(const Eigen::VectorXd& start,
   req.distance = false;
   collision_detection::CollisionResult res;
   const moveit::core::JointModelGroup* joint_group = robot_model_ptr_->getJointModelGroup(group_name_);
-  start_state->setJointGroupPositions(joint_group,start);
-  end_state->setJointGroupPositions(joint_group,end);
+  start_state->setJointGroupPositions(joint_group, start);
+  end_state->setJointGroupPositions(joint_group, end);
 
   // checking intermediate states
-  double dt = 1.0/static_cast<double>(num_intermediate);
+  double dt = 1.0 / static_cast<double>(num_intermediate);
   double interval = 0.0;
-  for(std::size_t i = 1; i < num_intermediate;i++)
+  for (std::size_t i = 1; i < num_intermediate; i++)
   {
-    interval = i*dt;
-    start_state->interpolate(*end_state,interval,*mid_state) ;
-    if(planning_scene_->isStateColliding(*mid_state))
+    interval = i * dt;
+    start_state->interpolate(*end_state, interval, *mid_state);
+    if (planning_scene_->isStateColliding(*mid_state))
     {
       return false;
     }
@@ -360,14 +337,13 @@ bool CollisionCheck::checkIntermediateCollisions(const Eigen::VectorXd& start,
 
 bool CollisionCheck::configure(const XmlRpc::XmlRpcValue& config)
 {
-
   // check parameter presence
-  auto members = {"cost_weight","collision_penalty","kernel_window_percentage"};
-  for(auto& m : members)
+  auto members = { "cost_weight", "collision_penalty", "kernel_window_percentage" };
+  for (auto& m : members)
   {
-    if(!config.hasMember(m))
+    if (!config.hasMember(m))
     {
-      ROS_ERROR("%s failed to find one or more required parameters",getName().c_str());
+      ROS_ERROR("%s failed to find one or more required parameters", getName().c_str());
       return false;
     }
   }
@@ -375,12 +351,12 @@ bool CollisionCheck::configure(const XmlRpc::XmlRpcValue& config)
   try
   {
     // check parameter presence
-    auto members = {"cost_weight","collision_penalty","kernel_window_percentage", "longest_valid_joint_move"};
-    for(auto& m : members)
+    auto members = { "cost_weight", "collision_penalty", "kernel_window_percentage", "longest_valid_joint_move" };
+    for (auto& m : members)
     {
-      if(!config.hasMember(m))
+      if (!config.hasMember(m))
       {
-        ROS_ERROR("%s failed to find '%s' parameter",getName().c_str(),m);
+        ROS_ERROR("%s failed to find '%s' parameter", getName().c_str(), m);
         return false;
       }
     }
@@ -391,16 +367,16 @@ bool CollisionCheck::configure(const XmlRpc::XmlRpcValue& config)
     kernel_window_percentage_ = static_cast<double>(c["kernel_window_percentage"]);
     longest_valid_joint_move_ = static_cast<double>(c["longest_valid_joint_move"]);
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
-    ROS_ERROR("%s failed to parse configuration parameters",name_.c_str());
+    ROS_ERROR("%s failed to parse configuration parameters", name_.c_str());
     return false;
   }
 
   return true;
 }
 
-void CollisionCheck::done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters)
+void CollisionCheck::done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters)
 {
   robot_state_.reset();
 }

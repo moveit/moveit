@@ -29,25 +29,23 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/console.h>
 
-PLUGINLIB_EXPORT_CLASS(stomp_moveit::noise_generators::NormalDistributionSampling,stomp_moveit::noise_generators::StompNoiseGenerator);
+PLUGINLIB_EXPORT_CLASS(stomp_moveit::noise_generators::NormalDistributionSampling,
+                       stomp_moveit::noise_generators::StompNoiseGenerator);
 
 /*
  * These coefficients correspond to the five point stencil method
  */
-static const std::vector<double> ACC_MATRIX_DIAGONAL_VALUES = {-1.0/12.0, 16.0/12.0, -30.0/12.0, 16.0/12.0, -1.0/12.0};
-static const std::vector<int> ACC_MATRIX_DIAGONAL_INDICES = {-2, -1, 0 ,1, 2};
+static const std::vector<double> ACC_MATRIX_DIAGONAL_VALUES = { -1.0 / 12.0, 16.0 / 12.0, -30.0 / 12.0, 16.0 / 12.0,
+                                                                -1.0 / 12.0 };
+static const std::vector<int> ACC_MATRIX_DIAGONAL_INDICES = { -2, -1, 0, 1, 2 };
 
 namespace stomp_moveit
 {
-
 namespace noise_generators
 {
-
-NormalDistributionSampling::NormalDistributionSampling():
-    name_("NormalDistributionSampling")
+NormalDistributionSampling::NormalDistributionSampling() : name_("NormalDistributionSampling")
 {
   // TODO Auto-generated constructor stub
-
 }
 
 NormalDistributionSampling::~NormalDistributionSampling()
@@ -57,20 +55,19 @@ NormalDistributionSampling::~NormalDistributionSampling()
 }
 
 bool NormalDistributionSampling::initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                        const std::string& group_name,const XmlRpc::XmlRpcValue& config)
+                                            const std::string& group_name, const XmlRpc::XmlRpcValue& config)
 {
   using namespace moveit::core;
 
   group_ = group_name;
   const JointModelGroup* joint_group = robot_model_ptr->getJointModelGroup(group_name);
-  if(!joint_group)
+  if (!joint_group)
   {
-    ROS_ERROR("Invalid joint group %s",group_name.c_str());
+    ROS_ERROR("Invalid joint group %s", group_name.c_str());
     return false;
   }
 
   stddev_.resize(joint_group->getActiveJointModelNames().size());
-
 
   return configure(config);
 }
@@ -84,21 +81,21 @@ bool NormalDistributionSampling::configure(const XmlRpc::XmlRpcValue& config)
     XmlRpcValue c = config;
     XmlRpcValue stddev_param = c["stddev"];
 
-    if(stddev_param.size() < stddev_.size())
+    if (stddev_param.size() < stddev_.size())
     {
-      ROS_ERROR("%s the 'stddev' parameter has fewer elements than the number of joints",getName().c_str());
+      ROS_ERROR("%s the 'stddev' parameter has fewer elements than the number of joints", getName().c_str());
       return false;
     }
 
     stddev_.resize(stddev_param.size());
-    for(auto i = 0u; i < stddev_param.size(); i++)
+    for (auto i = 0u; i < stddev_param.size(); i++)
     {
       stddev_[i] = static_cast<double>(stddev_param[i]);
     }
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
-    ROS_ERROR("%s failed to load parameters",getName().c_str());
+    ROS_ERROR("%s failed to load parameters", getName().c_str());
     return false;
   }
 
@@ -106,29 +103,28 @@ bool NormalDistributionSampling::configure(const XmlRpc::XmlRpcValue& config)
 }
 
 bool NormalDistributionSampling::setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::MotionPlanRequest &req,
-                 const stomp_core::StompConfiguration &config,
-                 moveit_msgs::MoveItErrorCodes& error_code)
+                                                      const moveit_msgs::MotionPlanRequest& req,
+                                                      const stomp_core::StompConfiguration& config,
+                                                      moveit_msgs::MoveItErrorCodes& error_code)
 {
   using namespace Eigen;
 
-  auto fill_diagonal = [](Eigen::MatrixXd& m,double coeff,int diag_index)
-  {
+  auto fill_diagonal = [](Eigen::MatrixXd& m, double coeff, int diag_index) {
     std::size_t size = m.rows() - std::abs(diag_index);
-    m.diagonal(diag_index) = VectorXd::Constant(size,coeff);
+    m.diagonal(diag_index) = VectorXd::Constant(size, coeff);
   };
 
   // creating finite difference acceleration matrix
   std::size_t num_timesteps = config.num_timesteps;
-  Eigen::MatrixXd A = MatrixXd::Zero(num_timesteps,num_timesteps);
-  int num_elements = (int((ACC_MATRIX_DIAGONAL_INDICES.size() -1)/2.0) + 1)* num_timesteps ;
-  for(auto i = 0u; i < ACC_MATRIX_DIAGONAL_INDICES.size() ; i++)
+  Eigen::MatrixXd A = MatrixXd::Zero(num_timesteps, num_timesteps);
+  int num_elements = (int((ACC_MATRIX_DIAGONAL_INDICES.size() - 1) / 2.0) + 1) * num_timesteps;
+  for (auto i = 0u; i < ACC_MATRIX_DIAGONAL_INDICES.size(); i++)
   {
-    fill_diagonal(A,ACC_MATRIX_DIAGONAL_VALUES[i],ACC_MATRIX_DIAGONAL_INDICES[i]);
+    fill_diagonal(A, ACC_MATRIX_DIAGONAL_VALUES[i], ACC_MATRIX_DIAGONAL_INDICES[i]);
   }
 
   // create and scale covariance matrix
-  Eigen::MatrixXd covariance = MatrixXd::Identity(num_timesteps,num_timesteps);
+  Eigen::MatrixXd covariance = MatrixXd::Identity(num_timesteps, num_timesteps);
   covariance = A.transpose() * A;
   covariance = covariance.fullPivLu().inverse();
   double max_val = covariance.array().abs().matrix().maxCoeff();
@@ -136,9 +132,9 @@ bool NormalDistributionSampling::setMotionPlanRequest(const planning_scene::Plan
 
   // create random generators
   rand_generators_.resize(stddev_.size());
-  for(auto& r: rand_generators_)
+  for (auto& r : rand_generators_)
   {
-    r.reset(new utils::MultivariateGaussian(VectorXd::Zero(num_timesteps),covariance));
+    r.reset(new utils::MultivariateGaussian(VectorXd::Zero(num_timesteps), covariance));
   }
 
   // preallocating noise data
@@ -148,23 +144,17 @@ bool NormalDistributionSampling::setMotionPlanRequest(const planning_scene::Plan
   return true;
 }
 
-
-bool NormalDistributionSampling::generateNoise(const Eigen::MatrixXd& parameters,
-                                     std::size_t start_timestep,
-                                     std::size_t num_timesteps,
-                                     int iteration_number,
-                                     int rollout_number,
-                                     Eigen::MatrixXd& parameters_noise,
-                                     Eigen::MatrixXd& noise)
+bool NormalDistributionSampling::generateNoise(const Eigen::MatrixXd& parameters, std::size_t start_timestep,
+                                               std::size_t num_timesteps, int iteration_number, int rollout_number,
+                                               Eigen::MatrixXd& parameters_noise, Eigen::MatrixXd& noise)
 {
-  if(parameters.rows() != stddev_.size())
+  if (parameters.rows() != stddev_.size())
   {
-    ROS_ERROR("Number of parameters %i differs from what was preallocated ",int(parameters.rows()));
+    ROS_ERROR("Number of parameters %i differs from what was preallocated ", int(parameters.rows()));
     return false;
   }
 
-
-  for(auto d = 0u; d < parameters.rows() ; d++)
+  for (auto d = 0u; d < parameters.rows(); d++)
   {
     rand_generators_[d]->sample(raw_noise_);
     noise.row(d).transpose() = stddev_[d] * raw_noise_;

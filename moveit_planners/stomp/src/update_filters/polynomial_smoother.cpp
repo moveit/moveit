@@ -35,20 +35,18 @@
 #include <stomp_moveit/utils/polynomial.h>
 #include <XmlRpcException.h>
 
-PLUGINLIB_EXPORT_CLASS(stomp_moveit::update_filters::PolynomialSmoother,stomp_moveit::update_filters::StompUpdateFilter)
+PLUGINLIB_EXPORT_CLASS(stomp_moveit::update_filters::PolynomialSmoother,
+                       stomp_moveit::update_filters::StompUpdateFilter)
 
 namespace stomp_moveit
 {
 namespace update_filters
 {
-
 const double JOINT_LIMIT_MARGIN = 0.00001;
 
-PolynomialSmoother::PolynomialSmoother():
-    name_("ExponentialSmoother")
+PolynomialSmoother::PolynomialSmoother() : name_("ExponentialSmoother")
 {
   // TODO Auto-generated constructor stub
-
 }
 
 PolynomialSmoother::~PolynomialSmoother()
@@ -56,8 +54,8 @@ PolynomialSmoother::~PolynomialSmoother()
   // TODO Auto-generated destructor stub
 }
 
-bool PolynomialSmoother::initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                        const std::string& group_name,const XmlRpc::XmlRpcValue& config)
+bool PolynomialSmoother::initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                                    const XmlRpc::XmlRpcValue& config)
 {
   group_name_ = group_name;
   robot_model_ = robot_model_ptr;
@@ -74,9 +72,9 @@ bool PolynomialSmoother::configure(const XmlRpc::XmlRpcValue& config)
     XmlRpcValue params = config;
     poly_order_ = static_cast<int>(params["poly_order"]);
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
-    ROS_ERROR("%s failed to load parameters, %s",getName().c_str(),e.getMessage().c_str());
+    ROS_ERROR("%s failed to load parameters, %s", getName().c_str(), e.getMessage().c_str());
     return false;
   }
 
@@ -84,20 +82,16 @@ bool PolynomialSmoother::configure(const XmlRpc::XmlRpcValue& config)
 }
 
 bool PolynomialSmoother::setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::MotionPlanRequest &req,
-                 const stomp_core::StompConfiguration &config,
-                 moveit_msgs::MoveItErrorCodes& error_code)
+                                              const moveit_msgs::MotionPlanRequest& req,
+                                              const stomp_core::StompConfiguration& config,
+                                              moveit_msgs::MoveItErrorCodes& error_code)
 {
   error_code.val = error_code.SUCCESS;
   return true;
 }
 
-bool PolynomialSmoother::filter(std::size_t start_timestep,
-                    std::size_t num_timesteps,
-                    int iteration_number,
-                    const Eigen::MatrixXd& parameters,
-                    Eigen::MatrixXd& updates,
-                    bool& filtered)
+bool PolynomialSmoother::filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                                const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered)
 {
   using namespace Eigen;
   using namespace moveit::core;
@@ -105,7 +99,7 @@ bool PolynomialSmoother::filter(std::size_t start_timestep,
 
   filtered = false;
   Eigen::MatrixXd parameters_updates = parameters + updates;
-  if(applyPolynomialSmoothing(robot_model_,group_name_,parameters_updates,poly_order_,JOINT_LIMIT_MARGIN))
+  if (applyPolynomialSmoothing(robot_model_, group_name_, parameters_updates, poly_order_, JOINT_LIMIT_MARGIN))
   {
     updates = parameters_updates - parameters;
     filtered = true;
@@ -118,7 +112,6 @@ bool PolynomialSmoother::filter(std::size_t start_timestep,
 
   return true;
 }
-
 
 } /* namespace update_filters */
 } /* namespace stomp_moveit */

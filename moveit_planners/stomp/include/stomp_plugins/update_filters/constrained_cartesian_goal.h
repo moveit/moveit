@@ -34,7 +34,6 @@ namespace stomp_moveit
 {
 namespace update_filters
 {
-
 /**
  * @class stomp_moveit::update_filters::ConstrainedCartesianGoal
  * @brief Forces the goal cartesian tool pose into the task space.
@@ -56,8 +55,8 @@ public:
    * @param config          The configuration data.  Usually loaded from the ros parameter server
    * @return true if succeeded, false otherwise.
    */
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /**
    * @brief Sets internal members of the plugin from the configuration data.
@@ -75,9 +74,9 @@ public:
    * @return  true if succeeded, false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief Forces the goal to be within the tool's task manifold.
@@ -90,12 +89,8 @@ public:
    * @param filtered          Set to 'true' if the updates were modified, false otherwise
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      const Eigen::MatrixXd& parameters,
-                      Eigen::MatrixXd& updates,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered) override;
 
   virtual std::string getGroupName() const
   {
@@ -108,7 +103,6 @@ public:
   }
 
 protected:
-
   std::string name_;
   std::string group_name_;
 

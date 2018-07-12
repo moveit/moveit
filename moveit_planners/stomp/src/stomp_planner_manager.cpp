@@ -29,20 +29,15 @@
 
 namespace stomp_moveit
 {
-
-StompPlannerManager::StompPlannerManager():
-    planning_interface::PlannerManager(),
-    nh_("~")
+StompPlannerManager::StompPlannerManager() : planning_interface::PlannerManager(), nh_("~")
 {
-
 }
 
 StompPlannerManager::~StompPlannerManager()
 {
-
 }
 
-bool StompPlannerManager::initialize(const robot_model::RobotModelConstPtr &model, const std::string &ns)
+bool StompPlannerManager::initialize(const robot_model::RobotModelConstPtr& model, const std::string& ns)
 {
   if (!ns.empty())
   {
@@ -59,12 +54,13 @@ bool StompPlannerManager::initialize(const robot_model::RobotModelConstPtr &mode
     return false;
   }
 
-  for(std::map<std::string, XmlRpc::XmlRpcValue>::iterator v = group_config.begin(); v != group_config.end(); v++)
+  for (std::map<std::string, XmlRpc::XmlRpcValue>::iterator v = group_config.begin(); v != group_config.end(); v++)
   {
-    if(!model->hasJointModelGroup(v->first))
+    if (!model->hasJointModelGroup(v->first))
     {
-      ROS_WARN("The robot model does not support the planning group '%s' in the STOMP configuration, skipping STOMP setup for this group",
-                v->first.c_str());
+      ROS_WARN("The robot model does not support the planning group '%s' in the STOMP configuration, skipping STOMP "
+               "setup for this group",
+               v->first.c_str());
       continue;
     }
 
@@ -72,7 +68,7 @@ bool StompPlannerManager::initialize(const robot_model::RobotModelConstPtr &mode
     planners_.insert(std::make_pair(v->first, planner));
   }
 
-  if(planners_.empty())
+  if (planners_.empty())
   {
     ROS_ERROR("All planning groups are invalid, STOMP could not be configured");
     return false;
@@ -81,9 +77,9 @@ bool StompPlannerManager::initialize(const robot_model::RobotModelConstPtr &mode
   return true;
 }
 
-bool StompPlannerManager::canServiceRequest(const moveit_msgs::MotionPlanRequest &req) const
+bool StompPlannerManager::canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const
 {
-  if(planners_.count(req.group_name) == 0)
+  if (planners_.count(req.group_name) == 0)
   {
     return false;
   }
@@ -93,23 +89,23 @@ bool StompPlannerManager::canServiceRequest(const moveit_msgs::MotionPlanRequest
   return planner->canServiceRequest(req);
 }
 
-void StompPlannerManager::getPlanningAlgorithms(std::vector<std::string> &algs) const
+void StompPlannerManager::getPlanningAlgorithms(std::vector<std::string>& algs) const
 {
   algs.clear();
-  if(!planners_.empty())
+  if (!planners_.empty())
   {
     algs.push_back(planners_.begin()->second->getName());
   }
 }
 
-void StompPlannerManager::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap &pcs)
+void StompPlannerManager::setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pcs)
 {
-  ROS_WARN_STREAM("The "<<__FUNCTION__<<" method is not applicable");
+  ROS_WARN_STREAM("The " << __FUNCTION__ << " method is not applicable");
 }
 
-planning_interface::PlanningContextPtr StompPlannerManager::getPlanningContext(const planning_scene::PlanningSceneConstPtr &planning_scene,
-                                                                               const planning_interface::MotionPlanRequest &req,
-                                                                               moveit_msgs::MoveItErrorCodes &error_code) const
+planning_interface::PlanningContextPtr StompPlannerManager::getPlanningContext(
+    const planning_scene::PlanningSceneConstPtr& planning_scene, const planning_interface::MotionPlanRequest& req,
+    moveit_msgs::MoveItErrorCodes& error_code) const
 {
   error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
@@ -127,9 +123,9 @@ planning_interface::PlanningContextPtr StompPlannerManager::getPlanningContext(c
     return planning_interface::PlanningContextPtr();
   }
 
-  if(planners_.count(req.group_name) <=0)
+  if (planners_.count(req.group_name) <= 0)
   {
-    ROS_ERROR("STOMP does not have a planning context for group %s",req.group_name.c_str());
+    ROS_ERROR("STOMP does not have a planning context for group %s", req.group_name.c_str());
     error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return planning_interface::PlanningContextPtr();
   }
@@ -137,7 +133,7 @@ planning_interface::PlanningContextPtr StompPlannerManager::getPlanningContext(c
   // Get planner
   std::shared_ptr<StompPlanner> planner = std::static_pointer_cast<StompPlanner>(planners_.at(req.group_name));
 
-  if(!planner->canServiceRequest(req))
+  if (!planner->canServiceRequest(req))
   {
     error_code.val = moveit_msgs::MoveItErrorCodes::FAILURE;
     return planning_interface::PlanningContextPtr();
@@ -151,7 +147,6 @@ planning_interface::PlanningContextPtr StompPlannerManager::getPlanningContext(c
   // Return Planner
   return planner;
 }
-
 
 } /* namespace stomp_moveit_interface */
 CLASS_LOADER_REGISTER_CLASS(stomp_moveit::StompPlannerManager, planning_interface::PlannerManager)

@@ -50,18 +50,17 @@ public:
   virtual ~JointLimits();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
-
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   virtual std::string getGroupName() const override
   {
@@ -81,18 +80,14 @@ public:
    * @param iteration_number  The current iteration count in the optimization loop.
    * @param rollout_number    Index of the noisy trajectory whose cost is being evaluated.
    * @param parameters        Output argument containing the parameters to be filtered [num_dimensions x num_timesteps].
-   * @param filtered          Output argument that's set to 'true' if the parameters were changed according to the filtering method.
+   * @param filtered          Output argument that's set to 'true' if the parameters were changed according to the
+   * filtering method.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      int rollout_number,
-                      Eigen::MatrixXd& parameters,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number, int rollout_number,
+                      Eigen::MatrixXd& parameters, bool& filtered) override;
 
 protected:
-
   moveit::core::RobotModelConstPtr robot_model_;
   std::string group_name_;
 
@@ -103,8 +98,6 @@ protected:
   // start and goal
   moveit::core::RobotStatePtr start_state_;
   moveit::core::RobotStatePtr goal_state_;
-
-
 };
 
 } /* namespace filters */

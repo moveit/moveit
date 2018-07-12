@@ -36,7 +36,6 @@ namespace stomp_moveit
 {
 namespace cost_functions
 {
-
 /**
  * @class stomp_moveit::cost_functions::ToolGoalPose
  * @brief Evaluates the cost of the goal pose by determining how far the Cartesian tool pose
@@ -45,7 +44,7 @@ namespace cost_functions
  * @par Examples:
  * All examples are located here @ref stomp_plugins_examples
  */
-class ToolGoalPose: public StompCostFunction
+class ToolGoalPose : public StompCostFunction
 {
 public:
   ToolGoalPose();
@@ -58,8 +57,8 @@ public:
    * @param config          The configuration data.  Usually loaded from the ros parameter server
    * @return true if succeeded, false otherwise.
    */
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          XmlRpc::XmlRpcValue& config) override;
 
   /**
    * @brief Sets internal members of the plugin from the configuration data.
@@ -77,10 +76,9 @@ public:
    * @return  true if succeeded, false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
-
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief computes the goal state costs as a function of the distance from the desired task manifold.
@@ -89,23 +87,18 @@ public:
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'   *
    * @param iteration_number  The current iteration count in the optimization loop
    * @param rollout_number    index of the noisy trajectory whose cost is being evaluated.   *
-   * @param costs             vector containing the state costs per timestep.  Only the array's last entry is set. [num_parameters x 1]
+   * @param costs             vector containing the state costs per timestep.  Only the array's last entry is set.
+   * [num_parameters x 1]
    * @param validity          whether or not the trajectory is valid
    * @return true if cost were properly computed
    */
-  virtual bool computeCosts(const Eigen::MatrixXd& parameters,
-                            std::size_t start_timestep,
-                            std::size_t num_timesteps,
-                            int iteration_number,
-                            int rollout_number,
-                            Eigen::VectorXd& costs,
-                            bool& validity) override;
+  virtual bool computeCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep, std::size_t num_timesteps,
+                            int iteration_number, int rollout_number, Eigen::VectorXd& costs, bool& validity) override;
 
   virtual std::string getGroupName() const override
   {
     return group_name_;
   }
-
 
   virtual std::string getName() const override
   {
@@ -120,10 +113,11 @@ public:
    * @param final_cost        The cost value after optimizing.
    * @param parameters        The parameters generated at the end of current iteration[num_dimensions x num_timesteps]
    */
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override{}
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override
+  {
+  }
 
 protected:
-
   std::string name_;
 
   // robot details
@@ -137,12 +131,14 @@ protected:
   moveit_msgs::MotionPlanRequest plan_request_;
 
   // goal pose
-  Eigen::Affine3d tool_goal_pose_;                    /**< @brief The desired goal pose for the active plan request **/
+  Eigen::Affine3d tool_goal_pose_; /**< @brief The desired goal pose for the active plan request **/
 
   // ros parameters
-  Eigen::ArrayXi dof_nullity_;                        /**< @brief Indicates which cartesian DOF's are unconstrained (0) and fully constrained (1)*/
-  std::pair<double,double> position_error_range_;     /**< @brief The allowed position error range, [2 x 1] */
-  std::pair<double,double> orientation_error_range_;  /**< @brief The allowed orientation error range as euler angles, [2 x 1] **/
+  Eigen::ArrayXi dof_nullity_; /**< @brief Indicates which cartesian DOF's are unconstrained (0) and fully constrained
+                                  (1)*/
+  std::pair<double, double> position_error_range_;    /**< @brief The allowed position error range, [2 x 1] */
+  std::pair<double, double> orientation_error_range_; /**< @brief The allowed orientation error range as euler angles,
+                                                         [2 x 1] **/
   double position_cost_weight_;                       /**< @brief factor multiplied to the scaled position error **/
   double orientation_cost_weight_;                    /**< @brief factor multiplied to the scaled orientation error **/
 
@@ -150,8 +146,6 @@ protected:
   Eigen::VectorXd last_joint_pose_;
   Eigen::Affine3d last_tool_pose_;
   Eigen::VectorXd tool_twist_error_;
-
-
 };
 
 } /* namespace cost_functions */

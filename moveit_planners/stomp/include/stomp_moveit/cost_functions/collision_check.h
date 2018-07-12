@@ -34,7 +34,6 @@ namespace stomp_moveit
 {
 namespace cost_functions
 {
-
 /**
  * @class stomp_moveit::cost_functions::CollisionCheck
  * @brief Assigns a cost value to  each robot state by evaluating if the robot is in collision.
@@ -55,8 +54,8 @@ public:
    * @param config          The configuration data.  Usually loaded from the ros parameter server
    * @return true if succeeded, false otherwise.
    */
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          XmlRpc::XmlRpcValue& config) override;
 
   /**
    * @brief Sets internal members of the plugin from the configuration data.
@@ -74,10 +73,9 @@ public:
    * @return  true if succeeded, false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
-
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief computes the state costs by checking whether the robot is in collision at each time step.
@@ -90,38 +88,34 @@ public:
    * @param validity          whether or not the trajectory is valid.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool computeCosts(const Eigen::MatrixXd& parameters,
-                            std::size_t start_timestep,
-                            std::size_t num_timesteps,
-                            int iteration_number,
-                            int rollout_number,
-                            Eigen::VectorXd& costs,
-                            bool& validity) override;
+  virtual bool computeCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep, std::size_t num_timesteps,
+                            int iteration_number, int rollout_number, Eigen::VectorXd& costs, bool& validity) override;
 
   virtual std::string getGroupName() const override
   {
     return group_name_;
   }
 
-
   virtual std::string getName() const override
   {
     return "CollisionCheck/" + group_name_;
   }
 
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override;
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override;
 
 protected:
-
   /**
-   * @brief Checks for collision between consecutive points by dividing the joint move into sub-moves where the maximum joint motion
+   * @brief Checks for collision between consecutive points by dividing the joint move into sub-moves where the maximum
+   * joint motion
    *        can not exceed the @e longest_valid_joint_move value.
    * @param start                     The start joint pose
    * @param end                       The end joint pose
-   * @param longest_valid_joint_move  The maximum distance that the joints are allowed to move before checking for collisions.
+   * @param longest_valid_joint_move  The maximum distance that the joints are allowed to move before checking for
+   * collisions.
    * @return  True if the interval is collision free, false otherwise.
    */
-  bool checkIntermediateCollisions(const Eigen::VectorXd& start, const Eigen::VectorXd& end,double longest_valid_joint_move);
+  bool checkIntermediateCollisions(const Eigen::VectorXd& start, const Eigen::VectorXd& end,
+                                   double longest_valid_joint_move);
 
   std::string name_;
 
@@ -135,9 +129,9 @@ protected:
   moveit_msgs::MotionPlanRequest plan_request_;
 
   // parameters
-  double collision_penalty_;            /**< @brief The value assigned to a collision state */
-  double kernel_window_percentage_;     /**< @brief The value assigned to a collision state */
-  double longest_valid_joint_move_;     /**< @brief how far can a joint move in between consecutive trajectory points */
+  double collision_penalty_;        /**< @brief The value assigned to a collision state */
+  double kernel_window_percentage_; /**< @brief The value assigned to a collision state */
+  double longest_valid_joint_move_; /**< @brief how far can a joint move in between consecutive trajectory points */
 
   // cost calculation
   Eigen::VectorXd raw_costs_;
@@ -149,8 +143,8 @@ protected:
   collision_detection::CollisionWorldConstPtr collision_world_;
 
   // intermediate collision check support
-  std::array<moveit::core::RobotStatePtr,3 > intermediate_coll_states_;   /**< @brief Used in checking collisions between to consecutive poses*/
-
+  std::array<moveit::core::RobotStatePtr, 3>
+      intermediate_coll_states_; /**< @brief Used in checking collisions between to consecutive poses*/
 };
 
 } /* namespace cost_functions */

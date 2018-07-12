@@ -34,7 +34,6 @@
 
 namespace stomp_moveit
 {
-
 using StompOptimizationTaskPtr = std::shared_ptr<StompOptimizationTask>;
 
 /**
@@ -44,16 +43,18 @@ using StompOptimizationTaskPtr = std::shared_ptr<StompOptimizationTask>;
  * All examples are located here @ref stomp_moveit_examples
  *
  */
-class StompPlanner: public planning_interface::PlanningContext
+class StompPlanner : public planning_interface::PlanningContext
 {
 public:
   /**
    * @brief StompPlanner constructor.
    * @param group   The planning group for which this instance will plan.
-   * @param config  The parameter containing the configuration data for this planning group, includes plugins specifications.
+   * @param config  The parameter containing the configuration data for this planning group, includes plugins
+   * specifications.
    * @param model   A pointer to the robot model.
    */
-  StompPlanner(const std::string& group,const XmlRpc::XmlRpcValue& config,const moveit::core::RobotModelConstPtr& model);
+  StompPlanner(const std::string& group, const XmlRpc::XmlRpcValue& config,
+               const moveit::core::RobotModelConstPtr& model);
   virtual ~StompPlanner();
 
   /**
@@ -61,14 +62,14 @@ public:
    * @param res Contains the solved planned path.
    * @return true if succeeded, false otherwise.
    */
-  virtual bool solve(planning_interface::MotionPlanResponse &res) override;
+  virtual bool solve(planning_interface::MotionPlanResponse& res) override;
 
   /**
    * @brief Solve the motion planning problem as defined in the motion request passed before hand.
    * @param res Contains the solved planned path.
    * @return true if succeeded, false otherwise.
    */
-  virtual bool solve(planning_interface::MotionPlanDetailedResponse &res) override;
+  virtual bool solve(planning_interface::MotionPlanDetailedResponse& res) override;
 
   /**
    * @brief Thread-safe method that request early termination, if a solve() function is currently computing plans.
@@ -88,13 +89,14 @@ public:
    * @param param   The parameter name containing the confuration data for all planning groups.
    * @return  true if succeeded, false otherwise.
    */
-  static bool getConfigData(ros::NodeHandle &nh, std::map<std::string, XmlRpc::XmlRpcValue> &config, std::string param = std::string("stomp"));
+  static bool getConfigData(ros::NodeHandle& nh, std::map<std::string, XmlRpc::XmlRpcValue>& config,
+                            std::string param = std::string("stomp"));
 
   /**
    * @brief Checks some conditions to determine whether it is able to plan given for this planning request.
    * @return  true if succeeded, false otherwise.
    */
-  bool canServiceRequest(const moveit_msgs::MotionPlanRequest &req)  const;
+  bool canServiceRequest(const moveit_msgs::MotionPlanRequest& req) const;
 
   /**
    * @brief From a trajectory_msgs::JointTrajectory create a set of trajectory constraints that stomp can use later as
@@ -106,7 +108,6 @@ public:
   static moveit_msgs::TrajectoryConstraints encodeSeedTrajectory(const trajectory_msgs::JointTrajectory& seed);
 
 protected:
-
   /**
    * @brief planner setup
    */
@@ -156,9 +157,8 @@ protected:
   bool extractSeedTrajectory(const moveit_msgs::MotionPlanRequest& req, trajectory_msgs::JointTrajectory& seed) const;
 
 protected:
-
   // stomp optimization
-  std::shared_ptr< stomp_core::Stomp> stomp_;
+  std::shared_ptr<stomp_core::Stomp> stomp_;
   StompOptimizationTaskPtr task_;
   XmlRpc::XmlRpcValue config_;
   stomp_core::StompConfiguration stomp_config_;
@@ -169,7 +169,6 @@ protected:
   // ros tasks
   ros::NodeHandlePtr ph_;
 };
-
 
 } /* namespace stomp_moveit */
 #endif /* STOMP_MOVEIT_STOMP_PLANNER_H_ */

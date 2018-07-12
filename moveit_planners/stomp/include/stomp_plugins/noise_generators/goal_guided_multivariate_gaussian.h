@@ -31,14 +31,12 @@
 #include <stomp_moveit/utils/multivariate_gaussian.h>
 #include "stomp_moveit/utils/kinematics.h"
 
-
 namespace stomp_moveit
 {
 namespace noise_generators
 {
-
 typedef boost::mt19937 RGNType;
-typedef boost::variate_generator< RGNType, boost::uniform_real<> > RandomGenerator;
+typedef boost::variate_generator<RGNType, boost::uniform_real<> > RandomGenerator;
 
 /**
  * @class stomp_moveit::noise_generators::GoalGuidedMultivariateGaussian
@@ -48,7 +46,7 @@ typedef boost::variate_generator< RGNType, boost::uniform_real<> > RandomGenerat
  * All examples are located here @ref stomp_plugins_examples
  *
  */
-class GoalGuidedMultivariateGaussian: public StompNoiseGenerator
+class GoalGuidedMultivariateGaussian : public StompNoiseGenerator
 {
 public:
   GoalGuidedMultivariateGaussian();
@@ -61,8 +59,8 @@ public:
    * @param config          The configuration data.  Usually loaded from the ros parameter server
    * @return true if succeeded, false otherwise.
    */
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /**
    * @brief Sets internal members of the plugin from the configuration data.
@@ -80,9 +78,9 @@ public:
    * @return  true if succeeded, false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief Generates a noisy trajectory from the parameters.
@@ -95,13 +93,9 @@ public:
    * @param noise             The noise applied to the parameters
    * @return true if cost were properly computed, false otherwise.
    */
-  virtual bool generateNoise(const Eigen::MatrixXd& parameters,
-                                       std::size_t start_timestep,
-                                       std::size_t num_timesteps,
-                                       int iteration_number,
-                                       int rollout_number,
-                                       Eigen::MatrixXd& parameters_noise,
-                                       Eigen::MatrixXd& noise) override;
+  virtual bool generateNoise(const Eigen::MatrixXd& parameters, std::size_t start_timestep, std::size_t num_timesteps,
+                             int iteration_number, int rollout_number, Eigen::MatrixXd& parameters_noise,
+                             Eigen::MatrixXd& noise) override;
 
   /**
    * @brief Called by the Stomp at the end of the optimization process
@@ -111,14 +105,14 @@ public:
    * @param final_cost        The cost value after optimizing.
    * @param parameters        The parameters generated at the end of current iteration[num_dimensions x num_timesteps]
    */
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters){}
-
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters)
+  {
+  }
 
   virtual std::string getName() const
   {
     return name_ + "/" + group_;
   }
-
 
   virtual std::string getGroupName() const
   {
@@ -126,21 +120,19 @@ public:
   }
 
 protected:
-
   virtual bool setNoiseGeneration(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code);
+                                  const moveit_msgs::MotionPlanRequest& req,
+                                  const stomp_core::StompConfiguration& config,
+                                  moveit_msgs::MoveItErrorCodes& error_code);
 
   virtual bool setGoalConstraints(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code);
+                                  const moveit_msgs::MotionPlanRequest& req,
+                                  const stomp_core::StompConfiguration& config,
+                                  moveit_msgs::MoveItErrorCodes& error_code);
 
-  virtual bool generateRandomGoal(const Eigen::VectorXd& seed,Eigen::VectorXd& goal_joint_pose);
+  virtual bool generateRandomGoal(const Eigen::VectorXd& seed, Eigen::VectorXd& goal_joint_pose);
 
 protected:
-
   // names
   std::string name_;
   std::string group_;
@@ -149,21 +141,22 @@ protected:
   std::string tool_link_;
 
   // ros parameters
-  utils::kinematics::KinematicConfig kc_;                             /**< @brief The kinematic configuration to find valid goal poses **/
+  utils::kinematics::KinematicConfig kc_; /**< @brief The kinematic configuration to find valid goal poses **/
 
   // noisy trajectory generation
-  std::vector<utils::MultivariateGaussianPtr> traj_noise_generators_; /**< @brief Randomized numerical distribution generators, [6 x 1] **/
+  std::vector<utils::MultivariateGaussianPtr> traj_noise_generators_; /**< @brief Randomized numerical distribution
+                                                                         generators, [6 x 1] **/
   Eigen::VectorXd raw_noise_;                                         /**< @brief The noise vector **/
-  std::vector<double> stddev_;                                        /**< @brief The standard deviations applied to each joint, [num_dimensions x 1 **/
-  std::vector<double> goal_stddev_;                                   /**< @brief The standard deviations applied to each cartesian dimension at the goal, [6 x 1] **/
+  std::vector<double> stddev_; /**< @brief The standard deviations applied to each joint, [num_dimensions x 1 **/
+  std::vector<double>
+      goal_stddev_; /**< @brief The standard deviations applied to each cartesian dimension at the goal, [6 x 1] **/
 
   // random goal generation
-  boost::shared_ptr<RandomGenerator> goal_rand_generator_;            /**< @brief Random generator for the tool goal pose **/
+  boost::shared_ptr<RandomGenerator> goal_rand_generator_; /**< @brief Random generator for the tool goal pose **/
 
   // robot
   moveit::core::RobotModelConstPtr robot_model_;
   moveit::core::RobotStatePtr state_;
-
 };
 
 } /* namespace noise_generators */

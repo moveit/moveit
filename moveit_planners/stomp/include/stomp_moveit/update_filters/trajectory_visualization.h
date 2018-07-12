@@ -37,7 +37,6 @@ namespace stomp_moveit
 {
 namespace update_filters
 {
-
 /**
  * @class stomp_moveit::update_filters::TrajectoryVisualization
  * @brief Publishes rviz markers to visualize the optimized trajectory
@@ -53,17 +52,17 @@ public:
   virtual ~TrajectoryVisualization();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief Publishes rviz markers to visualize the optimized trajectory at each iteration.
@@ -76,12 +75,8 @@ public:
    * @param filtered          Always false as this filter never changes the updates values.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      const Eigen::MatrixXd& parameters,
-                      Eigen::MatrixXd& updates,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered) override;
 
   /**
    * @brief Called by the Stomp at the end of the optimization process
@@ -91,23 +86,19 @@ public:
    * @param final_cost        The cost value after optimizing.
    * @param parameters        The parameters generated at the end of current iteration [num_dimensions x num_timesteps]
    */
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override;
-
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override;
 
   virtual std::string getName() const override
   {
     return name_ + "/" + group_name_;
   }
 
-
   virtual std::string getGroupName() const override
   {
     return group_name_;
   }
 
-
 protected:
-
   // identity
   std::string name_;
 
@@ -131,8 +122,6 @@ protected:
   // tool trajectory
   Eigen::MatrixXd tool_traj_line_;
   visualization_msgs::Marker tool_traj_marker_;
-
-
 };
 
 } /* namespace filters */

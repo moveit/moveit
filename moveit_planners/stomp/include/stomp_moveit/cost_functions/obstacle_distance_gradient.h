@@ -36,7 +36,8 @@ namespace cost_functions
 {
 /**
  * @class stomp_moveit::cost_functions::StompCostFunction
- * @brief Assigns a cost value to  each robot state by evaluating the minimum distance between the robot and the nearest obstacle.
+ * @brief Assigns a cost value to  each robot state by evaluating the minimum distance between the robot and the nearest
+ * obstacle.
  *
  * @par Examples:
  * All examples are located here @ref stomp_moveit_examples
@@ -64,7 +65,6 @@ public:
    */
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
-
   /**
    * @brief Stores the planning details which will be used during the costs calculations.
    * @param planning_scene      A smart pointer to the planning scene
@@ -74,8 +74,8 @@ public:
    * @return  true if succeeded, false otherwise.
    */
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                                    const moveit_msgs::MotionPlanRequest &req,
-                                    const stomp_core::StompConfiguration &config,
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
                                     moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
@@ -99,24 +99,24 @@ public:
 
   virtual std::string getName() const override
   {
-    return name_ + "/" + group_name_  ;
+    return name_ + "/" + group_name_;
   }
 
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override;
-
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override;
 
 protected:
-
   /**
-   * @brief Checks for collision between consecutive points by dividing the joint move into sub-moves where the maximum joint motion
+   * @brief Checks for collision between consecutive points by dividing the joint move into sub-moves where the maximum
+   * joint motion
    *        can not exceed the @e longest_valid_joint_move value.
    * @param start                     The start joint pose
    * @param end                       The end joint pose
-   * @param longest_valid_joint_move  The maximum distance that the joints are allowed to move before checking for collisions.
+   * @param longest_valid_joint_move  The maximum distance that the joints are allowed to move before checking for
+   * collisions.
    * @return  True if the interval is collision free, false otherwise.
    */
-  bool checkIntermediateCollisions(const Eigen::VectorXd& start, const Eigen::VectorXd& end,double longest_valid_joint_move);
-
+  bool checkIntermediateCollisions(const Eigen::VectorXd& start, const Eigen::VectorXd& end,
+                                   double longest_valid_joint_move);
 
   std::string name_;
 
@@ -126,8 +126,8 @@ protected:
   moveit::core::RobotStatePtr robot_state_;
 
   // intermediate collision check support
-  std::array<moveit::core::RobotStatePtr,3 > intermediate_coll_states_;   /**< @brief Used in checking collisions between to consecutive poses*/
-
+  std::array<moveit::core::RobotStatePtr, 3>
+      intermediate_coll_states_; /**< @brief Used in checking collisions between to consecutive poses*/
 
   // planning context information
   planning_scene::PlanningSceneConstPtr planning_scene_;
@@ -138,9 +138,8 @@ protected:
   collision_detection::CollisionResult collision_result_;
 
   // parameters
-  double max_distance_;               /**< @brief maximum distance from at which the trajectory will be penalized */
-  double longest_valid_joint_move_;   /**< @brief how far can a joint move in between consecutive trajectory points */
-
+  double max_distance_;             /**< @brief maximum distance from at which the trajectory will be penalized */
+  double longest_valid_joint_move_; /**< @brief how far can a joint move in between consecutive trajectory points */
 };
 
 } /* namespace cost_functions */

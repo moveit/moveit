@@ -663,25 +663,21 @@ std::vector<OMPLPlannerDescription> MoveItConfigData::getOMPLPlanners()
 
 bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
 {
-
-
   YAML::Emitter emitter;
 
   emitter << YAML::BeginMap;
   // Output every group and the kinematic solver it can use ----------------------------------
   for (std::vector<srdf::Model::Group>::iterator group_it = srdf_->groups_.begin(); group_it != srdf_->groups_.end();
-     ++group_it)
+       ++group_it)
   {
-
     std::string stomp = "stomp/";
     std::string temp = stomp + group_it->name_;
 
     emitter << YAML::Key << temp;
     emitter << YAML::Value << YAML::BeginMap;
 
-
-    //emitter << YAML::Key << "stomp/panda_arm";
-    //emitter << YAML::Value << YAML::BeginMap;
+    // emitter << YAML::Key << "stomp/panda_arm";
+    // emitter << YAML::Value << YAML::BeginMap;
     emitter << YAML::Key << "group_name";
     emitter << YAML::Value << group_it->name_;
     emitter << YAML::Key << "optimization";
@@ -702,7 +698,6 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << "control_cost_weight";
     emitter << YAML::Value << "0.0";
     emitter << YAML::EndMap;
-
 
     emitter << YAML::Key << "task";
     emitter << YAML::Value << YAML::BeginMap;
@@ -735,7 +730,6 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::EndMap;
     emitter << YAML::EndSeq;
 
-
     emitter << YAML::Key << "noisy_filters";
     emitter << YAML::Value << YAML::BeginSeq;
     emitter << YAML::BeginMap;
@@ -746,7 +740,6 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::Key << "lock_goal";
     emitter << YAML::Value << "True";
     emitter << YAML::EndMap;
-
 
     emitter << YAML::BeginMap;
     emitter << YAML::Key << "class";
@@ -762,7 +755,6 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::Value << "noisy";
     emitter << YAML::EndMap;
     emitter << YAML::EndSeq;
-
 
     emitter << YAML::Key << "update_filters";
     emitter << YAML::Value << YAML::BeginSeq;
@@ -789,15 +781,14 @@ bool MoveItConfigData::outputSTOMPPlanningYAML(const std::string& file_path)
     emitter << YAML::EndMap;
     emitter << YAML::EndSeq;
 
-
     emitter << YAML::EndMap;
     emitter << YAML::EndMap;
-
   }
-    emitter << YAML::EndMap;
+  emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
-  if (!output_stream.good()) {
+  if (!output_stream.good())
+  {
     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }
@@ -1325,7 +1316,6 @@ bool MoveItConfigData::inputOMPLYAML(const std::string& file_path)
   }
   return true;
 }
-
 
 // ******************************************************************************************
 // Input kinematics.yaml file
