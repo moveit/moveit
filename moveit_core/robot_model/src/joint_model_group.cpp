@@ -244,7 +244,7 @@ JointModelGroup::JointModelGroup(const std::string& group_name, const srdf::Mode
     updated_link_model_with_geometry_name_vector_.push_back(updated_link_model_with_geometry_vector_[i]->getName());
 
   // check if this group should actually be a chain
-  if (joint_roots_.size() == 1 && active_joint_model_vector_.size() > 1)
+  if (joint_roots_.size() == 1 && active_joint_model_vector_.size() >= 1)
   {
     bool chain = true;
     // due to our sorting, the joints are sorted in a DF fashion, so looking at them in reverse,
