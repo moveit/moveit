@@ -35,7 +35,6 @@ namespace stomp_moveit
 {
 namespace update_filters
 {
-
 /**
  * @class stomp_moveit::update_filters
  * @brief Uses a Control Cost Matrix projection in order to smooth out the trajectory.
@@ -52,17 +51,17 @@ public:
   virtual ~ControlCostProjection();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief smoothes the updates array.  Uses the Control Cost Matrix projection.
@@ -71,16 +70,13 @@ public:
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
    * @param iteration_number  The current iteration count in the optimization loop
    * @param parameters        The parameters generated in the previous iteration [num_dimensions x num_timesteps]
-   * @param updates           Output argument which contains the updates to be applied to the parameters [num_dimensions x num_timesteps]
+   * @param updates           Output argument which contains the updates to be applied to the parameters [num_dimensions
+   * x num_timesteps]
    * @param filtered          Output argument which is set to 'true' if the updates were modified.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      const Eigen::MatrixXd& parameters,
-                      Eigen::MatrixXd& updates,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered) override;
 
   virtual std::string getGroupName() const
   {
@@ -93,7 +89,6 @@ public:
   }
 
 protected:
-
   // local
   std::string name_;
 
@@ -104,7 +99,6 @@ protected:
   // smoothing matrix
   int num_timesteps_;
   Eigen::MatrixXd projection_matrix_M_;
-
 };
 
 } /* namespace smoothers */

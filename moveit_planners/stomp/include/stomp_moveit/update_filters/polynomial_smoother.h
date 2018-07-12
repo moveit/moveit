@@ -34,7 +34,6 @@ namespace stomp_moveit
 {
 namespace update_filters
 {
-
 /**
  * @class stomp_moveit::update_filters::PolynomialSmoother
  * @brief This is a constrained polynomial trajectory smoother.
@@ -63,17 +62,17 @@ public:
   virtual ~PolynomialSmoother();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief smoothes the updates array by using a constrained polynomial fit.
@@ -86,12 +85,8 @@ public:
    * @param filtered          set ot 'true' if the updates were modified.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      const Eigen::MatrixXd& parameters,
-                      Eigen::MatrixXd& updates,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered) override;
 
   virtual std::string getGroupName() const
   {
@@ -104,7 +99,6 @@ public:
   }
 
 protected:
-
   std::string name_;
   std::string group_name_;
 

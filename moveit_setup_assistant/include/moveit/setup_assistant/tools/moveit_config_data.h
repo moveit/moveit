@@ -356,7 +356,6 @@ public:
    */
   bool inputOMPLYAML(const std::string& file_path);
 
-
   /**
    * Input kinematics.yaml file for editing its values
    * @param file_path path to kinematics.yaml in the input package

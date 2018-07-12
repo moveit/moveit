@@ -29,7 +29,7 @@
 #include <stomp_moveit/utils/kinematics.h>
 #include <ros/console.h>
 
-PLUGINLIB_EXPORT_CLASS(stomp_moveit::cost_functions::ToolGoalPose,stomp_moveit::cost_functions::StompCostFunction);
+PLUGINLIB_EXPORT_CLASS(stomp_moveit::cost_functions::ToolGoalPose, stomp_moveit::cost_functions::StompCostFunction);
 
 static const int CARTESIAN_DOF_SIZE = 6;
 
@@ -37,12 +37,9 @@ namespace stomp_moveit
 {
 namespace cost_functions
 {
-
-ToolGoalPose::ToolGoalPose():
-    name_("ToolGoalPose")
+ToolGoalPose::ToolGoalPose() : name_("ToolGoalPose")
 {
   // TODO Auto-generated constructor stub
-
 }
 
 ToolGoalPose::~ToolGoalPose()
@@ -50,8 +47,8 @@ ToolGoalPose::~ToolGoalPose()
   // TODO Auto-generated destructor stub
 }
 
-bool ToolGoalPose::initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                        const std::string& group_name,XmlRpc::XmlRpcValue& config)
+bool ToolGoalPose::initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                              XmlRpc::XmlRpcValue& config)
 {
   group_name_ = group_name;
   robot_model_ = robot_model_ptr;
@@ -71,16 +68,16 @@ bool ToolGoalPose::configure(const XmlRpc::XmlRpcValue& config)
     XmlRpcValue pos_error_range_param = params["position_error_range"];
     XmlRpcValue orient_error_range_param = params["orientation_error_range"];
 
-    if((dof_nullity_param.getType() != XmlRpcValue::TypeArray) || dof_nullity_param.size() < CARTESIAN_DOF_SIZE ||
+    if ((dof_nullity_param.getType() != XmlRpcValue::TypeArray) || dof_nullity_param.size() < CARTESIAN_DOF_SIZE ||
         (pos_error_range_param.getType() != XmlRpcValue::TypeArray) || pos_error_range_param.size() != 2 ||
-        (orient_error_range_param.getType() != XmlRpcValue::TypeArray) || orient_error_range_param.size() != 2 )
+        (orient_error_range_param.getType() != XmlRpcValue::TypeArray) || orient_error_range_param.size() != 2)
     {
-      ROS_ERROR("%s received invalid array parameters",getName().c_str());
+      ROS_ERROR("%s received invalid array parameters", getName().c_str());
       return false;
     }
 
     dof_nullity_.resize(CARTESIAN_DOF_SIZE);
-    for(auto i = 0u; i < dof_nullity_param.size(); i++)
+    for (auto i = 0u; i < dof_nullity_param.size(); i++)
     {
       dof_nullity_(i) = static_cast<int>(dof_nullity_param[i]);
     }
@@ -97,11 +94,10 @@ bool ToolGoalPose::configure(const XmlRpc::XmlRpcValue& config)
 
     // total weight
     cost_weight_ = position_cost_weight_ + orientation_cost_weight_;
-
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
-    ROS_ERROR("%s failed to load parameters, %s",getName().c_str(),e.getMessage().c_str());
+    ROS_ERROR("%s failed to load parameters, %s", getName().c_str(), e.getMessage().c_str());
     return false;
   }
 
@@ -109,9 +105,9 @@ bool ToolGoalPose::configure(const XmlRpc::XmlRpcValue& config)
 }
 
 bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                 const moveit_msgs::MotionPlanRequest &req,
-                 const stomp_core::StompConfiguration &config,
-                 moveit_msgs::MoveItErrorCodes& error_code)
+                                        const moveit_msgs::MotionPlanRequest& req,
+                                        const stomp_core::StompConfiguration& config,
+                                        moveit_msgs::MoveItErrorCodes& error_code)
 {
   using namespace Eigen;
   using namespace moveit::core;
@@ -120,10 +116,10 @@ bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConst
   int num_joints = joint_group->getActiveJointModels().size();
   tool_link_ = joint_group->getLinkModelNames().back();
   state_.reset(new RobotState(robot_model_));
-  robotStateMsgToRobotState(req.start_state,*state_);
+  robotStateMsgToRobotState(req.start_state, *state_);
 
   const std::vector<moveit_msgs::Constraints>& goals = req.goal_constraints;
-  if(goals.empty())
+  if (goals.empty())
   {
     ROS_ERROR("A goal constraint was not provided");
     error_code.val = error_code.INVALID_GOAL_CONSTRAINTS;
@@ -132,10 +128,9 @@ bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConst
 
   // storing tool goal pose
   bool found_goal = false;
-  for(const auto& g: goals)
+  for (const auto& g : goals)
   {
-    if(!g.position_constraints.empty() &&
-        !g.orientation_constraints.empty())
+    if (!g.position_constraints.empty() && !g.orientation_constraints.empty())
     {
       // tool cartesian goal
       const moveit_msgs::PositionConstraint& pos_constraint = g.position_constraints.front();
@@ -144,19 +139,18 @@ bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConst
       geometry_msgs::Pose pose;
       pose.position = pos_constraint.constraint_region.primitive_poses[0].position;
       pose.orientation = orient_constraint.orientation;
-      tf::poseMsgToEigen(pose,tool_goal_pose_);
+      tf::poseMsgToEigen(pose, tool_goal_pose_);
       found_goal = true;
       break;
-
     }
 
-
-    if(!found_goal)
+    if (!found_goal)
     {
-      ROS_WARN("%s a cartesian goal pose in MotionPlanRequest was not provided,calculating it from FK",getName().c_str());
+      ROS_WARN("%s a cartesian goal pose in MotionPlanRequest was not provided,calculating it from FK",
+               getName().c_str());
 
       // check joint constraints
-      if(g.joint_constraints.empty())
+      if (g.joint_constraints.empty())
       {
         ROS_ERROR_STREAM("No joint values for the goal were found");
         error_code.val = error_code.INVALID_GOAL_CONSTRAINTS;
@@ -167,9 +161,9 @@ bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConst
       const std::vector<moveit_msgs::JointConstraint>& joint_constraints = g.joint_constraints;
 
       // copying goal values into state
-      for(auto& jc: joint_constraints)
+      for (auto& jc : joint_constraints)
       {
-        state_->setVariablePosition(jc.joint_name,jc.position);
+        state_->setVariablePosition(jc.joint_name, jc.position);
       }
 
       // storing reference goal position tool and pose
@@ -180,38 +174,30 @@ bool ToolGoalPose::setMotionPlanRequest(const planning_scene::PlanningSceneConst
     }
   }
 
-
-
   return true;
 }
 
-bool ToolGoalPose::computeCosts(const Eigen::MatrixXd& parameters,
-                          std::size_t start_timestep,
-                          std::size_t num_timesteps,
-                          int iteration_number,
-                          int rollout_number,
-                          Eigen::VectorXd& costs,
-                          bool& validity)
+bool ToolGoalPose::computeCosts(const Eigen::MatrixXd& parameters, std::size_t start_timestep,
+                                std::size_t num_timesteps, int iteration_number, int rollout_number,
+                                Eigen::VectorXd& costs, bool& validity)
 {
-
   using namespace Eigen;
   using namespace utils::kinematics;
   validity = true;
 
-  auto compute_scaled_error = [](const double& raw_cost,const std::pair<double,double>& range,bool& below_min)
-  {
+  auto compute_scaled_error = [](const double& raw_cost, const std::pair<double, double>& range, bool& below_min) {
     below_min = false;
 
     // error above range
-    if(raw_cost > range.second)
+    if (raw_cost > range.second)
     {
       return 1.0;
     }
 
     // error in range
-    if(raw_cost >= range.first)
+    if (raw_cost >= range.first)
     {
-      return raw_cost/(range.second - range.first);
+      return raw_cost / (range.second - range.first);
     }
 
     // error below range
@@ -223,24 +209,23 @@ bool ToolGoalPose::computeCosts(const Eigen::MatrixXd& parameters,
   costs.setConstant(0.0);
 
   last_joint_pose_ = parameters.rightCols(1);
-  state_->setJointGroupPositions(group_name_,last_joint_pose_);
+  state_->setJointGroupPositions(group_name_, last_joint_pose_);
   last_tool_pose_ = state_->getGlobalLinkTransform(tool_link_);
 
-  computeTwist(last_tool_pose_,tool_goal_pose_,dof_nullity_,tool_twist_error_);
+  computeTwist(last_tool_pose_, tool_goal_pose_, dof_nullity_, tool_twist_error_);
 
-  double pos_error = tool_twist_error_.segment(0,3).norm();
-  double orientation_error = tool_twist_error_.segment(3,3).norm();
-
+  double pos_error = tool_twist_error_.segment(0, 3).norm();
+  double orientation_error = tool_twist_error_.segment(3, 3).norm();
 
   // scaling errors so that max total error  = pos_weight + orient_weight
   bool valid;
-  pos_error = compute_scaled_error(pos_error,position_error_range_,valid);
+  pos_error = compute_scaled_error(pos_error, position_error_range_, valid);
   validity &= valid;
 
-  orientation_error = compute_scaled_error(orientation_error,orientation_error_range_,valid);
+  orientation_error = compute_scaled_error(orientation_error, orientation_error_range_, valid);
   validity &= valid;
 
-  costs(costs.size()-1) = pos_error*position_cost_weight_ + orientation_error * orientation_cost_weight_;
+  costs(costs.size() - 1) = pos_error * position_cost_weight_ + orientation_error * orientation_cost_weight_;
 
   return true;
 }

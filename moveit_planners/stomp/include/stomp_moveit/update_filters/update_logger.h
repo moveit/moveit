@@ -33,7 +33,6 @@ namespace stomp_moveit
 {
 namespace update_filters
 {
-
 /**
  * @class stomp_moveit::update_filters::UpdateLogger
  * @brief Saves the update values into a file for post analysis.  The file is compatible with the python numpy
@@ -51,17 +50,17 @@ public:
   virtual ~UpdateLogger();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config);
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config);
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config);
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code);
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code);
 
   /**
    * @brief Store the updates values into a file that can be loaded into a numpy array.
@@ -74,12 +73,8 @@ public:
    * @param filtered          Always false as this filter never changes the updates values.
    * @return false if there was an irrecoverable failure, true otherwise.
    */
-  virtual bool filter(std::size_t start_timestep,
-                      std::size_t num_timesteps,
-                      int iteration_number,
-                      const Eigen::MatrixXd& parameters,
-                      Eigen::MatrixXd& updates,
-                      bool& filtered) override;
+  virtual bool filter(std::size_t start_timestep, std::size_t num_timesteps, int iteration_number,
+                      const Eigen::MatrixXd& parameters, Eigen::MatrixXd& updates, bool& filtered) override;
 
   virtual std::string getGroupName() const override
   {
@@ -91,10 +86,9 @@ public:
     return name_ + "/" + group_name_;
   }
 
-  virtual void done(bool success, int total_iterations,double final_cost,const Eigen::MatrixXd& parameters) override;
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters) override;
 
 protected:
-
   std::string name_;
   std::string group_name_;
 
@@ -111,7 +105,6 @@ protected:
   std::string full_file_name_;
   std::ofstream file_stream_;
   Eigen::IOFormat format_;
-
 };
 
 } /* namespace smoothers */

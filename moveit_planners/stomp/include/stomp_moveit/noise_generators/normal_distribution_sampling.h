@@ -31,10 +31,8 @@
 
 namespace stomp_moveit
 {
-
 namespace noise_generators
 {
-
 /**
  * @class stomp_moveit::noise_generators::NormalDistributionSampling
  * @brief Uses a normal distribution to apply noise onto the trajectory.
@@ -42,28 +40,29 @@ namespace noise_generators
  * @par Examples:
  * All examples are located here @ref stomp_moveit_examples
  */
-class NormalDistributionSampling: public StompNoiseGenerator
+class NormalDistributionSampling : public StompNoiseGenerator
 {
 public:
   NormalDistributionSampling();
   virtual ~NormalDistributionSampling();
 
   /** @brief see base class for documentation*/
-  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr,
-                          const std::string& group_name,const XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(moveit::core::RobotModelConstPtr robot_model_ptr, const std::string& group_name,
+                          const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool configure(const XmlRpc::XmlRpcValue& config) override;
 
   /** @brief see base class for documentation*/
   virtual bool setMotionPlanRequest(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                   const moveit_msgs::MotionPlanRequest &req,
-                   const stomp_core::StompConfiguration &config,
-                   moveit_msgs::MoveItErrorCodes& error_code) override;
+                                    const moveit_msgs::MotionPlanRequest& req,
+                                    const stomp_core::StompConfiguration& config,
+                                    moveit_msgs::MoveItErrorCodes& error_code) override;
 
   /**
    * @brief Generates a noisy trajectory from the parameters.
-   * @param parameters        The current value of the optimized parameters to add noise to [num_dimensions x num_parameters]
+   * @param parameters        The current value of the optimized parameters to add noise to [num_dimensions x
+   * num_parameters]
    * @param start_timestep    start index into the 'parameters' array, usually 0.
    * @param num_timesteps     number of elements to use from 'parameters' starting from 'start_timestep'
    * @param iteration_number  The current iteration count in the optimization loop
@@ -72,13 +71,9 @@ public:
    * @param noise             the noise applied to the parameters
    * @return true if cost were properly computed
    */
-  virtual bool generateNoise(const Eigen::MatrixXd& parameters,
-                                       std::size_t start_timestep,
-                                       std::size_t num_timesteps,
-                                       int iteration_number,
-                                       int rollout_number,
-                                       Eigen::MatrixXd& parameters_noise,
-                                       Eigen::MatrixXd& noise) override;
+  virtual bool generateNoise(const Eigen::MatrixXd& parameters, std::size_t start_timestep, std::size_t num_timesteps,
+                             int iteration_number, int rollout_number, Eigen::MatrixXd& parameters_noise,
+                             Eigen::MatrixXd& noise) override;
 
   /**
    * @brief Called by the Stomp at the end of the optimization process
@@ -88,14 +83,14 @@ public:
    * @param final_cost        The cost value after optimizing.
    * @param parameters        The parameters generated at the end of current iteration [num_dimensions x num_timesteps]
    */
-  virtual void done(bool success,int total_iterations,double final_cost,const Eigen::MatrixXd& parameters){}
-
+  virtual void done(bool success, int total_iterations, double final_cost, const Eigen::MatrixXd& parameters)
+  {
+  }
 
   virtual std::string getName() const
   {
     return name_ + "/" + group_;
   }
-
 
   virtual std::string getGroupName() const
   {
@@ -103,7 +98,6 @@ public:
   }
 
 protected:
-
   // names
   std::string name_;
   std::string group_;
@@ -112,7 +106,6 @@ protected:
   std::vector<utils::MultivariateGaussianPtr> rand_generators_;
   Eigen::VectorXd raw_noise_;
   std::vector<double> stddev_;
-
 };
 
 } /* namespace noise_generators */
