@@ -309,7 +309,8 @@ bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
   emitter << YAML::EndMap;
 
   std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
-  if (!output_stream.good()) {
+  if (!output_stream.good())
+  {
     ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
     return false;
   }

@@ -130,7 +130,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
   moveit::core::RobotState goal_robot_state = planning_scene->getCurrentState();
   goal_robot_state.setVariablePositions(
-          active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
+      active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
 
   if (not goal_robot_state.satisfiesBounds())
   {
@@ -140,11 +140,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   // fill in an initial trajectory based on user choice from the chomp_config.yaml file
-  if(params.trajectory_initialization_method_.compare("quintic-spline") == 0)
+  if (params.trajectory_initialization_method_.compare("quintic-spline") == 0)
     trajectory.fillInMinJerk();
-  else if(params.trajectory_initialization_method_.compare("linear") == 0)
+  else if (params.trajectory_initialization_method_.compare("linear") == 0)
     trajectory.fillInLinearInterpolation();
-  else if(params.trajectory_initialization_method_.compare("cubic") == 0)
+  else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
   else
     ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
