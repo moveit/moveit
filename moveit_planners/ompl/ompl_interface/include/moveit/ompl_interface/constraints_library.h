@@ -55,9 +55,9 @@ MOVEIT_CLASS_FORWARD(ConstraintApproximation)
 class ConstraintApproximation
 {
 public:
-  ConstraintApproximation(const std::string& group, const std::string& state_space_parameterization,
-                          bool explicit_motions, const moveit_msgs::Constraints& msg, const std::string& filename,
-                          const ompl::base::StateStoragePtr& storage, std::size_t milestones = 0);
+  ConstraintApproximation(std::string group, std::string state_space_parameterization, bool explicit_motions,
+                          moveit_msgs::Constraints msg, std::string filename, ompl::base::StateStoragePtr storage,
+                          std::size_t milestones = 0);
 
   virtual ~ConstraintApproximation()
   {

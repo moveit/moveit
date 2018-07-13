@@ -166,7 +166,7 @@ public:
     double distance;
   };
 
-  ModelBasedStateSpace(const ModelBasedStateSpaceSpecification& spec);
+  ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec);
   virtual ~ModelBasedStateSpace();
 
   void setInterpolationFunction(const InterpolationFunction& fun)

@@ -73,7 +73,7 @@ private:
 class ProjectionEvaluatorJointValue : public ompl::base::ProjectionEvaluator
 {
 public:
-  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc, const std::vector<unsigned int>& variables);
+  ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc, std::vector<unsigned int> variables);
 
   virtual unsigned int getDimension() const;
   virtual void defaultCellSizes();

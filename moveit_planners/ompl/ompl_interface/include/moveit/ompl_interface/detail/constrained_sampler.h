@@ -53,7 +53,7 @@ public:
    *  @param pg The planning group
    *  @param cs A pointer to a kinematic constraint sampler
    */
-  ConstrainedSampler(const ModelBasedPlanningContext* pc, const constraint_samplers::ConstraintSamplerPtr& cs);
+  ConstrainedSampler(const ModelBasedPlanningContext* pc, constraint_samplers::ConstraintSamplerPtr cs);
 
   /** @brief Sample a state (uniformly)*/
   virtual void sampleUniform(ompl::base::State* state);

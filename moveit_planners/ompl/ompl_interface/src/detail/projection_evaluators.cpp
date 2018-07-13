@@ -38,6 +38,8 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
 
+#include <utility>
+
 ompl_interface::ProjectionEvaluatorLinkPose::ProjectionEvaluatorLinkPose(const ModelBasedPlanningContext* pc,
                                                                          const std::string& link)
   : ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace())
@@ -73,8 +75,8 @@ void ompl_interface::ProjectionEvaluatorLinkPose::project(const ompl::base::Stat
 }
 
 ompl_interface::ProjectionEvaluatorJointValue::ProjectionEvaluatorJointValue(const ModelBasedPlanningContext* pc,
-                                                                             const std::vector<unsigned int>& variables)
-  : ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc), variables_(variables)
+                                                                             std::vector<unsigned int> variables)
+  : ompl::base::ProjectionEvaluator(pc->getOMPLStateSpace()), planning_context_(pc), variables_(std::move(variables))
 {
 }
 

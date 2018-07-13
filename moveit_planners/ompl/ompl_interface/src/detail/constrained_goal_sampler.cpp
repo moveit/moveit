@@ -39,14 +39,16 @@
 #include <moveit/ompl_interface/detail/state_validity_checker.h>
 #include <moveit/profiler/profiler.h>
 
-ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(
-    const ModelBasedPlanningContext* pc, const kinematic_constraints::KinematicConstraintSetPtr& ks,
-    const constraint_samplers::ConstraintSamplerPtr& cs)
+#include <utility>
+
+ompl_interface::ConstrainedGoalSampler::ConstrainedGoalSampler(const ModelBasedPlanningContext* pc,
+                                                               kinematic_constraints::KinematicConstraintSetPtr ks,
+                                                               constraint_samplers::ConstraintSamplerPtr cs)
   : ob::GoalLazySamples(pc->getOMPLSimpleSetup()->getSpaceInformation(),
                         boost::bind(&ConstrainedGoalSampler::sampleUsingConstraintSampler, this, _1, _2), false)
   , planning_context_(pc)
-  , kinematic_constraint_set_(ks)
-  , constraint_sampler_(cs)
+  , kinematic_constraint_set_(std::move(ks))
+  , constraint_sampler_(std::move(cs))
   , work_state_(pc->getCompleteInitialRobotState())
   , invalid_sampled_constraints_(0)
   , warned_invalid_samples_(false)

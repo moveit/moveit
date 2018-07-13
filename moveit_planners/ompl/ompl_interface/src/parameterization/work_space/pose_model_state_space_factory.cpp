@@ -60,11 +60,10 @@ int ompl_interface::PoseModelStateSpaceFactory::canRepresentProblem(const std::s
       // or an IK solver for each of the subgroups
       unsigned int vc = 0;
       unsigned int bc = 0;
-      for (robot_model::JointModelGroup::KinematicsSolverMap::const_iterator jt = slv.second.begin();
-           jt != slv.second.end(); ++jt)
+      for (const auto& jt : slv.second)
       {
-        vc += jt->first->getVariableCount();
-        bc += jt->second.bijection_.size();
+        vc += jt.first->getVariableCount();
+        bc += jt.second.bijection_.size();
       }
       if (vc == jmg->getVariableCount() && vc == bc)
         ik = true;

@@ -39,6 +39,7 @@
 #include <moveit/profiler/profiler.h>
 #include <algorithm>
 #include <set>
+#include <utility>
 
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/pRRT.h>
@@ -108,10 +109,10 @@ struct PlanningContextManager::CachedContexts
 
 }  // namespace ompl_interface
 
-ompl_interface::PlanningContextManager::PlanningContextManager(
-    const robot_model::RobotModelConstPtr& kmodel, const constraint_samplers::ConstraintSamplerManagerPtr& csm)
-  : kmodel_(kmodel)
-  , constraint_sampler_manager_(csm)
+ompl_interface::PlanningContextManager::PlanningContextManager(robot_model::RobotModelConstPtr kmodel,
+                                                               constraint_samplers::ConstraintSamplerManagerPtr csm)
+  : kmodel_(std::move(kmodel))
+  , constraint_sampler_manager_(std::move(csm))
   , max_goal_samples_(10)
   , max_state_sampling_attempts_(4)
   , max_goal_sampling_attempts_(1000)
@@ -125,9 +126,7 @@ ompl_interface::PlanningContextManager::PlanningContextManager(
   registerDefaultStateSpaces();
 }
 
-ompl_interface::PlanningContextManager::~PlanningContextManager()
-{
-}
+ompl_interface::PlanningContextManager::~PlanningContextManager() = default;
 
 namespace
 {
@@ -149,7 +148,7 @@ static ompl::base::PlannerPtr allocatePlanner(const ob::SpaceInformationPtr& si,
 ompl_interface::ConfiguredPlannerAllocator
 ompl_interface::PlanningContextManager::plannerSelector(const std::string& planner) const
 {
-  std::map<std::string, ConfiguredPlannerAllocator>::const_iterator it = known_planners_.find(planner);
+  auto it = known_planners_.find(planner);
   if (it != known_planners_.end())
     return it->second;
   else
@@ -207,7 +206,7 @@ void ompl_interface::PlanningContextManager::setPlannerConfigurations(
 ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextManager::getPlanningContext(
     const std::string& config, const std::string& factory_type) const
 {
-  planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.find(config);
+  auto pc = planner_configs_.find(config);
 
   if (pc != planner_configs_.end())
   {
@@ -237,11 +236,11 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
         cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
     if (cc != cached_contexts_->contexts_.end())
     {
-      for (std::size_t i = 0; i < cc->second.size(); ++i)
-        if (cc->second[i].unique())
+      for (const auto& i : cc->second)
+        if (i.unique())
         {
           ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
-          context = cc->second[i];
+          context = i;
           break;
         }
     }
@@ -305,8 +304,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningContextManager::getStateSpaceFactory1(
     const std::string& /* dummy */, const std::string& factory_type) const
 {
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator f =
-      factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
+  auto f = factory_type.empty() ? state_space_factories_.begin() : state_space_factories_.find(factory_type);
   if (f != state_space_factories_.end())
     return f->second;
   else
@@ -321,10 +319,9 @@ const ompl_interface::ModelBasedStateSpaceFactoryPtr& ompl_interface::PlanningCo
     const std::string& group, const moveit_msgs::MotionPlanRequest& req) const
 {
   // find the problem representation to use
-  std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator best = state_space_factories_.end();
+  auto best = state_space_factories_.end();
   int prev_priority = -1;
-  for (std::map<std::string, ModelBasedStateSpaceFactoryPtr>::const_iterator it = state_space_factories_.begin();
-       it != state_space_factories_.end(); ++it)
+  for (auto it = state_space_factories_.begin(); it != state_space_factories_.end(); ++it)
   {
     int priority = it->second->canRepresentProblem(group, req, kmodel_);
     if (priority > 0)
@@ -369,7 +366,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   }
 
   // identify the correct planning configuration
-  planning_interface::PlannerConfigurationMap::const_iterator pc = planner_configs_.end();
+  auto pc = planner_configs_.end();
   if (!req.planner_id.empty())
   {
     pc = planner_configs_.find(req.planner_id.find(req.group_name) == std::string::npos ?
@@ -400,7 +397,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   // leading to invalid trajectories. This workaround lets the user prevent this problem by forcing rejection sampling
   // in JointModelStateSpace.
   StateSpaceFactoryTypeSelector factory_selector;
-  std::map<std::string, std::string>::const_iterator it = pc->second.config.find("enforce_joint_model_state_space");
+  auto it = pc->second.config.find("enforce_joint_model_state_space");
 
   if (it != pc->second.config.end() && boost::lexical_cast<bool>(it->second))
     factory_selector = boost::bind(&PlanningContextManager::getStateSpaceFactory1, this, _1,

@@ -38,12 +38,14 @@
 #include <moveit/ompl_interface/model_based_planning_context.h>
 #include <moveit/profiler/profiler.h>
 
+#include <utility>
+
 ompl_interface::ConstrainedSampler::ConstrainedSampler(const ModelBasedPlanningContext* pc,
-                                                       const constraint_samplers::ConstraintSamplerPtr& cs)
+                                                       constraint_samplers::ConstraintSamplerPtr cs)
   : ob::StateSampler(pc->getOMPLStateSpace().get())
   , planning_context_(pc)
   , default_(space_->allocDefaultStateSampler())
-  , constraint_sampler_(cs)
+  , constraint_sampler_(std::move(cs))
   , work_state_(pc->getCompleteInitialRobotState())
   , constrained_success_(0)
   , constrained_failure_(0)
