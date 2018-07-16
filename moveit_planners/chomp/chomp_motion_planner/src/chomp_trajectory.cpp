@@ -170,6 +170,43 @@ void ChompTrajectory::updateFromGroupTrajectory(const ChompTrajectory& group_tra
   }
 }
 
+void ChompTrajectory::fillInLinearInterpolation()
+{
+  double start_index = start_index_ - 1;
+  double end_index = end_index_ + 1;
+  int time_steps = end_index - start_index;
+  for (int i = 0; i < num_joints_; i++)
+  {
+    double theta = ((*this)(end_index, i) - (*this)(start_index, i)) / (end_index - 1);
+    for (int j = start_index + 1; j < end_index; j++)
+    {
+      (*this)(j, i) = (*this)(start_index, i) + j * theta;
+    }
+  }
+}
+
+void ChompTrajectory::fillInCubicInterpolation()
+{
+  double start_index = start_index_ - 1;
+  double end_index = end_index_ + 1;
+  double dt = 0.001;
+  std::vector<double> coeffs(4, 0);
+  double total_time = (end_index - 1) * dt;
+  for (int i = 0; i < num_joints_; i++)
+  {
+    coeffs[0] = (*this)(start_index, i);
+    coeffs[2] = (3 / (pow(total_time, 2))) * ((*this)(end_index, i) - (*this)(start_index, i));
+    coeffs[3] = (-2 / (pow(total_time, 3))) * ((*this)(end_index, i) - (*this)(start_index, i));
+
+    double t;
+    for (int j = start_index + 1; j < end_index; j++)
+    {
+      t = j * dt;
+      (*this)(j, i) = coeffs[0] + coeffs[2] * pow(t, 2) + coeffs[3] * pow(t, 3);
+    }
+  }
+}
+
 void ChompTrajectory::fillInMinJerk()
 {
   double start_index = start_index_ - 1;
