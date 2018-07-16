@@ -180,10 +180,13 @@ void ChompOptimizer::initialize()
 
   last_improvement_iteration_ = -1;
 
+  /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
+  /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
   // HMC initialization:
-  momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
+  // momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  // random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  // random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
   multivariate_gaussian_.clear();
   stochasticity_factor_ = 1.0;
   for (int i = 0; i < num_joints_; i++)
@@ -241,19 +244,6 @@ void ChompOptimizer::initialize()
           parent_model->getName();
     }
   }
-
-  // for(map<string, map<string, bool> >::iterator it = joint_parent_map_.begin(); it != joint_parent_map_.end(); it++)
-  // {
-  //   stringstream ss;
-  //   ss << it->first << " Parents : {";
-
-  //   for(map<string, bool>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++)
-  //   {
-  //     ss << it2->first << ",";
-  //   }
-  //   ss << "}";
-  //   ROS_INFO("%s",ss.str().c_str());
-  // }
 
   int start = free_vars_start_;
   int end = free_vars_end_;
@@ -335,11 +325,6 @@ void ChompOptimizer::optimize()
   double minimaThreshold = 0.05;
   bool should_break_out = false;
 
-  // if(parameters_->getAnimatePath())
-  // {
-  //   animatePath();
-  // }
-
   // iterate
   for (iteration_ = 0; iteration_ < parameters_->getMaxIterations(); iteration_++)
   {
@@ -351,6 +336,9 @@ void ChompOptimizer::optimize()
     double cost = cCost + sCost;
 
     // ROS_INFO_STREAM("Collision cost " << cCost << " smoothness cost " << sCost);
+
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
+    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
     // if(parameters_->getAddRandomness() && currentCostIter != -1)
     // {
@@ -368,6 +356,7 @@ void ChompOptimizer::optimize()
     //     currentCostIter = -1;
     //   }
     // }
+
     if (iteration_ == 0)
     {
       best_group_trajectory_ = group_trajectory_.getTrajectory();
@@ -388,6 +377,9 @@ void ChompOptimizer::optimize()
     // ROS_INFO_STREAM("Collision increments took " << (ros::WallTime::now()-coll_time));
     calculateTotalIncrements();
 
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
+    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+
     // if(!parameters_->getUseHamiltonianMonteCarlo())
     // {
     //   // non-stochastic version:
@@ -401,6 +393,7 @@ void ChompOptimizer::optimize()
     //   updatePositionFromMomentum();
     //   stochasticity_factor_ *= parameters_->getHmcAnnealingFactor();
     // }
+
     handleJointLimits();
     updateFullTrajectory();
 
@@ -416,6 +409,9 @@ void ChompOptimizer::optimize()
         should_break_out = true;
       }
       // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
+
+      /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
+      /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
       // ROS_DEBUG("Trajectory cost: %f (s=%f, c=%f)", getTrajectoryCost(), getSmoothnessCost(), getCollisionCost());
       // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
@@ -454,12 +450,14 @@ void ChompOptimizer::optimize()
       }
     }
 
-    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit() &&
-        !parameters_->getAnimatePath() && !parameters_->getAnimateEndeffector())
+    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit())
     {
       ROS_WARN("Breaking out early due to time limit constraints.");
       break;
     }
+
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
+    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
     // if(fabs(averageCostVelocity) < minimaThreshold && currentCostIter == -1 && !is_collision_free_ &&
     // parameters_->getAddRandomness())
@@ -501,21 +499,11 @@ void ChompOptimizer::optimize()
     //     ROS_INFO("Failed to exit minimum!");
     //   }
     //}
-    else if (currentCostIter == -1)
-    {
-      currentCostIter = 0;
-      averageCostVelocity = 0.0;
-    }
-
-    // if(parameters_->getAnimateEndeffector())
-    // {
-    //   animateEndeffector();
-    // }
-
-    // if(parameters_->getAnimatePath() && iteration_ % 25 == 0)
-    // {
-    //   animatePath();
-    // }
+    // else if (currentCostIter == -1)
+    //{
+    //  currentCostIter = 0;
+    //  averageCostVelocity = 0.0;
+    //}
 
     if (should_break_out)
     {
@@ -545,16 +533,8 @@ void ChompOptimizer::optimize()
     ROS_ERROR("Chomp path is not collision free!");
   }
 
-  // if(parameters_->getAnimatePath())
-  // {
-  //   animatePath();
-  // }
-
   group_trajectory_.getTrajectory() = best_group_trajectory_;
   updateFullTrajectory();
-
-  // if(parameters_->getAnimatePath())
-  //   animatePath();
 
   ROS_INFO("Terminated after %d iterations, using path from iteration %d", iteration_, last_improvement_iteration_);
   ROS_INFO("Optimization core finished in %f sec", (ros::WallTime::now() - start_time).toSec());
@@ -579,6 +559,9 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   moveit::core::robotStateToRobotStateMsg(start_state_, start_state_msg);
   return planning_scene_->isPathValid(start_state_msg, traj, planning_group_);
 }
+
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters
+/// values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
 // CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()
 // {
@@ -1001,6 +984,7 @@ void ChompOptimizer::performForwardKinematics()
             //   ROS_INFO_STREAM("Radius " << info.sphere_radii[k] << " potential " <<
             //   collision_point_potential_[i][j]);
             // }
+
             is_collision_free_ = false;
           }
           j++;
@@ -1079,6 +1063,8 @@ void ChompOptimizer::perturbTrajectory()
   }
 }
 
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters
+/// values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 // void ChompOptimizer::getRandomState(const RobotState currentState, const string& groupName, Eigen::VectorXd&
 // state_vec)
 // {
@@ -1126,6 +1112,7 @@ void ChompOptimizer::perturbTrajectory()
 //   }
 // }
 
+/*
 void ChompOptimizer::getRandomMomentum()
 {
   if (is_collision_free_)
@@ -1154,116 +1141,6 @@ void ChompOptimizer::updatePositionFromMomentum()
   double eps = parameters_->getHmcDiscretization();
   group_trajectory_.getFreeTrajectoryBlock() += eps * momentum_;
 }
-
-// void ChompOptimizer::animatePath()
-// {
-//   for(int i = free_vars_start_; i <= free_vars_end_; i++)
-//   {
-//     visualizeState(i);
-//     //ros::WallDuration(group_trajectory_.getDiscretization()).sleep();
-//     ros::WallDuration(.05).sleep();
-//   }
-// }
-
-// void ChompOptimizer::animateEndeffector()
-// {
-//   visualization_msgs::Marker msg;
-//   msg.points.resize(num_vars_free_);
-//   // int joint_index = planning_group_->chomp_joints_[num_joints_-1].kdl_joint_index_;
-//   int sn = (int)(num_collision_points_ - 1);
-//   for(int i = 0; i < num_vars_free_; ++i)
-//   {
-//     int j = i + free_vars_start_;
-//     msg.points[i].x = collision_point_pos_eigen_[j][sn][0];
-//     msg.points[i].y = collision_point_pos_eigen_[j][sn][1];
-//     msg.points[i].z = collision_point_pos_eigen_[j][sn][2];
-//   }
-//   msg.header.frame_id = collision_space_->getCollisionModelsInterface()->getRobotFrameId();
-//   msg.header.stamp = ros::Time();
-//   msg.ns = "chomp_endeffector";
-//   msg.id = 0;
-//   msg.type = visualization_msgs::Marker::SPHERE_LIST;
-//   msg.action = visualization_msgs::Marker::ADD;
-//   double scale = 0.05;
-//   msg.scale.x = scale;
-//   msg.scale.y = scale;
-//   msg.scale.z = scale;
-//   msg.color.a = 0.6;
-//   msg.color.r = 0.5;
-//   msg.color.g = 1.0;
-//   msg.color.b = 0.3;
-//   vis_marker_pub_.publish(msg);
-//   ros::WallDuration(0.1).sleep();
-
-// }
-
-// void ChompOptimizer::visualizeState(int index)
-// {
-
-//   visualization_msgs::MarkerArray msg;
-//   msg.markers.resize(num_collision_points_ + num_joints_);
-//   int num_arrows = 0;
-//   double potential_threshold = 1e-10;
-//   for(int i = 0; i < num_collision_points_; i++)
-//   {
-//     msg.markers[i].header.frame_id = collision_space_->getCollisionModelsInterface()->getRobotFrameId();
-//     msg.markers[i].header.stamp = ros::Time();
-//     msg.markers[i].ns = "chomp_collisions";
-//     msg.markers[i].id = i;
-//     msg.markers[i].type = visualization_msgs::Marker::SPHERE;
-//     msg.markers[i].action = visualization_msgs::Marker::ADD;
-//     msg.markers[i].pose.position.x = collision_point_pos_eigen_[index][i][0];
-//     msg.markers[i].pose.position.y = collision_point_pos_eigen_[index][i][1];
-//     msg.markers[i].pose.position.z = collision_point_pos_eigen_[index][i][2];
-//     msg.markers[i].pose.orientation.x = 0.0;
-//     msg.markers[i].pose.orientation.y = 0.0;
-//     msg.markers[i].pose.orientation.z = 0.0;
-//     msg.markers[i].pose.orientation.w = 1.0;
-//     double scale = 0.1;
-//     msg.markers[i].scale.x = scale;
-//     msg.markers[i].scale.y = scale;
-//     msg.markers[i].scale.z = scale;
-//     msg.markers[i].color.a = 0.6;
-//     msg.markers[i].color.r = 0.5;
-//     msg.markers[i].color.g = 1.0;
-//     msg.markers[i].color.b = 0.3;
-//     if(collision_point_potential_[index][i] > potential_threshold)
-//       num_arrows++;
-//   }
-
-//   vis_marker_array_pub_.publish(msg);
-
-//   // publish arrows for distance field:
-//   msg.markers.resize(0);
-//   msg.markers.resize(num_collision_points_);
-//   for(int i = 0; i < num_collision_points_; i++)
-//   {
-//     msg.markers[i].header.frame_id = collision_space_->getCollisionModelsInterface()->getRobotFrameId();
-//     msg.markers[i].header.stamp = ros::Time();
-//     msg.markers[i].ns = "chomp_arrows";
-//     msg.markers[i].id = i;
-//     msg.markers[i].type = visualization_msgs::Marker::ARROW;
-//     msg.markers[i].action = visualization_msgs::Marker::ADD;
-//     msg.markers[i].points.resize(2);
-//     msg.markers[i].points[0].x = collision_point_pos_eigen_[index][i](0);
-//     msg.markers[i].points[0].y = collision_point_pos_eigen_[index][i](1);
-//     msg.markers[i].points[0].z = collision_point_pos_eigen_[index][i](2);
-//     msg.markers[i].points[1] = msg.markers[i].points[0];
-//     double scale = 0.25f;
-//     if(collision_point_potential_[index][i] <= potential_threshold)
-//       scale = 0.0;
-//     msg.markers[i].points[1].x += scale * collision_point_potential_gradient_[index][i](0);
-//     msg.markers[i].points[1].y += scale * collision_point_potential_gradient_[index][i](1);
-//     msg.markers[i].points[1].z += scale * collision_point_potential_gradient_[index][i](2);
-//     msg.markers[i].scale.x = 0.01;
-//     msg.markers[i].scale.y = 0.03;
-//     msg.markers[i].color.a = 0.5;
-//     msg.markers[i].color.r = 0.5;
-//     msg.markers[i].color.g = 0.5;
-//     msg.markers[i].color.b = 1.0;
-//   }
-//   vis_marker_array_pub_.publish(msg);
-
-// }
+*/
 
 }  // namespace chomp

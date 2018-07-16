@@ -116,6 +116,20 @@ public:
   void fillInMinJerk();
 
   /**
+   * \brief Generates a linearly interpolated trajectory from the start index to end index
+   *
+   * Only modifies points from start_index_ to end_index_, inclusive
+   */
+  void fillInLinearInterpolation();
+
+  /**
+   * \brief Generates a cubic interpolation of the trajectory from the start index to end index
+   *
+   * Only modifies points from start_index_ to end_index_, inclusive
+   */
+  void fillInCubicInterpolation();
+
+  /**
    * \brief Sets the start and end index for the modifiable part of the trajectory
    *
    * (Everything before the start and after the end index is considered fixed)
