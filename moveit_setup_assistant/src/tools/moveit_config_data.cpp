@@ -283,6 +283,45 @@ bool MoveItConfigData::outputOMPLPlanningYAML(const std::string& file_path)
 }
 
 // ******************************************************************************************
+// Output CHOMP Planning config files
+// ******************************************************************************************
+bool MoveItConfigData::outputCHOMPPlanningYAML(const std::string& file_path)
+{
+  YAML::Emitter emitter;
+
+  emitter << YAML::Value << YAML::BeginMap;
+  emitter << YAML::Key << "planning_time_limit" << YAML::Value << "10.0";
+  emitter << YAML::Key << "max_iterations" << YAML::Value << "200";
+  emitter << YAML::Key << "max_iterations_after_collision_free" << YAML::Value << "5";
+  emitter << YAML::Key << "smoothness_cost_weight" << YAML::Value << "0.1";
+  emitter << YAML::Key << "obstacle_cost_weight" << YAML::Value << "1.0";
+  emitter << YAML::Key << "learning_rate" << YAML::Value << "0.01";
+  emitter << YAML::Key << "smoothness_cost_velocity" << YAML::Value << "0.0";
+  emitter << YAML::Key << "smoothness_cost_acceleration" << YAML::Value << "1.0";
+  emitter << YAML::Key << "smoothness_cost_jerk" << YAML::Value << "0.0";
+  emitter << YAML::Key << "ridge_factor" << YAML::Value << "0.01";
+  emitter << YAML::Key << "use_pseudo_inverse" << YAML::Value << "false";
+  emitter << YAML::Key << "pseudo_inverse_ridge_factor" << YAML::Value << "1e-4";
+  emitter << YAML::Key << "joint_update_limit" << YAML::Value << "0.1";
+  emitter << YAML::Key << "collision_clearence" << YAML::Value << "0.2";
+  emitter << YAML::Key << "collision_threshold" << YAML::Value << "0.07";
+  emitter << YAML::Key << "use_stochastic_descent" << YAML::Value << "true";
+  emitter << YAML::EndMap;
+
+  std::ofstream output_stream(file_path.c_str(), std::ios_base::trunc);
+  if (!output_stream.good())
+  {
+    ROS_ERROR_STREAM("Unable to open file for writing " << file_path);
+    return false;
+  }
+
+  output_stream << emitter.c_str();
+  output_stream.close();
+
+  return true;  // file created successfully
+}
+
+// ******************************************************************************************
 // Output kinematic config files
 // ******************************************************************************************
 bool MoveItConfigData::outputKinematicsYAML(const std::string& file_path)
