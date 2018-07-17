@@ -61,7 +61,7 @@ public:
 
   virtual ~ChompOptimizer();
 
-  void optimize();
+  int optimize();
 
   inline void destroy()
   {

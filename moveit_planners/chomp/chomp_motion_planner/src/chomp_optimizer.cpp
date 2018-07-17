@@ -180,13 +180,12 @@ void ChompOptimizer::initialize()
 
   last_improvement_iteration_ = -1;
 
-  /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
-  /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+  /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
   // HMC initialization:
-  // momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  // random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
-  // random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
+  //momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  //random_momentum_ = Eigen::MatrixXd::Zero(num_vars_free_, num_joints_);
+  //random_joint_momentum_ = Eigen::VectorXd::Zero(num_vars_free_);
   multivariate_gaussian_.clear();
   stochasticity_factor_ = 1.0;
   for (int i = 0; i < num_joints_; i++)
@@ -315,8 +314,9 @@ void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
   }
 }
 
-void ChompOptimizer::optimize()
+int ChompOptimizer::optimize()
 {
+  int optimization_result = 0;
   ros::WallTime start_time = ros::WallTime::now();
   double averageCostVelocity = 0.0;
   int currentCostIter = 0;
@@ -324,6 +324,7 @@ void ChompOptimizer::optimize()
   std::vector<double> costs(costWindow, 0.0);
   double minimaThreshold = 0.05;
   bool should_break_out = false;
+
 
   // iterate
   for (iteration_ = 0; iteration_ < parameters_->getMaxIterations(); iteration_++)
@@ -337,8 +338,7 @@ void ChompOptimizer::optimize()
 
     // ROS_INFO_STREAM("Collision cost " << cCost << " smoothness cost " << sCost);
 
-    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
-    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
     // if(parameters_->getAddRandomness() && currentCostIter != -1)
     // {
@@ -377,8 +377,7 @@ void ChompOptimizer::optimize()
     // ROS_INFO_STREAM("Collision increments took " << (ros::WallTime::now()-coll_time));
     calculateTotalIncrements();
 
-    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
-    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
     // if(!parameters_->getUseHamiltonianMonteCarlo())
     // {
@@ -410,8 +409,7 @@ void ChompOptimizer::optimize()
       }
       // } else if(safety == CollisionProximitySpace::InCollisionSafe) {
 
-      /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
-      /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+      /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
       // ROS_DEBUG("Trajectory cost: %f (s=%f, c=%f)", getTrajectoryCost(), getSmoothnessCost(), getCollisionCost());
       // CollisionProximitySpace::TrajectorySafety safety = checkCurrentIterValidity();
@@ -450,14 +448,13 @@ void ChompOptimizer::optimize()
       }
     }
 
-    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit())
+    if ((ros::WallTime::now() - start_time).toSec() > parameters_->getPlanningTimeLimit() )
     {
       ROS_WARN("Breaking out early due to time limit constraints.");
       break;
     }
 
-    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC
-    /// parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+    /// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
     // if(fabs(averageCostVelocity) < minimaThreshold && currentCostIter == -1 && !is_collision_free_ &&
     // parameters_->getAddRandomness())
@@ -499,11 +496,12 @@ void ChompOptimizer::optimize()
     //     ROS_INFO("Failed to exit minimum!");
     //   }
     //}
-    // else if (currentCostIter == -1)
+    //else if (currentCostIter == -1)
     //{
     //  currentCostIter = 0;
     //  averageCostVelocity = 0.0;
     //}
+
 
     if (should_break_out)
     {
@@ -526,10 +524,12 @@ void ChompOptimizer::optimize()
 
   if (is_collision_free_)
   {
+    optimization_result = 1;
     ROS_INFO("Chomp path is collision free");
   }
   else
   {
+    optimization_result = 0;
     ROS_ERROR("Chomp path is not collision free!");
   }
 
@@ -539,6 +539,8 @@ void ChompOptimizer::optimize()
   ROS_INFO("Terminated after %d iterations, using path from iteration %d", iteration_, last_improvement_iteration_);
   ROS_INFO("Optimization core finished in %f sec", (ros::WallTime::now() - start_time).toSec());
   ROS_INFO_STREAM("Time per iteration " << (ros::WallTime::now() - start_time).toSec() / (iteration_ * 1.0));
+
+  return optimization_result;
 }
 
 bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
@@ -560,8 +562,7 @@ bool ChompOptimizer::isCurrentTrajectoryMeshToMeshCollisionFree() const
   return planning_scene_->isPathValid(start_state_msg, traj, planning_group_);
 }
 
-/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters
-/// values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 
 // CollisionProximitySpace::TrajectorySafety ChompOptimizer::checkCurrentIterValidity()
 // {
@@ -1030,41 +1031,40 @@ void ChompOptimizer::setRobotStateFromPoint(ChompTrajectory& group_trajectory, i
   state_.update();
 }
 
-void ChompOptimizer::perturbTrajectory()
-{
-  // int mid_point = (free_vars_start_ + free_vars_end_) / 2;
-  if (worst_collision_cost_state_ < 0)
-    return;
-  int mid_point = worst_collision_cost_state_;
-  moveit::core::RobotState random_state = state_;
-  const moveit::core::JointModelGroup* planning_group = state_.getJointModelGroup(planning_group_);
-  random_state.setToRandomPositions(planning_group);
-  std::vector<double> vals;
-  random_state.copyJointGroupPositions(planning_group_, vals);
-  double* ptr = &vals[0];
-  Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size());
-  // Eigen::VectorXd random_matrix = vals;
+    void ChompOptimizer::perturbTrajectory()
+    {
+      // int mid_point = (free_vars_start_ + free_vars_end_) / 2;
+      if (worst_collision_cost_state_ < 0)
+        return;
+      int mid_point = worst_collision_cost_state_;
+      moveit::core::RobotState random_state = state_;
+      const moveit::core::JointModelGroup* planning_group = state_.getJointModelGroup(planning_group_);
+      random_state.setToRandomPositions(planning_group);
+      std::vector<double> vals;
+      random_state.copyJointGroupPositions(planning_group_, vals);
+      double* ptr = &vals[0];
+      Eigen::Map<Eigen::VectorXd> random_matrix(ptr, vals.size());
+      // Eigen::VectorXd random_matrix = vals;
 
-  // convert the state into an increment
-  random_matrix -= group_trajectory_.getTrajectoryPoint(mid_point).transpose();
+      // convert the state into an increment
+      random_matrix -= group_trajectory_.getTrajectoryPoint(mid_point).transpose();
 
-  // project the increment orthogonal to joint velocities
-  group_trajectory_.getJointVelocities(mid_point, joint_state_velocities_);
-  joint_state_velocities_.normalize();
-  random_matrix = (Eigen::MatrixXd::Identity(num_joints_, num_joints_) -
-                   joint_state_velocities_ * joint_state_velocities_.transpose()) *
-                  random_matrix;
+      // project the increment orthogonal to joint velocities
+      group_trajectory_.getJointVelocities(mid_point, joint_state_velocities_);
+      joint_state_velocities_.normalize();
+      random_matrix = (Eigen::MatrixXd::Identity(num_joints_, num_joints_) -
+                       joint_state_velocities_ * joint_state_velocities_.transpose()) *
+                      random_matrix;
 
-  int mp_free_vars_index = mid_point - free_vars_start_;
-  for (int i = 0; i < num_joints_; i++)
-  {
-    group_trajectory_.getFreeJointTrajectoryBlock(i) +=
-        joint_costs_[i].getQuadraticCostInverse().col(mp_free_vars_index) * random_state_(i);
-  }
-}
+      int mp_free_vars_index = mid_point - free_vars_start_;
+      for (int i = 0; i < num_joints_; i++)
+      {
+        group_trajectory_.getFreeJointTrajectoryBlock(i) +=
+                joint_costs_[i].getQuadraticCostInverse().col(mp_free_vars_index) * random_state_(i);
+      }
+    }
 
-/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters
-/// values in the chomp_planning.yaml file so that CHOMP can find optimal paths
+/// TODO: HMC BASED COMMENTED CODE BELOW, Need to uncomment and perform extensive testing by varying the HMC parameters values in the chomp_planning.yaml file so that CHOMP can find optimal paths
 // void ChompOptimizer::getRandomState(const RobotState currentState, const string& groupName, Eigen::VectorXd&
 // state_vec)
 // {
