@@ -340,8 +340,8 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
   const double py = info_msg->K[5];
 
   // if the camera parameters have changed at all, recompute the cache we had
-  if (w >= x_cache_.size() || h >= y_cache_.size() || K2_ != px || K5_ != py || K0_ != info_msg->K[0] ||
-      K4_ != info_msg->K[4])
+  if (w >= static_cast<int>(x_cache_.size()) || h >= static_cast<int>(y_cache_.size()) || K2_ != px || K5_ != py ||
+      K0_ != info_msg->K[0] || K4_ != info_msg->K[4])
   {
     K2_ = px;
     K5_ = py;
@@ -356,9 +356,9 @@ void DepthImageOctomapUpdater::depthImageCallback(const sensor_msgs::ImageConstP
       return;
 
     // Pre-compute some constants
-    if (x_cache_.size() < w)
+    if (static_cast<int>(x_cache_.size()) < w)
       x_cache_.resize(w);
-    if (y_cache_.size() < h)
+    if (static_cast<int>(y_cache_.size()) < h)
       y_cache_.resize(h);
 
     for (int x = 0; x < w; ++x)

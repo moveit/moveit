@@ -12,6 +12,8 @@ notifications:
     recipients:
       - 130s@2000.jukuin.keio.ac.jp
 env:
+  global:
+    - TEST_BLACKLIST=moveit,moveit_ros,moveit_runtime,moveit_ros_perception  # mesh_filter_test fails due to broken Mesa OpenGL
   matrix:
     - ROS_DISTRO=kinetic ROS_REPO=ros              TEST=clang-format
     - ROS_DISTRO=kinetic ROS_REPO=ros              UPSTREAM_WORKSPACE=moveit.rosinstall
