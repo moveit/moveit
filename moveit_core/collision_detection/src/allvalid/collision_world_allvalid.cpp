@@ -119,7 +119,10 @@ double collision_detection::CollisionWorldAllValid::distanceRobot(const Collisio
   return 0.0;
 }
 
-void collision_detection::CollisionWorldAllValid::distanceRobot(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const collision_detection::CollisionRobot& robot, const moveit::core::RobotState& state) const
+void collision_detection::CollisionWorldAllValid::distanceRobot(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionRobot& robot,
+                                                                const moveit::core::RobotState& state) const
 {
   res.collision = false;
 }
@@ -135,7 +138,9 @@ double collision_detection::CollisionWorldAllValid::distanceWorld(const Collisio
   return 0.0;
 }
 
-void collision_detection::CollisionWorldAllValid::distanceWorld(const collision_detection::DistanceRequest& req, collision_detection::DistanceResult& res, const collision_detection::CollisionWorld& world) const
+void collision_detection::CollisionWorldAllValid::distanceWorld(const collision_detection::DistanceRequest& req,
+                                                                collision_detection::DistanceResult& res,
+                                                                const collision_detection::CollisionWorld& world) const
 {
   res.collision = false;
 }
