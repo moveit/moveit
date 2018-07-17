@@ -103,7 +103,7 @@ void OccupancyMapMonitor::initialize()
       if (sensor_list.getType() == XmlRpc::XmlRpcValue::TypeArray)
         for (int32_t i = 0; i < sensor_list.size(); ++i)
         {
-          if (!sensor_list[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
+          if (sensor_list[i].getType() != XmlRpc::XmlRpcValue::TypeStruct)
           {
             ROS_ERROR("Params for octomap updater %d not a struct; ignoring.", i);
             continue;
