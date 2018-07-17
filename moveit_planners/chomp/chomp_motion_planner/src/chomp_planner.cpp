@@ -130,7 +130,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   const Eigen::MatrixXd goal_state = trajectory.getTrajectoryPoint(goal_index);
   moveit::core::RobotState goal_robot_state = planning_scene->getCurrentState();
   goal_robot_state.setVariablePositions(
-          active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
+      active_joint_names, std::vector<double>(goal_state.data(), goal_state.data() + active_joint_names.size()));
 
   if (not goal_robot_state.satisfiesBounds())
   {
@@ -140,11 +140,11 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   }
 
   // fill in an initial trajectory based on user choice from the chomp_config.yaml file
-  if(params.trajectory_initialization_method_.compare("quintic-spline") == 0)
+  if (params.trajectory_initialization_method_.compare("quintic-spline") == 0)
     trajectory.fillInMinJerk();
-  else if(params.trajectory_initialization_method_.compare("linear") == 0)
+  else if (params.trajectory_initialization_method_.compare("linear") == 0)
     trajectory.fillInLinearInterpolation();
-  else if(params.trajectory_initialization_method_.compare("cubic") == 0)
+  else if (params.trajectory_initialization_method_.compare("cubic") == 0)
     trajectory.fillInCubicInterpolation();
   else
     ROS_ERROR_STREAM_NAMED("chomp_planner", "invalid interpolation method specified in the chomp_planner file");
@@ -157,29 +157,31 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   ros::WallTime create_time = ros::WallTime::now();
 
   /// block for replanning (recovery behaviour) if collision free optimized solution not found
-  int replan_cnt    = 0;
-  bool replan_flag  = false;
+  int replan_cnt = 0;
+  bool replan_flag = false;
   double org_learning_rate = 0.04, org_ridge_factor = 0.0, org_planning_time_limit = 10;
   int org_max_iterations = 200;
-  RePlan:
+RePlan:
+{
+  if (replan_flag)
   {
-    if(replan_flag)
-    {
-      params.learning_rate_         *= 0.02;    // increase learning rate in hope to find obstacles (possibly faster convergence)
-      params.ridge_factor_          += 0.002;   // increase ridge factor to avoid obstacles
-      params.planning_time_limit_   += 5;       // add 5 additional secs in hope to find a solution
-      params.max_iterations_        += 50;      // increase maximum iterations
-    }
-    if(replan_cnt == 0)
-    {
-      org_learning_rate       = params.learning_rate_;
-      org_ridge_factor        = params.ridge_factor_;
-      org_planning_time_limit = params.planning_time_limit_;
-      org_max_iterations      = params.max_iterations_;
-    }
-  };
-  std::cout << "learning rate:  " << org_learning_rate << std::endl << "ridge factor:  " << org_ridge_factor << std::endl
-            << "planning time limit:  " << org_planning_time_limit << std::endl << "max iterations:  " << org_max_iterations << std::endl;
+    params.learning_rate_ *= 0.02;     // increase learning rate in hope to find obstacles (possibly faster convergence)
+    params.ridge_factor_ += 0.002;     // increase ridge factor to avoid obstacles
+    params.planning_time_limit_ += 5;  // add 5 additional secs in hope to find a solution
+    params.max_iterations_ += 50;      // increase maximum iterations
+  }
+  if (replan_cnt == 0)
+  {
+    org_learning_rate = params.learning_rate_;
+    org_ridge_factor = params.ridge_factor_;
+    org_planning_time_limit = params.planning_time_limit_;
+    org_max_iterations = params.max_iterations_;
+  }
+};
+  std::cout << "learning rate:  " << org_learning_rate << std::endl
+            << "ridge factor:  " << org_ridge_factor << std::endl
+            << "planning time limit:  " << org_planning_time_limit << std::endl
+            << "max iterations:  " << org_max_iterations << std::endl;
 
   ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
   if (!optimizer.isInitialized())
@@ -193,13 +195,15 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
   int optimization_result = optimizer.optimize();
 
   /// replan with updated parameters if no solution is found
-  if(params.getEnableFailureRecovery())
+  if (params.getEnableFailureRecovery())
   {
     if (optimization_result == 0 && replan_cnt != params.getMaxRecoveryAttempts())
     {
-      ROS_INFO("Replanning with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, max_iterations), attempt: # %d ",(replan_cnt + 1));
-      ROS_INFO("learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ",
-                      params.learning_rate_, params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
+      ROS_INFO("Replanning with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
+               "max_iterations), attempt: # %d ",
+               (replan_cnt + 1));
+      ROS_INFO("learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
+               params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
     }
     if (optimization_result == 0 && replan_cnt < params.getMaxRecoveryAttempts())
     {
@@ -210,10 +214,10 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
     // resetting the CHOMP Parameters to the original values after a successful plan
     {
-      params.learning_rate_         = org_learning_rate;
-      params.ridge_factor_          = org_ridge_factor;
-      params.planning_time_limit_   = org_planning_time_limit;
-      params.max_iterations_        = org_max_iterations;
+      params.learning_rate_ = org_learning_rate;
+      params.ridge_factor_ = org_ridge_factor;
+      params.planning_time_limit_ = org_planning_time_limit;
+      params.max_iterations_ = org_max_iterations;
     }
   }
 

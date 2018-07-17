@@ -58,11 +58,11 @@ public:
   double getSmoothnessCostVelocity() const;
   double getSmoothnessCostAcceleration() const;
   double getSmoothnessCostJerk() const;
-  //bool getAddRandomness() const;
-  //bool getUseHamiltonianMonteCarlo() const;
-  //double getHmcDiscretization() const;
-  //double getHmcStochasticity() const;
-  //double getHmcAnnealingFactor() const;
+  // bool getAddRandomness() const;
+  // bool getUseHamiltonianMonteCarlo() const;
+  // double getHmcDiscretization() const;
+  // double getHmcStochasticity() const;
+  // double getHmcAnnealingFactor() const;
   double getRidgeFactor() const;
   bool getUsePseudoInverse() const;
   double getPseudoInverseRidgeFactor() const;
@@ -72,8 +72,8 @@ public:
   double getCollisionThreshold() const;
   bool getFilterMode() const;
   void setFilterMode(bool mode);
-  //double getRandomJumpAmount() const;
-  //void setRandomJumpAmount(double amount);
+  // double getRandomJumpAmount() const;
+  // void setRandomJumpAmount(double amount);
   bool getUseStochasticDescent() const;
   std::string getTrajectoryInitializationMethod() const;
   bool getEnableFailureRecovery() const;
@@ -90,13 +90,13 @@ public:
   double smoothness_cost_velocity_;
   double smoothness_cost_acceleration_;
   double smoothness_cost_jerk_;
-  //bool add_randomness_;
-  //bool use_hamiltonian_monte_carlo_;
+  // bool add_randomness_;
+  // bool use_hamiltonian_monte_carlo_;
   bool use_stochastic_descent_;
 
-  //double hmc_stochasticity_;
-  //double hmc_discretization_;
-  //double hmc_annealing_factor_;
+  // double hmc_stochasticity_;
+  // double hmc_discretization_;
+  // double hmc_annealing_factor_;
   double ridge_factor_;
   bool use_pseudo_inverse_;
   double pseudo_inverse_ridge_factor_;
@@ -105,7 +105,7 @@ public:
   double min_clearence_;
   double collision_threshold_;
   bool filter_mode_;
-  //double random_jump_amount_;
+  // double random_jump_amount_;
   std::string trajectory_initialization_method_;
   bool enable_failure_recovery_;
   int max_recovery_attempts_;
@@ -243,7 +243,6 @@ inline double ChompParameters::getPseudoInverseRidgeFactor() const
 {
   return pseudo_inverse_ridge_factor_;
 }
-
 
 inline bool ChompParameters::getUseStochasticDescent() const
 {
