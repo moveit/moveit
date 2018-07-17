@@ -1,0 +1,17 @@
+<launch>
+  <!-- Unit test launch file -->
+
+  <!-- Launch test node -->
+  <arg name="run_test_node" default="true"/>
+
+  <!-- Debug Info -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <!-- Test Node -->
+  <test test-name="compliant_control_utest" pkg="moveit_experimental" type="compliant_control_utest"
+    launch-prefix="$(arg launch_prefix)" if="$(arg run_test_node)" time-limit = "200.0">
+  </test>
+  
+</launch>

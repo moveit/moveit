@@ -18,6 +18,7 @@ COMPONENTS
   eigen_stl_containers
   eigen_conversions
   random_numbers
+  tf2_geometry_msgs
   visualization_msgs
   roslib
   rostime
@@ -42,6 +43,7 @@ file(MAKE_DIRECTORY "${VERSION_FILE_PATH}")
 set(THIS_PACKAGE_INCLUDE_DIRS
     ${VERSION_FILE_PATH}
     collision_distance_field/include
+    jog_arm/include
 )
 
 catkin_package(
@@ -82,6 +84,7 @@ include_directories(${THIS_PACKAGE_INCLUDE_DIRS}
 link_directories(${Boost_LIBRARY_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 add_subdirectory(collision_distance_field)
+add_subdirectory(jog_arm)
 
 install(FILES collision_detector_hybrid_description.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

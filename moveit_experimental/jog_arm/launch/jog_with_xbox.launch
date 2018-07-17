@@ -1,0 +1,11 @@
+<launch>
+
+  <node name="joy_node" pkg="joy" type="joy_node" />
+
+  <node name="xbox_to_twist" pkg="moveit_experimental" type="xbox_to_twist" output="screen" />
+
+  <node name="jog_arm_server" pkg="moveit_experimental" type="jog_arm_server" output="screen" >
+    <rosparam command="load" file="$(find jog_arm)/config/jog_settings.yaml" />
+  </node>
+
+</launch>
