@@ -47,8 +47,6 @@
 #include <ompl/tools/multiplan/ParallelPlan.h>
 #include <ompl/base/StateStorage.h>
 
-#include <boost/thread/mutex.hpp>
-
 namespace ompl_interface
 {
 namespace ob = ompl::base;

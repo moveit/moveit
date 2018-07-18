@@ -35,7 +35,6 @@
 /* Author: Ioan Sucan */
 
 #include <moveit/ompl_interface/parameterization/model_based_state_space.h>
-#include <boost/bind.hpp>
 #include <utility>
 
 ompl_interface::ModelBasedStateSpace::ModelBasedStateSpace(ModelBasedStateSpaceSpecification spec)
