@@ -344,7 +344,7 @@ protected:
   std::vector<kinematic_constraints::KinematicConstraintSetPtr> goal_constraints_;
 
   const ob::PlannerTerminationCondition* ptc_;
-  boost::mutex ptc_lock_;
+  std::mutex ptc_lock_;
 
   /// the time spent computing the last plan
   double last_plan_time_;

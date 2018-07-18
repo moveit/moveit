@@ -38,7 +38,8 @@
 #define MOVEIT_OMPL_INTERFACE_DEATIL_THREADSAFE_STATE_STORAGE_
 
 #include <moveit/robot_state/robot_state.h>
-#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
 
 namespace ompl_interface
 {
@@ -53,8 +54,8 @@ public:
 
 private:
   robot_state::RobotState start_state_;
-  mutable std::map<boost::thread::id, robot_state::RobotState*> thread_states_;
-  mutable boost::mutex lock_;
+  mutable std::map<std::thread::id, robot_state::RobotState*> thread_states_;
+  mutable std::mutex lock_;
 };
 }
 #endif

@@ -718,19 +718,19 @@ bool ompl_interface::ModelBasedPlanningContext::solve(double timeout, unsigned i
 
 void ompl_interface::ModelBasedPlanningContext::registerTerminationCondition(const ob::PlannerTerminationCondition& ptc)
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
+  std::unique_lock slock(ptc_lock_);
   ptc_ = &ptc;
 }
 
 void ompl_interface::ModelBasedPlanningContext::unregisterTerminationCondition()
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
+  std::unique_lock slock(ptc_lock_);
   ptc_ = nullptr;
 }
 
 bool ompl_interface::ModelBasedPlanningContext::terminate()
 {
-  boost::mutex::scoped_lock slock(ptc_lock_);
+  std::unique_lock slock(ptc_lock_);
   if (ptc_)
     ptc_->terminate();
   return true;

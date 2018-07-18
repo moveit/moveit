@@ -49,6 +49,7 @@
 
 #include <ompl/util/Console.h>
 
+#include <thread>
 #include <memory>
 
 namespace ompl_interface
@@ -300,7 +301,7 @@ private:
   ros::NodeHandle nh_;
   std::unique_ptr<dynamic_reconfigure::Server<OMPLDynamicReconfigureConfig>> dynamic_reconfigure_server_;
   std::unique_ptr<OMPLInterface> ompl_interface_;
-  std::unique_ptr<boost::thread> pub_valid_states_thread_;
+  std::unique_ptr<std::thread> pub_valid_states_thread_;
   bool display_random_valid_states_{ false };
   ros::Publisher pub_markers_;
   ros::Publisher pub_valid_states_;

@@ -81,32 +81,32 @@ class PlanningContextManager::LastPlanningContext
 public:
   ModelBasedPlanningContextPtr getContext()
   {
-    boost::mutex::scoped_lock slock(lock_);
+    std::unique_lock<std::mutex> slock(lock_);
     return last_planning_context_solve_;
   }
 
   void setContext(const ModelBasedPlanningContextPtr& context)
   {
-    boost::mutex::scoped_lock slock(lock_);
+    std::unique_lock<std::mutex> slock(lock_);
     last_planning_context_solve_ = context;
   }
 
   void clear()
   {
-    boost::mutex::scoped_lock slock(lock_);
+    std::unique_lock<std::mutex> slock(lock_);
     last_planning_context_solve_.reset();
   }
 
 private:
   /* The planning group for which solve() was called last */
   ModelBasedPlanningContextPtr last_planning_context_solve_;
-  boost::mutex lock_;
+  std::mutex lock_;
 };
 
 struct PlanningContextManager::CachedContexts
 {
   std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> > contexts_;
-  boost::mutex lock_;
+  std::mutex lock_;
 };
 
 }  // namespace ompl_interface
@@ -283,7 +283,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
   ModelBasedPlanningContextPtr context;
 
   {
-    boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+    std::unique_lock<std::mutex> slock(cached_contexts_->lock_);
     std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
         cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
     if (cc != cached_contexts_->contexts_.end())
@@ -334,7 +334,7 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
     context.reset(new ModelBasedPlanningContext(config.name, context_spec));
     context->useStateValidityCache(state_validity_cache);
     {
-      boost::mutex::scoped_lock slock(cached_contexts_->lock_);
+      std::unique_lock<std::mutex> slock(cached_contexts_->lock_);
       cached_contexts_->contexts_[std::make_pair(config.name, factory->getType())].push_back(context);
     }
   }

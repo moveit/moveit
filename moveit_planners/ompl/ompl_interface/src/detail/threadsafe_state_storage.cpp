@@ -54,13 +54,13 @@ ompl_interface::TSStateStorage::~TSStateStorage()
 robot_state::RobotState* ompl_interface::TSStateStorage::getStateStorage() const
 {
   robot_state::RobotState* st = nullptr;
-  boost::mutex::scoped_lock slock(lock_);  /// \todo use Thread Local Storage?
-  std::map<boost::thread::id, robot_state::RobotState*>::const_iterator it =
-      thread_states_.find(boost::this_thread::get_id());
+  std::unique_lock<std::mutex> slock(lock_);  /// \todo use Thread Local Storage?
+  std::map<std::thread::id, robot_state::RobotState*>::const_iterator it =
+      thread_states_.find(std::this_thread::get_id());
   if (it == thread_states_.end())
   {
     st = new robot_state::RobotState(start_state_);
-    thread_states_[boost::this_thread::get_id()] = st;
+    thread_states_[std::this_thread::get_id()] = st;
   }
   else
     st = it->second;
