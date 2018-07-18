@@ -42,12 +42,11 @@
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <moveit/constraint_samplers/constraint_sampler.h>
-#include "../detail/same_shared_ptr.hpp"
 
 namespace ompl_interface
 {
 typedef std::function<bool(const ompl::base::State* from, const ompl::base::State* to, const double t,
-                             ompl::base::State* state)>
+                           ompl::base::State* state)>
     InterpolationFunction;
 typedef std::function<double(const ompl::base::State* state1, const ompl::base::State* state2)> DistanceFunction;
 
@@ -70,6 +69,8 @@ struct ModelBasedStateSpaceSpecification
   const robot_model::JointModelGroup* joint_model_group_;
   robot_model::JointBoundsVector joint_bounds_;
 };
+
+OMPL_CLASS_FORWARD(ModelBasedStateSpace);
 
 class ModelBasedStateSpace : public ompl::base::StateSpace
 {
@@ -268,8 +269,6 @@ protected:
   double tag_snap_to_segment_;
   double tag_snap_to_segment_complement_;
 };
-
-typedef same_shared_ptr<ModelBasedStateSpace, ompl::base::StateSpacePtr>::type ModelBasedStateSpacePtr;
-}
+}  // namespace ompl_interface
 
 #endif
