@@ -319,9 +319,8 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       std::size_t sum = 0;
       for (std::size_t i = 0; i < cass->size(); ++i)
         sum += cass->getMetadata(i).first.size();
-      ROS_INFO_NAMED("constraints_library",
-                     "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
-                     "for constraint named '%s'%s",
+      ROS_INFO_NAMED("constraints_library", "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
+                                            "for constraint named '%s'%s",
                      cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
                      msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }

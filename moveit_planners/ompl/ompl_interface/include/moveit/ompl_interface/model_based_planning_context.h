@@ -58,7 +58,7 @@ MOVEIT_CLASS_FORWARD(ConstraintsLibrary);
 
 struct ModelBasedPlanningContextSpecification;
 typedef std::function<ob::PlannerPtr(const ompl::base::SpaceInformationPtr& si, const std::string& name,
-                                       const ModelBasedPlanningContextSpecification& spec)>
+                                     const ModelBasedPlanningContextSpecification& spec)>
     ConfiguredPlannerAllocator;
 typedef std::function<ConfiguredPlannerAllocator(const std::string& planner_type)> ConfiguredPlannerSelector;
 
@@ -376,6 +376,6 @@ protected:
 
   bool simplify_solutions_;
 };
-}
+}  // namespace ompl_interface
 
 #endif
