@@ -41,7 +41,6 @@
 #include <moveit/ompl_interface/planning_context_manager.h>
 #include <moveit/kinematic_constraints/kinematic_constraint.h>
 #include <ompl/base/StateStorage.h>
-#include <boost/function.hpp>
 #include <boost/serialization/map.hpp>
 
 namespace ompl_interface

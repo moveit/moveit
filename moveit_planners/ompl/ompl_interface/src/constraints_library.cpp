@@ -77,7 +77,7 @@ void hexToMsg(const std::string& hex, T& msg)
   ros::serialization::IStream stream_arg(buffer_arg.get(), serial_size_arg);
   ros::serialization::deserialize(stream_arg, msg);
 }
-}
+}  // namespace
 
 class ConstraintApproximationStateSampler : public ob::StateSampler
 {
@@ -182,7 +182,8 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* sta
 ompl_interface::InterpolationFunction ompl_interface::ConstraintApproximation::getInterpolationFunction() const
 {
   if (explicit_motions_ && milestones_ > 0 && milestones_ < state_storage_->size())
-    return boost::bind(&interpolateUsingStoredStates, state_storage_, _1, _2, _3, _4);
+    return std::bind(&interpolateUsingStoredStates, state_storage_, std::placeholders::_1, std::placeholders::_2,
+                     std::placeholders::_3, std::placeholders::_4);
   return InterpolationFunction();
 }
 
@@ -197,7 +198,7 @@ ompl::base::StateSamplerPtr allocConstraintApproximationStateSampler(
   else
     return ompl::base::StateSamplerPtr(new ConstraintApproximationStateSampler(space, state_storage, milestones));
 }
-}
+}  // namespace ompl_interface
 
 ompl_interface::ConstraintApproximation::ConstraintApproximation(
     std::string group, std::string state_space_parameterization, bool explicit_motions, moveit_msgs::Constraints msg,
@@ -221,7 +222,8 @@ ompl_interface::ConstraintApproximation::getStateSamplerAllocator(const moveit_m
 {
   if (state_storage_->size() == 0)
     return ompl::base::StateSamplerAllocator();
-  return boost::bind(&allocConstraintApproximationStateSampler, _1, space_signature_, state_storage_, milestones_);
+  return std::bind(&allocConstraintApproximationStateSampler, std::placeholders::_1, space_signature_, state_storage_,
+                   milestones_);
 }
 /*
 void ompl_interface::ConstraintApproximation::visualizeDistribution(const std::string &link_name, unsigned int count,
@@ -317,8 +319,9 @@ void ompl_interface::ConstraintsLibrary::loadConstraintApproximations(const std:
       std::size_t sum = 0;
       for (std::size_t i = 0; i < cass->size(); ++i)
         sum += cass->getMetadata(i).first.size();
-      ROS_INFO_NAMED("constraints_library", "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
-                                            "for constraint named '%s'%s",
+      ROS_INFO_NAMED("constraints_library",
+                     "Loaded %lu states (%lu milestones) and %lu connections (%0.1lf per state) "
+                     "for constraint named '%s'%s",
                      cass->size(), cap->getMilestoneCount(), sum, (double)sum / (double)cap->getMilestoneCount(),
                      msg.name.c_str(), explicit_motions ? ". Explicit motions included." : "");
     }
