@@ -517,8 +517,8 @@ bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* 
     dist_result.distance = fcl_result.min_distance;
     dist_result.nearest_points[0] = Eigen::Vector3d(fcl_result.nearest_points[0].data.vs);
     dist_result.nearest_points[1] = Eigen::Vector3d(fcl_result.nearest_points[1].data.vs);
-    dist_result.link_names[0] = cd1->ptr.obj->id_;
-    dist_result.link_names[1] = cd2->ptr.obj->id_;
+    dist_result.link_names[0] = cd1->getID();
+    dist_result.link_names[1] = cd2->getID();
     dist_result.body_types[0] = cd1->type;
     dist_result.body_types[1] = cd2->type;
     if (cdata->req->enable_nearest_points)
