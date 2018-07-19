@@ -308,29 +308,31 @@ void PerceptionWidget::loadSensorPluginsComboBox()
   std::vector<std::map<std::string, GenericParameter> > sensors_vec_map = config_data_->getSensorPluginConfig();
   for (std::size_t i = 0; i < sensors_vec_map.size(); ++i)
   {
-    if (sensors_vec_map[i]["sensor_plugin"].value == std::string("occupancy_map_monitor/PointCloudOctomapUpdater"))
+    if (sensors_vec_map[i]["sensor_plugin"].getValue() == std::string("occupancy_map_monitor/PointCloudOctomapUpdater"))
     {
       sensor_plugin_field_->setCurrentIndex(1);
-      point_cloud_topic_field_->setText(QString(sensors_vec_map[i]["point_cloud_topic"].value.c_str()));
-      max_range_field_->setText(QString(sensors_vec_map[i]["max_range"].value.c_str()));
-      point_subsample_field_->setText(QString(sensors_vec_map[i]["point_subsample"].value.c_str()));
-      padding_offset_field_->setText(QString(sensors_vec_map[i]["padding_offset"].value.c_str()));
-      padding_scale_field_->setText(QString(sensors_vec_map[i]["padding_scale"].value.c_str()));
-      max_update_rate_field_->setText(QString(sensors_vec_map[i]["max_update_rate"].value.c_str()));
-      filtered_cloud_topic_field_->setText(QString(sensors_vec_map[i]["filtered_cloud_topic"].value.c_str()));
+      point_cloud_topic_field_->setText(QString(sensors_vec_map[i]["point_cloud_topic"].getValue().c_str()));
+      max_range_field_->setText(QString(sensors_vec_map[i]["max_range"].getValue().c_str()));
+      point_subsample_field_->setText(QString(sensors_vec_map[i]["point_subsample"].getValue().c_str()));
+      padding_offset_field_->setText(QString(sensors_vec_map[i]["padding_offset"].getValue().c_str()));
+      padding_scale_field_->setText(QString(sensors_vec_map[i]["padding_scale"].getValue().c_str()));
+      max_update_rate_field_->setText(QString(sensors_vec_map[i]["max_update_rate"].getValue().c_str()));
+      filtered_cloud_topic_field_->setText(QString(sensors_vec_map[i]["filtered_cloud_topic"].getValue().c_str()));
     }
-    else if (sensors_vec_map[i]["sensor_plugin"].value == std::string("occupancy_map_monitor/DepthImageOctomapUpdater"))
+    else if (sensors_vec_map[i]["sensor_plugin"].getValue() ==
+             std::string("occupancy_map_monitor/DepthImageOctomapUpdater"))
     {
       sensor_plugin_field_->setCurrentIndex(2);
-      image_topic_field_->setText(QString(sensors_vec_map[i]["image_topic"].value.c_str()));
-      queue_size_field_->setText(QString(sensors_vec_map[i]["queue_size"].value.c_str()));
-      near_clipping_field_->setText(QString(sensors_vec_map[i]["near_clipping_plane_distance"].value.c_str()));
-      far_clipping_field_->setText(QString(sensors_vec_map[i]["far_clipping_plane_distance"].value.c_str()));
-      shadow_threshold_field_->setText(QString(sensors_vec_map[i]["shadow_threshold"].value.c_str()));
-      depth_padding_scale_field_->setText(QString(sensors_vec_map[i]["padding_scale"].value.c_str()));
-      depth_padding_offset_field_->setText(QString(sensors_vec_map[i]["padding_offset"].value.c_str()));
-      depth_filtered_cloud_topic_field_->setText(QString(sensors_vec_map[i]["filtered_cloud_topic"].value.c_str()));
-      depth_max_update_rate_field_->setText(QString(sensors_vec_map[i]["max_update_rate"].value.c_str()));
+      image_topic_field_->setText(QString(sensors_vec_map[i]["image_topic"].getValue().c_str()));
+      queue_size_field_->setText(QString(sensors_vec_map[i]["queue_size"].getValue().c_str()));
+      near_clipping_field_->setText(QString(sensors_vec_map[i]["near_clipping_plane_distance"].getValue().c_str()));
+      far_clipping_field_->setText(QString(sensors_vec_map[i]["far_clipping_plane_distance"].getValue().c_str()));
+      shadow_threshold_field_->setText(QString(sensors_vec_map[i]["shadow_threshold"].getValue().c_str()));
+      depth_padding_scale_field_->setText(QString(sensors_vec_map[i]["padding_scale"].getValue().c_str()));
+      depth_padding_offset_field_->setText(QString(sensors_vec_map[i]["padding_offset"].getValue().c_str()));
+      depth_filtered_cloud_topic_field_->setText(
+          QString(sensors_vec_map[i]["filtered_cloud_topic"].getValue().c_str()));
+      depth_max_update_rate_field_->setText(QString(sensors_vec_map[i]["max_update_rate"].getValue().c_str()));
     }
   }
 

@@ -864,7 +864,7 @@ bool MoveItConfigData::output3DSensorPluginYAML(const std::string& file_path)
     for (auto& parameter : sensors_plugin_config_parameter_list_[0])
     {
       emitter << YAML::Key << parameter.first;
-      emitter << YAML::Value << parameter.second.value;
+      emitter << YAML::Value << parameter.second.getValue();
     }
   }
 
@@ -1474,11 +1474,11 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
           {
             for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
             {
-              sensor_param.name = sensor_it->first.as<std::string>();
-              sensor_param.value = sensor_it->second.as<std::string>();
+              sensor_param.setName(sensor_it->first.as<std::string>());
+              sensor_param.setValue(sensor_it->second.as<std::string>());
 
               // Set the key as the parameter name to make accessing it easier
-              sensor_map[sensor_param.name] = sensor_param;
+              sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
             }
             sensors_plugin_config_parameter_list_.push_back(sensor_map);
           }
@@ -1526,11 +1526,11 @@ bool MoveItConfigData::input3DSensorsYAML(const std::string& default_file_path, 
           {
             for (YAML::const_iterator sensor_it = sensor_node.begin(); sensor_it != sensor_node.end(); ++sensor_it)
             {
-              sensor_param.name = sensor_it->first.as<std::string>();
-              sensor_param.value = sensor_it->second.as<std::string>();
+              sensor_param.setName(sensor_it->first.as<std::string>());
+              sensor_param.setValue(sensor_it->second.as<std::string>());
 
               // Set the key as the parameter name to make accessing it easier
-              sensor_map[sensor_param.name] = sensor_param;
+              sensor_map[sensor_it->first.as<std::string>()] = sensor_param;
             }
             sensors_plugin_config_parameter_list_.push_back(sensor_map);
           }
@@ -1633,7 +1633,10 @@ void MoveItConfigData::addGenericParameterToSensorPluginConfig(const std::string
                                                                const std::string& comment)
 {
   // Use index 0 since we only write one plugin
-  sensors_plugin_config_parameter_list_[0][name] = {.name = name, .value = value, .comment = comment };
+  GenericParameter new_parameter;
+  new_parameter.setName(name);
+  new_parameter.setValue(value);
+  sensors_plugin_config_parameter_list_[0][name] = new_parameter;
 }
 
 // ******************************************************************************************

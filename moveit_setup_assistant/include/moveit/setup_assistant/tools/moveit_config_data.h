@@ -79,16 +79,6 @@ struct GroupMetaData
 };
 
 /**
- * Reusable parameter struct which may be used in reading and writing configuration files
- */
-struct GenericParameter
-{
-  std::string name;     // name of parameter
-  std::string value;    // value parameter will receive (but as a string)
-  std::string comment;  // comment briefly describing what this parameter does
-};
-
-/**
  * ROS Controllers settings which may be set in the config files
  */
 struct ROSControlConfig
@@ -96,6 +86,16 @@ struct ROSControlConfig
   std::string name_;                 // controller name
   std::string type_;                 // controller type
   std::vector<std::string> joints_;  // joints controller by this controller
+};
+
+/**
+ * Planning parameters which may be set in the config files
+ */
+struct OmplPlanningParameter
+{
+  std::string name;     // name of parameter
+  std::string value;    // value parameter will receive (but as a string)
+  std::string comment;  // comment briefly describing what this parameter does
 };
 
 /** \brief This class describes the OMPL planners by name, type, and parameter list, used to create the
@@ -122,17 +122,59 @@ public:
    * @parameter: value: value of parameter as a string
    *  @parameter: value: value of parameter as a string
    */
-  void addGenericParameter(const std::string& name, const std::string& value = "", const std::string& comment = "")
+  void addParameter(const std::string& name, const std::string& value = "", const std::string& comment = "")
   {
-    GenericParameter temp;
+    OmplPlanningParameter temp;
     temp.name = name;
     temp.value = value;
     temp.comment = comment;
     parameter_list_.push_back(temp);
   }
-  std::vector<GenericParameter> parameter_list_;
+  std::vector<OmplPlanningParameter> parameter_list_;
   std::string name_;  // name of planner
   std::string type_;  // type of planner (geometric)
+};
+
+/**
+ * Reusable parameter class which may be used in reading and writing configuration files
+ */
+class GenericParameter
+{
+public:
+  GenericParameter()
+  {
+    comment_ = "";
+  };
+
+  void setName(std::string name)
+  {
+    name_ = name;
+  };
+  void setValue(std::string value)
+  {
+    value_ = value;
+  };
+  void setComment(std::string comment)
+  {
+    comment_ = comment;
+  };
+  std::string getName()
+  {
+    return name_;
+  };
+  std::string getValue()
+  {
+    return value_;
+  };
+  std::string getComment()
+  {
+    return comment_;
+  };
+
+private:
+  std::string name_;     // name of parameter
+  std::string value_;    // value parameter will receive (but as a string)
+  std::string comment_;  // comment briefly describing what this parameter does
 };
 
 MOVEIT_CLASS_FORWARD(MoveItConfigData);

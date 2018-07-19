@@ -138,10 +138,10 @@ TEST_F(MoveItConfigData, ReadingSensorsConfig)
   // Make sure both are parsed correctly
   EXPECT_EQ(config_data_->getSensorPluginConfig().size(), 2);
 
-  EXPECT_EQ(config_data_->getSensorPluginConfig()[0]["sensor_plugin"].value,
+  EXPECT_EQ(config_data_->getSensorPluginConfig()[0]["sensor_plugin"].getValue(),
             std::string("occupancy_map_monitor/PointCloudOctomapUpdater"));
 
-  EXPECT_EQ(config_data_->getSensorPluginConfig()[1]["sensor_plugin"].value,
+  EXPECT_EQ(config_data_->getSensorPluginConfig()[1]["sensor_plugin"].getValue(),
             std::string("occupancy_map_monitor/DepthImageOctomapUpdater"));
 }
 
