@@ -178,10 +178,6 @@ RePlan:
     org_max_iterations = params.max_iterations_;
   }
 };
-  std::cout << "learning rate:  " << org_learning_rate << std::endl
-            << "ridge factor:  " << org_ridge_factor << std::endl
-            << "planning time limit:  " << org_planning_time_limit << std::endl
-            << "max iterations:  " << org_max_iterations << std::endl;
 
   ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
   if (!optimizer.isInitialized())
@@ -192,20 +188,20 @@ RePlan:
   }
   ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
 
-  int optimization_result = optimizer.optimize();
+  bool optimization_result = optimizer.optimize();
 
   /// replan with updated parameters if no solution is found
   if (params.getEnableFailureRecovery())
   {
-    if (optimization_result == 0 && replan_cnt != params.getMaxRecoveryAttempts())
+    if (optimization_result == false && replan_cnt != params.getMaxRecoveryAttempts())
     {
-      ROS_INFO("Replanning with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
+      ROS_INFO("Re-planned with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
                "max_iterations), attempt: # %d ",
                (replan_cnt + 1));
-      ROS_INFO("learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
+      ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
                params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
     }
-    if (optimization_result == 0 && replan_cnt < params.getMaxRecoveryAttempts())
+    if (optimization_result == false && replan_cnt < params.getMaxRecoveryAttempts())
     {
       replan_cnt++;
       replan_flag = true;
@@ -213,12 +209,10 @@ RePlan:
     }
 
     // resetting the CHOMP Parameters to the original values after a successful plan
-    {
-      params.learning_rate_ = org_learning_rate;
-      params.ridge_factor_ = org_ridge_factor;
-      params.planning_time_limit_ = org_planning_time_limit;
-      params.max_iterations_ = org_max_iterations;
-    }
+    params.learning_rate_ = org_learning_rate;
+    params.ridge_factor_ = org_ridge_factor;
+    params.planning_time_limit_ = org_planning_time_limit;
+    params.max_iterations_ = org_max_iterations;
   }
 
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",

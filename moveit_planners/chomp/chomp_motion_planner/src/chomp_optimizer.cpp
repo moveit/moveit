@@ -315,9 +315,9 @@ void ChompOptimizer::registerParents(const moveit::core::JointModel* model)
   }
 }
 
-int ChompOptimizer::optimize()
+bool ChompOptimizer::optimize()
 {
-  int optimization_result = 0;
+  bool optimization_result = 0;
   ros::WallTime start_time = ros::WallTime::now();
   double averageCostVelocity = 0.0;
   int currentCostIter = 0;
@@ -527,12 +527,12 @@ int ChompOptimizer::optimize()
 
   if (is_collision_free_)
   {
-    optimization_result = 1;
+    optimization_result = true;
     ROS_INFO("Chomp path is collision free");
   }
   else
   {
-    optimization_result = 0;
+    optimization_result = false;
     ROS_ERROR("Chomp path is not collision free!");
   }
 
