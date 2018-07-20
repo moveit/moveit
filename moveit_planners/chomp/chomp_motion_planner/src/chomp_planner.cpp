@@ -156,7 +156,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ros::WallTime create_time = ros::WallTime::now();
 
-  int replan_cnt = 0;
+  int replan_count = 0;
   bool replan_flag = false;
   double org_learning_rate = 0.04, org_ridge_factor = 0.0, org_planning_time_limit = 10;
   int org_max_iterations = 200;
@@ -195,20 +195,21 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     // replan with updated parameters if no solution is found
     if (params.getEnableFailureRecovery())
     {
-      if (optimization_result == false && replan_cnt != params.getMaxRecoveryAttempts())
+      if (!optimization_result && replan_count != params.getMaxRecoveryAttempts())
       {
-        ROS_INFO("Re-planned with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
+        ROS_INFO("Planned with Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
                  "max_iterations), attempt: # %d ",
-                 (replan_cnt + 1));
+                 (replan_count + 1));
         ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
                  params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
       }
-      if (optimization_result == false && replan_cnt < params.getMaxRecoveryAttempts())
+      if (!optimization_result && replan_count < params.getMaxRecoveryAttempts())
       {
-        replan_cnt++;
+        replan_count++;
         replan_flag = true;
-        // goto RePlan;
       }
+      else
+        break;
     }
     else
       break;
