@@ -156,64 +156,69 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ros::WallTime create_time = ros::WallTime::now();
 
-  /// block for replanning (recovery behaviour) if collision free optimized solution not found
   int replan_cnt = 0;
   bool replan_flag = false;
   double org_learning_rate = 0.04, org_ridge_factor = 0.0, org_planning_time_limit = 10;
   int org_max_iterations = 200;
-RePlan:
-{
-  if (replan_flag)
-  {
-    params.learning_rate_ *= 0.02;     // increase learning rate in hope to find obstacles (possibly faster convergence)
-    params.ridge_factor_ += 0.002;     // increase ridge factor to avoid obstacles
-    params.planning_time_limit_ += 5;  // add 5 additional secs in hope to find a solution
-    params.max_iterations_ += 50;      // increase maximum iterations
-  }
-  if (replan_cnt == 0)
-  {
-    org_learning_rate = params.learning_rate_;
-    org_ridge_factor = params.ridge_factor_;
-    org_planning_time_limit = params.planning_time_limit_;
-    org_max_iterations = params.max_iterations_;
-  }
-};
 
-  ChompOptimizer optimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
-  if (!optimizer.isInitialized())
-  {
-    ROS_ERROR_STREAM_NAMED("chomp_planner", "Could not initialize optimizer");
-    res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
-    return false;
-  }
-  ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create", (ros::WallTime::now() - create_time).toSec());
+  // storing the initial chomp parameters values
+  org_learning_rate = params.learning_rate_;
+  org_ridge_factor = params.ridge_factor_;
+  org_planning_time_limit = params.planning_time_limit_;
+  org_max_iterations = params.max_iterations_;
 
-  bool optimization_result = optimizer.optimize();
+  ChompOptimizer* optimizer;
 
-  /// replan with updated parameters if no solution is found
-  if (params.getEnableFailureRecovery())
+  // do while loop for replanning (recovery behaviour) if collision free optimized solution not found
+  do
   {
-    if (optimization_result == false && replan_cnt != params.getMaxRecoveryAttempts())
+    if (replan_flag)
     {
-      ROS_INFO("Re-planned with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
-               "max_iterations), attempt: # %d ",
-               (replan_cnt + 1));
-      ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
-               params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
-    }
-    if (optimization_result == false && replan_cnt < params.getMaxRecoveryAttempts())
-    {
-      replan_cnt++;
-      replan_flag = true;
-      goto RePlan;
+      params.learning_rate_ *= 0.02;     // increase learning rate in hope to find a successful path
+      params.ridge_factor_ += 0.002;     // increase ridge factor to avoid obstacles
+      params.planning_time_limit_ += 5;  // add 5 additional secs in hope to find a solution
+      params.max_iterations_ += 50;      // increase maximum iterations
     }
 
-    // resetting the CHOMP Parameters to the original values after a successful plan
-    params.learning_rate_ = org_learning_rate;
-    params.ridge_factor_ = org_ridge_factor;
-    params.planning_time_limit_ = org_planning_time_limit;
-    params.max_iterations_ = org_max_iterations;
-  }
+    optimizer = new ChompOptimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
+    if (!optimizer->isInitialized())
+    {
+      ROS_ERROR_STREAM_NAMED("chomp_planner", "Could not initialize optimizer");
+      res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
+      return false;
+    }
+    ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create",
+                    (ros::WallTime::now() - create_time).toSec());
+
+    bool optimization_result = optimizer->optimize();
+
+    // replan with updated parameters if no solution is found
+    if (params.getEnableFailureRecovery())
+    {
+      if (optimization_result == false && replan_cnt != params.getMaxRecoveryAttempts())
+      {
+        ROS_INFO("Re-planned with updated Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
+                 "max_iterations), attempt: # %d ",
+                 (replan_cnt + 1));
+        ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
+                 params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
+      }
+      if (optimization_result == false && replan_cnt < params.getMaxRecoveryAttempts())
+      {
+        replan_cnt++;
+        replan_flag = true;
+        // goto RePlan;
+      }
+    }
+    else
+      break;
+  } while (true);
+
+  // resetting the CHOMP Parameters to the original values after a successful plan
+  params.learning_rate_ = org_learning_rate;
+  params.ridge_factor_ = org_ridge_factor;
+  params.planning_time_limit_ = org_planning_time_limit;
+  params.max_iterations_ = org_max_iterations;
 
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",
                   (ros::WallTime::now() - create_time).toSec());
@@ -250,7 +255,7 @@ RePlan:
   res.processing_time.push_back((ros::WallTime::now() - start_time).toSec());
 
   // report planning failure if path has collisions
-  if (not optimizer.isCollisionFree())
+  if (not optimizer->isCollisionFree())
   {
     res.error_code.val = moveit_msgs::MoveItErrorCodes::INVALID_MOTION_PLAN;
     return false;
