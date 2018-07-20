@@ -13,7 +13,7 @@ benchmark_config:
     parameters:
         name: KitchenPick1
         runs: 50
-        group: manipulator       # Required
+        group: panda_arm       # Required
         timeout: 10.0
         output_directory: /tmp/moveit_benchmarks/
         queries: Pick1

@@ -13,7 +13,7 @@ benchmark_config:
     parameters:
         name: KitchenPick1
         runs: 50
-        group: manipulator      # Required
+        group: panda_arm      # Required
         timeout: 10.0
         output_directory: /home/benchmarks/
         queries: .*
@@ -24,7 +24,10 @@ benchmark_config:
             - RRTConnectkConfigDefault
             - BKPIECEkConfigDefault
             - KPIECEkConfigDefault
-        - plugin: my_plugin_ns/my_plugin
+        - plugin: chomp_interface/CHOMPPlanner
           planners:
-            - MyPlanner
+            - CHOMP
+        - plugin: stomp_moveit/StompPlannerManager
+          planners:
+            - STOMP
 
