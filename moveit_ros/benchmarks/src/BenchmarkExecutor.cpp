@@ -531,8 +531,8 @@ bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, s
   {
     planning_interface::PlannerManagerPtr pm = planner_interfaces_[it->first];
     const planning_interface::PlannerConfigurationMap& config_map = pm->getPlannerConfigurations();
-    
-    if(pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
+
+    if (pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
       return true;
 
     for (std::size_t i = 0; i < it->second.size(); ++i)
