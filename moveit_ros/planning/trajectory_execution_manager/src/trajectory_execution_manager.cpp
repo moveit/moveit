@@ -71,7 +71,7 @@ private:
     owner_->setAllowedGoalDurationMargin(config.allowed_goal_duration_margin);
     owner_->setExecutionVelocityScaling(config.execution_velocity_scaling);
     owner_->setAllowedStartTolerance(config.allowed_start_tolerance);
-    owner_->enableValidateTrajectoryExecution(config.validate_trajectory_complete);
+    owner_->setWaitForTrajectoryCompletion(config.wait_for_trajectory_completion);
   }
 
   TrajectoryExecutionManager* owner_;
@@ -215,9 +215,9 @@ void TrajectoryExecutionManager::setAllowedStartTolerance(double tolerance)
   allowed_start_tolerance_ = tolerance;
 }
 
-void TrajectoryExecutionManager::enableValidateTrajectoryExecution(bool flag)
+void TrajectoryExecutionManager::setWaitForTrajectoryCompletion(bool flag)
 {
-  validate_trajectory_complete_ = flag;
+  wait_for_trajectory_completion_ = flag;
 }
 
 bool TrajectoryExecutionManager::isManagingControllers() const
@@ -944,9 +944,7 @@ bool TrajectoryExecutionManager::distributeTrajectory(const moveit_msgs::RobotTr
 
 bool TrajectoryExecutionManager::validate(const TrajectoryExecutionContext& context) const
 {
-  // skip validation
-  if (not validate_trajectory_complete_) {
-    ROS_DEBUG_NAMED(name_, "Not validating if trajectory execution is complete");
+  if (allowed_start_tolerance_ == 0) { // skip validation on this magic number
     return true;
   }
 
@@ -1538,8 +1536,8 @@ bool TrajectoryExecutionManager::executePart(std::size_t part_index)
 bool TrajectoryExecutionManager::waitForRobotToStop(const TrajectoryExecutionContext& context, double wait_time)
 {
   // skip validation
-  if (not validate_trajectory_complete_) {
-    ROS_DEBUG_NAMED(name_, "Not validating if trajectory execution is complete");
+  if (allowed_start_tolerance_ == 0 || !wait_for_trajectory_completion_) {
+    ROS_DEBUG_NAMED(name_, "Not waiting for trajectory completion");
     return true;
   }
 

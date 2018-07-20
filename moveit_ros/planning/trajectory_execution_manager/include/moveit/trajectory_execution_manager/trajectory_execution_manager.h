@@ -241,7 +241,7 @@ public:
   void setAllowedStartTolerance(double tolerance);
 
   /// Enable or disable the validating of a trajectory
-  void enableValidateTrajectory(bool flag);
+  void setWaitForTrajectoryCompletion(bool flag);
 
 private:
   struct ControllerInformation
@@ -359,7 +359,7 @@ private:
 
   double allowed_start_tolerance_;  // joint tolerance for validate(): radians for revolute joints
   double execution_velocity_scaling_;
-  bool validate_trajectory_complete_;
+  bool wait_for_trajectory_completion_;
 };
 }
 
