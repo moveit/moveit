@@ -80,35 +80,43 @@ public:
   int getMaxRecoveryAttempts() const;
 
 public:
-  double planning_time_limit_;              /// maximum time the optimizer can take to find a solution before terminating
-  int max_iterations_;                      /// maximum number of iterations that the planner can take to find a good solution while optimization
-  int max_iterations_after_collision_free_; /// maximum iterations to be performed after a collision free path is found.
-  double smoothness_cost_weight_;           /// smoothness_cost_weight parameters controls its weight in the final cost that CHOMP is actually optimizing over
-  double obstacle_cost_weight_;             /// controls the weight to be given to obstacles towards the final cost CHOMP optimizes over
-  double learning_rate_;                    /// learning rate used by the optimizer to find the local / global minima while reducing the total cost
+  double planning_time_limit_;  /// maximum time the optimizer can take to find a solution before terminating
+  int max_iterations_;          /// maximum number of iterations that the planner can take to find a good solution while
+                                /// optimization
+  int max_iterations_after_collision_free_;  /// maximum iterations to be performed after a collision free path is
+                                             /// found.
+  double smoothness_cost_weight_;  /// smoothness_cost_weight parameters controls its weight in the final cost that
+                                   /// CHOMP is actually optimizing over
+  double obstacle_cost_weight_;  /// controls the weight to be given to obstacles towards the final cost CHOMP optimizes
+                                 /// over
+  double learning_rate_;  /// learning rate used by the optimizer to find the local / global minima while reducing the
+                          /// total cost
 
-  double smoothness_cost_velocity_;         /// variables associated with the cost in velocity
-  double smoothness_cost_acceleration_;     /// variables associated with the cost in acceleration
-  double smoothness_cost_jerk_;             /// variables associated with the cost in jerk
+  double smoothness_cost_velocity_;      /// variables associated with the cost in velocity
+  double smoothness_cost_acceleration_;  /// variables associated with the cost in acceleration
+  double smoothness_cost_jerk_;          /// variables associated with the cost in jerk
   // bool add_randomness_;
   // bool use_hamiltonian_monte_carlo_;
-  bool use_stochastic_descent_;             /// set this to true/false if you want to use stochastic descent while optimizing the cost.
+  bool use_stochastic_descent_;  /// set this to true/false if you want to use stochastic descent while optimizing the
+                                 /// cost.
 
   // double hmc_stochasticity_;
   // double hmc_discretization_;
   // double hmc_annealing_factor_;
-  double ridge_factor_;                     /// the noise added to the diagnal of the total quadratic cost matrix in the objective function
-  bool use_pseudo_inverse_;                 /// enable pseudo inverse calculations or not.
-  double pseudo_inverse_ridge_factor_;      /// set the ridge factor if pseudo inverse is enabled
+  double ridge_factor_;  /// the noise added to the diagnal of the total quadratic cost matrix in the objective function
+  bool use_pseudo_inverse_;             /// enable pseudo inverse calculations or not.
+  double pseudo_inverse_ridge_factor_;  /// set the ridge factor if pseudo inverse is enabled
 
-  double joint_update_limit_;               /// set the update limit for the robot joints
-  double min_clearence_;                    /// the minimum distance that needs to be maintained to avoid obstacles
-  double collision_threshold_;              /// the collision threshold cost that needs to be mainted to avoid collisions
+  double joint_update_limit_;   /// set the update limit for the robot joints
+  double min_clearence_;        /// the minimum distance that needs to be maintained to avoid obstacles
+  double collision_threshold_;  /// the collision threshold cost that needs to be mainted to avoid collisions
   bool filter_mode_;
   // double random_jump_amount_;
   std::string trajectory_initialization_method_;  /// trajectory initialization method to be specified
-  bool enable_failure_recovery_;                  /// if set to true, CHOMP tries to vary certain parameters to try and find a path if an initial path is not found with the specified chomp parameters
-  int max_recovery_attempts_;                     /// this the maximum recovery attempts to find a collision free path after an initial failure to find a solution
+  bool enable_failure_recovery_;  /// if set to true, CHOMP tries to vary certain parameters to try and find a path if
+                                  /// an initial path is not found with the specified chomp parameters
+  int max_recovery_attempts_;     /// this the maximum recovery attempts to find a collision free path after an initial
+                                  /// failure to find a solution
 };
 
 }  // namespace chomp
