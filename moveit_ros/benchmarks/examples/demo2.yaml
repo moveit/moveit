@@ -27,4 +27,3 @@ benchmark_config:
         - plugin: my_plugin_ns/my_plugin
           planners:
             - MyPlanner
-

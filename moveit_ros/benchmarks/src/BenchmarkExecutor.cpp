@@ -532,6 +532,8 @@ bool BenchmarkExecutor::plannerConfigurationsExist(const std::map<std::string, s
     planning_interface::PlannerManagerPtr pm = planner_interfaces_[it->first];
     const planning_interface::PlannerConfigurationMap& config_map = pm->getPlannerConfigurations();
 
+    // if the planner is chomp or stomp skip this function and return true for checking planner configurations for the
+    // planning group other wise an error occurs, this is kind of a trick which works well
     if (pm->getDescription().compare("stomp") || pm->getDescription().compare("chomp"))
       return true;
 
