@@ -79,6 +79,13 @@ public:
   bool getEnableFailureRecovery() const;
   int getMaxRecoveryAttempts() const;
 
+  /**
+   * function which returns the non constant version of the ChompParameters
+   * @param params equates the returned chomp parameters to this argument
+   * @return returns the non constant version of ChompParameters
+   */
+  ChompParameters getNonConstantParams(ChompParameters params);
+
 public:
   double planning_time_limit_;  /// maximum time the optimizer can take to find a solution before terminating
   int max_iterations_;          /// maximum number of iterations that the planner can take to find a good solution while

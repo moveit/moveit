@@ -74,6 +74,12 @@ ChompParameters::~ChompParameters()
 {
 }
 
+ChompParameters ChompParameters::getNonConstantParams(ChompParameters params)
+{
+  ChompParameters non_const;
+  non_const = params;
+  return non_const;
+}
 /////////////////////// getter and setter functions follow ////////////////////////
 
 /*

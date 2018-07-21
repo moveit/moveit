@@ -48,7 +48,7 @@ ChompPlanner::ChompPlanner()
 }
 
 bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_scene,
-                         const moveit_msgs::MotionPlanRequest& req, chomp::ChompParameters& params,
+                         const moveit_msgs::MotionPlanRequest& req, const chomp::ChompParameters& params,
                          moveit_msgs::MotionPlanDetailedResponse& res) const
 {
   if (!planning_scene)
@@ -169,57 +169,64 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
 
   ChompOptimizer* optimizer;
 
+  // create a non_const_params variable which stores the non constant version of the const params variable
+  ChompParameters non_constant = non_constant.getNonConstantParams(params);
+
   // do while loop for replanning (recovery behaviour) if collision free optimized solution not found
   do
   {
     if (replan_flag)
     {
-      params.learning_rate_ *= 0.02;     // increase learning rate in hope to find a successful path
-      params.ridge_factor_ += 0.002;     // increase ridge factor to avoid obstacles
-      params.planning_time_limit_ += 5;  // add 5 additional secs in hope to find a solution
-      params.max_iterations_ += 50;      // increase maximum iterations
+      non_constant.learning_rate_ += 0.02;     // increase learning rate in hope to find a successful path
+      non_constant.ridge_factor_ += 0.002;     // increase ridge factor to avoid obstacles
+      non_constant.planning_time_limit_ += 5;  // add 5 additional secs in hope to find a solution
+      non_constant.max_iterations_ += 50;      // increase maximum iterations
     }
 
-    optimizer = new ChompOptimizer(&trajectory, planning_scene, req.group_name, &params, start_state);
+    optimizer = new ChompOptimizer(&trajectory, planning_scene, req.group_name, &non_constant, start_state);
     if (!optimizer->isInitialized())
     {
       ROS_ERROR_STREAM_NAMED("chomp_planner", "Could not initialize optimizer");
       res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
       return false;
     }
+
     ROS_DEBUG_NAMED("chomp_planner", "Optimization took %f sec to create",
                     (ros::WallTime::now() - create_time).toSec());
 
     bool optimization_result = optimizer->optimize();
 
     // replan with updated parameters if no solution is found
-    if (params.getEnableFailureRecovery())
+    if (non_constant.getEnableFailureRecovery())
     {
-      if (!optimization_result && replan_count != params.getMaxRecoveryAttempts())
-      {
-        ROS_INFO("Planned with Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
-                 "max_iterations), attempt: # %d ",
-                 (replan_count + 1));
-        ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ", params.learning_rate_,
-                 params.ridge_factor_, params.planning_time_limit_, params.max_iterations_);
-      }
-      if (!optimization_result && replan_count < params.getMaxRecoveryAttempts())
+      // if (!optimization_result && replan_count != non_constant.getMaxRecoveryAttempts())
+      //{
+      ROS_INFO("Planned with Chomp Parameters (learning_rate, ridge_factor, planning_time_limit, "
+               "max_iterations), attempt: # %d ",
+               (replan_count + 1));
+      ROS_INFO("Learning rate: %f ridge factor: %f planning time limit: %f max_iterations %d ",
+               non_constant.learning_rate_, non_constant.ridge_factor_, non_constant.planning_time_limit_,
+               non_constant.max_iterations_);
+      //}
+      if (!optimization_result && replan_count < non_constant.getMaxRecoveryAttempts())
       {
         replan_count++;
         replan_flag = true;
       }
       else
+      {
         break;
+      }
     }
     else
       break;
   } while (true);
 
   // resetting the CHOMP Parameters to the original values after a successful plan
-  params.learning_rate_ = org_learning_rate;
-  params.ridge_factor_ = org_ridge_factor;
-  params.planning_time_limit_ = org_planning_time_limit;
-  params.max_iterations_ = org_max_iterations;
+  non_constant.learning_rate_ = org_learning_rate;
+  non_constant.ridge_factor_ = org_ridge_factor;
+  non_constant.planning_time_limit_ = org_planning_time_limit;
+  non_constant.max_iterations_ = org_max_iterations;
 
   ROS_DEBUG_NAMED("chomp_planner", "Optimization actually took %f sec to run",
                   (ros::WallTime::now() - create_time).toSec());
