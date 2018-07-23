@@ -197,7 +197,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
     bool optimization_result = optimizer->optimize();
 
     // replan with updated parameters if no solution is found
-    if (non_constant.getEnableFailureRecovery())
+    if (non_constant.enable_failure_recovery_)
     {
       // if (!optimization_result && replan_count != non_constant.getMaxRecoveryAttempts())
       //{
@@ -208,7 +208,7 @@ bool ChompPlanner::solve(const planning_scene::PlanningSceneConstPtr& planning_s
                non_constant.learning_rate_, non_constant.ridge_factor_, non_constant.planning_time_limit_,
                non_constant.max_iterations_);
       //}
-      if (!optimization_result && replan_count < non_constant.getMaxRecoveryAttempts())
+      if (!optimization_result && replan_count < non_constant.max_recovery_attempts_)
       {
         replan_count++;
         replan_flag = true;

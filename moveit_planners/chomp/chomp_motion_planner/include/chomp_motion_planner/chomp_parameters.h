@@ -47,38 +47,6 @@ public:
   ChompParameters();
   virtual ~ChompParameters();
 
-  double getPlanningTimeLimit() const;
-  void setPlanningTimeLimit(double planning_time_limit);
-  int getMaxIterations() const;
-  int getMaxIterationsAfterCollisionFree() const;
-  double getSmoothnessCostWeight() const;
-  double getObstacleCostWeight() const;
-
-  double getLearningRate() const;
-  double getSmoothnessCostVelocity() const;
-  double getSmoothnessCostAcceleration() const;
-  double getSmoothnessCostJerk() const;
-  // bool getAddRandomness() const;
-  // bool getUseHamiltonianMonteCarlo() const;
-  // double getHmcDiscretization() const;
-  // double getHmcStochasticity() const;
-  // double getHmcAnnealingFactor() const;
-  double getRidgeFactor() const;
-  bool getUsePseudoInverse() const;
-  double getPseudoInverseRidgeFactor() const;
-
-  double getJointUpdateLimit() const;
-  double getMinClearence() const;
-  double getCollisionThreshold() const;
-  bool getFilterMode() const;
-  void setFilterMode(bool mode);
-  // double getRandomJumpAmount() const;
-  // void setRandomJumpAmount(double amount);
-  bool getUseStochasticDescent() const;
-  std::string getTrajectoryInitializationMethod() const;
-  bool getEnableFailureRecovery() const;
-  int getMaxRecoveryAttempts() const;
-
   /**
    * function which returns the non constant version of the ChompParameters
    * @param params equates the returned chomp parameters to this argument
