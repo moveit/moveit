@@ -50,7 +50,7 @@ class CHOMPInterface : public chomp::ChompPlanner
 public:
   CHOMPInterface(const ros::NodeHandle& nh = ros::NodeHandle("~"));
 
-  const chomp::ChompParameters& getParams()
+  const chomp::ChompParameters& getParams() const
   {
     return params_;
   }
