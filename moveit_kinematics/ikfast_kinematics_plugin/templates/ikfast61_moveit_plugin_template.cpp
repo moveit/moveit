@@ -546,8 +546,9 @@ int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<doub
     case IKP_TranslationXAxisAngle4D:
     case IKP_TranslationYAxisAngle4D:
     case IKP_TranslationZAxisAngle4D:
-      // For **TranslationXAxisAngle4D**, **TranslationYAxisAngle4D**, and **TranslationZAxisAngle4D**, the first value
-      // represents the angle.
+      // For *TranslationXAxisAngle4D*, *TranslationYAxisAngle4D*, *TranslationZAxisAngle4D* - end effector origin
+      // reaches desired 3D translation, manipulator direction makes a specific angle with x/y/z-axis (defined in the
+      // manipulator base link’s coordinate system)
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
 
@@ -561,11 +562,33 @@ int IKFastKinematicsPlugin::solve(KDL::Frame& pose_frame, const std::vector<doub
     case IKP_Lookat3D:
     case IKP_TranslationXY2D:
     case IKP_TranslationXYOrientation3D:
-    case IKP_TranslationXAxisAngleZNorm4D:
-    case IKP_TranslationYAxisAngleXNorm4D:
-    case IKP_TranslationZAxisAngleYNorm4D:
       ROS_ERROR_NAMED(name_, "IK for this IkParameterizationType not implemented yet.");
       return 0;
+
+    case IKP_TranslationXAxisAngleZNorm4D:
+      double roll, pitch, yaw;
+      // For **TranslationXAxisAngleZNorm4D** - end effector origin reaches desired 3D translation, manipulator
+      // direction needs to be orthogonal to z axis and be rotated at a certain angle starting from the x axis (defined
+      // in the manipulator base link’s coordinate system)
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &yaw, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
+    case IKP_TranslationYAxisAngleXNorm4D:
+      // For **TranslationYAxisAngleXNorm4D** - end effector origin reaches desired 3D translation, manipulator
+      // direction needs to be orthogonal to x axis and be rotated at a certain angle starting from the y axis (defined
+      // in the manipulator base link’s coordinate system)
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &roll, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
+
+    case IKP_TranslationZAxisAngleYNorm4D:
+      // For **TranslationZAxisAngleYNorm4D** - end effector origin reaches desired 3D translation, manipulator
+      // direction needs to be orthogonal to y axis and be rotated at a certain angle starting from the z axis (defined
+      // in the manipulator base link’s coordinate system)
+      pose_frame.M.GetRPY(roll, pitch, yaw);
+      ComputeIk(trans, &pitch, vfree.size() > 0 ? &vfree[0] : NULL, solutions);
+      return solutions.GetNumSolutions();
 
     default:
       ROS_ERROR_NAMED(name_, "Unknown IkParameterizationType! Was the solver generated with an incompatible version "
