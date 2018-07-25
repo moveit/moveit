@@ -284,15 +284,14 @@ ompl_interface::ModelBasedPlanningContextPtr ompl_interface::PlanningContextMana
 
   {
     std::unique_lock<std::mutex> slock(cached_contexts_->lock_);
-    std::map<std::pair<std::string, std::string>, std::vector<ModelBasedPlanningContextPtr> >::const_iterator cc =
-        cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
-    if (cc != cached_contexts_->contexts_.end())
+    auto cached_contexts = cached_contexts_->contexts_.find(std::make_pair(config.name, factory->getType()));
+    if (cached_contexts != cached_contexts_->contexts_.end())
     {
-      for (const auto& i : cc->second)
-        if (i.unique())
+      for (const ModelBasedPlanningContextPtr& cached_context : cached_contexts->second)
+        if (cached_context.unique())
         {
           ROS_DEBUG_NAMED("planning_context_manager", "Reusing cached planning context");
-          context = i;
+          context = cached_context;
           break;
         }
     }
