@@ -163,7 +163,7 @@ bool interpolateUsingStoredStates(const ConstraintApproximationStateStorage* sta
     if (it == md.second.end())
       return false;
     const std::pair<std::size_t, std::size_t>& istates = it->second;
-    auto index = (std::size_t)((istates.second - istates.first + 2) * t + 0.5);
+    std::size_t index = (std::size_t)((istates.second - istates.first + 2) * t + 0.5);
 
     if (index == 0)
       state_storage->getStateSpace()->copyState(state, from);
@@ -368,7 +368,7 @@ void ompl_interface::ConstraintsLibrary::clearConstraintApproximations()
 
 void ompl_interface::ConstraintsLibrary::printConstraintApproximations(std::ostream& out) const
 {
-  for (const auto& constraint_approximation : constraint_approximations_)
+  for (const std::pair<std::string, ConstraintApproximationPtr>& constraint_approximation : constraint_approximations_)
   {
     out << constraint_approximation.second->getGroup() << std::endl;
     out << constraint_approximation.second->getStateSpaceParameterization() << std::endl;

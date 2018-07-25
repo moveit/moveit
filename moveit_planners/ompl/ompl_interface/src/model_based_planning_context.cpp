@@ -420,7 +420,7 @@ ompl::base::GoalPtr ompl_interface::ModelBasedPlanningContext::constructGoal()
   // ******************* set up the goal representation, based on goal constraints
 
   std::vector<ob::GoalPtr> goals;
-  for (auto& goal_constraint : goal_constraints_)
+  for (kinematic_constraints::KinematicConstraintSetPtr& goal_constraint : goal_constraints_)
   {
     constraint_samplers::ConstraintSamplerPtr cs;
     if (spec_.constraint_sampler_manager_)
@@ -476,7 +476,7 @@ bool ompl_interface::ModelBasedPlanningContext::setGoalConstraints(
 {
   // ******************* check if the input is correct
   goal_constraints_.clear();
-  for (const auto& goal_constraint : goal_constraints)
+  for (const moveit_msgs::Constraints& goal_constraint : goal_constraints)
   {
     moveit_msgs::Constraints constr = kinematic_constraints::mergeConstraints(goal_constraint, path_constraints);
     kinematic_constraints::KinematicConstraintSetPtr kset(

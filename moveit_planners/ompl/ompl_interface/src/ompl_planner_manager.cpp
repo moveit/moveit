@@ -131,8 +131,8 @@ public:
     const planning_interface::PlannerConfigurationMap& pconfig = ompl_interface_->getPlannerConfigurations();
     algs.clear();
     algs.reserve(pconfig.size());
-    for (const auto& it : pconfig)
-      algs.push_back(it.first);
+    for (const std::pair<std::string, planning_interface::PlannerConfigurationSettings>& config : pconfig)
+      algs.push_back(config.first);
   }
 
   void setPlannerConfigurations(const planning_interface::PlannerConfigurationMap& pconfig) override

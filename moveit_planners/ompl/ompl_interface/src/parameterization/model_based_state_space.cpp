@@ -140,7 +140,7 @@ void ompl_interface::ModelBasedStateSpace::deserialize(ompl::base::State* state,
 unsigned int ompl_interface::ModelBasedStateSpace::getDimension() const
 {
   unsigned int d = 0;
-  for (auto i : joint_model_vector_)
+  for (const robot_model::JointModel* i : joint_model_vector_)
     d += i->getStateSpaceDimension();
   return d;
 }
@@ -153,10 +153,9 @@ double ompl_interface::ModelBasedStateSpace::getMaximumExtent() const
 double ompl_interface::ModelBasedStateSpace::getMeasure() const
 {
   double m = 1.0;
-  for (auto joint_bound : spec_.joint_bounds_)
+  for (const robot_model::JointModel::Bounds* bounds : spec_.joint_bounds_)
   {
-    const robot_model::JointModel::Bounds& bounds = *joint_bound;
-    for (const auto& bound : bounds)
+    for (const moveit::core::VariableBounds& bound : *bounds)
     {
       m *= bound.max_position_ - bound.min_position_;
     }
@@ -292,7 +291,7 @@ void ompl_interface::ModelBasedStateSpace::printSettings(std::ostream& out) cons
 
 void ompl_interface::ModelBasedStateSpace::printState(const ompl::base::State* state, std::ostream& out) const
 {
-  for (auto j : joint_model_vector_)
+  for (const robot_model::JointModel* j : joint_model_vector_)
   {
     out << j->getName() << " = ";
     const int idx = spec_.joint_model_group_->getVariableGroupIndex(j->getName());

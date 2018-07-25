@@ -93,7 +93,7 @@ double ompl_interface::StateValidityChecker::cost(const ompl::base::State* state
   collision_detection::CollisionResult res;
   planning_context_->getPlanningScene()->checkCollision(collision_request_with_cost_, res, *kstate);
 
-  for (const auto& cost_source : res.cost_sources)
+  for (const collision_detection::CostSource& cost_source : res.cost_sources)
     cost += cost_source.cost * cost_source.getVolume();
 
   return cost;
