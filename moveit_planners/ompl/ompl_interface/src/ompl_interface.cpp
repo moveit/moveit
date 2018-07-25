@@ -268,12 +268,14 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
       if (!loadPlannerConfiguration(group_name, default_planner_id, specific_group_params, default_pc))
         default_planner_id = "";
     }
+
     if (default_planner_id.empty())
     {
       default_pc.group = group_name;
       default_pc.config = specific_group_params;
       default_pc.config["type"] = "geometric::RRTConnect";
     }
+
     default_pc.name = group_name;  // this is the name of the default config
     pconfig[default_pc.name] = default_pc;
 
@@ -289,15 +291,15 @@ void ompl_interface::OMPLInterface::loadPlannerConfigurations()
         continue;
       }
 
-      for (std::pair<const std::string, XmlRpc::XmlRpcValue>& name : config_names)
+      for (std::size_t j = 0; j < config_names.size(); ++j)
       {
-        if (name.second.getType() != XmlRpc::XmlRpcValue::TypeString)
+        if (config_names[j].getType() != XmlRpc::XmlRpcValue::TypeString)
         {
           ROS_ERROR("Planner configuration names must be of type string (for group '%s')", group_name.c_str());
           continue;
         }
 
-        const std::string planner_id = static_cast<std::string>(name.second);
+        const std::string planner_id = static_cast<std::string>(config_names[j]);
 
         planning_interface::PlannerConfigurationSettings pc;
         if (loadPlannerConfiguration(group_name, planner_id, specific_group_params, pc))
