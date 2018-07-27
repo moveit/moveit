@@ -52,7 +52,7 @@ static const std::string ROBOT_DESCRIPTION = "robot_description";
 class MoveItFakeControllerManager : public moveit_controller_manager::MoveItControllerManager
 {
 public:
-  MoveItFakeControllerManager() : node_handle_("~")
+  MoveItFakeControllerManager() : node_handle_("~"), root_node_handle_("")
   {
     if (!node_handle_.hasParam("controller_list"))
     {
@@ -105,11 +105,11 @@ public:
         const std::string& type =
             controller_list[i].hasMember("type") ? std::string(controller_list[i]["type"]) : DEFAULT_TYPE;
         if (type == "last point")
-          controllers_[name].reset(new LastPointController(name, joints, pub_));
+          controllers_[name].reset(new LastPointController(root_node_handle_, name, joints, pub_));
         else if (type == "via points")
-          controllers_[name].reset(new ViaPointController(name, joints, pub_));
+          controllers_[name].reset(new ViaPointController(root_node_handle_, name, joints, pub_));
         else if (type == "interpolate")
-          controllers_[name].reset(new InterpolatingController(name, joints, pub_));
+          controllers_[name].reset(new InterpolatingController(root_node_handle_, name, joints, pub_));
         else
           ROS_ERROR_STREAM("Unknown fake controller type: " << type);
       }
@@ -277,6 +277,7 @@ public:
 
 protected:
   ros::NodeHandle node_handle_;
+  ros::NodeHandle root_node_handle_;
   ros::Publisher pub_;
   std::map<std::string, BaseFakeControllerPtr> controllers_;
 };
